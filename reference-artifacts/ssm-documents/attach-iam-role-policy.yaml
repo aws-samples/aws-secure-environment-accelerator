@@ -1,0 +1,20 @@
+description: 
+schemaVersion: '0.3'
+assumeRole: '{{ AutomationAssumeRole }}'
+parameters:
+  RoleName:
+    type: String
+  ManagedPolicies:
+    type: StringList
+  AutomationAssumeRole:
+    type: String
+mainSteps:
+  - name: attachPolicy
+    action: 'aws:executeScript'
+    inputs:
+      Runtime: python3.6
+      Handler: script_handler
+      Script: "import boto3\ndef script_handler(events, context):\n\tiam = boto3.client(\"iam\")\n\trole_name = events[\"RoleName\"]\n\tpolicy_names = events[\"ManagedPolicies\"]\n\tfor policy in policy_names:\n\t  print(policy)\n\t  iam.attach_role_policy(\n\t    PolicyArn=\"arn:aws:iam::aws:policy/%s\"%policy,\n\t    RoleName=role_name\n\t  )"
+      InputPayload:
+        RoleName: '{{ RoleName }}'
+        ManagedPolicies: '{{ ManagedPolicies }}'

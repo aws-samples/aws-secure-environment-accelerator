@@ -173,14 +173,14 @@ export async function createRule(props: CreateRuleProps) {
                 d.documents.includes(remediationAction),
               );
               if (ssmDocInAccount) {
-                targetId = `arn:aws:ssm:${cdk.Aws.REGION}:${getAccountId(
+                targetId = `arn:${cdk.Aws.PARTITION}:ssm:${cdk.Aws.REGION}:${getAccountId(
                   accounts,
                   ssmDocInAccount.account,
                 )}:document/${remediationActionName}`;
               } else {
                 const ssmDocInOu = ouConfig['ssm-automation'].find(d => d.documents.includes(remediationAction));
                 if (ssmDocInOu) {
-                  targetId = `arn:aws:ssm:${cdk.Aws.REGION}:${getAccountId(
+                  targetId = `arn:${cdk.Aws.PARTITION}:ssm:${cdk.Aws.REGION}:${getAccountId(
                     accounts,
                     ssmDocInOu.account,
                   )}:document/${remediationActionName}`;
@@ -250,14 +250,17 @@ export function getRemediationParameters(params: {
 }): RemediationParameters {
   const reutrnParams: RemediationParameters = {};
   const { outputs, remediationParams, roleName, config, accountKey, defaultRegion } = params;
+  const tempRemediationParams = {
+    ...remediationParams,
+  };
   reutrnParams.AutomationAssumeRole = {
     StaticValue: {
-      Values: [`arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/${remediationParams.AutomationAssumeRole || roleName}`],
+      Values: [`arn:${cdk.Aws.PARTITION}:iam::${cdk.Aws.ACCOUNT_ID}:role/${tempRemediationParams.AutomationAssumeRole || roleName}`],
     },
   };
 
-  Object.keys(remediationParams).map(key => {
-    if (remediationParams[key] === 'RESOURCE_ID') {
+  Object.keys(tempRemediationParams).map(key => {
+    if (tempRemediationParams[key] === 'RESOURCE_ID') {
       reutrnParams[key] = {
         ResourceValue: {
           Value: 'RESOURCE_ID',
@@ -267,32 +270,38 @@ export function getRemediationParameters(params: {
       if (key === 'AutomationAssumeRole') {
         reutrnParams.AutomationAssumeRole = {
           StaticValue: {
-            Values: [`arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/${remediationParams[key]}`],
+            Values: [`arn:${cdk.Aws.PARTITION}:iam::${cdk.Aws.ACCOUNT_ID}:role/${tempRemediationParams[key]}`],
           },
         };
       } else {
-        if (remediationParams[key].startsWith('${SEA::')) {
-          const replaceKey = remediationParams[key].match('{SEA::(.*)}')?.[1]!;
+        /* eslint-disable no-template-curly-in-string */
+        const remediationParamMatch = tempRemediationParams[key].match('\\${SEA::([a-zA-Z0-9-]*)}');
+        if (remediationParamMatch) {
+          const replaceKey = remediationParamMatch[1];
+          const replaceValue = getParameterValue({
+            paramKey: replaceKey,
+            outputs,
+            config,
+            accountKey,
+            defaultRegion,
+          });
+          tempRemediationParams[key] = tempRemediationParams[key].replace(
+            new RegExp('\\${SEA::[a-zA-Z0-9-]*}', 'g'),
+            replaceValue,
+          );
           reutrnParams[key] = {
             StaticValue: {
-              Values: [
-                getParameterValue({
-                  paramKey: replaceKey,
-                  outputs,
-                  config,
-                  accountKey,
-                  defaultRegion,
-                }),
-              ],
+              Values: [tempRemediationParams[key]],
             },
           };
         } else {
           reutrnParams[key] = {
             StaticValue: {
-              Values: [remediationParams[key]],
+              Values: [tempRemediationParams[key]],
             },
           };
         }
+        /* eslint-enable */
       }
     }
   });
@@ -350,7 +359,7 @@ export function getParameterValue(props: {
         accountKey,
         region: defaultRegion,
       });
-      return `arn:aws:kms:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:alias/${accountBucket?.encryptionKeyName}`;
+      return `arn:${cdk.Aws.PARTITION}:kms:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:alias/${accountBucket?.encryptionKeyName}`;
     }
     case 'EC2InstaceProfilePermissions': {
       const ssmPolicyOutput = IamPolicyOutputFinder.findOneByName({
