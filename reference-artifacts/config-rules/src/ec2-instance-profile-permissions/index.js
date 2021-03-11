@@ -75,10 +75,10 @@ async function evaluateCompliance(props) {
       if (!requiredPolicy) {
         continue;
       }
-      if (!existingPolicyNames.includes(requiredPolicy)) {
+      if (!existingPolicyNames.includes(requiredPolicy.trim())) {
         return {
           complianceType: 'NON_COMPLIANT',
-          annotation: 'The IAM Role is not having required polocies attached ' + ruleParams.ManagedPolicies,
+          annotation: 'The IAM Role is not having required polocies attached ' + requiredPolicy,
         };
       }
     }
