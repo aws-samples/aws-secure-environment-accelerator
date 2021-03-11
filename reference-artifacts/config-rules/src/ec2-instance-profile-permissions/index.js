@@ -72,6 +72,9 @@ async function evaluateCompliance(props) {
     const existingPolicyNames = configurationItem.configuration.attachedManagedPolicies.map(p => p.policyName);
     const requiredPolicies = ruleParams.ManagedPolicies.split(',');
     for (const requiredPolicy of requiredPolicies) {
+      if (!requiredPolicy) {
+        continue;
+      }
       if (!existingPolicyNames.includes(requiredPolicy)) {
         return {
           complianceType: 'NON_COMPLIANT',
