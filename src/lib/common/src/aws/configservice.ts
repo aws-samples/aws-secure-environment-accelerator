@@ -11,6 +11,7 @@ import {
   StartConfigurationRecorderRequest,
   PutConfigurationAggregatorRequest,
   StopConfigurationRecorderRequest,
+  PutEvaluationsRequest,
 } from 'aws-sdk/clients/configservice';
 import { throttlingBackOff } from './backoff';
 
@@ -135,5 +136,12 @@ export class ConfigService {
         })
         .promise(),
     );
+  }
+
+  /**
+   * PutEvaluations to configRule
+   */
+  async putEvaluations(input: PutEvaluationsRequest): Promise<void> {
+    await throttlingBackOff(() => this.client.putEvaluations(input).promise());
   }
 }

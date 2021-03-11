@@ -49,6 +49,7 @@ export const handler = async (input: VerifyFilesInput) => {
   await verifyFirewallFiles(masterAccountKey, outputs, acceleratorConfig, errors);
   await verifyRsyslogFiles(outputs, errors);
   await verifySsmDocumentFiles(outputs, acceleratorConfig, errors);
+  await verifyConfigRuleFiles(outputs, acceleratorConfig, errors);
 
   if (errors.length > 0) {
     throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
@@ -219,4 +220,25 @@ async function verifySsmDocumentFiles(
   );
   const ssmDocuments = automationDocuments.map(ssmDoc => `${ssmDocumentsBucketPrefix}/${ssmDoc}`);
   await verifyFiles(ssmDocumentsBucketName, ssmDocuments, errors);
+}
+
+async function verifyConfigRuleFiles(
+  outputs: StackOutput[],
+  config: c.AcceleratorConfig,
+  errors: string[],
+): Promise<void> {
+  const artifactOutput = ArtifactOutputFinder.findOneByName({
+    outputs,
+    artifactName: 'ConfigRules',
+  });
+  const configRulesBucketName = artifactOutput.bucketName;
+  const configRulesBucketPrefix = artifactOutput.keyPrefix;
+
+  const configRules = config['global-options']['aws-config']?.rules.filter(r => r.type === 'custom') || [];
+  const configRuleFiles = configRules.map(rule =>
+    `${configRulesBucketPrefix}/${rule['runtime-path'] || rule.name.toLowerCase()}`.endsWith('.zip')
+      ? `${configRulesBucketPrefix}/${rule['runtime-path'] || rule.name.toLowerCase()}`
+      : `${configRulesBucketPrefix}/${rule['runtime-path'] || rule.name.toLowerCase()}.zip`,
+  );
+  await verifyFiles(configRulesBucketName, configRuleFiles, errors);
 }

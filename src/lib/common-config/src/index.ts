@@ -7,6 +7,10 @@ export const MANDATORY_ACCOUNT_TYPES = ['master', 'central-security', 'central-l
 
 export type MandatoryAccountType = typeof MANDATORY_ACCOUNT_TYPES[number];
 
+export const CONFIG_RULE_TYPES = ['managed', 'custom'] as const;
+
+export const ConfigRuleType = enumType<typeof CONFIG_RULE_TYPES[number]>(CONFIG_RULE_TYPES);
+
 export const VirtualPrivateGatewayConfig = t.interface({
   asn: optional(t.number),
 });
@@ -790,7 +794,7 @@ export const AwsConfigRuleDefaults = t.interface({
   'remediation-concurrency': t.number,
 });
 
-export const AwsConfigManagedRule = t.interface({
+export const AwsConfigRule = t.interface({
   name: NonEmptyString,
   remediation: optional(t.boolean),
   'remediation-attempts': optional(t.number),
@@ -799,15 +803,16 @@ export const AwsConfigManagedRule = t.interface({
   'remediation-action': optional(t.string),
   'remediation-params': fromNullable(t.record(t.string, t.string), {}),
   parameters: fromNullable(t.record(t.string, t.string), {}),
-});
-
-export const AwsConfigManagedRules = t.interface({
-  defaults: AwsConfigRuleDefaults,
-  rules: t.array(AwsConfigManagedRule),
+  type: fromNullable(ConfigRuleType, 'managed'),
+  'max-frequency': optional(t.string),
+  'resource-types': fromNullable(t.array(t.string), []),
+  runtime: optional(t.string),
+  'runtime-path': optional(t.string),
 });
 
 export const AwsConfig = t.interface({
-  'managed-rules': AwsConfigManagedRules,
+  defaults: AwsConfigRuleDefaults,
+  rules: t.array(AwsConfigRule),
 });
 
 export const ReplacementConfigValueType = t.record(t.string, t.union([t.string, t.array(t.string)]));
