@@ -307,9 +307,12 @@ export function getConfigRuleParameters(params: {
   defaultRegion: string;
 }): { [key: string]: string } {
   const { config, outputs, ruleParams, accountKey, defaultRegion } = params;
-  Object.keys(ruleParams).map(key => {
+  const tempRuleParams = {
+    ...ruleParams,
+  };
+  Object.keys(tempRuleParams).map(key => {
     /* eslint-disable no-template-curly-in-string */
-    const ruleParamMatch = ruleParams[key].match('\\${SEA::([a-zA-Z0-9-]*)}');
+    const ruleParamMatch = tempRuleParams[key].match('\\${SEA::([a-zA-Z0-9-]*)}');
     if (ruleParamMatch) {
       const replaceKey = ruleParamMatch[1];
       const replaceValue = getParameterValue({
@@ -319,11 +322,11 @@ export function getConfigRuleParameters(params: {
         accountKey,
         defaultRegion,
       });
-      ruleParams[key] = ruleParams[key].replace(new RegExp('\\${SEA::[a-zA-Z0-9-]*}', 'g'), replaceValue);
+      tempRuleParams[key] = tempRuleParams[key].replace(new RegExp('\\${SEA::[a-zA-Z0-9-]*}', 'g'), replaceValue);
     }
     /* eslint-enable */
   });
-  return ruleParams;
+  return tempRuleParams;
 }
 
 export function getParameterValue(props: {
