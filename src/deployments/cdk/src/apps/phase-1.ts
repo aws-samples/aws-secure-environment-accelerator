@@ -34,7 +34,6 @@ import * as transitGateway from '../deployments/transit-gateway';
 import * as centralEndpoints from '../deployments/central-endpoints';
 import { CfnResourceStackCleanupOutput } from '../deployments/cleanup/outputs';
 import { VpcOutputFinder, VpcSubnetOutput } from '@aws-accelerator/common-outputs/src/vpc';
-import * as artifactsDeployment from '../deployments/artifacts';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -503,12 +502,4 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     executionRole: context.acceleratorPipelineRoleName,
     assumeRole: context.acceleratorExecutionRoleName,
   });
-
-  // await artifactsDeployment.step2({
-  //   accountStacks,
-  //   config: acceleratorConfig,
-  //   accounts,
-  //   defaultRegion: context.defaultRegion,
-  //   outputs,
-  // });
 }
