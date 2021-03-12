@@ -2,9 +2,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as codebuild from '@aws-cdk/aws-codebuild';
+import * as codecommit from '@aws-cdk/aws-codecommit';
 import * as codepipeline from '@aws-cdk/aws-codepipeline';
 import * as actions from '@aws-cdk/aws-codepipeline-actions';
 import * as iam from '@aws-cdk/aws-iam';
+import * as kms from '@aws-cdk/aws-kms';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
 
@@ -20,19 +22,30 @@ async function main() {
 
   const app = new cdk.App();
 
+  enum RepositorySources {
+    GITHUB = 'github',
+    CODECOMMIT = 'codecommit',
+  }
+
+  const repoSource = app.node.tryGetContext('repo_source') || RepositorySources.GITHUB;
+
+  if (repoSource !== RepositorySources.GITHUB && repoSource !== RepositorySources.CODECOMMIT) {
+    throw new Error(`Invalid value for repo_source: ${repoSource} Must repo_source must be one of [github|codecommit]`);
+  }
+
   const stack = new cdk.Stack(app, 'InstallerStack', {
     stackName: 'AcceleratorInstaller',
     terminationProtection: true,
   });
 
   const acceleratorPrefixParam = new cdk.CfnParameter(stack, 'AcceleratorPrefix', {
-    default: 'PBMMAccel-',
+    default: 'Accel-',
     description: 'Accelerator prefix used for deployment.',
     allowedPattern: '[a-zA-Z][a-zA-Z0-9-]{0,8}-',
   });
 
   const acceleratorNameParam = new cdk.CfnParameter(stack, 'AcceleratorName', {
-    default: 'PBMM',
+    default: 'AWS',
     description: 'Accelerator Name used for deployment.',
     allowedPattern: '[a-zA-Z][a-zA-Z0-9]{0,3}',
   });
@@ -41,40 +54,18 @@ async function main() {
   const acceleratorPrefix = acceleratorPrefixParam.valueAsString;
 
   const acceleratorConfigS3Bucket = new cdk.CfnParameter(stack, 'ConfigS3Bucket', {
-    default: 'pbmmaccel-config',
+    default: 'AWSDOC-EXAMPLE-BUCKET',
     description: 'The S3 bucket name that contains the initial Accelerator configuration.',
   });
 
   const configRepositoryName = new cdk.CfnParameter(stack, 'ConfigRepositoryName', {
-    default: 'PBMMAccel-Config-Repo',
-    description: 'The Code Commit repository name that contains the Accelerator configuration.',
+    default: 'Accelerator-Configuration',
+    description: 'The AWS CodeCommit repository name that contains the Accelerator configuration.',
   });
 
   const configBranchName = new cdk.CfnParameter(stack, 'ConfigBranchName', {
     default: 'main',
-    description: 'The Code Commit branch name that contains the Accelerator configuration',
-  });
-
-  const githubOauthSecretId = new cdk.CfnParameter(stack, 'GithubSecretId', {
-    default: 'accelerator/github-token',
-    description: 'The token to use to access the Github repository.',
-  });
-
-  const githubOwner = new cdk.CfnParameter(stack, 'GithubOwner', {
-    default: 'aws-samples',
-    description: 'The owner of the Github repository containing the Accelerator code.',
-  });
-
-  const githubRepository = new cdk.CfnParameter(stack, 'GithubRepository', {
-    default: 'aws-secure-environment-accelerator',
-    description: 'The name of the Github repository containing the Accelerator code.',
-  });
-
-  const githubBranch = new cdk.CfnParameter(stack, 'GithubBranch', {
-    // Github release action sets GITHUB_DEFAULT_BRANCH
-    // Otherwise fall back to 'release'
-    default: process.env.GITHUB_DEFAULT_BRANCH || 'release',
-    description: 'The branch of the Github repository containing the Accelerator code.',
+    description: 'The AWS CodeCommit branch name that contains the Accelerator configuration',
   });
 
   const notificationEmail = new cdk.CfnParameter(stack, 'Notification Email', {
@@ -94,8 +85,8 @@ async function main() {
     path.join(__dirname, '..', 'assets', 'save-application-version.js'),
   );
 
-  // Use the `vallidate-parameters.js` script in the assets folder
-  const vallidateParametersCode = fs.readFileSync(path.join(__dirname, '..', 'assets', 'validate-parameters.js'));
+  // Use the `validate-parameters.js` script in the assets folder
+  const validateParametersCode = fs.readFileSync(path.join(__dirname, '..', 'assets', 'validate-parameters.js'));
 
   // Role that is used by the CodeBuild project
   const installerProjectRole = new iam.Role(stack, 'InstallerProjectRole', {
@@ -156,19 +147,6 @@ async function main() {
     }),
   );
 
-  // This artifact is used as output for the Github code and as input for the build step
-  const sourceArtifact = new codepipeline.Artifact();
-
-  const githubAction = new actions.GitHubSourceAction({
-    actionName: 'GithubSource',
-    owner: githubOwner.valueAsString,
-    repo: githubRepository.valueAsString,
-    branch: githubBranch.valueAsString,
-    oauthToken: cdk.SecretValue.secretsManager(githubOauthSecretId.valueAsString),
-    output: sourceArtifact,
-    trigger: actions.GitHubTrigger.NONE,
-  });
-
   // Define a build specification to build the initial setup templates
   const installerProject = new codebuild.PipelineProject(stack, 'InstallerProject', {
     projectName: `${acceleratorPrefix}InstallerProject_pl`,
@@ -187,7 +165,7 @@ async function main() {
           commands: [
             'cd src/core/cdk',
             'export CDK_NEW_BOOTSTRAP=1',
-            `pnpx cdk bootstrap aws://${cdk.Aws.ACCOUNT_ID}/${cdk.Aws.REGION} --require-approval never --toolkit-stack-name=${acceleratorPrefix}CDKToolkit --cloudformation-execution-policies=arn:aws:iam::aws:policy/AdministratorAccess`,
+            `pnpx cdk bootstrap aws://${cdk.Aws.ACCOUNT_ID}/${cdk.Aws.REGION} --require-approval never --toolkit-stack-name=${acceleratorPrefix}CDKToolkit --cloudformation-execution-policies=arn:${cdk.Aws.PARTITION}:iam::aws:policy/AdministratorAccess`,
             `pnpx cdk deploy --require-approval never --toolkit-stack-name=${acceleratorPrefix}CDKToolkit`,
           ],
         },
@@ -230,21 +208,68 @@ async function main() {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: notificationEmail.valueAsString,
         },
-        SOURCE_REPO: {
-          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: githubRepository.valueAsString,
-        },
-        SOURCE_BRANCH: {
-          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: githubBranch.valueAsString,
-        },
-        SOURCE_OWNER: {
-          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: githubOwner.valueAsString,
-        },
       },
     },
   });
+
+  // This artifact is used as output for the Github code and as input for the build step
+  const sourceArtifact = new codepipeline.Artifact();
+
+  const repoName = new cdk.CfnParameter(stack, 'RepositoryName', {
+    default: 'aws-secure-environment-accelerator',
+    description: 'The name of the git repository containing the Accelerator code.',
+  });
+
+  const repoBranch = new cdk.CfnParameter(stack, 'RepositoryBranch', {
+    // Github release action sets GITHUB_DEFAULT_BRANCH
+    // Otherwise fall back to 'release'
+    default: process.env.GITHUB_DEFAULT_BRANCH || 'release',
+    description: 'The branch of the git repository containing the Accelerator code.',
+  });
+
+  let sourceAction: actions.GitHubSourceAction | actions.CodeCommitSourceAction; // Generic action for Source
+  let repoOwner: string;
+
+  if (repoSource === RepositorySources.CODECOMMIT) {
+    // Create the CodeCommit source action
+    sourceAction = new actions.CodeCommitSourceAction({
+      actionName: 'CodeCommitSource',
+      repository: codecommit.Repository.fromRepositoryName(stack, 'CodeCommitRepo', repoName.valueAsString),
+      branch: repoBranch.valueAsString,
+      output: sourceArtifact,
+      trigger: actions.CodeCommitTrigger.NONE,
+    });
+
+    // Save off values for UpdateVersion action
+    repoOwner = 'CodeCommit';
+  } else {
+    // Default to GitHub
+
+    // Additional parameter needed for the GitHub secret
+    const githubOauthSecretId = new cdk.CfnParameter(stack, 'GithubSecretId', {
+      default: 'accelerator/github-token',
+      description: 'The token to use to access the Github repository.',
+    });
+
+    const githubOwner = new cdk.CfnParameter(stack, 'GithubOwner', {
+      default: 'aws-samples',
+      description: 'The owner of the Github repository containing the Accelerator code.',
+    });
+
+    // Create the GitHub source action
+    sourceAction = new actions.GitHubSourceAction({
+      actionName: 'GithubSource',
+      owner: githubOwner.valueAsString,
+      repo: repoName.valueAsString,
+      branch: repoBranch.valueAsString,
+      oauthToken: cdk.SecretValue.secretsManager(githubOauthSecretId.valueAsString),
+      output: sourceArtifact,
+      trigger: actions.GitHubTrigger.NONE,
+    });
+
+    // Save off values for UpdateVersion action
+    repoOwner = githubOwner.valueAsString;
+  }
 
   // The role that will be used to start the state machine
   const stateMachineExecutionRole = new iam.Role(stack, 'ExecutionRoleName', {
@@ -301,11 +326,11 @@ async function main() {
   });
 
   // Create the Lambda function that is responsible for validating previous parameters
-  const vallidateParametersLambda = new lambda.Function(stack, 'VallidateParametersLambda', {
-    functionName: `${acceleratorPrefix}Installer-VallidateParameters`,
+  const validateParametersLambda = new lambda.Function(stack, 'ValidateParametersLambda', {
+    functionName: `${acceleratorPrefix}Installer-ValidateParameters`,
     role: stateMachineExecutionRole,
     runtime: lambda.Runtime.NODEJS_12_X,
-    code: lambda.Code.fromInline(vallidateParametersCode.toString()),
+    code: lambda.Code.fromInline(validateParametersCode.toString()),
     handler: 'index.handler',
   });
 
@@ -321,19 +346,24 @@ async function main() {
     assumedBy: new iam.ServicePrincipal('codepipeline.amazonaws.com'),
   });
 
-  // This bucket will be used to store the CodePipeline source
-  // Encryption is not necessary for this pipeline so we create a custom unencrypted bucket
-  const installerArtifactsBucket = new s3.Bucket(stack, 'ArtifactsBucket', {
-    removalPolicy: cdk.RemovalPolicy.DESTROY,
+  // Create a CMK that can be used for the CodePipeline artifacts bucket
+  const installerArtifactsBucketCmk = new kms.Key(stack, 'ArtifactsBucketCmk', {
+    enableKeyRotation: true,
+    description: 'ArtifactsBucketCmk',
+  });
+  const installerArtifactsBucketCmkAlias = new kms.Alias(stack, 'ArtifactsBucketCmkAlias', {
+    aliasName: `accelerator/installer-artifacts/s3`,
+    targetKey: installerArtifactsBucketCmk,
   });
 
-  // TODO: Remove and use fields directly when CDK enhanced s3.Bucket.
-  (installerArtifactsBucket.node.defaultChild as s3.CfnBucket).addPropertyOverride('OwnershipControls', {
-    Rules: [
-      {
-        ObjectOwnership: 'BucketOwnerPreferred',
-      },
-    ],
+  // This bucket will be used to store the CodePipeline source
+  const installerArtifactsBucket = new s3.Bucket(stack, 'ArtifactsBucket', {
+    removalPolicy: cdk.RemovalPolicy.DESTROY,
+    encryption: s3.BucketEncryption.KMS,
+    encryptionKey: installerArtifactsBucketCmkAlias,
+    blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+    versioned: true,
+    objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
   });
 
   new codepipeline.Pipeline(stack, 'Pipeline', {
@@ -343,14 +373,14 @@ async function main() {
     stages: [
       {
         stageName: 'Source',
-        actions: [githubAction],
+        actions: [sourceAction],
       },
       {
         stageName: 'ValidateParameters',
         actions: [
           new actions.LambdaInvokeAction({
             actionName: 'ValidateParameters',
-            lambda: vallidateParametersLambda,
+            lambda: validateParametersLambda,
             role: installerPipelineRole,
             userParameters: {
               acceleratorName,
@@ -378,10 +408,10 @@ async function main() {
             lambda: saveApplicationVersionLambda,
             role: installerPipelineRole,
             userParameters: {
-              commitId: githubAction.variables.commitId,
-              repository: githubRepository,
-              owner: githubOwner,
-              branch: githubBranch,
+              commitId: sourceAction.variables.commitId,
+              repository: repoName,
+              owner: repoOwner,
+              branch: repoBranch,
               acceleratorVersion,
               acceleratorName,
               acceleratorPrefix,
