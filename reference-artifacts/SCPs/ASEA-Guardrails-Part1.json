@@ -194,7 +194,7 @@
       "Sid": "Other",
       "Effect": "Deny",
       "Action": [
-        "aws-portal:*Account",
+        "aws-portal:ModifyAccount",
         "aws-portal:ModifyBilling",
         "aws-portal:ModifyPaymentMethods",
         "ec2:DisableEbsEncryptionByDefault",
