@@ -8,6 +8,8 @@ parameters:
     type: StringList
   CustomerManagedPolicies:
     type: StringList
+    minItems: 0
+    default: []
   AutomationAssumeRole:
     type: String
 mainSteps:

@@ -242,7 +242,7 @@ interface RemediationParameters {
 }
 
 export function getRemediationParameters(params: {
-  remediationParams: { [key: string]: string };
+  remediationParams: { [key: string]: string | string[] };
   roleName: string;
   outputs: StackOutput[];
   config: c.AcceleratorConfig;
@@ -281,7 +281,7 @@ export function getRemediationParameters(params: {
       } else {
         if (t.string.is(tempRemediationParams[key])) {
           /* eslint-disable no-template-curly-in-string */
-          const remediationParamMatch = tempRemediationParams[key].match('\\${SEA::([a-zA-Z0-9-]*)}');
+          const remediationParamMatch = (tempRemediationParams[key] as string).match('\\${SEA::([a-zA-Z0-9-]*)}');
           if (remediationParamMatch) {
             const replaceKey = remediationParamMatch[1];
             const replaceValue = getParameterValue({
@@ -291,19 +291,21 @@ export function getRemediationParameters(params: {
               accountKey,
               defaultRegion,
             });
-            tempRemediationParams[key] = tempRemediationParams[key].replace(
-              new RegExp('\\${SEA::[a-zA-Z0-9-]*}', 'g'),
-              replaceValue,
-            );
-            reutrnParams[key] = {
-              StaticValue: {
-                Values: [tempRemediationParams[key]],
-              },
-            };
+            if (replaceValue) {
+              tempRemediationParams[key] = (tempRemediationParams[key] as string).replace(
+                new RegExp('\\${SEA::[a-zA-Z0-9-]*}', 'g'),
+                replaceValue,
+              );
+              reutrnParams[key] = {
+                StaticValue: {
+                  Values: [tempRemediationParams[key] as string],
+                },
+              };
+            }
           } else {
             reutrnParams[key] = {
               StaticValue: {
-                Values: [tempRemediationParams[key]],
+                Values: [tempRemediationParams[key] as string],
               },
             };
           }
@@ -322,16 +324,20 @@ export function getRemediationParameters(params: {
                 accountKey,
                 defaultRegion,
               });
-              replacedParamValue.push(paramValue.replace(new RegExp('\\${SEA::[a-zA-Z0-9-]*}', 'g'), replaceValue));
+              if (replaceValue) {
+                replacedParamValue.push(paramValue.replace(new RegExp('\\${SEA::[a-zA-Z0-9-]*}', 'g'), replaceValue));
+              }
             } else {
               replacedParamValue.push(paramValue);
             }
           }
-          reutrnParams[key] = {
-            StaticValue: {
-              Values: replacedParamValue,
-            },
-          };
+          if (replacedParamValue.length > 0) {
+            reutrnParams[key] = {
+              StaticValue: {
+                Values: replacedParamValue,
+              },
+            };
+          }
         }
       }
     }
