@@ -801,7 +801,7 @@ export const AwsConfigRule = t.interface({
   'remediation-retry-seconds': optional(t.number),
   'remediation-concurrency': optional(t.number),
   'remediation-action': optional(t.string),
-  'remediation-params': fromNullable(t.record(t.string, t.string), {}),
+  'remediation-params': fromNullable(t.record(t.string, t.union([t.string, t.array(t.string)])), {}),
   parameters: fromNullable(t.record(t.string, t.string), {}),
   type: fromNullable(ConfigRuleType, 'managed'),
   'max-frequency': optional(t.string),

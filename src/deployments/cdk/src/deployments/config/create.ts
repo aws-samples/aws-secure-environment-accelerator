@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as tempy from 'tempy';
 import { IamPolicyOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import * as t from 'io-ts';
 
 export interface ConfigRuleArtifactsOutput {
   bucketArn: string;
@@ -255,7 +256,11 @@ export function getRemediationParameters(params: {
   };
   reutrnParams.AutomationAssumeRole = {
     StaticValue: {
-      Values: [`arn:${cdk.Aws.PARTITION}:iam::${cdk.Aws.ACCOUNT_ID}:role/${tempRemediationParams.AutomationAssumeRole || roleName}`],
+      Values: [
+        `arn:${cdk.Aws.PARTITION}:iam::${cdk.Aws.ACCOUNT_ID}:role/${
+          tempRemediationParams.AutomationAssumeRole || roleName
+        }`,
+      ],
     },
   };
 
@@ -274,34 +279,60 @@ export function getRemediationParameters(params: {
           },
         };
       } else {
-        /* eslint-disable no-template-curly-in-string */
-        const remediationParamMatch = tempRemediationParams[key].match('\\${SEA::([a-zA-Z0-9-]*)}');
-        if (remediationParamMatch) {
-          const replaceKey = remediationParamMatch[1];
-          const replaceValue = getParameterValue({
-            paramKey: replaceKey,
-            outputs,
-            config,
-            accountKey,
-            defaultRegion,
-          });
-          tempRemediationParams[key] = tempRemediationParams[key].replace(
-            new RegExp('\\${SEA::[a-zA-Z0-9-]*}', 'g'),
-            replaceValue,
-          );
-          reutrnParams[key] = {
-            StaticValue: {
-              Values: [tempRemediationParams[key]],
-            },
-          };
+        if (t.string.is(tempRemediationParams[key])) {
+          /* eslint-disable no-template-curly-in-string */
+          const remediationParamMatch = tempRemediationParams[key].match('\\${SEA::([a-zA-Z0-9-]*)}');
+          if (remediationParamMatch) {
+            const replaceKey = remediationParamMatch[1];
+            const replaceValue = getParameterValue({
+              paramKey: replaceKey,
+              outputs,
+              config,
+              accountKey,
+              defaultRegion,
+            });
+            tempRemediationParams[key] = tempRemediationParams[key].replace(
+              new RegExp('\\${SEA::[a-zA-Z0-9-]*}', 'g'),
+              replaceValue,
+            );
+            reutrnParams[key] = {
+              StaticValue: {
+                Values: [tempRemediationParams[key]],
+              },
+            };
+          } else {
+            reutrnParams[key] = {
+              StaticValue: {
+                Values: [tempRemediationParams[key]],
+              },
+            };
+          }
+          /* eslint-enable */
         } else {
+          const replacedParamValue: string[] = [];
+          for (const paramValue of tempRemediationParams[key]) {
+            /* eslint-disable no-template-curly-in-string */
+            const remediationParamMatch = paramValue.match('\\${SEA::([a-zA-Z0-9-]*)}');
+            if (remediationParamMatch) {
+              const replaceKey = remediationParamMatch[1];
+              const replaceValue = getParameterValue({
+                paramKey: replaceKey,
+                outputs,
+                config,
+                accountKey,
+                defaultRegion,
+              });
+              replacedParamValue.push(paramValue.replace(new RegExp('\\${SEA::[a-zA-Z0-9-]*}', 'g'), replaceValue));
+            } else {
+              replacedParamValue.push(paramValue);
+            }
+          }
           reutrnParams[key] = {
             StaticValue: {
-              Values: [tempRemediationParams[key]],
+              Values: replacedParamValue,
             },
           };
         }
-        /* eslint-enable */
       }
     }
   });
@@ -371,7 +402,7 @@ export function getParameterValue(props: {
         console.warn(`Didn't find IAM SSM Log Archive Write Access Policy in output`);
         return '';
       }
-      return ssmPolicyOutput.policyName;
+      return ssmPolicyOutput.policyArn;
     }
     default: {
       return '';

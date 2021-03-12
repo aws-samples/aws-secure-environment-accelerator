@@ -2,9 +2,11 @@ description:
 schemaVersion: '0.3'
 assumeRole: '{{ AutomationAssumeRole }}'
 parameters:
-  RoleName:
+  ResourceId:
     type: String
-  ManagedPolicies:
+  AWSManagedPolicies:
+    type: StringList
+  CustomerManagedPolicies:
     type: StringList
   AutomationAssumeRole:
     type: String
@@ -14,7 +16,32 @@ mainSteps:
     inputs:
       Runtime: python3.6
       Handler: script_handler
-      Script: "import boto3\ndef script_handler(events, context):\n\tiam = boto3.client(\"iam\")\n\trole_name = events[\"RoleName\"]\n\tpolicy_names = events[\"ManagedPolicies\"]\n\tfor policy in policy_names:\n\t  print(policy)\n\t  iam.attach_role_policy(\n\t    PolicyArn=\"arn:aws:iam::aws:policy/%s\"%policy,\n\t    RoleName=role_name\n\t  )"
+      Script: |-
+        import boto3
+        iam = boto3.client("iam")
+        config = boto3.client("config")
+        def script_handler(events, context):
+          resource_id = events["ResourceId"]
+          response = config.batch_get_resource_config(
+            resourceKeys=[{
+              'resourceType': 'AWS::IAM::Role',
+              'resourceId': resource_id
+            }]
+          )
+          role_name = response["baseConfigurationItems"][0]['resourceName']
+          aws_policy_names = events["AWSManagedPolicies"]
+          customer_policy_names = events["CustomerManagedPolicies"]
+          for policy in aws_policy_names:
+            iam.attach_role_policy(
+              PolicyArn="arn:aws:iam::aws:policy/%s"%policy,
+              RoleName=role_name
+            )
+          for policy in customer_policy_names:
+            iam.attach_role_policy(
+              PolicyArn=policy,
+              RoleName=role_name
+            )
       InputPayload:
-        RoleName: '{{ RoleName }}'
-        ManagedPolicies: '{{ ManagedPolicies }}'
+        ResourceId: '{{ ResourceId }}'
+        AWSManagedPolicies: '{{ AWSManagedPolicies }}'
+        CustomerManagedPolicies: '{{ CustomerManagedPolicies }}'

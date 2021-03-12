@@ -12,8 +12,8 @@ exports.handler = async function (event, context) {
   const invokingEvent = JSON.parse(event.invokingEvent);
   const invocationType = invokingEvent.messageType;
   const ruleParams = JSON.parse(event.ruleParameters || '{}');
-  if (!ruleParams.ManagedPolicies) {
-    throw new Error('Missing required Parameter "ManagedPolicies"')
+  if (!ruleParams.AWSManagedPolicies && !ruleParams.CustomerManagedPolicies) {
+    throw new Error('Either "AWSManagedPolicies" or "CustomerManagedPolicies" are required')
   }
   if (invocationType === 'ScheduledNotification') {
     return;
@@ -70,12 +70,25 @@ async function evaluateCompliance(props) {
     };
   } else if (configurationItem.configuration) {
     const existingPolicyNames = configurationItem.configuration.attachedManagedPolicies.map(p => p.policyName);
-    const requiredPolicies = ruleParams.ManagedPolicies.split(',');
-    for (const requiredPolicy of requiredPolicies) {
+    const existingPolicyArns = configurationItem.configuration.attachedManagedPolicies.map(p => p.policyArn);
+    const requiredAwsPolicies = ruleParams.AWSManagedPolicies.split(',');
+    for (const requiredPolicy of requiredAwsPolicies) {
       if (!requiredPolicy) {
         continue;
       }
       if (!existingPolicyNames.includes(requiredPolicy.trim())) {
+        return {
+          complianceType: 'NON_COMPLIANT',
+          annotation: 'The IAM Role is not having required polocies attached ' + requiredPolicy,
+        };
+      }
+    }
+    const requiredCustomerPolicies = ruleParams.CustomerManagedPolicies.split(',');
+    for (const requiredPolicy of requiredCustomerPolicies) {
+      if (!requiredPolicy) {
+        continue;
+      }
+      if (!existingPolicyArns.includes(requiredPolicy.trim())) {
         return {
           complianceType: 'NON_COMPLIANT',
           annotation: 'The IAM Role is not having required polocies attached ' + requiredPolicy,
