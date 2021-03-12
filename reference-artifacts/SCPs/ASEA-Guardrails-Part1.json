@@ -194,9 +194,11 @@
       "Sid": "Other",
       "Effect": "Deny",
       "Action": [
-        "aws-portal:*Account",
+        "aws-portal:ModifyAccount",
+        "aws-portal:ViewAccount",
         "aws-portal:ModifyBilling",
         "aws-portal:ModifyPaymentMethods",
+        "aws-portal:ViewPaymentMethods",
         "ec2:DisableEbsEncryptionByDefault",
         "s3:PutAccountPublicAccessBlock",
         "ds:AcceptSharedDirectory",
