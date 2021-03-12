@@ -536,6 +536,11 @@
             "name": "Put-S3-Encryption",
             "description": "Enables S3 encryption using KMS",
             "template": "s3-encryption.yaml"
+          },
+          {
+            "name": "Attach-IAM-Instance-Profile",
+            "description": "Attaches instance profiles to an EC2 instance",
+            "template": "attach-iam-instance-profile.yaml"
           }
         ]
       }
@@ -548,6 +553,18 @@
         "remediation-concurrency": 10
       },
       "rules": [
+        {
+          "name": "EC2-INSTANCE-PROFILE",
+          "type": "custom",
+          "resource-types": ["AWS::EC2::Instance"],
+          "runtime": "nodejs12.x",
+          "remediation-action": "Attach-IAM-Instance-Profile",
+          "remediation": true,
+          "remediation-params": {
+            "IamInstanceProfile": "EC2-Default-SSM-AD-Role-ip",
+            "InstanceId": "RESOURCE_ID"
+          }
+        },
         {
           "name": "ELB_LOGGING_ENABLED",
           "remediation-action": "SSM-ELB-Enable-Logging",
@@ -2528,13 +2545,14 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
           "rules": [
+            "EC2-INSTANCE-PROFILE",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
             "ACCESS_KEYS_ROTATED",
@@ -3084,13 +3102,14 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
           "rules": [
+            "EC2-INSTANCE-PROFILE",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
             "ACCESS_KEYS_ROTATED",
@@ -3667,13 +3686,14 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
           "rules": [
+            "EC2-INSTANCE-PROFILE",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
             "ACCESS_KEYS_ROTATED",
@@ -4250,13 +4270,14 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
           "rules": [
+            "EC2-INSTANCE-PROFILE",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
             "ACCESS_KEYS_ROTATED",
@@ -4833,13 +4854,14 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
           "rules": [
+            "EC2-INSTANCE-PROFILE",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
             "ACCESS_KEYS_ROTATED",
@@ -5654,13 +5676,14 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}", "us-east-1"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
           "rules": [
+            "EC2-INSTANCE-PROFILE",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
             "ACCESS_KEYS_ROTATED",
