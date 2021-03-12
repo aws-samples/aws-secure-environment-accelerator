@@ -12,13 +12,13 @@
     "@aws-accelerator/custom-resource-cfn-utils": "workspace:*"
   },
   "scripts": {
-    "build": "esbuild --minify --bundle --platform=node --target=node12 --external:aws-sdk --outfile=./dist/index.js src/index.ts",
+    "build": "pnpx esbuild --minify --bundle --platform=node --target=node12 --external:aws-sdk --outfile=./dist/index.js src/index.ts",
     "lint:typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.46",
     "@types/node": "12.12.6",
-    "esbuild": "0.9.0",
+    "esbuild": "0.9.2",
     "typescript": "3.8.3"
   }
 }
