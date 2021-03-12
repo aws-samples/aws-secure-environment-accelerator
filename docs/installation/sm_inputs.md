@@ -18,11 +18,11 @@ This parameter should be specified with extreme caution, as it bypasses all conf
 { "overrideComparison": true }
 ```
 
-**_Customers are encouraged to use the specific overide variables below, rather than the all-inclusive overide, to ensure they only bypasses intended config changes._**
+**_Customers are encouraged to use the specific override variables below, rather than the all-inclusive override, to ensure they only bypasses intended config changes._**
 
 ## 1.3. Bypassing SPECIFIC config file validation checks
 
-Providing any one or more of the following flags will only overide the specified check(s):
+Providing any one or more of the following flags will only override the specified check(s):
 
 ```
  {
