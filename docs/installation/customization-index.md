@@ -5,7 +5,7 @@
   - [1.2. **Deployment Customizations**](#12-deployment-customizations)
   - [1.3. Other Configuration File Hints and Tips](#13-other-configuration-file-hints-and-tips)
   - [1.4. Config file and Deployment Protections](#14-config-file-and-deployment-protections)
-- [2. **NEW: State Machine Behaviour**](#2-new-state-machine-behaviour)
+- [2. **NEW: State Machine Behavior**](#2-new-state-machine-behavior)
 
 ## 1.1. **Sample Accelerator Configuration Files**
 
@@ -75,15 +75,15 @@ Samples with Descriptions:
 - As you grow and add AWS accounts, the Kinesis Data stream in the log-archive account will need to be monitored and have its capacity (shard count) increased by setting `"kinesis-stream-shard-count"` variable under `"central-log-services"` in the config file
 - Updates to NACL's requires changing the rule number (`100` to `101`) or they will fail to update
 - When adding a new subnet or subnets to a VPC (including enabling an additional AZ), you need to:
-  - increment any impacted nacl id's in the config file (`100` to `101`, `32000` to `32001`) (CFN does not allow nacl updates)
+  - increment any impacted NACL id's in the config file (`100` to `101`, `32000` to `32001`) (CFN does not allow nacl updates)
   - make a minor change to any impacted route table names (`MyRouteTable` to `MyRouteTable1`) (CFN does not allow updates to route table associated ids)
   - prior to v1.2.3, if adding a subnet that is associated with the TGW, you need to remove the TGW association (`"tgw-attach"` to `"xxtgw-attach"` for the VPC) and then re-attach on a subsequent state machine execution. This is resolved in v1.2.3.
 - The sample firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
 - Re-enabling individual security controls in Security Hub requires toggling the entire security standard off and on again, controls can be disabled at any time
-- Firewall names, CGW names, TGW names, MAD Directory ID, account keys, and ou's must all be unique throughout the entire configuration file (also true for VPC names given nacl and security group referencing design)
+- Firewall names, CGW names, TGW names, MAD Directory ID, account keys, and OU's must all be unique throughout the entire configuration file (also true for VPC names given NACL and security group referencing design)
 - The configuration file _does_ have validation checks in place that prevent users from making certain major unsupported configuration changes
 - **The configuration file does _NOT_ have extensive error checking. It is expected you know what you are doing. We eventually hope to offer a config file, wizard based GUI editor and add the validation logic in this separate tool. In most cases the State Machine will fail with an error, and you will simply need to troubleshoot, rectify and rerun the state machine.**
-- You cannot move an account between top-level ou's. This would be a security violation and cause other issues. You can move accounts between sub-ou. Note: The ALZ version of the Accelerator does not support sub-ou.
+- You cannot move an account between top-level OU's. This would be a security violation and cause other issues. You can move accounts between sub-ou. Note: The ALZ version of the Accelerator does not support sub-ou.
 - v1.1.5 and above adds support for customer provided YAML config file(s) as well as JSON. In future we will be providing a version of the config file with comments describing the purpose of each configuration item. We only support the subset of yaml that converts to JSON (we do not support anchors)
 - Security Group names were designed to be identical between environments, if you want the VPC name in the SG name, you need to do it manually in the config file
 - Prior to v1.2.5, we did NOT support changing the `organization-admin-role` and this value had to be set to `AWSCloudFormationStackSetExecutionRole`.
@@ -103,16 +103,16 @@ Samples with Descriptions:
 - The config file is moved to AWS CodeCommit after the first execution of the state machine to provide strong configuration history, versioning and change control
 - After each successful state machine execution, we record the commit id of the config file used for that execution in secrets manager
 - On **_every_** state machine execution, before making any changes, the Accelerator compares the latest version of the config file stored in CodeCommit with the version of the config file from the last successful state machine execution (after replacing all variables)
-- If the config file includes any changes we consider to be significant or breaking, we immediatly fail the state machine
+- If the config file includes any changes we consider to be significant or breaking, we immediately fail the state machine
   - if a customer somehow accidentally uploads a different customers config file into their Accelerator CodeCommit repository, the state machine will fail
   - if a customer makes what we consider to be a major change to the config file, the state machine will fail
   - if a customer makes a change that we believe has a high likelihood to cause a deployment failure, the state machine will fail
-- If a customer believes they understand the full implications of the changes they are making (and has made any required manual changes to allow successful execution), we have provided protection overide flags. These overides should be used with extremely caution:
-  - To provide maximum protection we have provided scoped overide flags. Customers can provide a flag or flags to only bypass specific type(s) of config file validations or blocks. If using an overide flag, we recommend customers use these scoped flags in most situations.
-  - If a customer is purposefully making extensive changes across the config file and wants to simply overide all checks with a single overide flag, we also have this option, but discourage it use.
-  - The various overide flags and their format can be found in [here](./sm_inputs.md).
+- If a customer believes they understand the full implications of the changes they are making (and has made any required manual changes to allow successful execution), we have provided protection override flags. These overrides should be used with extremely caution:
+  - To provide maximum protection we have provided scoped override flags. Customers can provide a flag or flags to only bypass specific type(s) of config file validations or blocks. If using an override flag, we recommend customers use these scoped flags in most situations.
+  - If a customer is purposefully making extensive changes across the config file and wants to simply override all checks with a single override flag, we also have this option, but discourage it use.
+  - The various override flags and their format can be found in [here](./sm_inputs.md).
 
-# 2. **NEW: State Machine Behaviour**
+# 2. **NEW: State Machine Behavior**
 
 Accelerator v1.3.0 makes a significant change to the manner in which the state machine operates. These changes include:
 
@@ -124,8 +124,8 @@ Accelerator v1.3.0 makes a significant change to the manner in which the state m
    - when the `scope` parameter is supplied, you must also supply the `mode` parameter. At this time `mode` only accepts the value `APPLY`. To be specific `"mode":"APPLY"` is mandatory when running the state machine with the `"scope":` parameter.
 3. Starting the state machine with `{"scope":"FULL","mode":"APPLY"}` makes the state machine execute as it did in v1.2.6 and below.
    - The state machine targets all AWS accounts and allows changes across any section of the config file;
-   - The blocks and overides described in section 1.4 above remain valid;
-   - `FULL` mode must be run at least once immediatly after any Accelerator version upgrade. Code Pipeline automatically starts the state machine with `{"scope":"FULL","mode":"APPLY"}`. If the state machine fails for any reason after upgrade, the state machine must be restarted with these parameters until a successful execution of the state machine has completed.
+   - The blocks and overrides described in section 1.4 above remain valid;
+   - `FULL` mode must be run at least once immediately after any Accelerator version upgrade. Code Pipeline automatically starts the state machine with `{"scope":"FULL","mode":"APPLY"}`. If the state machine fails for any reason after upgrade, the state machine must be restarted with these parameters until a successful execution of the state machine has completed.
 4. Starting the state machine with `{"scope":"NEW-ACCOUNTS","mode":"APPLY"}` is the same as operating the state machine with the `default scope` as described in the first bullet
 5. Starting the state machine with `{"scope":"GLOBAL-OPTIONS","mode":"APPLY"}` restricts changes to the config file to the `global-options` section.
    - If any other portion of the config file was updated or changed, the state machine will fail;
