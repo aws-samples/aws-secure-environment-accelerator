@@ -43,13 +43,14 @@ Specifically the accelerator deploys and manages the following functionality, bo
 
 ### Cross-Account Object Sharing
 
-- VPC and Subnet sharing, including account level retagging (Per account security group 'replication')
+- VPC and Subnet sharing, including account level re-tagging (Per account security group 'replication')
 - VPC attachments and peering (local and cross-account)
 - Zone sharing and VPC associations
 - Managed Active Directory sharing, including R53 DNS resolver rule creation/sharing
 - Automated TGW inter-region peering
 - Populate Parameter Store with all `user` objects to be used by customers' IaC
-- Deploy and share SSM documents (2 provided out-of-box, ELB & S3 remediation)
+- Deploy and share SSM documents (3 provided out-of-box, ELB Logging, S3 Encryption, and Instance Profile remediation)
+  - customer can provide their own SSM documents for automated deployment and sharing
 
 ### Identity
 
@@ -69,7 +70,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
   - Firewall Manager
   - CloudTrail w/Insights and S3 data plane logging
   - Config Recorders/Aggregator
-  - Config rules (95 out-of-box NIST 800-53 rules, customizable per OU)
+  - Conformance Packs and Config rules (95 out-of-box NIST 800-53 rules, customizable per OU)
   - Macie
   - IAM Access Analyzer
   - CloudWatch access from central designated admin account (and setting Log group retentions)
@@ -87,6 +88,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Protects Accelerator deployed and managed objects
 - Sets Up SNS Alerting topics (High, Medium, Low, Blackhole priorities)
 - Deploys CloudWatch Log Metrics and Alarms
+- Deploys customer provided custom config rules (1 provided out-of-box, No EC2 Instance Profile)
 
 ### Centralized Logging and Alerting
 
@@ -121,17 +123,17 @@ When appropriate, it is envisioned that the AWS Accelerator will add the capabil
 
 This summarizes the installation process, the full installation document can be found in the documentation section below.
 
-- Create a config.json (or config.yaml) file to represent your organizations requirements (PBMM sample provided)
+- Create a config.json (or config.yaml) file to represent your organizations requirements (several samples provided)
 - Create a Secrets Manager Secret which contains a GitHub token that provides access to the Accelerator code repo
 - Create a unique S3 input bucket and place your config.json and any additional custom config files in the bucket
-- Download and execute the latest installer CloudFormation template in your root accounts preferred 'primary' region
+- Download and execute the latest installer CloudFormation template in your root accounts preferred 'primary' / 'home' region
 - Wait for:
   - CloudFormation to deploy and start the Code Pipeline (~5 mins)
   - Code Pipeline to download the Accelerator codebase and install the Accelerator State Machine (~20 mins)
   - The Accelerator State Machine to finish execution (~1.5 hrs)
 - Perform required manual follow-up activities (configure AWS SSO, set firewall passwords, etc.)
 - When required:
-  - Use AWS Organizations to create new fully managed and guardrailed AWS accounts
+  - Use AWS Organizations to create new AWS accounts, which will automatically be guardrailed by the Accelerator
   - Update the config file in CodeCommit and run the Accelerator State Machine (~25 min) to:
     - deploy, configure and guardrail multiple accounts at the same time
     - change Accelerator configuration settings
