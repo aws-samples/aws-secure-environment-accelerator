@@ -330,7 +330,7 @@ This step only executes on the first run of the state machine after it has been 
 
 ### 3.2.19. Store Phase -1 Output
 
-This step calls a Lambda function that stores the outputs from the deployed stacks in subaccounts in the DynamoDB table `PBMMAccel-Outputs` in AWS Secrets Manager in the root account.
+This step calls a Lambda function that stores the outputs from the deployed stacks in sub-accounts in the DynamoDB table `PBMMAccel-Outputs` in AWS Secrets Manager in the root account.
 
 ### 3.2.20. Deploy Phase 0
 
@@ -369,7 +369,7 @@ The following resources are deployed in phase 0:
 
 ### 3.2.21. Store Phase 0 Output
 
-This step calls a Lambda function that stores the outputs from the deployed stacks in subaccounts in the secret `PBMMAccel-Outputs` in AWS Secrets Manager in the root account.
+This step calls a Lambda function that stores the outputs from the deployed stacks in sub-accounts in the secret `PBMMAccel-Outputs` in AWS Secrets Manager in the root account.
 
 ### 3.2.22. Verify Files
 
@@ -594,7 +594,7 @@ You can click on the name of the CodeBuild execution and then look inside the lo
 
 ![CodeBuild Execution Build Failure](img/codebuild-build-failure.png)
 
-You can for example see the error message `The stack named PBMMAccel-Perimeter-Phase2 is in a failed state: UPDATE_ROLLBACK_COMPLETE`. This means the stack `PBMMAccel-Perimeter-Phase2` failed to update and it had to rollback. The error indicated at the bottom of the Codebuild screen is typically NOT the cause of the failure, just the end result. You need to scroll up and find the FIRST occurance of an error in the log file. Often starting at the top of the log file and searching for the text `FAIL` (case sensitive), will allow you to find the relevant error message(s) quickly. The failure is typically listed in the CloudFormation update logs.
+You can for example see the error message `The stack named PBMMAccel-Perimeter-Phase2 is in a failed state: UPDATE_ROLLBACK_COMPLETE`. This means the stack `PBMMAccel-Perimeter-Phase2` failed to update and it had to rollback. The error indicated at the bottom of the Codebuild screen is typically NOT the cause of the failure, just the end result. You need to scroll up and find the FIRST occurrence of an error in the log file. Often starting at the top of the log file and searching for the text `FAIL` (case sensitive), will allow you to find the relevant error message(s) quickly. The failure is typically listed in the CloudFormation update logs.
 
 ![CodeBuild Execution Update Failed](img/codebuild-build-failure-update-failed.png)
 
@@ -684,7 +684,7 @@ Using your browser, from the top of the page, search for "FAIL", and we are imme
 
 ## 5.1. Restart the State Machine
 
-The state machine can be stopped and restarted at any time. The Accelerator has been design to be able to rollback to a stable state, such that should the state machine be stopped or fail for any reason, subsequent state machine executions can simply proceed through the failed step without manual cleanup or issues (assuming the failure scenario has been resolved). An extensive amount of effort was placed on ensuring seamless customer recovery in failure situations. The Accelerator is indempotent - it can be run as many or as few times as desired with no negative effect. On each state machine execution, the state machine, primarily leveraging the capabilities of CDK, will evaluate the delta's between the old previously deployed configuration and the new configuration and update the environment as appropriate.
+The state machine can be stopped and restarted at any time. The Accelerator has been design to be able to rollback to a stable state, such that should the state machine be stopped or fail for any reason, subsequent state machine executions can simply proceed through the failed step without manual cleanup or issues (assuming the failure scenario has been resolved). An extensive amount of effort was placed on ensuring seamless customer recovery in failure situations. The Accelerator is idempotent - it can be run as many or as few times as desired with no negative effect. On each state machine execution, the state machine, primarily leveraging the capabilities of CDK, will evaluate the delta's between the old previously deployed configuration and the new configuration and update the environment as appropriate.
 
 The state machine will execute:
 
@@ -692,11 +692,11 @@ The state machine will execute:
 - automatically when new AWS accounts are moved into any Accelerator controller OU in AWS Organizations
 - when someone manual starts it: `Step Functions`, `PBMMAccel-MainStateMachine_sm`, `Start Execution`, `Start Execution` (leave default values in name and json box)
 
-The state machine prevents users from accidentally performing certain major breaking changes, specifically unsupported AWS platform changes, changes that will fail to deploy, or changes that could be catastrophic to users. If someone knows exactly what they are doing and the full implications of these changes, we provide the option to overide these checks. Customers should expect that items we have blocked CANNOT be changed after the Accelerator installation.
+The state machine prevents users from accidentally performing certain major breaking changes, specifically unsupported AWS platform changes, changes that will fail to deploy, or changes that could be catastrophic to users. If someone knows exactly what they are doing and the full implications of these changes, we provide the option to override these checks. Customers should expect that items we have blocked CANNOT be changed after the Accelerator installation.
 
 **_These flags should be used with extreme caution. Specifying any of these flags without proper guidance will likely leave your Accelerator in a state of disrepair. These flags were added for internal purposes only - we do NOT support customers providing these flags._**
 
-Providing this parameter to the state machine overides _all_ checks:
+Providing this parameter to the state machine overrides _all_ checks:
 
 ```
 {
@@ -704,7 +704,7 @@ Providing this parameter to the state machine overides _all_ checks:
 }
 ```
 
-Providing any one or more of the following flags will only overide the specified check(s):
+Providing any one or more of the following flags will only override the specified check(s):
 
 ```
  {

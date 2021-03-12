@@ -9,7 +9,7 @@
     - [1.1.5. What if I really mess up the configuration file?](#115-what-if-i-really-mess-up-the-configuration-file)
     - [1.1.6. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?](#116-what-if-my-state-machine-fails-why-previous-solutions-had-complex-recovery-processes-whats-involved)
     - [1.1.7. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?](#117-how-do-i-update-some-of-the-supplied-sample-configuration-items-found-in-reference-artifact-like-scps-and-iam-policies)
-    - [1.1.8. I deployed AWS Managed Active Directory (MAD) as part of my depoloyment, how do I manage Active Directory domain users, groups, and domain policies after deployment?](#118-i-deployed-aws-managed-active-directory-mad-as-part-of-my-depoloyment-how-do-i-manage-active-directory-domain-users-groups-and-domain-policies-after-deployment)
+    - [1.1.8. I deployed AWS Managed Active Directory (MAD) as part of my deployment, how do I manage Active Directory domain users, groups, and domain policies after deployment?](#118-i-deployed-aws-managed-active-directory-mad-as-part-of-my-deployment-how-do-i-manage-active-directory-domain-users-groups-and-domain-policies-after-deployment)
     - [1.1.9. How do I suspend an AWS account?](#119-how-do-i-suspend-an-aws-account)
     - [1.1.10. I need a new VPC, where shall I define it?](#1110-i-need-a-new-vpc-where-shall-i-define-it)
     - [1.1.11. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?](#1111-how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes)
@@ -125,9 +125,9 @@ Customers can also define additional SCPs (or modify existing SCPs) using the na
 
 Prior to v1.2.5, if we updated the default files, we overwrote customers customizations during upgrade. Simply updating the timestamp _after_ upgrade on the customized versions and then rerunning the state machine re-instates customer customizations. In v1.2.5 we always use the customer customized version from the S3 bucket. It's important customers assess newly provided defaults during an upgrade process to ensure they are incorporating all the latest fixes and improvements. If a customer wants to revert to Accelerator provided default files, they will need to manually copy it from the repo into their input bucket.
 
-NOTE: Most of the provided SCPs are designed to protect the Accelerator deployed resources from modification and ensure the integrity of the Accelerator. Extreme caution must be excercised if the provided SCPs are modified. We will be improving documenation as to which SCPs deliver security functionality versus those protecting the Accelerator itself in a future release.
+NOTE: Most of the provided SCPs are designed to protect the Accelerator deployed resources from modification and ensure the integrity of the Accelerator. Extreme caution must be exercised if the provided SCPs are modified. We will be improving documentation as to which SCPs deliver security functionality versus those protecting the Accelerator itself in a future release.
 
-### 1.1.8. I deployed AWS Managed Active Directory (MAD) as part of my depoloyment, how do I manage Active Directory domain users, groups, and domain policies after deployment?
+### 1.1.8. I deployed AWS Managed Active Directory (MAD) as part of my deployment, how do I manage Active Directory domain users, groups, and domain policies after deployment?
 
 Customers have clearly indicated they do NOT want to use the Accelerator to manage their Active Directory domain or change the way they manage Active Directory on an ongoing basis. Customer have also indicated, they need help getting up and running quickly. For these reasons, the Accelerator only sets the domain password policy, and creates AD users and groups on the initial installation of MAD. After the initial installation, customers must manage Windows users and groups using their traditional tools. A bastion Windows host is deployed as a mechanism to support these capabilities. Passwords for all newly created MAD users have been stored, encrypted, in AWS Secrets Manager in the Management (root) Organization AWS account.
 
@@ -155,11 +155,11 @@ The Accelerator will not create/update/delete new AD users or groups, nor will i
 
 You can define a VPC in one of three major sections of the Accelerator configuration file:
 
-- within an organization unit (this is the recommended and prefered method);
+- within an organization unit (this is the recommended and preferred method);
 - within an account in mandatory-account-configs;
 - within an account in workload-account-configs.
 
-We generally recommend most items be defined within organizational units, such that all workload accounts pickup their persona from the OU they are associated and minimize per account configuration. Both a local account based VPC (as deployed in the Sandbox OU accounts), or a central VPC (as deployed in the Dev.Test/Prod OU accounts) can be defined in an OU. It should be noted that local VPC's will each be deployed with the same CIDR ranges (at this time) and therfor should not be connected to a TGW.
+We generally recommend most items be defined within organizational units, such that all workload accounts pickup their persona from the OU they are associated and minimize per account configuration. Both a local account based VPC (as deployed in the Sandbox OU accounts), or a central VPC (as deployed in the Dev.Test/Prod OU accounts) can be defined in an OU. It should be noted that local VPC's will each be deployed with the same CIDR ranges (at this time) and therefor should not be connected to a TGW.
 
 As mandatory accounts often have unique configuration requirements, VPC's like the Endpoint VPC, are configured within the mandatory account configuration. Customers can also define VPC's within each workload account configuration, but this requires editing the configuration file for each account configuration.
 
@@ -225,7 +225,7 @@ Objects deployed by the Accelerator which customers may need to leverage in thei
 
 Objects of the following types and their associated values are stored in parameter store: vpc, subnet, security group, elb (alb/nlb w/DNS address), IAM policy, IAM role, KMS key, ACM cert, SNS topic, and the firewall replacement variables.
 
-Additionally, setting "populate-all-elbs-in-param-store": true for an account will populates all Accelerator wide ELB information into paramaater store within that account. The sample PBMM configuration files set this value on the perimeter account, such that ELB information is available to configure centralized ingress capabilities.
+Additionally, setting "populate-all-elbs-in-param-store": true for an account will populates all Accelerator wide ELB information into parameter store within that account. The sample PBMM configuration files set this value on the perimeter account, such that ELB information is available to configure centralized ingress capabilities.
 
 ## 1.4. Upgrades
 
@@ -247,13 +247,13 @@ No. Customers can choose the IaC framework or tooling of their choice. The tooli
 
 The Accelerator is an open source project, should AWS stop enhancing the solution for any reason, the community has access to the full codebase, its roadmap and history. The community can enhance, update, fork and take ownership of the project, as appropriate.
 
-The Accelerator is an AWS CDK based project and synthezises to native AWS CloudFormation. AWS sub-accounts simply contain native CloudFormation stacks and associated custom resources, when required. The Accelerator architecture is such that all CloudFormation stacks are native to each AWS account with no links or ties to code in other AWS accounts or even other stacks within the same AWS account. This was an important initial design decision.
+The Accelerator is an AWS CDK based project and synthesizes to native AWS CloudFormation. AWS sub-accounts simply contain native CloudFormation stacks and associated custom resources, when required. The Accelerator architecture is such that all CloudFormation stacks are native to each AWS account with no links or ties to code in other AWS accounts or even other stacks within the same AWS account. This was an important initial design decision.
 
 The Accelerator codebase can be completely uninstalled from the organization management (root) account, without any impact to the deployed functionality or guardrails. In this situation, guardrail updates and new account provisioning reverts to a manual process. Should a customer decide they no longer wish to utilize the solution, they can remove the Accelerator codebase without any impact to deployed resources and go back to doing things natively in AWS as they did before they deployed the Accelerator. By adopting the Accelerator, customers are not locking themselves in or making a one-way door decision.
 
 ### 1.5.3. What level of Support will the ASEA have from AWS Support?
 
-The majority of the solution leverages native AWS services which are fully supported by AWS Support. Additionally, the Accelerator is an AWS CDK based project and synthezises to native AWS CloudFormation. AWS sub-accounts simply contain native CloudFormation stacks and associated custom resources (when required). The Accelerator architecture is such that all CloudFormation stacks are native to each AWS account with no direct links or ties to code in other AWS accounts (no stacksets, no local CDK). This was an important project design decision, keeping deployed functionality in independant local CloudFormation stacks and decoupled from solution code, which allows AWS support to effectively troubleshoot and diagnose issues local to the sub-account.
+The majority of the solution leverages native AWS services which are fully supported by AWS Support. Additionally, the Accelerator is an AWS CDK based project and synthesizes to native AWS CloudFormation. AWS sub-accounts simply contain native CloudFormation stacks and associated custom resources (when required). The Accelerator architecture is such that all CloudFormation stacks are native to each AWS account with no direct links or ties to code in other AWS accounts (no stacksets, no local CDK). This was an important project design decision, keeping deployed functionality in independent local CloudFormation stacks and decoupled from solution code, which allows AWS support to effectively troubleshoot and diagnose issues local to the sub-account.
 
 As the Accelerator also includes code, anything specifically related to the Accelerator codebase will be only supported on a "best effort" basis by AWS support, as AWS support does not support custom code. The first line of support for the codebase is typically your local AWS team (your SA, TAM, Proserve and/or AWS Partner). As an open source project, customers can file requests using GitHub Issues against the Accelerator repository or open a discussion in GitHub discussions. Most customer issues arise during installation and are related to configuration customization or during the upgrade process.
 
@@ -276,7 +276,7 @@ The tooling was purposely built to be extremely flexible, as we realized that so
 
 We are working on building a library of sample config files to support additional customer needs and better demonstrate product capabilities and different architecture patterns. In no way is it required that the prescriptive GC architecture be used or deployed. Just because we can deploy, for example, an AWS Managed Active Directory, does not mean you need to use that feature of the solution. Disabling or changing these capabilities also requires zero code changes.
 
-While the prescriptive sample configuration files were originally developed based on GC requirements, they were also developed following AWS Best Practices. Additionally, many security frameworks around the world have similiar and overlapping security requirements (you can only do security so many ways). The provided architecture is applicable to many security compliance regimes around the world and not just the GC.
+While the prescriptive sample configuration files were originally developed based on GC requirements, they were also developed following AWS Best Practices. Additionally, many security frameworks around the world have similar and overlapping security requirements (you can only do security so many ways). The provided architecture is applicable to many security compliance regimes around the world and not just the GC.
 
 ## 1.6. Deployed Functionality
 
@@ -315,7 +315,7 @@ The Accelerator provides 3 mechanisms to enable utilizing certificates with ALB'
       ]
   ```
 
-  - When using a certificate that has a certificate chain (usally this is the case when signed by a Certificate Authority with a CA Bundle)
+  - When using a certificate that has a certificate chain (usually this is the case when signed by a Certificate Authority with a CA Bundle)
 
   ```json
     "certificates": [
@@ -395,7 +395,7 @@ The rsyslog servers are included to accept logs for appliances and third party a
 
 ### 1.6.5. Can you deploy the solution without Fortinet Firewall Licenses?
 
-Yes, if license files are not provided, the firewalls will come up configured and route traffic, but customers will have no mechanism to manage the firewalls/change the configuration until a valid license file is added. If invalid licence files are provided, the firewalls will fail to load the provided configuration, will not enable routing, will not bring up the VPN tunnels and will not be managable. Customers will need to either remove and redeploy the firewalls, or manually configure them. If performing a test deployment, please work with your local Fortinet account team to discuss any options for temporary evaluation licenses.
+Yes, if license files are not provided, the firewalls will come up configured and route traffic, but customers will have no mechanism to manage the firewalls/change the configuration until a valid license file is added. If invalid licence files are provided, the firewalls will fail to load the provided configuration, will not enable routing, will not bring up the VPN tunnels and will not be manageable. Customers will need to either remove and redeploy the firewalls, or manually configure them. If performing a test deployment, please work with your local Fortinet account team to discuss any options for temporary evaluation licenses.
 
 ### 1.6.6. I installed additional software on my Accelerator deployed RDGW / rsyslog host, where did it go?
 
