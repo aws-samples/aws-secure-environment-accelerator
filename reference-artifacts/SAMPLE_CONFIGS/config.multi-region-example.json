@@ -541,6 +541,11 @@
             "name": "Attach-IAM-Instance-Profile",
             "description": "Attaches instance profiles to an EC2 instance",
             "template": "attach-iam-instance-profile.yaml"
+          },
+          {
+            "name": "Attach-IAM-Role-Policy",
+            "description": "Attachs Aws IAM Managed Policy to IAM Role.",
+            "template": "attach-iam-role-policy.yaml"
           }
         ]
       }
@@ -565,6 +570,26 @@
             "InstanceId": "RESOURCE_ID"
           }
         },
+        {
+          "name": "EC2-INSTANCE-PROFILE-PERMISSIONS",
+          "type": "custom",
+          "resource-types": [
+            "AWS::IAM::Role"
+          ],
+          "runtime": "nodejs12.x",
+          "parameters": {
+            "AWSManagedPolicies": "AmazonSSMManagedInstanceCore, AmazonSSMDirectoryServiceAccess, CloudWatchAgentServerPolicy",
+            "CustomerManagedPolicies": "${SEA::EC2InstaceProfilePermissions}",
+            "ResourceId": "RESOURCE_ID"
+          },
+          "remediation": true,
+          "remediation-action": "Attach-IAM-Role-Policy",
+          "remediation-params": {
+            "AWSManagedPolicies": ["AmazonSSMManagedInstanceCore", "AmazonSSMDirectoryServiceAccess", "CloudWatchAgentServerPolicy"],
+            "CustomerManagedPolicies": ["${SEA::EC2InstaceProfilePermissions}"],
+            "ResourceId": "RESOURCE_ID"
+          }  
+        }
         {
           "name": "ELB_LOGGING_ENABLED",
           "remediation-action": "SSM-ELB-Enable-Logging",
@@ -2545,7 +2570,7 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
         }
       ],
       "aws-config": [
@@ -2553,6 +2578,7 @@
           "excl-regions": [],
           "rules": [
             "EC2-INSTANCE-PROFILE",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
             "ACCESS_KEYS_ROTATED",
@@ -3102,7 +3128,7 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
         }
       ],
       "aws-config": [
@@ -3110,6 +3136,7 @@
           "excl-regions": [],
           "rules": [
             "EC2-INSTANCE-PROFILE",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
             "ACCESS_KEYS_ROTATED",
@@ -3686,7 +3713,7 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
         }
       ],
       "aws-config": [
@@ -3694,6 +3721,7 @@
           "excl-regions": [],
           "rules": [
             "EC2-INSTANCE-PROFILE",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
             "ACCESS_KEYS_ROTATED",
@@ -4270,7 +4298,7 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
         }
       ],
       "aws-config": [
@@ -4278,6 +4306,7 @@
           "excl-regions": [],
           "rules": [
             "EC2-INSTANCE-PROFILE",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
             "ACCESS_KEYS_ROTATED",
@@ -4854,7 +4883,7 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
         }
       ],
       "aws-config": [
@@ -4862,6 +4891,7 @@
           "excl-regions": [],
           "rules": [
             "EC2-INSTANCE-PROFILE",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
             "ACCESS_KEYS_ROTATED",
@@ -5676,7 +5706,7 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}", "us-east-1"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
         }
       ],
       "aws-config": [
@@ -5684,6 +5714,7 @@
           "excl-regions": [],
           "rules": [
             "EC2-INSTANCE-PROFILE",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
             "ACCESS_KEYS_ROTATED",

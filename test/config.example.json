@@ -496,6 +496,16 @@
             "name": "Put-S3-Encryption",
             "description": "Enables S3 encryption using KMS",
             "template": "s3-encryption.yaml"
+          },
+          {
+            "name": "Attach-IAM-Instance-Profile",
+            "description": "Attachs Instance profile to EC2 instance",
+            "template": "attach-iam-instance-profile.yaml"
+          },
+          {
+            "name": "Attach-IAM-Role-Policy",
+            "description": "Attachs Managed Policies to IAM Role",
+            "template": "attach-iam-role-policy.yaml"
           }
         ]
       }
@@ -520,6 +530,26 @@
               "IamInstanceProfile": "EC2-Default-SSM-AD-Role-ip",
               "InstanceId": "RESOURCE_ID"
             }          
+          },
+          {
+            "name": "EC2-INSTANCE-PROFILE-PERMISSIONS",
+            "type": "custom",
+            "resource-types": [
+              "AWS::IAM::Role"
+            ],
+            "runtime": "nodejs12.x",
+            "parameters": {
+              "AWSManagedPolicies": "AmazonSSMManagedInstanceCore, AmazonSSMDirectoryServiceAccess, CloudWatchAgentServerPolicy",
+              "CustomerManagedPolicies": "${SEA::EC2InstaceProfilePermissions}",
+              "ResourceId": "RESOURCE_ID"
+            },
+            "remediation": true,
+            "remediation-action": "Attach-IAM-Role-Policy",
+            "remediation-params": {
+              "AWSManagedPolicies": ["AmazonSSMManagedInstanceCore", "AmazonSSMDirectoryServiceAccess", "CloudWatchAgentServerPolicy"],
+              "CustomerManagedPolicies": ["${SEA::EC2InstaceProfilePermissions}"],
+              "ResourceId": "RESOURCE_ID"
+            }  
           },
           {
             "name": "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
@@ -2002,7 +2032,7 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
         }
       ],
       "aws-config": [
@@ -2011,6 +2041,8 @@
           "rules": [
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
+            "EC2-INSTANCE-PROFILE",
             "ACCESS_KEYS_ROTATED",
             "ACM_CERTIFICATE_EXPIRATION_CHECK",
             "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
@@ -2558,7 +2590,7 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
         }
       ],
       "aws-config": [
@@ -2567,6 +2599,8 @@
           "rules": [
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
+            "EC2-INSTANCE-PROFILE",
             "ACCESS_KEYS_ROTATED",
             "ACM_CERTIFICATE_EXPIRATION_CHECK",
             "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
@@ -3141,7 +3175,7 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"] 
         }
       ],
       "aws-config": [
@@ -3150,6 +3184,8 @@
           "rules": [
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
+            "EC2-INSTANCE-PROFILE",
             "ACCESS_KEYS_ROTATED",
             "ACM_CERTIFICATE_EXPIRATION_CHECK",
             "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
@@ -3724,7 +3760,7 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
         }
       ],
       "aws-config": [
@@ -3733,6 +3769,8 @@
           "rules": [
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
+            "EC2-INSTANCE-PROFILE",
             "ACCESS_KEYS_ROTATED",
             "ACM_CERTIFICATE_EXPIRATION_CHECK",
             "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
@@ -4307,7 +4345,7 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
         }
       ],
       "aws-config": [
@@ -4316,6 +4354,8 @@
           "rules": [
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
+            "EC2-INSTANCE-PROFILE",
             "ACCESS_KEYS_ROTATED",
             "ACM_CERTIFICATE_EXPIRATION_CHECK",
             "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
@@ -4857,7 +4897,7 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
         }
       ],
       "aws-config": [
@@ -4866,6 +4906,8 @@
           "rules": [
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
+            "EC2-INSTANCE-PROFILE",
             "ACCESS_KEYS_ROTATED",
             "ACM_CERTIFICATE_EXPIRATION_CHECK",
             "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
