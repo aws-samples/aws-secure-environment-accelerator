@@ -49,7 +49,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Managed Active Directory sharing, including R53 DNS resolver rule creation/sharing
 - Automated TGW inter-region peering
 - Populate Parameter Store with all `user` objects to be used by customers' IaC
-- Deploy and share SSM documents (3 provided out-of-box, ELB Logging, S3 Encryption, and Instance Profile remediation)
+- Deploy and share SSM documents (4 provided out-of-box, ELB Logging, S3 Encryption, Instance Profile remediation, Role remediation)
   - customer can provide their own SSM documents for automated deployment and sharing
 
 ### Identity
@@ -70,7 +70,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
   - Firewall Manager
   - CloudTrail w/Insights and S3 data plane logging
   - Config Recorders/Aggregator
-  - Conformance Packs and Config rules (95 out-of-box NIST 800-53 rules, customizable per OU)
+  - Conformance Packs and Config rules (95 out-of-box NIST 800-53 rules, 2 custom rules, customizable per OU)
   - Macie
   - IAM Access Analyzer
   - CloudWatch access from central designated admin account (and setting Log group retentions)
