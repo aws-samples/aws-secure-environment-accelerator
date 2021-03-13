@@ -12,6 +12,8 @@ import { S3 } from '@aws-accelerator/common/src/aws/s3';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as tempy from 'tempy';
+import { IamPolicyOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import * as t from 'io-ts';
 
 export interface ConfigRuleArtifactsOutput {
   bucketArn: string;
@@ -172,14 +174,14 @@ export async function createRule(props: CreateRuleProps) {
                 d.documents.includes(remediationAction),
               );
               if (ssmDocInAccount) {
-                targetId = `arn:aws:ssm:${cdk.Aws.REGION}:${getAccountId(
+                targetId = `arn:${cdk.Aws.PARTITION}:ssm:${cdk.Aws.REGION}:${getAccountId(
                   accounts,
                   ssmDocInAccount.account,
                 )}:document/${remediationActionName}`;
               } else {
                 const ssmDocInOu = ouConfig['ssm-automation'].find(d => d.documents.includes(remediationAction));
                 if (ssmDocInOu) {
-                  targetId = `arn:aws:ssm:${cdk.Aws.REGION}:${getAccountId(
+                  targetId = `arn:${cdk.Aws.PARTITION}:ssm:${cdk.Aws.REGION}:${getAccountId(
                     accounts,
                     ssmDocInOu.account,
                   )}:document/${remediationActionName}`;
@@ -240,7 +242,7 @@ interface RemediationParameters {
 }
 
 export function getRemediationParameters(params: {
-  remediationParams: { [key: string]: string };
+  remediationParams: { [key: string]: string | string[] };
   roleName: string;
   outputs: StackOutput[];
   config: c.AcceleratorConfig;
@@ -249,14 +251,21 @@ export function getRemediationParameters(params: {
 }): RemediationParameters {
   const reutrnParams: RemediationParameters = {};
   const { outputs, remediationParams, roleName, config, accountKey, defaultRegion } = params;
+  const tempRemediationParams = {
+    ...remediationParams,
+  };
   reutrnParams.AutomationAssumeRole = {
     StaticValue: {
-      Values: [`arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/${remediationParams.AutomationAssumeRole || roleName}`],
+      Values: [
+        `arn:${cdk.Aws.PARTITION}:iam::${cdk.Aws.ACCOUNT_ID}:role/${
+          tempRemediationParams.AutomationAssumeRole || roleName
+        }`,
+      ],
     },
   };
 
-  Object.keys(remediationParams).map(key => {
-    if (remediationParams[key] === 'RESOURCE_ID') {
+  Object.keys(tempRemediationParams).map(key => {
+    if (tempRemediationParams[key] === 'RESOURCE_ID') {
       reutrnParams[key] = {
         ResourceValue: {
           Value: 'RESOURCE_ID',
@@ -266,31 +275,69 @@ export function getRemediationParameters(params: {
       if (key === 'AutomationAssumeRole') {
         reutrnParams.AutomationAssumeRole = {
           StaticValue: {
-            Values: [`arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/${remediationParams[key]}`],
+            Values: [`arn:${cdk.Aws.PARTITION}:iam::${cdk.Aws.ACCOUNT_ID}:role/${tempRemediationParams[key]}`],
           },
         };
       } else {
-        if (remediationParams[key].startsWith('${SEA::')) {
-          const replaceKey = remediationParams[key].match('{SEA::(.*)}')?.[1]!;
-          reutrnParams[key] = {
-            StaticValue: {
-              Values: [
-                getParameterValue({
-                  paramKey: replaceKey,
-                  outputs,
-                  config,
-                  accountKey,
-                  defaultRegion,
-                }),
-              ],
-            },
-          };
+        if (t.string.is(tempRemediationParams[key])) {
+          /* eslint-disable no-template-curly-in-string */
+          const remediationParamMatch = (tempRemediationParams[key] as string).match('\\${SEA::([a-zA-Z0-9-]*)}');
+          if (remediationParamMatch) {
+            const replaceKey = remediationParamMatch[1];
+            const replaceValue = getParameterValue({
+              paramKey: replaceKey,
+              outputs,
+              config,
+              accountKey,
+              defaultRegion,
+            });
+            if (replaceValue) {
+              tempRemediationParams[key] = (tempRemediationParams[key] as string).replace(
+                new RegExp('\\${SEA::[a-zA-Z0-9-]*}', 'g'),
+                replaceValue,
+              );
+              reutrnParams[key] = {
+                StaticValue: {
+                  Values: [tempRemediationParams[key] as string],
+                },
+              };
+            }
+          } else {
+            reutrnParams[key] = {
+              StaticValue: {
+                Values: [tempRemediationParams[key] as string],
+              },
+            };
+          }
+          /* eslint-enable */
         } else {
-          reutrnParams[key] = {
-            StaticValue: {
-              Values: [remediationParams[key]],
-            },
-          };
+          const replacedParamValue: string[] = [];
+          for (const paramValue of tempRemediationParams[key]) {
+            /* eslint-disable no-template-curly-in-string */
+            const remediationParamMatch = paramValue.match('\\${SEA::([a-zA-Z0-9-]*)}');
+            if (remediationParamMatch) {
+              const replaceKey = remediationParamMatch[1];
+              const replaceValue = getParameterValue({
+                paramKey: replaceKey,
+                outputs,
+                config,
+                accountKey,
+                defaultRegion,
+              });
+              if (replaceValue) {
+                replacedParamValue.push(paramValue.replace(new RegExp('\\${SEA::[a-zA-Z0-9-]*}', 'g'), replaceValue));
+              }
+            } else {
+              replacedParamValue.push(paramValue);
+            }
+          }
+          if (replacedParamValue.length > 0) {
+            reutrnParams[key] = {
+              StaticValue: {
+                Values: replacedParamValue,
+              },
+            };
+          }
         }
       }
     }
@@ -306,19 +353,26 @@ export function getConfigRuleParameters(params: {
   defaultRegion: string;
 }): { [key: string]: string } {
   const { config, outputs, ruleParams, accountKey, defaultRegion } = params;
-  Object.keys(ruleParams).map(key => {
-    if (ruleParams[key].startsWith('${SEA::')) {
-      const replaceKey = ruleParams[key].match('{SEA::(.*)}')?.[1]!;
-      ruleParams[key] = getParameterValue({
+  const tempRuleParams = {
+    ...ruleParams,
+  };
+  Object.keys(tempRuleParams).map(key => {
+    /* eslint-disable no-template-curly-in-string */
+    const ruleParamMatch = tempRuleParams[key].match('\\${SEA::([a-zA-Z0-9-]*)}');
+    if (ruleParamMatch) {
+      const replaceKey = ruleParamMatch[1];
+      const replaceValue = getParameterValue({
         paramKey: replaceKey,
         outputs,
         config,
         accountKey,
         defaultRegion,
       });
+      tempRuleParams[key] = tempRuleParams[key].replace(new RegExp('\\${SEA::[a-zA-Z0-9-]*}', 'g'), replaceValue);
     }
+    /* eslint-enable */
   });
-  return ruleParams;
+  return tempRuleParams;
 }
 
 export function getParameterValue(props: {
@@ -329,21 +383,37 @@ export function getParameterValue(props: {
   defaultRegion: string;
 }): string {
   const { accountKey, config, outputs, paramKey, defaultRegion } = props;
-  if (paramKey === 'LogArchiveAesBucket') {
-    return LogBucketOutput.getBucketDetails({
-      config,
-      outputs,
-    }).name;
+  switch (paramKey) {
+    case 'LogArchiveAesBucket': {
+      return LogBucketOutput.getBucketDetails({
+        config,
+        outputs,
+      }).name;
+    }
+    case 'S3BucketEncryptionKey': {
+      const accountBucket = AccountBucketOutputFinder.tryFindOne({
+        outputs,
+        accountKey,
+        region: defaultRegion,
+      });
+      return `arn:${cdk.Aws.PARTITION}:kms:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:alias/${accountBucket?.encryptionKeyName}`;
+    }
+    case 'EC2InstaceProfilePermissions': {
+      const ssmPolicyOutput = IamPolicyOutputFinder.findOneByName({
+        outputs,
+        accountKey,
+        policyKey: 'IamSsmWriteAccessPolicy',
+      });
+      if (!ssmPolicyOutput) {
+        console.warn(`Didn't find IAM SSM Log Archive Write Access Policy in output`);
+        return '';
+      }
+      return ssmPolicyOutput.policyArn;
+    }
+    default: {
+      return '';
+    }
   }
-  if (paramKey === 'S3BucketEncryptionKey') {
-    const accountBucket = AccountBucketOutputFinder.tryFindOne({
-      outputs,
-      accountKey,
-      region: defaultRegion,
-    });
-    return `arn:aws:kms:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:alias/${accountBucket?.encryptionKeyName}`;
-  }
-  return '';
 }
 
 async function downloadCustomRules(
