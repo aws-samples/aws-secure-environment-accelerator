@@ -192,9 +192,15 @@ async function main() {
           ],
         },
       },
+      cache: {
+        paths: ['node_modules/**/*'],
+      },
+      artifacts: {
+        files: ['**/*'],
+      },
     }),
     environment: {
-      buildImage: codebuild.LinuxBuildImage.STANDARD_3_0,
+      buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
       privileged: true, // Allow access to the Docker daemon
       computeType: codebuild.ComputeType.MEDIUM,
       environmentVariables: {
@@ -244,6 +250,7 @@ async function main() {
         },
       },
     },
+    cache: codebuild.Cache.local(codebuild.LocalCacheMode.DOCKER_LAYER, codebuild.LocalCacheMode.CUSTOM),
   });
 
   // The role that will be used to start the state machine

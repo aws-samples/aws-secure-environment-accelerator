@@ -312,7 +312,14 @@ async function saveVpcOutputs(props: {
     vpcUtil.parameters.push('cidr');
   }
   if (!vpcUtil.parameters.includes('cidr2') && vpcConfig.cidr2) {
-    await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr2`, vpcConfig.cidr2.toCidrString());
+    for (const cidrIndex in vpcConfig.cidr2) {
+      if (vpcConfig.cidr2[cidrIndex]) {
+        await ssm.putParameter(
+          `/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr2/${cidrIndex}`,
+          vpcConfig.cidr2[cidrIndex].toCidrString(),
+        );
+      }
+    }
     vpcUtil.parameters.push('cidr2');
   }
   let subnetsConfig = vpcConfig.subnets;

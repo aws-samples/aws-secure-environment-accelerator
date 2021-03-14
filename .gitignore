@@ -6,3 +6,6 @@ pnpm-lock.yaml
 config.json
 aws-landing-zone-configuration.zip
 
+.idea/
+*.iml
+**/dist/
