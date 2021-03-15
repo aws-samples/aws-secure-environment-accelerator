@@ -4,7 +4,8 @@
   "scripts": {
     "test": "pnpx jest",
     "synth": "pnpx cdk synth",
-    "lint": "eslint --ext .ts 'src/**/*.ts'"
+    "lint": "eslint --ext .ts 'src/**/*.ts'",
+    "lint:typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/jest": "25.2.3",

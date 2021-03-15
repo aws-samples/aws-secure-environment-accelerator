@@ -1,17 +1,17 @@
 {
   "name": "@aws-accelerator/custom-resource-create-hosted-zone",
-  "peerDependencies": {
-    "@aws-cdk/aws-iam": "1.85.0", 
-    "@aws-cdk/core": "1.85.0"
-  }, 
+  "version": "0.0.1",
+  "private": true,
   "main": "cdk/index.ts",
-  "private": true, 
-  "version": "0.0.1", 
   "dependencies": {
-    "@aws-cdk/aws-iam": "1.85.0", 
-    "@aws-cdk/core": "1.85.0", 
+    "@aws-cdk/aws-iam": "1.85.0",
+    "@aws-cdk/core": "1.85.0",
     "@aws-cdk/aws-lambda": "1.85.0"
-  }, 
+  },
+  "peerDependencies": {
+    "@aws-cdk/aws-iam": "1.85.0",
+    "@aws-cdk/core": "1.85.0"
+  },
   "devDependencies": {
     "eslint": "7.10.0",
     "@typescript-eslint/eslint-plugin": "4.4.0",
@@ -27,9 +27,12 @@
     "eslint-plugin-prefer-arrow": "1.2.2",
     "eslint-plugin-react": "7.21.3",
     "eslint-plugin-unicorn": "22.0.0",
-    "@types/aws-lambda": "8.10.46", 
-    "@types/cfn-response": "1.0.4", 
-    "@types/node": "12.12.6", 
-    "@aws-accelerator/custom-resource-create-hosted-zone-runtime": "workspace:^0.0.1"
+    "@types/aws-lambda": "8.10.46",
+    "@types/cfn-response": "1.0.4",
+    "@types/node": "12.12.6",
+    "@aws-accelerator/custom-resource-create-hosted-zone-runtime": "workspace:*"
+  },
+  "scripts": {
+    "lint:typecheck": "tsc --noEmit"
   }
 }

@@ -2,15 +2,18 @@
   "name": "@aws-accelerator/common-outputs",
   "version": "0.0.1",
   "private": true,
-  "scripts": {
-    "compile": "pnpx tsc --noEmit",
-    "test": "pnpx jest",
-    "lint": "eslint --ext .ts 'src/**/*.ts'"
-  },
   "main": "src/index.ts",
   "files": [
     "src"
   ],
+  "scripts": {
+    "test": "pnpx jest",
+    "lint": "eslint --ext .ts 'src/**/*.ts'",
+    "lint:typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-accelerator/common-types": "workspace:^0.0.1"
+  },
   "devDependencies": {
     "@aws-cdk/assert": "1.85.0",
     "@types/jest": "25.2.1",
@@ -38,9 +41,6 @@
     "eslint-plugin-react": "7.21.3",
     "eslint-plugin-unicorn": "22.0.0",
     "typescript": "3.8.3"
-  },
-  "dependencies": {
-    "@aws-accelerator/common-types": "workspace:^0.0.1"
   },
   "jest": {
     "preset": "ts-jest",

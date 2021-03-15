@@ -4,8 +4,8 @@
   "private": true,
   "main": "src/index.ts",
   "devDependencies": {
-    "@aws-accelerator/custom-resource-logs-add-subscription-filter-runtime": "workspace:^0.0.1",
-    "@aws-accelerator/custom-resource-logs-add-subscription-filter-cloudwatch-event-runtime": "workspace:^0.0.1",
+    "@aws-accelerator/custom-resource-logs-add-subscription-filter-runtime": "workspace:*",
+    "@aws-accelerator/custom-resource-logs-add-subscription-filter-cloudwatch-event-runtime": "workspace:*",
     "@types/jest": "25.2.3",
     "@types/node": "12.12.6",
     "jest": "25.2.4",
@@ -42,5 +42,8 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node"
+  },
+  "scripts": {
+    "lint:typecheck": "tsc --noEmit"
   }
 }

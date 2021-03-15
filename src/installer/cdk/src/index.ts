@@ -159,7 +159,15 @@ async function main() {
             nodejs: 12,
           },
           // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-          commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm'],
+          commands: [
+            'npm install --global pnpm',
+            'pnpm install --unsafe-perm',
+            'pnpm recursive run build --unsafe-perm',
+          ],
+        },
+        pre_build: {
+          // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
+          commands: ['pnpm recursive run build --unsafe-perm'],
         },
         build: {
           commands: [

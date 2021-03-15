@@ -4,7 +4,7 @@
   "private": true,
   "main": "lib/index.ts",
   "devDependencies": {
-    "@aws-accelerator/custom-resource-ec2-ebs-default-encryption-runtime": "workspace:^0.0.1",
+    "@aws-accelerator/custom-resource-ec2-ebs-default-encryption-runtime": "workspace:*",
     "@types/node": "12.12.6",
     "ts-node": "6.2.0",
     "eslint": "7.10.0",
@@ -34,5 +34,8 @@
     "@aws-cdk/aws-kms": "1.85.0",
     "@aws-cdk/aws-lambda": "1.85.0",
     "@aws-cdk/core": "1.85.0"
+  },
+  "scripts": {
+    "lint:typecheck": "tsc --noEmit"
   }
 }

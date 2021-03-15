@@ -178,6 +178,10 @@ new codebuild.PipelineProject(stack, 'InstallerProject', {
         // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
         commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm'],
       },
+      pre_build: {
+        // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
+        commands: ['pnpm recursive run build --unsafe-perm'],
+      },
       build: {
         commands: [
           'cd src/core/cdk',
@@ -243,6 +247,8 @@ WORKDIR /app
 ADD . /app/
 # Install the dependencies
 RUN pnpm install --unsafe-perm
+# Build all Lambda function runtime code
+RUN pnpm recursive run build --unsafe-perm
 ```
 
 When this CodeBuild project executes, it uses the Docker image as base -- the dependencies are already installed -- and runs the same commands as the `CdkDeployProject` to deploy the `Phase` stacks.

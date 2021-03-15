@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "pnpx tsc --noEmit",
     "test": "pnpx jest",
     "lint": "eslint --ext .ts 'src/**/*.ts'",
+    "lint:typecheck": "tsc --noEmit",
     "synth": "pnpx cdk synth"
   },
   "devDependencies": {

@@ -1,4 +1,12 @@
 {
+  "name": "@aws-accelerator/root",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "pnpm recursive run --no-bail build",
+    "test": "pnpm recursive run --no-bail test",
+    "lint": "pnpm recursive run --no-bail lint",
+    "lint:typecheck": "pnpm recursive run --no-bail lint:typecheck"
+  },
   "devDependencies": {
     "@types/jest": "25.2.3",
     "@types/node": "12.12.6",
