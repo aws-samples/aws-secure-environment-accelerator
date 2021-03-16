@@ -8,6 +8,7 @@ process.on('unhandledRejection', (reason, _) => {
   process.exit(1);
 });
 
+//Make change for test
 async function main() {
   const env = process.env;
   const pkg = require('../package.json');
