@@ -3,20 +3,13 @@
   "version": "0.0.1",
   "scripts": {
     "build": "pnpm recursive run --no-bail build",
-    "test": "pnpm recursive run --no-bail test",
+    "test": "pnpm recursive run --no-bail test -- --pass-with-no-tests",
     "lint": "pnpm recursive run --no-bail lint",
     "lint:typecheck": "pnpm recursive run --no-bail lint:typecheck"
   },
   "devDependencies": {
     "@types/jest": "25.2.3",
-    "@types/node": "12.12.6",
-    "husky": "4.2.3",
-    "prettier": "2.2.0",
-    "pretty-quick": "2.0.1"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "pnpx pretty-quick --pattern **/*.ts"
-    }
+    "@types/node": "12.20.6",
+    "prettier": "2.2.0"
   }
 }

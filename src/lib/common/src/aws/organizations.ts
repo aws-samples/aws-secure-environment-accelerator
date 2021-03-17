@@ -1,3 +1,4 @@
+import omit from 'lodash.omit';
 import aws from './aws-client';
 import * as org from 'aws-sdk/clients/organizations';
 import { throttlingBackOff } from './backoff';
@@ -46,16 +47,13 @@ export class Organizations {
   }
 
   async getPolicyByName(input: org.ListPoliciesRequest & { Name: string }): Promise<org.Policy | undefined> {
-    const name = input.Name;
-    delete input.Name;
-
     const summaries = listWithNextTokenGenerator<org.ListPoliciesRequest, org.ListPoliciesResponse, org.PolicySummary>(
       this.client.listPolicies.bind(this.client),
       r => r.Policies!,
-      input,
+      omit(input, 'Name'),
     );
     for await (const summary of summaries) {
-      if (summary.Name === name) {
+      if (summary.Name === input.Name) {
         const describePolicy = await this.describePolicy(summary.Id!);
         return describePolicy.Policy;
       }
