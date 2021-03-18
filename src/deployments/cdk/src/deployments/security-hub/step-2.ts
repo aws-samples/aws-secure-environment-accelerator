@@ -19,6 +19,9 @@ export interface SecurityHubStep2Props {
 export async function step2(props: SecurityHubStep2Props) {
   const { accounts, accountStacks, config, outputs } = props;
   const globalOptions = config['global-options'];
+  if (!globalOptions['central-security-services']['security-hub']) {
+    return;
+  }
   const regions = globalOptions['supported-regions'];
   const securityAccountKey = config.getMandatoryAccountKey('central-security');
   const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);

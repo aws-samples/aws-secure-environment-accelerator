@@ -13,7 +13,7 @@ const physicalResourceId = 'GaurdDutyDeligatedAdminAccountSetup';
 const guardduty = new AWS.GuardDuty();
 
 // Guardduty CreateMembers, UpdateMembers and DeleteMembers apis only supports max 50 accounts per request
-const pageSize = 50;
+const pageSize = 3;
 
 export interface AccountDetail {
   AccountId: string;

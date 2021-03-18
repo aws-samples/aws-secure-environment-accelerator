@@ -15,7 +15,7 @@ export interface HandlerProperties {
 }
 
 // SSM modifyDocumentPermission api only supports max 20 accounts per request
-const pageSize = 20;
+const pageSize = 3;
 const ssm = new AWS.SSM();
 
 export const handler = errorHandler(onEvent);

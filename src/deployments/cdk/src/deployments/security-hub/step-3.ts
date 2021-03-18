@@ -20,8 +20,10 @@ export interface SecurityHubStep3Props {
 export async function step3(props: SecurityHubStep3Props) {
   const { accounts, accountStacks, config, outputs } = props;
   const globalOptions = config['global-options'];
+  if (!globalOptions['central-security-services']['security-hub']) {
+    return;
+  }
   const regions = globalOptions['supported-regions'];
-
   for (const account of accounts) {
     const securityHubRoleOutput = IamRoleOutputFinder.tryFindOneByName({
       outputs,
