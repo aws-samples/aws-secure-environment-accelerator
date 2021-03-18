@@ -13,7 +13,7 @@ const physicalResourceId = 'GaurdDutyDeligatedAdminAccountSetup';
 const guardduty = new AWS.GuardDuty();
 
 // Guardduty CreateMembers, UpdateMembers and DeleteMembers apis only supports max 50 accounts per request
-const pageSize = 3;
+const pageSize = 50;
 
 export interface AccountDetail {
   AccountId: string;
@@ -110,7 +110,7 @@ async function createMembers(memberAccounts: AccountDetail[], detectorId: string
           })
           .promise(),
       );
-      currentAccounts = paginate(memberAccounts, pageNumber, pageSize);
+      currentAccounts = paginate(memberAccounts, ++pageNumber, pageSize);
     }
   } catch (error) {
     console.error(
@@ -187,7 +187,7 @@ async function updateMemberDataSource(memberAccounts: AccountDetail[], detectorI
           })
           .promise(),
       );
-      currentAccounts = paginate(memberAccounts, pageNumber, pageSize);
+      currentAccounts = paginate(memberAccounts, ++pageNumber, pageSize);
     }
   } catch (error) {
     console.error(`Error Occurred while updateMemberDetectors of GuardDuty ${error.code}: ${error.message}`);
@@ -229,7 +229,7 @@ async function deleteMembers(memberAccounts: AccountDetail[], detectorId: string
           })
           .promise(),
       );
-      currentAccounts = paginate(memberAccounts, pageNumber, pageSize);
+      currentAccounts = paginate(memberAccounts, ++pageNumber, pageSize);
     }
   } catch (error) {
     console.error(
