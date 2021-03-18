@@ -266,6 +266,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 Current Issues:
 
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine.
+- New deployments to existing organizations with more than 20 accounts will fail on SSM document sharing as we fail to paginate the API call. Remove the SSM remediation documents from all of the OU's, i.e. `"documents": []` and set `"remediation": false` on the 4 config rules in global-options. Will be resolved in v1.3.1. Adding a new SSM document to the config file which results in it being shared to more than 20 accounts will also fail. Assuming no OU has more than 20 accounts, customers can deploy the SSM document one OU at a time to work around this issue.
 
 Issues in Older Releases:
 
@@ -301,7 +302,8 @@ Issues in Older Releases:
            - Each new VIP will use a new high port (i.e. 7007, 7008, etc.), all of which map back to port 443
            - Detailed steps can be read [here](./guides/public-facing-workload-via-fortigate.md).
     4. In your `home` region (i.e. ca-central-1), Enable AWS SSO, Set the SSO directory to MAD, set the SSO email attrib to: \${dir:email}, create all default permission sets and any desired custom permission sets, map MAD groups to perm sets
-    5. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts
+    5. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts, in each account:
+       - Go to CloudWatch, Settings, Under `Cross-account cross-region` select `Configure`, Under `View cross-account cross-region` select `Enable`, choose `AWS Organization account selector`, click `Enable`
     6. Customers are responsible for the ongoing management and rotation of all passwords on a regular basis per their organizational password policy. This includes the passwords of all IAM users, MAD users, firewall users, or other users, whether deployed by the Accelerator or not. We do NOT automatically rotate any passwords, but strongly encourage customers do so, on a regular basis.
 
 2.  During the installation we request required limit increases, resources dependent on these limits will not be deployed
@@ -358,7 +360,7 @@ Issues in Older Releases:
 
 ## 3.2. Summary of Upgrade Steps (all versions)
 
-1. Login to your Organization Management (root) AWS account with administrative priviliges
+1. Login to your Organization Management (root) AWS account with administrative privileges
 2. Ensure a valid Github token is stored in secrets manager [(section 2.3.2)](#232-create-github-personal-access-token-and-store-in-secrets-manager)
 3. Review and implement any relevant tasks noted in the upgrade considerations in [section 3.1](#31-considerations)
 4. Update the config file in Code Commit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
@@ -381,6 +383,7 @@ Issues in Older Releases:
   - Select Choose File and select the template you downloaded in step 5 (`AcceleratorInstallerXYZ.template.json`)
   - Select Next, Update `GithubBranch` parameter to `release/vX.Y.Z` where X.Y.Z represents the latest release
   - Click Next, Next, I acknowledge, Update
+  - Wait for the CloudFormation stack to update (`Update_Complete` status) (Requires manual refresh)
 - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
 # 4. Existing Organizations / Accounts
