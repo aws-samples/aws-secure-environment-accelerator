@@ -12,6 +12,14 @@ export interface SecurityHubStep1Props {
   outputs: StackOutput[];
 }
 
+/**
+ *
+ * @param props
+ * @returns
+ *
+ * Enables SecurityHub in Audit Account also send invites
+ * to sub accounts in all regions excluding security-hub-excl-regions
+ */
 export async function step1(props: SecurityHubStep1Props) {
   const { accounts, accountStacks, config, outputs } = props;
   const globalOptions = config['global-options'];
@@ -36,7 +44,12 @@ export async function step1(props: SecurityHubStep1Props) {
     return;
   }
 
+  const securityHubExclRegions = globalOptions['central-security-services']['security-hub-excl-regions'] || [];
   for (const region of regions) {
+    if (securityHubExclRegions.includes(region)) {
+      console.info(`Security Hub is disabled in region "${region}" based on global-options/security-hub-excl-regions'`);
+      continue;
+    }
     const securityMasterAccountStack = accountStacks.tryGetOrCreateAccountStack(securityAccountKey, region);
     if (!securityMasterAccountStack) {
       console.warn(`Cannot find security stack in region ${region}`);

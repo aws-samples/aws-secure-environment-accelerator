@@ -11,7 +11,11 @@ export interface SecurityHubStep2Props {
   accountStacks: AccountStacks;
   outputs: StackOutput[];
 }
-
+/**
+ *
+ * @param props
+ * Accept invites in sub accounts in all regions excluding security-hub-excl-regions
+ */
 export async function step2(props: SecurityHubStep2Props) {
   const { accounts, accountStacks, config, outputs } = props;
   const globalOptions = config['global-options'];
@@ -33,7 +37,14 @@ export async function step2(props: SecurityHubStep2Props) {
       continue;
     }
 
+    const securityHubExclRegions = globalOptions['central-security-services']['security-hub-excl-regions'] || [];
     for (const region of regions) {
+      if (securityHubExclRegions.includes(region)) {
+        console.info(
+          `Security Hub is disabled in region "${region}" based on global-options/security-hub-excl-regions'`,
+        );
+        continue;
+      }
       const memberAccountStack = accountStacks.tryGetOrCreateAccountStack(account.key, region);
       if (!memberAccountStack) {
         console.warn(`Cannot find account stack ${account.key} in region ${region}`);

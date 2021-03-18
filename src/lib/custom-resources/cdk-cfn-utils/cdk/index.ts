@@ -27,3 +27,7 @@ export const isThrottlingError = (e: any) =>
 export async function delay(ms: number) {
   return new Promise((resolve, reject) => setTimeout(resolve, ms));
 }
+
+export function paginate<T>(input: T[], pageNumber: number, pageSize: number): T[] {
+  return input.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+}

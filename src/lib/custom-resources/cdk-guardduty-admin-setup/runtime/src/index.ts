@@ -7,10 +7,13 @@ import {
   CloudFormationCustomResourceDeleteEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
-import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
+import { throttlingBackOff, paginate } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const physicalResourceId = 'GaurdDutyDeligatedAdminAccountSetup';
 const guardduty = new AWS.GuardDuty();
+
+// Guardduty CreateMembers, UpdateMembers and DeleteMembers apis only supports max 50 accounts per request
+const pageSize = 50;
 
 export interface AccountDetail {
   AccountId: string;
@@ -95,15 +98,20 @@ async function getDetectorId(): Promise<string | undefined> {
 // Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
 async function createMembers(memberAccounts: AccountDetail[], detectorId: string) {
   try {
-    console.log(`Calling api "guardduty.createMembers()", ${memberAccounts}, ${detectorId}`);
-    await throttlingBackOff(() =>
-      guardduty
-        .createMembers({
-          AccountDetails: memberAccounts,
-          DetectorId: detectorId,
-        })
-        .promise(),
-    );
+    let pageNumber = 1;
+    let currentAccounts: AccountDetail[] = paginate(memberAccounts, pageNumber, pageSize);
+    while (currentAccounts.length > 0) {
+      console.log(`Calling api "guardduty.createMembers()", ${currentAccounts}, ${detectorId}`);
+      await throttlingBackOff(() =>
+        guardduty
+          .createMembers({
+            AccountDetails: currentAccounts,
+            DetectorId: detectorId,
+          })
+          .promise(),
+      );
+      currentAccounts = paginate(memberAccounts, pageNumber, pageSize);
+    }
   } catch (error) {
     console.error(
       `Error Occurred while creating members in Delegator Account of GuardDuty ${error.code}: ${error.message}`,
@@ -160,22 +168,27 @@ async function updateMemberDataSource(memberAccounts: AccountDetail[], detectorI
     return;
   }
   try {
-    console.log(
-      `Calling api "guardduty.updateMemberDetectors()", ${memberAccounts}, ${detectorId} to disable S3Protection`,
-    );
-    await throttlingBackOff(() =>
-      guardduty
-        .updateMemberDetectors({
-          AccountIds: memberAccounts.map(acc => acc.AccountId),
-          DetectorId: detectorId,
-          DataSources: {
-            S3Logs: {
-              Enable: false,
+    let pageNumber = 1;
+    let currentAccounts: AccountDetail[] = paginate(memberAccounts, pageNumber, pageSize);
+    while (currentAccounts.length > 0) {
+      console.log(
+        `Calling api "guardduty.updateMemberDetectors()", ${currentAccounts}, ${detectorId} to disable S3Protection`,
+      );
+      await throttlingBackOff(() =>
+        guardduty
+          .updateMemberDetectors({
+            AccountIds: currentAccounts.map(acc => acc.AccountId),
+            DetectorId: detectorId,
+            DataSources: {
+              S3Logs: {
+                Enable: false,
+              },
             },
-          },
-        })
-        .promise(),
-    );
+          })
+          .promise(),
+      );
+      currentAccounts = paginate(memberAccounts, pageNumber, pageSize);
+    }
   } catch (error) {
     console.error(`Error Occurred while updateMemberDetectors of GuardDuty ${error.code}: ${error.message}`);
     throw error;
@@ -204,15 +217,20 @@ async function updateS3Protection(detectorId: string, s3Protection: boolean) {
 
 async function deleteMembers(memberAccounts: AccountDetail[], detectorId: string) {
   try {
-    console.log(`Calling api "guardduty.createMembers()", ${memberAccounts}, ${detectorId}`);
-    await throttlingBackOff(() =>
-      guardduty
-        .deleteMembers({
-          DetectorId: detectorId,
-          AccountIds: memberAccounts.map(acc => acc.AccountId),
-        })
-        .promise(),
-    );
+    let pageNumber = 1;
+    let currentAccounts: AccountDetail[] = paginate(memberAccounts, pageNumber, pageSize);
+    while (currentAccounts.length > 0) {
+      console.log(`Calling api "guardduty.createMembers()", ${currentAccounts}, ${detectorId}`);
+      await throttlingBackOff(() =>
+        guardduty
+          .deleteMembers({
+            DetectorId: detectorId,
+            AccountIds: currentAccounts.map(acc => acc.AccountId),
+          })
+          .promise(),
+      );
+      currentAccounts = paginate(memberAccounts, pageNumber, pageSize);
+    }
   } catch (error) {
     console.error(
       `Error Occurred while creating members in Delegator Account of GuardDuty ${error.code}: ${error.message}`,
