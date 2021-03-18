@@ -26,6 +26,7 @@
     "supported-regions": [
       "ap-northeast-1",
       "ap-northeast-2",
+      "ap-northeast-3",
       "ap-south-1",
       "ap-southeast-1",
       "ap-southeast-2",
@@ -49,17 +50,17 @@
     "central-security-services": {
       "account": "security",
       "region": "${HOME_REGION}",
-      "security-hub-excl-regions": [],
+      "security-hub-excl-regions": ["ap-northeast-3"],
       "guardduty": true,
-      "guardduty-excl-regions": [],
+      "guardduty-excl-regions": ["ap-northeast-3"],
       "guardduty-s3": true,
-      "guardduty-s3-excl-regions": [],
+      "guardduty-s3-excl-regions": ["ap-northeast-3"],
       "cwl": true,
       "access-analyzer": true,
       "config-excl-regions": [],
       "config-aggr-excl-regions": [],
       "macie": true,
-      "macie-excl-regions": [],
+      "macie-excl-regions": ["ap-northeast-3"],
       "macie-frequency": "FIFTEEN_MINUTES"
     },
     "central-operations-services": {
@@ -573,9 +574,7 @@
         {
           "name": "EC2-INSTANCE-PROFILE-PERMISSIONS",
           "type": "custom",
-          "resource-types": [
-            "AWS::IAM::Role"
-          ],
+          "resource-types": ["AWS::IAM::Role"],
           "runtime": "nodejs12.x",
           "parameters": {
             "AWSManagedPolicies": "AmazonSSMManagedInstanceCore, AmazonSSMDirectoryServiceAccess, CloudWatchAgentServerPolicy",
@@ -589,7 +588,7 @@
             "CustomerManagedPolicies": ["${SEA::EC2InstaceProfilePermissions}"],
             "ResourceId": "RESOURCE_ID"
           }  
-        }
+        },
         {
           "name": "ELB_LOGGING_ENABLED",
           "remediation-action": "SSM-ELB-Enable-Logging",
@@ -2575,7 +2574,7 @@
       ],
       "aws-config": [
         {
-          "excl-regions": [],
+          "excl-regions": ["ap-northeast-3"],
           "rules": [
             "EC2-INSTANCE-PROFILE",
             "EC2-INSTANCE-PROFILE-PERMISSIONS",
@@ -3133,7 +3132,7 @@
       ],
       "aws-config": [
         {
-          "excl-regions": [],
+          "excl-regions": ["ap-northeast-3"],
           "rules": [
             "EC2-INSTANCE-PROFILE",
             "EC2-INSTANCE-PROFILE-PERMISSIONS",
@@ -3718,7 +3717,7 @@
       ],
       "aws-config": [
         {
-          "excl-regions": [],
+          "excl-regions": ["ap-northeast-3"],
           "rules": [
             "EC2-INSTANCE-PROFILE",
             "EC2-INSTANCE-PROFILE-PERMISSIONS",
@@ -4303,7 +4302,7 @@
       ],
       "aws-config": [
         {
-          "excl-regions": [],
+          "excl-regions": ["ap-northeast-3"],
           "rules": [
             "EC2-INSTANCE-PROFILE",
             "EC2-INSTANCE-PROFILE-PERMISSIONS",
@@ -4888,7 +4887,7 @@
       ],
       "aws-config": [
         {
-          "excl-regions": [],
+          "excl-regions": ["ap-northeast-3"],
           "rules": [
             "EC2-INSTANCE-PROFILE",
             "EC2-INSTANCE-PROFILE-PERMISSIONS",
@@ -5711,7 +5710,7 @@
       ],
       "aws-config": [
         {
-          "excl-regions": [],
+          "excl-regions": ["ap-northeast-3"],
           "rules": [
             "EC2-INSTANCE-PROFILE",
             "EC2-INSTANCE-PROFILE-PERMISSIONS",
