@@ -679,6 +679,7 @@ export const CentralServicesConfigType = t.interface({
   account: NonEmptyString,
   region: NonEmptyString,
   'security-hub': fromNullable(t.boolean, false),
+  'security-hub-excl-regions': optional(t.array(t.string)),
   guardduty: fromNullable(t.boolean, false),
   'guardduty-excl-regions': optional(t.array(t.string)),
   'guardduty-s3': fromNullable(t.boolean, false),
