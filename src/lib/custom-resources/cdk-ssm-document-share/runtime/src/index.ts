@@ -7,13 +7,15 @@ import {
   CloudFormationCustomResourceUpdateEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
-import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
+import { throttlingBackOff, paginate } from '@aws-accelerator/custom-resource-cfn-utils';
 
 export interface HandlerProperties {
   name: string;
   accountIds: string[];
 }
 
+// SSM modifyDocumentPermission api only supports max 20 accounts per request
+const pageSize = 20;
 const ssm = new AWS.SSM();
 
 export const handler = errorHandler(onEvent);
@@ -35,15 +37,21 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
   const { accountIds, name } = (event.ResourceProperties as unknown) as HandlerProperties;
-  await throttlingBackOff(() =>
-    ssm
-      .modifyDocumentPermission({
-        Name: name,
-        PermissionType: 'Share',
-        AccountIdsToAdd: accountIds,
-      })
-      .promise(),
-  );
+  let pageNumber = 1;
+  let currentAccountIds: string[] = paginate(accountIds, pageNumber, pageSize);
+  while (currentAccountIds.length > 0) {
+    await throttlingBackOff(() =>
+      ssm
+        .modifyDocumentPermission({
+          Name: name,
+          PermissionType: 'Share',
+          AccountIdsToAdd: currentAccountIds,
+        })
+        .promise(),
+    );
+    currentAccountIds = paginate(accountIds, ++pageNumber, pageSize);
+  }
+
   return {
     physicalResourceId: `SSMDocumentShare-${name}`,
   };
@@ -58,27 +66,37 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   const unShareAccounts = oldProperties.accountIds.filter(accountId => !accountIds.includes(accountId));
 
   if (shareAccounts.length > 0) {
-    await throttlingBackOff(() =>
-      ssm
-        .modifyDocumentPermission({
-          Name: name,
-          PermissionType: 'Share',
-          AccountIdsToAdd: shareAccounts,
-        })
-        .promise(),
-    );
+    let pageNumber = 1;
+    let currentAccountIds: string[] = paginate(shareAccounts, pageNumber, pageSize);
+    while (currentAccountIds.length > 0) {
+      await throttlingBackOff(() =>
+        ssm
+          .modifyDocumentPermission({
+            Name: name,
+            PermissionType: 'Share',
+            AccountIdsToAdd: currentAccountIds,
+          })
+          .promise(),
+      );
+      currentAccountIds = paginate(shareAccounts, ++pageNumber, pageSize);
+    }
   }
 
   if (unShareAccounts.length > 0) {
-    await throttlingBackOff(() =>
-      ssm
-        .modifyDocumentPermission({
-          Name: name,
-          PermissionType: 'Share',
-          AccountIdsToRemove: unShareAccounts,
-        })
-        .promise(),
-    );
+    let pageNumber = 1;
+    let currentAccountIds: string[] = paginate(unShareAccounts, pageNumber, pageSize);
+    while (currentAccountIds.length > 0) {
+      await throttlingBackOff(() =>
+        ssm
+          .modifyDocumentPermission({
+            Name: name,
+            PermissionType: 'Share',
+            AccountIdsToRemove: currentAccountIds,
+          })
+          .promise(),
+      );
+      currentAccountIds = paginate(unShareAccounts, ++pageNumber, pageSize);
+    }
   }
 
   return {
@@ -96,15 +114,20 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     };
   }
   try {
-    await throttlingBackOff(() =>
-      ssm
-        .modifyDocumentPermission({
-          Name: name,
-          PermissionType: 'Share',
-          AccountIdsToRemove: accountIds,
-        })
-        .promise(),
-    );
+    let pageNumber = 1;
+    let currentAccountIds: string[] = paginate(accountIds, pageNumber, pageSize);
+    while (currentAccountIds.length > 0) {
+      await throttlingBackOff(() =>
+        ssm
+          .modifyDocumentPermission({
+            Name: name,
+            PermissionType: 'Share',
+            AccountIdsToRemove: currentAccountIds,
+          })
+          .promise(),
+      );
+      currentAccountIds = paginate(accountIds, ++pageNumber, pageSize);
+    }
   } catch (error) {
     console.warn(error);
   }
