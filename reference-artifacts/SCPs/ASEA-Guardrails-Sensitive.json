@@ -40,6 +40,8 @@
         "ec2:AssociateAddress",
         "ec2:ModifyImageAttribute",
         "ec2:ModifySnapshotAttribute",
+        "rds:ModifyDBSnapshotAttribute",
+        "rds:ModifyDBClusterSnapshotAttribute",
         "globalaccelerator:Create*",
         "globalaccelerator:Update*",
         "kms:ScheduleKeyDeletion",
