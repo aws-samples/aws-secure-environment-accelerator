@@ -1,11 +1,14 @@
 import * as cdk from '@aws-cdk/core';
 import * as elb from '@aws-cdk/aws-elasticloadbalancingv2';
+import { ElbDeletionProtection } from '@aws-accelerator/custom-resource-elb-deletion-protection';
+import * as s3 from '@aws-cdk/aws-s3';
 
 export interface NetworkLoadBalancerProps extends cdk.StackProps {
   nlbName: string;
   scheme: string;
   subnetIds: string[];
   ipType: string;
+  aesLogArchiveBucket: s3.IBucket;
 }
 
 export class NetworkLoadBalancer extends cdk.Construct {
@@ -15,7 +18,7 @@ export class NetworkLoadBalancer extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, private readonly props: NetworkLoadBalancerProps) {
     super(scope, id);
 
-    const { nlbName, scheme, subnetIds, ipType } = props;
+    const { nlbName, scheme, subnetIds, ipType, aesLogArchiveBucket } = props;
 
     this.resource = new elb.CfnLoadBalancer(this, `Nlb${nlbName}`, {
       name: nlbName,
@@ -23,6 +26,25 @@ export class NetworkLoadBalancer extends cdk.Construct {
       scheme,
       subnets: subnetIds,
       type: 'network',
+      loadBalancerAttributes: [
+        {
+          key: 'access_logs.s3.enabled',
+          value: 'true',
+        },
+        {
+          key: 'access_logs.s3.bucket',
+          value: aesLogArchiveBucket.bucketName,
+        },
+        {
+          key: 'access_logs.s3.prefix',
+          value: `${cdk.Aws.ACCOUNT_ID}/elb-${nlbName}`,
+        },
+      ],
+    });
+
+    new ElbDeletionProtection(this, `Nlb${nlbName}DeletionProtection`, {
+      loadBalancerArn: this.resource.ref,
+      loadBalancerName: nlbName,
     });
   }
 

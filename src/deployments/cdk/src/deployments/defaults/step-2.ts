@@ -82,6 +82,21 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
       }),
     );
 
+    // Allow only https requests
+    bucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        actions: ['s3:*'],
+        resources: [bucket.bucketArn, bucket.arnForObjects('*')],
+        principals: [new iam.AnyPrincipal()],
+        conditions: {
+          Bool: {
+            'aws:SecureTransport': 'false',
+          },
+        },
+        effect: iam.Effect.DENY,
+      }),
+    );
+
     buckets[accountKey] = bucket;
 
     new CfnAccountBucketOutput(accountStack, 'DefaultBucketOutput', {

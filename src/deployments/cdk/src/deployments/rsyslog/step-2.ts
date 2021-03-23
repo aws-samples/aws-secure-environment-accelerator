@@ -17,6 +17,7 @@ import { ImageIdOutputFinder } from '@aws-accelerator/common-outputs/src/ami-out
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { Context } from '../../utils/context';
 import { CfnLoadBalancerOutput } from '../alb/outputs';
+import { AesBucketOutput } from '../defaults';
 
 export interface RSysLogStep1Props {
   accountStacks: AccountStacks;
@@ -25,10 +26,11 @@ export interface RSysLogStep1Props {
   vpcs: Vpc[];
   centralBucket: s3.IBucket;
   context: Context;
+  aesLogArchiveBucket: s3.IBucket;
 }
 
 export async function step2(props: RSysLogStep1Props) {
-  const { accountStacks, config, outputs, vpcs, centralBucket, context } = props;
+  const { accountStacks, config, outputs, vpcs, centralBucket, context, aesLogArchiveBucket } = props;
 
   for (const [accountKey, accountConfig] of config.getMandatoryAccountConfigs()) {
     const rsyslogConfig = accountConfig.deployments?.rsyslog;
@@ -54,7 +56,7 @@ export async function step2(props: RSysLogStep1Props) {
     }
 
     const rsyslogTargetGroup = createTargetGroupForInstance(accountStack, 'RsyslogTG', vpc.id);
-    createNlb(accountKey, rsyslogConfig, accountStack, vpc, rsyslogTargetGroup.ref);
+    createNlb(accountKey, rsyslogConfig, accountStack, vpc, rsyslogTargetGroup.ref, aesLogArchiveBucket);
     createAsg(
       accountKey,
       rsyslogConfig,
@@ -74,6 +76,7 @@ export function createNlb(
   accountStack: AcceleratorStack,
   vpc: Vpc,
   targetGroupArn: string,
+  aesLogArchiveBucket: s3.IBucket,
 ) {
   const nlbSubnetIds: string[] = [];
   for (const subnetConfig of rsyslogConfig['web-subnets']) {
@@ -95,6 +98,7 @@ export function createNlb(
     scheme: 'internal',
     subnetIds: nlbSubnetIds,
     ipType: 'ipv4',
+    aesLogArchiveBucket,
   });
 
   // Add default listener
