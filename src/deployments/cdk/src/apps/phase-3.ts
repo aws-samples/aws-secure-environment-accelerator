@@ -6,7 +6,7 @@ import * as rsyslogDeployment from '../deployments/rsyslog';
 import { ImportedVpc } from '../deployments/vpc';
 import { VpcOutput } from '@aws-accelerator/common-outputs/src/vpc';
 import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
-import { CentralBucketOutput, AccountBucketOutput } from '../deployments/defaults';
+import { CentralBucketOutput, AccountBucketOutput, AesBucketOutput } from '../deployments/defaults';
 import * as securityHub from '../deployments/security-hub';
 import * as macie from '../deployments/macie';
 import * as transitGateway from '../deployments/transit-gateway';
@@ -25,6 +25,12 @@ import * as awsConfig from '../deployments/config';
  */
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
+  const aesLogArchiveBucket = AesBucketOutput.getBucket({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
   /**
    * Code to create Peering Connection Routes in all accounts
    */
@@ -73,6 +79,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     outputs,
+    aesLogArchiveBucket,
   });
 
   // Import all VPCs from all outputs
@@ -95,6 +102,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     vpcs: allVpcs,
     centralBucket,
     context,
+    aesLogArchiveBucket,
   });
 
   // Deploy Security Hub Step-2

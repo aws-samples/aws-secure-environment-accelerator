@@ -15,6 +15,7 @@
   "dependencies": {
     "@aws-accelerator/custom-resource-cfn-sleep": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-ec2-keypair": "workspace:^0.0.1",
+    "@aws-accelerator/custom-resource-elb-deletion-protection": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-r53-dns-endpoint-ips": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-s3-put-bucket-replication": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-s3-template": "workspace:^0.0.1",

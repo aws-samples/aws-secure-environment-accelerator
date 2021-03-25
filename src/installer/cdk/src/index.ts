@@ -374,6 +374,21 @@ async function main() {
     objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
   });
 
+  // Allow only https requests
+  installerArtifactsBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      actions: ['s3:*'],
+      resources: [installerArtifactsBucket.bucketArn, installerArtifactsBucket.arnForObjects('*')],
+      principals: [new iam.AnyPrincipal()],
+      conditions: {
+        Bool: {
+          'aws:SecureTransport': 'false',
+        },
+      },
+      effect: iam.Effect.DENY,
+    }),
+  );
+
   new codepipeline.Pipeline(stack, 'Pipeline', {
     role: installerPipelineRole,
     pipelineName: `${acceleratorPrefix}InstallerPipeline`,
