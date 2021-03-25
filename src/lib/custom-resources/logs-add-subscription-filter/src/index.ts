@@ -63,7 +63,7 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
       id: 'AddSubscriptionFilterRule',
     };
 
-    new events.CfnRule(this, 'NewLogGroupsCwlRule', {
+    const addSubscriptionEvent = new events.CfnRule(this, 'NewLogGroupsCwlRule', {
       description: 'Adds CWL Central Logging Destination as Subscription filter to newly created Log Group',
       state: 'ENABLED',
       name: props.ruleName,
@@ -76,6 +76,9 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
       action: 'lambda:InvokeFunction',
       principal: new iam.ServicePrincipal('events.amazonaws.com'),
     });
+
+    // Adding event as dependent to CWLAddSubscription Custom Resource to handle all cloudwatch log groups
+    this.resource.node.addDependency(addSubscriptionEvent);
   }
 
   get lambdaFunction(): lambda.Function {
