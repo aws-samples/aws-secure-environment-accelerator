@@ -27,16 +27,11 @@ export interface AlbStep1Props {
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
   outputs: StackOutput[];
+  aesLogArchiveBucket: s3.IBucket;
 }
 
 export async function step1(props: AlbStep1Props) {
-  const { accountStacks, config, outputs } = props;
-
-  const aesLogArchiveBucket = AesBucketOutput.getBucket({
-    accountStacks,
-    config,
-    outputs,
-  });
+  const { accountStacks, config, outputs, aesLogArchiveBucket } = props;
 
   const vpcConfigs = config.getVpcConfigs();
   for (const { ouKey, accountKey, albs: albConfigs } of config.getAlbConfigs()) {

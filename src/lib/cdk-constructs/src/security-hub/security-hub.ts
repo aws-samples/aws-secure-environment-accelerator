@@ -1,5 +1,4 @@
 import * as cdk from '@aws-cdk/core';
-import { CfnHub } from '@aws-cdk/aws-securityhub';
 import { SecurityHubEnable } from '@aws-accelerator/custom-resource-security-hub-enable';
 import { SecurityHubSendInvites } from '@aws-accelerator/custom-resource-security-hub-send-invites';
 import { SecurityHubAcceptInvites } from '@aws-accelerator/custom-resource-security-hub-accept-invites';
