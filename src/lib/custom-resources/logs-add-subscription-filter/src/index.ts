@@ -30,7 +30,7 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
 
     this.role = iam.Role.fromRoleArn(this, `${resourceType}Role`, props.roleArn);
     // Custom Resource to add subscriptin filter to existing logGroups
-    this.resource = new cdk.CustomResource(this, 'Resource', {
+    this.resource = new cdk.CustomResource(this, 'CustomResource', {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
       properties: {
