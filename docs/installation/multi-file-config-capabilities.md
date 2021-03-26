@@ -12,7 +12,7 @@
 
 - one file for Global options + Mandatory accounts
 - one file per OU
-- one file for every approx. 2000 lines of workload accounts (Code Commit diff stops working at 3000 characters, allow for adding to each file)
+- one file for every approx. 2000 lines of workload accounts (Code Commit diff stops working at 3000 lines, allow for adding to each file)
 
 ### Benefits:
 
