@@ -11,12 +11,7 @@
     "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:^0.0.1", 
     "aws-sdk": "2.787.0", 
     "aws-lambda": "1.0.6",
-    "@types/webpack": "4.41.8",
-    "ts-loader": "7.0.5",
-    "typescript": "3.8.3",
-    "webpack": "4.42.1",
-    "webpack-cli": "3.3.11",
-    "webpack-shell-plugin-next": "1.1.9"
+    "@types/tapable": "1.0.4"
   }, 
   "scripts": {
     "prepare": "webpack-cli --config webpack.config.ts"
@@ -28,7 +23,7 @@
     "webpack": "4.42.1",
     "@aws-accelerator/custom-resource-runtime-webpack-base": "workspace:^0.0.1", 
     "@types/node": "12.12.6", 
-    "webpack-cli": "3.3.11"
+    "webpack-cli": "4.5.0"
   }, 
   "main": "dist/index.js", 
   "types": "dist/index.d.ts"
