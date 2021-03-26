@@ -161,7 +161,7 @@ async function main() {
           // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
           commands: [
             'npm install --global pnpm',
-            'pnpm install --unsafe-perm',
+            'pnpm install --unsafe-perm --frozen-lockfile',
             'pnpm recursive run build --unsafe-perm',
           ],
         },
