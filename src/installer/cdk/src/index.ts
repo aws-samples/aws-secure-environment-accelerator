@@ -193,7 +193,7 @@ async function main() {
         },
       },
       cache: {
-        paths: ['node_modules/**/*'],
+        paths: ['~/.pnpm-store'],
       },
       artifacts: {
         files: ['**/*'],
