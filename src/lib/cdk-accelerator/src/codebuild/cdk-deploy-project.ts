@@ -45,7 +45,7 @@ export class CdkDeployProjectBase extends cdk.Construct {
     const projectFiles = glob.sync('**/*', {
       cwd: props.projectRoot,
       nodir: true,
-      ignore: ['**/cdk.out/**', '**/cdk.json', '**/node_modules/**', '**/pnpm-lock.yaml', '**/.prettierrc'],
+      ignore: ['**/cdk.out/**', '**/cdk.json', '**/node_modules/**', '**/.prettierrc'],
     });
     for (const projectFile of projectFiles) {
       const source = path.join(props.projectRoot, projectFile);
@@ -184,7 +184,7 @@ function installPackageManagerCommands(packageManager: PackageManager) {
 function installDependenciesCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
     // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-    return ['pnpm install --unsafe-perm'];
+    return ['pnpm install --unsafe-perm --frozen-lockfile'];
   }
   throw new Error(`Unknown package manager ${packageManager}`);
 }
