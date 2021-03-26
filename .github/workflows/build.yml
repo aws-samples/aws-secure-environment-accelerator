@@ -29,7 +29,7 @@ jobs:
       - name: Install Node.js modules
         run: |
           npm install -g pnpm
-          pnpm install --unsafe-perm
+          pnpm install --unsafe-perm --frozen-lockfile
       - name: Fix nasty bug in CDK
         run: |
           # This fix is needed in order to run initial-setup/templates tests
