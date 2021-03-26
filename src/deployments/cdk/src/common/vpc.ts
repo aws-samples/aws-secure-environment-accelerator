@@ -1,3 +1,4 @@
+import hashSum from 'hash-sum';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-accelerator/common-config/src';
@@ -19,6 +20,7 @@ import { VpcDefaultSecurityGroup } from '@aws-accelerator/custom-resource-vpc-de
 import { VpcOutput } from '@aws-accelerator/common-outputs/src/vpc';
 import { ModifyTransitGatewayAttachment } from '@aws-accelerator/custom-resource-ec2-modify-transit-gateway-vpc-attachment';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import { IPv4CidrRange } from 'ip-num';
 
 export interface VpcCommonProps {
   /**
@@ -168,13 +170,15 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     });
     this.vpcId = vpcObj.ref;
 
-    let extendVpc;
-    if (props.vpcProps.vpcConfig.cidr2) {
-      extendVpc = new ec2.CfnVPCCidrBlock(this, `ExtendVPC`, {
-        cidrBlock: props.vpcProps.vpcConfig.cidr2.toCidrString(),
+    const extendVpc: ec2.CfnVPCCidrBlock[] = [];
+    for (const additionalCidr of props.vpcProps.vpcConfig.cidr2 || []) {
+      const id = 'ExtendVPC' + hashSum(additionalCidr.toCidrString());
+      const extendVpcCidr = new ec2.CfnVPCCidrBlock(this, id, {
+        cidrBlock: additionalCidr.toCidrString(),
         vpcId: vpcObj.ref,
       });
-      this.additionalCidrBlocks.push(props.vpcProps.vpcConfig.cidr2.toCidrString());
+      extendVpc.push(extendVpcCidr);
+      this.additionalCidrBlocks.push(additionalCidr.toCidrString());
     }
 
     let igw;
@@ -250,8 +254,14 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           vpcId: vpcObj.ref,
           availabilityZone: `${this.region}${subnetDefinition.az}`,
         });
-        if (extendVpc) {
-          subnet.addDependsOn(extendVpc);
+        const subnetInCidr = IPv4CidrRange.fromCidr(subnetCidr);
+        for (const extensions of extendVpc) {
+          if (extensions.cidrBlock) {
+            const vpcCidr = IPv4CidrRange.fromCidr(extensions.cidrBlock);
+            if (vpcCidr.contains(subnetInCidr)) {
+              subnet.addDependsOn(extensions);
+            }
+          }
         }
         this.azSubnets.push({
           subnet,

@@ -34,6 +34,7 @@ test('the VPC creation should create the correct amount of subnets', () => {
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
     cidr: '10.2.0.0/16',
+    cidr2: ['10.3.0.0/16', '10.4.0.0/16'],
     region: 'ca-central-1',
     deploy: 'local',
     igw: false,
@@ -83,6 +84,28 @@ test('the VPC creation should create the correct amount of subnets', () => {
             az: 'd',
             'route-table': 'DevVPC_Common',
             cidr: '10.2.192.0/20',
+            disabled: true,
+          },
+        ],
+      },
+      {
+        name: 'Web2',
+        'share-to-ou-accounts': false,
+        definitions: [
+          {
+            az: 'a',
+            'route-table': 'DevVPC_Common',
+            cidr: '10.3.32.0/20',
+          },
+          {
+            az: 'b',
+            'route-table': 'DevVPC_Common',
+            cidr: '10.3.128.0/20',
+          },
+          {
+            az: 'd',
+            'route-table': 'DevVPC_Common',
+            cidr: '10.3.192.0/20',
             disabled: true,
           },
         ],
@@ -142,7 +165,7 @@ test('the VPC creation should create the correct amount of subnets', () => {
   const subnets = resources.filter(r => r.Type === 'AWS::EC2::Subnet');
 
   // There should be 4 subnets as 2 of the 6 given subnets are disabled
-  expect(subnets).toHaveLength(4);
+  expect(subnets).toHaveLength(6);
 
   expect(subnets).toEqual(
     expect.arrayContaining([
@@ -196,7 +219,7 @@ test('the VPC creation should create the correct amount of subnets', () => {
   expect(routeTables).toHaveLength(1);
 
   // The route table is associated with all the subnets
-  expect(associations).toHaveLength(4);
+  expect(associations).toHaveLength(6);
 
   const vpcEndpoints = resources.filter(r => r.Type === 'AWS::EC2::VPCEndpoint');
 

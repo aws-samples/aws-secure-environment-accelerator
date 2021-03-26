@@ -5,3 +5,6 @@ node_modules
 config.json
 aws-landing-zone-configuration.zip
 
+.idea/
+*.iml
+**/dist/
