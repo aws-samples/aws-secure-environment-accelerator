@@ -176,7 +176,7 @@ new codebuild.PipelineProject(stack, 'InstallerProject', {
           nodejs: 12,
         },
         // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-        commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm'],
+        commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm --frozen-lockfile'],
       },
       build: {
         commands: [
@@ -242,7 +242,7 @@ WORKDIR /app
 # Copy over the project root to the /app directory
 ADD . /app/
 # Install the dependencies
-RUN pnpm install --unsafe-perm
+RUN pnpm install --unsafe-perm --frozen-lockfile
 ```
 
 When this CodeBuild project executes, it uses the Docker image as base -- the dependencies are already installed -- and runs the same commands as the `CdkDeployProject` to deploy the `Phase` stacks.
