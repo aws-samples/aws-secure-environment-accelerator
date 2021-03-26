@@ -19,10 +19,11 @@
     "ts-loader": "7.0.5", 
     "typescript": "3.8.3", 
     "@types/aws-lambda": "8.10.46", 
-    "webpack": "4.42.1", 
+    "webpack": "4.42.1",
     "@aws-accelerator/custom-resource-runtime-webpack-base": "workspace:^0.0.1", 
     "@types/node": "12.12.6", 
-    "webpack-cli": "3.3.11"
+    "webpack-cli": "3.3.11",
+    "@types/webpack": "4.41.8"
   }, 
   "main": "dist/index.js", 
   "types": "dist/index.d.ts"
