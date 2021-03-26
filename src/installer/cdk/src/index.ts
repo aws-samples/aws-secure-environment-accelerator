@@ -332,16 +332,23 @@ async function main() {
   // Encryption is not necessary for this pipeline so we create a custom unencrypted bucket
   const installerArtifactsBucket = new s3.Bucket(stack, 'ArtifactsBucket', {
     removalPolicy: cdk.RemovalPolicy.DESTROY,
+    objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
   });
 
-  // TODO: Remove and use fields directly when CDK enhanced s3.Bucket.
-  (installerArtifactsBucket.node.defaultChild as s3.CfnBucket).addPropertyOverride('OwnershipControls', {
-    Rules: [
-      {
-        ObjectOwnership: 'BucketOwnerPreferred',
+  // Allow only https requests
+  installerArtifactsBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      actions: ['s3:*'],
+      resources: [installerArtifactsBucket.bucketArn, installerArtifactsBucket.arnForObjects('*')],
+      principals: [new iam.AnyPrincipal()],
+      conditions: {
+        Bool: {
+          'aws:SecureTransport': 'false',
+        },
       },
-    ],
-  });
+      effect: iam.Effect.DENY,
+    }),
+  );
 
   new codepipeline.Pipeline(stack, 'Pipeline', {
     role: installerPipelineRole,

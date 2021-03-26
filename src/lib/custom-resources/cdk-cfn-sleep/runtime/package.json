@@ -21,7 +21,7 @@
     "@types/aws-lambda": "8.10.46", 
     "webpack": "4.42.1", 
     "@aws-accelerator/custom-resource-runtime-webpack-base": "workspace:^0.0.1", 
-    "@types/node": "12.12.6", 
+    "@types/node": "14.14.36", 
     "webpack-cli": "3.3.11"
   }, 
   "main": "dist/index.js", 
