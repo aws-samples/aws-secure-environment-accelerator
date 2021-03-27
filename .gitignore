@@ -4,6 +4,7 @@ node_modules
 *.log
 config.json
 aws-landing-zone-configuration.zip
+pnpm-store
 
 .idea/
 *.iml

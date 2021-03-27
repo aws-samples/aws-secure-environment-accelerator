@@ -45,9 +45,9 @@ export class CdkDeployProjectBase extends cdk.Construct {
     const projectFiles = glob.sync('**/*', {
       cwd: props.projectRoot,
       nodir: true,
-      ignore: ['**/cdk.out/**', '**/cdk.json', 'node_modules', '**/node_modules/**', '**/.prettierrc'],
+      ignore: ['**/cdk.out/**', '**/cdk.json', '**/node_modules/**', '**/.prettierrc'],
     });
-    for (const projectFile of projectFiles) {
+    for (const projectFile of projectFiles) {``
       const source = path.join(props.projectRoot, projectFile);
       const destination = path.join(this.projectTmpDir, projectFile);
 
@@ -131,14 +131,25 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
     fs.writeFileSync(
       path.join(this.projectTmpDir, 'Dockerfile'),
       [
-        'FROM public.ecr.aws/bitnami/node:12-prod',
+        'FROM node:12.21-slim as builder',
         // Install the package manager
         ...installPackageManagerCommands(props.packageManager).map(cmd => `RUN ${cmd}`),
-        `WORKDIR ${appDir}`,
-        // Copy over the project root to the /app directory
-        `ADD . ${appDir}/`,
-        // Install the dependencies
+        'RUN pnpm config set store-dir /home/node/pnpm-store',
+        'ADD pnpm-store /home/node/pnpm-store',
+        `RUN mkdir ${appDir}`,
+        `ADD ./package.json ${appDir}/package.json`,
+        `ADD ./pnpm-lock.yaml ${appDir}/pnpm-lock.yaml`,
+        `ADD ./pnpm-workspace.yaml ${appDir}/pnpm-workspace.yaml`,
+        `ADD ./reference-artifacts ${appDir}/reference-artifacts`,
+        `ADD ./src ${appDir}/src`,
         ...installDependenciesCommands(props.packageManager).map(cmd => `RUN ${cmd}`),
+        //  Make the runtime container
+        'FROM node:12.21-slim',
+        `RUN mkdir ${appDir}`,
+        `COPY --from=builder ${appDir} ${appDir}`,
+        `WORKDIR ${appDir}/src/deployments/cdk`,
+        `ENTRYPOINT ["sh","codebuild-deploy.sh"]`
+
       ].join('\n'),
     );
 
@@ -184,10 +195,7 @@ function installPackageManagerCommands(packageManager: PackageManager) {
 function installDependenciesCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
     // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-    return [
-        'ls -al',
-        'pnpm config set store-dir ./.pnpm-store',
-        'pnpm install --unsafe-perm --frozen-lockfile'];
+    return ['pnpm install --offline --production --unsafe-perm --frozen-lockfile'];
   }
   throw new Error(`Unknown package manager ${packageManager}`);
 }
