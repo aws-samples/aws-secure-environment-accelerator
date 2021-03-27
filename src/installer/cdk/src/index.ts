@@ -183,7 +183,7 @@ async function main() {
           // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
           commands: [
             'npm install --global pnpm',
-            'pnpm config set store-dir ./pnpm-store',
+            'pnpm config set store-dir pnpm-store',
             'pnpm install --production --unsafe-perm --frozen-lockfile',
           ],
         },
@@ -197,7 +197,7 @@ async function main() {
         },
       },
       cache: {
-        paths: ['./.pnpm-store'],
+        paths: ['pnpm-store/**/*'],
       },
       artifacts: {
         files: ['**/*'],
