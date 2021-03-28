@@ -1,0 +1,4 @@
+{
+  "cacheProvider": "filesystem",
+  "projectOutputFolderNames": ["lib", "dist"]
+}

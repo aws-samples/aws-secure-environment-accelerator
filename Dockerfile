@@ -7,7 +7,6 @@ ADD ./pnpm-lock.yaml /app/pnpm-lock.yaml
 ADD ./pnpm-workspace.yaml /app/pnpm-workspace.yaml
 ADD ./reference-artifacts /app/reference-artifacts
 ADD ./src /app/src
-
 WORKDIR /app
 RUN pnpm install --unsafe-perm --frozen-lockfile
 
