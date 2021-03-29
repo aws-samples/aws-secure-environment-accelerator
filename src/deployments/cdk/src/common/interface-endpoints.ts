@@ -67,7 +67,7 @@ export class InterfaceEndpoint extends cdk.Construct {
         },
       ],
       hostedZoneConfig: {
-        comment: `zzEndpoint - ${serviceName}`,
+        comment: `Endpoint - ${serviceName}`,
       },
     });
 
