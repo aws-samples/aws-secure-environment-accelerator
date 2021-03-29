@@ -83,12 +83,12 @@ export namespace PeeringConnection {
         }
         // Add Route to RouteTable
         for (const [index, subnet] of targetSubnet.definitions.entries()) {
-          if (subnet.disabled) {
+          if (subnet.disabled || !subnet.cidr) {
             continue;
           }
           new ec2.CfnRoute(this, `${routeTable?.name}_pcx_${pcxRoute.vpc}_${index}`, {
             routeTableId,
-            destinationCidrBlock: subnet.cidr?.toCidrString() || subnet.cidr2?.toCidrString(),
+            destinationCidrBlock: subnet.cidr.toCidrString(),
             vpcPeeringConnectionId: pcxId,
           });
         }

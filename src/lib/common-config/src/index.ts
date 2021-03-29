@@ -32,7 +32,6 @@ export const NatGatewayConfig = t.interface({
 export const SubnetDefinitionConfig = t.interface({
   az: availabilityZone,
   cidr: optional(cidr),
-  cidr2: optional(t.array(cidr)),
   'route-table': NonEmptyString,
   disabled: fromNullable(t.boolean, false),
 });

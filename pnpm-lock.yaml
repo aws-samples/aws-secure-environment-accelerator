@@ -764,6 +764,7 @@ importers:
     dependencies:
       '@aws-accelerator/custom-resource-cfn-sleep': link:../custom-resources/cdk-cfn-sleep
       '@aws-accelerator/custom-resource-ec2-keypair': link:../custom-resources/cdk-ec2-keypair
+      '@aws-accelerator/custom-resource-elb-deletion-protection': link:../custom-resources/cdk-elb-deletion-protection
       '@aws-accelerator/custom-resource-r53-dns-endpoint-ips': link:../custom-resources/cdk-r53-dns-endpoint-ips
       '@aws-accelerator/custom-resource-s3-put-bucket-replication': link:../custom-resources/cdk-s3-put-bucket-replication
       '@aws-accelerator/custom-resource-s3-template': link:../custom-resources/cdk-s3-template
@@ -786,7 +787,7 @@ importers:
       '@aws-cdk/core': 1.85.0
       aws-sdk: 2.787.0
       hash-sum: 2.0.0
-      ip-num: 1.3.1
+      ip-num: 1.2.2
       pascal-case: 3.1.1
       tempy: 0.5.0
     devDependencies:
@@ -818,6 +819,7 @@ importers:
     specifiers:
       '@aws-accelerator/custom-resource-cfn-sleep': workspace:^0.0.1
       '@aws-accelerator/custom-resource-ec2-keypair': workspace:^0.0.1
+      '@aws-accelerator/custom-resource-elb-deletion-protection': workspace:^0.0.1
       '@aws-accelerator/custom-resource-r53-dns-endpoint-ips': workspace:^0.0.1
       '@aws-accelerator/custom-resource-s3-put-bucket-replication': workspace:^0.0.1
       '@aws-accelerator/custom-resource-s3-template': workspace:^0.0.1
@@ -860,7 +862,7 @@ importers:
       eslint-plugin-standard: 4.0.1
       eslint-plugin-unicorn: 22.0.0
       hash-sum: 2.0.0
-      ip-num: 1.3.1
+      ip-num: 1.2.2
       jest: 25.2.4
       pascal-case: 3.1.1
       prettier: 2.2.0
