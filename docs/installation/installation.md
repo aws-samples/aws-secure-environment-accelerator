@@ -220,6 +220,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 ## 2.5. Installation
 
 1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
+   - Due to some breaking dependency issues, customers can only install or upgrade to v1.3.1 or above (older releases continue to function, but cannot be installed)
 2. Download the CloudFormation (CFN) template `AcceleratorInstallerXXX.template.json` for the release you plan to install
 3. Use the provided CloudFormation template to deploy a new stack in your Management (root) AWS account
    - As previously stated we do not support installation in sub-accounts
@@ -230,7 +231,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 8. Add an `Email` address to be used for State Machine Status notification
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.3.0`, case sensitive
+   - the latest stable branch is currently `release/v1.3.1`, case sensitive
 10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
@@ -266,6 +267,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 Current Issues:
 
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine.
+- New deployments to existing organizations with more than 20 accounts will fail on SSM document sharing as we fail to paginate the API call. Remove the SSM remediation documents from all of the OU's, i.e. `"documents": []` and set `"remediation": false` on the 4 config rules in global-options. Will be resolved in v1.3.1. Adding a new SSM document to the config file which results in it being shared to more than 20 accounts will also fail. Assuming no OU has more than 20 accounts, customers can deploy the SSM document one OU at a time to work around this issue.
 
 Issues in Older Releases:
 
@@ -301,7 +303,8 @@ Issues in Older Releases:
            - Each new VIP will use a new high port (i.e. 7007, 7008, etc.), all of which map back to port 443
            - Detailed steps can be read [here](./guides/public-facing-workload-via-fortigate.md).
     4. In your `home` region (i.e. ca-central-1), Enable AWS SSO, Set the SSO directory to MAD, set the SSO email attrib to: \${dir:email}, create all default permission sets and any desired custom permission sets, map MAD groups to perm sets
-    5. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts
+    5. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts, in each account:
+       - Go to CloudWatch, Settings, Under `Cross-account cross-region` select `Configure`, Under `View cross-account cross-region` select `Enable`, choose `AWS Organization account selector`, click `Enable`
     6. Customers are responsible for the ongoing management and rotation of all passwords on a regular basis per their organizational password policy. This includes the passwords of all IAM users, MAD users, firewall users, or other users, whether deployed by the Accelerator or not. We do NOT automatically rotate any passwords, but strongly encourage customers do so, on a regular basis.
 
 2.  During the installation we request required limit increases, resources dependent on these limits will not be deployed
@@ -315,6 +318,7 @@ Issues in Older Releases:
 
 ## 3.1. Considerations
 
+- Due to some breaking dependency issues, customers can only install or upgrade to v1.3.1 or above (older releases continue to function, but cannot be installed)
 - Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.
   - do NOT update to the latest firewall AMI - see the the last bullet in section [5.1. Accelerator Design Constraints / Decisions](#51-accelerator-design-constraints--decisions)
   - do NOT update the `organization-admin-role` - see bullet 2 in section [2.2.6. Other](#226-other)
@@ -358,7 +362,7 @@ Issues in Older Releases:
 
 ## 3.2. Summary of Upgrade Steps (all versions)
 
-1. Login to your Organization Management (root) AWS account with administrative priviliges
+1. Login to your Organization Management (root) AWS account with administrative privileges
 2. Ensure a valid Github token is stored in secrets manager [(section 2.3.2)](#232-create-github-personal-access-token-and-store-in-secrets-manager)
 3. Review and implement any relevant tasks noted in the upgrade considerations in [section 3.1](#31-considerations)
 4. Update the config file in Code Commit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
@@ -375,12 +379,13 @@ Issues in Older Releases:
    - The pipeline will automatically run and trigger the upgraded state machine
 9. If you are using a pre-existing GitHub token:
 
-- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.2.5`)
+- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.3.1`)
   - Go to AWS CloudFormation and select the stack: `PBMMAccel-what-you-provided`
   - Select Update, select Replace current template, Select Upload a template file
   - Select Choose File and select the template you downloaded in step 5 (`AcceleratorInstallerXYZ.template.json`)
   - Select Next, Update `GithubBranch` parameter to `release/vX.Y.Z` where X.Y.Z represents the latest release
   - Click Next, Next, I acknowledge, Update
+  - Wait for the CloudFormation stack to update (`Update_Complete` status) (Requires manual refresh)
 - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
 # 4. Existing Organizations / Accounts
