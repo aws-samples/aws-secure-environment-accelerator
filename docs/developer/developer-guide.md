@@ -760,7 +760,7 @@ There is a script called `cdk.sh` in `src/deployments/cdk` that allows you to de
 
 The script enables development mode which means that accounts, organizations, configuration, limits and outputs will be loaded from the local environment instead of loading the values from DynamoDB. The local files that need to be available in the `src/deployments/cdk` folder are the following.
 
-1. `accounts.json` based on `accelerator/accounts`
+1. `accounts.json` based on `accelerator/accounts` (-Parameters table)
 
 ```json
 [
@@ -783,7 +783,7 @@ The script enables development mode which means that accounts, organizations, co
 ]
 ```
 
-2. `organizations.json` based on `accelerator/organizations`
+2. `organizations.json` based on `accelerator/organizations` (-Parameters table)
 
 ```json
 [
@@ -802,7 +802,7 @@ The script enables development mode which means that accounts, organizations, co
 ]
 ```
 
-3. `limits.json` based on `accelerator/limits`
+3. `limits.json` based on `accelerator/limits` (-Parameters table)
 
 ```json
 [
@@ -825,7 +825,7 @@ The script enables development mode which means that accounts, organizations, co
 ]
 ```
 
-4. `outputs.json` based on `outputs.json` in the Accelerator configuration bucket
+4. `outputs.json` based on the -Outputs table
 
 ```json
 [
