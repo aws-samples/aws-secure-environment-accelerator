@@ -164,7 +164,7 @@ test('the VPC creation should create the correct amount of subnets', () => {
   const vpc = resources.find(r => r.Type === 'AWS::EC2::VPC')!!;
   const subnets = resources.filter(r => r.Type === 'AWS::EC2::Subnet');
 
-  // There should be 4 subnets as 2 of the 6 given subnets are disabled
+  // There should be 6 subnets as 3 of the 9 given subnets are disabled
   expect(subnets).toHaveLength(6);
 
   expect(subnets).toEqual(

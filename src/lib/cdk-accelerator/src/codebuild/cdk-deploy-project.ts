@@ -134,22 +134,11 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
         'FROM node:12.21-slim as builder',
         // Install the package manager
         ...installPackageManagerCommands(props.packageManager).map(cmd => `RUN ${cmd}`),
-        'RUN pnpm config set store-dir /home/node/pnpm-store',
-        'ADD pnpm-store /home/node/pnpm-store',
-        `RUN mkdir ${appDir}`,
-        `ADD ./package.json ${appDir}/package.json`,
-        `ADD ./pnpm-lock.yaml ${appDir}/pnpm-lock.yaml`,
-        `ADD ./pnpm-workspace.yaml ${appDir}/pnpm-workspace.yaml`,
-        `ADD ./reference-artifacts ${appDir}/reference-artifacts`,
-        `ADD ./src ${appDir}/src`,
+        `WORKDIR ${appDir}`,
+        // Copy over the project root to the /app directory
+        `ADD . ${appDir}/`,
+        // Install the dependencies
         ...installDependenciesCommands(props.packageManager).map(cmd => `RUN ${cmd}`),
-        //  Make the runtime container
-        'FROM node:12.21-slim',
-        `RUN mkdir ${appDir}`,
-        `COPY --from=builder ${appDir} ${appDir}`,
-        `WORKDIR ${appDir}/src/deployments/cdk`,
-        `ENTRYPOINT ["sh","codebuild-deploy.sh"]`
-
       ].join('\n'),
     );
 

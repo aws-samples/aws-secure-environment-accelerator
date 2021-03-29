@@ -184,7 +184,7 @@ async function main() {
           commands: [
             'npm install --global pnpm',
             'pnpm config set store-dir pnpm-store',
-            'pnpm install --production --unsafe-perm --frozen-lockfile',
+            'pnpm install --unsafe-perm --frozen-lockfile',
           ],
         },
         build: {

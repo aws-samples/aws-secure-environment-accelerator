@@ -242,7 +242,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           continue;
         }
 
-        const subnetCidr = subnetDefinition.cidr?.toCidrString() || subnetDefinition.cidr2?.toCidrString();
+        const subnetCidr = subnetDefinition.cidr?.toCidrString();
         if (!subnetCidr) {
           console.warn(`Subnet with name "${subnetName}" and AZ "${subnetDefinition.az}" does not have a CIDR block`);
           continue;

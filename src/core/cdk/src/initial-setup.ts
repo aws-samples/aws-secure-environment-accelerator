@@ -905,7 +905,7 @@ export namespace InitialSetup {
         .next(addTagsToSharedResourcesTask)
         .next(enableDirectorySharingTask)
         .next(deployPhase5Task)
-        // .next(createAdConnectorTask)
+        .next(createAdConnectorTask)
         .next(storeCommitIdTask)
         .next(baseLineCleanupChoice);
 
