@@ -275,6 +275,21 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     }),
   );
 
+  // Allow only https requests
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      actions: ['s3:*'],
+      resources: [logBucket.bucketArn, logBucket.arnForObjects('*')],
+      principals: [new iam.AnyPrincipal()],
+      conditions: {
+        Bool: {
+          'aws:SecureTransport': 'false',
+        },
+      },
+      effect: iam.Effect.DENY,
+    }),
+  );
+
   new CfnLogBucketOutput(logAccountStack, 'LogBucketOutput', {
     bucketArn: logBucket.bucketArn,
     bucketName: logBucket.bucketName,
