@@ -47,7 +47,7 @@ export class CdkDeployProjectBase extends cdk.Construct {
       nodir: true,
       ignore: ['**/cdk.out/**', '**/cdk.json', '**/node_modules/**', '**/.prettierrc'],
     });
-    for (const projectFile of projectFiles) {``
+    for (const projectFile of projectFiles) {
       const source = path.join(props.projectRoot, projectFile);
       const destination = path.join(this.projectTmpDir, projectFile);
 
