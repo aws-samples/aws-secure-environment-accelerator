@@ -542,7 +542,11 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         // Attach NatGw Routes to Non IGW Route Tables
         for (const natRoute of natRouteTables) {
           const routeTableId = this.routeTableNameToIdMap[natRoute];
-          if (!routeExistsForNatGW(subnetConfig.az ? undefined : natSubnet.az, natRoute) || !natRoute.toLowerCase().includes("internal") || !natRoute.toLowerCase().includes("data")) {
+          if (
+            !routeExistsForNatGW(subnetConfig.az ? undefined : natSubnet.az, natRoute) ||
+            !natRoute.toLowerCase().includes('internal') ||
+            !natRoute.toLowerCase().includes('data')
+          ) {
             // Skipping Route Association of NATGW if no route specified in subnet config
             console.log(
               `Skipping NAT Gateway Route association to Route Table "${natRoute}", as there is no subnet is mapped to it`,
