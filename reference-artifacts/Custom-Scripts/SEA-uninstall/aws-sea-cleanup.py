@@ -926,7 +926,7 @@ def backup_config():
                 if args.AcceleratorName != 'PBMMAccel':
                     CodeCommitPrefix = args.AcceleratorName
                 else:
-                    CodeCommitPrefix = 'BPMM'
+                    CodeCommitPrefix = 'PBMM'
                 if repo["repositoryName"].startswith(CodeCommitPrefix):
                     file = cc.get_file(
                         repositoryName=repo["repositoryName"],
