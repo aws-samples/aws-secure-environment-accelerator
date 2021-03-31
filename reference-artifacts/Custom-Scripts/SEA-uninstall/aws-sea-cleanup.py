@@ -16,6 +16,9 @@ from os import path
 parser = argparse.ArgumentParser(
         description="A development script that cleans up resources deployed by the accelerator. Use Administrator AWS credentials in the master account when running this script."
 )
+parser.add_argument('--AcceleratorName', default='PBMMAccel', help='The value set in AcceleratorName')
+
+args = parser.parse_args()
 
 organizations = boto3.client("organizations")
 sts = boto3.client("sts")
@@ -243,7 +246,7 @@ def delete_scps(credentials, region):
 
     for scp in scps["Policies"]:
         scp_name = scp["Name"]
-        if scp_name.startswith("PBMMAccel"):
+        if scp_name.startswith(args.AcceleratorName):
             print("Detaching SCP '{}'".format(scp["Name"]))
             targets = organizations.list_targets_for_policy(PolicyId=scp["Id"])
 
@@ -279,7 +282,7 @@ def master_cleanup(credentials, region):
 
     for stackset in stacksets["Summaries"]:
         name = stackset["StackSetName"]
-        if name.startswith("PBMMAccel"):
+        if name.startswith(args.AcceleratorName):
             instances = cloudformation.list_stack_instances(StackSetName=name)
             instances_accounts = list(map(lambda x: x["Account"], instances["Summaries"]))
             instances_regions = list(set(map(lambda x: x["Region"], instances["Summaries"])))
@@ -309,7 +312,7 @@ def master_cleanup(credentials, region):
             print("Done. Stack {} deleted".format(name))
 
 
-    cloud_trail_name = "PBMMAccel-Org-Trail"
+    cloud_trail_name = args.AcceleratorName + "-Org-Trail"
     cloudtrail = boto3.client("cloudtrail", 
             region_name=region,
             aws_access_key_id=credentials["Credentials"]["AccessKeyId"],
@@ -704,7 +707,7 @@ def thread_cwl_cleanup(region, admin_role_arn, accountId):
     while True:
 
         for log_group in log_groups["logGroups"]:
-            if "PBMMAccel-" in log_group["logGroupName"]:
+            if args.AcceleratorName  in log_group["logGroupName"]:
                 print("Deleting log group '{}' in {} for {}".format(log_group["logGroupName"], region, accountId))
                 cwl.delete_log_group(logGroupName=log_group["logGroupName"])
                 print("Deleting log group '{}' in {} for {}".format(log_group["logGroupName"], region, accountId))
@@ -817,6 +820,8 @@ def cleanup_directory_sharing_load_config():
         mad_account =  config["mandatory-account-configs"][mad_account_name]["account-name"]
         if "mad" not in config["mandatory-account-configs"][mad_account_name]["deployments"]:
             return "mad not configured"
+        elif config["mandatory-account-configs"][mad_account_name]["deployments"]["mad"] == False:
+            return "mad not configured"
         mad_dns_domain  =  config["mandatory-account-configs"][mad_account_name]["deployments"]["mad"]["dns-domain"]
         
         
@@ -871,6 +876,8 @@ def cleanup_route53_resolver_load_config():
 
         central_account_name = config["global-options"]["central-operations-services"]["account"]
         if "mad" not in config["mandatory-account-configs"][central_account_name]["deployments"]:
+            return "mad not configured"
+        elif config["mandatory-account-configs"][central_account_name]["deployments"]["mad"] == False:
             return "mad not configured"
 
         central_resolver_rule_account =  config["mandatory-account-configs"][central_account_name]["deployments"]["mad"]["central-resolver-rule-account"]
