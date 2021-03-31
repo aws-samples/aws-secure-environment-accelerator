@@ -923,7 +923,11 @@ def backup_config():
         print("Backing up config.json from CodeCommit...")
         try:
             for repo in repos["repositories"]:
-                if repo["repositoryName"].startswith("PBMM"):
+                if args.AcceleratorName != 'PBMMAccel':
+                    CodeCommitPrefix = args.AcceleratorName
+                else:
+                    CodeCommitPrefix = 'BPMM'
+                if repo["repositoryName"].startswith(CodeCommitPrefix):
                     file = cc.get_file(
                         repositoryName=repo["repositoryName"],
                         filePath='/config.json'
