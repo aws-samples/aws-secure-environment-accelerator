@@ -821,6 +821,7 @@ def cleanup_directory_sharing_load_config():
             return "mad not configured"
         elif config["mandatory-account-configs"][mad_account_name]["deployments"]["mad"] == False:
             return "mad not configured"
+
         mad_dns_domain  =  config["mandatory-account-configs"][mad_account_name]["deployments"]["mad"]["dns-domain"]
         
         
