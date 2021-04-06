@@ -107,7 +107,10 @@ async function main() {
   installerProjectRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['ecr:*'],
-      resources: [`arn:aws:ecr:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:repository/aws-cdk/*`],
+      resources: [
+        `arn:aws:ecr:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:repository/aws-cdk/*`,
+        `arn:aws:ecr:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:repository/cdk-*`,
+      ],
     }),
   );
 
@@ -139,7 +142,7 @@ async function main() {
     new iam.PolicyStatement({
       actions: ['s3:*'],
       // resources: [`arn:aws:s3:::${acceleratorPrefix.toLowerCase()}cdktoolkit-stagingbucket-*`],
-      resources: [`arn:aws:s3:::cdk-${acceleratorPrefix.toLowerCase()}assets-*`],
+      resources: [`arn:aws:s3:::cdk-*`],
     }),
   );
 
@@ -181,7 +184,7 @@ async function main() {
             nodejs: 12,
           },
           // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-          commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm --frozen-lockfile'],
+          commands: ['npm install --global pnpm@5', 'pnpm install --unsafe-perm --frozen-lockfile'],
         },
         build: {
           commands: [
