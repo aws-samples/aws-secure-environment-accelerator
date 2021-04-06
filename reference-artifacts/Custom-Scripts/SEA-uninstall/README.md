@@ -74,7 +74,7 @@ The logic of the script is the following:
 
 4. Execute the script `python3 aws-sea-cleanup.py`.
 
-**Note: ** if you used a different AcceleratorName you can use `python3 aws-sea-cleanup.py --AcceleratorName YOUR_ACCELERATOR_PREFIX`.
+**Note: ** if you used a different AcceleratorPrefix you can use `python3 aws-sea-cleanup.py --AcceleratorPrefix YOUR_ACCELERATOR_PREFIX`.
 
 5. Manual steps (in the Organization Management account):
    - In Secrets Manager, set the Secret `accelerator/config/last-successful-commit` to an empty string;
