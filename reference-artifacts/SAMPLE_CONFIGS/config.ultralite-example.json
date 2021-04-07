@@ -28,6 +28,7 @@
       "account": "security",
       "region": "${HOME_REGION}",
       "security-hub-excl-regions": [],
+      "security-hub": true,
       "guardduty": true,
       "guardduty-excl-regions": [],
       "guardduty-s3": true,
