@@ -5,7 +5,7 @@ import { stringType } from 'aws-sdk/clients/iam';
 import { PolicySummary } from 'aws-sdk/clients/organizations';
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
 import { additionalReplacements, replaceDefaults } from './../util/common';
-import { Account } from '@aws-accelerator/common-outputs/src/accounts';
+import { AccountConfig } from '@aws-accelerator/common-outputs/src/accounts';
 
 export const FULL_AWS_ACCESS_POLICY_NAME = 'FullAWSAccess';
 
@@ -272,7 +272,7 @@ export class ServiceControlPolicy {
    */
   async attachOrDetachPoliciesToAccounts(props: {
     existingPolicies: PolicySummary[];
-    configurationAccounts: Account[];
+    configurationAccounts: AccountConfig[];
     accountConfigs: [string, OrganizationalUnitConfig][];
     acceleratorPrefix: string;
   }) {
