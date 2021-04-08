@@ -279,6 +279,9 @@ export class ServiceControlPolicy {
   }) {
     const { existingPolicies, configurationAccounts, accountConfigs, acceleratorPrefix } = props;
 
+    console.log('#############################################################################################')
+    console.log(configurationAccounts)
+    console.log(accountConfigs)
     // Attach Accelerator SCPs to Accounts
     for (const [accountKey, accountConfig] of accountConfigs) {
       const Account = configurationAccounts.find(Account => Account.id === accountKey);
