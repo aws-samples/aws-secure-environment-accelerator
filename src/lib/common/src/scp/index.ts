@@ -5,6 +5,7 @@ import { stringType } from 'aws-sdk/clients/iam';
 import { PolicySummary } from 'aws-sdk/clients/organizations';
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
 import { additionalReplacements, replaceDefaults } from './../util/common';
+import { AccountConfig } from '@aws-accelerator/common-config/src';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 
 export const FULL_AWS_ACCESS_POLICY_NAME = 'FullAWSAccess';
@@ -217,6 +218,9 @@ export class ServiceControlPolicy {
   }) {
     const { existingPolicies, configurationOus, acceleratorOus, acceleratorPrefix } = props;
 
+    console.warn('#############################################################################################');
+    console.warn(configurationOus);
+    console.warn(acceleratorOus);
     // Attach Accelerator SCPs to OUs
     for (const [ouKey, ouConfig] of acceleratorOus) {
       const organizationalUnit = configurationOus.find(ou => ou.ouPath === ouKey);
@@ -273,23 +277,31 @@ export class ServiceControlPolicy {
   async attachOrDetachPoliciesToAccounts(props: {
     existingPolicies: PolicySummary[];
     configurationAccounts: Account[];
-    accountConfigs: [string, OrganizationalUnitConfig][];
+    accountConfigs: [string, AccountConfig][];
     acceleratorPrefix: string;
   }) {
     const { existingPolicies, configurationAccounts, accountConfigs, acceleratorPrefix } = props;
 
+    console.warn('#############################################################################################');
+    console.warn(configurationAccounts);
+    console.warn(accountConfigs);
     // Attach Accelerator SCPs to Accounts
+    
     for (const [accountKey, accountConfig] of accountConfigs) {
-      const Account = configurationAccounts.find(Account => Account.id === accountKey);
+      if ((accountConfig.scps == null)) {
+        continue;
+      };
+      const Account = configurationAccounts.find(Account => Account.key === accountKey);
+      console.warn(Account);
       if (!Account) {
-        console.warn(`Cannot find OU configuration with key "${accountKey}"`);
+        console.warn(`Cannot find Account configuration with key "${accountKey}"`);
         continue;
       }
       const accountPolicyNames = accountConfig.scps.map(policyName =>
         ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
       );
       if (accountPolicyNames.length > 4) {
-        console.warn(`Maximum allowed SCP per OU is 5. Limit exceeded for OU ${accountKey}`);
+        console.warn(`Maximum allowed SCP per Account is 5. Limit exceeded for Account ${accountKey}`);
         continue;
       }
 
@@ -303,7 +315,7 @@ export class ServiceControlPolicy {
       for (const policyTarget of policyTargets) {
         const policyTargetName = policyTarget.Name!;
         if (!accountPolicyNames.includes(policyTargetName) && policyTargetName !== FULL_AWS_ACCESS_POLICY_NAME) {
-          console.log(`Detaching ${policyTargetName} from OU ${accountKey}`);
+          console.log(`Detaching ${policyTargetName} from Account ${accountKey}`);
           await this.org.detachPolicy(policyTarget.Id!, Account.id);
         }
       }
@@ -318,11 +330,11 @@ export class ServiceControlPolicy {
 
         const policyTarget = policyTargets.find(x => x.Name === accountPolicyName);
         if (policyTarget) {
-          console.log(`Skipping attachment of ${accountPolicyName} to already attached OU ${accountKey}`);
+          console.log(`Skipping attachment of ${accountPolicyName} to already attached Account ${accountKey}`);
           continue;
         }
 
-        console.log(`Attaching ${accountPolicyName} to OU ${accountKey}`);
+        console.log(`Attaching ${accountPolicyName} to Account ${accountKey}`);
         await this.org.attachPolicy(policy.Id!, Account.id);
       }
     }
