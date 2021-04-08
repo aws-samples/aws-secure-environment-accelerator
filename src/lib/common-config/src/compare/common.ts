@@ -1,4 +1,4 @@
-import { Diff, isDiffArray, isDiffEdit, isDiffDeleted } from './config-diff';
+import { Diff, isDiffArray, isDiffEdit, isDiffDeleted, isDiffNew } from './config-diff';
 
 export function deletedSubAccount(accountNames: string[], diffs: Diff[]): string[] {
   const errors = [];
@@ -81,6 +81,25 @@ export function matchEditedConfigDependency(diffs: Diff[], pathValues: string[],
     const found = pathValues.every(r => editedDiff.path?.includes(r));
     if (found && editedDiff.lhs && (pathLength ? editedDiff.path?.length === pathLength : true)) {
       errors.push(`ConfigCheck: blocked changing config path "${editedDiff.path?.join('/')}"`);
+    }
+  }
+  return errors;
+}
+
+export function matchBooleanConfigDependency(diffs: Diff[], pathValues: string[], pathLength?: number): string[] {
+  const errors = [];
+  for (const editedDiff of diffs.filter(isDiffEdit)) {
+    const found = pathValues.every(r => editedDiff.path?.includes(r));
+    if (found && editedDiff.lhs !== undefined && (pathLength ? editedDiff.path?.length === pathLength : true)) {
+      errors.push(`ConfigCheck: blocked changing config path "${editedDiff.path?.join('/')}"`);
+    }
+  }
+
+  for (const newDiff of diffs.filter(isDiffNew)) {
+    const found = pathValues.every(r => newDiff.path?.includes(r));
+    console.log(found, newDiff.rhs, pathValues);
+    if (found && (pathLength ? newDiff.path?.length === pathLength : true)) {
+      errors.push(`ConfigCheck: blocked changing config path "${newDiff.path?.join('/')}"`);
     }
   }
   return errors;

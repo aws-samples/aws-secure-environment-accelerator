@@ -211,6 +211,7 @@ export const VpcConfigType = t.interface({
   region,
   cidr,
   cidr2: optional(cidr),
+  'dedicated-tenancy': fromNullable(t.boolean, false),
   'use-central-endpoints': fromNullable(t.boolean, false),
   'dns-resolver-logging': fromNullable(t.boolean, false),
   'flow-logs': FlowLogsDestinationTypes,

@@ -165,6 +165,9 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       cidrBlock: props.vpcProps.vpcConfig.cidr.toCidrString(),
       enableDnsHostnames: true,
       enableDnsSupport: true,
+      instanceTenancy: props.vpcProps.vpcConfig['dedicated-tenancy']
+        ? ec2.DefaultInstanceTenancy.DEDICATED
+        : ec2.DefaultInstanceTenancy.DEFAULT,
     });
     this.vpcId = vpcObj.ref;
 

@@ -129,8 +129,7 @@ async function main() {
   installerProjectRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['s3:*'],
-      // resources: [`arn:aws:s3:::${acceleratorPrefix.toLowerCase()}cdktoolkit-stagingbucket-*`],
-      resources: [`arn:aws:s3:::cdk-${acceleratorPrefix.toLowerCase()}assets-*`],
+      resources: [`arn:aws:s3:::cdk-*`],
     }),
   );
 
@@ -160,7 +159,7 @@ async function main() {
           },
           // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
           commands: [
-            'npm install --global pnpm',
+            'npm install --global pnpm@5.18.9',
             'pnpm install --unsafe-perm --frozen-lockfile',
             'pnpm recursive run build --unsafe-perm',
           ],

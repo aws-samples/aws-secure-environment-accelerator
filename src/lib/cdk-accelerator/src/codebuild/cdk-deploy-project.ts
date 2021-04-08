@@ -173,7 +173,7 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
  */
 function installPackageManagerCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
-    return ['npm install --global pnpm'];
+    return ['npm install --global pnpm@5.18.9'];
   }
   throw new Error(`Unknown package manager ${packageManager}`);
 }

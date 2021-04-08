@@ -19,6 +19,7 @@ const ACCOUNT_VPC_REGION = ['mandatory-account-configs', 'vpc', 'region'];
 const ACCOUNT_VPC_DEPLOY = ['mandatory-account-configs', 'vpc', 'deploy'];
 const ACCOUNT_VPC_CIDR = ['mandatory-account-configs', 'vpc', 'cidr'];
 const ACCOUNT_VPC_CIDR2 = ['mandatory-account-configs', 'vpc', 'cidr2'];
+const ACCOUNT_VPC_TENANCY = ['mandatory-account-configs', 'vpc', 'dedicated-tenancy'];
 
 /**
  * config path(s) for mandatory accounts vpc subnets
@@ -64,6 +65,7 @@ const OU_VPC_REGION = ['organizational-units', 'vpc', 'region'];
 const OU_VPC_DEPLOY = ['organizational-units', 'vpc', 'deploy'];
 const OU_VPC_CIDR = ['organizational-units', 'vpc', 'cidr'];
 const OU_VPC_CIDR2 = ['organizational-units', 'vpc', 'cidr2'];
+const OU_VPC_TENANCY = ['organizational-units', 'vpc', 'dedicated-tenancy'];
 
 /**
  * config path(s) for organizational units vpc subnets
@@ -236,6 +238,12 @@ export async function validateAccountVpc(differences: Diff<LHS, RHS>[], errors: 
   const accountVpcRegion = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_REGION, 5);
   if (accountVpcRegion) {
     errors.push(...accountVpcRegion);
+  }
+
+  // the below function checks vpc tenancy of the account
+  const vpcTenancy = validateConfig.matchBooleanConfigDependency(differences, ACCOUNT_VPC_TENANCY, 5);
+  if (vpcTenancy) {
+    errors.push(...vpcTenancy);
   }
 }
 
@@ -410,6 +418,12 @@ export async function validateOuVpc(differences: Diff<LHS, RHS>[], errors: strin
   const ouVpcRegion = validateConfig.matchEditedConfigDependency(differences, OU_VPC_REGION, 5);
   if (ouVpcRegion) {
     errors.push(...ouVpcRegion);
+  }
+
+  // the below function checks vpc tenancy of the OU
+  const vpcTenancy = validateConfig.matchBooleanConfigDependency(differences, OU_VPC_TENANCY, 5);
+  if (vpcTenancy) {
+    errors.push(...vpcTenancy);
   }
 }
 

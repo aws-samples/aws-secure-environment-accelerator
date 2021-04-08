@@ -31,7 +31,7 @@ jobs:
           node-version: 12
       - name: Install pnpm
         run: |
-          npm install -g pnpm
+          npm install -g pnpm@5.18.9
       - name: Generate Changelog
         id: changelog
         env:
