@@ -283,7 +283,7 @@ export class ServiceControlPolicy {
     console.warn(configurationAccounts);
     console.warn(accountConfigs);
     // Attach Accelerator SCPs to Accounts
-    /*
+    
     for (const [accountKey, accountConfig] of accountConfigs) {
       if (!('scps' in accountConfig)) {
         continue;
@@ -333,7 +333,7 @@ export class ServiceControlPolicy {
         console.log(`Attaching ${accountPolicyName} to OU ${accountKey}`);
         await this.org.attachPolicy(policy.Id!, Account.id);
       }
-    }*/
+    }
   }
 
   static createQuarantineScpContent(props: { acceleratorPrefix: string; organizationAdminRole: string }) {
