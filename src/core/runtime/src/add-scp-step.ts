@@ -106,7 +106,7 @@ export const handler = async (input: AddScpInput) => {
   await scps.attachOrDetachPoliciesToAccounts({
     existingPolicies,
     configurationAccounts: accounts,
-    accountConfigs: config.getMandatoryAccountConfigs(),
+    accountConfigs: config.getAccountConfigs(),
     acceleratorPrefix,
   });
 
