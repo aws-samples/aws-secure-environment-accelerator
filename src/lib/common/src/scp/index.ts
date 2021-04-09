@@ -285,7 +285,7 @@ export class ServiceControlPolicy {
     // Attach Accelerator SCPs to Accounts
     
     for (const [accountKey, accountConfig] of accountConfigs) {
-      if (!('scps' in accountConfig)) {
+      if ((accountConfig.scps == null)) {
         continue;
       };
       const Account = configurationAccounts.find(Account => Account.id === accountKey);
