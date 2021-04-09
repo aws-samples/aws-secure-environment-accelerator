@@ -281,25 +281,30 @@ export class ServiceControlPolicy {
     acceleratorPrefix: string;
   }) {
     const { existingPolicies, configurationAccounts, accountConfigs, acceleratorPrefix } = props;
-
+    
     console.warn('#############################################################################################');
     console.warn(configurationAccounts);
-    console.warn(accountConfigs);
-    // Attach Accelerator SCPs to Accounts
+    console.warn(accountConfigs)
     
     for (const [accountKey, accountConfig] of accountConfigs) {
-      if ((accountConfig.scps == null)) {
-        continue;
-      };
       const Account = configurationAccounts.find(Account => Account.key === accountKey);
+      // Attach Accelerator SCPs to Accounts
+      /**
+       * Check if scps key is set on account. If not set ignore as SCPs are being managed in the outside of the deployment.
+       */
+      if (!("scps" in accountConfig)) {
+        continue;
+      }
       console.warn(Account);
       if (!Account) {
         console.warn(`Cannot find Account configuration with key "${accountKey}"`);
-        continue;
-      }
+        continue
+      };
+      
       const accountPolicyNames = accountConfig.scps.map(policyName =>
         ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
       );
+
       if (accountPolicyNames.length > 4) {
         console.warn(`Maximum allowed SCP per Account is 5. Limit exceeded for Account ${accountKey}`);
         continue;
