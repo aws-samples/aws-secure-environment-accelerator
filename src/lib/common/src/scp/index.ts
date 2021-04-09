@@ -295,12 +295,12 @@ export class ServiceControlPolicy {
         continue;
       }
       
-      if (("scps" in accountConfig)) { 
+      const accountPolicyNames = {};
+
+      if ("scps" in accountConfig) { 
         const accountPolicyNames = accountConfig.scps.map(policyName =>
           ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
-        );
-      } else {
-        const accountPolicyNames = accountConfig.scps.map([]);
+        )
       }
 
       if (accountPolicyNames.length > 4) {
