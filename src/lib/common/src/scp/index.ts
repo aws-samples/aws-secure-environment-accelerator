@@ -295,7 +295,10 @@ export class ServiceControlPolicy {
         continue;
       }
       
-      // If no value has been set in the config set scps key to an empty array so any previously attached policies will be removed
+      /** 
+       * If no scps have been set in the account config set the account scps key to an empty array. 
+       * This allows existing policies to be removed if they were previously set.
+       */
       if (!("scps" in accountConfig)) { 
         accountConfig.scps = [];
       };
