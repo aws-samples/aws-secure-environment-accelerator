@@ -286,7 +286,7 @@ export class ServiceControlPolicy {
     for (const [accountKey, accountConfig] of accountConfigs) {
       const Account = configurationAccounts.find(Account => Account.key === accountKey);
       /**
-       * Check if scps key is set on account. If not set ignore as SCPs are being managed in the outside of the deployment.
+       * Check if scps key is set on account. If not, ignore as SCPs are being managed in the outside the installer.
        */
       if ((accountConfig.scps == null)) {
         continue;
