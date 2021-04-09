@@ -295,13 +295,14 @@ export class ServiceControlPolicy {
         continue;
       }
       
-      const accountPolicyNames = {};
+      // If no value has been set in the config set scps key to an empty array so any previously attached policies will be removed
+      if (!("scps" in accountConfig)) { 
+        accountConfig.scps = [];
+      };
 
-      if ("scps" in accountConfig) { 
-        const accountPolicyNames = accountConfig.scps.map(policyName =>
-          ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
-        )
-      }
+      const accountPolicyNames = accountConfig.scps.map(policyName =>
+        ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
+      );
 
       if (accountPolicyNames.length > 4) {
         console.warn(`Maximum allowed SCP per Account is 5. Limit exceeded for Account ${accountKey}`);
