@@ -592,7 +592,7 @@ export const MandatoryAccountConfigType = t.interface({
   'populate-all-elbs-in-param-store': fromNullable(t.boolean, false),
   'ssm-automation': fromNullable(t.array(SsmShareAutomation), []),
   'aws-config': fromNullable(t.array(AwsConfigAccountConfig), []),
-  'scps': optional(t.array(t.string)),
+  'scps': t.array(t.string),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;

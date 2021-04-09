@@ -292,20 +292,9 @@ export class ServiceControlPolicy {
       console.warn(Account);
       if (!Account) {
         console.warn(`Cannot find Account configuration with key "${accountKey}"`);
-        continue;
-      }
-      
-      /** 
-       * If no scps have been set in the account config set the account scps key to an empty array. 
-       * This allows existing policies to be removed if they were previously set.
-       */
-      if (!accountConfig.hasOwnProperty("scps")) { 
-        type accountConfig = {
-          scps: [];
-        }
-        accountConfig.scps = [];
+        continue
       };
-
+      
       const accountPolicyNames = accountConfig.scps.map(policyName =>
         ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
       );
