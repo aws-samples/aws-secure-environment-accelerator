@@ -288,18 +288,21 @@ export class ServiceControlPolicy {
     // Attach Accelerator SCPs to Accounts
     
     for (const [accountKey, accountConfig] of accountConfigs) {
-      if ((accountConfig.scps == null)) {
-        continue;
-      };
       const Account = configurationAccounts.find(Account => Account.key === accountKey);
       console.warn(Account);
       if (!Account) {
         console.warn(`Cannot find Account configuration with key "${accountKey}"`);
         continue;
       }
-      const accountPolicyNames = accountConfig.scps.map(policyName =>
-        ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
-      );
+      
+      if (("scps" in accountConfig)) { 
+        const accountPolicyNames = accountConfig.scps.map(policyName =>
+          ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
+        );
+      } else {
+        const accountPolicyNames = accountConfig.scps.map([]);
+      }
+
       if (accountPolicyNames.length > 4) {
         console.warn(`Maximum allowed SCP per Account is 5. Limit exceeded for Account ${accountKey}`);
         continue;
