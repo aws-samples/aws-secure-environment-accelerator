@@ -279,11 +279,14 @@ export class ServiceControlPolicy {
   }) {
     const { existingPolicies, configurationAccounts, accountConfigs, acceleratorPrefix } = props;
 
-    console.log('#############################################################################################')
-    console.log(configurationAccounts)
-    console.log(accountConfigs)
+    console.log('#############################################################################################');
+    console.log(configurationAccounts);
+    console.log(accountConfigs);
     // Attach Accelerator SCPs to Accounts
     for (const [accountKey, accountConfig] of accountConfigs) {
+      if (!('scps' in accountConfig)) {
+        continue
+      }
       const Account = configurationAccounts.find(Account => Account.id === accountKey);
       if (!Account) {
         console.warn(`Cannot find OU configuration with key "${accountKey}"`);
