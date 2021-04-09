@@ -84,7 +84,6 @@ export const handler = async (input: AddScpInput) => {
   const acceleratorOuIds = organizationalUnits.map(ou => ou.ouId);
   const acceleratorAccountIds = accounts.map(a => a.id);
   const acceleratorTargetIds = [...rootIds, ...acceleratorOuIds, ...acceleratorAccountIds];
-  const acceleratorTargetAccountIds = [...acceleratorAccountIds]; 
 
   // Detach non-Accelerator policies from Accelerator accounts
   await scps.detachPoliciesFromTargets({
@@ -106,7 +105,7 @@ export const handler = async (input: AddScpInput) => {
 
   await scps.attachOrDetachPoliciesToAccounts({
     existingPolicies,
-    configurationAccounts: acceleratorTargetAccountIds,
+    configurationAccounts: accounts,
     accountConfigs: config.getMandatoryAccountConfigs(),
     acceleratorPrefix,
   });
