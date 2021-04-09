@@ -538,7 +538,7 @@ As discussed, the AWS Organization resides in the Organization Management (root)
 
 Given the Organizational-wide trust relationship to the role defined in `organization-admin-role` (default: `AWSCloudFormationStackSetAdministrationRole`) and its broad exclusion from SCPs (discussed below), the assumption of this role grants 'super admin' status, and is thus an extremely high privilege operation. The ability to assume this role should be considered a 'break glass' capability - to be used only in extraordinary circumstances. Access to this role can be granted by IAM Users or IAM Roles in the Organization Management (root) account (via SSO) - as with the Organization Management (root) account credentials, these should be handled with extreme diligence, and with a U2F hardware key enabled as a second-factor (and stored in a secure location such as a safe).
 
-**TBD: This role may be locked down starting in v1.2.5 - Update details once direction finalized**
+**TBD: This role was locked down starting in v1.2.5 - Add further details here /TODO**
 
 ## 6.3. Control Plane Access via AWS SSO
 
