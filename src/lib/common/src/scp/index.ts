@@ -218,9 +218,6 @@ export class ServiceControlPolicy {
   }) {
     const { existingPolicies, configurationOus, acceleratorOus, acceleratorPrefix } = props;
 
-    console.warn('#############################################################################################');
-    console.warn(configurationOus);
-    console.warn(acceleratorOus);
     // Attach Accelerator SCPs to OUs
     for (const [ouKey, ouConfig] of acceleratorOus) {
       const organizationalUnit = configurationOus.find(ou => ou.ouPath === ouKey);
@@ -288,14 +285,14 @@ export class ServiceControlPolicy {
     
     for (const [accountKey, accountConfig] of accountConfigs) {
       const Account = configurationAccounts.find(Account => Account.key === accountKey);
-      // Attach Accelerator SCPs to Accounts
       /**
        * Check if scps key is set on account. If not set ignore as SCPs are being managed in the outside of the deployment.
        */
       if (!("scps" in accountConfig)) {
-        continue;
-      }
-      console.warn(Account);
+        continue
+      };
+
+      // Attach Accelerator SCPs to Accounts
       if (!Account) {
         console.warn(`Cannot find Account configuration with key "${accountKey}"`);
         continue
