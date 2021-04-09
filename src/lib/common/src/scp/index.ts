@@ -6,7 +6,7 @@ import { PolicySummary } from 'aws-sdk/clients/organizations';
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
 import { additionalReplacements, replaceDefaults } from './../util/common';
 import { AccountConfig } from '@aws-accelerator/common-config/src';
-import { Account } from '@aws-accelerator/common-config/src';
+import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 
 export const FULL_AWS_ACCESS_POLICY_NAME = 'FullAWSAccess';
 
