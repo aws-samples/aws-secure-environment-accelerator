@@ -291,7 +291,7 @@ export class ServiceControlPolicy {
       if ((accountConfig.scps == null)) {
         continue;
       };
-      const Account = configurationAccounts.find(Account => Account.id === accountKey);
+      const Account = configurationAccounts.find(Account => Account.key === accountKey);
       console.warn(Account);
       if (!Account) {
         console.warn(`Cannot find Account configuration with key "${accountKey}"`);
