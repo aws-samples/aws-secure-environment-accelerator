@@ -300,6 +300,9 @@ export class ServiceControlPolicy {
        * This allows existing policies to be removed if they were previously set.
        */
       if (!("scps" in accountConfig)) { 
+        type accountConfig = {
+          scps: [];
+        }
         accountConfig.scps = [];
       };
 
