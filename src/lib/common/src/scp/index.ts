@@ -288,8 +288,8 @@ export class ServiceControlPolicy {
       /**
        * Check if scps key is set on account. If not set ignore as SCPs are being managed in the outside of the deployment.
        */
-      if (!("scps" in accountConfig)) {
-        continue
+      if ((accountConfig.scps == null)) {
+        continue;
       };
 
       // Attach Accelerator SCPs to Accounts
