@@ -278,26 +278,22 @@ export class ServiceControlPolicy {
     acceleratorPrefix: string;
   }) {
     const { existingPolicies, configurationAccounts, accountConfigs, acceleratorPrefix } = props;
-    
-    console.warn('#############################################################################################');
-    console.warn(configurationAccounts);
-    console.warn(accountConfigs)
-    
+
     for (const [accountKey, accountConfig] of accountConfigs) {
       const Account = configurationAccounts.find(Account => Account.key === accountKey);
       /**
        * Check if scps key is set on account. If not, ignore as SCPs are being managed in the outside the installer.
        */
-      if ((accountConfig.scps == null)) {
+      if (accountConfig.scps == null) {
         continue;
-      };
+      }
 
       // Attach Accelerator SCPs to Accounts
       if (!Account) {
         console.warn(`Cannot find Account configuration with key "${accountKey}"`);
-        continue
-      };
-      
+        continue;
+      }
+
       const accountPolicyNames = accountConfig.scps.map(policyName =>
         ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
       );
