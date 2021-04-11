@@ -31,7 +31,10 @@
         "iam:ListVirtualMFADevices",
         "iam:ResyncMFADevice",
         "aws-portal:*",
-        "sts:GetSessionToken"
+        "sts:GetSessionToken",
+        "iam:DeleteVirtualMFADevice",
+        "trustedadvisor:*",
+        "support:*"
       ],
       "Resource": "*",
       "Condition": {
