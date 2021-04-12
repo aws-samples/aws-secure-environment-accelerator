@@ -155,6 +155,12 @@ export const handler = async (input: PolicyChangeEvent) => {
       acceleratorOus: config.getOrganizationalUnits(),
       acceleratorPrefix,
     });
+
+    await scps.attachOrDetachPoliciesToAccounts({
+      configurationAccounts: accounts,
+      accountConfigs: config.getAccountConfigs(),
+      acceleratorPrefix,
+    });
   }
   return 'SUCCESS';
 };
