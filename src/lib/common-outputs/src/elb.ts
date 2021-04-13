@@ -1,10 +1,9 @@
 import * as t from 'io-ts';
 import { createStructuredOutputFinder } from './structured-output';
-import { enumType } from '@aws-accelerator/common-types';
+import { enums } from '@aws-accelerator/common-types';
 
-export const LOADBALANCER = ['APPLICATION', 'NETWORK'] as const;
-
-export const LoadBalancerType = enumType<typeof LOADBALANCER[number]>(LOADBALANCER, 'LoadBalancerType');
+export const LoadBalancerType = enums('LoadBalancerType', ['APPLICATION', 'NETWORK']);
+export type LoadBalancerType = t.TypeOf<typeof LoadBalancerType>;
 
 export const LoadBalancerOutput = t.interface(
   {

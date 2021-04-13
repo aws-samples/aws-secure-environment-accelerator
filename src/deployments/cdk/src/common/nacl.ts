@@ -2,8 +2,8 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 
 import * as config from '@aws-accelerator/common-config/src';
+import * as t from '@aws-accelerator/common-types';
 import { AzSubnets } from './vpc';
-import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 
 export interface NaclProps {
   accountKey: string;
@@ -45,7 +45,7 @@ export class Nacl extends cdk.Construct {
         to: rules.ports,
       };
       for (const cidr of rules['cidr-blocks']) {
-        if (NonEmptyString.is(cidr)) {
+        if (t.nonEmptyString.is(cidr)) {
           const aclEntryProps: ec2.CfnNetworkAclEntryProps = {
             networkAclId: nacl.ref,
             protocol: rules.protocol,

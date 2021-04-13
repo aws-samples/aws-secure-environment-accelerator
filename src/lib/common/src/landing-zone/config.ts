@@ -1,7 +1,6 @@
 import * as t from 'io-ts';
-import { fromNullable } from 'io-ts-types/lib/fromNullable';
 import * as yaml from 'js-yaml';
-import { optional, parse } from '@aws-accelerator/common-types';
+import { defaulted, optional, parse } from '@aws-accelerator/common-types';
 
 export const AccountConfigType = t.interface({
   name: t.string,
@@ -16,7 +15,7 @@ export const AccountConfigType = t.interface({
 
 export const OrganizationalUnitConfigType = t.interface({
   name: t.string,
-  core_accounts: fromNullable(t.array(AccountConfigType), []),
+  core_accounts: defaulted(t.array(AccountConfigType), []),
 });
 
 export const ProductType = t.interface({

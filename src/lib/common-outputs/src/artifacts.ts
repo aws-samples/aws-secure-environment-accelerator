@@ -1,11 +1,16 @@
 import * as t from 'io-ts';
-import { enumType } from '@aws-accelerator/common-types';
+import { enums } from '@aws-accelerator/common-types';
 import { createStructuredOutputFinder } from './structured-output';
 import { StackOutput } from './stack-output';
 
-export const ARTIFACT_NAMES = ['SCP', 'Rdgw', 'IamPolicy', 'Rsyslog', 'SsmDocument', 'ConfigRules'] as const;
-
-export const ArtifactNameType = enumType<typeof ARTIFACT_NAMES[number]>(ARTIFACT_NAMES, 'ArtifactName');
+export const ArtifactNameType = enums('ArtifactName', [
+  'SCP',
+  'Rdgw',
+  'IamPolicy',
+  'Rsyslog',
+  'SsmDocument',
+  'ConfigRules',
+]);
 
 export type ArtifactName = t.TypeOf<typeof ArtifactNameType>;
 

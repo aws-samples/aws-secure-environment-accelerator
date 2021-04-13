@@ -1,10 +1,6 @@
 import * as prettier from 'prettier';
-import * as t from 'io-ts';
-import { enumType } from '@aws-accelerator/common-types';
 
-export const FORMATS = ['json', 'yaml'] as const;
-export const FormatConfigType = enumType<typeof FORMATS[number]>(FORMATS);
-export type FormatType = t.TypeOf<typeof FormatConfigType>;
+export type FormatType = 'json' | 'yaml';
 
 export function pretty(input: string, format: FormatType) {
   console.log(`Applying Prettier for format "${format}"`);

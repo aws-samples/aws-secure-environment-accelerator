@@ -1,6 +1,4 @@
-export const LANDING_ZONE_ACCOUNT_TYPES = ['primary', 'security', 'log-archive', 'shared-services'] as const;
-
-export type LandingZoneAccountType = typeof LANDING_ZONE_ACCOUNT_TYPES[number];
+export type LandingZoneAccountType = 'primary' | 'security' | 'log-archive' | 'shared-services';
 
 export interface Account {
   key: string;

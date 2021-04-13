@@ -1,11 +1,10 @@
 import * as t from 'io-ts';
 import { createStructuredOutputFinder } from './structured-output';
 import { StackOutput } from './stack-output';
-import { enumType, optional } from '@aws-accelerator/common-types';
+import { enums } from '@aws-accelerator/common-types';
 
-export const RESOURCETYPE = ['PUBLIC', 'PRIVATE'] as const;
-
-export const ResourceType = enumType<typeof RESOURCETYPE[number]>(RESOURCETYPE, 'ResourceType');
+export const ResourceType = enums('ResourceType', ['PUBLIC', 'PRIVATE']);
+export type ResourceType = t.TypeOf<typeof ResourceType>;
 
 export const StaticResourcesOutput = t.interface(
   {

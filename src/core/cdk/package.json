@@ -2,7 +2,6 @@
   "name": "@aws-accelerator/accelerator",
   "version": "1.3.2",
   "scripts": {
-    "build": "pnpx esbuild --minify --bundle --platform=node --target=node12 --external:aws-sdk --outfile=./dist/index.js src/index.ts",
     "bootstrap": "pnpx cdk bootstrap",
     "deploy": "pnpx cdk deploy",
     "synth": "pnpx cdk synth",

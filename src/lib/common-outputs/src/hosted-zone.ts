@@ -1,11 +1,10 @@
 import * as t from 'io-ts';
 import { createStructuredOutputFinder } from './structured-output';
 import { StackOutput } from './stack-output';
-import { enumType, optional } from '@aws-accelerator/common-types';
+import { enums, optional } from '@aws-accelerator/common-types';
 
-export const HOSTEDZONE = ['PUBLIC', 'PRIVATE'] as const;
-
-export const HostedZoneType = enumType<typeof HOSTEDZONE[number]>(HOSTEDZONE, 'HostedZoneType');
+export const HostedZoneType = enums('HostedZoneType', ['PUBLIC', 'PRIVATE']);
+export type HostedZoneType = t.TypeOf<typeof HostedZoneType>;
 
 export const HostedZoneOutput = t.interface(
   {

@@ -1,5 +1,5 @@
 import * as org from 'aws-sdk/clients/organizations';
-import { LandingZoneAccountType, LANDING_ZONE_ACCOUNT_TYPES } from '@aws-accelerator/common-config/src';
+import { LandingZoneAccountType } from '@aws-accelerator/common-config/src';
 import { LandingZone } from '@aws-accelerator/common/src/landing-zone';
 import { Organizations, OrganizationalUnit } from '@aws-accelerator/common/src/aws/organizations';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
@@ -273,7 +273,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   }
 
   // Verify if all Landing Zone accounts are there
-  for (const landingZoneAccountType of LANDING_ZONE_ACCOUNT_TYPES) {
+  for (const landingZoneAccountType of LandingZoneAccountType.values) {
     const lzAccount = configurationAccounts.find(a => a.landingZoneAccountType === landingZoneAccountType);
     if (!lzAccount) {
       errors.push(`Could not find Landing Zone account of type "${landingZoneAccountType}"`);

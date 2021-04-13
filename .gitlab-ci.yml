@@ -18,8 +18,10 @@ test:
   stage: checks
   script:
     - pnpm -w test
+  timeout: 3h
 
 typecheck:
   stage: checks
   script:
     - pnpm -w lint:typecheck
+  timeout: 3h

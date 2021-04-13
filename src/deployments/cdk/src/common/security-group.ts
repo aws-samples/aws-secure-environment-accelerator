@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-accelerator/common-config/src';
+import * as t from '@aws-accelerator/common-types';
 import * as constructs from '@aws-accelerator/cdk-constructs/src/vpc';
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 import * as sv from 'semver';
@@ -141,7 +142,7 @@ export class SecurityGroup extends cdk.Construct {
     const ruleSources = rule.source;
     const ruleDescription = rule.description;
     for (const ruleSource of ruleSources) {
-      if (NonEmptyString.is(ruleSource)) {
+      if (t.nonEmptyString.is(ruleSource)) {
         let ruleProp;
         if (ruleSource.includes('::')) {
           ruleProp = {

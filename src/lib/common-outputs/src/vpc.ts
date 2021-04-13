@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
+import { defaulted } from '@aws-accelerator/common-types';
 import { createStructuredOutputFinder } from './structured-output';
 import { StackOutput } from './stack-output';
-import { fromNullable } from 'io-ts-types/lib/fromNullable';
 
 export interface VpcSecurityGroupOutput {
   securityGroupId: string;
@@ -54,7 +54,7 @@ export const VpcOutput = t.interface(
     routeTables: t.record(t.string, t.string),
     securityGroups: t.array(VpcSecurityGroupOutput),
     tgwAttachments: t.array(TgwAttachmentOutput),
-    initialSubnets: fromNullable(t.array(VpcSubnetOutput), []),
+    initialSubnets: defaulted(t.array(VpcSubnetOutput), []),
   },
   'VpcOutput',
 );
