@@ -36,6 +36,7 @@
     - [1.6.4. Why do we have rsyslog servers? I thought everything was sent to CloudWatch?](#164-why-do-we-have-rsyslog-servers-i-thought-everything-was-sent-to-cloudwatch)
     - [1.6.5. Can you deploy the solution without Fortinet Firewall Licenses?](#165-can-you-deploy-the-solution-without-fortinet-firewall-licenses)
     - [1.6.6. I installed additional software on my Accelerator deployed RDGW / rsyslog host, where did it go?](#166-i-installed-additional-software-on-my-accelerator-deployed-rdgw--rsyslog-host-where-did-it-go)
+    - [1.6.7. Some sample configurations provide NACLs and Security Groups. Is that enough?](#167-some-sample-configurations-provide-nacls-and-security-groups-is-that-enough)
 
 ## 1.1. Operational Activities
 
@@ -404,6 +405,13 @@ The RDGW and rsyslog hosts are members of auto-scaling groups. These auto-scalin
 Customers wanting to install additional software on these instances should either a) update the automated deployment scripts to install the new software on new instance launch, or b) create and specify a custom AMI in the Accelerator configuration file which has the software pre-installed ensuring they are also managing patch compliance on the instance through some other mechanism.
 
 At any time, customers can terminate the RDGW or rsyslog hosts and they will automatically be re-created from the base images with the latest patch available at the time of the last Accelerator State Machine execution.
+
+### 1.6.7. Some sample configurations provide NACLs and Security Groups. Is that enough?
+
+The Security Groups proposed in some of our sample configurations offer a good balance that takes into account both security and ease of deployment in the context of a development setup. It is expected that each customer will review and tailor the Security Groups based on their own security requirements. We also encourage our customer to create their own Security Groups.
+
+Just like for Security Groups; we expect and encourage our customers to review and tailor the NACLS defined in ours sample configurations to match their own security needs.
+
 
 ---
 
