@@ -471,11 +471,11 @@ versus
 
 > "permit port 3306 traffic from `10.0.1.0/24` to `10.0.2.0/24`.
 
-Note that in practice, egress rules are generally used in 'allow all' mode, with the focus primarily being on whitelisting certain ingress traffic.
+Note that in practice, egress rules are generally used in 'allow all' mode `0.0.0.0/0`, with the focus primarily being on whitelisting certain ingress traffic. The Security Groups proposed in some of our sample configurations offer a good balance that takes into account both security and ease of deployment in the context of a development setup. It is expected that each customer will review and tailor the Security Groups based on their own security requirements. We also encourage our customers to create their own Security Groups.
 
 #### 5.3.5.2. NACLs
 
-Network Access-Control Lists (NACLs) are used sparingly as a defense-in-depth measure. Given that each network flow requires potentially four NACL entries (egress from ephemeral, ingress to destination, egress from destination, ingress to ephemeral), the marginal security value of exhaustive NACL use is generally not worth the administrative complexity. The architecture recommends NACLs as a segmentation mechanism for `Data` subnets; i.e. `DENY` all inbound traffic to such a subnet except that which originates in the `App` subnet for the same VPC.
+Network Access-Control Lists (NACLs) are used sparingly as a defense-in-depth measure. Given that each network flow requires potentially four NACL entries (egress from ephemeral, ingress to destination, egress from destination, ingress to ephemeral), the marginal security value of exhaustive NACL use is generally not worth the administrative complexity. The architecture recommends NACLs as a segmentation mechanism for `Data` subnets; i.e. `DENY` all inbound traffic to such a subnet except that which originates in the `App` subnet for the same VPC. Just like for Security Groups; we expect and encourage our customers to review and tailor the NACLS defined in ours sample configurations to match their own security needs.
 
 ### 5.3.6. Central VPC
 
