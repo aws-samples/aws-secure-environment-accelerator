@@ -73,6 +73,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
       );
     } catch (error) {
       console.error(`Did not find LogGroup ${logGroupName}`);
+    }
   }
 
   return {
