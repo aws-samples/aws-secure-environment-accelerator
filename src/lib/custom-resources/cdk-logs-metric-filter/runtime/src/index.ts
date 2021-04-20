@@ -53,25 +53,26 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
       .promise(),
   );
   if (logGroup.logGroups?.length !== 0) {
-    await throttlingBackOff(() =>
-      logs
-        .putMetricFilter({
-          filterName,
-          filterPattern,
-          logGroupName,
-          metricTransformations: [
-            {
-              metricName,
-              metricNamespace,
-              metricValue,
-              defaultValue,
-            },
-          ],
-        })
-        .promise(),
-    );
-  } else {
-    console.warn(`Did not find LogGroup ${logGroupName}`);
+    try {
+      await throttlingBackOff(() =>
+        logs
+          .putMetricFilter({
+            filterName,
+            filterPattern,
+            logGroupName,
+            metricTransformations: [
+              {
+                metricName,
+                metricNamespace,
+                metricValue,
+                defaultValue,
+              },
+            ],
+          })
+          .promise(),
+      );
+    } catch (error) {
+      console.error(`Did not find LogGroup ${logGroupName}`);
   }
 
   return {
