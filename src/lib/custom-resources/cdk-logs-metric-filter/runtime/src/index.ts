@@ -53,7 +53,6 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
       .promise(),
   );
   if (logGroup.logGroups?.length !== 0) {
-    try {
       await throttlingBackOff(() =>
         logs
           .putMetricFilter({
@@ -71,10 +70,9 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
           })
           .promise(),
       );
-    } catch (error) {
-      console.error(`Did not find LogGroup ${logGroupName}`);
+    } else {
+      throw(`Did not find LogGroup ${logGroupName}`);
     }
-  }
 
   return {
     physicalResourceId: metricName,
