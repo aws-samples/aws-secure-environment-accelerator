@@ -139,6 +139,7 @@ export namespace InitialSetup {
           ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
           CDK_PLUGIN_ASSUME_ROLE_NAME: props.stateMachineExecutionRole,
           CDK_PLUGIN_ASSUME_ROLE_DURATION: `${buildTimeout.toSeconds()}`,
+          CDK_DEBUG: '1',
           ACCOUNTS_ITEM_ID: 'accounts',
           LIMITS_ITEM_ID: 'limits',
           ORGANIZATIONS_ITEM_ID: 'organizations',
