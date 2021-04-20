@@ -71,7 +71,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
         .promise(),
     );
   } else {
-    throw `Did not find LogGroup ${logGroupName}`;
+    throw new Error(`Did not find LogGroup "${logGroupName}"`);
   }
 
   return {
