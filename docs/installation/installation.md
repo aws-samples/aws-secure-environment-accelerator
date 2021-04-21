@@ -202,7 +202,7 @@ If deploying to an internal AWS employee account, to successfully install the so
    - you must supply this bucket name in the CFN parameters _and_ in the config file (`global-options\central-bucket`)
    - the bucket name _must_ be the same in both spots
    - the bucket should be `S3-KMS` encrypted using the `PBMMAccel-Source-Bucket-Key` created above
-6. Place your customized config file, named `config.json` (or `config.yaml`), in your new bucket
+6. Place your customized config file(s), named `config.json` (or `config.yaml`), in your new bucket
 7. Place the firewall configuration and license files in the folder and path defined in the config file, if defined in the config file
    - i.e. `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
    - We have made several samples available [here](../../reference-artifacts/Third-Party): `./reference-artifacts/Third-Party/`
@@ -220,7 +220,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 ## 2.5. Installation
 
 1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
-   - Due to some breaking dependency issues, customers can only install or upgrade to v1.3.1 or above (older releases continue to function, but cannot be installed)
+   - Due to some breaking dependency issues, customers can only install or upgrade to v1.3.2 or above (older releases continue to function, but cannot be installed)
 2. Download the CloudFormation (CFN) template `AcceleratorInstallerXXX.template.json` for the release you plan to install
 3. Use the provided CloudFormation template to deploy a new stack in your Management (root) AWS account
    - As previously stated we do not support installation in sub-accounts
@@ -231,7 +231,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 8. Add an `Email` address to be used for State Machine Status notification
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.3.1`, case sensitive
+   - the latest stable branch is currently `release/v1.3.2`, case sensitive
 10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
@@ -267,17 +267,11 @@ If deploying to an internal AWS employee account, to successfully install the so
 Current Issues:
 
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine.
-- New deployments to existing organizations with more than 20 accounts will fail on SSM document sharing as we fail to paginate the API call. Remove the SSM remediation documents from all of the OU's, i.e. `"documents": []` and set `"remediation": false` on the 4 config rules in global-options. Will be resolved in v1.3.1. Adding a new SSM document to the config file which results in it being shared to more than 20 accounts will also fail. Assuming no OU has more than 20 accounts, customers can deploy the SSM document one OU at a time to work around this issue.
+
 
 Issues in Older Releases:
 
-- Releases prior to v1.2.5 - Occasionally during new installs the state machine is failing due to a `File not found` error in the `VerifyFiles` step. Simply rerun the state machine. This is resolved in v1.2.5.
-- Releases prior to v1.2.5 - Occasionally during new installs the perimeter firewall fails to load the provided prescriptive firewall configuration. Edit your config file changing `"firewalls":` to `"xxfirewalls":`, and rerun the state machine to remove the firewall deployment, then change your config file back to `"firewalls":` and again rerun your state machine to redeploy the firewalls. This is resolved in v1.2.5.
-- Releases prior to v1.2.4 will fail to deploy due to a change in an unpinned 3rd party dependency. This is resolved in v1.2.4 (all dependencies were pinned in v1.2.5).
-- Releases prior to v1.2.4 - During Guardduty deployment, occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. As the credentials timed out, we cannot properly cleanup the failed stack. You need to manually find the failed stack in the specific account/region, delete it, and then rerun the state machine. It appears the API has been fixed.
-- Releases prior to v1.2.3 using a YAML config file - we are seeing the OUValidation Lambda randomly timeout. Simply rerun the state machine. This is resolved in v1.2.3.
-- Accelerator v1.2.1b may experience a state machine failure when running `Create Config Recorders` due to an `Insufficient Delivery Policy Exception`. Simply rerun the State Machine. This is resolved in v1.2.2.
-- Releases prior to v1.2.2 where the home region is not ca-central-1, alb deployments will fail, you need to either: a) remove all alb's from the deployment; or b) after the state machine fails, update the central logging bucket (in the log-archive account) policy with your regions [`elb-account-id`](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html). (i.e. replace `985666609251` with the value for your region)
+- New installs and upgrades to releases prior to v1.3.2 are no longer supported.
 
 ## 2.6. Post-Installation
 
@@ -318,18 +312,15 @@ Issues in Older Releases:
 
 ## 3.1. Considerations
 
-- Due to some breaking dependency issues, customers can only install or upgrade to v1.3.1 or above (older releases continue to function, but cannot be installed)
+- Due to some breaking dependency issues, customers can only install or upgrade to v1.3.2 or above (older releases continue to function, but cannot be installed)
 - Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.
   - do NOT update to the latest firewall AMI - see the the last bullet in section [5.1. Accelerator Design Constraints / Decisions](#51-accelerator-design-constraints--decisions)
   - do NOT update the `organization-admin-role` - see bullet 2 in section [2.2.6. Other](#226-other)
   - do NOT update account-keys (i.e. existing installations cannot change the internal values to `management` from `master`)
 - The Accelerator name and prefix **_CANNOT_** be changed after the initial installation
-- If you have customized any of the additional Accelerator provided default configuration files (SCPs, rsyslog config, ssm-documents, iam-policies, etc.):
-  - customers must manually merge Accelerator provided updates with your deployed customizations
-  - failure to do so could result in either a) broken Accelerator functionality, or b) dropped customer guardrail enhancements
-  - prior to v1.2.5, if customers don't take action, the utilized configurations will revert to the latest Accelerator provided defaults. Update the last modified date on each custom config file in your input bucket and rerun the state machine post-upgrade to re-apply customizations
-  - post v1.2.5, if customers don't take action, we will continue to utilize a customers customized configurations regardless of each files timestamp
-  - in both cases it is important customers assess the new defaults and integrate them into their custom configuration or it could break Accelerator functionality
+- Customers which customized any of the Accelerator provided default configuration files (SCPs, rsyslog config, ssm-documents, iam-policies, etc.) must manually merge the latest Accelerator provided updates with deployed customizations:
+  - it is important customers assess the new defaults and integrate them into their custom configuration, or Accelerator functionality could break or Accelerator deployed features may be unprotected from modification
+  - if customers don't take action, we continue to utilize the deployed customized files (without the latest updates)
 - The below release specific considerations need to be cumulatively applied (an upgrade from v1.2.3 to v1.2.5 requires you to follow both v1.2.4 and v1.2.5 considerations)
 
 **Release Specific Upgrade Considerations:**
@@ -339,7 +330,7 @@ Issues in Older Releases:
 - Upgrades to `v1.2.6 and above` from `v1.2.5 and below` - Ensure you apply the config file changes described in the release notes:
   - Cut-paste the new `"replacements": {},` section at the top of the example config file into your config file, as-is
     - Enables customers to leverage the repo provided SCP's without customization, simplifying upgrades, while allowing SCP region customization
-    - the cloud-cidrX/cloud-maskX variables are examples of customer provided values that can be used to consistently auto-replace values throughout config files (as we do not reference them in the config file today, these 4 variables are not required at this time)
+    - the cloud-cidrX/cloud-maskX variables are examples of customer provided values that can be used to consistently auto-replace values throughout config files, these 4 specific variables are required for the firewalls to successfully deploy
   - The new ${variable} are auto-replaced across your config files, SCP's and firewall config files.
     - as the variables should resolve to their existing values, you can leave your config file using hardcoded region and Accelerator prefix naming, or you can update them to make subsequent file comparisons easier for future upgrades. These are most useful for new installations in non ca-central-1 regions
   - Some repo provide filenames have changed, where they are referenced within the config file, you must update them to their new filenames
@@ -358,7 +349,6 @@ Issues in Older Releases:
 - Upgrades to `v1.2.4 and above` from `v1.2.3 and below` - Ensure you apply the config file changes described in the release notes:
   - failure to set `"central-endpoint": true` directly on the endpoint VPC (instead of in global-options), will result in the removal of your VPC endpoints
   - failure to move your zone definitions to the endpoint VPC, will result in the removal of you Public and Private hosted zones
-- Upgrades to `v1.2.1 and above` from `v1.2.0 and below` - if more than 5 VPC endpoints are deployed in any account (i.e. endpoint VPC in the shared network account), before upgrade, they must be removed from the config file and state machine executed to de-provision them. Up to approximately 50 endpoints can be re-deployed during the upgrade state machine execution. Skipping this step will result in an upgrade failure due to throttling issues. Simply rerun the state machine.
 
 ## 3.2. Summary of Upgrade Steps (all versions)
 
@@ -368,25 +358,23 @@ Issues in Older Releases:
 4. Update the config file in Code Commit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
    - Compare your running config file with the sample config file from the latest release
    - Review the `Config file changes` section of the [release notes](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) for **all** Accelerator versions since your current deployed release
-5. If you customized any of the other Accelerator default config files by overriding them in your S3 input bucket, merge the latest defaults with your customizations
-   - Before beginning your upgrade in v1.2.5+, after completing your upgrade in prior releases
+5. If you customized any of the other Accelerator default config files by overriding them in your S3 input bucket, merge the latest defaults with your customizations before beginning your upgrade
 6. Download the latest installer template (`AcceleratorInstallerXYZ.template.json`) from the `Assets` section of the latest [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
 7. Do **_NOT_** accidentally select the `PBMMAccel-InitialSetup` CloudFormation stack **below**
 8. If you are replacing your GitHub Token:
-   - Take note of the `ConfigS3Bucket` and `NotificationEmail` values from the Parameters tab of your deployed Installer CloudFormation stack (`PBMMAccel-what-you-provided`)
+   - Take note of the `AcceleratorName`, `AcceleratorPrefix`, `ConfigS3Bucket` and `NotificationEmail` values from the Parameters tab of your deployed Installer CloudFormation stack (`PBMMAccel-what-you-provided`)
    - Delete the Installer CloudFormation stack (`PBMMAccel-what-you-provided`)
-   - Redeploy the Installer CloudFormation stack using the template downloaded in step 5, providing the `ConfigS3Bucket` and `NotificationEmail` values you just documented
+   - Redeploy the Installer CloudFormation stack using the template downloaded in step 5, providing the values you just documented (changes to `AcceleratorName` or `AcceleratorPrefix` are not supported)
    - The pipeline will automatically run and trigger the upgraded state machine
 9. If you are using a pre-existing GitHub token:
-
-- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.3.1`)
-  - Go to AWS CloudFormation and select the stack: `PBMMAccel-what-you-provided`
-  - Select Update, select Replace current template, Select Upload a template file
-  - Select Choose File and select the template you downloaded in step 5 (`AcceleratorInstallerXYZ.template.json`)
-  - Select Next, Update `GithubBranch` parameter to `release/vX.Y.Z` where X.Y.Z represents the latest release
-  - Click Next, Next, I acknowledge, Update
-  - Wait for the CloudFormation stack to update (`Update_Complete` status) (Requires manual refresh)
-- Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
+  - Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.3.2`)
+    - Go to AWS CloudFormation and select the stack: `PBMMAccel-what-you-provided`
+    - Select Update, select Replace current template, Select Upload a template file
+    - Select Choose File and select the template you downloaded in step 5 (`AcceleratorInstallerXYZ.template.json`)
+    - Select Next, Update `GithubBranch` parameter to `release/vX.Y.Z` where X.Y.Z represents the latest release
+    - Click Next, Next, I acknowledge, Update
+    - Wait for the CloudFormation stack to update (`Update_Complete` status) (Requires manual refresh)
+  - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
 # 4. Existing Organizations / Accounts
 
@@ -454,7 +442,7 @@ Issues in Older Releases:
 - AWS Config Aggregator is deployed in the Organization Management (root) account as enablement through Organizations is simpler to implement. AWS Organizations only supports deploying the Aggregator in the Organization Management (root) account and not in a designated administrative account at this time. Once supported, we plan to update the code to move the Aggregator administrative account.
 - An Organization CloudTrail is deployed, which is created in the primary region in the Organization Management (root) AWS account. All AWS account CloudTrails are centralized into this single CloudWatch Log Group. Starting in v1.1.9 this is where we deploy the CloudWatch Alarms which trigger for ALL accounts in the organization. Security Hub will erroneously report that the only account and/or region that is compliant with certain rules is the primary region of the Organization Management (root) account. We are working with the Security Hub team to rectify this situation in future Security Hub/Accelerator releases.
 - Amazon Detective - we have chosen not to enable at this time.
-- Only 1 auto-deployed MAD per AWS account is supported today.
+- Only 1 auto-deployed MAD in any mandatory-account is supported today.
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints.
 - If the Organization Management (root) account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
 - Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment), or deploy a second parallel FW cluster and de-provision the first cluster when ready.
