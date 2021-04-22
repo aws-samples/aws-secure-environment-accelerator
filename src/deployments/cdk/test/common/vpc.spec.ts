@@ -435,6 +435,12 @@ test('the VPC creation should create the NAT gateway', () => {
       },
       {
         name: 'Private',
+        routes: [
+          {
+            destination: '0.0.0.0/0',
+            target: 'NATGW_Public_azA',
+          },
+        ],
       },
     ],
   });
@@ -468,7 +474,7 @@ test('the VPC creation should create the NAT gateway', () => {
   const routes = resources.filter(r => r.Type === 'AWS::EC2::Route');
   const natRoute = routes.find(x => x.Properties.NatGatewayId!! !== undefined);
 
-  // Check NAT Gateway Route is assigned to Private Route Table which doesn't have IGW assigned
+  // Check NAT Gateway Route is assigned to Private Route Table
   expect(routes).toEqual(
     expect.arrayContaining([
       expect.objectContaining({

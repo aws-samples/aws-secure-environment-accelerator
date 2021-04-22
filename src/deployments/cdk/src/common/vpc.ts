@@ -495,7 +495,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           } else if (route.target.startsWith('NATGW_')) {
             const routeParams: ec2.CfnRouteProps = {
               routeTableId: routeTableObj,
-              destinationCidrBlock: '0.0.0.0/0',
+              destinationCidrBlock: typeof route.destination === 'string' ? route.destination : '0.0.0.0/0',
               natGatewayId: this.natgwNameToIdMap[route.target.toLowerCase()],
             };
             new ec2.CfnRoute(this, `${routeTableName}_natgw_route`, routeParams);
