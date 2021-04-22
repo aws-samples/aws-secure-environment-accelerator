@@ -705,17 +705,6 @@
 
 ---
 
-- Add SCP on a per account basis - add this to either workload or mandatory accounts sections
-
-```
-      "scps": [
-        "SCP 1",
-        "SCP 2"
-      ]
-```
-
----
-
 - Future description
 
 ```
