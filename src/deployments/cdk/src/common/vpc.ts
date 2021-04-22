@@ -172,15 +172,18 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     this.vpcId = vpcObj.ref;
 
     const extendVpc: ec2.CfnVPCCidrBlock[] = [];
-    for (const additionalCidr of props.vpcProps.vpcConfig.cidr2 || []) {
-      const id = 'ExtendVPC' + hashSum(additionalCidr.toCidrString());
+    props.vpcProps.vpcConfig.cidr2.forEach((additionalCidr, index) => {
+      let id = `ExtendVPC${hashSum(additionalCidr.toCidrString())}`;
+      if (index === 0 && vpcOutput?.additionalCidrBlocks.includes(additionalCidr.toCidrString())) {
+        id = 'ExtendVPC';
+      }
       const extendVpcCidr = new ec2.CfnVPCCidrBlock(this, id, {
         cidrBlock: additionalCidr.toCidrString(),
         vpcId: vpcObj.ref,
       });
       extendVpc.push(extendVpcCidr);
       this.additionalCidrBlocks.push(additionalCidr.toCidrString());
-    }
+    });
 
     let igw;
     let igwAttach;
