@@ -173,8 +173,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
     const extendVpc: ec2.CfnVPCCidrBlock[] = [];
     props.vpcProps.vpcConfig.cidr2.forEach((additionalCidr, index) => {
-      let id = `ExtendVPC${hashSum(additionalCidr.toCidrString())}`;
-      if (index === 0 && vpcOutput?.additionalCidrBlocks.includes(additionalCidr.toCidrString())) {
+      let id = `ExtendVPC-${index}`;
+      if (index === 0) {
         id = 'ExtendVPC';
       }
       const extendVpcCidr = new ec2.CfnVPCCidrBlock(this, id, {
@@ -452,7 +452,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           allocationId: eip.attrAllocationId,
           subnetId: natSubnet.id,
         });
-        this.natgwNameToIdMap[`NATGW_${natSubnet.name}_${natSubnet.az.toUpperCase()}`] = natgw.ref;
+        this.natgwNameToIdMap[`NATGW_${natSubnet.name}_az${natSubnet.az.toUpperCase()}`.toLowerCase()] = natgw.ref;
       }
     }
 
@@ -496,7 +496,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             const routeParams: ec2.CfnRouteProps = {
               routeTableId: routeTableObj,
               destinationCidrBlock: '0.0.0.0/0',
-              natGatewayId: this.natgwNameToIdMap[route.target],
+              natGatewayId: this.natgwNameToIdMap[route.target.toLowerCase()],
             };
             new ec2.CfnRoute(this, `${routeTableName}_natgw_route`, routeParams);
             continue;
