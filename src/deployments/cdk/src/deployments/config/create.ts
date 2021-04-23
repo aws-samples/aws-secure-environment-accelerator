@@ -71,17 +71,19 @@ export async function createRule(props: CreateRuleProps) {
     }
     const ouAwsConfigRuleConfigs = ouConfig['aws-config'];
     for (const [accountKey, accountConfig] of config.getAccountConfigsForOu(ouKey)) {
+      console.warn(`Creating config rules in account ${accountKey}`);
       const awsAccountConfigRuleConfig = accountConfig['aws-config'];
       for (const awsConfigRuleConfig of ouAwsConfigRuleConfigs) {
         for (const ruleName of awsConfigRuleConfig.rules) {
-          console.log(
-            `Deploying ${ruleName} in Account ${accountKey} and in regions excluding ${awsConfigRuleConfig['excl-regions']}`,
-          );
+          console.log(`Creating config rule ${ruleName}`);
           const awsConfigRule = configRules.find(cr => cr.name === ruleName);
           if (!awsConfigRule) {
-            console.warn(`Config Rule ${ruleName} is not found in Accelerator Configuration global-options`);
+            console.warn(`Config rule ${ruleName} is not found in Accelerator Configuration global-options`);
             continue;
           }
+          console.debug(`Config rule configuration`);
+          console.debug(JSON.stringify(awsConfigRule, null, 2));
+
           const remediation =
             awsConfigRule.remediation === undefined ? configRuleDefaults.remediation : awsConfigRule.remediation;
           const remediationAttempts =
@@ -91,13 +93,16 @@ export async function createRule(props: CreateRuleProps) {
           const remediationConcurrency =
             awsConfigRule['remediation-concurrency'] || configRuleDefaults['remediation-concurrency'];
           for (const region of config['global-options']['supported-regions']) {
+            console.warn(`Creating config rule ${ruleName} in region ${region}`);
             if (awsConfigRuleConfig['excl-regions'].includes(region)) {
+              console.warn(`Skipping creation in excluded region ${region}`);
               continue;
             }
             const isRuleIgnored = awsAccountConfigRuleConfig.find(
               ac => ac['excl-rules'].includes(ruleName) && ac.regions.includes(region),
             );
             if (isRuleIgnored) {
+              console.warn(`Skipping creation as config rule is excluded for region ${region}`);
               continue;
             }
             const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
@@ -118,6 +123,7 @@ export async function createRule(props: CreateRuleProps) {
             });
             let configRule;
             if (awsConfigRule.type === 'managed') {
+              console.warn(`Creating rule as managed rule`);
               configRule = new awsConfig.ManagedRule(accountStack, `ConfigRule-${ruleName}`, {
                 identifier: ruleName,
                 configRuleName,
@@ -125,6 +131,7 @@ export async function createRule(props: CreateRuleProps) {
                 inputParameters: configParams,
               });
             } else {
+              console.warn(`Creating rule as custom resource`);
               if (!configRuleArtifact) {
                 console.error('ConfigRuleArtifact is not found to create Custom ConfigRule');
                 continue;

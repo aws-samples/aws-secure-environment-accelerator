@@ -10,6 +10,7 @@ import { loadAccounts } from './utils/load-accounts';
 export interface SMInput {
   scope?: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
   mode?: 'APPLY';
+  verbose?: string | number;
   targetOus?: string[];
   targetAccounts?: string[];
 }
@@ -27,6 +28,7 @@ export interface LoadAccountsOutput {
   regions: string[];
   scope: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
   mode: 'APPLY';
+  verbose: string | '1' | '0';
 }
 
 const dynamoDB = new DynamoDB();
@@ -47,7 +49,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     smInput,
   } = input;
 
-  const { targetAccounts, targetOus, mode, scope } = smInput;
+  const { targetAccounts, targetOus, mode, scope, verbose } = smInput;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -183,5 +185,6 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     accounts: accountIds,
     scope: scope || 'NEW-ACCOUNTS',
     mode: mode || 'APPLY',
+    verbose: verbose ? `${verbose}` : '0',
   };
 };

@@ -49,18 +49,18 @@
     "central-security-services": {
       "account": "security",
       "region": "${HOME_REGION}",
-      "security-hub-excl-regions": ["ap-northeast-3"],
+      "security-hub-excl-regions": [],
       "security-hub": true,
       "guardduty": true,
-      "guardduty-excl-regions": ["ap-northeast-3"],
+      "guardduty-excl-regions": [],
       "guardduty-s3": true,
-      "guardduty-s3-excl-regions": ["ap-northeast-3"],
+      "guardduty-s3-excl-regions": [],
       "cwl": true,
       "access-analyzer": true,
       "config-excl-regions": [],
       "config-aggr-excl-regions": [],
       "macie": true,
-      "macie-excl-regions": ["ap-northeast-3"],
+      "macie-excl-regions": [],
       "macie-frequency": "FIFTEEN_MINUTES"
     },
     "central-operations-services": {

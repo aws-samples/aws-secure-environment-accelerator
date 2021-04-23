@@ -38,7 +38,7 @@ test('the State Machine execution should be started', async () => {
   await handler(event);
 
   expect(startExecution).toBeCalledWith({
-    input: '{"scope":"FULL","mode":"APPLY"}',
+    input: '{"scope":"FULL","mode":"APPLY","verbose":"0"}',
     stateMachineArn: 'arn:state-machine',
   });
   expect(putJobSuccessResult).toBeCalledWith({

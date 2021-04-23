@@ -31,6 +31,7 @@ export async function step3(props: VpcStep3Props) {
   const allStaticResources = StaticResourcesOutputFinder.findAll({
     outputs,
   }).filter(sr => sr.resourceType === RESOURCE_TYPE);
+  const portOverrides = config['global-options']['endpoint-port-orverides'];
 
   const accountStaticResourcesConfig: { [accountKey: string]: StaticResourcesOutput[] } = {};
   const accountRegionExistingResources: {
@@ -163,7 +164,6 @@ export async function step3(props: VpcStep3Props) {
         console.error(`Cannot find account stack ${accountKey}: ${vpcConfig.region}, while Associating Resolver Rules`);
         continue;
       }
-
       const interfaceEndpoint = new InterfaceEndpoint(
         accountStack,
         `Endpoint-${vpcConfig.name}-${pascalCase(endpoint)}`,
@@ -172,6 +172,8 @@ export async function step3(props: VpcStep3Props) {
           vpcId: vpcOutput.vpcId,
           vpcRegion: vpcConfig.region,
           subnetIds: vpcOutput.subnets.filter(sn => sn.subnetName === endpointsConfig.subnet).map(s => s.subnetId),
+          allowedCidrs: endpointsConfig['allowed-cidrs']?.map(c => c.toCidrString()),
+          ports: portOverrides?.[endpoint],
         },
       );
 

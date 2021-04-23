@@ -9,6 +9,7 @@ import { Configuration, Command } from 'aws-cdk/lib/settings';
 import { SdkProvider } from 'aws-cdk/lib/api/aws-auth';
 import { CloudFormationDeployments } from 'aws-cdk/lib/api/cloudformation-deployments';
 import { PluginHost } from 'aws-cdk/lib/plugin';
+import { debugModeEnabled } from '@aws-cdk/core/lib/debug';
 import { AssumeProfilePlugin } from '@aws-accelerator/cdk-plugin-assume-role/src/assume-role-plugin';
 import { fulfillAll } from './promise';
 
@@ -160,8 +161,13 @@ export class CdkToolkit {
   }
 
   async deployStack(stack: CloudFormationStackArtifact): Promise<StackOutput[]> {
+    console.log(`Deploying stack ${stack.displayName}`);
+    if (debugModeEnabled()) {
+      console.debug(JSON.stringify(stack.template, null, 2));
+    }
+
     const stackExists = await this.cloudFormation.stackExists({ stack });
-    console.log(`Is ${stack.displayName} stack exists`, stackExists);
+    console.log(`Stack ${stack.displayName} exists`, stackExists);
 
     const resources = Object.keys(stack.template.Resources || {});
     if (resources.length === 0) {
@@ -174,6 +180,10 @@ export class CdkToolkit {
     } else if (stackExists) {
       const sdk = await this.props.sdkProvider.forEnvironment(stack.environment, Mode.ForWriting);
       const cfn = sdk.cloudFormation();
+      if (debugModeEnabled()) {
+        cfn.config.logger = console;
+      }
+
       console.log(`Calling describeStacks API for ${stack.displayName} stack`);
       const existingStack = await cfn
         .describeStacks({

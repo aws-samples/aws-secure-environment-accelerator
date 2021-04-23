@@ -20,7 +20,8 @@ exports.handler = async function (event, context) {
     const smInput = {
       scope: 'FULL',
       mode: 'APPLY',
-    }
+      verbose: '0',
+    };
 
     await sfn
       .startExecution({

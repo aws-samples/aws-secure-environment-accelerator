@@ -68,7 +68,6 @@ Samples with Descriptions:
   - Shard count - can only increase/reduce by half the current limit. i.e. you can change from `1`-`2`, `2`-`3`, `4`-`6`
 - Always add any new items to the END of all lists or sections in the config file, otherwise
   - Update validation checks will fail (VPC's, subnets, share-to, etc.)
-  - VPC endpoint deployments will fail - do NOT re-order or insert VPC endpoints (unless you first remove them all completely, execute the state machine, then re-add them, and again run the state machine) - this challenge no longer exists as of v1.2.1.
 - To skip, remove or uninstall a component, you can often simply change the section header, instead of removing the section
   - change "deployments"/"firewalls" to "deployments"/"xxfirewalls" and it will uninstall the firewalls and maintain the old config file settings for future use
   - Objects with the parameter deploy: true, support setting the value to false to remove the deployment
@@ -77,26 +76,18 @@ Samples with Descriptions:
 - When adding a new subnet or subnets to a VPC (including enabling an additional AZ), you need to:
   - increment any impacted NACL id's in the config file (`100` to `101`, `32000` to `32001`) (CFN does not allow nacl updates)
   - make a minor change to any impacted route table names (`MyRouteTable` to `MyRouteTable1`) (CFN does not allow updates to route table associated ids)
-  - prior to v1.2.3, if adding a subnet that is associated with the TGW, you need to remove the TGW association (`"tgw-attach"` to `"xxtgw-attach"` for the VPC) and then re-attach on a subsequent state machine execution. This is resolved in v1.2.3.
 - The sample firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
-- Re-enabling individual security controls in Security Hub requires toggling the entire security standard off and on again, controls can be disabled at any time
 - Firewall names, CGW names, TGW names, MAD Directory ID, account keys, and OU's must all be unique throughout the entire configuration file (also true for VPC names given NACL and security group referencing design)
 - The configuration file _does_ have validation checks in place that prevent users from making certain major unsupported configuration changes
 - **The configuration file does _NOT_ have extensive error checking. It is expected you know what you are doing. We eventually hope to offer a config file, wizard based GUI editor and add the validation logic in this separate tool. In most cases the State Machine will fail with an error, and you will simply need to troubleshoot, rectify and rerun the state machine.**
 - You cannot move an account between top-level OU's. This would be a security violation and cause other issues. You can move accounts between sub-ou. Note: The ALZ version of the Accelerator does not support sub-ou.
-- v1.1.5 and above adds support for customer provided YAML config file(s) as well as JSON. In future we will be providing a version of the config file with comments describing the purpose of each configuration item. We only support the subset of yaml that converts to JSON (we do not support anchors)
+- v1.1.5 and above adds support for customer provided YAML config file(s) as well as JSON. We only support the subset of yaml that converts to JSON (we do not support anchors)
 - Security Group names were designed to be identical between environments, if you want the VPC name in the SG name, you need to do it manually in the config file
-- Prior to v1.2.5, we did NOT support changing the `organization-admin-role` and this value had to be set to `AWSCloudFormationStackSetExecutionRole`.
 - Adding more than approximately 50 _new_ VPC Interface Endpoints across _all_ regions in any one account in any single state machine execution will cause the state machine to fail due to Route 53 throttling errors. If adding endpoints at scale, only deploy 1 region at a time. In this scenario, the stack(s) will fail to properly delete, also based on the throttling, and will require manual removal.
 - We do not support Directory unsharing or ADC deletion, delete methods were not implemented. We only support ADC creation in mandatory accounts.
 - If `use-central-endpoints` is changed from true to false, you cannot add a local vpc endpoint on the same state machine execution (add the endpoint on a prior or subsequent execution)
-  - in versions 1.2.0 through 1.2.2 there is a issue adding local endpoints when a central endpoint already exists for the vpc
 - If you update the firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the management port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
-- Initial MAD deployments are only supported in 2 AZ subnets (as of v1.2.3). Deploy the Accelerator with only 2 MAD subnets and add additional AZ's on subsequent state machine executions. (fixed in v1.2.5).
-- In v1.2.3 and below (fixed in v1.2.4):
-  - if the same IAM policy file is used in more than one spot in the config, we require one account to reference the policy twice or you will get a `Unexpected token u in JSON at position 0,` error in Phase 1
-  - the `zones\resolver-vpc` is a mandatory parameter, you must deploy a small dummy vpc w/no subnets, routes, etc. in the account of your choosing for this validation to succeed
-  - security hub deploys security standards and disables controls, no automated mechanism exists to disable security standard or re-enable individual controls
+
 
 ## 1.4. Config file and Deployment Protections
 
