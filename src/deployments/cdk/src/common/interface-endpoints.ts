@@ -7,6 +7,14 @@ export interface InterfaceEndpointProps {
   vpcId: string;
   vpcRegion: string;
   subnetIds: string[];
+  allowedCidrs?: string[];
+  ports?: string[];
+}
+
+enum ProtocolPrefix {
+  TCP = 'TCP:',
+  UDP = 'UDP:',
+  ICMP = 'ICMP:',
 }
 
 /**
@@ -18,31 +26,44 @@ export class InterfaceEndpoint extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: InterfaceEndpointProps) {
     super(scope, id);
 
-    const { serviceName, vpcId, vpcRegion, subnetIds } = props;
-
+    const { serviceName, vpcId, vpcRegion, subnetIds, allowedCidrs, ports } = props;
+    const securityGroupIngress: ec2.CfnSecurityGroup.IngressProperty[] = [];
+    for (const ingressCidr of allowedCidrs || ['0.0.0.0/0']) {
+      for (const endpointPort of ports || ['TCP:443']) {
+        let ipProtocol: ec2.Protocol;
+        let port: number;
+        if (endpointPort.startsWith(ProtocolPrefix.TCP)) {
+          port = parseInt(endpointPort.split(ProtocolPrefix.TCP).pop()!, 10);
+          ipProtocol = ec2.Protocol.TCP;
+        } else if (endpointPort.startsWith(ProtocolPrefix.UDP)) {
+          port = parseInt(endpointPort.split(ProtocolPrefix.UDP).pop()!, 10);
+          ipProtocol = ec2.Protocol.UDP;
+        } else if (endpointPort.startsWith(ProtocolPrefix.ICMP)) {
+          port = parseInt(endpointPort.split(ProtocolPrefix.ICMP).pop()!, 10);
+          ipProtocol = ec2.Protocol.ICMP;
+        } else {
+          port = 443;
+          ipProtocol = ec2.Protocol.TCP;
+        }
+        securityGroupIngress.push({
+          ipProtocol,
+          cidrIp: ingressCidr,
+          toPort: port,
+          fromPort: port,
+        });
+      }
+    }
     // Create a new security groupo per endpoint
     const securityGroup = new ec2.CfnSecurityGroup(this, `ep_${serviceName}`, {
       vpcId,
       groupDescription: `AWS Private Endpoint Zone - ${serviceName}`,
       groupName: `ep_${serviceName}_sg`,
-      securityGroupIngress: [
-        {
-          ipProtocol: ec2.Protocol.ALL,
-          cidrIp: '0.0.0.0/0',
-        },
-        {
-          ipProtocol: ec2.Protocol.ALL,
-          cidrIpv6: '0::/0',
-        },
-      ],
+      securityGroupIngress,
+      // Adding Egress '127.0.0.1/32' to avoid default Egress rule
       securityGroupEgress: [
         {
           ipProtocol: ec2.Protocol.ALL,
-          cidrIp: '0.0.0.0/0',
-        },
-        {
-          ipProtocol: ec2.Protocol.ALL,
-          cidrIpv6: '0::/0',
+          cidrIp: '127.0.0.1/32',
         },
       ],
     });
