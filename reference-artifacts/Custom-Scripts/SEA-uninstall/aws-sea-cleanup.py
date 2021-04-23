@@ -91,7 +91,9 @@ def process_delete(all_stacks):
     phases = [        
         "-Phase5",
         "-Phase4",
+        "Phase3-CentralVpcResolverEndpoints",
         "-Phase3",
+        "Phase2-VpcEndpoints1",
         "-Phase2",
         "-Phase1",
         "-Phase0",
@@ -817,7 +819,7 @@ def cleanup_directory_sharing_load_config():
 
         mad_account_name = config["global-options"]["central-operations-services"]["account"]
         mad_account =  config["mandatory-account-configs"][mad_account_name]["account-name"]
-        if "mad" not in config["mandatory-account-configs"][mad_account_name]["deployments"]:
+        if "mad" not in config["mandatory-account-configs"][mad_account_name]:
             return "mad not configured"
         elif config["mandatory-account-configs"][mad_account_name]["deployments"]["mad"] == False:
             return "mad not configured"
@@ -875,7 +877,7 @@ def cleanup_route53_resolver_load_config():
         master_region = config["global-options"]["aws-org-master"]["region"]
 
         central_account_name = config["global-options"]["central-operations-services"]["account"]
-        if "mad" not in config["mandatory-account-configs"][central_account_name]["deployments"]:
+        if "mad" not in config["mandatory-account-configs"][central_account_name]:
             return "mad not configured"
         elif config["mandatory-account-configs"][central_account_name]["deployments"]["mad"] == False:
             return "mad not configured"
