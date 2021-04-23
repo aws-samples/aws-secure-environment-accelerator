@@ -28,7 +28,6 @@ export class InterfaceEndpoint extends cdk.Construct {
 
     const { serviceName, vpcId, vpcRegion, subnetIds, allowedCidrs, ports } = props;
     const securityGroupIngress: ec2.CfnSecurityGroup.IngressProperty[] = [];
-    console.log(serviceName, allowedCidrs, ports);
     for (const ingressCidr of allowedCidrs || ['0.0.0.0/0']) {
       for (const endpointPort of ports || ['TCP:443']) {
         let ipProtocol: ec2.Protocol;
@@ -60,6 +59,13 @@ export class InterfaceEndpoint extends cdk.Construct {
       groupDescription: `AWS Private Endpoint Zone - ${serviceName}`,
       groupName: `ep_${serviceName}_sg`,
       securityGroupIngress,
+      // Adding Egress '127.0.0.1/32' to avoid default Egress rule
+      securityGroupEgress: [
+        {
+          ipProtocol: ec2.Protocol.ALL,
+          cidrIp: '127.0.0.1/32',
+        },
+      ],
     });
 
     const endpoint = new ec2.CfnVPCEndpoint(this, 'Endpoint', {
