@@ -660,6 +660,7 @@ export namespace InitialSetup {
           BOOTSTRAP_STACK_NAME: bootStrapStackName,
           'SCOPE.$': '$.scope',
           'MODE.$': '$.mode',
+          'CDK_DEBUG.$': '$.verbose',
         };
 
         const deployTask = new tasks.StepFunctionsStartExecution(this, `Deploy Phase ${phase}`, {

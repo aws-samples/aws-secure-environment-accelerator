@@ -122,7 +122,7 @@ async function main() {
   installerProjectRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['sts:AssumeRole'],
-      resources: [`arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/*`],
+      resources: [`arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/cdk-*`],
     }),
   );
 

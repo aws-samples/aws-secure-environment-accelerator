@@ -454,98 +454,28 @@
       ]
     },
     {
-      "name": "SandboxVPC_a"
-    },
-    {
-      "name": "SandboxVPC_b"
-    }
-  ]
-```
-
----
-
-- Sample NATGW - NOT PREFERED, but works: (uses first AZ)
-
-```
-"natgw": {
-    "subnet": {
-      "name": "Web"
-    }
-  },
-  "subnets": [
-    {
-      "name": "Web",
-      "share-to-ou-accounts": false,
-      "share-to-specific-accounts": [],
-      "definitions": [
-        {
-          "az": "a",
-          "route-table": "SandboxVPC_IGW",
-          "cidr": "10.6.32.0/20"
-        },
-        {
-          "az": "b",
-          "route-table": "SandboxVPC_IGW",
-          "cidr": "10.6.128.0/20"
-        }
-      ]
-    },
-    {
-      "name": "App",
-      "share-to-ou-accounts": false,
-      "share-to-specific-accounts": [],
-      "definitions": [
-        {
-          "az": "a",
-          "route-table": "SandboxVPC_Common",
-          "cidr": "10.6.0.0/19"
-        },
-        {
-          "az": "b",
-          "route-table": "SandboxVPC_Common",
-          "cidr": "10.6.96.0/19"
-        }
-      ]
-    },
-    {
-      "name": "Data",
-      "share-to-ou-accounts": false,
-      "share-to-specific-accounts": [],
-      "definitions": [
-        {
-          "az": "a",
-          "route-table": "SandboxVPC_Common",
-          "cidr": "10.6.48.0/20"
-        },
-        {
-          "az": "b",
-          "route-table": "SandboxVPC_Common",
-          "cidr": "10.6.144.0/20"
-        }
-      ]
-    }
-  ],
-  "route-tables": [
-    {
-      "name": "SandboxVPC_IGW",
-      "routes": [
-        {
-          "destination": "0.0.0.0/0",
-          "target": "IGW"
-        }
-      ]
-    },
-    {
-      "name": "SandboxVPC_Common",
+      "name": "SandboxVPC_a",
       "routes": [
         {
           "destination": "0.0.0.0/0",
           "target": "NATGW_Web_azA"
         }
       ]
+    },
+    {
+      "name": "SandboxVPC_b",
+      "routes": [
+        {
+          "destination": "0.0.0.0/0",
+          "target": "NATGW_Web_azB"
+        }
+      ]
     }
   ]
 ```
+
+---
+
 
 ---
 
@@ -700,6 +630,17 @@
           "regions": ["${HOME_REGION}", "${GBL_REGION}"],
           "excl-rules": ["ELB_LOGGING_ENABLED"]
         }
+      ]
+```
+
+---
+
+- Add SCP on a per account basis - add this to either workload or mandatory accounts sections
+
+```
+      "scps": [
+        "SCP 1",
+        "SCP 2"
       ]
 ```
 
