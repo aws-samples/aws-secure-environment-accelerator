@@ -1,3 +1,4 @@
+import hashSum from 'hash-sum';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-accelerator/common-config/src';
@@ -19,6 +20,7 @@ import { VpcDefaultSecurityGroup } from '@aws-accelerator/custom-resource-vpc-de
 import { VpcOutput } from '@aws-accelerator/common-outputs/src/vpc';
 import { ModifyTransitGatewayAttachment } from '@aws-accelerator/custom-resource-ec2-modify-transit-gateway-vpc-attachment';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import { IPv4CidrRange } from 'ip-num';
 
 export interface VpcCommonProps {
   /**
@@ -134,6 +136,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
   readonly securityGroup?: SecurityGroup;
   readonly routeTableNameToIdMap: NameToIdMap = {};
+  readonly natgwNameToIdMap: NameToIdMap = {};
 
   readonly tgwAttachments: TgwAttachment[] = [];
 
@@ -168,14 +171,19 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     });
     this.vpcId = vpcObj.ref;
 
-    let extendVpc;
-    if (props.vpcProps.vpcConfig.cidr2) {
-      extendVpc = new ec2.CfnVPCCidrBlock(this, `ExtendVPC`, {
-        cidrBlock: props.vpcProps.vpcConfig.cidr2.toCidrString(),
+    const extendVpc: ec2.CfnVPCCidrBlock[] = [];
+    props.vpcProps.vpcConfig.cidr2.forEach((additionalCidr, index) => {
+      let id = `ExtendVPC-${index}`;
+      if (index === 0) {
+        id = 'ExtendVPC';
+      }
+      const extendVpcCidr = new ec2.CfnVPCCidrBlock(this, id, {
+        cidrBlock: additionalCidr.toCidrString(),
         vpcId: vpcObj.ref,
       });
-      this.additionalCidrBlocks.push(props.vpcProps.vpcConfig.cidr2.toCidrString());
-    }
+      extendVpc.push(extendVpcCidr);
+      this.additionalCidrBlocks.push(additionalCidr.toCidrString());
+    });
 
     let igw;
     let igwAttach;
@@ -238,7 +246,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           continue;
         }
 
-        const subnetCidr = subnetDefinition.cidr?.toCidrString() || subnetDefinition.cidr2?.toCidrString();
+        const subnetCidr = subnetDefinition.cidr?.toCidrString();
         if (!subnetCidr) {
           console.warn(`Subnet with name "${subnetName}" and AZ "${subnetDefinition.az}" does not have a CIDR block`);
           continue;
@@ -250,8 +258,14 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           vpcId: vpcObj.ref,
           availabilityZone: `${this.region}${subnetDefinition.az}`,
         });
-        if (extendVpc) {
-          subnet.addDependsOn(extendVpc);
+        const subnetInCidr = IPv4CidrRange.fromCidr(subnetCidr);
+        for (const extensions of extendVpc) {
+          if (extensions.cidrBlock) {
+            const vpcCidr = IPv4CidrRange.fromCidr(extensions.cidrBlock);
+            if (vpcCidr.contains(subnetInCidr)) {
+              subnet.addDependsOn(extensions);
+            }
+          }
         }
         this.azSubnets.push({
           subnet,
@@ -420,6 +434,28 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       }
     }
 
+    const natgwProps = vpcConfig.natgw;
+    if (config.NatGatewayConfig.is(natgwProps)) {
+      const subnetConfig = natgwProps.subnet;
+      const natSubnets: AzSubnet[] = [];
+      if (subnetConfig.az) {
+        natSubnets.push(this.azSubnets.getAzSubnetForNameAndAz(subnetConfig.name, subnetConfig.az)!);
+      } else {
+        natSubnets.push(...this.azSubnets.getAzSubnetsForSubnetName(subnetConfig.name));
+      }
+
+      for (const natSubnet of natSubnets) {
+        console.log(`Creating natgw for Subnet "${natSubnet.name}" az: "${natSubnet.az}"`);
+        const natGWName = `NATGW_${natSubnet.name}_${natSubnet.az}_natgw`;
+        const eip = new ec2.CfnEIP(this, `EIP_natgw_${natSubnet.az}`);
+        const natgw = new ec2.CfnNatGateway(this, natGWName, {
+          allocationId: eip.attrAllocationId,
+          subnetId: natSubnet.id,
+        });
+        this.natgwNameToIdMap[`NATGW_${natSubnet.name}_az${natSubnet.az.toUpperCase()}`.toLowerCase()] = natgw.ref;
+      }
+    }
+
     // Add Routes to Route Tables
     if (routeTablesProps) {
       for (const routeTableProp of routeTablesProps) {
@@ -456,6 +492,14 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             });
             tgwRoute.addDependsOn(tgwAttachment.resource);
             continue;
+          } else if (route.target.startsWith('NATGW_')) {
+            const routeParams: ec2.CfnRouteProps = {
+              routeTableId: routeTableObj,
+              destinationCidrBlock: typeof route.destination === 'string' ? route.destination : '0.0.0.0/0',
+              natGatewayId: this.natgwNameToIdMap[route.target.toLowerCase()],
+            };
+            new ec2.CfnRoute(this, `${routeTableName}_natgw_route`, routeParams);
+            continue;
           } else {
             // Need to add for different Routes
             continue;
@@ -483,70 +527,6 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         vpcId: vpcObj.ref,
         routeTableIds: gwEndpointName.toLocaleLowerCase() === 's3' ? s3Routes : dynamoRoutes,
       });
-    }
-
-    const routeExistsForNatGW = (az: string | undefined, routeTable?: string): boolean => {
-      // Returns True/False based on routes attachement to NATGW
-      let routeExists = false;
-      for (const natRoute of routeTable ? [routeTable] : natRouteTables) {
-        const natRouteTableSubnetDef = allSubnetDefinitions.find(subnetDef => subnetDef['route-table'] === natRoute);
-        if (az && natRouteTableSubnetDef?.az === az) {
-          routeExists = true;
-          break;
-        } else if (!az && natRouteTableSubnetDef) {
-          routeExists = true;
-          break;
-        }
-      }
-      return routeExists;
-    };
-
-    // Create NAT Gateway
-    const allSubnetDefinitions = subnetsConfig.flatMap(s => s.definitions);
-    const natgwProps = vpcConfig.natgw;
-    if (config.NatGatewayConfig.is(natgwProps)) {
-      const subnetConfig = natgwProps.subnet;
-      const natSubnets: AzSubnet[] = [];
-      if (subnetConfig.az) {
-        natSubnets.push(this.azSubnets.getAzSubnetForNameAndAz(subnetConfig.name, subnetConfig.az)!);
-      } else {
-        natSubnets.push(...this.azSubnets.getAzSubnetsForSubnetName(subnetConfig.name));
-      }
-      for (const natSubnet of natSubnets) {
-        if (!routeExistsForNatGW(natSubnet.az)) {
-          // Skipping Creation of NATGW
-          console.log(
-            `Skipping Creation of NAT Gateway "${natSubnet.name}-${natSubnet.az}", as there is no routes associated to it`,
-          );
-          continue;
-        }
-        console.log(`Creating natgw for Subnet "${natSubnet.name}" az: "${natSubnet.az}"`);
-        const natGWName = `NATGW_${natSubnet.name}_${natSubnet.az}_natgw`;
-        const eip = new ec2.CfnEIP(this, `EIP_natgw_${natSubnet.az}`);
-
-        const natgw = new ec2.CfnNatGateway(this, natGWName, {
-          allocationId: eip.attrAllocationId,
-          subnetId: natSubnet.id,
-        });
-
-        // Attach NatGw Routes to Non IGW Route Tables
-        for (const natRoute of natRouteTables) {
-          const routeTableId = this.routeTableNameToIdMap[natRoute];
-          if (!routeExistsForNatGW(subnetConfig.az ? undefined : natSubnet.az, natRoute)) {
-            // Skipping Route Association of NATGW if no route specified in subnet config
-            console.log(
-              `Skipping NAT Gateway Route association to Route Table "${natRoute}", as there is no subnet is mapped to it`,
-            );
-            continue;
-          }
-          const routeParams: ec2.CfnRouteProps = {
-            routeTableId,
-            destinationCidrBlock: '0.0.0.0/0',
-            natGatewayId: natgw.ref,
-          };
-          new ec2.CfnRoute(this, `${natRoute}_natgw_route`, routeParams);
-        }
-      }
     }
 
     // Create all security groups

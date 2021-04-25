@@ -161,7 +161,7 @@ importers:
       js-yaml: 3.13.1
       prettier: 2.2.0
       ts-jest: 25.3.0_jest@25.2.4
-      ts-node: 6.2.0
+      ts-node: 8.8.1_typescript@3.8.3
       typescript: 3.8.3
       webpack: 4.42.1
       webpack-cli: 3.3.11_webpack@4.42.1
@@ -212,7 +212,7 @@ importers:
       original-fs: 1.1.0
       prettier: 2.2.0
       ts-jest: 25.3.0
-      ts-node: 6.2.0
+      ts-node: 8.8.1
       typescript: 3.8.3
       webpack: 4.42.1
       webpack-cli: 3.3.11
@@ -315,8 +315,10 @@ importers:
       colors: 1.4.0
       constructs: 2.0.1
       generate-password: 1.5.1
+      hash-sum: 2.0.0
       io-ts: 2.1.2
       io-ts-types: 0.5.6_io-ts@2.1.2
+      ip-num: 1.3.1
       js-yaml: 3.13.1
       pascal-case: 3.1.1
       semver: 7.3.2
@@ -476,8 +478,10 @@ importers:
       eslint-plugin-standard: 4.0.1
       eslint-plugin-unicorn: 22.0.0
       generate-password: 1.5.1
+      hash-sum: 2.0.0
       io-ts: 2.1.2
       io-ts-types: 0.5.6
+      ip-num: 1.3.1
       jest: 25.2.4
       js-yaml: 3.13.1
       mri: 1.1.6
@@ -536,7 +540,7 @@ importers:
       js-base64: 2.5.2
       prettier: 2.2.0
       ts-jest: 25.3.0_jest@25.2.4
-      ts-node: 6.2.0
+      ts-node: 8.8.1_typescript@3.8.3
       typescript: 3.8.3
       webpack: 4.42.1
       webpack-cli: 3.3.11_webpack@4.42.1
@@ -586,7 +590,7 @@ importers:
       pascal-case: 3.1.1
       prettier: 2.2.0
       ts-jest: 25.3.0
-      ts-node: 6.2.0
+      ts-node: 8.8.1
       typescript: 3.8.3
       webpack: 4.42.1
       webpack-cli: 3.3.11
@@ -686,7 +690,7 @@ importers:
     devDependencies:
       '@aws-cdk/assert': 1.85.0_jest@25.2.4
       '@types/glob': 7.1.3
-      '@types/jest': 25.2.1
+      '@types/jest': 25.2.3
       '@types/node': 12.12.6
       '@typescript-eslint/eslint-plugin': 4.4.0_c21ee66a5ac99908f14e5e09be34c27a
       '@typescript-eslint/parser': 4.4.0_eslint@7.10.0+typescript@3.8.3
@@ -730,7 +734,7 @@ importers:
       '@aws-cdk/cloudformation-include': 1.85.0
       '@aws-cdk/core': 1.85.0
       '@types/glob': 7.1.3
-      '@types/jest': 25.2.1
+      '@types/jest': 25.2.3
       '@types/js-yaml': 3.12.3
       '@types/node': 12.12.6
       '@typescript-eslint/eslint-plugin': 4.4.0
@@ -790,7 +794,7 @@ importers:
       '@aws-cdk/assert': 1.85.0_jest@25.2.4
       '@aws-cdk/aws-elasticloadbalancingv2': 1.85.0
       '@types/hash-sum': 1.0.0
-      '@types/jest': 25.2.1
+      '@types/jest': 25.2.3
       '@types/node': 12.12.6
       '@typescript-eslint/eslint-plugin': 4.4.0_c21ee66a5ac99908f14e5e09be34c27a
       '@typescript-eslint/parser': 4.4.0_eslint@7.10.0+typescript@3.8.3
@@ -839,7 +843,7 @@ importers:
       '@aws-cdk/aws-ssm': 1.85.0
       '@aws-cdk/core': 1.85.0
       '@types/hash-sum': 1.0.0
-      '@types/jest': 25.2.1
+      '@types/jest': 25.2.3
       '@types/node': 12.12.6
       '@typescript-eslint/eslint-plugin': 4.4.0
       '@typescript-eslint/parser': 4.4.0
@@ -906,7 +910,7 @@ importers:
       generate-password: 1.5.1
       io-ts: 2.1.2_fp-ts@2.5.3
       io-ts-types: 0.5.6_fp-ts@2.5.3+io-ts@2.1.2
-      ip-num: 1.2.2
+      ip-num: 1.3.1
       js-yaml: 3.13.1
       tempy: 0.5.0
       uuid: 7.0.3
@@ -973,7 +977,7 @@ importers:
       generate-password: 1.5.1
       io-ts: 2.1.2
       io-ts-types: 0.5.6
-      ip-num: 1.2.2
+      ip-num: 1.3.1
       jest: 25.2.4
       js-yaml: 3.13.1
       prettier: 2.2.0
@@ -997,7 +1001,7 @@ importers:
       generate-password: 1.5.1
       io-ts: 2.1.2_fp-ts@2.5.3
       io-ts-types: 0.5.6_fp-ts@2.5.3+io-ts@2.1.2
-      ip-num: 1.2.2
+      ip-num: 1.3.1
       js-yaml: 3.13.1
       tempy: 0.5.0
       uuid: 7.0.3
@@ -1063,7 +1067,7 @@ importers:
       generate-password: 1.5.1
       io-ts: 2.1.2
       io-ts-types: 0.5.6
-      ip-num: 1.2.2
+      ip-num: 1.3.1
       jest: 25.2.4
       js-yaml: 3.13.1
       prettier: 2.2.0
@@ -1077,7 +1081,7 @@ importers:
       '@aws-accelerator/common-types': link:../common-types
     devDependencies:
       '@aws-cdk/assert': 1.85.0_jest@25.2.4
-      '@types/jest': 25.2.1
+      '@types/jest': 25.2.3
       '@types/node': 12.12.6
       '@typescript-eslint/eslint-plugin': 4.4.0_c21ee66a5ac99908f14e5e09be34c27a
       '@typescript-eslint/parser': 4.4.0_eslint@7.10.0+typescript@3.8.3
@@ -1105,7 +1109,7 @@ importers:
     specifiers:
       '@aws-accelerator/common-types': workspace:^0.0.1
       '@aws-cdk/assert': 1.85.0
-      '@types/jest': 25.2.1
+      '@types/jest': 25.2.3
       '@types/node': 12.12.6
       '@typescript-eslint/eslint-plugin': 4.4.0
       '@typescript-eslint/parser': 4.4.0
@@ -9567,13 +9571,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-P/W9yOX/3oPZSpaYOCQzGqgCQRXn0FFO/V8bWrCQs+wLmvVVxk6CRBXALEvNs9OHIatlnlFokfhuDo2ug01ciw==
-  /@types/jest/25.2.1:
-    dependencies:
-      jest-diff: 25.5.0
-      pretty-format: 25.5.0
-    dev: true
-    resolution:
-      integrity: sha512-msra1bCaAeEdkSyA0CZ6gW1ukMIvZ5YoJkdXw/qhQdsuuDlFTcEUrUw8CLCPt2rVRUfXlClVvK2gvPs9IokZaA==
   /@types/jest/25.2.3:
     dependencies:
       jest-diff: 25.5.0
@@ -11277,6 +11274,7 @@ packages:
     resolution:
       integrity: sha512-edR85YFGI9TBT9byAo5vAfI0PRi+jFGzinwN3RAJwKfv6Yc9x9kALYfoEmgotp95qT7/k/iUQWHrH9BMJeqpdg==
   /constructs/3.3.71:
+    bundledDependencies: []
     engines:
       node: '>= 10.17.0'
     resolution:
@@ -13133,6 +13131,12 @@ packages:
     dev: false
     resolution:
       integrity: sha512-w5Y8n5XIZr7d0d19nlyt+uONhNfSnP6fehC8CRoJDfV17bxEcpS1h3y3B4r3bJP10PEu8T5yLgoNJFlhSAZuTQ==
+  /ip-num/1.3.1:
+    dependencies:
+      big-integer: 1.6.48
+    dev: false
+    resolution:
+      integrity: sha512-+owyCbx9zB1XvyZkn1cX0Or3qahEZiqLs+U0KauWlSfq4HMBcUsIH6JOpp1tnNJPIZfbnUYKAeq0Kv9oIZdpUg==
   /ip-regex/2.1.0:
     dev: true
     engines:

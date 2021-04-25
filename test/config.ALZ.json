@@ -1119,7 +1119,7 @@
           "deploy": "local",
           "name": "Perimeter",
           "cidr": "10.7.4.0/22",
-          "cidr2": "100.96.250.0/23",
+          "cidr2": ["100.96.250.0/23"],
           "region": "ca-central-1",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
@@ -1681,7 +1681,7 @@
           "deploy": "shared-network",
           "name": "Central",
           "cidr": "10.1.0.0/16",
-          "cidr2": "100.96.252.0/23",
+          "cidr2": ["100.96.252.0/23"],
           "region": "ca-central-1",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
@@ -1863,17 +1863,17 @@
                 {
                   "az": "a",
                   "route-table": "CentralVPC_GCWide",
-                  "cidr2": "100.96.252.0/25"
+                  "cidr": "100.96.252.0/25"
                 },
                 {
                   "az": "b",
                   "route-table": "CentralVPC_GCWide",
-                  "cidr2": "100.96.252.128/25"
+                  "cidr": "100.96.252.128/25"
                 },
                 {
                   "az": "d",
                   "route-table": "CentralVPC_GCWide",
-                  "cidr2": "100.96.253.0/25",
+                  "cidr": "100.96.253.0/25",
                   "disabled": true
                 }
               ]

@@ -32,7 +32,6 @@ export const NatGatewayConfig = t.interface({
 export const SubnetDefinitionConfig = t.interface({
   az: availabilityZone,
   cidr: optional(cidr),
-  cidr2: optional(cidr),
   'route-table': NonEmptyString,
   disabled: fromNullable(t.boolean, false),
 });
@@ -211,7 +210,7 @@ export const VpcConfigType = t.interface({
   name: t.string,
   region,
   cidr,
-  cidr2: optional(cidr),
+  cidr2: fromNullable(t.array(cidr), []),
   'use-central-endpoints': fromNullable(t.boolean, false),
   'dns-resolver-logging': fromNullable(t.boolean, false),
   'flow-logs': FlowLogsDestinationTypes,
