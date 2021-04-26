@@ -84,11 +84,12 @@ export const handler = async (input: AddScpInput) => {
   const acceleratorOuIds = organizationalUnits.map(ou => ou.ouId);
   const acceleratorAccountIds = accounts.map(a => a.id);
   const acceleratorTargetIds = [...rootIds, ...acceleratorOuIds, ...acceleratorAccountIds];
+  const acceleratorTargetOuIds = [...rootIds, ...acceleratorOuIds];
 
   // Detach non-Accelerator policies from Accelerator accounts
   await scps.detachPoliciesFromTargets({
     policyNamesToKeep: acceleratorPolicyNames,
-    policyTargetIdsToInclude: acceleratorTargetIds,
+    policyTargetIdsToInclude: acceleratorTargetOuIds,
   });
 
   await scps.attachFullAwsAccessPolicyToTargets({
