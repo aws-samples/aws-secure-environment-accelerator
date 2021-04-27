@@ -128,15 +128,19 @@ export const handler = async (input: PolicyChangeEvent) => {
         targetScpNames.push(...accountConfig.scps);
       }
     }
-    if (await isAcceleratorScp(policyId, targetScpNames)) {
-      console.log('Accelerator Managed policy is attached');
-      return 'IGNORE';
-    }
     if (eventName === 'AttachPolicy') {
+      if (await isAcceleratorScp(policyId, targetScpNames)) {
+        console.log('Accelerator Managed policy is attached');
+        return 'IGNORE';
+      }
       // Detach target from policy
       console.log(`Detaching target "${targetId}" from policy "${policyId}"`);
       await organizations.detachPolicy(policyId, targetId);
     } else {
+      if (!(await isAcceleratorScp(policyId, targetScpNames))) {
+        console.log('Non Accelerator Managed policy is detached');
+        return 'IGNORE';
+      }
       // ReAttach target to policy
       console.log(`Reattaching target "${targetId}" to policy "${policyId}"`);
       await organizations.attachPolicy(policyId, targetId);
