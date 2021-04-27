@@ -419,6 +419,11 @@ async function startStateMachine(stateMachineArn: string): Promise<string> {
   if (runningExecutions.length === 0) {
     await stepfunctions.startExecution({
       stateMachineArn,
+      input: JSON.stringify({
+        scope: 'NEW_ACCOUNTS',
+        mode: 'APPLY',
+        verbose: '0',
+      }),
     });
   } else {
     return 'SM_ALREADY_RUNNING';

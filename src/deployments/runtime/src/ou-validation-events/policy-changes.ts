@@ -112,6 +112,35 @@ export const handler = async (input: PolicyChangeEvent) => {
     // ReAttach target to policy
     console.log(`Reattaching target "${targetId}" to policy "${policyId}"`);
     await organizations.attachPolicy(policyId, targetId);
+  } else if (eventName === 'AttachPolicy') {
+    if (await isAcceleratorScp(policyId, scpNames)) {
+      console.log('Accelerator Managed policy is attached');
+      return 'IGNORE';
+    }
+    const { targetId } = requestDetail.requestParameters;
+    if (!targetId) {
+      console.warn(`Missing required parameters, Ignoring`);
+      return 'INVALID_REQUEST';
+    }
+    if (ignoredOus.length > 0) {
+      if (targetId.startsWith('ou-')) {
+        const destinationOrg = await organizations.getOrganizationalUnitWithPath(targetId);
+        const destinationRootOrg = destinationOrg.Name!;
+        if (ignoredOus.includes(destinationRootOrg)) {
+          console.log(`AttachPolicy is on ignored-ou from ROOT, no need to reattach`);
+          return 'IGNORE';
+        }
+      } else {
+        const accountObject = accounts.find(acc => acc.accountId === targetId);
+        if (ignoredOus.includes(accountObject?.organizationalUnit!)) {
+          console.log(`AttachPolicy is on account in ignored-ous from ROOT, no need to reattach`);
+          return 'IGNORE';
+        }
+      }
+    }
+    // ReAttach target to policy
+    console.log(`Detaching target "${targetId}" from policy "${policyId}"`);
+    await organizations.detachPolicy(policyId, targetId);
   } else if (eventName === 'UpdatePolicy' || eventName === 'DeletePolicy') {
     console.log(`${eventName}, changing back to original config from config`);
 
@@ -137,11 +166,12 @@ export const handler = async (input: PolicyChangeEvent) => {
     const acceleratorOuIds = organizationalUnits.map(ou => ou.ouId);
     const acceleratorAccountIds = accounts.map(a => a.accountId!);
     const acceleratorTargetIds = [...rootIds, ...acceleratorOuIds, ...acceleratorAccountIds];
+    const acceleratorTargetOuIds = [...rootIds, ...acceleratorOuIds];
 
     // Detach non-Accelerator policies from Accelerator accounts
     await scps.detachPoliciesFromTargets({
       policyNamesToKeep: acceleratorPolicyNames,
-      policyTargetIdsToInclude: acceleratorTargetIds,
+      policyTargetIdsToInclude: acceleratorTargetOuIds,
     });
 
     await scps.attachFullAwsAccessPolicyToTargets({
@@ -153,6 +183,20 @@ export const handler = async (input: PolicyChangeEvent) => {
       existingPolicies,
       configurationOus: organizationalUnits,
       acceleratorOus: config.getOrganizationalUnits(),
+      acceleratorPrefix,
+    });
+
+    await scps.attachOrDetachPoliciesToAccounts({
+      existingPolicies,
+      configurationAccounts: accounts.map(acc => ({
+        key: acc.accountKey,
+        id: acc.accountId!,
+        arn: '',
+        name: acc.accountName,
+        ou: acc.organizationalUnit,
+        email: acc.emailAddress,
+      })),
+      accountConfigs: config.getAccountConfigs(),
       acceleratorPrefix,
     });
   }
