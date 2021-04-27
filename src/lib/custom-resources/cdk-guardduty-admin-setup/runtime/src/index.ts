@@ -49,7 +49,11 @@ async function onCreateOrUpdate(
   const properties = getPropertiesFromEvent(event);
   const detectorId = await getDetectorId();
   if (!detectorId) {
-    throw new Error(`Delegated Admin setup for GuardDuty as DetectorId not found`);
+    console.warn(`Skipping Delegated Admin setup for GuardDuty as DetectorId not found`);
+    return {
+      physicalResourceId,
+      data: {},
+    };
   }
 
   const { memberAccounts, s3Protection } = properties;
