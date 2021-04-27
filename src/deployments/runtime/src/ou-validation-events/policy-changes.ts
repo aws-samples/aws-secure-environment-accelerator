@@ -74,7 +74,7 @@ export const handler = async (input: PolicyChangeEvent) => {
     return 'INVALID_REQUEST';
   }
   const eventName = requestDetail.eventName;
-  if (eventName !== 'DeletePolicy' && !(await isAcceleratorScp(policyId, scpNames))) {
+  if (!['DeletePolicy', 'AttachPolicy'].includes(eventName) && !(await isAcceleratorScp(policyId, scpNames))) {
     console.log(`SCP ${policyId} is not managed by Accelerator`);
     return 'SUCCESS';
   }
