@@ -113,10 +113,6 @@ export const handler = async (input: PolicyChangeEvent) => {
     console.log(`Reattaching target "${targetId}" to policy "${policyId}"`);
     await organizations.attachPolicy(policyId, targetId);
   } else if (eventName === 'AttachPolicy') {
-    if (await isAcceleratorScp(policyId, scpNames)) {
-      console.log('Accelerator Managed policy is attached');
-      return 'IGNORE';
-    }
     const { targetId } = requestDetail.requestParameters;
     if (!targetId) {
       console.warn(`Missing required parameters, Ignoring`);
@@ -137,6 +133,29 @@ export const handler = async (input: PolicyChangeEvent) => {
           return 'IGNORE';
         }
       }
+    }
+    const targetScpNames: string[] = [];
+    if (targetId.startsWith('ou-')) {
+      const destinationOrg = await organizations.getOrganizationalUnitWithPath(targetId);
+      const destinationRootOrg = destinationOrg.Name!;
+      const targetOuConfig = config.getOrganizationalUnits().find(([ouKey, _]) => ouKey === destinationRootOrg)?.[1];
+      targetScpNames.push(...(targetOuConfig?.scps || []));
+    } else {
+      const accountObject = accounts.find(acc => acc.accountId === targetId);
+      if (!accountObject) {
+        console.log('Account is not in Configuration');
+        return 'IGNORE';
+      }
+      const accountConfig = config.getAccountByKey(accountObject.accountKey);
+      const targetOuConfig = config.getOrganizationalUnits().find(([ouKey, _]) => ouKey === accountConfig.ou)?.[1];
+      targetScpNames.push(...(targetOuConfig?.scps || []));
+      if (accountConfig.scps) {
+        targetScpNames.push(...accountConfig.scps);
+      }
+    }
+    if (await isAcceleratorScp(policyId, targetScpNames)) {
+      console.log('Accelerator Managed policy is attached');
+      return 'IGNORE';
     }
     // ReAttach target to policy
     console.log(`Detaching target "${targetId}" from policy "${policyId}"`);
