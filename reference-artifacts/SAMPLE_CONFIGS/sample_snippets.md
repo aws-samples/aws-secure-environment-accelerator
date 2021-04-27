@@ -1,6 +1,27 @@
 # AWS Secure Environment Accelerator
 
 ## **Config File Sample Snippets (Parameters not in sample config file)**
+---
+SEA v1.3.3 locked down interface endpoint security groups to 0.0.0.0/0:443 inbound, no outbound-rules
+- Some endpoints may require additional inbound ports
+- these can be specified by adding the following to the config file, for each specific interface endpoint
+- this setting overides the default port 443 used when the endpoint is not specified here
+- the below example overides the sg for the logs endpoint and the ssmmessages endpoints on all vpcs with endpoints
+
+In global-options:
+```
+    "endpoint-port-orverides": {
+      "logs": ["TCP:443", "UDP:9418"],
+      "ssmmessages": ["TCP:443", "TCP:8080"]
+    }
+```
+- additionally customers can lock down the endpoints on each vpc to specific CIDR ranges
+
+In vpc section, under interface endpoints:
+```
+	"interface-endpoints": {
+            "allowed-cidrs": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+```
 
 ---
 
