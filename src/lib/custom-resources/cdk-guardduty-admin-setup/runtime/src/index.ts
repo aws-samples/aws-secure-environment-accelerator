@@ -49,31 +49,27 @@ async function onCreateOrUpdate(
   const properties = getPropertiesFromEvent(event);
   const detectorId = await getDetectorId();
   if (!detectorId) {
-    console.warn(`Skipping Delegated Admin setup for GuardDuty as DetectorId not found`);
-    return {
-      physicalResourceId,
-      data: {},
-    };
+    throw new Error(`Delegated Admin setup for GuardDuty as DetectorId not found`);
   }
 
   const { memberAccounts, s3Protection } = properties;
   await updateS3Protection(detectorId, s3Protection);
 
   const isAutoEnabled = await isConfigurationAutoEnabled(detectorId, s3Protection);
-  if (isAutoEnabled) {
+  if (!isAutoEnabled) {
+    // Update Config to handle new Account created under Organization
+    await updateConfig(detectorId, s3Protection);
+  } else {
     console.log(`GuardDuty is already enabled ORG Level`);
-    return {
-      physicalResourceId,
-      data: {},
-    };
   }
 
-  // Update Config to handle new Account created under Organization
-  await updateConfig(detectorId, s3Protection);
-
-  if (memberAccounts.length > 0) {
-    await createMembers(memberAccounts, detectorId);
-    await updateMemberDataSource(memberAccounts, detectorId, s3Protection);
+  const existingMembers = await listMembers(detectorId);
+  const requiredMemberAccounts = memberAccounts.filter(
+    ma => !existingMembers.find(em => em.AccountId === ma.AccountId && em.RelationshipStatus === 'Enabled'),
+  );
+  if (requiredMemberAccounts.length > 0) {
+    await createMembers(requiredMemberAccounts, detectorId);
+    await updateMemberDataSource(requiredMemberAccounts, detectorId, s3Protection);
   }
 
   return {
@@ -237,6 +233,23 @@ async function deleteMembers(memberAccounts: AccountDetail[], detectorId: string
     );
     throw error;
   }
+}
+
+async function listMembers(detectorId: string): Promise<AWS.GuardDuty.Member[]> {
+  const members: AWS.GuardDuty.Member[] = [];
+  let token: string | undefined;
+  do {
+    const response = await throttlingBackOff(() =>
+      guardduty
+        .listMembers({
+          DetectorId: detectorId,
+        })
+        .promise(),
+    );
+    token = response.NextToken;
+    members.push(...response.Members!);
+  } while (token);
+  return members;
 }
 
 function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
