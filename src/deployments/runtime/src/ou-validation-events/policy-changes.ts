@@ -87,7 +87,7 @@ export const handler = async (input: PolicyChangeEvent) => {
     organizationAdminRole,
   });
   const { organizationalUnits, accounts } = await loadAccountsAndOrganizationsFromConfig(config);
-  if (eventName === 'DetachPolicy') {
+  if (eventName === 'DetachPolicy' || eventName === 'AttachPolicy') {
     const { targetId } = requestDetail.requestParameters;
     if (!targetId) {
       console.warn(`Missing required parameters, Ignoring`);
@@ -98,38 +98,13 @@ export const handler = async (input: PolicyChangeEvent) => {
         const destinationOrg = await organizations.getOrganizationalUnitWithPath(targetId);
         const destinationRootOrg = destinationOrg.Name!;
         if (ignoredOus.includes(destinationRootOrg)) {
-          console.log(`DetachPolicy is on ignored-ou from ROOT, no need to reattach`);
+          console.log(`${eventName} is on ignored-ou from ROOT, no need to reattach`);
           return 'IGNORE';
         }
       } else {
         const accountObject = accounts.find(acc => acc.accountId === targetId);
         if (ignoredOus.includes(accountObject?.organizationalUnit!)) {
-          console.log(`DetachPolicy is on account in ignored-ous from ROOT, no need to reattach`);
-          return 'IGNORE';
-        }
-      }
-    }
-    // ReAttach target to policy
-    console.log(`Reattaching target "${targetId}" to policy "${policyId}"`);
-    await organizations.attachPolicy(policyId, targetId);
-  } else if (eventName === 'AttachPolicy') {
-    const { targetId } = requestDetail.requestParameters;
-    if (!targetId) {
-      console.warn(`Missing required parameters, Ignoring`);
-      return 'INVALID_REQUEST';
-    }
-    if (ignoredOus.length > 0) {
-      if (targetId.startsWith('ou-')) {
-        const destinationOrg = await organizations.getOrganizationalUnitWithPath(targetId);
-        const destinationRootOrg = destinationOrg.Name!;
-        if (ignoredOus.includes(destinationRootOrg)) {
-          console.log(`AttachPolicy is on ignored-ou from ROOT, no need to reattach`);
-          return 'IGNORE';
-        }
-      } else {
-        const accountObject = accounts.find(acc => acc.accountId === targetId);
-        if (ignoredOus.includes(accountObject?.organizationalUnit!)) {
-          console.log(`AttachPolicy is on account in ignored-ous from ROOT, no need to reattach`);
+          console.log(`${eventName} is on account in ignored-ous from ROOT, no need to reattach`);
           return 'IGNORE';
         }
       }
@@ -157,9 +132,15 @@ export const handler = async (input: PolicyChangeEvent) => {
       console.log('Accelerator Managed policy is attached');
       return 'IGNORE';
     }
-    // ReAttach target to policy
-    console.log(`Detaching target "${targetId}" from policy "${policyId}"`);
-    await organizations.detachPolicy(policyId, targetId);
+    if (eventName === 'AttachPolicy') {
+      // Detach target from policy
+      console.log(`Detaching target "${targetId}" from policy "${policyId}"`);
+      await organizations.detachPolicy(policyId, targetId);
+    } else {
+      // ReAttach target to policy
+      console.log(`Reattaching target "${targetId}" to policy "${policyId}"`);
+      await organizations.attachPolicy(policyId, targetId);
+    }
   } else if (eventName === 'UpdatePolicy' || eventName === 'DeletePolicy') {
     console.log(`${eventName}, changing back to original config from config`);
 
