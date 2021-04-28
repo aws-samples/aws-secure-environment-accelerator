@@ -128,8 +128,15 @@ export const handler = async (input: PolicyChangeEvent) => {
         targetScpNames.push(...accountConfig.scps);
       }
     }
+    const acclScpNames = targetScpNames.map(scp =>
+      ServiceControlPolicy.policyNameToAcceleratorPolicyName({
+        acceleratorPrefix,
+        policyName: scp,
+      }),
+    );
+    console.log(`SCP Names for Target are :: ${acclScpNames}`);
     if (eventName === 'AttachPolicy') {
-      if (await isAcceleratorScp(policyId, targetScpNames)) {
+      if (await isAcceleratorScp(policyId, acclScpNames)) {
         console.log('Accelerator Managed policy is attached');
         return 'IGNORE';
       }
@@ -137,7 +144,7 @@ export const handler = async (input: PolicyChangeEvent) => {
       console.log(`Detaching target "${targetId}" from policy "${policyId}"`);
       await organizations.detachPolicy(policyId, targetId);
     } else {
-      if (!(await isAcceleratorScp(policyId, targetScpNames))) {
+      if (!(await isAcceleratorScp(policyId, acclScpNames))) {
         console.log('Non Accelerator Managed policy is detached');
         return 'IGNORE';
       }
