@@ -157,7 +157,7 @@ export class FirewallInstance extends cdk.Construct {
     }
 
     const cidrBlock = IPv4CidrRange.fromCidr(subnet.cidrBlock);
-    const cidrMask = cidrBlock.cidrPrefix.toSubnetMask();
+    const cidrMask = cidrBlock.cidrPrefix.toMask();
     const networkIp = cidrBlock.getFirst();
     const routerIp = networkIp.nextIPNumber();
 
@@ -197,7 +197,7 @@ export class FirewallInstance extends cdk.Construct {
 
     const addVpcReplacement = (cidrBlock: string, suffix: string) => {
       const vpcCidrBlock = IPv4CidrRange.fromCidr(cidrBlock);
-      const vpcCidrMask = vpcCidrBlock.cidrPrefix.toSubnetMask();
+      const vpcCidrMask = vpcCidrBlock.cidrPrefix.toMask();
       const vpcNetworkIp = vpcCidrBlock.getFirst();
       const vpcRouterIp = vpcNetworkIp.nextIPNumber();
 
