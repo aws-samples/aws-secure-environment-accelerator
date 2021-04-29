@@ -6,7 +6,7 @@
       "c": ["${HOME_REGION}", "${GBL_REGION}", "us-east-2", "us-west-1", "us-west-2"]
     },
     "INFO": "This file will not work in us-east-1 without removing references to GBL_REGION",
-    "INFO1": "If deploying the firewalls, both cidr values below must be supplied",
+    "INFO1": "If deploying the firewalls, both cidr values below MUST be supplied",
     "cloud-cidr1": "10.0.0.0",
     "cloud-mask1": "255.0.0.0",
     "cloud-cidr2": "100.96.252.0",
@@ -1389,7 +1389,7 @@
           "deploy": "local",
           "name": "Perimeter",
           "cidr": "10.7.4.0/22",
-          "cidr2": "100.96.250.0/23",
+          "cidr2": ["100.96.250.0/23"],
           "region": "${HOME_REGION}",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
@@ -1997,7 +1997,7 @@
           "deploy": "shared-network",
           "name": "Central",
           "cidr": "10.1.0.0/16",
-          "cidr2": "100.96.252.0/23",
+          "cidr2": ["100.96.252.0/23"],
           "region": "${HOME_REGION}",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
@@ -2179,17 +2179,17 @@
                 {
                   "az": "a",
                   "route-table": "CentralVPC_GCWide",
-                  "cidr2": "100.96.252.0/25"
+                  "cidr": "100.96.252.0/25"
                 },
                 {
                   "az": "b",
                   "route-table": "CentralVPC_GCWide",
-                  "cidr2": "100.96.252.128/25"
+                  "cidr": "100.96.252.128/25"
                 },
                 {
                   "az": "d",
                   "route-table": "CentralVPC_GCWide",
-                  "cidr2": "100.96.253.0/25",
+                  "cidr": "100.96.253.0/25",
                   "disabled": true
                 }
               ]

@@ -24,6 +24,7 @@
       "Sid": "Tag2",
       "Effect": "Deny",
       "NotAction": [
+        "sts:AssumeRole",
         "iam:PassRole",
         "iam:GetRole",
         "iam:GetRolePolicy",
