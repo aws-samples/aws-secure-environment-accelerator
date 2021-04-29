@@ -5,6 +5,8 @@ import { stringType } from 'aws-sdk/clients/iam';
 import { PolicySummary } from 'aws-sdk/clients/organizations';
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
 import { additionalReplacements, replaceDefaults } from './../util/common';
+import { AccountConfig } from '@aws-accelerator/common-config/src';
+import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 
 export const FULL_AWS_ACCESS_POLICY_NAME = 'FullAWSAccess';
 
@@ -262,6 +264,76 @@ export class ServiceControlPolicy {
 
         console.log(`Attaching ${ouPolicyName} to OU ${ouKey}`);
         await this.org.attachPolicy(policy.Id!, organizationalUnit.ouId);
+      }
+    }
+  }
+
+  /**
+   * Attach new or detach removed policies based on the account configuration.
+   */
+  async attachOrDetachPoliciesToAccounts(props: {
+    existingPolicies: PolicySummary[];
+    configurationAccounts: Account[];
+    accountConfigs: [string, AccountConfig][];
+    acceleratorPrefix: string;
+  }) {
+    const { existingPolicies, configurationAccounts, accountConfigs, acceleratorPrefix } = props;
+
+    for (const [accountKey, accountConfig] of accountConfigs) {
+      const Account = configurationAccounts.find(Account => Account.key === accountKey);
+      /**
+       * Check if scps key is set on account. If not, ignore as SCPs are being managed in the outside the installer.
+       */
+      if (accountConfig.scps == null) {
+        continue;
+      }
+
+      // Attach Accelerator SCPs to Accounts
+      if (!Account) {
+        console.warn(`Cannot find Account configuration with key "${accountKey}"`);
+        continue;
+      }
+
+      const accountPolicyNames = accountConfig.scps.map(policyName =>
+        ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
+      );
+
+      if (accountPolicyNames.length > 4) {
+        console.warn(`Maximum allowed SCP per Account is 5. Limit exceeded for Account ${accountKey}`);
+        continue;
+      }
+
+      // Find targets for this policy
+      const policyTargets = await this.org.listPoliciesForTarget({
+        Filter: 'SERVICE_CONTROL_POLICY',
+        TargetId: Account.id,
+      });
+
+      // Detach removed policies
+      for (const policyTarget of policyTargets) {
+        const policyTargetName = policyTarget.Name!;
+        if (!accountPolicyNames.includes(policyTargetName) && policyTargetName !== FULL_AWS_ACCESS_POLICY_NAME) {
+          console.log(`Detaching ${policyTargetName} from Account ${accountKey}`);
+          await this.org.detachPolicy(policyTarget.Id!, Account.id);
+        }
+      }
+
+      // Attach new policies
+      for (const accountPolicyName of accountPolicyNames) {
+        const policy = existingPolicies.find(p => p.Name === accountPolicyName);
+        if (!policy) {
+          console.warn(`Cannot find policy with name "${accountPolicyName}"`);
+          continue;
+        }
+
+        const policyTarget = policyTargets.find(x => x.Name === accountPolicyName);
+        if (policyTarget) {
+          console.log(`Skipping attachment of ${accountPolicyName} to already attached Account ${accountKey}`);
+          continue;
+        }
+
+        console.log(`Attaching ${accountPolicyName} to Account ${accountKey}`);
+        await this.org.attachPolicy(policy.Id!, Account.id);
       }
     }
   }

@@ -70,7 +70,7 @@ export async function changePolicy(input: PolicyChangeEventProps) {
     'detail-type': ['AWS API Call via CloudTrail'],
     detail: {
       eventSource: ['organizations.amazonaws.com'],
-      eventName: ['UpdatePolicy', 'DeletePolicy', 'DetachPolicy'],
+      eventName: ['UpdatePolicy', 'DeletePolicy', 'DetachPolicy', 'AttachPolicy'],
     },
   };
 

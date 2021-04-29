@@ -49,7 +49,7 @@
     "central-security-services": {
       "account": "security",
       "region": "${HOME_REGION}",
-      "security-hub-excl-regions": ["ap-northeast-3"],
+      "security-hub-excl-regions": [],
       "security-hub": true,
       "guardduty": true,
       "guardduty-excl-regions": ["ap-northeast-3"],
@@ -607,22 +607,10 @@
           }
         },
         {
-          "name": "ACCESS_KEYS_ROTATED",
-          "parameters": {
-            "maxAccessKeyAge": "90"
-          }
-        },
-        {
           "name": "ACM_CERTIFICATE_EXPIRATION_CHECK",
           "parameters": {
             "daysToExpiration": "90"
           }
-        },
-        {
-          "name": "ALB_HTTP_DROP_INVALID_HEADER_ENABLED"
-        },
-        {
-          "name": "ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK"
         },
         {
           "name": "ALB_WAF_ENABLED"
@@ -634,19 +622,7 @@
           "name": "API_GW_EXECUTION_LOGGING_ENABLED"
         },
         {
-          "name": "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED"
-        },
-        {
-          "name": "CLOUD_TRAIL_CLOUD_WATCH_LOGS_ENABLED"
-        },
-        {
           "name": "CLOUD_TRAIL_ENABLED"
-        },
-        {
-          "name": "CLOUD_TRAIL_ENCRYPTION_ENABLED"
-        },
-        {
-          "name": "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED"
         },
         {
           "name": "CLOUDTRAIL_S3_DATAEVENTS_ENABLED"
@@ -663,28 +639,13 @@
           }
         },
         {
-          "name": "CODEBUILD_PROJECT_ENVVAR_AWSCRED_CHECK"
-        },
-        {
-          "name": "CODEBUILD_PROJECT_SOURCE_REPO_URL_CHECK"
-        },
-        {
           "name": "CW_LOGGROUP_RETENTION_PERIOD_CHECK"
         },
         {
           "name": "DB_INSTANCE_BACKUP_ENABLED"
         },
         {
-          "name": "DMS_REPLICATION_NOT_PUBLIC"
-        },
-        {
-          "name": "DYNAMODB_AUTOSCALING_ENABLED"
-        },
-        {
           "name": "DYNAMODB_IN_BACKUP_PLAN"
-        },
-        {
-          "name": "DYNAMODB_PITR_ENABLED"
         },
         {
           "name": "DYNAMODB_TABLE_ENCRYPTED_KMS"
@@ -693,31 +654,10 @@
           "name": "EBS_IN_BACKUP_PLAN"
         },
         {
-          "name": "EBS_SNAPSHOT_PUBLIC_RESTORABLE_CHECK"
-        },
-        {
-          "name": "EC2_EBS_ENCRYPTION_BY_DEFAULT"
-        },
-        {
-          "name": "EC2_IMDSV2_CHECK"
-        },
-        {
           "name": "EC2_INSTANCE_DETAILED_MONITORING_ENABLED"
         },
         {
-          "name": "EC2_INSTANCE_MANAGED_BY_SSM"
-        },
-        {
-          "name": "EC2_INSTANCE_NO_PUBLIC_IP"
-        },
-        {
-          "name": "EC2_MANAGEDINSTANCE_ASSOCIATION_COMPLIANCE_STATUS_CHECK"
-        },
-        {
           "name": "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK"
-        },
-        {
-          "name": "EC2_STOPPED_INSTANCE"
         },
         {
           "name": "EC2_VOLUME_INUSE_CHECK",
@@ -726,22 +666,7 @@
           }
         },
         {
-          "name": "EFS_ENCRYPTED_CHECK"
-        },
-        {
-          "name": "EFS_IN_BACKUP_PLAN"
-        },
-        {
           "name": "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK"
-        },
-        {
-          "name": "ELASTICSEARCH_ENCRYPTED_AT_REST"
-        },
-        {
-          "name": "ELASTICSEARCH_IN_VPC_ONLY"
-        },
-        {
-          "name": "ELASTICSEARCH_NODE_TO_NODE_ENCRYPTION_CHECK"
         },
         {
           "name": "ELB_ACM_CERTIFICATE_REQUIRED"
@@ -750,22 +675,7 @@
           "name": "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED"
         },
         {
-          "name": "ELB_DELETION_PROTECTION_ENABLED"
-        },
-        {
-          "name": "ELB_TLS_HTTPS_LISTENERS_ONLY"
-        },
-        {
           "name": "EMR_KERBEROS_ENABLED"
-        },
-        {
-          "name": "EMR_MASTER_NO_PUBLIC_IP"
-        },
-        {
-          "name": "ENCRYPTED_VOLUMES"
-        },
-        {
-          "name": "GUARDDUTY_ENABLED_CENTRALIZED"
         },
         {
           "name": "GUARDDUTY_NON_ARCHIVED_FINDINGS",
@@ -791,22 +701,7 @@
           }
         },
         {
-          "name": "IAM_ROOT_ACCESS_KEY_CHECK"
-        },
-        {
           "name": "IAM_USER_GROUP_MEMBERSHIP_CHECK"
-        },
-        {
-          "name": "IAM_USER_MFA_ENABLED"
-        },
-        {
-          "name": "IAM_USER_NO_POLICIES_CHECK"
-        },
-        {
-          "name": "IAM_USER_UNUSED_CREDENTIALS_CHECK",
-          "parameters": {
-            "maxCredentialUsageAge": "90"
-          }
         },
         {
           "name": "INCOMING_SSH_DISABLED"
@@ -818,43 +713,7 @@
           "name": "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY"
         },
         {
-          "name": "KMS_CMK_NOT_SCHEDULED_FOR_DELETION"
-        },
-        {
-          "name": "LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED"
-        },
-        {
-          "name": "MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS"
-        },
-        {
-          "name": "MULTI_REGION_CLOUD_TRAIL_ENABLED"
-        },
-        {
-          "name": "RDS_ENHANCED_MONITORING_ENABLED"
-        },
-        {
           "name": "RDS_IN_BACKUP_PLAN"
-        },
-        {
-          "name": "RDS_INSTANCE_DELETION_PROTECTION_ENABLED"
-        },
-        {
-          "name": "RDS_INSTANCE_PUBLIC_ACCESS_CHECK"
-        },
-        {
-          "name": "RDS_LOGGING_ENABLED"
-        },
-        {
-          "name": "RDS_MULTI_AZ_SUPPORT"
-        },
-        {
-          "name": "RDS_SNAPSHOT_ENCRYPTED"
-        },
-        {
-          "name": "RDS_SNAPSHOTS_PUBLIC_PROHIBITED"
-        },
-        {
-          "name": "RDS_STORAGE_ENCRYPTED"
         },
         {
           "name": "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
@@ -862,12 +721,6 @@
             "clusterDbEncrypted": "TRUE",
             "loggingEnabled": "TRUE"
           }
-        },
-        {
-          "name": "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK"
-        },
-        {
-          "name": "REDSHIFT_REQUIRE_TLS_SSL"
         },
         {
           "name": "RESTRICTED_INCOMING_TRAFFIC",
@@ -880,31 +733,7 @@
           }
         },
         {
-          "name": "ROOT_ACCOUNT_HARDWARE_MFA_ENABLED"
-        },
-        {
-          "name": "ROOT_ACCOUNT_MFA_ENABLED"
-        },
-        {
-          "name": "S3_ACCOUNT_LEVEL_PUBLIC_ACCESS_BLOCKS",
-          "parameters": {
-            "BlockPublicAcls": "True",
-            "BlockPublicPolicy": "True",
-            "IgnorePublicAcls": "True",
-            "RestrictPublicBuckets": "True"
-          }
-        },
-        {
           "name": "S3_BUCKET_POLICY_GRANTEE_CHECK"
-        },
-        {
-          "name": "S3_BUCKET_PUBLIC_READ_PROHIBITED"
-        },
-        {
-          "name": "S3_BUCKET_PUBLIC_WRITE_PROHIBITED"
-        },
-        {
-          "name": "S3_BUCKET_SSL_REQUESTS_ONLY"
         },
         {
           "name": "S3_BUCKET_VERSIONING_ENABLED"
@@ -916,16 +745,7 @@
           "name": "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED"
         },
         {
-          "name": "SAGEMAKER_NOTEBOOK_NO_DIRECT_INTERNET_ACCESS"
-        },
-        {
           "name": "SECURITYHUB_ENABLED"
-        },
-        {
-          "name": "VPC_DEFAULT_SECURITY_GROUP_CLOSED"
-        },
-        {
-          "name": "VPC_FLOW_LOGS_ENABLED"
         },
         {
           "name": "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
@@ -1067,7 +887,7 @@
           },
           "interface-endpoints": {
             "subnet": "Endpoint",
-            "endpoints": ["ec2", "ec2messages", "ssm", "ssmmessages", "secretsmanager", "cloudformation", "kms"]
+            "endpoints": ["ec2", "ec2messages", "ssm", "ssmmessages", "secretsmanager", "cloudformation", "kms", "logs", "monitoring"]
           },
           "resolvers": {
             "subnet": "Endpoint",
@@ -2026,97 +1846,41 @@
             "EC2-INSTANCE-PROFILE-PERMISSIONS",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
-            "ACCESS_KEYS_ROTATED",
             "ACM_CERTIFICATE_EXPIRATION_CHECK",
-            "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
-            "ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK",
             "ALB_WAF_ENABLED",
             "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
             "API_GW_EXECUTION_LOGGING_ENABLED",
-            "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED",
-            "CLOUD_TRAIL_CLOUD_WATCH_LOGS_ENABLED",
             "CLOUD_TRAIL_ENABLED",
-            "CLOUD_TRAIL_ENCRYPTION_ENABLED",
-            "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED",
             "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
             "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
             "CLOUDWATCH_ALARM_ACTION_CHECK",
-            "CODEBUILD_PROJECT_ENVVAR_AWSCRED_CHECK",
-            "CODEBUILD_PROJECT_SOURCE_REPO_URL_CHECK",
             "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
             "DB_INSTANCE_BACKUP_ENABLED",
-            "DMS_REPLICATION_NOT_PUBLIC",
-            "DYNAMODB_AUTOSCALING_ENABLED",
             "DYNAMODB_IN_BACKUP_PLAN",
-            "DYNAMODB_PITR_ENABLED",
             "DYNAMODB_TABLE_ENCRYPTED_KMS",
             "EBS_IN_BACKUP_PLAN",
-            "EBS_SNAPSHOT_PUBLIC_RESTORABLE_CHECK",
-            "EC2_EBS_ENCRYPTION_BY_DEFAULT",
-            "EC2_IMDSV2_CHECK",
             "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
-            "EC2_INSTANCE_MANAGED_BY_SSM",
-            "EC2_INSTANCE_NO_PUBLIC_IP",
-            "EC2_MANAGEDINSTANCE_ASSOCIATION_COMPLIANCE_STATUS_CHECK",
             "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
-            "EC2_STOPPED_INSTANCE",
             "EC2_VOLUME_INUSE_CHECK",
-            "EFS_ENCRYPTED_CHECK",
-            "EFS_IN_BACKUP_PLAN",
             "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
-            "ELASTICSEARCH_ENCRYPTED_AT_REST",
-            "ELASTICSEARCH_IN_VPC_ONLY",
-            "ELASTICSEARCH_NODE_TO_NODE_ENCRYPTION_CHECK",
             "ELB_ACM_CERTIFICATE_REQUIRED",
             "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
-            "ELB_DELETION_PROTECTION_ENABLED",
-            "ELB_TLS_HTTPS_LISTENERS_ONLY",
             "EMR_KERBEROS_ENABLED",
-            "EMR_MASTER_NO_PUBLIC_IP",
-            "ENCRYPTED_VOLUMES",
-            "GUARDDUTY_ENABLED_CENTRALIZED",
             "GUARDDUTY_NON_ARCHIVED_FINDINGS",
             "IAM_GROUP_HAS_USERS_CHECK",
             "IAM_PASSWORD_POLICY",
-            "IAM_ROOT_ACCESS_KEY_CHECK",
             "IAM_USER_GROUP_MEMBERSHIP_CHECK",
-            "IAM_USER_MFA_ENABLED",
-            "IAM_USER_NO_POLICIES_CHECK",
-            "IAM_USER_UNUSED_CREDENTIALS_CHECK",
             "INCOMING_SSH_DISABLED",
             "INSTANCES_IN_VPC",
             "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
-            "KMS_CMK_NOT_SCHEDULED_FOR_DELETION",
-            "LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED",
-            "MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS",
-            "MULTI_REGION_CLOUD_TRAIL_ENABLED",
-            "RDS_ENHANCED_MONITORING_ENABLED",
             "RDS_IN_BACKUP_PLAN",
-            "RDS_INSTANCE_DELETION_PROTECTION_ENABLED",
-            "RDS_INSTANCE_PUBLIC_ACCESS_CHECK",
-            "RDS_LOGGING_ENABLED",
-            "RDS_MULTI_AZ_SUPPORT",
-            "RDS_SNAPSHOT_ENCRYPTED",
-            "RDS_SNAPSHOTS_PUBLIC_PROHIBITED",
-            "RDS_STORAGE_ENCRYPTED",
             "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
-            "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK",
-            "REDSHIFT_REQUIRE_TLS_SSL",
             "RESTRICTED_INCOMING_TRAFFIC",
-            "ROOT_ACCOUNT_HARDWARE_MFA_ENABLED",
-            "ROOT_ACCOUNT_MFA_ENABLED",
-            "S3_ACCOUNT_LEVEL_PUBLIC_ACCESS_BLOCKS",
             "S3_BUCKET_POLICY_GRANTEE_CHECK",
-            "S3_BUCKET_PUBLIC_READ_PROHIBITED",
-            "S3_BUCKET_PUBLIC_WRITE_PROHIBITED",
-            "S3_BUCKET_SSL_REQUESTS_ONLY",
             "S3_BUCKET_VERSIONING_ENABLED",
             "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
             "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
-            "SAGEMAKER_NOTEBOOK_NO_DIRECT_INTERNET_ACCESS",
             "SECURITYHUB_ENABLED",
-            "VPC_DEFAULT_SECURITY_GROUP_CLOSED",
-            "VPC_FLOW_LOGS_ENABLED",
             "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
             "WAFV2_LOGGING_ENABLED"
           ],
@@ -2584,97 +2348,41 @@
             "EC2-INSTANCE-PROFILE-PERMISSIONS",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
-            "ACCESS_KEYS_ROTATED",
             "ACM_CERTIFICATE_EXPIRATION_CHECK",
-            "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
-            "ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK",
             "ALB_WAF_ENABLED",
             "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
             "API_GW_EXECUTION_LOGGING_ENABLED",
-            "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED",
-            "CLOUD_TRAIL_CLOUD_WATCH_LOGS_ENABLED",
             "CLOUD_TRAIL_ENABLED",
-            "CLOUD_TRAIL_ENCRYPTION_ENABLED",
-            "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED",
             "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
             "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
             "CLOUDWATCH_ALARM_ACTION_CHECK",
-            "CODEBUILD_PROJECT_ENVVAR_AWSCRED_CHECK",
-            "CODEBUILD_PROJECT_SOURCE_REPO_URL_CHECK",
             "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
             "DB_INSTANCE_BACKUP_ENABLED",
-            "DMS_REPLICATION_NOT_PUBLIC",
-            "DYNAMODB_AUTOSCALING_ENABLED",
             "DYNAMODB_IN_BACKUP_PLAN",
-            "DYNAMODB_PITR_ENABLED",
             "DYNAMODB_TABLE_ENCRYPTED_KMS",
             "EBS_IN_BACKUP_PLAN",
-            "EBS_SNAPSHOT_PUBLIC_RESTORABLE_CHECK",
-            "EC2_EBS_ENCRYPTION_BY_DEFAULT",
-            "EC2_IMDSV2_CHECK",
             "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
-            "EC2_INSTANCE_MANAGED_BY_SSM",
-            "EC2_INSTANCE_NO_PUBLIC_IP",
-            "EC2_MANAGEDINSTANCE_ASSOCIATION_COMPLIANCE_STATUS_CHECK",
             "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
-            "EC2_STOPPED_INSTANCE",
             "EC2_VOLUME_INUSE_CHECK",
-            "EFS_ENCRYPTED_CHECK",
-            "EFS_IN_BACKUP_PLAN",
             "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
-            "ELASTICSEARCH_ENCRYPTED_AT_REST",
-            "ELASTICSEARCH_IN_VPC_ONLY",
-            "ELASTICSEARCH_NODE_TO_NODE_ENCRYPTION_CHECK",
             "ELB_ACM_CERTIFICATE_REQUIRED",
             "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
-            "ELB_DELETION_PROTECTION_ENABLED",
-            "ELB_TLS_HTTPS_LISTENERS_ONLY",
             "EMR_KERBEROS_ENABLED",
-            "EMR_MASTER_NO_PUBLIC_IP",
-            "ENCRYPTED_VOLUMES",
-            "GUARDDUTY_ENABLED_CENTRALIZED",
             "GUARDDUTY_NON_ARCHIVED_FINDINGS",
             "IAM_GROUP_HAS_USERS_CHECK",
             "IAM_PASSWORD_POLICY",
-            "IAM_ROOT_ACCESS_KEY_CHECK",
             "IAM_USER_GROUP_MEMBERSHIP_CHECK",
-            "IAM_USER_MFA_ENABLED",
-            "IAM_USER_NO_POLICIES_CHECK",
-            "IAM_USER_UNUSED_CREDENTIALS_CHECK",
             "INCOMING_SSH_DISABLED",
             "INSTANCES_IN_VPC",
             "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
-            "KMS_CMK_NOT_SCHEDULED_FOR_DELETION",
-            "LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED",
-            "MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS",
-            "MULTI_REGION_CLOUD_TRAIL_ENABLED",
-            "RDS_ENHANCED_MONITORING_ENABLED",
             "RDS_IN_BACKUP_PLAN",
-            "RDS_INSTANCE_DELETION_PROTECTION_ENABLED",
-            "RDS_INSTANCE_PUBLIC_ACCESS_CHECK",
-            "RDS_LOGGING_ENABLED",
-            "RDS_MULTI_AZ_SUPPORT",
-            "RDS_SNAPSHOT_ENCRYPTED",
-            "RDS_SNAPSHOTS_PUBLIC_PROHIBITED",
-            "RDS_STORAGE_ENCRYPTED",
             "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
-            "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK",
-            "REDSHIFT_REQUIRE_TLS_SSL",
             "RESTRICTED_INCOMING_TRAFFIC",
-            "ROOT_ACCOUNT_HARDWARE_MFA_ENABLED",
-            "ROOT_ACCOUNT_MFA_ENABLED",
-            "S3_ACCOUNT_LEVEL_PUBLIC_ACCESS_BLOCKS",
             "S3_BUCKET_POLICY_GRANTEE_CHECK",
-            "S3_BUCKET_PUBLIC_READ_PROHIBITED",
-            "S3_BUCKET_PUBLIC_WRITE_PROHIBITED",
-            "S3_BUCKET_SSL_REQUESTS_ONLY",
             "S3_BUCKET_VERSIONING_ENABLED",
             "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
             "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
-            "SAGEMAKER_NOTEBOOK_NO_DIRECT_INTERNET_ACCESS",
             "SECURITYHUB_ENABLED",
-            "VPC_DEFAULT_SECURITY_GROUP_CLOSED",
-            "VPC_FLOW_LOGS_ENABLED",
             "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
             "WAFV2_LOGGING_ENABLED"
           ],
@@ -3169,97 +2877,41 @@
             "EC2-INSTANCE-PROFILE-PERMISSIONS",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
-            "ACCESS_KEYS_ROTATED",
             "ACM_CERTIFICATE_EXPIRATION_CHECK",
-            "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
-            "ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK",
             "ALB_WAF_ENABLED",
             "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
             "API_GW_EXECUTION_LOGGING_ENABLED",
-            "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED",
-            "CLOUD_TRAIL_CLOUD_WATCH_LOGS_ENABLED",
             "CLOUD_TRAIL_ENABLED",
-            "CLOUD_TRAIL_ENCRYPTION_ENABLED",
-            "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED",
             "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
             "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
             "CLOUDWATCH_ALARM_ACTION_CHECK",
-            "CODEBUILD_PROJECT_ENVVAR_AWSCRED_CHECK",
-            "CODEBUILD_PROJECT_SOURCE_REPO_URL_CHECK",
             "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
             "DB_INSTANCE_BACKUP_ENABLED",
-            "DMS_REPLICATION_NOT_PUBLIC",
-            "DYNAMODB_AUTOSCALING_ENABLED",
             "DYNAMODB_IN_BACKUP_PLAN",
-            "DYNAMODB_PITR_ENABLED",
             "DYNAMODB_TABLE_ENCRYPTED_KMS",
             "EBS_IN_BACKUP_PLAN",
-            "EBS_SNAPSHOT_PUBLIC_RESTORABLE_CHECK",
-            "EC2_EBS_ENCRYPTION_BY_DEFAULT",
-            "EC2_IMDSV2_CHECK",
             "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
-            "EC2_INSTANCE_MANAGED_BY_SSM",
-            "EC2_INSTANCE_NO_PUBLIC_IP",
-            "EC2_MANAGEDINSTANCE_ASSOCIATION_COMPLIANCE_STATUS_CHECK",
             "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
-            "EC2_STOPPED_INSTANCE",
             "EC2_VOLUME_INUSE_CHECK",
-            "EFS_ENCRYPTED_CHECK",
-            "EFS_IN_BACKUP_PLAN",
             "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
-            "ELASTICSEARCH_ENCRYPTED_AT_REST",
-            "ELASTICSEARCH_IN_VPC_ONLY",
-            "ELASTICSEARCH_NODE_TO_NODE_ENCRYPTION_CHECK",
             "ELB_ACM_CERTIFICATE_REQUIRED",
             "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
-            "ELB_DELETION_PROTECTION_ENABLED",
-            "ELB_TLS_HTTPS_LISTENERS_ONLY",
             "EMR_KERBEROS_ENABLED",
-            "EMR_MASTER_NO_PUBLIC_IP",
-            "ENCRYPTED_VOLUMES",
-            "GUARDDUTY_ENABLED_CENTRALIZED",
             "GUARDDUTY_NON_ARCHIVED_FINDINGS",
             "IAM_GROUP_HAS_USERS_CHECK",
             "IAM_PASSWORD_POLICY",
-            "IAM_ROOT_ACCESS_KEY_CHECK",
             "IAM_USER_GROUP_MEMBERSHIP_CHECK",
-            "IAM_USER_MFA_ENABLED",
-            "IAM_USER_NO_POLICIES_CHECK",
-            "IAM_USER_UNUSED_CREDENTIALS_CHECK",
             "INCOMING_SSH_DISABLED",
             "INSTANCES_IN_VPC",
             "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
-            "KMS_CMK_NOT_SCHEDULED_FOR_DELETION",
-            "LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED",
-            "MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS",
-            "MULTI_REGION_CLOUD_TRAIL_ENABLED",
-            "RDS_ENHANCED_MONITORING_ENABLED",
             "RDS_IN_BACKUP_PLAN",
-            "RDS_INSTANCE_DELETION_PROTECTION_ENABLED",
-            "RDS_INSTANCE_PUBLIC_ACCESS_CHECK",
-            "RDS_LOGGING_ENABLED",
-            "RDS_MULTI_AZ_SUPPORT",
-            "RDS_SNAPSHOT_ENCRYPTED",
-            "RDS_SNAPSHOTS_PUBLIC_PROHIBITED",
-            "RDS_STORAGE_ENCRYPTED",
             "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
-            "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK",
-            "REDSHIFT_REQUIRE_TLS_SSL",
             "RESTRICTED_INCOMING_TRAFFIC",
-            "ROOT_ACCOUNT_HARDWARE_MFA_ENABLED",
-            "ROOT_ACCOUNT_MFA_ENABLED",
-            "S3_ACCOUNT_LEVEL_PUBLIC_ACCESS_BLOCKS",
             "S3_BUCKET_POLICY_GRANTEE_CHECK",
-            "S3_BUCKET_PUBLIC_READ_PROHIBITED",
-            "S3_BUCKET_PUBLIC_WRITE_PROHIBITED",
-            "S3_BUCKET_SSL_REQUESTS_ONLY",
             "S3_BUCKET_VERSIONING_ENABLED",
             "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
             "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
-            "SAGEMAKER_NOTEBOOK_NO_DIRECT_INTERNET_ACCESS",
             "SECURITYHUB_ENABLED",
-            "VPC_DEFAULT_SECURITY_GROUP_CLOSED",
-            "VPC_FLOW_LOGS_ENABLED",
             "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
             "WAFV2_LOGGING_ENABLED"
           ],
@@ -3754,97 +3406,41 @@
             "EC2-INSTANCE-PROFILE-PERMISSIONS",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
-            "ACCESS_KEYS_ROTATED",
             "ACM_CERTIFICATE_EXPIRATION_CHECK",
-            "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
-            "ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK",
             "ALB_WAF_ENABLED",
             "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
             "API_GW_EXECUTION_LOGGING_ENABLED",
-            "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED",
-            "CLOUD_TRAIL_CLOUD_WATCH_LOGS_ENABLED",
             "CLOUD_TRAIL_ENABLED",
-            "CLOUD_TRAIL_ENCRYPTION_ENABLED",
-            "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED",
             "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
             "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
             "CLOUDWATCH_ALARM_ACTION_CHECK",
-            "CODEBUILD_PROJECT_ENVVAR_AWSCRED_CHECK",
-            "CODEBUILD_PROJECT_SOURCE_REPO_URL_CHECK",
             "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
             "DB_INSTANCE_BACKUP_ENABLED",
-            "DMS_REPLICATION_NOT_PUBLIC",
-            "DYNAMODB_AUTOSCALING_ENABLED",
             "DYNAMODB_IN_BACKUP_PLAN",
-            "DYNAMODB_PITR_ENABLED",
             "DYNAMODB_TABLE_ENCRYPTED_KMS",
             "EBS_IN_BACKUP_PLAN",
-            "EBS_SNAPSHOT_PUBLIC_RESTORABLE_CHECK",
-            "EC2_EBS_ENCRYPTION_BY_DEFAULT",
-            "EC2_IMDSV2_CHECK",
             "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
-            "EC2_INSTANCE_MANAGED_BY_SSM",
-            "EC2_INSTANCE_NO_PUBLIC_IP",
-            "EC2_MANAGEDINSTANCE_ASSOCIATION_COMPLIANCE_STATUS_CHECK",
             "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
-            "EC2_STOPPED_INSTANCE",
             "EC2_VOLUME_INUSE_CHECK",
-            "EFS_ENCRYPTED_CHECK",
-            "EFS_IN_BACKUP_PLAN",
             "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
-            "ELASTICSEARCH_ENCRYPTED_AT_REST",
-            "ELASTICSEARCH_IN_VPC_ONLY",
-            "ELASTICSEARCH_NODE_TO_NODE_ENCRYPTION_CHECK",
             "ELB_ACM_CERTIFICATE_REQUIRED",
             "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
-            "ELB_DELETION_PROTECTION_ENABLED",
-            "ELB_TLS_HTTPS_LISTENERS_ONLY",
             "EMR_KERBEROS_ENABLED",
-            "EMR_MASTER_NO_PUBLIC_IP",
-            "ENCRYPTED_VOLUMES",
-            "GUARDDUTY_ENABLED_CENTRALIZED",
             "GUARDDUTY_NON_ARCHIVED_FINDINGS",
             "IAM_GROUP_HAS_USERS_CHECK",
             "IAM_PASSWORD_POLICY",
-            "IAM_ROOT_ACCESS_KEY_CHECK",
             "IAM_USER_GROUP_MEMBERSHIP_CHECK",
-            "IAM_USER_MFA_ENABLED",
-            "IAM_USER_NO_POLICIES_CHECK",
-            "IAM_USER_UNUSED_CREDENTIALS_CHECK",
             "INCOMING_SSH_DISABLED",
             "INSTANCES_IN_VPC",
             "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
-            "KMS_CMK_NOT_SCHEDULED_FOR_DELETION",
-            "LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED",
-            "MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS",
-            "MULTI_REGION_CLOUD_TRAIL_ENABLED",
-            "RDS_ENHANCED_MONITORING_ENABLED",
             "RDS_IN_BACKUP_PLAN",
-            "RDS_INSTANCE_DELETION_PROTECTION_ENABLED",
-            "RDS_INSTANCE_PUBLIC_ACCESS_CHECK",
-            "RDS_LOGGING_ENABLED",
-            "RDS_MULTI_AZ_SUPPORT",
-            "RDS_SNAPSHOT_ENCRYPTED",
-            "RDS_SNAPSHOTS_PUBLIC_PROHIBITED",
-            "RDS_STORAGE_ENCRYPTED",
             "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
-            "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK",
-            "REDSHIFT_REQUIRE_TLS_SSL",
             "RESTRICTED_INCOMING_TRAFFIC",
-            "ROOT_ACCOUNT_HARDWARE_MFA_ENABLED",
-            "ROOT_ACCOUNT_MFA_ENABLED",
-            "S3_ACCOUNT_LEVEL_PUBLIC_ACCESS_BLOCKS",
             "S3_BUCKET_POLICY_GRANTEE_CHECK",
-            "S3_BUCKET_PUBLIC_READ_PROHIBITED",
-            "S3_BUCKET_PUBLIC_WRITE_PROHIBITED",
-            "S3_BUCKET_SSL_REQUESTS_ONLY",
             "S3_BUCKET_VERSIONING_ENABLED",
             "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
             "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
-            "SAGEMAKER_NOTEBOOK_NO_DIRECT_INTERNET_ACCESS",
             "SECURITYHUB_ENABLED",
-            "VPC_DEFAULT_SECURITY_GROUP_CLOSED",
-            "VPC_FLOW_LOGS_ENABLED",
             "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
             "WAFV2_LOGGING_ENABLED"
           ],
@@ -4339,94 +3935,40 @@
             "EC2-INSTANCE-PROFILE-PERMISSIONS",
             "ELB_LOGGING_ENABLED",
             "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
-            "ACCESS_KEYS_ROTATED",
             "ACM_CERTIFICATE_EXPIRATION_CHECK",
-            "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
-            "ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK",
             "ALB_WAF_ENABLED",
             "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
             "API_GW_EXECUTION_LOGGING_ENABLED",
-            "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED",
-            "CLOUD_TRAIL_CLOUD_WATCH_LOGS_ENABLED",
             "CLOUD_TRAIL_ENABLED",
-            "CLOUD_TRAIL_ENCRYPTION_ENABLED",
-            "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED",
             "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
             "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
             "CLOUDWATCH_ALARM_ACTION_CHECK",
-            "CODEBUILD_PROJECT_ENVVAR_AWSCRED_CHECK",
-            "CODEBUILD_PROJECT_SOURCE_REPO_URL_CHECK",
             "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
             "DB_INSTANCE_BACKUP_ENABLED",
-            "DMS_REPLICATION_NOT_PUBLIC",
-            "DYNAMODB_AUTOSCALING_ENABLED",
             "DYNAMODB_IN_BACKUP_PLAN",
-            "DYNAMODB_PITR_ENABLED",
             "DYNAMODB_TABLE_ENCRYPTED_KMS",
             "EBS_IN_BACKUP_PLAN",
-            "EBS_SNAPSHOT_PUBLIC_RESTORABLE_CHECK",
-            "EC2_EBS_ENCRYPTION_BY_DEFAULT",
-            "EC2_IMDSV2_CHECK",
             "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
-            "EC2_INSTANCE_MANAGED_BY_SSM",
-            "EC2_INSTANCE_NO_PUBLIC_IP",
-            "EC2_MANAGEDINSTANCE_ASSOCIATION_COMPLIANCE_STATUS_CHECK",
             "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
-            "EC2_STOPPED_INSTANCE",
             "EC2_VOLUME_INUSE_CHECK",
-            "EFS_ENCRYPTED_CHECK",
-            "EFS_IN_BACKUP_PLAN",
             "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
-            "ELASTICSEARCH_ENCRYPTED_AT_REST",
-            "ELASTICSEARCH_IN_VPC_ONLY",
-            "ELASTICSEARCH_NODE_TO_NODE_ENCRYPTION_CHECK",
             "ELB_ACM_CERTIFICATE_REQUIRED",
             "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
-            "ELB_DELETION_PROTECTION_ENABLED",
-            "ELB_TLS_HTTPS_LISTENERS_ONLY",
             "EMR_KERBEROS_ENABLED",
-            "EMR_MASTER_NO_PUBLIC_IP",
-            "ENCRYPTED_VOLUMES",
-            "GUARDDUTY_ENABLED_CENTRALIZED",
             "GUARDDUTY_NON_ARCHIVED_FINDINGS",
             "IAM_GROUP_HAS_USERS_CHECK",
             "IAM_PASSWORD_POLICY",
-            "IAM_ROOT_ACCESS_KEY_CHECK",
             "IAM_USER_GROUP_MEMBERSHIP_CHECK",
-            "IAM_USER_MFA_ENABLED",
-            "IAM_USER_NO_POLICIES_CHECK",
-            "IAM_USER_UNUSED_CREDENTIALS_CHECK",
             "INCOMING_SSH_DISABLED",
             "INSTANCES_IN_VPC",
             "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
-            "KMS_CMK_NOT_SCHEDULED_FOR_DELETION",
-            "LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED",
-            "MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS",
-            "MULTI_REGION_CLOUD_TRAIL_ENABLED",
-            "RDS_ENHANCED_MONITORING_ENABLED",
             "RDS_IN_BACKUP_PLAN",
-            "RDS_INSTANCE_DELETION_PROTECTION_ENABLED",
-            "RDS_INSTANCE_PUBLIC_ACCESS_CHECK",
-            "RDS_LOGGING_ENABLED",
-            "RDS_MULTI_AZ_SUPPORT",
-            "RDS_SNAPSHOT_ENCRYPTED",
-            "RDS_SNAPSHOTS_PUBLIC_PROHIBITED",
-            "RDS_STORAGE_ENCRYPTED",
             "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
-            "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK",
-            "REDSHIFT_REQUIRE_TLS_SSL",
             "RESTRICTED_INCOMING_TRAFFIC",
-            "ROOT_ACCOUNT_HARDWARE_MFA_ENABLED",
-            "ROOT_ACCOUNT_MFA_ENABLED",
-            "S3_ACCOUNT_LEVEL_PUBLIC_ACCESS_BLOCKS",
             "S3_BUCKET_POLICY_GRANTEE_CHECK",
-            "S3_BUCKET_PUBLIC_READ_PROHIBITED",
-            "S3_BUCKET_PUBLIC_WRITE_PROHIBITED",
-            "S3_BUCKET_SSL_REQUESTS_ONLY",
             "S3_BUCKET_VERSIONING_ENABLED",
             "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
             "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
-            "SAGEMAKER_NOTEBOOK_NO_DIRECT_INTERNET_ACCESS",
             "SECURITYHUB_ENABLED",
             "VPC_DEFAULT_SECURITY_GROUP_CLOSED",
             "VPC_FLOW_LOGS_ENABLED",

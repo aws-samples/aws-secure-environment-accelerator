@@ -90,8 +90,11 @@ def build_stack_data(accounts, regions, admin_role_name, master_account_name):
 def process_delete(all_stacks):
     phases = [        
         "-Phase5",
+        "Phase4-HostedZonesAssc1",
         "-Phase4",
+        "Phase3-CentralVpcResolverEndpoints",
         "-Phase3",
+        "Phase2-VpcEndpoints1",
         "-Phase2",
         "-Phase1",
         "-Phase0",

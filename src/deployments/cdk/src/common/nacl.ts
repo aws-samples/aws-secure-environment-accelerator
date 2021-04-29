@@ -75,9 +75,10 @@ export class Nacl extends cdk.Construct {
               if (subnetDefinition.disabled) {
                 continue;
               }
-              const cidrBlock = subnetDefinition.cidr
-                ? subnetDefinition.cidr.toCidrString()
-                : subnetDefinition.cidr2?.toCidrString();
+              if (!subnetDefinition.cidr) {
+                throw new Error(`Please Declare cidr using cidr block only`);
+              }
+              const cidrBlock = subnetDefinition.cidr.toCidrString();
               const aclEntryProps: ec2.CfnNetworkAclEntryProps = {
                 networkAclId: nacl.ref,
                 protocol: rules.protocol,

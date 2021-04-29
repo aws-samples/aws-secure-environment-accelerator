@@ -41,7 +41,6 @@ export const NatGatewayConfig = t.interface({
 export const SubnetDefinitionConfig = t.interface({
   az: availabilityZone,
   cidr: optional(cidr),
-  cidr2: optional(cidr),
   'route-table': nonEmptyString,
   disabled: defaulted(t.boolean, false),
 });
@@ -151,6 +150,7 @@ export const InterfaceEndpointName = t.string; // TODO Define all endpoints here
 export const InterfaceEndpointConfig = t.interface({
   subnet: t.string,
   endpoints: t.array(InterfaceEndpointName),
+  'allowed-cidrs': optional(t.array(cidr)),
 });
 
 export const ResolversConfigType = t.interface({
@@ -216,7 +216,7 @@ export const VpcConfigType = t.interface({
   name: t.string,
   region,
   cidr,
-  cidr2: optional(cidr),
+  cidr2: defaulted(t.array(cidr), []),
   'dedicated-tenancy': defaulted(t.boolean, false),
   'use-central-endpoints': defaulted(t.boolean, false),
   'dns-resolver-logging': defaulted(t.boolean, false),
@@ -594,6 +594,7 @@ export const MandatoryAccountConfigType = t.interface({
   'populate-all-elbs-in-param-store': defaulted(t.boolean, false),
   'ssm-automation': defaulted(t.array(SsmShareAutomation), []),
   'aws-config': defaulted(t.array(AwsConfigAccountConfig), []),
+  scps: optional(t.array(t.string)),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -857,6 +858,7 @@ export const GlobalOptionsConfigType = t.interface({
   'ssm-automation': defaulted(t.array(SsmAutomation), []),
   'aws-config': optional(AwsConfig),
   'default-ssm-documents': defaulted(t.array(t.string), []),
+  'endpoint-port-orverides': optional(t.record(t.string, t.array(t.string))),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;

@@ -181,14 +181,14 @@ export class SecurityGroup extends cdk.Construct {
             continue;
           }
           for (const [index, subnet] of Object.entries(vpcConfigSubnets.definitions)) {
-            if (subnet.disabled) {
+            if (subnet.disabled || !subnet.cidr) {
               continue;
             }
             ruleProps.push({
               ipProtocol,
               groupId: this.securityGroupNameMapping[groupName].ref,
               description: `${ruleDescription} from ${ruleSubnet}-${subnet.az}`,
-              cidrIp: subnet.cidr ? subnet.cidr.toCidrString() : subnet.cidr2?.toCidrString(),
+              cidrIp: subnet.cidr.toCidrString(),
               toPort,
               fromPort,
             });
