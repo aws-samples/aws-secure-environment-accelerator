@@ -70,8 +70,8 @@
   - create, rename, modify, apply and remove SCP's
 - What can't I do:
   - modify Accelerator controlled SCP's
-  - add/remove SCP's on top-level OU's (these are Accelerator controlled)
-    - users can change SCP's on non-top-level ou's and accounts as they please
+  - add/remove SCP's on top-level OU's (these are Accelerator controlled) or specific accounts that have Accelerator controlled SCPs
+    - users can change SCP's on non-top-level ou's and non-Accelerator controlled accounts as they please
   - move an AWS account between top-level ou's (i.e. `Sandbox` to `Prod` is a security violation)
     - moving between `Prod/sub-ou-1` to `Prod/sub-ou2` or `Prod/sub-ou2/sub-ou2a/sub-ou2ab` is fully supported
   - create a top-level ou (need to validate, as they require config file entries)
@@ -79,10 +79,11 @@
   - we do not support forward slashes (`/`) in ou names, even though the AWS platform does
 - More details:
   - If you edit an Accelerator controlled SCP through Organizations, we will reset it per what is defined in the Accelerator configuration files.
-  - If you add/remove an SCP from a top-level ou, we will put them back as defined in the Accelerator configuration file.
+  - If you add/remove an SCP from a top-level ou or Accelerator controlled account, we will put them back as defined in the Accelerator configuration file.
   - If you move an account between top-level ou's, we will put it back to its original designated top-level ou.
-  - The Accelerator fully supports nested ou's, customers can create any depth ou structure in AWS Organizations and add/remove/change SCP's _below_ the top-level as they desire or move accounts between these ou's without restriction. Users can create ou's to the full AWS ou structure/depth.
+  - The Accelerator fully supports nested ou's, customers can create any depth ou structure in AWS Organizations and add/remove/change SCP's _below_ the top-level as they desire or move accounts between these ou's without restriction. Users can create ou's to the full AWS ou structure/depth
   - Except for the Quarantine SCP applied to specific accounts, we do not 'control' SCP's below the top level, customers can add/create/customize SCP's
+    - as of v1.3.3 customers can optionally control account level SCP's through the configuration file
 
 ### 1.1.3. How do I make changes to items I defined in the Accelerator configuration file during installation?
 

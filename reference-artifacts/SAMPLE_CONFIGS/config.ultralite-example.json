@@ -4,14 +4,15 @@
       "a": ["${HOME_REGION}"],
       "b": ["${HOME_REGION}", "${GBL_REGION}"],
       "c": ["${HOME_REGION}", "${GBL_REGION}"]
-    }
+    },
+    "alarm-not-ip": "10.10.10.*"
   },
   "global-options": {
     "alz-baseline": false,
     "ct-baseline": false,
     "default-s3-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
-    "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
+    "organization-admin-role": "OrganizationAccountAccessRole",
     "default-cwl-retention": 731,
     "workloadaccounts-suffix": 1,
     "workloadaccounts-prefix": "config",
@@ -337,7 +338,7 @@
           "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
-          "filter-pattern": "{ ($.eventSource=sso.amazonaws.com) && ($.eventName=Authenticate) && ($.sourceIPAddress != 10.10.10.*) }",
+          "filter-pattern": "{ ($.eventSource=sso.amazonaws.com) && ($.eventName=Authenticate) && ($.sourceIPAddress != ${ALARM-NOT-IP}) }",
           "metric-namespace": "CloudTrailMetrics",
           "metric-name": "SSOAuthUnapprovedIPCount",
           "metric-value": "1"
@@ -347,7 +348,7 @@
           "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
-          "filter-pattern": "{ ($.eventName=ConsoleLogin) && ($.userIdentity.type=IAMUser) && ($.sourceIPAddress != 10.10.10.*) }",
+          "filter-pattern": "{ ($.eventName=ConsoleLogin) && ($.userIdentity.type=IAMUser) && ($.sourceIPAddress != ${ALARM-NOT-IP}) }",
           "metric-namespace": "CloudTrailMetrics",
           "metric-name": "IAMAuthUnapprovedIPCount",
           "metric-value": "1"
