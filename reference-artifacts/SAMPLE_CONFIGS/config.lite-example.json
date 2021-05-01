@@ -21,7 +21,7 @@
     "ct-baseline": false,
     "default-s3-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
-    "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
+    "organization-admin-role": "OrganizationAccountAccessRole",
     "default-cwl-retention": 731,
     "workloadaccounts-suffix": 1,
     "workloadaccounts-prefix": "config",
