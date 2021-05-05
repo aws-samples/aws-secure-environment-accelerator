@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
+import * as codebuild from '@aws-cdk/aws-codebuild';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
@@ -15,7 +16,6 @@ import { CreateLandingZoneAccountTask } from './tasks/create-landing-zone-accoun
 import { CreateOrganizationAccountTask } from './tasks/create-organization-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
-import { BuildTask } from './tasks/build-task';
 import { CreateStackTask } from './tasks/create-stack-task';
 import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
 import * as fs from 'fs';
@@ -635,43 +635,61 @@ export namespace InitialSetup {
         resultPath: '$.installerVersion',
       });
 
-      const codeBuildStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}CodeBuild_sm`, {
-        stateMachineName: `${props.acceleratorPrefix}CodeBuild_sm`,
-        definition: new BuildTask(this, 'CodeBuild', {
-          lambdaCode,
-          role: pipelineRole,
-        }),
-      });
-
-      // TODO Move this to a separate state machine, including store output task
       const createDeploymentTask = (phase: number, loadOutputs: boolean = true) => {
-        const environment: { [name: string]: string } = {
-          ACCELERATOR_PHASE: `${phase}`,
-          'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
-          'CONFIG_FILE_PATH.$': '$.configFilePath',
-          'CONFIG_COMMIT_ID.$': '$.configCommitId',
-          'ACCELERATOR_BASELINE.$': '$.baseline',
-          'CONFIG_ROOT_FILE_PATH.$': '$.configRootFilePath',
-          'INSTALLER_VERSION.$': '$.installerVersion',
-          ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
-          ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
-          CONFIG_BRANCH_NAME: props.configBranchName,
-          STACK_OUTPUT_TABLE_NAME: outputsTable.tableName,
-          BOOTSTRAP_STACK_NAME: bootStrapStackName,
-          'SCOPE.$': '$.scope',
-          'MODE.$': '$.mode',
-          'CDK_DEBUG.$': '$.verbose',
+        const environment = {
+          ACCELERATOR_PHASE: { type: codebuild.BuildEnvironmentVariableType.PLAINTEXT, value: `${phase}` },
+          CONFIG_REPOSITORY_NAME: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.configRepositoryName'),
+          },
+          CONFIG_FILE_PATH: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.configFilePath'),
+          },
+          CONFIG_COMMIT_ID: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.configCommitId'),
+          },
+          ACCELERATOR_BASELINE: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.baseline'),
+          },
+          CONFIG_ROOT_FILE_PATH: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.configRootFilePath'),
+          },
+          INSTALLER_VERSION: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.installerVersion'),
+          },
+          ACCELERATOR_PIPELINE_ROLE_NAME: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: pipelineRole.roleName,
+          },
+          ACCELERATOR_STATE_MACHINE_NAME: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: props.stateMachineName,
+          },
+          CONFIG_BRANCH_NAME: { type: codebuild.BuildEnvironmentVariableType.PLAINTEXT, value: props.configBranchName },
+          STACK_OUTPUT_TABLE_NAME: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: outputsTable.tableName,
+          },
+          BOOTSTRAP_STACK_NAME: { type: codebuild.BuildEnvironmentVariableType.PLAINTEXT, value: bootStrapStackName },
+          SCOPE: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.scope'),
+          },
+          MODE: { type: codebuild.BuildEnvironmentVariableType.PLAINTEXT, value: sfn.JsonPath.stringAt('$.mode') },
         };
 
-        const deployTask = new tasks.StepFunctionsStartExecution(this, `Deploy Phase ${phase}`, {
-          stateMachine: codeBuildStateMachine,
+        const deployTask = new tasks.CodeBuildStartBuild(this, `Deploy Phase ${phase}`, {
+          project: project.resource,
           integrationPattern: sfn.IntegrationPattern.RUN_JOB,
-          input: sfn.TaskInput.fromObject({
-            codeBuildProjectName: project.projectName,
-            environment,
-          }),
+          environmentVariablesOverride: environment,
           resultPath: 'DISCARD',
         });
+
         return deployTask;
       };
 

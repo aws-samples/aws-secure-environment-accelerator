@@ -28,7 +28,6 @@ export { handler as getBootstrapOutput } from './get-bootstrap-output';
 // TODO Replace with
 //   export * as codebuild from './codebuild';
 // when babel-loader supports it
-import * as codebuild from './codebuild';
 import * as createAccount from './create-landing-zone-account';
 import * as createOrganizationAccount from './create-organization-account';
 import * as createStack from './create-stack';
@@ -37,7 +36,6 @@ import * as createAdConnector from './create-adconnector';
 import * as deleteDefaultVpcs from './delete-default-vpc';
 import * as createConfigRecorder from './create-config-recorder';
 export {
-  codebuild,
   createAccount,
   createStack,
   createStackSet,

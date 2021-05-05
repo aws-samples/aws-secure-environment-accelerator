@@ -66,7 +66,7 @@ export class CdkDeployProjectBase extends cdk.Construct {
 }
 
 export class CdkDeployProject extends CdkDeployProjectBase {
-  private readonly resource: codebuild.PipelineProject;
+  public readonly resource: codebuild.PipelineProject;
 
   constructor(scope: cdk.Construct, id: string, props: CdkDeployProjectProps) {
     super(scope, id, props);
@@ -115,7 +115,7 @@ export class CdkDeployProject extends CdkDeployProjectBase {
  * project, the dependencies will not have to be installed anymore.
  */
 export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
-  private readonly resource: codebuild.PipelineProject;
+  public readonly resource: codebuild.PipelineProject;
 
   constructor(scope: cdk.Construct, id: string, props: CdkDeployProjectProps) {
     super(scope, id, props);
