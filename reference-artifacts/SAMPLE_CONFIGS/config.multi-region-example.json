@@ -5,19 +5,23 @@
       "b": ["${HOME_REGION}", "${GBL_REGION}"],
       "c": ["${HOME_REGION}", "${GBL_REGION}", "us-east-2", "us-west-1", "us-west-2"]
     },
-    "INFO": "This file will not work in us-east-1 without removing references to GBL_REGION",
-    "INFO1": "If deploying the firewalls, both cidr values below must be supplied",
+    "INFO": "Deploying in us-east-1 requires removing ${GBL_REGION} from the above variables and replacing us-east-1 with a 2nd region on lines 531,5249, and 5299",
+    "INFO1": "If deploying the firewalls, both cidr values below MUST be supplied",
     "cloud-cidr1": "10.0.0.0",
     "cloud-mask1": "255.0.0.0",
     "cloud-cidr2": "100.96.252.0",
-    "cloud-mask2": "255.255.254.0"
+    "cloud-mask2": "255.255.254.0",
+    "range-restrict": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"],
+    "range-mad": "100.96.252.0/23",
+    "range-dev-test": ["0.0.0.0/0"],
+    "alarm-not-ip": "10.10.10.*"
   },
   "global-options": {
     "alz-baseline": false,
     "ct-baseline": false,
     "default-s3-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
-    "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
+    "organization-admin-role": "OrganizationAccountAccessRole",
     "default-cwl-retention": 731,
     "workloadaccounts-suffix": 1,
     "workloadaccounts-prefix": "config",
@@ -54,15 +58,15 @@
       "security-hub-excl-regions": [],
       "security-hub": true,
       "guardduty": true,
-      "guardduty-excl-regions": ["ap-northeast-3"],
+      "guardduty-excl-regions": [],
       "guardduty-s3": true,
-      "guardduty-s3-excl-regions": ["ap-northeast-3"],
+      "guardduty-s3-excl-regions": [],
       "cwl": true,
       "access-analyzer": true,
       "config-excl-regions": [],
       "config-aggr-excl-regions": [],
       "macie": true,
-      "macie-excl-regions": ["ap-northeast-3"],
+      "macie-excl-regions": [],
       "macie-frequency": "FIFTEEN_MINUTES"
     },
     "central-operations-services": {
@@ -369,7 +373,7 @@
           "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
-          "filter-pattern": "{ ($.eventSource=sso.amazonaws.com) && ($.eventName=Authenticate) && ($.sourceIPAddress != 10.10.10.*) }",
+          "filter-pattern": "{ ($.eventSource=sso.amazonaws.com) && ($.eventName=Authenticate) && ($.sourceIPAddress != ${ALARM-NOT-IP}) }",
           "metric-namespace": "CloudTrailMetrics",
           "metric-name": "SSOAuthUnapprovedIPCount",
           "metric-value": "1"
@@ -379,7 +383,7 @@
           "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
-          "filter-pattern": "{ ($.eventName=ConsoleLogin) && ($.userIdentity.type=IAMUser) && ($.sourceIPAddress != 10.10.10.*) }",
+          "filter-pattern": "{ ($.eventName=ConsoleLogin) && ($.userIdentity.type=IAMUser) && ($.sourceIPAddress != ${ALARM-NOT-IP}) }",
           "metric-namespace": "CloudTrailMetrics",
           "metric-name": "IAMAuthUnapprovedIPCount",
           "metric-value": "1"
@@ -1268,7 +1272,7 @@
           "central-resolver-rule-vpc": "Endpoint",
           "log-group-name": "/${ACCELERATOR_PREFIX_ND}/MAD/example.local",
           "share-to-account": "",
-          "restrict_srcips": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"],
+          "restrict_srcips": "${RANGE-RESTRICT}",
           "num-rdgw-hosts": 1,
           "min-rdgw-hosts": 1,
           "max-rdgw-hosts": 2,
@@ -1313,7 +1317,7 @@
                 {
                   "description": "Allow RDP Traffic Inbound",
                   "type": ["RDP"],
-                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+                  "source": "${RANGE-RESTRICT}"
                 }
               ],
               "outbound-rules": [
@@ -1339,7 +1343,7 @@
                   "description": "Allow Traffic Inbound",
                   "tcp-ports": [514],
                   "udp-ports": [514],
-                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+                  "source": "${RANGE-RESTRICT}"
                 }
               ],
               "outbound-rules": [
@@ -1598,7 +1602,7 @@
           "deploy": "local",
           "name": "Perimeter",
           "cidr": "10.7.4.0/22",
-          "cidr2": "100.96.250.0/23",
+          "cidr2": ["100.96.250.0/23"],
           "region": "${HOME_REGION}",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
@@ -1792,7 +1796,7 @@
                 {
                   "description": "TLS Traffic Inbound",
                   "type": ["HTTPS"],
-                  "source": ["0.0.0.0/0"]
+                  "source": "${RANGE-DEV-TEST}"
                 }
               ],
               "outbound-rules": [
@@ -1810,7 +1814,7 @@
                   "description": "Allow Mgmt Traffic Inbound",
                   "tcp-ports": [22, 443, 514, 541, 2032, 3000, 5199, 6020, 6028, 8080],
                   "udp-ports": [9443],
-                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+                  "source": "${RANGE-RESTRICT}"
                 }
               ],
               "outbound-rules": [
@@ -1832,7 +1836,7 @@
                 {
                   "description": "Mgmt Traffic, Customer Outbound traffic and ALBs",
                   "type": ["ALL"],
-                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+                  "source": "${RANGE-RESTRICT}"
                 }
               ],
               "outbound-rules": [
@@ -2049,7 +2053,7 @@
           "subnet": "ForSSO",
           "azs": ["a", "b"],
           "size": "Small",
-          "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"],
+          "restrict_srcips": ["10.249.1.0/24", "${RANGE-MAD}"],
           "connect-account-key": "operations",
           "connect-dir-id": 1001
         }
@@ -2488,7 +2492,7 @@
           "deploy": "shared-network",
           "name": "Central",
           "cidr": "10.1.0.0/16",
-          "cidr2": "100.96.252.0/23",
+          "cidr2": ["100.96.252.0/23"],
           "region": "${HOME_REGION}",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
@@ -2670,17 +2674,17 @@
                 {
                   "az": "a",
                   "route-table": "CentralVPC_GCWide",
-                  "cidr2": "100.96.252.0/25"
+                  "cidr": "100.96.252.0/25"
                 },
                 {
                   "az": "b",
                   "route-table": "CentralVPC_GCWide",
-                  "cidr2": "100.96.252.128/25"
+                  "cidr": "100.96.252.128/25"
                 },
                 {
                   "az": "d",
                   "route-table": "CentralVPC_GCWide",
-                  "cidr2": "100.96.253.0/25",
+                  "cidr": "100.96.253.0/25",
                   "disabled": false
                 }
               ]
@@ -2738,7 +2742,7 @@
                 {
                   "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+                  "source": "${RANGE-RESTRICT}"
                 }
               ],
               "outbound-rules": [
@@ -3227,7 +3231,7 @@
                 {
                   "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+                  "source": "${RANGE-RESTRICT}"
                 },
                 {
                   "description": "Central VPC Traffic Inbound",
@@ -3756,7 +3760,7 @@
                 {
                   "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+                  "source": "${RANGE-RESTRICT}"
                 },
                 {
                   "description": "Central VPC Traffic Inbound",
@@ -4285,7 +4289,7 @@
                 {
                   "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+                  "source": "${RANGE-RESTRICT}"
                 },
                 {
                   "description": "Central VPC Traffic Inbound",
@@ -4781,7 +4785,7 @@
                 {
                   "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+                  "source": "${RANGE-RESTRICT}"
                 },
                 {
                   "description": "Central VPC Traffic Inbound",
@@ -5533,7 +5537,7 @@
                 {
                   "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+                  "source": "${RANGE-RESTRICT}"
                 }
               ],
               "outbound-rules": [

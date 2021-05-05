@@ -231,7 +231,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 8. Add an `Email` address to be used for State Machine Status notification
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.3.2`, case sensitive
+   - the latest stable branch is currently `release/v1.3.3`, case sensitive
 10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
@@ -330,7 +330,7 @@ Issues in Older Releases:
 - Upgrades to `v1.2.6 and above` from `v1.2.5 and below` - Ensure you apply the config file changes described in the release notes:
   - Cut-paste the new `"replacements": {},` section at the top of the example config file into your config file, as-is
     - Enables customers to leverage the repo provided SCP's without customization, simplifying upgrades, while allowing SCP region customization
-    - the cloud-cidrX/cloud-maskX variables are examples of customer provided values that can be used to consistently auto-replace values throughout config files, these 4 specific variables are required for the firewalls to successfully deploy
+    - the cloud-cidrX/cloud-maskX variables are examples of customer provided values that can be used to consistently auto-replace values throughout config files, these 4 specific variables are ***all*** required for the firewalls to successfully deploy
   - The new ${variable} are auto-replaced across your config files, SCP's and firewall config files.
     - as the variables should resolve to their existing values, you can leave your config file using hardcoded region and Accelerator prefix naming, or you can update them to make subsequent file comparisons easier for future upgrades. These are most useful for new installations in non ca-central-1 regions
   - Some repo provide filenames have changed, where they are referenced within the config file, you must update them to their new filenames

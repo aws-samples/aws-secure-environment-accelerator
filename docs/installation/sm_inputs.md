@@ -45,6 +45,26 @@ Providing any one or more of the following flags will only override the specifie
  }
 ```
 
+## 1.4. Generate verbose logging ithin state machine
+
+- Added "verbose": "1" state machine input options
+- parameter is optional
+- parameter defaults to 0
+
+```
+{"scope":"FULL", "mode":"APPLY", "verbose":"1"}
+```
+
+## 1.5. ADDITIONAL MANDATORY STATE MACHINE INPUT FUNCTIONALITY
+
+See [NEW: State Machine Behavior](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/installation/customization-index.md#2-new-state-machine-behavior).
+
+- {"scope":"FULL", "mode":"APPLY"}
+- {"scope":"NEW-ACCOUNTS", "mode":"APPLY"}
+- {"scope":"GLOBAL-OPTIONS", "mode":"APPLY"}
+- {"scope":"OU", "targetOUs":[X], "mode":"APPLY"}
+- {"scope":"ACCOUNT", "targetAccounts":[X], "mode":"APPLY"}
+
 ---
 
 [...Return to Accelerator Table of Contents](../index.md)
