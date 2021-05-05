@@ -858,7 +858,7 @@ export const GlobalOptionsConfigType = t.interface({
   'ssm-automation': defaulted(t.array(SsmAutomation), []),
   'aws-config': optional(AwsConfig),
   'default-ssm-documents': defaulted(t.array(t.string), []),
-  'endpoint-port-orverides': optional(t.record(t.string, t.array(t.string))),
+  'endpoint-port-overrides': optional(t.record(t.string, t.array(t.string))),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;

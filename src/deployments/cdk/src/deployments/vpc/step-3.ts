@@ -31,7 +31,7 @@ export async function step3(props: VpcStep3Props) {
   const allStaticResources = StaticResourcesOutputFinder.findAll({
     outputs,
   }).filter(sr => sr.resourceType === RESOURCE_TYPE);
-  const portOverrides = config['global-options']['endpoint-port-orverides'];
+  const portOverrides = config['global-options']['endpoint-port-overrides'];
 
   const accountStaticResourcesConfig: { [accountKey: string]: StaticResourcesOutput[] } = {};
   const accountRegionExistingResources: {
