@@ -1072,6 +1072,7 @@
           "region": "${HOME_REGION}",
           "subnet": "GCWide",
           "size": "Enterprise",
+          "image-path": "/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base",
           "dns-domain": "example.local",
           "netbios-domain": "example",
           "central-resolver-rule-account": "shared-network",

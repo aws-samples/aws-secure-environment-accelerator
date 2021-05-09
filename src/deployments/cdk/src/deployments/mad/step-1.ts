@@ -9,7 +9,6 @@ import { StructuredOutput } from '../../common/structured-output';
 import { MadAutoScalingRoleOutput, MadAutoScalingRoleOutputType, CfnMadImageIdOutputTypeOutput } from './outputs';
 import { AccountRegionEbsEncryptionKeys } from '../defaults';
 
-const imageIdPath = '/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base';
 
 export interface MadStep1Props {
   acceleratorName: string;
@@ -93,13 +92,13 @@ export async function step1(props: MadStep1Props) {
 
     const imageId = ssm.StringParameter.valueForTypedStringParameter(
       accountStack,
-      imageIdPath,
+      madConfig['image-path'],
       ssm.ParameterType.AWS_EC2_IMAGE_ID,
     );
 
     new CfnMadImageIdOutputTypeOutput(accountStack, 'MadImageIdOutput', {
       imageId,
-      imagePath: imageIdPath,
+      imagePath: madConfig['image-path'],
       imageKey: 'MadAutoScalingImageId',
     });
   }

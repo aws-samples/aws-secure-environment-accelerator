@@ -360,6 +360,7 @@ export const MadConfigType = t.interface({
   subnet: t.string,
   azs: defaulted(t.array(t.string), []),
   size: t.string,
+  'image-path': t.string,
   'dns-domain': t.string,
   'netbios-domain': t.string,
   'central-resolver-rule-account': t.string,
