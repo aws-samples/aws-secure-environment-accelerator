@@ -32,8 +32,8 @@ import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-
 import * as vpcDeployment from '../deployments/vpc';
 import * as transitGateway from '../deployments/transit-gateway';
 import * as centralEndpoints from '../deployments/central-endpoints';
-import { CfnResourceStackCleanupOutput } from '../deployments/cleanup/outputs';
 import { VpcOutputFinder, VpcSubnetOutput } from '@aws-accelerator/common-outputs/src/vpc';
+import { loadAssignedVpcCidrPool, loadAssignedSubnetCidrPool } from '@aws-accelerator/common/src/util/common';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -70,11 +70,9 @@ export interface IamPolicyArtifactsOutput {
  * - Create LogGroup required for DNS Logging
  */
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, limiter, outputs }: PhaseInput) {
-  const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
-  const orgUnits = acceleratorConfig.getOrganizationalUnits();
-  const workLoadAccountConfig = acceleratorConfig.getWorkloadAccountConfigs();
+  const assignedVpcCidrPools = await loadAssignedVpcCidrPool(context.vpcCidrPoolAssignedTable);
+  const assignedSubnetCidrPools = await loadAssignedSubnetCidrPool(context.subnetCidrPoolAssignedTable);
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
-  const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
   const iamConfigs = acceleratorConfig.getIamConfigs();
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   if (!masterAccountId) {
@@ -175,7 +173,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       region: props.vpcConfig.region,
       vpcId: vpc.vpcId,
       vpcName: props.vpcConfig.name,
-      cidrBlock: props.vpcConfig.cidr.toCidrString(),
+      cidrBlock: vpc.cidrBlock,
       additionalCidrBlocks: vpc.additionalCidrBlocks,
       subnets,
       routeTables: vpc.routeTableNameToIdMap,
@@ -230,6 +228,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       acceleratorName,
       installerVersion,
       vpcOutput,
+      vpcPools: assignedVpcCidrPools,
+      subnetPools: assignedSubnetCidrPools,
     });
 
     const pcxConfig = vpcConfig.pcx;
@@ -261,16 +261,17 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       subscriptionCheckDone.push(accountKey);
     }
 
-    // Creates resolver query logging and associate to the VPC
-    await vpcDeployment.step4({
-      accountKey,
-      accountStacks,
-      acceleratorPrefix: context.acceleratorPrefix,
-      outputs,
-      vpcConfig,
-      vpcId: vpc!.id,
-    });
-
+    if (vpc) {
+      // Creates resolver query logging and associate to the VPC
+      await vpcDeployment.step4({
+        accountKey,
+        accountStacks,
+        acceleratorPrefix: context.acceleratorPrefix,
+        outputs,
+        vpcConfig,
+        vpcId: vpc.id,
+      });
+    }
     // Create DNS Query Logging Log Group
     if (vpcConfig.zones && vpcConfig.zones.public.length > 0) {
       if (!dnsLogGroupsAccountAndRegion[accountKey]) {

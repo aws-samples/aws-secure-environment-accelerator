@@ -42,6 +42,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       email: 'test+pbmm@amazon.com',
       ou: 'core',
       type: 'primary',
+      inScope: true,
     },
     {
       key: 'log-archive',
@@ -51,6 +52,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       email: 'test+pbmm-lz-logs@amazon.com',
       ou: 'core',
       type: 'log-archive',
+      inScope: true,
     },
     {
       key: 'security',
@@ -60,6 +62,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       email: 'test+pbmm-lz-security@amazon.com',
       ou: 'core',
       type: 'security',
+      inScope: true,
     },
     {
       key: 'operations',
@@ -68,6 +71,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       name: 'test-operations',
       email: 'test+pbmm-lz-operations@amazon.com',
       ou: 'core',
+      inScope: true,
     },
     {
       key: 'shared-network',
@@ -76,6 +80,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       name: 'test-shared-network',
       email: 'test+pbmm-lz-shared-network@amazon.com',
       ou: 'core',
+      inScope: true,
     },
     {
       key: 'shared-services',
@@ -84,6 +89,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       name: 'test-shared-services',
       email: 'test+pbmm-lz-shared-services@amazon.com',
       ou: 'core',
+      inScope: true,
     },
     {
       key: 'perimeter',
@@ -92,6 +98,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       name: 'test-perimeter',
       email: 'test+pbmm-lz-perimeter@amazon.com',
       ou: 'core',
+      inScope: true,
     },
     {
       key: 'fun-acct',
@@ -100,6 +107,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       name: 'test-fun-act',
       email: 'test+pbmm-fun-act@amazon.com',
       ou: 'core',
+      inScope: true,
     },
     {
       key: 'mydevacct1',
@@ -108,6 +116,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       name: 'test-mydevacct1',
       email: 'test+pbmm-mydevacct1@amazon.com',
       ou: 'core',
+      inScope: true,
     },
   ];
 
@@ -132,6 +141,9 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     installerVersion: '0.0.0',
     centralOperationsAccount: 'operations',
     masterAccount: 'master',
+    cidrPoolTable: 'cidr-pool',
+    subnetCidrPoolAssignedTable: 'cidr-subnet-assign',
+    vpcCidrPoolAssignedTable: 'cidr-vpc-assign',
   };
 
   const limiter = new Limiter([]);

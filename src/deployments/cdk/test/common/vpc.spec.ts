@@ -25,6 +25,9 @@ const testStacks = new AccountStacks({
     defaultRegion: 'test',
     configRootFilePath: 'config.json',
     installerVersion: '0.0.0',
+    cidrPoolTable: 'cidr-pool',
+    subnetCidrPoolAssignedTable: 'cidr-subnet-assign',
+    vpcCidrPoolAssignedTable: 'cidr-vpc-assign',
   },
 });
 
@@ -33,8 +36,17 @@ test('the VPC creation should create the correct amount of subnets', () => {
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
-    cidr: '10.2.0.0/16',
-    cidr2: ['10.3.0.0/16', '10.4.0.0/16'],
+    cidr: [
+      {
+        value: '10.2.0.0/16',
+      },
+      {
+        value: '10.3.0.0/16',
+      },
+      {
+        value: '10.4.0.0/16',
+      },
+    ],
     region: 'ca-central-1',
     deploy: 'local',
     igw: false,
@@ -51,17 +63,23 @@ test('the VPC creation should create the correct amount of subnets', () => {
           {
             az: 'a',
             'route-table': 'DevVPC_Common',
-            cidr: '10.2.88.0/27',
+            cidr: {
+              value: '10.2.88.0/27',
+            },
           },
           {
             az: 'b',
             'route-table': 'DevVPC_Common',
-            cidr: '10.2.88.32/27',
+            cidr: {
+              value: '10.2.88.32/27',
+            },
           },
           {
             az: 'd',
             'route-table': 'DevVPC_Common',
-            cidr: '10.2.88.64/27',
+            cidr: {
+              value: '10.2.88.64/27',
+            },
             disabled: true,
           },
         ],
@@ -73,17 +91,21 @@ test('the VPC creation should create the correct amount of subnets', () => {
           {
             az: 'a',
             'route-table': 'DevVPC_Common',
-            cidr: '10.2.32.0/20',
+            cidr: {
+              value: '10.2.32.0/20',
+            },
           },
           {
             az: 'b',
             'route-table': 'DevVPC_Common',
-            cidr: '10.2.128.0/20',
+            cidr: {
+              value: '10.2.128.0/20',
+            },
           },
           {
             az: 'd',
             'route-table': 'DevVPC_Common',
-            cidr: '10.2.192.0/20',
+            cidr: { value: '10.2.192.0/20' },
             disabled: true,
           },
         ],
@@ -95,17 +117,17 @@ test('the VPC creation should create the correct amount of subnets', () => {
           {
             az: 'a',
             'route-table': 'DevVPC_Common',
-            cidr: '10.3.32.0/20',
+            cidr: { value: '10.3.32.0/20' },
           },
           {
             az: 'b',
             'route-table': 'DevVPC_Common',
-            cidr: '10.3.128.0/20',
+            cidr: { value: '10.3.128.0/20' },
           },
           {
             az: 'd',
             'route-table': 'DevVPC_Common',
-            cidr: '10.3.192.0/20',
+            cidr: { value: '10.3.192.0/20' },
             disabled: true,
           },
         ],
@@ -143,6 +165,8 @@ test('the VPC creation should create the correct amount of subnets', () => {
     outputs: [],
     acceleratorName: 'test',
     installerVersion: '0.0.0',
+    subnetPools: [],
+    vpcPools: [],
   });
 
   // Convert the stack to a CloudFormation template
@@ -232,7 +256,7 @@ test('the VPC creation should throw an error when a subnet uses a route table th
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
-    cidr: '10.2.0.0/16',
+    cidr: [{ value: '10.2.0.0/16' }],
     region: 'ca-central-1',
     deploy: 'local',
     igw: false,
@@ -248,7 +272,7 @@ test('the VPC creation should throw an error when a subnet uses a route table th
           {
             az: 'a',
             'route-table': 'DevVPC_Common',
-            cidr: '10.2.88.0/27',
+            cidr: { value: '10.2.88.0/27' },
           },
         ],
       },
@@ -264,6 +288,8 @@ test('the VPC creation should throw an error when a subnet uses a route table th
       outputs: [],
       acceleratorName: 'test',
       installerVersion: '0.0.0',
+      subnetPools: [],
+      vpcPools: [],
     });
   });
 });
@@ -273,7 +299,7 @@ test('the VPC creation should create the internet gateway', () => {
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
-    cidr: '10.2.0.0/16',
+    cidr: [{ value: '10.2.0.0/16' }],
     region: 'ca-central-1',
     deploy: 'local',
     igw: true,
@@ -292,6 +318,8 @@ test('the VPC creation should create the internet gateway', () => {
     outputs: [],
     acceleratorName: 'test',
     installerVersion: '0.0.0',
+    subnetPools: [],
+    vpcPools: [],
   });
 
   // Convert the stack to a CloudFormation template
@@ -309,7 +337,7 @@ test('the VPC creation should create the VPN gateway', () => {
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
-    cidr: '10.2.0.0/16',
+    cidr: [{ value: '10.2.0.0/16' }],
     region: 'ca-central-1',
     deploy: 'local',
     igw: false,
@@ -328,6 +356,8 @@ test('the VPC creation should create the VPN gateway', () => {
     outputs: [],
     acceleratorName: 'test',
     installerVersion: '0.0.0',
+    subnetPools: [],
+    vpcPools: [],
   });
 
   // Convert the stack to a CloudFormation template
@@ -372,7 +402,7 @@ test('the VPC creation should create the NAT gateway', () => {
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
-    cidr: '10.2.0.0/16',
+    cidr: [{ value: '10.2.0.0/16' }],
     region: 'ca-central-1',
     deploy: 'local',
     igw: true,
@@ -394,12 +424,12 @@ test('the VPC creation should create the NAT gateway', () => {
           {
             az: 'a',
             'route-table': 'Private',
-            cidr: '10.2.88.0/27',
+            cidr: { value: '10.2.88.0/27' },
           },
           {
             az: 'b',
             'route-table': 'Private',
-            cidr: '10.2.88.32/27',
+            cidr: { value: '10.2.88.32/27' },
           },
         ],
       },
@@ -410,12 +440,12 @@ test('the VPC creation should create the NAT gateway', () => {
           {
             az: 'a',
             'route-table': 'Public',
-            cidr: '10.2.32.0/20',
+            cidr: { value: '10.2.32.0/20' },
           },
           {
             az: 'b',
             'route-table': 'Public',
-            cidr: '10.2.128.0/20',
+            cidr: { value: '10.2.128.0/20' },
           },
         ],
       },
@@ -453,6 +483,8 @@ test('the VPC creation should create the NAT gateway', () => {
     outputs: [],
     acceleratorName: 'test',
     installerVersion: '0.0.0',
+    subnetPools: [],
+    vpcPools: [],
   });
 
   // Convert the stack to a CloudFormation template

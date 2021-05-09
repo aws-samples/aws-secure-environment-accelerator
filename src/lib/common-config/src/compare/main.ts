@@ -1,7 +1,9 @@
 import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
-import { config } from 'aws-sdk';
+import { AcceleratorConfig } from '..';
 import { compareConfiguration, Diff, getAccountNames } from './config-diff';
 import * as validate from './validate';
+import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+
 /**
  * Retrieve and compare previous and the current configuration from CodeCommit
  */
@@ -13,6 +15,9 @@ export async function compareAcceleratorConfig(props: {
   region: string;
   overrideConfig: { [name: string]: boolean };
   scope: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
+  vpcCidrPoolAssignedTable: string;
+  subnetCidrPoolAssignedTable: string;
+  outputs: StackOutput[];
   targetAccounts?: string[];
   targetOus?: string[];
 }): Promise<string[]> {
@@ -26,6 +31,9 @@ export async function compareAcceleratorConfig(props: {
     scope,
     targetAccounts,
     targetOus,
+    subnetCidrPoolAssignedTable,
+    vpcCidrPoolAssignedTable,
+    outputs,
   } = props;
 
   const codeCommit = new CodeCommit();
@@ -48,6 +56,17 @@ export async function compareAcceleratorConfig(props: {
   const configChanges = compareConfiguration(previousConfig, modifiedConfig);
   if (!configChanges) {
     console.log('no differences found');
+    // Validate DDB Pool entries changes
+    if (!overrideConfig['ov-cidr']) {
+      const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
+      await validate.validateDDBChanges(
+        acceleratorConfig,
+        vpcCidrPoolAssignedTable,
+        subnetCidrPoolAssignedTable,
+        outputs,
+        errors,
+      );
+    }
     return errors;
   }
 
@@ -118,6 +137,19 @@ export async function compareAcceleratorConfig(props: {
 
   if (!overrideConfig['ov-nacl']) {
     await validate.validateNacls(configChanges, errors);
+  }
+
+  // Validate DDB Pool entries changes
+  if (!overrideConfig['ov-cidr']) {
+    console.log(`Validating Cidr Changes`);
+    const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
+    await validate.validateDDBChanges(
+      acceleratorConfig,
+      vpcCidrPoolAssignedTable,
+      subnetCidrPoolAssignedTable,
+      outputs,
+      errors,
+    );
   }
 
   return errors;

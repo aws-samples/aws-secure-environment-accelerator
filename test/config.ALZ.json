@@ -574,7 +574,11 @@
         {
           "deploy": "local",
           "name": "Endpoint",
-          "cidr": "10.7.0.0/22",
+          "cidr": [
+            {
+              "value": "10.7.0.0/22"
+            }
+          ],
           "region": "ca-central-1",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
@@ -590,12 +594,16 @@
                 {
                   "az": "a",
                   "route-table": "EndpointVPC_Common",
-                  "cidr": "10.7.0.0/24"
+                  "cidr": {
+                    "value": "10.7.0.0/24"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "EndpointVPC_Common",
-                  "cidr": "10.7.1.0/24"
+                  "cidr": {
+                    "value": "10.7.1.0/24"
+                  }
                 }
               ]
             }
@@ -1118,8 +1126,14 @@
         {
           "deploy": "local",
           "name": "Perimeter",
-          "cidr": "10.7.4.0/22",
-          "cidr2": ["100.96.250.0/23"],
+          "cidr": [
+            {
+              "value": "10.7.4.0/22"
+            },
+            {
+              "value": "100.96.250.0/23"
+            }
+          ],
           "region": "ca-central-1",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
@@ -1135,12 +1149,16 @@
                 {
                   "az": "a",
                   "route-table": "Public_Shared",
-                  "cidr": "100.96.250.0/26"
+                  "cidr": {
+                    "value": "100.96.250.0/26"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "Public_Shared",
-                  "cidr": "100.96.250.128/26"
+                  "cidr": {
+                    "value": "100.96.250.128/26"
+                  }
                 }
               ]
             },
@@ -1150,12 +1168,16 @@
                 {
                   "az": "a",
                   "route-table": "FWMgmt_azA",
-                  "cidr": "100.96.251.32/27"
+                  "cidr": {
+                    "value": "100.96.251.32/27"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "FWMgmt_azB",
-                  "cidr": "100.96.251.160/27"
+                  "cidr": {
+                    "value": "100.96.251.160/27"
+                  }
                 }
               ]
             },
@@ -1165,12 +1187,16 @@
                 {
                   "az": "a",
                   "route-table": "Proxy_azA",
-                  "cidr": "100.96.251.64/26"
+                  "cidr": {
+                    "value": "100.96.251.64/26"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "Proxy_azB",
-                  "cidr": "100.96.251.192/26"
+                  "cidr": {
+                    "value": "100.96.251.192/26"
+                  }
                 }
               ]
             },
@@ -1180,12 +1206,16 @@
                 {
                   "az": "a",
                   "route-table": "OnPremise_Shared",
-                  "cidr": "100.96.250.64/26"
+                  "cidr": {
+                    "value": "100.96.250.64/26"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "OnPremise_Shared",
-                  "cidr": "100.96.250.192/26"
+                  "cidr": {
+                    "value": "100.96.250.192/26"
+                  }
                 }
               ]
             },
@@ -1195,12 +1225,16 @@
                 {
                   "az": "a",
                   "route-table": "Detonation_Shared",
-                  "cidr": "10.7.4.0/24"
+                  "cidr": {
+                    "value": "10.7.4.0/24"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "Detonation_Shared",
-                  "cidr": "10.7.5.0/24"
+                  "cidr": {
+                    "value": "10.7.5.0/24"
+                  }
                 }
               ]
             }
@@ -1503,7 +1537,11 @@
         {
           "deploy": "local",
           "name": "ForSSO",
-          "cidr": "10.249.1.0/24",
+          "cidr": [
+            {
+              "value": "10.249.1.0/24"
+            }
+          ],
           "region": "ca-central-1",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
@@ -1519,12 +1557,16 @@
                 {
                   "az": "a",
                   "route-table": "ForSSO_Shared",
-                  "cidr": "10.249.1.0/27"
+                  "cidr": {
+                    "value": "10.249.1.0/27"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "ForSSO_Shared",
-                  "cidr": "10.249.1.32/27"
+                  "cidr": {
+                    "value": "10.249.1.32/27"
+                  }
                 }
               ]
             }
@@ -1680,8 +1722,14 @@
         {
           "deploy": "shared-network",
           "name": "Central",
-          "cidr": "10.1.0.0/16",
-          "cidr2": ["100.96.252.0/23"],
+          "cidr": [
+            {
+              "value": "10.1.0.0/16"
+            },
+            {
+              "value": "100.96.252.0/23"
+            }
+          ],
           "region": "ca-central-1",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
@@ -1704,17 +1752,23 @@
                 {
                   "az": "a",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.88.0/27"
+                  "cidr": {
+                    "value": "10.1.88.0/27"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.88.32/27"
+                  "cidr": {
+                    "value": "10.1.88.32/27"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.88.64/27",
+                  "cidr": {
+                    "value": "10.1.88.64/27"
+                  },
                   "disabled": true
                 }
               ]
@@ -1727,17 +1781,23 @@
                 {
                   "az": "a",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.32.0/20"
+                  "cidr": {
+                    "value": "10.1.32.0/20"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.128.0/20"
+                  "cidr": {
+                    "value": "10.1.128.0/20"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.192.0/20",
+                  "cidr": {
+                    "value": "10.1.192.0/20"
+                  },
                   "disabled": true
                 }
               ]
@@ -1750,17 +1810,23 @@
                 {
                   "az": "a",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.0.0/19"
+                  "cidr": {
+                    "value": "10.1.0.0/19"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.96.0/19"
+                  "cidr": {
+                    "value": "10.1.96.0/19"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.160.0/19",
+                  "cidr": {
+                    "value": "10.1.160.0/19"
+                  },
                   "disabled": true
                 }
               ]
@@ -1773,17 +1839,23 @@
                 {
                   "az": "a",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.48.0/20"
+                  "cidr": {
+                    "value": "10.1.48.0/20"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.144.0/20"
+                  "cidr": {
+                    "value": "10.1.144.0/20"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.208.0/20",
+                  "cidr": {
+                    "value": "10.1.208.0/20"
+                  },
                   "disabled": true
                 }
               ],
@@ -1840,17 +1912,23 @@
                 {
                   "az": "a",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.64.0/21"
+                  "cidr": {
+                    "value": "10.1.64.0/21"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.72.0/21"
+                  "cidr": {
+                    "value": "10.1.72.0/21"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.80.0/21",
+                  "cidr": {
+                    "value": "10.1.80.0/21"
+                  },
                   "disabled": true
                 }
               ]
@@ -1863,17 +1941,23 @@
                 {
                   "az": "a",
                   "route-table": "CentralVPC_GCWide",
-                  "cidr": "100.96.252.0/25"
+                  "cidr": {
+                    "value": "100.96.252.0/25"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "CentralVPC_GCWide",
-                  "cidr": "100.96.252.128/25"
+                  "cidr": {
+                    "value": "100.96.252.128/25"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "CentralVPC_GCWide",
-                  "cidr": "100.96.253.0/25",
+                  "cidr": {
+                    "value": "100.96.253.0/25"
+                  },
                   "disabled": true
                 }
               ]
@@ -2159,7 +2243,11 @@
         {
           "deploy": "shared-network",
           "name": "Dev",
-          "cidr": "10.2.0.0/16",
+          "cidr": [
+            {
+              "value": "10.2.0.0/16"
+            }
+          ],
           "region": "ca-central-1",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
@@ -2177,17 +2265,23 @@
                 {
                   "az": "a",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.88.0/27"
+                  "cidr": {
+                    "value": "10.2.88.0/27"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.88.32/27"
+                  "cidr": {
+                    "value": "10.2.88.32/27"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.88.64/27",
+                  "cidr": {
+                    "value": "10.2.88.64/27"
+                  },
                   "disabled": true
                 }
               ]
@@ -2200,17 +2294,23 @@
                 {
                   "az": "a",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.32.0/20"
+                  "cidr": {
+                    "value": "10.2.32.0/20"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.128.0/20"
+                  "cidr": {
+                    "value": "10.2.128.0/20"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.192.0/20",
+                  "cidr": {
+                    "value": "10.2.192.0/20"
+                  },
                   "disabled": true
                 }
               ]
@@ -2223,17 +2323,23 @@
                 {
                   "az": "a",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.0.0/19"
+                  "cidr": {
+                    "value": "10.2.0.0/19"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.96.0/19"
+                  "cidr": {
+                    "value": "10.2.96.0/19"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.160.0/19",
+                  "cidr": {
+                    "value": "10.2.160.0/19"
+                  },
                   "disabled": true
                 }
               ]
@@ -2246,17 +2352,23 @@
                 {
                   "az": "a",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.48.0/20"
+                  "cidr": {
+                    "value": "10.2.48.0/20"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.144.0/20"
+                  "cidr": {
+                    "value": "10.2.144.0/20"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.208.0/20",
+                  "cidr": {
+                    "value": "10.2.208.0/20"
+                  },
                   "disabled": true
                 }
               ],
@@ -2321,17 +2433,23 @@
                 {
                   "az": "a",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.64.0/21"
+                  "cidr": {
+                    "value": "10.2.64.0/21"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.72.0/21"
+                  "cidr": {
+                    "value": "10.2.72.0/21"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "DevVPC_Common",
-                  "cidr": "10.2.80.0/21",
+                  "cidr": {
+                    "value": "10.2.80.0/21"
+                  },
                   "disabled": true
                 }
               ]
@@ -2632,7 +2750,11 @@
         {
           "deploy": "shared-network",
           "name": "Test",
-          "cidr": "10.3.0.0/16",
+          "cidr": [
+            {
+              "value": "10.3.0.0/16"
+            }
+          ],
           "region": "ca-central-1",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
@@ -2650,17 +2772,23 @@
                 {
                   "az": "a",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.88.0/27"
+                  "cidr": {
+                    "value": "10.3.88.0/27"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.88.32/27"
+                  "cidr": {
+                    "value": "10.3.88.32/27"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.88.64/27",
+                  "cidr": {
+                    "value": "10.3.88.64/27"
+                  },
                   "disabled": true
                 }
               ]
@@ -2673,17 +2801,23 @@
                 {
                   "az": "a",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.32.0/20"
+                  "cidr": {
+                    "value": "10.3.32.0/20"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.128.0/20"
+                  "cidr": {
+                    "value": "10.3.128.0/20"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.192.0/20",
+                  "cidr": {
+                    "value": "10.3.192.0/20"
+                  },
                   "disabled": true
                 }
               ]
@@ -2696,17 +2830,23 @@
                 {
                   "az": "a",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.0.0/19"
+                  "cidr": {
+                    "value": "10.3.0.0/19"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.96.0/19"
+                  "cidr": {
+                    "value": "10.3.96.0/19"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.160.0/19",
+                  "cidr": {
+                    "value": "10.3.160.0/19"
+                  },
                   "disabled": true
                 }
               ]
@@ -2719,17 +2859,23 @@
                 {
                   "az": "a",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.48.0/20"
+                  "cidr": {
+                    "value": "10.3.48.0/20"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.144.0/20"
+                  "cidr": {
+                    "value": "10.3.144.0/20"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.208.0/20",
+                  "cidr": {
+                    "value": "10.3.208.0/20"
+                  },
                   "disabled": true
                 }
               ],
@@ -2794,17 +2940,23 @@
                 {
                   "az": "a",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.64.0/21"
+                  "cidr": {
+                    "value": "10.3.64.0/21"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.72.0/21"
+                  "cidr": {
+                    "value": "10.3.72.0/21"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "TestVPC_Common",
-                  "cidr": "10.3.80.0/21",
+                  "cidr": {
+                    "value": "10.3.80.0/21"
+                  },
                   "disabled": true
                 }
               ]
@@ -3105,7 +3257,11 @@
         {
           "deploy": "shared-network",
           "name": "Prod",
-          "cidr": "10.4.0.0/16",
+          "cidr": [
+            {
+              "value": "10.4.0.0/16"
+            }
+          ],
           "region": "ca-central-1",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
@@ -3123,17 +3279,23 @@
                 {
                   "az": "a",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.88.0/27"
+                  "cidr": {
+                    "value": "10.4.88.0/27"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.88.32/27"
+                  "cidr": {
+                    "value": "10.4.88.32/27"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.88.64/27",
+                  "cidr": {
+                    "value": "10.4.88.64/27"
+                  },
                   "disabled": true
                 }
               ]
@@ -3146,17 +3308,23 @@
                 {
                   "az": "a",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.32.0/20"
+                  "cidr": {
+                    "value": "10.4.32.0/20"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.128.0/20"
+                  "cidr": {
+                    "value": "10.4.128.0/20"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.192.0/20",
+                  "cidr": {
+                    "value": "10.4.192.0/20"
+                  },
                   "disabled": true
                 }
               ]
@@ -3169,17 +3337,23 @@
                 {
                   "az": "a",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.0.0/19"
+                  "cidr": {
+                    "value": "10.4.0.0/19"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.96.0/19"
+                  "cidr": {
+                    "value": "10.4.96.0/19"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.160.0/19",
+                  "cidr": {
+                    "value": "10.4.160.0/19"
+                  },
                   "disabled": true
                 }
               ]
@@ -3192,17 +3366,23 @@
                 {
                   "az": "a",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.48.0/20"
+                  "cidr": {
+                    "value": "10.4.48.0/20"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.144.0/20"
+                  "cidr": {
+                    "value": "10.4.144.0/20"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.208.0/20",
+                  "cidr": {
+                    "value": "10.4.208.0/20"
+                  },
                   "disabled": true
                 }
               ],
@@ -3267,17 +3447,23 @@
                 {
                   "az": "a",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.64.0/21"
+                  "cidr": {
+                    "value": "10.4.64.0/21"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.72.0/21"
+                  "cidr": {
+                    "value": "10.4.72.0/21"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "ProdVPC_Common",
-                  "cidr": "10.4.80.0/21",
+                  "cidr": {
+                    "value": "10.4.80.0/21"
+                  },
                   "disabled": true
                 }
               ]
@@ -3545,7 +3731,11 @@
         {
           "deploy": "shared-network",
           "name": "UnClass",
-          "cidr": "10.5.0.0/16",
+          "cidr": [
+            {
+              "value": "10.5.0.0/16"
+            }
+          ],
           "region": "ca-central-1",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
@@ -3563,17 +3753,23 @@
                 {
                   "az": "a",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.88.0/27"
+                  "cidr": {
+                    "value": "10.5.88.0/27"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.88.32/27"
+                  "cidr": {
+                    "value": "10.5.88.32/27"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.88.64/27",
+                  "cidr": {
+                    "value": "10.5.88.64/27"
+                  },
                   "disabled": true
                 }
               ]
@@ -3586,17 +3782,23 @@
                 {
                   "az": "a",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.32.0/20"
+                  "cidr": {
+                    "value": "10.5.32.0/20"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.128.0/20"
+                  "cidr": {
+                    "value": "10.5.128.0/20"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.192.0/20",
+                  "cidr": {
+                    "value": "10.5.192.0/20"
+                  },
                   "disabled": true
                 }
               ]
@@ -3609,17 +3811,23 @@
                 {
                   "az": "a",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.0.0/19"
+                  "cidr": {
+                    "value": "10.5.0.0/19"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.96.0/19"
+                  "cidr": {
+                    "value": "10.5.96.0/19"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.160.0/19",
+                  "cidr": {
+                    "value": "10.5.160.0/19"
+                  },
                   "disabled": true
                 }
               ]
@@ -3632,17 +3840,23 @@
                 {
                   "az": "a",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.48.0/20"
+                  "cidr": {
+                    "value": "10.5.48.0/20"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.144.0/20"
+                  "cidr": {
+                    "value": "10.5.144.0/20"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.208.0/20",
+                  "cidr": {
+                    "value": "10.5.208.0/20"
+                  },
                   "disabled": true
                 }
               ],
@@ -3707,17 +3921,23 @@
                 {
                   "az": "a",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.64.0/21"
+                  "cidr": {
+                    "value": "10.5.64.0/21"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.72.0/21"
+                  "cidr": {
+                    "value": "10.5.72.0/21"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.80.0/21",
+                  "cidr": {
+                    "value": "10.5.80.0/21"
+                  },
                   "disabled": true
                 }
               ]
@@ -3985,7 +4205,11 @@
         {
           "deploy": "local",
           "name": "Sandbox",
-          "cidr": "10.6.0.0/16",
+          "cidr": [
+            {
+              "value": "10.6.0.0/16"
+            }
+          ],
           "region": "ca-central-1",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
@@ -4008,17 +4232,23 @@
                 {
                   "az": "a",
                   "route-table": "SandboxVPC_IGW",
-                  "cidr": "10.6.32.0/20"
+                  "cidr": {
+                    "value": "10.6.32.0/20"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "SandboxVPC_IGW",
-                  "cidr": "10.6.128.0/20"
+                  "cidr": {
+                    "value": "10.6.128.0/20"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "SandboxVPC_IGW",
-                  "cidr": "10.6.192.0/20",
+                  "cidr": {
+                    "value": "10.6.192.0/20"
+                  },
                   "disabled": true
                 }
               ]
@@ -4031,17 +4261,23 @@
                 {
                   "az": "a",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.0.0/19"
+                  "cidr": {
+                    "value": "10.6.0.0/19"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.96.0/19"
+                  "cidr": {
+                    "value": "10.6.96.0/19"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.160.0/19",
+                  "cidr": {
+                    "value": "10.6.160.0/19"
+                  },
                   "disabled": true
                 }
               ]
@@ -4054,17 +4290,23 @@
                 {
                   "az": "a",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.48.0/20"
+                  "cidr": {
+                    "value": "10.6.48.0/20"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.144.0/20"
+                  "cidr": {
+                    "value": "10.6.144.0/20"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.208.0/20",
+                  "cidr": {
+                    "value": "10.6.208.0/20"
+                  },
                   "disabled": true
                 }
               ],
@@ -4131,17 +4373,23 @@
                 {
                   "az": "a",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.64.0/21"
+                  "cidr": {
+                    "value": "10.6.64.0/21"
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.72.0/21"
+                  "cidr": {
+                    "value": "10.6.72.0/21"
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.80.0/21",
+                  "cidr": {
+                    "value": "10.6.80.0/21"
+                  },
                   "disabled": true
                 }
               ]

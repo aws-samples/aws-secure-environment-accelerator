@@ -6,6 +6,7 @@ import { pretty, FormatType } from './prettier';
 import { RAW_CONFIG_FILE, JSON_FORMAT } from './constants';
 import { DynamoDB } from '../aws/dynamodb';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
+import { AssignedVpcCidrPool, AssignedSubnetCidrPool, CidrPool } from '@aws-accelerator/common-outputs/src/cidr-pools';
 import { ReplacementConfigValueType, ReplacementsConfig } from '@aws-accelerator/common-config';
 import { string as StringType } from 'io-ts';
 
@@ -67,19 +68,22 @@ export class RawConfig {
       fileContent: pretty(configString, format),
     });
 
+    let updatedRawconfig = replaceDefaults({
+      config: getStringFromObject(loadConfigResponse.config, JSON_FORMAT),
+      acceleratorName: this.props.acceleratorName,
+      acceleratorPrefix: this.props.acceleratorPrefix,
+      region: this.props.region,
+      additionalReplacements: additionalReplacements(loadConfigResponse.config.replacements || {}),
+    });
+
+    updatedRawconfig = await vpcReplacements({
+      rawConfigStr: updatedRawconfig,
+    });
+
     // Sending Raw Config back
     loadConfigResponse.loadFiles.push({
       filePath: RAW_CONFIG_FILE,
-      fileContent: pretty(
-        replaceDefaults({
-          config: getStringFromObject(loadConfigResponse.config, JSON_FORMAT),
-          acceleratorName: this.props.acceleratorName,
-          acceleratorPrefix: this.props.acceleratorPrefix,
-          region: this.props.region,
-          additionalReplacements: additionalReplacements(loadConfigResponse.config.replacements || {}),
-        }),
-        JSON_FORMAT,
-      ),
+      fileContent: pretty(updatedRawconfig, JSON_FORMAT),
     });
 
     return {
@@ -238,4 +242,68 @@ export function replaceDefaults(props: {
     config = config.replace(new RegExp(key, 'g'), value);
   });
   return config;
+}
+
+/**
+ * Dynamic VPC Replacements
+ * @param rawConfigStr
+ * @returns
+ */
+export async function vpcReplacements(props: { rawConfigStr: string }): Promise<string> {
+  const { rawConfigStr } = props;
+  /* eslint-disable no-template-curly-in-string */
+  const ouOrAccountReplacementRegex = '\\${CONFIG::OU_NAME}';
+  const vpcConfigSections = ['workload-account-configs', 'mandatory-account-configs', 'organizational-units'];
+  const rawConfig = JSON.parse(rawConfigStr);
+  for (const vpcConfigSection of vpcConfigSections) {
+    Object.entries(rawConfig[vpcConfigSection]).map(([key, _]) => {
+      const replacements = {
+        '\\${CONFIG::VPC_NAME}': key,
+        '\\${CONFIG::VPC_NAME_L}': key.toLowerCase(),
+        '\\${CONFIG::OU_NAME}': key,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const [index, vpcConfig] of Object.entries(rawConfig[vpcConfigSection][key].vpc || []) as [string, any]) {
+        vpcConfig.name = vpcConfig.name.replace(new RegExp(ouOrAccountReplacementRegex, 'g'), key);
+        let vpcConfigStr = JSON.stringify(vpcConfig);
+        for (const [key, value] of Object.entries(replacements)) {
+          vpcConfigStr = vpcConfigStr.replace(new RegExp(key, 'g'), value);
+        }
+        rawConfig[vpcConfigSection][key].vpc[index] = JSON.parse(vpcConfigStr);
+      }
+    });
+  }
+  /* eslint-enable */
+
+  return getStringFromObject(rawConfig, JSON_FORMAT);
+}
+
+export async function loadAssignedVpcCidrPool(tableName: string, client?: DynamoDB) {
+  if (!client) {
+    client = new DynamoDB();
+  }
+  const assignedVpcCidrPools = await client.scan({
+    TableName: tableName,
+  });
+  return (assignedVpcCidrPools as unknown) as AssignedVpcCidrPool[];
+}
+
+export async function loadAssignedSubnetCidrPool(tableName: string, client?: DynamoDB) {
+  if (!client) {
+    client = new DynamoDB();
+  }
+  const assignedSubnetCidrPools = await client.scan({
+    TableName: tableName,
+  });
+  return (assignedSubnetCidrPools as unknown) as AssignedSubnetCidrPool[];
+}
+
+export async function loadCidrPools(tableName: string, client?: DynamoDB): Promise<CidrPool[]> {
+  if (!client) {
+    client = new DynamoDB();
+  }
+  const cidrPools = await client.scan({
+    TableName: tableName,
+  });
+  return (cidrPools as unknown) as CidrPool[];
 }

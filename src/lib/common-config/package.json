@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@aws-accelerator/common": "workspace:^0.0.1",
+    "@aws-accelerator/common-outputs": "workspace:^0.0.1",
     "@aws-accelerator/common-types": "workspace:^0.0.1",
     "@aws-accelerator/config": "workspace:^0.0.1",
     "@types/deep-diff": "1.0.0",

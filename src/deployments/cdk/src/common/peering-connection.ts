@@ -62,6 +62,15 @@ export namespace PeeringConnection {
         }
         const pcxRoute: PcxRouteConfig = route.destination;
         const targetVpcConfig = getVpcConfig(vpcConfigs, pcxRoute.account, pcxRoute.vpc);
+        const targetVpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+          outputs,
+          accountKey: pcxRoute.account,
+          vpcName: pcxRoute.vpc,
+        });
+        if (!targetVpcOutput || !targetVpcOutput.subnets) {
+          console.warn(`No subnet Config Found for "${pcxRoute.subnet}" in VPC "${pcxRoute.vpc}"`);
+          continue;
+        }
         const targetSubnet = targetVpcConfig?.subnets?.find(x => x.name === pcxRoute.subnet);
         if (!targetSubnet) {
           console.warn(`No subnet Config Found for "${pcxRoute.subnet}" in VPC "${pcxRoute.vpc}"`);
@@ -86,9 +95,18 @@ export namespace PeeringConnection {
           if (subnet.disabled || !subnet.cidr) {
             continue;
           }
+          const destinationCidrBlock = targetVpcOutput.subnets.find(
+            s => s.subnetName === pcxRoute.subnet && s.az === subnet.az,
+          )?.cidrBlock;
+          if (!destinationCidrBlock) {
+            console.warn(
+              `Cidr for VPC: "${pcxRoute.vpc}", SSubnet: "${pcxRoute.subnet}", AZ: "${subnet.az}" is not found in Outputs`,
+            );
+            continue;
+          }
           new ec2.CfnRoute(this, `${routeTable?.name}_pcx_${pcxRoute.vpc}_${index}`, {
             routeTableId,
-            destinationCidrBlock: subnet.cidr.toCidrString(),
+            destinationCidrBlock,
             vpcPeeringConnectionId: pcxId,
           });
         }

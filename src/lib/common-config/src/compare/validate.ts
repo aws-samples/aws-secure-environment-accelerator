@@ -1,6 +1,10 @@
 import * as validateConfig from './common';
 import { Diff } from 'deep-diff';
 import { LHS, RHS } from './config-diff';
+import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
+import { loadAssignedVpcCidrPool, loadAssignedSubnetCidrPool } from '@aws-accelerator/common/src/util/common';
+import { AcceleratorConfig } from '..';
 
 /**
  * config path(s) for global options
@@ -17,8 +21,9 @@ const ACCOUNT_VPC = ['mandatory-account-configs', 'vpc'];
 const ACCOUNT_VPC_NAME = ['mandatory-account-configs', 'vpc', 'name'];
 const ACCOUNT_VPC_REGION = ['mandatory-account-configs', 'vpc', 'region'];
 const ACCOUNT_VPC_DEPLOY = ['mandatory-account-configs', 'vpc', 'deploy'];
-const ACCOUNT_VPC_CIDR = ['mandatory-account-configs', 'vpc', 'cidr'];
-const ACCOUNT_VPC_CIDR2 = ['mandatory-account-configs', 'vpc', 'cidr2'];
+const ACCOUNT_VPC_CIDR = ['mandatory-account-configs', 'vpc', 'cidr', 'value'];
+const ACCOUNT_VPC_CIDR_POOL = ['mandatory-account-configs', 'vpc', 'cidr', 'pool'];
+const ACCOUNT_VPC_CIDR_SIZE = ['mandatory-account-configs', 'vpc', 'cidr', 'size'];
 const ACCOUNT_VPC_TENANCY = ['mandatory-account-configs', 'vpc', 'dedicated-tenancy'];
 
 /**
@@ -27,8 +32,7 @@ const ACCOUNT_VPC_TENANCY = ['mandatory-account-configs', 'vpc', 'dedicated-tena
 const ACCOUNT_SUBNETS = ['mandatory-account-configs', 'vpc', 'subnets'];
 const ACCOUNT_SUBNET_NAME = ['mandatory-account-configs', 'vpc', 'subnets', 'name'];
 const ACCOUNT_SUBNET_AZ = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'az'];
-const ACCOUNT_SUBNET_CIDR = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'cidr'];
-const ACCOUNT_SUBNET_CIDR2 = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'cidr2'];
+const ACCOUNT_SUBNET_CIDR = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'cidr', 'value'];
 const ACCOUNT_SUBNET_DISABLED = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'disabled'];
 
 /**
@@ -63,8 +67,9 @@ const OU_VPC = ['organizational-units', 'vpc'];
 const OU_VPC_NAME = ['organizational-units', 'vpc', 'name'];
 const OU_VPC_REGION = ['organizational-units', 'vpc', 'region'];
 const OU_VPC_DEPLOY = ['organizational-units', 'vpc', 'deploy'];
-const OU_VPC_CIDR = ['organizational-units', 'vpc', 'cidr'];
-const OU_VPC_CIDR2 = ['organizational-units', 'vpc', 'cidr2'];
+const OU_VPC_CIDR = ['organizational-units', 'vpc', 'cidr', 'vpc'];
+const OU_VPC_CIDR_POOL = ['organizational-units', 'vpc', 'cidr', 'pool'];
+const OU_VPC_CIDR_SIZE = ['organizational-units', 'vpc', 'cidr', 'size'];
 const OU_VPC_TENANCY = ['organizational-units', 'vpc', 'dedicated-tenancy'];
 
 /**
@@ -73,8 +78,7 @@ const OU_VPC_TENANCY = ['organizational-units', 'vpc', 'dedicated-tenancy'];
 const OU_SUBNETS = ['organizational-units', 'vpc', 'subnets'];
 const OU_SUBNET_NAME = ['organizational-units', 'vpc', 'subnets', 'name'];
 const OU_SUBNET_AZ = ['organizational-units', 'vpc', 'subnets', 'definitions', 'az'];
-const OU_SUBNET_CIDR = ['organizational-units', 'vpc', 'subnets', 'definitions', 'cidr'];
-const OU_SUBNET_CIDR2 = ['organizational-units', 'vpc', 'subnets', 'definitions', 'cidr2'];
+const OU_SUBNET_CIDR = ['organizational-units', 'vpc', 'subnets', 'definitions', 'cidr', 'value'];
 const OU_SUBNET_DISABLED = ['organizational-units', 'vpc', 'subnets', 'definitions', 'disabled'];
 
 /**
@@ -223,15 +227,21 @@ export async function validateAccountVpc(differences: Diff<LHS, RHS>[], errors: 
   }
 
   // the below function checks vpc cidr of the account
-  const accountVpcCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR, 5);
+  const accountVpcCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR, 7);
   if (accountVpcCidr) {
     errors.push(...accountVpcCidr);
   }
 
-  // the below function checks vpc cidr2 of the account
-  const accountVpcCidr2 = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR2, 5);
-  if (accountVpcCidr2) {
-    errors.push(...accountVpcCidr2);
+  // the below function checks vpc cidr pool of the account
+  const accountVpcCidrPool = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR_POOL, 7);
+  if (accountVpcCidrPool) {
+    errors.push(...accountVpcCidrPool);
+  }
+
+  // the below function checks vpc cidr sizeof the account
+  const accountVpcCidrSize = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR_SIZE, 7);
+  if (accountVpcCidrSize) {
+    errors.push(...accountVpcCidrSize);
   }
 
   // the below function checks vpc region of the account
@@ -271,15 +281,9 @@ export async function validateAccountSubnets(differences: Diff<LHS, RHS>[], erro
   }
 
   // the below function checks subnet cidr of the account
-  const accountSubnetCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_CIDR, 9);
+  const accountSubnetCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_CIDR, 10);
   if (accountSubnetCidr) {
     errors.push(...accountSubnetCidr);
-  }
-
-  // the below function checks subnet cidr of the account
-  const accountSubnetCidr2 = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_CIDR2, 9);
-  if (accountSubnetCidr2) {
-    errors.push(...accountSubnetCidr2);
   }
 
   const accountSubnetDisabled = validateConfig.matchEditedConfigPathDisabled(differences, ACCOUNT_SUBNET_DISABLED, 9);
@@ -403,15 +407,21 @@ export async function validateOuVpc(differences: Diff<LHS, RHS>[], errors: strin
   }
 
   // the below function checks vpc cidr of the account
-  const ouVpcCidr = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR, 5);
+  const ouVpcCidr = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR, 7);
   if (ouVpcCidr) {
     errors.push(...ouVpcCidr);
   }
 
-  // the below function checks vpc cidr2 of the account
-  const ouVpcCidr2 = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR2, 5);
-  if (ouVpcCidr2) {
-    errors.push(...ouVpcCidr2);
+  // the below function checks vpc cidr pool of the account
+  const ouVpcCidrPool = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR_POOL, 7);
+  if (ouVpcCidrPool) {
+    errors.push(...ouVpcCidrPool);
+  }
+
+  // the below function checks vpc cidr size of the account
+  const ouVpcCidrSize = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR_SIZE, 7);
+  if (ouVpcCidrSize) {
+    errors.push(...ouVpcCidrSize);
   }
 
   // the below function checks vpc region of the account
@@ -451,15 +461,9 @@ export async function validateOuSubnets(differences: Diff<LHS, RHS>[], errors: s
   }
 
   // the below function checks subnet cidr of the account
-  const ouSubnetCidr = validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_CIDR, 9);
+  const ouSubnetCidr = validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_CIDR, 10);
   if (ouSubnetCidr) {
     errors.push(...ouSubnetCidr);
-  }
-
-  // the below function checks subnet cidr of the account
-  const ouSubnetCidr2 = validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_CIDR2, 9);
-  if (ouSubnetCidr2) {
-    errors.push(...ouSubnetCidr2);
   }
 
   const ouSubnetDisabled = validateConfig.matchEditedConfigPathDisabled(differences, OU_SUBNET_DISABLED, 9);
@@ -517,5 +521,79 @@ export async function validateNacls(differences: Diff<LHS, RHS>[], errors: strin
   const naclsSubnet = validateConfig.editedConfigArray(differences, OU_NACLS_SUBNET);
   if (naclsSubnet) {
     errors.push(...naclsSubnet);
+  }
+}
+
+/**
+ *
+ * function to validate VPC Outputs of previous executions with DDB Cidr values
+ *
+ * @param differences
+ * @param errors
+ */
+export async function validateDDBChanges(
+  acceleratorConfig: AcceleratorConfig,
+  vpcCidrPoolAssignedTable: string,
+  subnetCidrPoolAssignedTable: string,
+  outputs: StackOutput[],
+  errors: string[],
+): Promise<void> {
+  const assignedVpcCidrPools = await loadAssignedVpcCidrPool(vpcCidrPoolAssignedTable);
+  const assignedSubnetCidrPools = await loadAssignedSubnetCidrPool(subnetCidrPoolAssignedTable);
+  for (const { accountKey, vpcConfig, ouKey } of acceleratorConfig.getVpcConfigs()) {
+    if (vpcConfig['cidr-src'] === 'provided') {
+      continue; // Validations is already performed as part of compare configurations
+    }
+    const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+      outputs,
+      accountKey,
+      vpcName: vpcConfig.name,
+      region: vpcConfig.region,
+    });
+    if (!vpcOutput) {
+      console.log(`VPC: ${accountKey}/${vpcConfig.region}/${vpcConfig.name} is not yet created`);
+      continue;
+    }
+
+    const vpcAssignedCidrs = validateConfig.getAssigndVpcCidrs(
+      assignedVpcCidrPools,
+      accountKey,
+      vpcConfig.name,
+      vpcConfig.region,
+      ouKey,
+    );
+
+    // Validate VPC Cidrs
+
+    const primaryCidr = vpcAssignedCidrs.find(vpcPool => vpcPool.pool === vpcConfig.cidr[0].pool)?.cidr;
+    const additionalCidr = vpcAssignedCidrs.filter(vpcPool => vpcPool.pool !== vpcConfig.cidr[0].pool).map(c => c.cidr);
+    if (primaryCidr !== vpcOutput.cidrBlock) {
+      errors.push(`CIDR for VPC: ${accountKey}/${vpcConfig.region}/${vpcConfig.name} has been changed`);
+    }
+    if (
+      vpcOutput.additionalCidrBlocks.length > 0 &&
+      vpcOutput.additionalCidrBlocks.filter(v => additionalCidr.indexOf(v) < 0).length > 1
+    ) {
+      errors.push(`CIDR2 for VPC: ${accountKey}/${vpcConfig.region}/${vpcConfig.name} has been changed`);
+    }
+
+    const subnetAssignedCidrs = validateConfig.getAssigndVpcSubnetCidrs(
+      assignedSubnetCidrPools,
+      accountKey,
+      vpcConfig.name,
+      vpcConfig.region,
+      ouKey,
+    );
+
+    for (const subnetDefinition of vpcOutput.subnets) {
+      const subnetCidr = subnetAssignedCidrs.find(
+        s => s['subnet-name'] === subnetDefinition.subnetName && s.az === subnetDefinition.az,
+      )?.cidr;
+      if (subnetDefinition.cidrBlock !== subnetCidr) {
+        errors.push(
+          `CIDR for Subnet: ${accountKey}/${vpcConfig.region}/${vpcConfig.name}/${subnetDefinition.subnetName}/${subnetDefinition.az} has been changed`,
+        );
+      }
+    }
   }
 }

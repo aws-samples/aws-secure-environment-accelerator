@@ -14,7 +14,6 @@ import { createRoleName, createName } from '@aws-accelerator/cdk-accelerator/src
 import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-tasks';
 import { CreateLandingZoneAccountTask } from './tasks/create-landing-zone-account-task';
 import { CreateOrganizationAccountTask } from './tasks/create-organization-account-task';
-import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import { CreateStackTask } from './tasks/create-stack-task';
 import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
@@ -23,6 +22,10 @@ import * as sns from '@aws-cdk/aws-sns';
 import { StoreOutputsTask } from './tasks/store-outputs-task';
 import { StoreOutputsToSSMTask } from './tasks/store-outputs-to-ssm-task';
 import { CDKBootstrapTask } from './tasks/cdk-bootstrap';
+
+const VPC_CIDR_POOL_TABLE = 'cidr-vpc-assign';
+const SUBNET_CIDR_POOL_TABLE = 'cidr-subnet-assign';
+const CIDR_POOL_TABLE = 'cidr-pool';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -102,6 +105,40 @@ export namespace InitialSetup {
         },
       });
 
+      // Tables required for VPC Cidr mappings for VPC, Account and OU
+      const vpcCidrPoolTable = new dynamodb.Table(this, 'CidrVpcAssign', {
+        tableName: createName({
+          name: VPC_CIDR_POOL_TABLE,
+          suffixLength: 0,
+        }),
+        partitionKey: {
+          name: 'id',
+          type: dynamodb.AttributeType.STRING,
+        },
+      });
+
+      const subnetCidrPoolTable = new dynamodb.Table(this, 'CidrSubnetAssign', {
+        tableName: createName({
+          name: SUBNET_CIDR_POOL_TABLE,
+          suffixLength: 0,
+        }),
+        partitionKey: {
+          name: 'id',
+          type: dynamodb.AttributeType.STRING,
+        },
+      });
+
+      const cidrPoolTable = new dynamodb.Table(this, 'CidrPoolTable', {
+        tableName: createName({
+          name: CIDR_POOL_TABLE,
+          suffixLength: 0,
+        }),
+        partitionKey: {
+          name: 'id',
+          type: dynamodb.AttributeType.STRING,
+        },
+      });
+
       // This is the maximum time before a build times out
       // The role used by the build should allow this session duration
       const buildTimeout = cdk.Duration.hours(4);
@@ -143,6 +180,9 @@ export namespace InitialSetup {
           LIMITS_ITEM_ID: 'limits',
           ORGANIZATIONS_ITEM_ID: 'organizations',
           DYNAMODB_PARAMETERS_TABLE_NAME: parametersTable.tableName,
+          VPC_CIDR_ASSIGNED_POOL: vpcCidrPoolTable.tableName,
+          SUBNET_CIDR_ASSIGNED_POOL: subnetCidrPoolTable.tableName,
+          CIDR_POOL: cidrPoolTable.tableName,
         },
       });
 
@@ -182,6 +222,9 @@ export namespace InitialSetup {
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           'baseline.$': '$.configuration.baselineOutput.baseline',
           parametersTableName: parametersTable.tableName,
+          vpcCidrPoolAssignedTable: vpcCidrPoolTable.tableName,
+          subnetCidrPoolAssignedTable: subnetCidrPoolTable.tableName,
+          outputTableName: outputsTable.tableName,
         },
         resultPath: 'DISCARD',
       });
@@ -199,6 +242,9 @@ export namespace InitialSetup {
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           outputTableName: outputsTable.tableName,
           'storeAllOutputs.$': '$.configuration.storeAllOutputs',
+          vpcCidrPoolAssignedTable: vpcCidrPoolTable.tableName,
+          subnetCidrPoolAssignedTable: subnetCidrPoolTable.tableName,
+          cidrPoolsTable: cidrPoolTable.tableName,
         },
         resultPath: '$.configuration.baselineOutput',
       });
@@ -903,6 +949,10 @@ export namespace InitialSetup {
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
           acceleratorVersion: props.acceleratorVersion,
+          vpcCidrPoolAssignedTable: vpcCidrPoolTable.tableName,
+          subnetCidrPoolAssignedTable: subnetCidrPoolTable.tableName,
+          outputTableName: outputsTable.tableName,
+          parametersTableName: parametersTable.tableName,
         },
         resultPath: 'DISCARD',
       });

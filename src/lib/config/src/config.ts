@@ -38,9 +38,15 @@ export const NatGatewayConfig = t.interface({
   }),
 });
 
+export const CidrConfigType = t.interface({
+  value: optional(cidr),
+  size: optional(t.number),
+  pool: defaulted(t.string, 'main'),
+});
+
 export const SubnetDefinitionConfig = t.interface({
   az: availabilityZone,
-  cidr: optional(cidr),
+  cidr: CidrConfigType,
   'route-table': nonEmptyString,
   disabled: defaulted(t.boolean, false),
 });
@@ -211,12 +217,15 @@ export const ZoneNamesConfigType = t.interface({
 export const FlowLogsDestinationTypes = enums('FlowLogsDestinationTypes', ['S3', 'CWL', 'BOTH', 'NONE']);
 export type FlowLogsDestinationTypes = t.TypeOf<typeof FlowLogsDestinationTypes>;
 
+export const CidrSrcTypes = enums('CidrSrcTypes', ['provided', 'lookup', 'dynamic']);
+export type CidrSrcTypes = t.TypeOf<typeof CidrSrcTypes>;
+
 export const VpcConfigType = t.interface({
   deploy: t.string,
   name: t.string,
   region,
-  cidr,
-  cidr2: defaulted(t.array(cidr), []),
+  cidr: t.array(CidrConfigType),
+  'cidr-src': defaulted(CidrSrcTypes, 'provided'),
   'dedicated-tenancy': defaulted(t.boolean, false),
   'use-central-endpoints': defaulted(t.boolean, false),
   'dns-resolver-logging': defaulted(t.boolean, false),

@@ -4,6 +4,11 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-accelerator/common-config/src';
 import * as t from '@aws-accelerator/common-types';
 import { AzSubnets } from './vpc';
+import {
+  AssignedSubnetCidrPool,
+  AssignedVpcCidrPool,
+  getSubnetCidrPools,
+} from '@aws-accelerator/common-outputs/src/cidr-pools';
 
 export interface NaclProps {
   accountKey: string;
@@ -12,12 +17,14 @@ export interface NaclProps {
   subnetConfig: config.SubnetConfig;
   subnets: AzSubnets;
   vpcConfigs: config.ResolvedVpcConfig[];
+  vpcPools: AssignedVpcCidrPool[];
+  subnetPools: AssignedSubnetCidrPool[];
 }
 
 export class Nacl extends cdk.Construct {
   constructor(parent: cdk.Construct, name: string, props: NaclProps) {
     super(parent, name);
-    const { accountKey, vpcConfig, vpcId, subnetConfig, subnets, vpcConfigs } = props;
+    const { accountKey, vpcConfig, vpcId, subnetConfig, subnets, vpcConfigs, vpcPools, subnetPools } = props;
     const naclRules = subnetConfig.nacls;
     if (!naclRules) {
       return;
@@ -59,6 +66,9 @@ export class Nacl extends cdk.Construct {
           ruleNumber = ruleNumber + 200;
         } else {
           const vpcAccountKey = cidr.account ? cidr.account : accountKey;
+          const ruleResolvedVpcConfig = vpcConfigs.find(
+            x => x.vpcConfig.name === cidr.vpc && x.accountKey === vpcAccountKey,
+          );
           const ruleVpcConfig = vpcConfigs.find(x => x.vpcConfig.name === cidr.vpc && x.accountKey === vpcAccountKey)
             ?.vpcConfig;
           if (!ruleVpcConfig) {
@@ -71,14 +81,36 @@ export class Nacl extends cdk.Construct {
               console.warn(`Subnet config for "${subnetName}" is not found in Accelerator Config`);
               continue;
             }
+            const ruleVpcSubnets: AssignedSubnetCidrPool[] = [];
+            if (vpcAccountKey !== accountKey || vpcConfig.name !== cidr.vpc) {
+              ruleVpcSubnets.push(
+                ...getSubnetCidrPools({
+                  subnetPools,
+                  accountKey: vpcAccountKey,
+                  region: ruleVpcConfig.region,
+                  vpcName: cidr.vpc,
+                  organizationalUnitName: ruleResolvedVpcConfig?.ouKey,
+                  subnetName,
+                }),
+              );
+            }
             for (const subnetDefinition of cidrSubnet.definitions) {
+              let cidrBlock: string = '';
               if (subnetDefinition.disabled) {
                 continue;
               }
-              if (!subnetDefinition.cidr) {
-                throw new Error(`Please Declare cidr using cidr block only`);
+              if (['lookup', 'dynamic'].includes(ruleVpcConfig['cidr-src'])) {
+                if (vpcAccountKey === accountKey && vpcConfig.name === cidr.vpc) {
+                  cidrBlock = subnets.getAzSubnetForNameAndAz(subnetName, subnetDefinition.az)?.cidrBlock!;
+                } else {
+                  cidrBlock = ruleVpcSubnets.find(s => s.az === subnetDefinition.az)?.cidr!;
+                }
+              } else {
+                cidrBlock = subnetDefinition.cidr.value?.toCidrString()!;
               }
-              const cidrBlock = subnetDefinition.cidr.toCidrString();
+              if (!cidrBlock) {
+                throw new Error(`Please Declare cidr using cidr block or use dynamic or lookup`);
+              }
               const aclEntryProps: ec2.CfnNetworkAclEntryProps = {
                 networkAclId: nacl.ref,
                 protocol: rules.protocol,

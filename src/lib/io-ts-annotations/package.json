@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "scripts": {
-    "lint": "slint '{lib,src}/**/*.ts'",
+    "lint": "eslint '{lib,src}/**/*.ts'",
     "lint:typecheck": "pnpx tsc --noEmit"
   },
   "dependencies": {

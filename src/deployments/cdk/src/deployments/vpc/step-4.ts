@@ -5,7 +5,6 @@ import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
 import { createLogGroupName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CfnResolverQueryLoggingConfig, CfnResolverQueryLoggingConfigAssociation } from '@aws-cdk/aws-route53resolver';
-import { Context } from '../../utils/context';
 
 export interface VpcStep4Props {
   vpcConfig: VpcConfig;

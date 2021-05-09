@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as cfnspec from '@aws-cdk/cfnspec';
 import { S3 } from '@aws-accelerator/common/src/aws/s3';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { resourcesToList, ResourceWithLogicalId, ResourceProperties } from '../jest';
 import { deployPhases } from './unsupported-changes.mocks';
@@ -65,6 +66,8 @@ beforeAll(async () => {
       }),
     ),
   );
+  // Mock DynamoDB as the VPC and Subnet CIDR retrival using dynamodb.scan using the SDK
+  jest.spyOn(DynamoDB.prototype, 'scan').mockImplementation(() => Promise.resolve([]));
 
   // Deploy all phases that are defined in src/app.ts
   for await (const app of deployPhases(phases)) {

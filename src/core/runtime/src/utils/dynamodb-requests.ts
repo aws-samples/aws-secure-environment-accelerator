@@ -34,9 +34,9 @@ export const getUpdateItemInput = (
 
 interface Attribute {
   key: string;
-  value: string;
+  value: string | boolean;
   name: string;
-  type: 'S' | 'N' | 'B';
+  type: 'S' | 'N' | 'BOOL' | 'B';
 }
 
 /**
@@ -56,7 +56,11 @@ export const getUpdateValueInput = (attributes: Attribute[]) => {
   for (const att of attributes) {
     const attributeValue: DynamoDB.AttributeValue = {};
     expAttributeNames[`#${att.key}`] = att.name;
-    attributeValue[att.type] = att.value;
+    if (att.type === 'BOOL') {
+      attributeValue.BOOL = att.value as boolean;
+    } else {
+      attributeValue[att.type] = att.value as string;
+    }
     expAttributeValues[`:${att.key}`] = attributeValue;
     updateExpression += `#${att.key} = :${att.key},`;
   }

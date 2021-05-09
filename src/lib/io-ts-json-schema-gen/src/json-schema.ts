@@ -139,8 +139,8 @@ export function toJsonDefinition(type: t.Any, context: Context): Definition {
       optional: true,
     };
   } else if (type instanceof t.SizedType) {
-    let minKey = type.type instanceof t.NumberType ? 'minimum' : 'minLength';
-    let maxKey = type.type instanceof t.NumberType ? 'maximum' : 'maxLength';
+    const minKey = type.type instanceof t.NumberType ? 'minimum' : 'minLength';
+    const maxKey = type.type instanceof t.NumberType ? 'maximum' : 'maxLength';
     return {
       ...context.getOrCreateDefinition(type.type),
       [minKey]: type.min,

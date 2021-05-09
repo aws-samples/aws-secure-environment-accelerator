@@ -15,6 +15,9 @@ export interface Context {
   acceleratorStateMachineName: string;
   configRootFilePath: string;
   installerVersion: string;
+  vpcCidrPoolAssignedTable: string;
+  subnetCidrPoolAssignedTable: string;
+  cidrPoolTable: string;
   centralOperationsAccount?: string;
   masterAccount?: string;
 }
@@ -43,5 +46,8 @@ export function loadContext(): Context {
     acceleratorStateMachineName: process.env.ACCELERATOR_STATE_MACHINE_NAME!,
     configRootFilePath: process.env.CONFIG_ROOT_FILE_PATH!,
     installerVersion: process.env.INSTALLER_VERSION!,
+    vpcCidrPoolAssignedTable: process.env.VPC_CIDR_ASSIGNED_POOL!,
+    subnetCidrPoolAssignedTable: process.env.SUBNET_CIDR_ASSIGNED_POOL!,
+    cidrPoolTable: process.env.CIDR_POOL!,
   };
 }

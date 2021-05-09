@@ -3,11 +3,16 @@ import { compareAcceleratorConfig } from '@aws-accelerator/common-config/src/com
 import { getCommitIdSecretName } from '@aws-accelerator/common-outputs/src/commitid-secret';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { loadAccounts } from './utils/load-accounts';
+import { loadOutputs } from './utils/load-outputs';
+import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 
 export interface StepInput extends ConfigurationInput {
   inputConfig: AcceleratorInput;
   region: string;
   parametersTableName: string;
+  vpcCidrPoolAssignedTable: string;
+  subnetCidrPoolAssignedTable: string;
+  outputTableName: string;
 }
 
 export interface AcceleratorInput {
@@ -53,6 +58,7 @@ export const handler = async (input: StepInput) => {
     'ov-share-to-ou': false,
     'ov-share-to-accounts': false,
     'ov-nacl': false,
+    'ov-cidr': false,
   };
 
   const {
@@ -63,6 +69,9 @@ export const handler = async (input: StepInput) => {
     configFilePath,
     configRepositoryName,
     parametersTableName,
+    vpcCidrPoolAssignedTable,
+    subnetCidrPoolAssignedTable,
+    outputTableName,
   } = input;
   const commitSecretId = getCommitIdSecretName();
 
@@ -80,7 +89,7 @@ export const handler = async (input: StepInput) => {
     console.log('previous successful run commitId not found');
   }
 
-  if (inputConfig.overrideComparison || !previousCommitId || configCommitId === previousCommitId) {
+  if (inputConfig.overrideComparison || !previousCommitId) {
     console.log(
       'either previous git repo commitId not found or commitIds are same, so skipping validation of config file updates',
     );
@@ -99,7 +108,6 @@ export const handler = async (input: StepInput) => {
   let errors: string[] = [];
   if (configOverrides) {
     for (const [overrideName, overrideValue] of Object.entries(configOverrides)) {
-      console.log(overrideName, overrideValue);
       if (overrideValue) {
         overrideConfig[overrideName] = overrideValue;
       }
@@ -122,6 +130,11 @@ export const handler = async (input: StepInput) => {
     });
   }
 
+  const outputs: StackOutput[] = [];
+  if (!configOverrides?.['ov-cidr']) {
+    // Limiting query outputs from DDB only for validating cidr changes
+    outputs.push(...(await loadOutputs(outputTableName, dynamodb)));
+  }
   errors = await compareAcceleratorConfig({
     repositoryName: configRepositoryName,
     configFilePath,
@@ -132,6 +145,9 @@ export const handler = async (input: StepInput) => {
     scope: scope || 'NEW-ACCOUNTS',
     targetAccounts: targetAccountKeys,
     targetOus,
+    vpcCidrPoolAssignedTable,
+    subnetCidrPoolAssignedTable,
+    outputs,
   });
 
   // Throw all errors at once

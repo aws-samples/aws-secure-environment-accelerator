@@ -1,3 +1,4 @@
+import { AssignedSubnetCidrPool, AssignedVpcCidrPool } from '../../../common-outputs/src/cidr-pools';
 import { Diff, isDiffArray, isDiffEdit, isDiffDeleted, isDiffNew } from './config-diff';
 
 export function deletedSubAccount(accountNames: string[], diffs: Diff[]): string[] {
@@ -97,7 +98,6 @@ export function matchBooleanConfigDependency(diffs: Diff[], pathValues: string[]
 
   for (const newDiff of diffs.filter(isDiffNew)) {
     const found = pathValues.every(r => newDiff.path?.includes(r));
-    console.log(found, newDiff.rhs, pathValues);
     if (found && (pathLength ? newDiff.path?.length === pathLength : true)) {
       errors.push(`ConfigCheck: blocked changing config path "${newDiff.path?.join('/')}"`);
     }
@@ -178,4 +178,63 @@ export function deletedConfigEntry(diffs: Diff[], pathValues: string[], pathValu
     }
   }
   return errors;
+}
+
+export function getAssigndVpcCidrs(
+  vpcPools: AssignedVpcCidrPool[],
+  accountKey: string,
+  vpcName: string,
+  region: string,
+  ouKey?: string,
+): AssignedVpcCidrPool[] {
+  let vpcAssignedCidrs = vpcPools.filter(
+    vpcPool => vpcPool['account-Key'] === accountKey && vpcPool['vpc-name'] === vpcName && vpcPool.region === region,
+  );
+  if (vpcAssignedCidrs.length === 0) {
+    vpcAssignedCidrs = vpcPools.filter(
+      vpcPool =>
+        vpcPool['account-ou-key'] === `account/${accountKey}` &&
+        vpcPool['vpc-name'] === vpcName &&
+        vpcPool.region === region,
+    );
+  }
+  if (vpcAssignedCidrs.length === 0 && ouKey) {
+    vpcAssignedCidrs = vpcPools.filter(
+      vpcPool =>
+        vpcPool['account-ou-key'] === `organizational-unit/${ouKey}` &&
+        vpcPool['vpc-name'] === vpcName &&
+        vpcPool.region === region,
+    );
+  }
+  return vpcAssignedCidrs;
+}
+
+export function getAssigndVpcSubnetCidrs(
+  subnetPools: AssignedSubnetCidrPool[],
+  accountKey: string,
+  vpcName: string,
+  region: string,
+  ouKey?: string,
+): AssignedSubnetCidrPool[] {
+  let subnetAssignedCidrs = subnetPools.filter(
+    subnetPool =>
+      subnetPool['account-Key'] === accountKey && subnetPool['vpc-name'] === vpcName && subnetPool.region === region,
+  );
+  if (subnetAssignedCidrs.length === 0) {
+    subnetAssignedCidrs = subnetPools.filter(
+      subnetPool =>
+        subnetPool['account-ou-key'] === `account/${accountKey}` &&
+        subnetPool['vpc-name'] === vpcName &&
+        subnetPool.region === region,
+    );
+  }
+  if (subnetAssignedCidrs.length === 0 && ouKey) {
+    subnetAssignedCidrs = subnetPools.filter(
+      subnetPool =>
+        subnetPool['account-ou-key'] === `organizational-unit/${ouKey}` &&
+        subnetPool['vpc-name'] === vpcName &&
+        subnetPool.region === region,
+    );
+  }
+  return subnetAssignedCidrs;
 }

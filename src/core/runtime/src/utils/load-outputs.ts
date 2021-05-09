@@ -11,7 +11,7 @@ export async function loadOutputs(tableName: string, client: DynamoDB): Promise<
     return [];
   }
   for (const item of outputsResponse) {
-    const cVal = JSON.parse(item.outputValue.S!);
+    const cVal = JSON.parse(item.outputValue as string);
     outputs.push(...cVal);
   }
   return outputs;
