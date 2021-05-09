@@ -66,7 +66,10 @@ export async function step3(props: FirewallStep3Props) {
       accountKey,
     });
 
-    for (const firewallConfig of firewallConfigs) {
+    for (const firewallConfig of firewallConfigs.filter(firewall => c.FirewallEC2ConfigType.is(firewall))) {
+      if (!c.FirewallEC2ConfigType.is(firewallConfig)) {
+        continue;
+      }
       const attachConfig = firewallConfig['tgw-attach'];
       if (!c.TransitGatewayAttachConfigType.is(attachConfig)) {
         continue;
@@ -132,7 +135,7 @@ async function createFirewallCluster(props: {
   accountBucket: RegionalBucket;
   accountStack: AccountStack;
   centralBucket: s3.IBucket;
-  firewallConfig: c.FirewallConfig;
+  firewallConfig: c.FirewallEC2ConfigType;
   firewallVpnConnections: FirewallVpnConnection[];
   vpc: Vpc;
   vpcConfig: c.VpcConfig;

@@ -125,7 +125,10 @@ async function verifyFirewallFiles(
     if (!firewallConfigs || firewallConfigs.length === 0) {
       continue;
     }
-    for (const firewallConfig of firewallConfigs) {
+    for (const firewallConfig of firewallConfigs.filter(firewall => c.FirewallEC2ConfigType.is(firewall))) {
+      if (!c.FirewallEC2ConfigType.is(firewallConfig)) {
+        continue;
+      }
       if (firewallConfig.license) {
         firewallFiles.push(...firewallConfig.license);
       }

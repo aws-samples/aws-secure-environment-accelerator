@@ -25,7 +25,10 @@ export async function step1(props: FirewallStep1Props) {
       continue;
     }
 
-    for (const firewallConfig of firewallConfigs) {
+    for (const firewallConfig of firewallConfigs.filter(firewall => c.FirewallEC2ConfigType.is(firewall))) {
+      if (!c.FirewallEC2ConfigType.is(firewallConfig)) {
+        continue;
+      }
       const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, firewallConfig.region);
       if (!accountStack) {
         console.warn(`Cannot find account stack ${accountKey}`);
@@ -54,7 +57,7 @@ export async function step1(props: FirewallStep1Props) {
 async function createFirewallEips(props: {
   scope: cdk.Construct;
   vpcConfig: c.VpcConfig;
-  firewallConfig: c.FirewallConfig;
+  firewallConfig: c.FirewallEC2ConfigType;
 }) {
   const { scope, vpcConfig, firewallConfig } = props;
 

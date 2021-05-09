@@ -29,6 +29,9 @@ export async function step1(props: FirewallSubscriptionStep1Props) {
   }
 
   for (const [index, firewallConfig] of Object.entries(firewallConfigs)) {
+    if (!c.FirewallEC2ConfigType.is(firewallConfig)) {
+      continue;
+    }
     if (!vpc) {
       console.log(
         `Skipping firewall marketplace image subscription check because of missing VPC "${firewallConfig.vpc}"`,

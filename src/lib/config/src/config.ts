@@ -484,7 +484,8 @@ export const FirewallPortConfigType = t.interface({
   'create-cgw': t.boolean,
 });
 
-export const FirewallConfigType = t.interface({
+export const FirewallEC2ConfigType = t.interface({
+  type: defaulted(t.literal('EC2'), 'EC2'),
   name: t.string,
   'instance-sizes': t.string,
   'image-id': t.string,
@@ -501,7 +502,20 @@ export const FirewallConfigType = t.interface({
   'tgw-attach': t.union([TransitGatewayAttachConfigType, t.boolean, t.undefined]),
 });
 
-export type FirewallConfig = t.TypeOf<typeof FirewallConfigType>;
+export type FirewallEC2ConfigType = t.TypeOf<typeof FirewallEC2ConfigType>;
+
+export const FirewallCGWConfigType = t.interface({
+  type: t.literal('CGW'),
+  name: t.string,
+  region: t.string,
+  'fw-ips': t.array(t.string),
+  'fw-cgw-name': t.string,
+  'fw-cgw-asn': t.number,
+  'fw-cgw-routing': t.string,
+  'tgw-attach': t.union([TransitGatewayAttachConfigType, t.boolean, t.undefined]),
+});
+
+export type FirewallCGWConfigType = t.TypeOf<typeof FirewallCGWConfigType>;
 
 export const FirewallManagerConfigType = t.interface({
   name: t.string,
@@ -535,7 +549,7 @@ export const DeploymentConfigType = t.interface({
   mad: optional(MadConfigType),
   rsyslog: optional(RsyslogConfig),
   adc: optional(AdcConfigType),
-  firewalls: optional(t.array(FirewallConfigType)),
+  firewalls: optional(t.array(t.union([FirewallEC2ConfigType, FirewallCGWConfigType]))),
   'firewall-manager': optional(FirewallManagerConfigType),
 });
 
