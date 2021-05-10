@@ -76,7 +76,7 @@ function blockS3PublicAccess(props: DefaultsStep1Props) {
 function createCentralBucketCopy(props: DefaultsStep1Props) {
   const { accountStacks, config } = props;
 
-  const masterAccountConfig = config['global-options']['aws-org-master'];
+  const masterAccountConfig = config['global-options']['aws-org-management'];
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountConfig.account);
 
   const organizations = new Organizations(masterAccountStack, 'Organizations');

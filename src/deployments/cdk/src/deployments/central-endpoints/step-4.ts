@@ -38,7 +38,7 @@ export async function step4(props: CentralEndpointsStep4Props) {
   const centralZones = allVpcConfigs.filter(
     vc => vc.vpcConfig['central-endpoint'] && vc.vpcConfig.zones && vc.vpcConfig.zones.private.length > 0,
   );
-  const masterAccountKey = config['global-options']['aws-org-master'].account;
+  const masterAccountKey = config['global-options']['aws-org-management'].account;
   for (const centralZone of centralZones) {
     const hostedZoneOutputs = HostedZoneOutputFinder.findAll({
       outputs,

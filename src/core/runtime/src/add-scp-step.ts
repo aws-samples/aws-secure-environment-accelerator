@@ -33,6 +33,7 @@ export const handler = async (input: AddScpInput) => {
     parametersTableName,
     acceleratorName,
     region,
+    baseline,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -90,6 +91,7 @@ export const handler = async (input: AddScpInput) => {
   await scps.detachPoliciesFromTargets({
     policyNamesToKeep: acceleratorPolicyNames,
     policyTargetIdsToInclude: acceleratorTargetOuIds,
+    baseline,
   });
 
   await scps.attachFullAwsAccessPolicyToTargets({
@@ -102,6 +104,7 @@ export const handler = async (input: AddScpInput) => {
     configurationOus: organizationalUnits,
     acceleratorOus: config.getOrganizationalUnits(),
     acceleratorPrefix,
+    baseline,
   });
 
   await scps.attachOrDetachPoliciesToAccounts({

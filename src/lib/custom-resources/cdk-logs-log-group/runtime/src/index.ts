@@ -1,6 +1,6 @@
 import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
-import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
@@ -36,14 +36,15 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { logGroupName, retention, tags, kmsKeyId } = properties;
   try {
-    const existingLogGroup = await throttlingBackOff(() =>
+    const existingLogGroups = await throttlingBackOff(() =>
       logs
         .describeLogGroups({
           logGroupNamePrefix: logGroupName,
         })
         .promise(),
     );
-    if (existingLogGroup.logGroups && existingLogGroup.logGroups.length > 0) {
+    const existingLogGroup = existingLogGroups.logGroups?.find(lg => lg.logGroupName === logGroupName);
+    if (existingLogGroup) {
       console.warn(`Log Group is already exists : ${logGroupName}`);
       if (kmsKeyId) {
         // Add kmsKeyId to logGroup
@@ -104,6 +105,21 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
   return onCreate(event);
 }
 
-async function onDelete(_: CloudFormationCustomResourceEvent) {
-  console.log(`Nothing to do for delete...`);
+async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
+  console.log(`Deleting CloudWatch LogGroup ...`);
+  console.log(JSON.stringify(event, null, 2));
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const { logGroupName } = properties;
+  if (event.PhysicalResourceId !== logGroupName) {
+    return;
+  }
+
+  // Delete CloudWatch loggroup
+  await throttlingBackOff(() =>
+    logs
+      .deleteLogGroup({
+        logGroupName,
+      })
+      .promise(),
+  );
 }

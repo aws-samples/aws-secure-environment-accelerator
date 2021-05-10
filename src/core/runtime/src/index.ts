@@ -5,8 +5,8 @@ export { handler as addTagsToSharedResourcesStep } from './add-tags-to-shared-re
 export { handler as enableTrustedAccessForServicesStep } from './enable-trusted-access-for-services-step';
 export { handler as loadAccountsStep } from './load-accounts-step';
 // export { handler as loadConfigurationStep } from './load-configuration-step';
-export { handler as loadLandingZoneConfigurationStep } from './configuration/load-landing-zone-config';
 export { handler as loadOrganizationConfigurationStep } from './configuration/load-organizations-config';
+export { handler as loadControlTowerConfigurationStep } from './configuration/load-control-tower-config';
 export { handler as loadLimitsStep } from './load-limits-step';
 export { handler as accountDefaultSettingsStep } from './account-default-settings-step';
 export { handler as storeStackOutputStep } from './store-stack-output-step';

@@ -31,11 +31,12 @@ const codecommit = new CodeCommit();
 /**
  *
  * @param input ValdationInput
- * - Check for renamed accounts and update in codecommit config file
- * - Check for renamed Organizations and update in codecommit config file
- * - Check for non created OUs in config file and create OUs
- * - Create Suspended OU and move all suspended accounts to it
- * - Attach QNO Scp to all free accounts under root and Suspended OU
+ * - (ORGANIZATIONS, CONTROL_TOWER) Check for renamed accounts and update in codecommit config file
+ * - (ORGANIZATIONS, CONTROL_TOWER) Check for renamed Organizations and update in codecommit config file
+ * - (ORGANIZATIONS) Check for non created OUs in config file and create OUs
+ * - (ORGANIZATIONS) Create Suspended OU and move all suspended accounts to it
+ * - (ORGANIZATIONS, CONTROL_TOWER) Attach QNO Scp to all free accounts under root and Suspended OU
+ * - (ORGANIZATIONS, CONTROL_TOWER) Validating SCP Count and throw error if max SCPs count exceeds 5 on either accounts or orgs
  */
 export const handler = async (input: ValdationInput): Promise<string> => {
   console.log(`Performing OU Validation...`);
@@ -53,6 +54,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     configRootFilePath,
     acceleratorName,
     region,
+    baseline,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -200,7 +202,9 @@ export const handler = async (input: ValdationInput): Promise<string> => {
 
   const roots = await organizations.listRoots();
   const rootId = roots[0].Id!;
-  awsOusWithPath.push(...(await createOrganizstionalUnits(config, awsOusWithPath, rootId)));
+  if (baseline === 'ORGANIZATIONS') {
+    awsOusWithPath.push(...(await createOrganizstionalUnits(config, awsOusWithPath, rootId)));
+  }
   const rootAccounts = await organizations.listAccountsForParent(rootId);
   let rootAccountIds = rootAccounts.map(acc => acc.Id);
 
@@ -235,7 +239,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     }
   }
   let suspendedOu = awsOusWithPath.find(o => o.Path === SUSPENDED_OU_NAME);
-  if (!suspendedOu) {
+  if (!suspendedOu && baseline === 'ORGANIZATIONS') {
     suspendedOu = await createSuspendedOu(SUSPENDED_OU_NAME, rootId);
     awsOusWithPath.push(suspendedOu);
   }
@@ -243,13 +247,16 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   // List Suspended Accounts
   for (const [ouId, accounts] of Object.entries(awsOuAccountMap)) {
     const suspendedAccounts = accounts.filter(account => account.Status === 'SUSPENDED');
+    if (suspendedAccounts.length > 0 && !suspendedOu) {
+      throw new Error(`There are Suspended accounts in Organization and no "Suspended" OU Created`);
+    }
     for (const suspendedAccount of suspendedAccounts) {
-      if (ouId === suspendedOu.Id) {
+      if (ouId === suspendedOu?.Id) {
         continue;
       }
       await organizations.moveAccount({
         AccountId: suspendedAccount.Id!,
-        DestinationParentId: suspendedOu.Id!,
+        DestinationParentId: suspendedOu?.Id!,
         SourceParentId: ouId,
       });
     }
@@ -257,13 +264,15 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   // Attach Qurantine SCP to root Accounts
   const policyId = await scps.createOrUpdateQuarantineScp();
   // Detach target from all polocies except FullAccess and Qurantine SCP
-  for (const targetId of [...rootAccountIds, suspendedOu.Id]) {
+  for (const targetId of [...rootAccountIds, suspendedOu?.Id!]) {
+    if (!targetId) continue;
     await scps.detachPoliciesFromTargets({
       policyNamesToKeep: [
         ServiceControlPolicy.createQuarantineScpName({ acceleratorPrefix }),
         FULL_AWS_ACCESS_POLICY_NAME,
       ],
       policyTargetIdsToInclude: [targetId!],
+      baseline,
     });
   }
   const policyTargets = await organizations.listTargetsForPolicy({
@@ -271,8 +280,8 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   });
   const existingTargets = policyTargets.map(target => target.TargetId);
   const targetIds = rootAccountIds.filter(targetId => !existingTargets.includes(targetId));
-  if (!existingTargets.includes(suspendedOu.Id)) {
-    targetIds.push(suspendedOu.Id);
+  if (suspendedOu && !existingTargets.includes(suspendedOu.Id)) {
+    targetIds.push(suspendedOu?.Id);
   }
   for (const targetId of targetIds) {
     await organizations.attachPolicy(policyId, targetId!);
@@ -304,6 +313,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
           FULL_AWS_ACCESS_POLICY_NAME,
         ],
         policyTargetIdsToInclude: [rootOrg.Id!],
+        baseline,
       });
       if (!updatedTargetIdsForQnoScp.includes(rootOrg.Id)) {
         await organizations.attachPolicy(policyId, rootOrg.Id!);

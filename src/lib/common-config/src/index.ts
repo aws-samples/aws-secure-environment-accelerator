@@ -89,15 +89,6 @@ export class AcceleratorConfig implements t.TypeOf<typeof c.AcceleratorConfigTyp
   /**
    * @return [accountKey: string, accountConfig: AccountConfig][]
    */
-  getAccountByLandingZoneAccountType(type: c.LandingZoneAccountType): [string, c.AccountConfig] | undefined {
-    return this.getMandatoryAccountConfigs().find(
-      ([_, accountConfig]) => accountConfig['landing-zone-account-type'] === type,
-    );
-  }
-
-  /**
-   * @return [accountKey: string, accountConfig: AccountConfig][]
-   */
   getMandatoryAccountConfigs(): [string, c.AccountConfig][] {
     return Object.entries(this['mandatory-account-configs']);
   }
@@ -135,7 +126,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof c.AcceleratorConfigTyp
    */
   getMandatoryAccountKey(accountName: c.MandatoryAccountType): string {
     if (accountName === 'master') {
-      return this['global-options']['aws-org-master'].account;
+      return this['global-options']['aws-org-management'].account;
     } else if (accountName === 'central-security') {
       return this['global-options']['central-security-services'].account;
     } else if (accountName === 'central-operations') {

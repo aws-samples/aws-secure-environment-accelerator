@@ -1,6 +1,5 @@
 import { AccountVendingMachine } from '@aws-accelerator/common/src/aws/account-vending-machine';
 import { ConfigurationAccount } from '../load-configuration-step';
-import { ServiceCatalog } from '@aws-accelerator/common/src/aws/service-catalog';
 import { CreateAccountOutput } from '@aws-accelerator/common/src/aws/types/account';
 
 interface CreateMasterExecutionRoleInput {

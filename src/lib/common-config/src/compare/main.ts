@@ -77,10 +77,10 @@ export async function compareAcceleratorConfig(props: {
 
   if (!overrideConfig['ov-global-options']) {
     await validate.validateGlobalOptions(configChanges, errors);
-    const ouMasterRegion = modifiedConfig['global-options']['aws-org-master'].region;
+    const ouMasterRegion = modifiedConfig['global-options']['aws-org-management'].region;
     if (region !== ouMasterRegion) {
       errors.push(
-        `ConfigCheck: state machine is running in the region ${region} but "aws-org-master" region has ${ouMasterRegion}`,
+        `ConfigCheck: state machine is running in the region ${region} but "aws-org-management" region has ${ouMasterRegion}`,
       );
     }
   }

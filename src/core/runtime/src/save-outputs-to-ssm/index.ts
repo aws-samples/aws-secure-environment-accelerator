@@ -53,7 +53,7 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
   const accounts = await loadAccounts(accountsTableName, dynamodb);
 
   const globalRegions = config['global-options']['additional-global-output-regions'];
-  const smRegion = config['global-options']['aws-org-master'].region;
+  const smRegion = config['global-options']['aws-org-management'].region;
 
   // TODO preparing list of regions to create IAM parameters
   const iamRegions = [...globalRegions, smRegion];

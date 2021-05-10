@@ -17,7 +17,7 @@ export async function step1(props: ReportsStep1Props) {
   const globalOptions = config['global-options'];
   const curConfig = globalOptions.reports['cost-and-usage-report'];
 
-  const masterAccountKey = globalOptions['aws-org-master'].account;
+  const masterAccountKey = globalOptions['aws-org-management'].account;
   const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
   const masterBucket = accountBuckets[masterAccountKey];
 

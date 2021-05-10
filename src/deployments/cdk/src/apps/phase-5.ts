@@ -175,7 +175,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   const { acceleratorBaseline } = context;
 
-  if (acceleratorBaseline === 'ORGANIZATIONS') {
+  if (['ORGANIZATIONS', 'CONTROL_TOWER'].includes(acceleratorBaseline)) {
     const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey, 'us-east-1');
     if (!masterStack) {
       console.error(`Not able to create stack for "${masterAccountKey}"`);

@@ -60,7 +60,7 @@ export async function saveIamOutputs(props: SaveOutputsInput) {
     return;
   }
 
-  const smRegion = config['global-options']['aws-org-master'].region;
+  const smRegion = config['global-options']['aws-org-management'].region;
   const outputs: StackOutput[] = await getOutput(outputsTableName, `${account.key}-${smRegion}-1`, dynamodb);
   const ssmOutputs = await getIamSsmOutput(outputUtilsTableName, `${account.key}-${region}-identity`, dynamodb);
   // console.log('ssmOutputs', ssmOutputs);

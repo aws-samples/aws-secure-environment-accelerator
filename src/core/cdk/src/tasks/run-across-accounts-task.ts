@@ -9,7 +9,6 @@ export namespace RunAcrossAccountsTask {
     role: iam.IRole;
     lambdaCode: lambda.Code;
     waitSeconds?: number;
-    assumeRoleName: string;
     lambdaPath: string;
     name: string;
     permissions?: string[];
@@ -25,7 +24,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
   constructor(scope: cdk.Construct, id: string, props: RunAcrossAccountsTask.Props) {
     super(scope, id);
 
-    const { role, lambdaCode, name, lambdaPath, permissions, assumeRoleName, baselineCheck, waitSeconds = 60 } = props;
+    const { role, lambdaCode, name, lambdaPath, permissions, baselineCheck, waitSeconds = 60 } = props;
 
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -53,11 +52,12 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
       },
       functionPayload: {
         'accountId.$': '$.accountId',
-        assumeRoleName,
+        'assumeRoleName.$': '$.assumeRoleName',
         'configRepositoryName.$': '$.configRepositoryName',
         'configFilePath.$': '$.configFilePath',
         'configCommitId.$': '$.configCommitId',
         'acceleratorPrefix.$': '$.acceleratorPrefix',
+        'baseline.$': '$.baseline',
         ...props.functionPayload,
       },
     });
@@ -69,11 +69,12 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
       maxConcurrency: 50,
       parameters: {
         'accountId.$': '$$.Map.Item.Value',
-        assumeRoleName,
+        'assumeRoleName.$': '$.assumeRoleName',
         'configRepositoryName.$': '$.configRepositoryName',
         'configFilePath.$': '$.configFilePath',
         'configCommitId.$': '$.configCommitId',
         'acceleratorPrefix.$': '$.acceleratorPrefix',
+        'baseline.$': '$.baseline',
         ...props.functionPayload,
       },
     });

@@ -1,7 +1,6 @@
 {
   "global-options": {
     "alz-minimum-version": "v2.3.1",
-    "alz-baseline": false,
     "ct-baseline": false,
     "default-s3-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
@@ -31,7 +30,7 @@
       "us-west-2"
     ],
     "keep-default-vpc-regions": [],
-    "aws-org-master": {
+    "aws-org-management": {
       "account": "master",
       "region": "ca-central-1"
     },
@@ -897,7 +896,7 @@
   "mandatory-account-configs": {
     "shared-network": {
       "account-name": "SharedNetwork",
-      "email": "myemail+pbmmT-network@example.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-network@example.com",
       "ou": "core",
       "share-mad-from": "operations",
       "src-filename": "config.json",
@@ -1134,7 +1133,7 @@
     },
     "operations": {
       "account-name": "Operations",
-      "email": "myemail+pbmmT-operations@example.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-operations@example.com",
       "ou": "core",
       "account-warming-required": true,
       "limits": {},
@@ -1316,7 +1315,7 @@
     },
     "perimeter": {
       "account-name": "Perimeter",
-      "email": "myemail+pbmmT-perimeter@example.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-perimeter@example.com",
       "ou": "core",
       "account-warming-required": true,
       "src-filename": "config.json",
@@ -1870,8 +1869,8 @@
       }
     },
     "master": {
-      "account-name": "primary",
-      "email": "myemail+pbmmT-master@example.com---------------------REPLACE----------------------",
+      "account-name": "management",
+      "email": "myemail+pbmmT-management@example.com",
       "ou": "core",
       "share-mad-from": "",
       "src-filename": "config.json",
@@ -2008,26 +2007,26 @@
     "log-archive": {
       "account-name": "log-archive",
       "ou": "core",
-      "email": "myemail+pbmmT-log@example.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-log@example.com",
       "src-filename": "config.json"
     },
     "security": {
       "account-name": "security",
       "ou": "core",
-      "email": "myemail+pbmmT-sec@example.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-sec@example.com",
       "src-filename": "config.json"
     }
   },
   "workload-account-configs": {
     "fun-acct": {
       "account-name": "TheFunAccount",
-      "email": "myemail+pbmmT-funacct@example.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-funacct@example.com",
       "src-filename": "config.json",
       "ou": "Sandbox"
     },
     "mydevacct1": {
       "account-name": "MyDev1",
-      "email": "myemail+pbmmT-dev1@example.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-dev1@example.com",
       "src-filename": "config.json",
       "ou": "Dev"
     }

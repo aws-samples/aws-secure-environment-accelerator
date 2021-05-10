@@ -4,14 +4,17 @@ import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-rol
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { LogsMetricFilter } from '@aws-accelerator/custom-resource-logs-metric-filter';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import { Account } from '@aws-accelerator/common-outputs/src/accounts';
+
 export interface CloudWatchStep1Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
   outputs: StackOutput[];
+  accounts: Account[];
 }
 
 export async function step1(props: CloudWatchStep1Props) {
-  const { accountStacks, config, outputs } = props;
+  const { accountStacks, config, outputs, accounts } = props;
   const globalOptions = config['global-options'];
   if (!globalOptions.cloudwatch) {
     console.log(`No Configuration defined for CloudWatch Deployment`);
@@ -22,13 +25,13 @@ export async function step1(props: CloudWatchStep1Props) {
     const accountKeys: string[] = [];
     const regions: string[] = [];
     if (metricConfig.accounts && metricConfig.accounts.includes('ALL')) {
-      // TODO Ignore for now implementation will come in phase 2
+      accountKeys.push(...accounts.map(acc => acc.key));
     } else {
       accountKeys.push(...metricConfig.accounts);
     }
 
     if (metricConfig.regions && metricConfig.regions.includes('ALL')) {
-      // TODO Ignore for now implementation will come in phase 2
+      regions.push(...config['global-options']['supported-regions']);
     } else {
       regions.push(...metricConfig.regions);
     }

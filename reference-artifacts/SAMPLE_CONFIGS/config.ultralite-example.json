@@ -8,7 +8,6 @@
     "alarm-not-ip": "10.10.10.*"
   },
   "global-options": {
-    "alz-baseline": false,
     "ct-baseline": false,
     "default-s3-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
@@ -21,7 +20,7 @@
     "additional-global-output-regions": [],
     "supported-regions": ["${HOME_REGION}"],
     "keep-default-vpc-regions": [],
-    "aws-org-master": {
+    "aws-org-management": {
       "account": "management",
       "region": "${HOME_REGION}"
     },

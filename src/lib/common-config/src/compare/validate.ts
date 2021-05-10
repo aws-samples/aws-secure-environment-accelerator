@@ -9,8 +9,8 @@ import { AcceleratorConfig } from '..';
 /**
  * config path(s) for global options
  */
-const GLOBAL_OPTIONS_AOM_ACCOUNT = ['global-options', 'aws-org-master', 'account'];
-const GLOBAL_OPTIONS_AOM_REGION = ['global-options', 'aws-org-master', 'region'];
+const GLOBAL_OPTIONS_AOM_ACCOUNT = ['global-options', 'aws-org-management', 'account'];
+const GLOBAL_OPTIONS_AOM_REGION = ['global-options', 'aws-org-management', 'region'];
 const GLOBAL_OPTIONS_CLS_ACCOUNT = ['global-options', 'central-log-services', 'account'];
 const GLOBAL_OPTIONS_CLS_REGION = ['global-options', 'central-log-services', 'region'];
 

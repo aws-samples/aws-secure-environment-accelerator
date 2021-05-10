@@ -34,7 +34,7 @@ export async function saveEncryptsOutputs(props: SaveOutputsInput) {
     outputUtilsTableName,
   } = props;
 
-  const smRegion = config['global-options']['aws-org-master'].region;
+  const smRegion = config['global-options']['aws-org-management'].region;
   const phase0Outputs: StackOutput[] = await getOutput(outputsTableName, `${account.key}-${smRegion}-0`, dynamodb);
   const phase1Outputs: StackOutput[] = await getOutput(outputsTableName, `${account.key}-${smRegion}-1`, dynamodb);
   const outputs = [...phase0Outputs, ...phase1Outputs];

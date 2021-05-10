@@ -15,7 +15,7 @@ export const handler = async (input: Partial<CheckStepInput>): Promise<AccountAv
   const avm = new AccountVendingMachine();
 
   // Check the status of the provisioned account.
-  const verifyAccountOutput = await avm.isAccountAvailable(account?.accountName!);
+  const verifyAccountOutput = await avm.isAccountAvailable(account?.accountKey!);
 
   if (account && !account.isMandatoryAccount) {
     const status = verifyAccountOutput.status;

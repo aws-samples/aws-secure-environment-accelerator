@@ -4,7 +4,7 @@ import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import {
   getStackOutput,
-  AWS_LANDING_ZONE_CLOUD_TRAIL_NAME,
+  AWS_CONTROL_TOWER_CLOUD_TRAIL_NAME,
   OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
 } from '@aws-accelerator/common-outputs/src/stack-output';
 import { CloudTrail } from '@aws-accelerator/common/src/aws/cloud-trail';
@@ -33,6 +33,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     configCommitId,
     outputTableName,
     parametersTableName,
+    baseline,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -52,7 +53,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   const updateCloudTrailSettings = async (accountId: string, accountKey: string): Promise<void> => {
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
 
-    const cloudTrailName = AWS_LANDING_ZONE_CLOUD_TRAIL_NAME;
+    const cloudTrailName = AWS_CONTROL_TOWER_CLOUD_TRAIL_NAME;
     console.log('AWS LZ CloudTrail Name: ' + cloudTrailName);
 
     const logArchiveAccount = accounts.find(a => a.key === logAccountKey);
@@ -97,7 +98,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
           ReadWriteType: 'All',
         },
       ],
-      TrailName: AWS_LANDING_ZONE_CLOUD_TRAIL_NAME,
+      TrailName: AWS_CONTROL_TOWER_CLOUD_TRAIL_NAME,
     };
     const putEventSelectorsResponse = await cloudTrail.putEventSelectors(putEventSelectorsRequest);
     console.log('putEventSelectorsResponse: ', putEventSelectorsResponse);
@@ -128,15 +129,15 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       continue;
     }
 
-    if (acceleratorConfig['global-options']['alz-baseline']) {
-      try {
-        // update AWS LZ cloud trail settings
-        await updateCloudTrailSettings(account.id, account.key);
-      } catch (e) {
-        console.error(`Error while updating CloudTrail settings`);
-        console.error(e);
-      }
-    }
+    // if (baseline === 'CONTROL_TOWER') {
+    //   try {
+    //     // update AWS LZ cloud trail settings
+    //     await updateCloudTrailSettings(account.id, account.key);
+    //   } catch (e) {
+    //     console.error(`Error while updating CloudTrail settings`);
+    //     console.error(e);
+    //   }
+    // }
   }
 
   return {

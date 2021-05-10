@@ -9,12 +9,14 @@
   "dependencies": {
     "@aws-accelerator/custom-resource-cloud-trail-runtime": "workspace:*",
     "@aws-cdk/aws-iam": "1.85.0",
-    "@aws-cdk/core": "1.85.0"
+    "@aws-cdk/core": "1.85.0",
+    "@aws-cdk/aws-lambda": "1.85.0"
   },
   "peerDependencies": {
     "@aws-accelerator/custom-resource-cloud-trail-runtime": "workspace:*",
     "@aws-cdk/aws-iam": "1.85.0",
-    "@aws-cdk/core": "1.85.0"
+    "@aws-cdk/core": "1.85.0",
+    "@aws-cdk/aws-lambda": "1.85.0"
   },
   "devDependencies": {
     "@types/node": "12.20.6",

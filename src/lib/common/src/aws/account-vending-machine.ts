@@ -1,9 +1,10 @@
 import aws from './aws-client';
 import { v4 as uuidv4 } from 'uuid';
-import { ProductAVMParam, ServiceCatalog } from './service-catalog';
+import { ServiceCatalog } from './service-catalog';
 import { STS } from './sts';
 import { CreateAccountInput, CreateAccountOutput, AccountAvailableOutput } from './types/account';
 import { throttlingBackOff } from './backoff';
+import * as crypto from 'crypto';
 
 export interface CreateAvmAccountInput extends CreateAccountInput {
   avmPortfolioName: string;
@@ -22,7 +23,7 @@ export class AccountVendingMachine {
    * Create account using account-vending-machine
    */
   async createAccount(input: CreateAvmAccountInput): Promise<CreateAccountOutput> {
-    const { avmPortfolioName, avmProductName, accountName, emailAddress, organizationalUnit } = input;
+    const { avmPortfolioName, avmProductName, accountName, emailAddress, organizationalUnit, accountKey } = input;
 
     // find service catalog portfolioId by name
     const portfolio = await throttlingBackOff(() => this.client.findPortfolioByName(avmPortfolioName));
@@ -59,7 +60,6 @@ export class AccountVendingMachine {
     }
 
     const provisionToken = uuidv4();
-
     // launch AVM Product
     let provisionProductOutput;
     try {
@@ -68,7 +68,7 @@ export class AccountVendingMachine {
           ProductId: productId,
           ProvisionToken: provisionToken,
           ProvisioningArtifactId: provisioningArtifactId,
-          ProvisionedProductName: accountName,
+          ProvisionedProductName: accountKey,
           ProvisioningParameters: [
             {
               Key: 'AccountName',
@@ -79,8 +79,20 @@ export class AccountVendingMachine {
               Value: emailAddress,
             },
             {
-              Key: 'OrgUnitName',
+              Key: 'ManagedOrganizationalUnit',
               Value: organizationalUnit,
+            },
+            {
+              Key: 'SSOUserEmail',
+              Value: emailAddress,
+            },
+            {
+              Key: 'SSOUserFirstName',
+              Value: accountName,
+            },
+            {
+              Key: 'SSOUserLastName',
+              Value: accountName,
             },
             {
               Key: 'VPCOptions',
@@ -159,4 +171,9 @@ export class AccountVendingMachine {
       provisionedProductStatus,
     };
   }
+}
+
+function hashName(name: string, length: number) {
+  const hash = crypto.createHash('md5').update(name).digest('hex');
+  return hash.slice(0, length).toUpperCase();
 }

@@ -4,7 +4,7 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-tasks';
 
-export namespace CreateLandingZoneAccountTask {
+export namespace CreateControlTowerAccountTask {
   export interface Props {
     role: iam.IRole;
     lambdaCode: lambda.Code;
@@ -12,11 +12,11 @@ export namespace CreateLandingZoneAccountTask {
   }
 }
 
-export class CreateLandingZoneAccountTask extends sfn.StateMachineFragment {
+export class CreateControlTowerAccountTask extends sfn.StateMachineFragment {
   readonly startState: sfn.State;
   readonly endStates: sfn.INextable[];
 
-  constructor(scope: cdk.Construct, id: string, props: CreateLandingZoneAccountTask.Props) {
+  constructor(scope: cdk.Construct, id: string, props: CreateControlTowerAccountTask.Props) {
     super(scope, id);
 
     const { role, lambdaCode, waitSeconds = 60 } = props;
@@ -52,7 +52,7 @@ export class CreateLandingZoneAccountTask extends sfn.StateMachineFragment {
 
     const createTaskResultPath = '$.createOutput';
     const createTaskStatusPath = `${createTaskResultPath}.status`;
-    const createTask = new CodeTask(scope, `Start Landing Zone Account Creation`, {
+    const createTask = new CodeTask(scope, `Start Control Tower Account Creation`, {
       resultPath: createTaskResultPath,
       functionProps: {
         role,
@@ -63,7 +63,7 @@ export class CreateLandingZoneAccountTask extends sfn.StateMachineFragment {
 
     const verifyTaskResultPath = '$.verifyOutput';
     const verifyTaskStatusPath = `${verifyTaskResultPath}.status`;
-    const verifyTask = new CodeTask(scope, 'Verify ALZ Account Creation', {
+    const verifyTask = new CodeTask(scope, 'Verify Control Tower Account Creation', {
       resultPath: verifyTaskResultPath,
       functionProps: {
         role,
@@ -72,18 +72,18 @@ export class CreateLandingZoneAccountTask extends sfn.StateMachineFragment {
       },
     });
 
-    const waitTask = new sfn.Wait(scope, 'Wait for ALZ Account Creation', {
+    const waitTask = new sfn.Wait(scope, 'Wait for Control Tower Account Creation', {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
     });
 
-    const pass = new sfn.Pass(this, 'ALZ Account Creation Succeeded');
+    const pass = new sfn.Pass(this, 'Control Tower Account Creation Succeeded');
 
-    const fail = new sfn.Fail(this, 'ALZ Account Creation Failed');
+    const fail = new sfn.Fail(this, 'Control Tower Account Creation Failed');
 
     waitTask
       .next(verifyTask)
       .next(
-        new sfn.Choice(scope, 'ALZ Account Creation Done?')
+        new sfn.Choice(scope, 'Control Tower Account Creation Done?')
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'NON_MANDATORY_ACCOUNT_FAILURE'), pass)
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
@@ -92,7 +92,7 @@ export class CreateLandingZoneAccountTask extends sfn.StateMachineFragment {
       );
 
     createTask.next(
-      new sfn.Choice(scope, 'ALZ Account Creation Started?')
+      new sfn.Choice(scope, 'Control Tower Account Creation Started?')
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'SUCCESS'), waitTask)
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'NON_MANDATORY_ACCOUNT_FAILURE'), pass)
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'ALREADY_EXISTS'), pass)

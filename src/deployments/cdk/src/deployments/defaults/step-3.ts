@@ -21,7 +21,7 @@ export interface DefaultsStep3Props {
 export async function step3(props: DefaultsStep3Props) {
   const { config, accountBuckets, accountStacks, centralBucket, accounts, outputs } = props;
   const logAccountKey = config['global-options']['central-log-services'].account;
-  const masterAccountKey = config['global-options']['aws-org-master'].account;
+  const masterAccountKey = config['global-options']['aws-org-management'].account;
   const centralLogBucket = accountBuckets[logAccountKey];
   const defaultLogRetention = config['global-options']['default-s3-retention'];
   for (const [accountKey, accountBucket] of Object.entries(accountBuckets)) {

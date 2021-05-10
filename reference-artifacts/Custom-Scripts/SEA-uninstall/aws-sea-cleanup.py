@@ -345,8 +345,8 @@ def cleanup():
         config = json.load(json_file)
         supported_regions = config["global-options"]["supported-regions"]
         admin_role = config["global-options"]["organization-admin-role"]
-        config_master_account_name = config["global-options"]["aws-org-master"]["account"]
-        master_region = config["global-options"]["aws-org-master"]["region"]
+        config_master_account_name = config["global-options"]["aws-org-management"]["account"]
+        master_region = config["global-options"]["aws-org-management"]["region"]
 
         config_security_account_name = config["global-options"]["central-security-services"]["account"]
         
@@ -816,7 +816,7 @@ def cleanup_directory_sharing_load_config():
         config = json.load(json_file)       
 
         admin_role = config["global-options"]["organization-admin-role"]        
-        master_region = config["global-options"]["aws-org-master"]["region"]
+        master_region = config["global-options"]["aws-org-management"]["region"]
 
         mad_account_name = config["global-options"]["central-operations-services"]["account"]
         mad_account =  config["mandatory-account-configs"][mad_account_name]["account-name"]
@@ -875,7 +875,7 @@ def cleanup_route53_resolver_load_config():
         config = json.load(json_file)
         
         admin_role = config["global-options"]["organization-admin-role"]        
-        master_region = config["global-options"]["aws-org-master"]["region"]
+        master_region = config["global-options"]["aws-org-management"]["region"]
 
         central_account_name = config["global-options"]["central-operations-services"]["account"]
         if "mad" not in config["mandatory-account-configs"][central_account_name]["deployments"]:
@@ -885,7 +885,7 @@ def cleanup_route53_resolver_load_config():
 
         central_resolver_rule_account =  config["mandatory-account-configs"][central_account_name]["deployments"]["mad"]["central-resolver-rule-account"]
         
-        config_master_account_name = config["global-options"]["aws-org-master"]["account"]
+        config_master_account_name = config["global-options"]["aws-org-management"]["account"]
         master_account_name = config["mandatory-account-configs"][config_master_account_name]["account-name"]
 
     accounts = get_accounts()

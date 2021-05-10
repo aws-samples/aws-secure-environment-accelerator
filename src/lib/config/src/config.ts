@@ -594,7 +594,6 @@ export const AwsConfigAccountConfig = t.interface({
 });
 
 export const MandatoryAccountConfigType = t.interface({
-  'landing-zone-account-type': optional(LandingZoneAccountType),
   'account-name': t.string,
   email: t.string,
   ou: t.string,
@@ -849,7 +848,6 @@ export const ReplacementsConfigType = t.record(
 );
 
 export const GlobalOptionsConfigType = t.interface({
-  'alz-baseline': t.boolean,
   'ct-baseline': t.boolean,
   'default-s3-retention': t.number,
   'central-bucket': nonEmptyString,
@@ -858,7 +856,7 @@ export const GlobalOptionsConfigType = t.interface({
   'central-security-services': CentralServicesConfigType,
   'central-operations-services': CentralServicesConfigType,
   'central-log-services': CentralServicesConfigType,
-  'aws-org-master': CentralServicesConfigType,
+  'aws-org-management': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
   'organization-admin-role': optional(t.string),
   'supported-regions': t.array(t.string),
@@ -873,6 +871,7 @@ export const GlobalOptionsConfigType = t.interface({
   'vpc-flow-logs': VpcFlowLogsConfigType,
   'additional-cwl-regions': defaulted(t.record(t.string, AdditionalCwlRegionType), {}),
   'additional-global-output-regions': defaulted(t.array(t.string), []),
+  'separate-s3-dp-org-trail': defaulted(t.boolean, false),
   cloudwatch: optional(
     t.interface({
       metrics: t.array(CloudWatchMetricFiltersConfigType),
@@ -883,6 +882,7 @@ export const GlobalOptionsConfigType = t.interface({
   'aws-config': optional(AwsConfig),
   'default-ssm-documents': defaulted(t.array(t.string), []),
   'endpoint-port-overrides': optional(t.record(t.string, t.array(t.string))),
+  'control-tower-supported-regions': defaulted(t.array(t.string), []),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;

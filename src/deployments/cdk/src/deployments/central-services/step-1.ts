@@ -54,7 +54,7 @@ async function centralServicesSettingsInMaster(props: {
   }
 
   // Enable Cross-Account CloudWatch access in Master account fot sub accounts
-  const masterStack = accountStacks.getOrCreateAccountStack(config['aws-org-master'].account);
+  const masterStack = accountStacks.getOrCreateAccountStack(config['aws-org-management'].account);
   await cloudWatchSettingsInMaster({
     scope: masterStack,
     accountIds,

@@ -183,6 +183,7 @@ export const handler = async (input: PolicyChangeEvent) => {
     await scps.detachPoliciesFromTargets({
       policyNamesToKeep: acceleratorPolicyNames,
       policyTargetIdsToInclude: acceleratorTargetOuIds,
+      baseline: globalOptionsConfig['ct-baseline'] ? 'CONTROL_TOWER' : 'ORGANIZATIONS',
     });
 
     await scps.attachFullAwsAccessPolicyToTargets({

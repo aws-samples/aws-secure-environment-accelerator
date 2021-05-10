@@ -456,16 +456,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
-  if (!acceleratorConfig['global-options']['alz-baseline']) {
-    // GuardDuty step 1
-    // to use step1 need this to be fixed: https://t.corp.amazon.com/P36821200/overview
-    await guardDutyDeployment.step1({
-      accountStacks,
-      config: acceleratorConfig,
-      accounts,
-      outputs,
-    });
-  }
+  // GuardDuty step 1
+  // to use step1 need this to be fixed: https://t.corp.amazon.com/P36821200/overview
+  await guardDutyDeployment.step1({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
+    outputs,
+  });
 
   // Central Services step 1
   await cwlCentralLoggingToS3.step1({

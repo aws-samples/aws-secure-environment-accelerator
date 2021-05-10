@@ -1,12 +1,12 @@
 import * as aws from 'aws-sdk';
 import { Account, OrganizationalUnit } from 'aws-sdk/clients/organizations';
-import { LandingZoneConfig } from '@aws-accelerator/common/src/landing-zone/config';
 import { AcceleratorConfig } from '@aws-accelerator/common-config';
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
-import { SSM } from '@aws-accelerator/common/src/aws/ssm';
-import { LandingZone } from '@aws-accelerator/common/src/landing-zone';
-import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
-
+import { STS } from '@aws-accelerator/common/src/aws/sts';
+import * as path from 'path';
+import * as fs from 'fs';
+import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+jest.mock('@aws-accelerator/common-config/src/load');
 aws.config.logger = console;
 
 type DeepPartial<T> = {
@@ -20,29 +20,22 @@ type DeepPartial<T> = {
 
 interface MockValues {
   acceleratorConfig: DeepPartial<AcceleratorConfig>;
-  landingZoneConfig: DeepPartial<LandingZoneConfig>;
   organizationalUnits: OrganizationalUnit[];
   organizationalUnitAccounts: { [ouId: string]: Account[] };
+  accounts: Account[];
+  masterAccount: Account;
 }
 
 export const values: MockValues = {
   acceleratorConfig: {},
-  landingZoneConfig: {},
   organizationalUnits: [],
   organizationalUnitAccounts: {},
+  accounts: [],
+  masterAccount: {},
 };
 
 export function install() {
   // @ts-ignore
-  jest.spyOn(LandingZone.prototype, 'findLandingZoneStack').mockImplementation(async () => ({
-    version: '2.3.0',
-    config: values.landingZoneConfig,
-  }));
-
-  jest
-    .spyOn(AcceleratorConfig, 'fromString')
-    .mockImplementation(() => new AcceleratorConfig(values.acceleratorConfig as AcceleratorConfig));
-
   jest
     .spyOn(Organizations.prototype, 'getOrganizationalUnit')
     .mockImplementation(async (ouId: string) => values.organizationalUnits.find(ou => ou.Id === ouId));
@@ -53,24 +46,26 @@ export function install() {
     .spyOn(Organizations.prototype, 'listOrganizationalUnits')
     .mockImplementation(async () => values.organizationalUnits);
 
-  jest.spyOn(SSM.prototype, 'getParameter').mockImplementation(async () => ({
-    Parameter: {
-      Value: 'lz@amazon.com',
-    },
-  }));
-
   jest
     .spyOn(Organizations.prototype, 'listAccountsForParent')
     .mockImplementation(async (parentId: string) => values.organizationalUnitAccounts[parentId]);
 
-  // What we return here does not matter, it should just not be undefined
+  jest.spyOn(Organizations.prototype, 'listAccounts').mockImplementation(async () => values.accounts);
 
-  jest.spyOn(CodeCommit.prototype, 'getFile').mockImplementation(async () => ({
-    blobId: '',
-    commitId: '',
-    fileContent: '',
-    fileMode: '',
-    filePath: '',
-    fileSize: 0,
+  jest.spyOn(STS.prototype, 'getCallerIdentity').mockImplementation(async () => ({
+    Account: '111111111111',
   }));
+
+  jest
+    .spyOn(Organizations.prototype, 'getAccount')
+    .mockImplementation(async (accountId: string) => values.masterAccount);
+
+  jest.spyOn(Organizations.prototype, 'listPoliciesForTarget').mockImplementation(async () => []);
+
+  // Mock "loadAcceleratorConfig" directly with content from test/config.example.json
+  const configFilePath = path.join(__dirname, '..', '..', '..', '..', 'test', 'config.example.json');
+  const content = fs.readFileSync(configFilePath);
+  values.acceleratorConfig = AcceleratorConfig.fromString(content.toString());
+  const loadAcceleratorConfigMock = loadAcceleratorConfig as jest.Mock;
+  loadAcceleratorConfigMock.mockReturnValue(values.acceleratorConfig);
 }

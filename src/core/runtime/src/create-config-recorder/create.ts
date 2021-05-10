@@ -50,6 +50,7 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     configCommitId,
     acceleratorPrefix,
     outputTableName,
+    baseline,
   } = input;
 
   const outputs = await loadOutputs(outputTableName, dynamodb);
@@ -103,10 +104,18 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     errors.push(`${accountId}:: No ConfigRecorderRole created in Account "${accountKey}"`);
     return errors;
   }
-
+  const ctSupportedRegions = acceleratorConfig['global-options']['control-tower-supported-regions'];
   const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
+  // Creating Config Recorder
   for (const region of regions) {
-    console.log(`Creating Config Recorder in ${region}`);
+    // Skip creation of Config Recorder in CONTROL_TOWER deployed regions in all accounts
+    if (baseline === 'CONTROL_TOWER' && ctSupportedRegions.includes(region) && accountKey !== masterAccountKey) {
+      console.log(
+        `Skipping creation of Config Recorder in account "${accountKey}: ${region}" for baseline "${baseline}"`,
+      );
+      continue;
+    }
+    console.log(`Creating Config Recorder in ${accountKey}/${region}`);
     try {
       const configService = new ConfigService(credentials, region);
       const acceleratorRecorderName = createConfigRecorderName(acceleratorPrefix);
@@ -166,7 +175,8 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     }
   }
 
-  if (accountKey === masterAccountKey) {
+  // Create Config Aggregator in Management Account
+  if (accountKey === masterAccountKey && baseline !== 'CONTROL_TOWER') {
     const configAggregatorRole = IamRoleOutputFinder.tryFindOneByName({
       outputs,
       accountKey,

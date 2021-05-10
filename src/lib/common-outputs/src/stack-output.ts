@@ -4,7 +4,7 @@ import { VpcSecurityGroupOutput } from './vpc';
 export const OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER = 'KmsKeyIdForSSMSessionManager';
 export const OUTPUT_KMS_KEY_ARN_FOR_SSM_SESSION_MANAGER = 'KmsKeyArnForSSMSessionManager';
 export const OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER = 'CWLForSSMSessionManager';
-export const AWS_LANDING_ZONE_CLOUD_TRAIL_NAME = 'AWS-Landing-Zone-BaselineCloudTrail';
+export const AWS_CONTROL_TOWER_CLOUD_TRAIL_NAME = 'aws-controltower-BaselineCloudTrail';
 export const ACM_CERT_ARN_SECRET_ID_FORMAT = 'accelerator/xxaccountKeyxx/acm/xxcertNamexx';
 
 // log-archive account

@@ -242,7 +242,7 @@ export namespace CentralBucketOutput {
     config: AcceleratorConfig;
     outputs: StackOutput[];
   }): RegionalBucket {
-    const masterAccountConfig = props.config['global-options']['aws-org-master'];
+    const masterAccountConfig = props.config['global-options']['aws-org-management'];
     const masterAccountKey = masterAccountConfig.account;
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey);
 

@@ -2,6 +2,7 @@ export interface CreateAccountInput {
   accountName: string;
   emailAddress: string;
   organizationalUnit: string;
+  accountKey: string;
 }
 
 export type CreateAccountOutputStatus =

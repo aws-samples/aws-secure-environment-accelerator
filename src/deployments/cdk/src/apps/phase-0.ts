@@ -51,6 +51,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   if (!masterAccountId) {
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
   }
+  const { acceleratorBaseline } = context;
   // verify and create ec2 instance to increase account limits
   await accountWarming.step1({
     accountStacks,
@@ -58,7 +59,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
-  if (!acceleratorConfig['global-options']['alz-baseline']) {
+  if (['ORGANIZATIONS', 'CONTROL_TOWER'].includes(acceleratorBaseline)) {
     await passwordPolicy.step1({
       accountStacks,
       config: acceleratorConfig,
@@ -94,14 +95,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     secretsContainer,
   });
 
-  if (!acceleratorConfig['global-options']['alz-baseline']) {
-    // Create IAM role for Config Service
-    await iamDeployment.createConfigServiceRoles({
-      acceleratorPrefix: context.acceleratorPrefix,
-      config: acceleratorConfig,
-      accountStacks,
-    });
-  }
+  // Create IAM role for Config Service
+  // Can be disabled for CONTROL_TOWER when CONTROM_TOWER deployed in all regions
+  await iamDeployment.createConfigServiceRoles({
+    acceleratorPrefix: context.acceleratorPrefix,
+    config: acceleratorConfig,
+    accountStacks,
+  });
 
   // Create MAD secrets
   await madDeployment.createSecrets({

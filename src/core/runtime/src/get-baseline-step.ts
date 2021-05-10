@@ -73,16 +73,7 @@ export const handler = async (input: GetBaseLineInput): Promise<GetBaseelineOutp
     commitId: configCommitId,
   });
   const globalOptionsConfig = config['global-options'];
-  let baseline: string = 'LANDING_ZONE';
-  if (!globalOptionsConfig['alz-baseline'] && !globalOptionsConfig['ct-baseline']) {
-    baseline = 'ORGANIZATIONS';
-  } else if (globalOptionsConfig['alz-baseline'] && !globalOptionsConfig['ct-baseline']) {
-    baseline = 'LANDING_ZONE';
-  } else if (!globalOptionsConfig['alz-baseline'] && globalOptionsConfig['ct-baseline']) {
-    baseline = 'CONTROL_TOWER';
-  } else {
-    throw new Error(`Both "alz-baseline" and "ct-baseline" can't be true`);
-  }
+  const baseline = globalOptionsConfig['ct-baseline'] ? 'CONTROL_TOWER' : 'ORGANIZATIONS';
 
   let runStoreAllOutputs: boolean = !!storeAllOutputs;
   if (!runStoreAllOutputs) {

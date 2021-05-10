@@ -22,7 +22,7 @@ async function main() {
   const stateMachineExecutionRole = env.ACCELERATOR_STATE_MACHINE_ROLE_NAME || `${acceleratorPrefix}PipelineRole`;
 
   const configRepositoryName = env.CONFIG_REPOSITORY_NAME || `${acceleratorPrefix}Config-Repo`;
-  const configBranchName = env.CONFIG_BRANCH_NAME || 'master';
+  const configBranchName = env.CONFIG_BRANCH_NAME || 'main';
   const configS3Bucket =
     env.CONFIG_S3_BUCKET || `${acceleratorPrefix.toLowerCase()}${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}-config`;
 

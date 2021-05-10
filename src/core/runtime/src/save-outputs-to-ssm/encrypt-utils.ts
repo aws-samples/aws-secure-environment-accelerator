@@ -39,8 +39,8 @@ export async function saveKmsKeys(
   const updatedKeys: OutputUtilGenericType[] = [];
   const removalObjects: OutputUtilGenericType[] = [...(kms || [])];
 
-  const masterAccount = config['global-options']['aws-org-master'].account;
-  const smRegion = config['global-options']['aws-org-master'].region;
+  const masterAccount = config['global-options']['aws-org-management'].account;
+  const smRegion = config['global-options']['aws-org-management'].region;
   const logAccount = config['global-options']['central-log-services'].account;
 
   const kmsOutputs: KmsOutput[] = [];

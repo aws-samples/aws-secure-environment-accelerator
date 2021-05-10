@@ -26,7 +26,7 @@ export interface CentralEndpointsStep5Props {
 export async function step5(props: CentralEndpointsStep5Props) {
   const { accountStacks, config, outputs, accounts, assumeRole, executionRole } = props;
   const allVpcConfigs = config.getVpcConfigs();
-  const masterAccountKey = config['global-options']['aws-org-master'].account;
+  const masterAccountKey = config['global-options']['aws-org-management'].account;
 
   const regionalZoneOutputs: { [regino: string]: HostedZoneOutput[] } = {};
   for (const { accountKey, vpcConfig } of allVpcConfigs) {

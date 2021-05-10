@@ -24,7 +24,7 @@ test('should return the correct account names', () => {
     'SharedNetwork',
     'Operations',
     'Perimeter',
-    'primary',
+    'management',
     'log-archive',
     'security',
     'TheFunAccount',

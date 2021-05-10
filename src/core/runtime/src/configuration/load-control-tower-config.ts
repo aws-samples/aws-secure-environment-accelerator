@@ -2,6 +2,7 @@ import * as org from 'aws-sdk/clients/organizations';
 import { Organizations, OrganizationalUnit } from '@aws-accelerator/common/src/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import {
   LoadConfigurationInput,
@@ -10,9 +11,7 @@ import {
   LoadConfigurationOutput,
 } from '../load-configuration-step';
 import { AcceleratorConfig } from '@aws-accelerator/common-config';
-import { ServiceControlPolicy } from '../../../../lib/common/src/scp';
 
-const MAX_SCPS_ALLOWED = 5;
 interface LoadOrganizationConfigurationOutput extends LoadConfigurationOutput {
   installCloudFormationMasterRole?: boolean;
 }
@@ -22,10 +21,10 @@ const sts = new STS();
 const organizations = new Organizations();
 
 export const handler = async (input: LoadConfigurationInput): Promise<LoadOrganizationConfigurationOutput> => {
-  console.log(`Loading Organization baseline configuration...`);
+  console.log(`Loading Control Tower baseline configuration...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configFilePath, configRepositoryName, configCommitId, acceleratorPrefix } = input;
+  const { configFilePath, configRepositoryName, configCommitId } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -177,11 +176,6 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     } else if (account) {
       const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
       const accountInOu = accountsInOu?.find(a => a.Id === account.Id);
-      if (accountInOu?.Name !== accountConfig['account-name']) {
-        errors.push(
-          `${accountInOu?.Name} does not match the name in the Accelerator configuration ${accountConfig['account-name']}`,
-        );
-      }
       if (!accountInOu) {
         errors.push(`The account with name "${accountConfigName}" is not in OU "${organizationalUnitName}".`);
         continue;
@@ -246,7 +240,6 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     );
   }
   errors.push(...validateOrganizationSpecificConfiguration(config));
-  errors.push(...(await validateScpsCount(config, awsOus, configurationAccounts, acceleratorPrefix)));
   // Throw all errors at once
   if (errors.length > 0) {
     throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
@@ -272,58 +265,5 @@ function validateOrganizationSpecificConfiguration(config: AcceleratorConfig): s
   if (!config['global-options']['organization-admin-role']) {
     errors.push(`Did not find "global-options/organization-admin-role" in Accelerator Configuration`);
   }
-  return errors;
-}
-
-async function validateScpsCount(
-  config: AcceleratorConfig,
-  ous: org.OrganizationalUnit[],
-  accounts: ConfigurationAccount[],
-  acceleratorPrefix: string,
-): Promise<string[]> {
-  const errors: string[] = [];
-  for (const [oukey, ouConfig] of config.getOrganizationalUnits()) {
-    const ouObject = ous.find(o => o.Name === oukey);
-    if (!ouObject) {
-      console.warn(`OU "${oukey}" doesn't exist in Account`);
-      continue;
-    }
-    const attachedScps = await organizations.listPoliciesForTarget({
-      Filter: 'SERVICE_CONTROL_POLICY',
-      TargetId: ouObject.Id!,
-    });
-    const accelScps = ouConfig.scps.map(policyName =>
-      ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
-    );
-    const nonAccelScps = attachedScps.filter(as => !accelScps.includes(as.Name!));
-    if (nonAccelScps.length + accelScps.length > MAX_SCPS_ALLOWED) {
-      errors.push(
-        `Max Allowed SCPs for OU "${oukey}" is ${MAX_SCPS_ALLOWED}, found already attached scps count ${nonAccelScps.length} and Accelerator scps ${accelScps.length} => ${accelScps}`,
-      );
-    }
-  }
-
-  for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
-    const accountObject = accounts.find(acc => acc.accountKey === accountKey);
-    if (!accountObject || !accountObject.accountId) {
-      console.warn(`Account "${accountKey}" doesn't exist in Organizations`);
-      continue;
-    }
-    const attachedScps = await organizations.listPoliciesForTarget({
-      Filter: 'SERVICE_CONTROL_POLICY',
-      TargetId: accountObject.accountId!,
-    });
-    const accelScps: string[] =
-      accountConfig.scps?.map(policyName =>
-        ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
-      ) || [];
-    const nonAccelScps = attachedScps.filter(as => !accelScps.includes(as.Name!));
-    if (nonAccelScps.length + accelScps.length > MAX_SCPS_ALLOWED) {
-      errors.push(
-        `Max Allowed SCPs for Account "${accountKey}" is ${MAX_SCPS_ALLOWED}, found already attached scps count ${nonAccelScps.length} and Accelerator scps ${accelScps.length} => ${accelScps}`,
-      );
-    }
-  }
-
   return errors;
 }
