@@ -168,6 +168,11 @@ export class AcceleratorConfig implements t.TypeOf<typeof c.AcceleratorConfigTyp
         if (destinationAccountKey === 'local') {
           // When deploy is 'local' then the VPC should be deployed in all accounts in the OU
           for (const [accountKey, accountConfig] of this.getAccountConfigsForOu(ouKey)) {
+            if (vpcConfig['opt-in']) {
+              if (!accountConfig['opt-in-vpcs'] || !accountConfig['opt-in-vpcs'].includes(vpcConfig.name)) {
+                continue;
+              }
+            }
             vpcConfigs.push({
               ouKey,
               accountKey,

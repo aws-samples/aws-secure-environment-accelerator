@@ -22,8 +22,6 @@ const ACCOUNT_VPC_NAME = ['mandatory-account-configs', 'vpc', 'name'];
 const ACCOUNT_VPC_REGION = ['mandatory-account-configs', 'vpc', 'region'];
 const ACCOUNT_VPC_DEPLOY = ['mandatory-account-configs', 'vpc', 'deploy'];
 const ACCOUNT_VPC_CIDR = ['mandatory-account-configs', 'vpc', 'cidr', 'value'];
-const ACCOUNT_VPC_CIDR_POOL = ['mandatory-account-configs', 'vpc', 'cidr', 'pool'];
-const ACCOUNT_VPC_CIDR_SIZE = ['mandatory-account-configs', 'vpc', 'cidr', 'size'];
 const ACCOUNT_VPC_TENANCY = ['mandatory-account-configs', 'vpc', 'dedicated-tenancy'];
 
 /**
@@ -67,10 +65,9 @@ const OU_VPC = ['organizational-units', 'vpc'];
 const OU_VPC_NAME = ['organizational-units', 'vpc', 'name'];
 const OU_VPC_REGION = ['organizational-units', 'vpc', 'region'];
 const OU_VPC_DEPLOY = ['organizational-units', 'vpc', 'deploy'];
-const OU_VPC_CIDR = ['organizational-units', 'vpc', 'cidr', 'vpc'];
-const OU_VPC_CIDR_POOL = ['organizational-units', 'vpc', 'cidr', 'pool'];
-const OU_VPC_CIDR_SIZE = ['organizational-units', 'vpc', 'cidr', 'size'];
+const OU_VPC_CIDR = ['organizational-units', 'vpc', 'cidr', 'value'];
 const OU_VPC_TENANCY = ['organizational-units', 'vpc', 'dedicated-tenancy'];
+const OU_VPC_OPT_IN = ['organizational-units', 'vpc', 'opt-in'];
 
 /**
  * config path(s) for organizational units vpc subnets
@@ -87,6 +84,8 @@ const OU_SUBNET_DISABLED = ['organizational-units', 'vpc', 'subnets', 'definitio
 const OU_NACLS = ['organizational-units', 'vpc', 'subnets', 'nacls'];
 const OU_NACLS_SUBNET = ['organizational-units', 'vpc', 'subnets', 'nacls', 'cidr-blocks', 'subnet'];
 
+const WORKLOAD_ACCOUNT_OPT_IN_VPC = ['workload-account-configs', 'MyProdAccount', 'opt-in-vpcs'];
+const ACCOUNT_OPT_IN_VPC = ['mandatory-account-configs', 'MyProdAccount', 'opt-in-vpcs'];
 /**
  *
  * function to validate Global Options changes
@@ -230,18 +229,6 @@ export async function validateAccountVpc(differences: Diff<LHS, RHS>[], errors: 
   const accountVpcCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR, 7);
   if (accountVpcCidr) {
     errors.push(...accountVpcCidr);
-  }
-
-  // the below function checks vpc cidr pool of the account
-  const accountVpcCidrPool = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR_POOL, 7);
-  if (accountVpcCidrPool) {
-    errors.push(...accountVpcCidrPool);
-  }
-
-  // the below function checks vpc cidr sizeof the account
-  const accountVpcCidrSize = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR_SIZE, 7);
-  if (accountVpcCidrSize) {
-    errors.push(...accountVpcCidrSize);
   }
 
   // the below function checks vpc region of the account
@@ -412,18 +399,6 @@ export async function validateOuVpc(differences: Diff<LHS, RHS>[], errors: strin
     errors.push(...ouVpcCidr);
   }
 
-  // the below function checks vpc cidr pool of the account
-  const ouVpcCidrPool = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR_POOL, 7);
-  if (ouVpcCidrPool) {
-    errors.push(...ouVpcCidrPool);
-  }
-
-  // the below function checks vpc cidr size of the account
-  const ouVpcCidrSize = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR_SIZE, 7);
-  if (ouVpcCidrSize) {
-    errors.push(...ouVpcCidrSize);
-  }
-
   // the below function checks vpc region of the account
   const ouVpcRegion = validateConfig.matchEditedConfigDependency(differences, OU_VPC_REGION, 5);
   if (ouVpcRegion) {
@@ -434,6 +409,12 @@ export async function validateOuVpc(differences: Diff<LHS, RHS>[], errors: strin
   const vpcTenancy = validateConfig.matchBooleanConfigDependency(differences, OU_VPC_TENANCY, 5);
   if (vpcTenancy) {
     errors.push(...vpcTenancy);
+  }
+
+  // the below function checks vpc tenancy of the OU
+  const vpcOptIn = validateConfig.matchBooleanConfigDependency(differences, OU_VPC_OPT_IN, 5);
+  if (vpcOptIn) {
+    errors.push(...vpcOptIn);
   }
 }
 
@@ -526,6 +507,21 @@ export async function validateNacls(differences: Diff<LHS, RHS>[], errors: strin
 
 /**
  *
+ * function to validate account opt-in-vpcs configuration
+ *
+ * @param differences
+ * @param errors
+ */
+export async function validateAccountOptInVpc(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
+  errors.push(...validateConfig.editedConfigDependency(differences, WORKLOAD_ACCOUNT_OPT_IN_VPC));
+  errors.push(...validateConfig.deletedConfigEntry(differences, WORKLOAD_ACCOUNT_OPT_IN_VPC, 'opt-in-vpcs'));
+
+  errors.push(...validateConfig.editedConfigDependency(differences, ACCOUNT_OPT_IN_VPC));
+  errors.push(...validateConfig.deletedConfigEntry(differences, ACCOUNT_OPT_IN_VPC, 'opt-in-vpcs'));
+}
+
+/**
+ *
  * function to validate VPC Outputs of previous executions with DDB Cidr values
  *
  * @param differences
@@ -572,7 +568,7 @@ export async function validateDDBChanges(
     }
     if (
       vpcOutput.additionalCidrBlocks.length > 0 &&
-      vpcOutput.additionalCidrBlocks.filter(v => additionalCidr.indexOf(v) < 0).length > 1
+      vpcOutput.additionalCidrBlocks.filter(v => additionalCidr.indexOf(v) < 0).length > 0
     ) {
       errors.push(`CIDR2 for VPC: ${accountKey}/${vpcConfig.region}/${vpcConfig.name} has been changed`);
     }

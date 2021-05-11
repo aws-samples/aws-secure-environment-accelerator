@@ -59,6 +59,7 @@ export const handler = async (input: StepInput) => {
     'ov-share-to-accounts': false,
     'ov-nacl': false,
     'ov-cidr': false,
+    'ov-acct-vpc-optin': false,
   };
 
   const {

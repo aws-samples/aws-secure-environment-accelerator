@@ -226,6 +226,7 @@ export const VpcConfigType = t.interface({
   region,
   cidr: t.array(CidrConfigType),
   'cidr-src': defaulted(CidrSrcTypes, 'provided'),
+  'opt-in': defaulted(t.boolean, false),
   'dedicated-tenancy': defaulted(t.boolean, false),
   'use-central-endpoints': defaulted(t.boolean, false),
   'dns-resolver-logging': defaulted(t.boolean, false),
@@ -618,6 +619,7 @@ export const MandatoryAccountConfigType = t.interface({
   'ssm-automation': defaulted(t.array(SsmShareAutomation), []),
   'aws-config': defaulted(t.array(AwsConfigAccountConfig), []),
   scps: optional(t.array(t.string)),
+  'opt-in-vpcs': optional(t.array(t.string)),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -847,6 +849,11 @@ export const ReplacementsConfigType = t.record(
   t.union([t.string, t.array(t.string), ReplacementConfigValueType]),
 );
 
+export const CidrPoolConfigType = t.interface({
+  cidr,
+  pool: t.string,
+  region: t.string,
+});
 export const GlobalOptionsConfigType = t.interface({
   'ct-baseline': t.boolean,
   'default-s3-retention': t.number,
@@ -883,6 +890,7 @@ export const GlobalOptionsConfigType = t.interface({
   'default-ssm-documents': defaulted(t.array(t.string), []),
   'endpoint-port-overrides': optional(t.record(t.string, t.array(t.string))),
   'control-tower-supported-regions': defaulted(t.array(t.string), []),
+  'cidr-pools': defaulted(t.array(CidrPoolConfigType), []),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;

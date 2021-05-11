@@ -114,9 +114,6 @@ async function updateCidrs(params: {
   const outputs = await loadOutputs(outputTableName, dynamodb);
   const accounts = await loadAccounts(parametersTableName, dynamodb);
   for (const { accountKey, vpcConfig, ouKey } of config.getVpcConfigs()) {
-    if (vpcConfig['cidr-src'] === 'provided') {
-      continue;
-    }
     const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
       outputs,
       vpcName: vpcConfig.name,
@@ -132,7 +129,7 @@ async function updateCidrs(params: {
     const accountId = getAccountId(accounts, accountKey);
     if (vpcPools.length !== 0) {
       for (const vpcPool of vpcPools) {
-        if (vpcPool['vpc-id'] && vpcPool['account-id']) {
+        if (vpcPool['vpc-id'] && vpcPool['account-id'] && vpcPool['account-Key']) {
           continue;
         }
         const updateExpression = getUpdateValueInput([
@@ -148,6 +145,12 @@ async function updateCidrs(params: {
             type: 'S',
             value: vpcOutput.vpcId,
           },
+          {
+            key: 'ak',
+            name: 'account-key',
+            type: 'S',
+            value: accountKey,
+          },
         ]);
         await dynamodb.updateItem({
           TableName: vpcCidrPoolAssignedTable,
@@ -160,7 +163,7 @@ async function updateCidrs(params: {
     }
     if (subnetPools.length !== 0) {
       for (const subnetPool of subnetPools) {
-        if (subnetPool['subnet-id'] && subnetPool['account-id'] && subnetPool['vpc-id']) {
+        if (subnetPool['subnet-id'] && subnetPool['account-id'] && subnetPool['vpc-id'] && subnetPool['account-Key']) {
           continue;
         }
         const subnetOutput = vpcOutput.subnets.find(
@@ -187,6 +190,12 @@ async function updateCidrs(params: {
             name: 'subnet-id',
             type: 'S',
             value: subnetOutput.subnetId,
+          },
+          {
+            key: 'ak',
+            name: 'account-key',
+            type: 'S',
+            value: accountKey,
           },
         ]);
         await dynamodb.updateItem({

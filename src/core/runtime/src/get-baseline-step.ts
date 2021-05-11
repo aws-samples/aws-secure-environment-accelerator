@@ -118,13 +118,47 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
     subnetCidrPoolAssignedTable,
     vpcCidrPoolAssignedTable,
   } = input;
-  const assignedSubnetCidrPools = await loadAssignedSubnetCidrPool(subnetCidrPoolAssignedTable);
-  const cidrPools = await loadCidrPools(cidrPoolsTable);
   const config = await loadAcceleratorConfig({
     repositoryName: configRepositoryName,
     filePath: configFilePath,
     commitId: configCommitId,
   });
+  const assignedSubnetCidrPools = await loadAssignedSubnetCidrPool(subnetCidrPoolAssignedTable);
+  const cidrPools = await loadCidrPools(cidrPoolsTable);
+  if (cidrPools.length === 0 && config['global-options']['cidr-pools'].length > 0) {
+    // load cidrs from config to ddb
+    for (const [index, configCidrPool] of Object.entries(config['global-options']['cidr-pools'])) {
+      const updateExpression = getUpdateValueInput([
+        {
+          key: 'c',
+          name: 'cidr',
+          type: 'S',
+          value: configCidrPool.cidr.toCidrString(),
+        },
+        {
+          key: 'r',
+          name: 'region',
+          type: 'S',
+          value: configCidrPool.region,
+        },
+        {
+          key: 'p',
+          name: 'pool',
+          type: 'S',
+          value: configCidrPool.pool,
+        },
+      ]);
+      await dynamoDB.updateItem({
+        TableName: cidrPoolsTable,
+        Key: {
+          id: { S: `${parseInt(index) + 1}` },
+        },
+        ...updateExpression,
+      });
+    }
+    cidrPools.push(...(await loadCidrPools(cidrPoolsTable)));
+  }
+
   // creating an IPv4 range from CIDR notation
   for (const { accountKey, vpcConfig, ouKey } of config.getVpcConfigs()) {
     if (vpcConfig['cidr-src'] !== 'dynamic') {
@@ -135,16 +169,14 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
     for (const vpcCidrObj of vpcConfig.cidr) {
       let currentPool = cidrPools.find(cp => cp.region === vpcConfig.region && cp.pool === vpcCidrObj.pool);
       if (!currentPool) {
-        return;
+        throw new Error(`Didn't find entry for "${vpcCidrObj.pool}" in cidr-pools DDB table`);
       }
       const existingCidr = assignedVpcCidrPools.find(
         vp =>
           vp.region === vpcConfig.region &&
           vp['vpc-name'] === vpcConfig.name &&
           vp.pool === vpcCidrObj.pool &&
-          ((vp['account-Key'] && vp['account-Key'] === accountKey) ||
-            vp['account-ou-key'] === `account/${accountKey}` ||
-            (ouKey && vp['account-ou-key'] === `organizational-unit/${ouKey}`)),
+          ((vp['account-Key'] && vp['account-Key'] === accountKey) || vp['account-ou-key'] === `account/${accountKey}`),
       );
       if (!existingCidr) {
         const usedCidrs = assignedVpcCidrPools
@@ -155,9 +187,18 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
             //   (ouKey && vp['account-ou-key'] === `organizational-unit/${ouKey}`)),
           )
           .map(vp => vp.cidr);
-        const pool = Pool.fromCidrRanges([IPv4CidrRange.fromCidr(currentPool.cidr)]);
-        const currentPoolCidrRange = pool.getCidrRange(IPv4Prefix.fromNumber(vpcCidrObj.size!)).nextRange()!;
+        const pool = poolFromCidr(currentPool.cidr);
+        const currentPoolCidrRange = pool.getCidrRange(IPv4Prefix.fromNumber(vpcCidrObj.size!));
         vpcCidr[vpcCidrObj.pool] = getAvailableCidr(usedCidrs, currentPoolCidrRange);
+        if (
+          IPv4CidrRange.fromCidr(currentPool.cidr)
+            .getLast()
+            .isLessThan(IPv4CidrRange.fromCidr(vpcCidr[vpcCidrObj.pool]).getFirst())
+        ) {
+          throw new Error(
+            `Cidr Pool : "${currentPool.cidr} ran out of space while assigning for VPC: "${vpcConfig.region}/${vpcConfig.name}"`,
+          );
+        }
         await updateVpcCidr(vpcCidrPoolAssignedTable, uuidv4(), {
           accountOuKey: `account/${accountKey}`,
           cidr: vpcCidr[vpcCidrObj.pool],
@@ -194,8 +235,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
             sp['vpc-name'] === vpcConfig.name &&
             sp.region === vpcConfig.region &&
             ((sp['account-Key'] && sp['account-Key'] === accountKey) ||
-              sp['account-ou-key'] === `account/${accountKey}` ||
-              (ouKey && sp['account-ou-key'] === `organizational-unit/${ouKey}`)),
+              sp['account-ou-key'] === `account/${accountKey}`),
         );
         if (!existingSubnet) {
           const currentSubnetCidrRange = subnetPool.getCidrRange(IPv4Prefix.fromNumber(subnetDef.cidr.size!));
@@ -294,12 +334,6 @@ async function updateVpcCidr(tableName: string, id: string, input: { [key: strin
       value: input.vpc,
     },
     {
-      key: 'c2',
-      name: 'secondary',
-      type: 'BOOL',
-      value: input.secondary && input.secondary.toLowerCase() === 'true' ? true : false,
-    },
-    {
       key: 'ak',
       name: 'account-key',
       type: 'S',
@@ -379,4 +413,12 @@ async function updateSubnetCidr(tableName: string, id: string, input: { [key: st
     },
     ...updateExpression,
   });
+}
+
+function poolFromCidr(cidr: string) {
+  try {
+    return Pool.fromCidrRanges([IPv4CidrRange.fromCidr(cidr)]);
+  } catch (e) {
+    throw new Error(`Error while generating pool for cidr "${cidr}": ${e}`);
+  }
 }

@@ -105,7 +105,12 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     return errors;
   }
   const ctSupportedRegions = acceleratorConfig['global-options']['control-tower-supported-regions'];
-  const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
+  const credentials = await sts.getCredentialsForAccountAndRole(
+    accountId,
+    acceleratorConfig['global-options']['ct-baseline']
+      ? acceleratorConfig['global-options']['organization-admin-role']!
+      : assumeRoleName,
+  );
   // Creating Config Recorder
   for (const region of regions) {
     // Skip creation of Config Recorder in CONTROL_TOWER deployed regions in all accounts

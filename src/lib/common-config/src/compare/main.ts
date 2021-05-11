@@ -139,6 +139,10 @@ export async function compareAcceleratorConfig(props: {
     await validate.validateNacls(configChanges, errors);
   }
 
+  if (!overrideConfig['ov-acct-vpc-optin']) {
+    await validate.validateAccountOptInVpc(configChanges, errors);
+  }
+
   // Validate DDB Pool entries changes
   if (!overrideConfig['ov-cidr']) {
     console.log(`Validating Cidr Changes`);

@@ -9,7 +9,6 @@ import { StructuredOutput } from '../../common/structured-output';
 import { MadAutoScalingRoleOutput, MadAutoScalingRoleOutputType, CfnMadImageIdOutputTypeOutput } from './outputs';
 import { AccountRegionEbsEncryptionKeys } from '../defaults';
 
-
 export interface MadStep1Props {
   acceleratorName: string;
   acceleratorPrefix: string;

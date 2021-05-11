@@ -146,6 +146,15 @@ async function main() {
     }),
   );
 
+  // Create a CMK that can be used for the CodePipeline artifacts bucket
+  const installerCmk = new kms.Key(stack, 'ArtifactsBucketCmk', {
+    enableKeyRotation: true,
+    description: 'ArtifactsBucketCmk',
+    alias: `alias/${acceleratorPrefix}Installer-Key`,
+  });
+
+  installerCmk.grantEncryptDecrypt(new iam.AccountRootPrincipal());
+
   // Define a build specification to build the initial setup templates
   const installerProject = new codebuild.PipelineProject(stack, 'InstallerProject', {
     projectName: `${acceleratorPrefix}InstallerProject_pl`,
@@ -214,6 +223,10 @@ async function main() {
         NOTIFICATION_EMAIL: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: notificationEmail.valueAsString,
+        },
+        INSTALLER_CMK: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: `alias/${acceleratorPrefix}Installer-Key`,
         },
       },
     },
@@ -353,21 +366,11 @@ async function main() {
     assumedBy: new iam.ServicePrincipal('codepipeline.amazonaws.com'),
   });
 
-  // Create a CMK that can be used for the CodePipeline artifacts bucket
-  const installerArtifactsBucketCmk = new kms.Key(stack, 'ArtifactsBucketCmk', {
-    enableKeyRotation: true,
-    description: 'ArtifactsBucketCmk',
-  });
-  const installerArtifactsBucketCmkAlias = new kms.Alias(stack, 'ArtifactsBucketCmkAlias', {
-    aliasName: `accelerator/installer-artifacts/s3`,
-    targetKey: installerArtifactsBucketCmk,
-  });
-
   // This bucket will be used to store the CodePipeline source
   const installerArtifactsBucket = new s3.Bucket(stack, 'ArtifactsBucket', {
     removalPolicy: cdk.RemovalPolicy.DESTROY,
     encryption: s3.BucketEncryption.KMS,
-    encryptionKey: installerArtifactsBucketCmkAlias,
+    encryptionKey: installerCmk,
     blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     versioned: true,
     objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,

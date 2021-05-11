@@ -22,6 +22,7 @@ import * as sns from '@aws-cdk/aws-sns';
 import { StoreOutputsTask } from './tasks/store-outputs-task';
 import { StoreOutputsToSSMTask } from './tasks/store-outputs-to-ssm-task';
 import { CDKBootstrapTask } from './tasks/cdk-bootstrap';
+import * as kms from '@aws-cdk/aws-kms';
 
 const VPC_CIDR_POOL_TABLE = 'cidr-vpc-assign';
 const SUBNET_CIDR_POOL_TABLE = 'cidr-subnet-assign';
@@ -38,6 +39,7 @@ export namespace InitialSetup {
     configS3Bucket: string;
     configBranchName: string;
     notificationEmail: string;
+    installerCmk: string;
     /**
      * Current Accelerator version
      */
@@ -74,13 +76,15 @@ export namespace InitialSetup {
       const lambdaCode = lambda.Code.fromAsset(lambdaDir);
 
       const stack = cdk.Stack.of(this);
-
+      const installerCmk = kms.Alias.fromAliasName(this, 'InstallerCmk', props.installerCmk);
       const parametersTable = new dynamodb.Table(this, 'ParametersTable', {
         tableName: createName({
           name: 'Parameters',
           suffixLength: 0,
         }),
         partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+        encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
+        encryptionKey: installerCmk,
       });
 
       const outputsTable = new dynamodb.Table(this, 'Outputs', {
@@ -92,6 +96,8 @@ export namespace InitialSetup {
           name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
+        encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
+        encryptionKey: installerCmk,
       });
 
       const outputUtilsTable = new dynamodb.Table(this, 'OutputUtils', {
@@ -103,6 +109,8 @@ export namespace InitialSetup {
           name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
+        encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
+        encryptionKey: installerCmk,
       });
 
       // Tables required for VPC Cidr mappings for VPC, Account and OU
@@ -115,6 +123,8 @@ export namespace InitialSetup {
           name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
+        encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
+        encryptionKey: installerCmk,
       });
 
       const subnetCidrPoolTable = new dynamodb.Table(this, 'CidrSubnetAssign', {
@@ -126,6 +136,8 @@ export namespace InitialSetup {
           name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
+        encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
+        encryptionKey: installerCmk,
       });
 
       const cidrPoolTable = new dynamodb.Table(this, 'CidrPoolTable', {
@@ -137,6 +149,8 @@ export namespace InitialSetup {
           name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
+        encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
+        encryptionKey: installerCmk,
       });
 
       // This is the maximum time before a build times out
@@ -824,7 +838,7 @@ export namespace InitialSetup {
           'baseline.$': '$.baseline',
           outputTableName: outputsTable.tableName,
           acceleratorPrefix: props.acceleratorPrefix,
-          'assumeRoleName.$': '$.organizationAdminRole',
+          assumeRoleName: props.stateMachineExecutionRole,
         }),
         resultPath: 'DISCARD',
       });
