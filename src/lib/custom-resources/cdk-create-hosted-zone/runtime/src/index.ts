@@ -83,7 +83,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(JSON.stringify(event, null, 2));
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { vpcId, domain, region } = properties;
-  if (event.PhysicalResourceId != `${vpcId}-${domain}`) {
+  if (event.PhysicalResourceId !== `${vpcId}-${domain}`) {
     return;
   }
   try {

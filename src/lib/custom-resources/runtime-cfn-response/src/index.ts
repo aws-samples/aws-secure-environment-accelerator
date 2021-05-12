@@ -1,3 +1,5 @@
+/* eslint-disable deprecation/deprecation */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import https from 'https';
 import { parse } from 'url';
 import { backOff } from 'exponential-backoff';
@@ -48,7 +50,7 @@ export async function send(event: CloudFormationCustomResourceEvent, context: Co
   await backOff(
     () => {
       return new Promise((resolve, reject) => {
-        var request = https.request(options, response => {
+        const request = https.request(options, response => {
           console.log('Status code: ' + response.statusCode);
           console.log('Status message: ' + response.statusMessage);
           resolve(response.statusCode);

@@ -26,7 +26,7 @@ export function loadContext(): Context {
   if (process.env.CONFIG_MODE === 'development') {
     const configPath = path.join(__dirname, '..', '..', 'context.json');
     if (!fs.existsSync(configPath)) {
-      throw new Error(`Cannot find local config.json at "${configPath}"`);
+      throw new Error(`Cannot find local context.json at "${configPath}"`);
     }
     const contents = fs.readFileSync(configPath);
     return JSON.parse(contents.toString());

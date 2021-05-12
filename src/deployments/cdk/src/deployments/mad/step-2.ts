@@ -74,6 +74,7 @@ function createActiveDirectory(props: MadStep2Props) {
         .map(s => s.subnetId)
         .slice(0, 2);
     }
+    // TODO Check that `subnetIds` is not empty
 
     const madPasswordSecretArn = getMadConfigRootPasswordSecretArn({
       acceleratorPrefix,

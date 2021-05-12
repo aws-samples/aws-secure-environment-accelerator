@@ -4,22 +4,22 @@
   "private": true,
   "main": "dist/index.js",
   "types": "src/index.ts",
-  "dependencies": {
-    "@aws-accelerator/custom-resource-cfn-utils": "workspace:*",
-    "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:*",
-    "aws-lambda": "1.0.6",
-    "aws-sdk": "2.787.0",
-    "xml2js": "0.4.23"
-  },
   "scripts": {
     "build": "pnpx esbuild --minify --bundle --platform=node --target=node12 --external:aws-sdk --outfile=./dist/index.js src/index.ts",
-    "lint:typecheck": "pnpx tsc --noEmit"
+    "lint:typecheck": "pnpx tsc --noEmit",
+    "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
+  },
+  "dependencies": {
+    "@aws-accelerator/custom-resource-cfn-utils": "workspace:*",
+    "aws-lambda": "1.0.6",
+    "aws-sdk": "2.804.0",
+    "xml2js": "0.4.23"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.46",
-    "@types/node": "12.20.6",
-    "@types/xml2js": "0.4.5",
-    "esbuild": "0.9.2",
-    "typescript": "4.2.3"
+    "@types/aws-lambda": "8.10.76",
+    "@types/node": "14.14.31",
+    "@types/xml2js": "0.4.8",
+    "esbuild": "0.11.18",
+    "typescript": "4.2.4"
   }
 }

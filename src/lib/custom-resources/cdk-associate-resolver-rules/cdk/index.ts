@@ -11,7 +11,8 @@ export interface AssociateResolverRuleProps {
   roleArn: string;
 }
 
-export interface AssociateResolverRuleRuntimeProps extends Omit<AssociateResolverRuleProps, 'roleArn'> {}
+export type AssociateResolverRuleRuntimeProps = Omit<AssociateResolverRuleProps, 'roleArn'>;
+
 /**
  * Custom resource that will create SSM Document.
  */
@@ -45,7 +46,7 @@ export class AssociateResolverRules extends cdk.Construct {
     const lambdaDir = path.dirname(lambdaPath);
 
     return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role: this.role,

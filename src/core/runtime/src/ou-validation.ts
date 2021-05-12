@@ -265,13 +265,15 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   const policyId = await scps.createOrUpdateQuarantineScp();
   // Detach target from all polocies except FullAccess and Qurantine SCP
   for (const targetId of [...rootAccountIds, suspendedOu?.Id!]) {
-    if (!targetId) continue;
+    if (!targetId) {
+      continue;
+    }
     await scps.detachPoliciesFromTargets({
       policyNamesToKeep: [
         ServiceControlPolicy.createQuarantineScpName({ acceleratorPrefix }),
         FULL_AWS_ACCESS_POLICY_NAME,
       ],
-      policyTargetIdsToInclude: [targetId!],
+      policyTargetIdsToInclude: [targetId],
       baseline,
     });
   }

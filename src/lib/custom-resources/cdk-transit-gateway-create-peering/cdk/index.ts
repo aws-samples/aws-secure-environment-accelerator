@@ -63,7 +63,7 @@ export class TransitGatewayCreatePeeringAttachment extends cdk.Construct {
     const lambdaDir = path.dirname(lambdaPath);
 
     return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role: this.role,

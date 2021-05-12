@@ -122,7 +122,7 @@ async function putKmsKeyPolicy(keyArn: string | undefined, policy: string) {
 }
 
 function removeExistingReadOnlyStatement(policy: Policy) {
-  policy.Statement = policy.Statement.filter(statement => statement['Sid'] !== logArchiveReadOnlySid);
+  policy.Statement = policy.Statement.filter(statement => statement.Sid !== logArchiveReadOnlySid);
   return policy;
 }
 
@@ -172,12 +172,12 @@ async function updateKeyPolicy(props: HandlerProperties, keyPolicy: Policy) {
 }
 
 async function createOrUpdateBucketPolicy(props: HandlerProperties) {
-  let bucketPolicy = await getBucketPolicy(props.logBucketName);
+  const bucketPolicy = await getBucketPolicy(props.logBucketName);
   if (Object.keys(bucketPolicy).length > 0 || props.roles.length > 0) {
     await updateBucketPolicy(props, bucketPolicy);
   }
 
-  let keyPolicy = await getKmsKeyPolicy(props.logBucketKmsKeyArn);
+  const keyPolicy = await getKmsKeyPolicy(props.logBucketKmsKeyArn);
   if (Object.keys(keyPolicy).length > 0 || props.roles.length > 0) {
     await updateKeyPolicy(props, keyPolicy);
   }

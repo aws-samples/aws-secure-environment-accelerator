@@ -8,10 +8,6 @@ import { AcceleratorConfig } from '@aws-accelerator/common-config';
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
 import { getInvoker } from './utils';
 
-interface PolicyChangeEvent extends ScheduledEvent {
-  version?: string;
-}
-
 export interface ConfigurationOrganizationalUnit {
   ouId: string;
   ouKey: string;
@@ -40,7 +36,7 @@ const scpBucketName = process.env.ACCELERATOR_SCP_BUCKET_NAME!;
 
 const organizations = new Organizations();
 
-export const handler = async (input: PolicyChangeEvent) => {
+export const handler = async (input: ScheduledEvent) => {
   console.log(`ChangePolicy Event triggered invocation...`);
   console.log(JSON.stringify(input, null, 2));
   const requestDetail = input.detail;

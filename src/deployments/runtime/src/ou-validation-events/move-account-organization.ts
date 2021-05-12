@@ -18,10 +18,6 @@ import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/const
 import { PutFileEntry } from 'aws-sdk/clients/codecommit';
 import { getInvoker } from './utils';
 
-interface MoveAccountOrganization extends ScheduledEvent {
-  version?: string;
-}
-
 interface AccountInfo {
   name?: string;
   email?: string;
@@ -45,7 +41,7 @@ const organizations = new Organizations();
 const codecommit = new CodeCommit(undefined, defaultRegion);
 const stepfunctions = new StepFunctions(undefined, defaultRegion);
 
-export const handler = async (input: MoveAccountOrganization) => {
+export const handler = async (input: ScheduledEvent) => {
   console.log(`Account moved to Organization, adding account config to configuration...`);
   console.log(JSON.stringify(input, null, 2));
   const requestDetail = input.detail;

@@ -29,7 +29,7 @@ export class LogResourcePolicy extends cdk.Construct {
       physicalResourceId,
       parameters: {
         policyName: this.policyName,
-        policyDocument: cdk.Lazy.stringValue({
+        policyDocument: cdk.Lazy.string({
           produce: () => JSON.stringify(this.policyDocument.toJSON()),
         }),
       },

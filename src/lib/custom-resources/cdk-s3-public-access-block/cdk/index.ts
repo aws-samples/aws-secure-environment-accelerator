@@ -25,7 +25,7 @@ export class S3PublicAccessBlock extends cdk.Construct {
       onCreate: {
         service: 'S3Control',
         action: 'putPublicAccessBlock',
-        physicalResourceId: physicalResourceId,
+        physicalResourceId,
         parameters: {
           AccountId: accountId ?? cdk.Aws.ACCOUNT_ID,
           PublicAccessBlockConfiguration: {

@@ -269,7 +269,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { assumeRoleName, hostedZoneAccountId, hostedZoneIds, vpcAccountId, vpcId, vpcName, vpcRegion } = properties;
   if (
-    event.PhysicalResourceId != `AssociateHostedZones-${vpcName}-${vpcRegion}-${vpcAccountId}-${hostedZoneAccountId}`
+    event.PhysicalResourceId !== `AssociateHostedZones-${vpcName}-${vpcRegion}-${vpcAccountId}-${hostedZoneAccountId}`
   ) {
     return;
   }

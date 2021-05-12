@@ -74,7 +74,7 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Nothing to do for delete...`);
-  if (event.PhysicalResourceId != `IAM-Role-${event.ResourceProperties.roleName}`) {
+  if (event.PhysicalResourceId !== `IAM-Role-${event.ResourceProperties.roleName}`) {
     return;
   }
   try {

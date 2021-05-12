@@ -311,7 +311,7 @@ async function validateScpsCount(
     }
     const attachedScps = await organizations.listPoliciesForTarget({
       Filter: 'SERVICE_CONTROL_POLICY',
-      TargetId: accountObject.accountId!,
+      TargetId: accountObject.accountId,
     });
     const accelScps: string[] =
       accountConfig.scps?.map(policyName =>

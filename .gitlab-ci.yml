@@ -1,4 +1,4 @@
-image: node:latest
+image: node:14
 
 workflow:
   rules:
@@ -10,7 +10,8 @@ stages:
 
 default:
   before_script:
-    - npm install -g pnpm@5.18.9
+    - export NODE_OPTIONS=--max_old_space_size=4096
+    - npm install -g pnpm@6.2.3
     - pnpm recursive install
     - pnpm -w build
 
@@ -18,6 +19,12 @@ test:
   stage: checks
   script:
     - pnpm -w test
+  timeout: 3h
+
+eslint:
+  stage: checks
+  script:
+    - pnpm -w lint:eslint
   timeout: 3h
 
 typecheck:

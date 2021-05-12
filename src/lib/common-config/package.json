@@ -8,65 +8,32 @@
   ],
   "scripts": {
     "test": "pnpx jest",
-    "lint": "eslint --ext .ts 'src/**/*.ts'",
-    "lint:typecheck": "pnpx tsc --noEmit"
-  },
-  "dependencies": {
-    "@aws-accelerator/common": "workspace:^0.0.1",
-    "@aws-accelerator/common-outputs": "workspace:^0.0.1",
-    "@aws-accelerator/common-types": "workspace:^0.0.1",
-    "@aws-accelerator/config": "workspace:^0.0.1",
-    "@types/deep-diff": "1.0.0",
-    "@types/prettier": "2.1.1",
-    "adm-zip": "0.4.14",
-    "archiver": "3.1.1",
-    "aws-sdk": "2.787.0",
-    "deep-diff": "1.0.2",
-    "exponential-backoff": "3.1.0",
-    "fp-ts": "2.5.3",
-    "generate-password": "1.5.1",
-    "io-ts": "2.1.2",
-    "io-ts-types": "0.5.6",
-    "ip-num": "1.3.1",
-    "js-yaml": "3.13.1",
-    "tempy": "0.5.0",
-    "uuid": "7.0.3"
-  },
-  "devDependencies": {
-    "@types/adm-zip": "0.4.32",
-    "@types/archiver": "3.1.0",
-    "@types/jest": "25.2.3",
-    "@types/js-yaml": "3.12.3",
-    "@types/node": "12.20.6",
-    "@types/uuid": "7.0.2",
-    "@typescript-eslint/eslint-plugin": "4.4.0",
-    "@typescript-eslint/parser": "4.4.0",
-    "babel-jest": "25.2.0",
-    "eslint": "7.10.0",
-    "eslint-config-prettier": "6.12.0",
-    "eslint-config-standard": "14.1.1",
-    "eslint-plugin-deprecation": "1.1.0",
-    "eslint-plugin-import": "2.22.1",
-    "eslint-plugin-jsdoc": "30.6.4",
-    "eslint-plugin-node": "11.1.0",
-    "eslint-plugin-prefer-arrow": "1.2.2",
-    "eslint-plugin-promise": "4.2.1",
-    "eslint-plugin-react": "7.21.3",
-    "eslint-plugin-standard": "4.0.1",
-    "eslint-plugin-unicorn": "22.0.0",
-    "jest": "25.2.4",
-    "prettier": "2.2.0",
-    "ts-jest": "25.3.0",
-    "ts-node": "9.1.1",
-    "typescript": "4.2.3"
+    "lint:typecheck": "pnpx tsc --noEmit",
+    "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
   },
   "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
     "globals": {
       "ts-jest": {
         "isolatedModules": true
       }
-    }
+    },
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  },
+  "dependencies": {
+    "@aws-accelerator/common": "workspace:*",
+    "@aws-accelerator/common-outputs": "workspace:*",
+    "@aws-accelerator/common-types": "workspace:*",
+    "@aws-accelerator/config": "workspace:*",
+    "@types/deep-diff": "1.0.0",
+    "deep-diff": "1.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "14.14.31",
+    "eslint": "7.25.0",
+    "jest": "25.2.4",
+    "ts-jest": "25.3.0",
+    "ts-node": "9.1.1",
+    "typescript": "4.2.4"
   }
 }

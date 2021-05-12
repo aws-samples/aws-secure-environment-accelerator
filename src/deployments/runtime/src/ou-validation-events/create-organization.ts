@@ -3,10 +3,6 @@ import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { ScheduledEvent } from 'aws-lambda';
 import { getInvoker } from './utils';
 
-interface OrganizationChangeEvent extends ScheduledEvent {
-  version?: string;
-}
-
 const acceleratorPrefix = process.env.ACCELERATOR_PREFIX!;
 const acceleratorName = process.env.ACCELERATOR_NAME!;
 const defaultRegion = process.env.ACCELERATOR_DEFAULT_REGION!;
@@ -17,7 +13,7 @@ const ignoredOus = ignoredOrganizationalUnitsString.split(',');
 
 const organizations = new Organizations();
 
-export const handler = async (input: OrganizationChangeEvent) => {
+export const handler = async (input: ScheduledEvent) => {
   console.log(`Create Organizational Unit Event triggered ...`);
   console.log(JSON.stringify(input, null, 2));
   const requestDetail = input.detail;

@@ -43,7 +43,7 @@ export class AcmImportCertificate extends cdk.Construct implements cdk.ITaggable
 
   get certificateArn(): string {
     // Return a lazy value as the resource only gets created in the onPrepare phase
-    return cdk.Lazy.stringValue({
+    return cdk.Lazy.string({
       produce: () => this.resource!.getAttString('CertificateArn'),
     });
   }
@@ -105,7 +105,7 @@ export class AcmImportCertificate extends cdk.Construct implements cdk.ITaggable
     );
 
     return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,

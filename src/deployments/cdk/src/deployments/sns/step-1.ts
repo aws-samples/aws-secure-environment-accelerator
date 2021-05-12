@@ -55,7 +55,7 @@ export async function step1(props: SnsStep1Props) {
     let snsSubscriberFunc: lambda.Function | undefined;
     if (region !== centralLogServices.region) {
       snsSubscriberFunc = new lambda.Function(accountStack, `SnsSubscriberLambda`, {
-        runtime: lambda.Runtime.NODEJS_12_X,
+        runtime: lambda.Runtime.NODEJS_14_X,
         handler: 'index.createSnsPublishToCentralRegion',
         code: lambdaCode,
         role,
@@ -72,7 +72,7 @@ export async function step1(props: SnsStep1Props) {
     }
 
     const ignoreActionFunc = new lambda.Function(accountStack, `IgnoreActionLambda`, {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_14_X,
       handler: 'index.createIgnoreAction',
       code: lambdaCode,
       role,

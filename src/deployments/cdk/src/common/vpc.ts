@@ -9,7 +9,6 @@ import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Nacl } from './nacl';
 import { Limiter } from '../utils/limits';
 import { TransitGatewayAttachment, TransitGatewayRoute } from '../common/transit-gateway-attachment';
-import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import { SecurityGroup } from './security-group';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { AccountStacks } from '../common/account-stacks';
@@ -112,7 +111,7 @@ export interface VpcProps extends VpcCommonProps {
   vpcOutput?: VpcOutput;
 }
 
-export class VpcStack extends NestedStack {
+export class VpcStack extends cdk.NestedStack {
   readonly vpc: Vpc;
 
   constructor(scope: cdk.Construct, name: string, props: VpcProps) {

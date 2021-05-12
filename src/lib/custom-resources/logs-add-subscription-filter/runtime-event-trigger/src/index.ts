@@ -8,11 +8,12 @@ export const handler = async (input: any): Promise<string> => {
   console.log(`Add Subscription to point LogDestination in log-archive account...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const logGroupName = input['detail']['requestParameters']['logGroupName'];
+  const logGroupName = input.detail.requestParameters.logGroupName as string;
   const logDestinationArn = process.env.LOG_DESTINATION;
   if (!logDestinationArn) {
-    console.warn(`Log Destination is not praent in env for this account`);
-    return `Log Destination is not praent in env for this account`;
+    console.warn(`Log Destination is not parent in env for this account`);
+    const newLocal = `Log Destination is not parent in env for this account`;
+    return newLocal;
   }
   let exclusions: string[] = [];
   if (process.env.EXCLUSIONS) {
@@ -29,7 +30,7 @@ export const handler = async (input: any): Promise<string> => {
   const logRetention = process.env.LOG_RETENTION;
   if (logRetention) {
     // Update Log Retention Policy
-    await putLogRetentionPolicy(logGroupName!, Number(logRetention));
+    await putLogRetentionPolicy(logGroupName, Number(logRetention));
   }
   return 'SUCCESS';
 };

@@ -266,7 +266,7 @@ function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log('Delete Action GuardDuty Admin Setup');
-  if (event.PhysicalResourceId != physicalResourceId) {
+  if (event.PhysicalResourceId !== physicalResourceId) {
     return;
   }
   const properties = getPropertiesFromEvent(event);

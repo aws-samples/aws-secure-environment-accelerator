@@ -65,10 +65,12 @@ export class CdkToolkit {
     const assemblies = apps.map(app => app.synth());
 
     const configuration = new Configuration({
-      _: [Command.BOOTSTRAP, ...[]],
-      pathMetadata: false,
-      assetMetadata: false,
-      versionReporting: false,
+      commandLineArguments: {
+        _: [Command.BOOTSTRAP, ...[]],
+        pathMetadata: false,
+        assetMetadata: false,
+        versionReporting: false,
+      },
     });
     await configuration.load();
 

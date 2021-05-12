@@ -164,11 +164,11 @@ async function main() {
       phases: {
         install: {
           'runtime-versions': {
-            nodejs: 12,
+            nodejs: 14,
           },
           // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
           commands: [
-            'npm install --global pnpm@5.18.9',
+            'npm install --global pnpm@6.2.3',
             'pnpm install --unsafe-perm --frozen-lockfile',
             'pnpm recursive run build --unsafe-perm',
           ],
@@ -188,7 +188,7 @@ async function main() {
       },
     }),
     environment: {
-      buildImage: codebuild.LinuxBuildImage.STANDARD_3_0,
+      buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
       privileged: true, // Allow access to the Docker daemon
       computeType: codebuild.ComputeType.MEDIUM,
       environmentVariables: {
@@ -331,6 +331,7 @@ async function main() {
   const stateMachineStartExecutionLambda = new lambda.Function(stack, 'ExecutionLambda', {
     functionName: `${acceleratorPrefix}Installer-StartExecution`,
     role: stateMachineExecutionRole,
+    // Inline code is only allowed for Node.js version 12
     runtime: lambda.Runtime.NODEJS_12_X,
     code: lambda.Code.fromInline(stateMachineStartExecutionCode.toString()),
     handler: 'index.handler',
@@ -340,6 +341,7 @@ async function main() {
   const saveApplicationVersionLambda = new lambda.Function(stack, 'SaveApplicationVersionLambda', {
     functionName: `${acceleratorPrefix}Installer-SaveApplicationVersion`,
     role: stateMachineExecutionRole,
+    // Inline code is only allowed for Node.js version 12
     runtime: lambda.Runtime.NODEJS_12_X,
     code: lambda.Code.fromInline(saveApplicationVersionCode.toString()),
     handler: 'index.handler',
@@ -349,6 +351,7 @@ async function main() {
   const validateParametersLambda = new lambda.Function(stack, 'ValidateParametersLambda', {
     functionName: `${acceleratorPrefix}Installer-ValidateParameters`,
     role: stateMachineExecutionRole,
+    // Inline code is only allowed for Node.js version 12
     runtime: lambda.Runtime.NODEJS_12_X,
     code: lambda.Code.fromInline(validateParametersCode.toString()),
     handler: 'index.handler',

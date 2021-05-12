@@ -17,7 +17,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
       - name: Cache Node.js modules
         uses: actions/cache@v1
         with:
@@ -28,7 +28,7 @@ jobs:
             ${{ runner.OS }}-
       - name: Install Node.js modules
         run: |
-          npm install -g pnpm@5.18.9
+          npm install -g pnpm@6.2.3
           pnpm install --frozen-lockfile
       - name: Analyze TypeScript files
         run: |
@@ -42,7 +42,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
       - name: Install Prettier
         run: |
           npm install -g prettier

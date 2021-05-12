@@ -219,15 +219,13 @@ async function createCustomerGateways(props: {
     }
   } else {
     for (const [index, fwIp] of Object.entries(firewallConfig['fw-ips'] || [])) {
-      let customerGateway;
-      let vpnConnection;
       const prefix = `${firewallCgwName}_ip${index}`;
-      customerGateway = new ec2.CfnCustomerGateway(scope, `${prefix}_cgw`, {
+      const customerGateway = new ec2.CfnCustomerGateway(scope, `${prefix}_cgw`, {
         type: 'ipsec.1',
         ipAddress: fwIp,
         bgpAsn: firewallCgwAsn,
       });
-      vpnConnection = new ec2.CfnVPNConnection(scope, `${prefix}_vpn`, {
+      const vpnConnection = new ec2.CfnVPNConnection(scope, `${prefix}_vpn`, {
         type: 'ipsec.1',
         transitGatewayId: transitGateway.tgwId,
         customerGatewayId: customerGateway.ref,

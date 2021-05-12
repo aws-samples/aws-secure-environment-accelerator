@@ -564,7 +564,7 @@
           "name": "EC2-INSTANCE-PROFILE",
           "type": "custom",
           "resource-types": ["AWS::EC2::Instance"],
-          "runtime": "nodejs12.x",
+          "runtime": "nodejs14.x",
           "remediation-action": "Attach-IAM-Instance-Profile",
           "remediation": true,
           "remediation-params": {
@@ -576,7 +576,7 @@
           "name": "EC2-INSTANCE-PROFILE-PERMISSIONS",
           "type": "custom",
           "resource-types": ["AWS::IAM::Role"],
-          "runtime": "nodejs12.x",
+          "runtime": "nodejs14.x",
           "parameters": {
             "AWSManagedPolicies": "AmazonSSMManagedInstanceCore, AmazonSSMDirectoryServiceAccess, CloudWatchAgentServerPolicy",
             "CustomerManagedPolicies": "${SEA::EC2InstaceProfilePermissions}",
@@ -585,10 +585,14 @@
           "remediation": true,
           "remediation-action": "Attach-IAM-Role-Policy",
           "remediation-params": {
-            "AWSManagedPolicies": ["AmazonSSMManagedInstanceCore", "AmazonSSMDirectoryServiceAccess", "CloudWatchAgentServerPolicy"],
+            "AWSManagedPolicies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
             "CustomerManagedPolicies": ["${SEA::EC2InstaceProfilePermissions}"],
             "ResourceId": "RESOURCE_ID"
-          }  
+          }
         },
         {
           "name": "ELB_LOGGING_ENABLED",
@@ -1985,7 +1989,12 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
         }
       ],
       "aws-config": [
@@ -2570,7 +2579,12 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
         }
       ],
       "aws-config": [
@@ -3166,7 +3180,12 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
         }
       ],
       "aws-config": [
@@ -3762,7 +3781,12 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
         }
       ],
       "aws-config": [
@@ -4358,7 +4382,12 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
         }
       ],
       "aws-config": [
@@ -4921,7 +4950,12 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
         }
       ],
       "aws-config": [

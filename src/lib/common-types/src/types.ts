@@ -1,3 +1,5 @@
+/* eslint-disable deprecation/deprecation */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as t from 'io-ts';
 import { either } from 'fp-ts/lib/Either';
 import { IPv4CidrRange } from 'ip-num';

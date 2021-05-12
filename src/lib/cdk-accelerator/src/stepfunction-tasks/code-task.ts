@@ -38,7 +38,7 @@ export class CodeTask extends sfn.StateMachineFragment {
 
     const func = new lambda.Function(this, 'Handler', {
       timeout: cdk.Duration.minutes(15),
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_14_X,
       handler: 'index.handler',
       memorySize: 512,
       ...props.functionProps,

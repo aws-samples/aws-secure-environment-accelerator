@@ -434,7 +434,7 @@ async function downloadCustomRules(
   const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(accountId, roleName);
   const s3 = new S3(masterAcctCredentials);
   for (const configRuleRuntime of fileNames) {
-    const runtimeFile = await s3.getObjectBody({
+    const runtimeFile = await s3.getObjectBodyAsString({
       Bucket: bucketName,
       Key: `${rulePrefix}/${configRuleRuntime}`,
     });

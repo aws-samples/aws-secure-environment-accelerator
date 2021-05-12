@@ -22,7 +22,7 @@ export class VpcDefaultSecurityGroup extends cdk.Construct {
     const lambdaDir = path.dirname(lambdaPath);
 
     const provider = cdk.CustomResourceProvider.getOrCreate(this, resourceType, {
-      runtime: cdk.CustomResourceProviderRuntime.NODEJS_12,
+      runtime: cdk.CustomResourceProviderRuntime.NODEJS_14_X,
       codeDirectory: lambdaDir,
       policyStatements: [
         new iam.PolicyStatement({

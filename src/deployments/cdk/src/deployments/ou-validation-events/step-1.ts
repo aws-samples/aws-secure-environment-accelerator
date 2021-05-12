@@ -144,7 +144,7 @@ async function moveAccount(input: MoveAccountProps) {
   } = input;
   const acceleratorStateMachineArn = `arn:aws:states:${defaultRegion}:${scope.accountId}:stateMachine:${acceleratorStateMachineName}`;
   const moveAccountFunc = new lambda.Function(scope, 'moveAccountToOrganization', {
-    runtime: lambda.Runtime.NODEJS_12_X,
+    runtime: lambda.Runtime.NODEJS_14_X,
     handler: 'index.ouValidationEvents.moveAccount',
     code: lambdaCode,
     role: acceleratorPipelineRole,

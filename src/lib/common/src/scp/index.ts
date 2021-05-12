@@ -46,7 +46,7 @@ export class ServiceControlPolicy {
       Name: policyName,
       Filter: 'SERVICE_CONTROL_POLICY',
     });
-    let policyId = getPolicyByName?.PolicySummary?.Id;
+    let policyId = getPolicyByName?.PolicySummary?.Id!;
     if (policyId) {
       console.log(`Updating policy ${policyName}`);
       if (getPolicyByName?.Content !== policyContent) {

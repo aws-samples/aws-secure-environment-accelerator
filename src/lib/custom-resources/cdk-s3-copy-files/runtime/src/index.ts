@@ -38,8 +38,8 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   const exists = await bucketExists(sourceBucketName);
   if (exists) {
     await copyFiles({
-      sourceBucketName: sourceBucketName,
-      destinationBucketName: destinationBucketName,
+      sourceBucketName,
+      destinationBucketName,
       deleteSourceObjects,
     });
     if (deleteSourceBucket) {

@@ -53,7 +53,7 @@ export class AssumeRoleProviderSource implements CredentialProviderSource {
     console.log(`Assuming role ${green(roleArn)} for ${duration} seconds`);
 
     const sts = new aws.STS();
-    return await throttlingBackOff(() =>
+    return throttlingBackOff(() =>
       sts
         .assumeRole({
           RoleArn: roleArn,

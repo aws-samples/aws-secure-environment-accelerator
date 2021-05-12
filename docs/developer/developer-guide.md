@@ -173,10 +173,10 @@ new codebuild.PipelineProject(stack, 'InstallerProject', {
     phases: {
       install: {
         'runtime-versions': {
-          nodejs: 12,
+          nodejs: 14,
         },
         // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-        commands: ['npm install --global pnpm@5.18.9', 'pnpm install --unsafe-perm --frozen-lockfile'],
+        commands: ['npm install --global pnpm@6.2.3', 'pnpm install --unsafe-perm --frozen-lockfile'],
       },
       pre_build: {
         // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
@@ -699,7 +699,7 @@ This library defines the base Webpack template to compile custom resource runtim
   "devDependencies": {
     "@aws-accelerator/custom-resource-runtime-webpack-base": "workspace:^0.0.1",
     "@types/aws-lambda": "8.10.46",
-    "@types/node": "12.12.6",
+    "@types/node": "14.14.31",
     "ts-loader": "7.0.5",
     "typescript": "3.8.3",
     "webpack": "4.42.1",
@@ -1101,7 +1101,7 @@ class LambdaFun extends cdk.Construct {
     const runtimeDir = path.dirname(lambdaPath);
 
     new lambda.Function(this, 'Resource', {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset(runtimeDir),
       handler: 'index.handler', // The `handler` function in `index.js`
     });

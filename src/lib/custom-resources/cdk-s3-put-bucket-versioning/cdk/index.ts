@@ -11,7 +11,8 @@ export interface S3PutBucketVersioningProps {
   logRetention?: number;
 }
 
-export interface S3PutBucketVersioningRuntimeProps extends Omit<S3PutBucketVersioningProps, 'roleArn'> {}
+export type S3PutBucketVersioningRuntimeProps = Omit<S3PutBucketVersioningProps, 'roleArn'>;
+
 /**
  * Custom resource that will create SSM Document.
  */
@@ -45,7 +46,7 @@ export class S3PutBucketVersioning extends cdk.Construct {
     const lambdaDir = path.dirname(lambdaPath);
 
     return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role: this.role,

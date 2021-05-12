@@ -1,5 +1,5 @@
 import { pascalCase } from 'pascal-case';
-import * as cfn from '@aws-cdk/aws-cloudformation';
+import * as cdk from '@aws-cdk/core';
 import { getAccountId } from '../utils/accounts';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
@@ -185,7 +185,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       if (vpcSgIndex) {
         sgIndex = vpcSgIndex.index;
       }
-      const securityGroupStack = new cfn.NestedStack(accountStack, `SecurityGroups${vpcConfig.name}-Shared-${sgIndex}`);
+      const securityGroupStack = new cdk.NestedStack(accountStack, `SecurityGroups${vpcConfig.name}-Shared-${sgIndex}`);
       const securityGroups = new SecurityGroup(securityGroupStack, `SecurityGroups-SharedAccount-${sgIndex}`, {
         securityGroups: vpcConfig['security-groups']!,
         vpcName: vpcConfig.name,

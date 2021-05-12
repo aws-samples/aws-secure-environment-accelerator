@@ -4,21 +4,21 @@
   "private": true,
   "main": "src/index.ts",
   "scripts": {
-    "lint:typecheck": "pnpx tsc --noEmit"
+    "lint:typecheck": "pnpx tsc --noEmit",
+    "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
   },
   "dependencies": {
     "aws-lambda": "1.0.6",
-    "aws-sdk": "2.787.0",
-    "exponential-backoff": "3.1.0"
-  },
-  "peerDependencies": {
-    "aws-lambda": "1.0.6",
-    "aws-sdk": "2.787.0",
     "exponential-backoff": "3.1.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.46",
-    "@types/node": "12.20.6",
-    "typescript": "4.2.3"
+    "@types/aws-lambda": "8.10.76",
+    "@types/node": "14.14.31",
+    "typescript": "4.2.4"
+  },
+  "peerDependencies": {
+    "aws-lambda": "1.0.6",
+    "aws-sdk": "2.804.0",
+    "exponential-backoff": "3.1.0"
   }
 }

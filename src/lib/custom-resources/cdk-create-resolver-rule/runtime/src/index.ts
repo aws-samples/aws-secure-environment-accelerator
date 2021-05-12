@@ -137,7 +137,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { resolverEndpointId, name } = properties;
   let maxRetries = 25;
-  if (event.PhysicalResourceId != name) {
+  if (event.PhysicalResourceId !== name) {
     return;
   }
   const resolverRule = await throttlingBackOff(() =>
@@ -164,7 +164,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     return;
   }
 
-  let associatedVpcs = await getVpcIds(ruleId!);
+  let associatedVpcs = await getVpcIds(ruleId);
   for (const vpcId of associatedVpcs! || []) {
     await throttlingBackOff(() =>
       route53Resolver

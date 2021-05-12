@@ -85,7 +85,7 @@ export class LogGroup extends cdk.Construct implements cdk.ITaggable {
   }
 
   get logGroupName() {
-    return cdk.Lazy.stringValue({
+    return cdk.Lazy.string({
       produce: () => this.resource!.getAttString('LogGroupName'),
     });
   }
@@ -111,7 +111,7 @@ export class LogGroup extends cdk.Construct implements cdk.ITaggable {
     const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, this.roleArn);
 
     return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,

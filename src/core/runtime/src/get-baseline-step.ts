@@ -151,7 +151,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
       await dynamoDB.updateItem({
         TableName: cidrPoolsTable,
         Key: {
-          id: { S: `${parseInt(index) + 1}` },
+          id: { S: `${parseInt(index, 10) + 1}` },
         },
         ...updateExpression,
       });
@@ -167,7 +167,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
     const assignedVpcCidrPools = await loadAssignedVpcCidrPool(vpcCidrPoolAssignedTable);
     const vpcCidr: { [key: string]: string } = {};
     for (const vpcCidrObj of vpcConfig.cidr) {
-      let currentPool = cidrPools.find(cp => cp.region === vpcConfig.region && cp.pool === vpcCidrObj.pool);
+      const currentPool = cidrPools.find(cp => cp.region === vpcConfig.region && cp.pool === vpcCidrObj.pool);
       if (!currentPool) {
         throw new Error(`Didn't find entry for "${vpcCidrObj.pool}" in cidr-pools DDB table`);
       }

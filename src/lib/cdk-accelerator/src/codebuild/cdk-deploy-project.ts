@@ -88,7 +88,7 @@ export class CdkDeployProject extends CdkDeployProjectBase {
         phases: {
           install: {
             'runtime-versions': {
-              nodejs: 12,
+              nodejs: 14,
             },
             commands: installPackageManagerCommands(props.packageManager),
           },
@@ -102,7 +102,7 @@ export class CdkDeployProject extends CdkDeployProjectBase {
         path: projectAsset.s3ObjectKey,
       }),
       environment: {
-        buildImage: codebuild.LinuxBuildImage.STANDARD_4_0,
+        buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
         computeType: computeType ?? codebuild.ComputeType.MEDIUM,
         environmentVariables: this.environmentVariables,
       },
@@ -131,7 +131,7 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
     fs.writeFileSync(
       path.join(this.projectTmpDir, 'Dockerfile'),
       [
-        'FROM public.ecr.aws/bitnami/node:12',
+        'FROM public.ecr.aws/bitnami/node:14',
         // Install the package manager
         ...installPackageManagerCommands(props.packageManager).map(cmd => `RUN ${cmd}`),
         `WORKDIR ${appDir}`,
@@ -173,7 +173,7 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
  */
 function installPackageManagerCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
-    return ['npm install --global pnpm@5.18.9'];
+    return ['npm install --global pnpm@6.2.3'];
   }
   throw new Error(`Unknown package manager ${packageManager}`);
 }

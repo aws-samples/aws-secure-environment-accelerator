@@ -215,7 +215,7 @@ async function deleteS3Objects(bucketName: string): Promise<void> {
 
   do {
     console.log('waiting for deletion of s3 objects');
-    sleep(2000);
+    await sleep(2000);
   } while ((await listObjectsList(bucketName)).length > 0);
   console.log('successfully deleted all objects');
 }
@@ -269,7 +269,7 @@ async function deleteS3Markers(bucketName: string): Promise<void> {
 
   do {
     console.log('waiting for deletion of s3 markers');
-    sleep(2000);
+    await sleep(2000);
   } while ((await listObjectMarkersList(bucketName)).length > 0);
   console.log('successfully deleted all marker');
 }
@@ -327,7 +327,7 @@ async function deleteS3Versions(bucketName: string): Promise<void> {
 
   do {
     console.log('waiting for deletion of s3 versions');
-    sleep(2000);
+    await sleep(2000);
   } while ((await listObjectVersionsList(bucketName)).length > 0);
   console.log('successfully deleted all versions');
 }

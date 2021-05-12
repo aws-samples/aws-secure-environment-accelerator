@@ -5,16 +5,16 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "scripts": {
-    "lint": "eslint '{lib,src}/**/*.ts'",
-    "lint:typecheck": "pnpx tsc --noEmit"
+    "lint:typecheck": "pnpx tsc --noEmit",
+    "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
   },
   "dependencies": {
     "@aws-accelerator/common-types": "workspace:*",
     "@aws-accelerator/io-ts-annotations": "workspace:*",
-    "io-ts": "2.1.2"
+    "json-schema": "0.3.0"
   },
   "devDependencies": {
     "ts-node": "9.1.1",
-    "typescript": "4.2.3"
+    "typescript": "4.2.4"
   }
 }

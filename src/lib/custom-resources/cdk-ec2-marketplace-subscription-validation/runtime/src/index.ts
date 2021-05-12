@@ -14,7 +14,7 @@ const ec2 = new AWS.EC2();
 export const handler = errorHandler(onEvent);
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
-  console.log(`Amazon MarketPlace Supscription check...`);
+  console.log(`Amazon MarketPlace subscription check...`);
   console.log(JSON.stringify(event, null, 2));
 
   // eslint-disable-next-line default-case
@@ -30,7 +30,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  var instanceParams = {
+  const instanceParams = {
     ImageId: properties.imageId,
     SubnetId: properties.subnetId,
     InstanceType: properties.instanceType || 't2.micro',

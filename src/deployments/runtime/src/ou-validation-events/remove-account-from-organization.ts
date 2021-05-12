@@ -13,10 +13,6 @@ import { pretty } from '@aws-accelerator/common/src/util/prettier';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
 import { getInvoker } from './utils';
 
-interface RemoveAccountOrganization extends ScheduledEvent {
-  version?: string;
-}
-
 const defaultRegion = process.env.ACCELERATOR_DEFAULT_REGION!;
 const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME!;
 const configFilePath = process.env.CONFIG_FILE_PATH!;
@@ -28,7 +24,7 @@ const configRootFilePath = process.env.CONFIG_ROOT_FILE_PATH!;
 const codecommit = new CodeCommit(undefined, defaultRegion);
 const dynamodb = new DynamoDB(undefined, defaultRegion);
 
-export const handler = async (input: RemoveAccountOrganization) => {
+export const handler = async (input: ScheduledEvent) => {
   console.log(`RemoveAccountFromOrganization, Remove account configuration from Accelerator config...`);
   console.log(JSON.stringify(input, null, 2));
   const requestDetail = input.detail;

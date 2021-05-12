@@ -61,7 +61,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       await throttlingBackOff(() =>
         logs
           .createLogGroup({
-            logGroupName: logGroupName,
+            logGroupName,
             tags,
             kmsKeyId,
           })
@@ -76,7 +76,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       await throttlingBackOff(() =>
         logs
           .deleteRetentionPolicy({
-            logGroupName: logGroupName,
+            logGroupName,
           })
           .promise(),
       );
@@ -84,7 +84,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       await throttlingBackOff(() =>
         logs
           .putRetentionPolicy({
-            logGroupName: logGroupName,
+            logGroupName,
             retentionInDays: retention,
           })
           .promise(),

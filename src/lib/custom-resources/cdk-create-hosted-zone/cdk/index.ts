@@ -13,7 +13,8 @@ export interface CreateHostedZoneProps {
   roleArn: string;
 }
 
-export interface CreateHostedZoneRuntimeProps extends Omit<CreateHostedZoneProps, 'roleArn'> {}
+export type CreateHostedZoneRuntimeProps = Omit<CreateHostedZoneProps, 'roleArn'>;
+
 /**
  * Custom resource that will create Resolver Rule.
  */
@@ -51,7 +52,7 @@ export class CreateHostedZone extends cdk.Construct {
     const lambdaDir = path.dirname(lambdaPath);
 
     return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role: this.role,
