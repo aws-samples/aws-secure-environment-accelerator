@@ -13,7 +13,11 @@ import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import { SecurityGroup } from './security-group';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { AccountStacks } from '../common/account-stacks';
-import { TransitGatewayOutputFinder, TransitGatewayOutput } from '@aws-accelerator/common-outputs/src/transit-gateway';
+import {
+  TransitGatewayOutputFinder,
+  TransitGatewayOutput,
+  TransitGatewayAttachmentOutput,
+} from '@aws-accelerator/common-outputs/src/transit-gateway';
 import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gateway/outputs';
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
 import { VpcDefaultSecurityGroup } from '@aws-accelerator/custom-resource-vpc-default-security-group';
@@ -102,6 +106,7 @@ export interface VpcProps extends VpcCommonProps {
   outputs: StackOutput[];
   acceleratorName: string;
   installerVersion: string;
+  existingAttachments: TransitGatewayAttachmentOutput[];
   vpcOutput?: VpcOutput;
 }
 
@@ -156,6 +161,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       acceleratorName,
       installerVersion,
       vpcOutput,
+      existingAttachments,
     } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
 
@@ -421,6 +427,39 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             cidr: this.cidrBlock,
           });
         } else {
+          let constructIndex: string;
+          let existingAttachment: TransitGatewayAttachmentOutput | undefined;
+          existingAttachment = existingAttachments.find(
+            att =>
+              att.accountKey === tgwAttach.account &&
+              att.region === this.region &&
+              att.cidr === this.cidrBlock &&
+              att.vpc === vpcName,
+          );
+          if (!existingAttachment) {
+            existingAttachment = existingAttachments.find(
+              att => att.accountKey === tgwAttach.account && att.region === this.region && att.cidr === this.cidrBlock,
+            );
+          }
+          if (!existingAttachment) {
+            // Generate hash
+            constructIndex = hashSum({
+              accountKey: tgwAttach.account,
+              rgion: this.region,
+              cidr: this.cidrBlock,
+              vpc: vpcName,
+            });
+          } else {
+            // This might cause failure if existing users already having multiple tgw cross account attachments in same account and region
+            constructIndex =
+              existingAttachment.constructIndex ||
+              existingAttachments
+                .findIndex(
+                  att =>
+                    att.accountKey === tgwAttach.account && att.region === this.region && att.cidr === this.cidrBlock,
+                )
+                .toString();
+          }
           new CfnTransitGatewayAttachmentOutput(this, 'TgwAttachmentOutput', {
             accountKey: tgwAttach.account,
             region: this.region,
@@ -429,6 +468,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             tgwRoutePropagates,
             blackhole: blackhole ?? false,
             cidr: this.cidrBlock,
+            vpc: vpcName,
+            constructIndex,
           });
         }
       }
