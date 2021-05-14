@@ -14,7 +14,6 @@ import * as path from 'path';
 import * as tempy from 'tempy';
 import { IamPolicyOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import * as t from 'io-ts';
-import AdmZip from 'adm-zip';
 
 export interface ConfigRuleArtifactsOutput {
   bucketArn: string;
@@ -439,8 +438,6 @@ async function downloadCustomRules(
       Bucket: bucketName,
       Key: `${rulePrefix}/${configRuleRuntime}`,
     });
-    const extractFileName = path.join(configRulesTempDir, path.parse(configRuleRuntime).name);
-    const zip = new AdmZip(runtimeFile as Buffer);
-    zip.extractAllTo(extractFileName);
+    fs.writeFileSync(path.join(configRulesTempDir, configRuleRuntime), runtimeFile as Buffer);
   }
 }

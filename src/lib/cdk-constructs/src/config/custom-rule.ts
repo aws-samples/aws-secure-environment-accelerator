@@ -20,7 +20,9 @@ export class CustomRule extends cdk.Construct {
     super(scope, name);
     this.constructName = `${name}Lambda`;
     this.role = iam.Role.fromRoleArn(this, `${name}Role`, props.roleArn);
-    this.runtimeFileLocation = props.runtimeFileLocation;
+    this.runtimeFileLocation = props.runtimeFileLocation.endsWith('.zip')
+      ? props.runtimeFileLocation
+      : props.runtimeFileLocation + '.zip';
     this.lambdaRuntime = props.lambdaRuntime;
     this.resource = new config.CustomRule(this, 'Resource', {
       lambdaFunction: this.ensureLambda(),
