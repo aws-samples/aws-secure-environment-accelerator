@@ -1,4 +1,4 @@
-import { optional } from '@aws-accelerator/common-outputs/node_modules/@aws-accelerator/common-types';
+import { optional } from '@aws-accelerator/common-types';
 import * as t from 'io-ts';
 import { StackOutput } from './stack-output';
 import { createStructuredOutputFinder } from './structured-output';
