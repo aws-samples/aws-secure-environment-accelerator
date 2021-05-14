@@ -1,7 +1,6 @@
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as config from '@aws-cdk/aws-config';
-import * as s3 from '@aws-cdk/aws-s3';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 
@@ -21,9 +20,7 @@ export class CustomRule extends cdk.Construct {
     super(scope, name);
     this.constructName = `${name}Lambda`;
     this.role = iam.Role.fromRoleArn(this, `${name}Role`, props.roleArn);
-    this.runtimeFileLocation = props.runtimeFileLocation.endsWith('.zip')
-      ? props.runtimeFileLocation
-      : props.runtimeFileLocation + '.zip';
+    this.runtimeFileLocation = props.runtimeFileLocation;
     this.lambdaRuntime = props.lambdaRuntime;
     this.resource = new config.CustomRule(this, 'Resource', {
       lambdaFunction: this.ensureLambda(),

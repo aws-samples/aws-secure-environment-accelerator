@@ -2797,6 +2797,8 @@ importers:
 
   src/lib/custom-resources/logs-add-subscription-filter:
     specifiers:
+      '@aws-accelerator/custom-resource-logs-add-subscription-filter-cloudwatch-event-runtime': workspace:*
+      '@aws-accelerator/custom-resource-logs-add-subscription-filter-runtime': workspace:*
       '@aws-cdk/aws-events': 1.101.0
       '@aws-cdk/aws-iam': 1.101.0
       '@aws-cdk/aws-lambda': 1.101.0
@@ -2807,6 +2809,8 @@ importers:
       ts-node: 9.1.1
       typescript: 4.2.4
     dependencies:
+      '@aws-accelerator/custom-resource-logs-add-subscription-filter-cloudwatch-event-runtime': link:runtime-event-trigger
+      '@aws-accelerator/custom-resource-logs-add-subscription-filter-runtime': link:runtime
       '@aws-cdk/aws-events': 1.101.0
       '@aws-cdk/aws-iam': 1.101.0
       '@aws-cdk/aws-lambda': 1.101.0
