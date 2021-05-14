@@ -1,0 +1,13 @@
+.divider {
+  border-bottom: 1px solid #eaeded;
+}
+
+.space-container-items {
+  margin-left: -0.5em;
+  margin-right: -0.5em;
+}
+
+.space-container-items > * {
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}

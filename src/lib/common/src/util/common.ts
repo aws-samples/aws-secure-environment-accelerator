@@ -7,7 +7,7 @@ import { RAW_CONFIG_FILE, JSON_FORMAT } from './constants';
 import { DynamoDB } from '../aws/dynamodb';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { AssignedVpcCidrPool, AssignedSubnetCidrPool, CidrPool } from '@aws-accelerator/common-outputs/src/cidr-pools';
-import { ReplacementConfigValueType, ReplacementsConfig } from '@aws-accelerator/common-config';
+import { ReplacementObject, ReplacementsConfig } from '@aws-accelerator/common-config';
 import { string as StringType } from 'io-ts';
 
 const GLOBAL_REGION = 'us-east-1';
@@ -192,7 +192,7 @@ export async function loadAccounts(tableName: string, client: DynamoDB): Promise
 export function additionalReplacements(configReplacements: ReplacementsConfig): { [key: string]: string | string[] } {
   const replacements: { [key: string]: string | string[] } = {};
   for (const [key, value] of Object.entries(configReplacements)) {
-    if (!ReplacementConfigValueType.is(value)) {
+    if (!ReplacementObject.is(value)) {
       if (StringType.is(value)) {
         replacements['\\${' + key.toUpperCase() + '}'] = value;
       } else {

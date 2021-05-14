@@ -46,7 +46,7 @@ export class CidrType extends t.Type<IPv4CidrRange, string, unknown> {
           try {
             return t.success(IPv4CidrRange.fromCidr(s));
           } catch (e) {
-            return t.failure(s, context, e);
+            return t.failure(s, context, `Value ${s} should be a CIDR range.`);
           }
         }),
       c => c.toCidrString(),
@@ -80,10 +80,12 @@ export class OptionalType<T extends t.Any> extends t.Type<
   }
 }
 
-export type WithSize = string | any[] | Map<any, any> | Set<any>;
+export type WithSize = number | string | any[] | Map<any, any> | Set<any>;
 
 function getSize(sized: WithSize): number {
-  if (typeof sized === 'string') {
+  if (typeof sized === 'number') {
+    return sized;
+  } else if (typeof sized === 'string') {
     return sized.length;
   } else if (Array.isArray(sized)) {
     return sized.length;
@@ -95,51 +97,65 @@ function getSize(sized: WithSize): number {
   throw new Error(`Unsupported size value ${sized}`);
 }
 
-// TODO Use props
 export interface SizedTypeProps {
   readonly min?: number;
   readonly max?: number;
   readonly name?: string;
+  readonly errorMessage?: string;
 }
 
 export class SizedType<A extends WithSize, T extends t.Type<A>> extends t.Type<T['_A'], T['_O'], T['_I']> {
-  constructor(readonly type: T, readonly min?: number, readonly max?: number, name?: string) {
+  readonly min?: number | undefined;
+  readonly max?: number | undefined;
+
+  constructor(readonly type: T, readonly props: SizedTypeProps = {}) {
     super(
-      name ?? `Sized<${type.name}>`,
+      props.name ?? `Sized<${type.name}>`,
       type.is,
       (u, c) =>
         either.chain(type.validate(u, c), (s: A) => {
           const size = getSize(s);
-          const minValid = !min || (min && size >= min);
-          const maxValid = !max || (max && size <= max);
+          const minValid = !props.min || (props.min && size >= props.min);
+          const maxValid = !props.max || (props.max && size <= props.max);
           if (minValid && maxValid) {
             return t.success(s);
           } else {
-            return t.failure(s, c, `${'Value'} should be of size [${min ?? '-∞'}, ${max ?? '∞'}]`);
+            const errorMessage =
+              props.errorMessage ?? `${'Value'} should be of size [${props.min ?? '-∞'}, ${props.max ?? '∞'}]`;
+            return t.failure(s, c, errorMessage);
           }
         }),
       type.encode,
     );
+    this.min = props.min;
+    this.max = props.max;
   }
+}
+export interface EnumTypeProps {
+  readonly name: string;
+  readonly errorMessage?: string;
 }
 
 export class EnumType<T extends string | number> extends t.Type<T> {
   readonly _tag: 'EnumType' = 'EnumType';
 
-  constructor(readonly values: ReadonlyArray<T>, name: string) {
+  constructor(readonly values: ReadonlyArray<T>, props: EnumTypeProps) {
     super(
-      name,
+      props.name,
       (u): u is T => values.some(v => v === u),
-      (u, c) => (this.is(u) ? t.success(u) : t.failure(u, c)),
+      (u, c) =>
+        this.is(u)
+          ? t.success(u)
+          : t.failure(u, c, props.errorMessage ?? `Value should be one of "${values.join('", "')}"`),
       t.identity,
     );
   }
 }
 
-export type Definition<P extends t.Props> = t.TypeC<P> & { definitionName: string };
+export type Definition<P extends t.Props> = t.InterfaceType<P> & { definitionName: string };
 
 export function definition<P extends t.Props>(name: string, props: P): Definition<P> {
-  return Object.assign(t.type(props, name), { definitionName: name });
+  return Object.assign(t.interface(props, name), { definitionName: name });
 }
 
 export function isDefinition<P extends t.Props>(type: t.TypeC<P>): type is Definition<P> {
@@ -152,56 +168,65 @@ export function defaulted<T extends t.Any>(type: T, defaultValue: T['_A'], name?
 
 export function sized<A extends WithSize, T extends t.Type<A> = t.Type<A>>(
   type: T,
-  min?: number,
-  max?: number,
-  name?: string,
+  props: SizedTypeProps = {},
 ): SizedType<A, T> {
-  return new SizedType<A, T>(type, min, max, name);
+  return new SizedType<A, T>(type, props);
 }
 
 /**
  * Create an enumeration type.
  */
-export function enums<T extends string | number>(name: string, values: ReadonlyArray<T>): EnumType<T> {
-  return new EnumType<T>(values, name);
+export function enums<T extends string | number>(
+  name: string,
+  values: ReadonlyArray<T>,
+  errorMessage?: string,
+): EnumType<T> {
+  return new EnumType<T>(values, { name, errorMessage });
 }
 
 export function optional<T extends t.Any>(wrapped: T, name?: string): OptionalType<T> {
   return new OptionalType(wrapped, name);
 }
 
-export const nonEmptyString = sized<string>(t.string, 1);
+export const nonEmptyString = sized<string>(t.string, {
+  min: 1,
+  errorMessage: 'Value can not be empty.',
+});
 
 export const cidr = new CidrType();
 export type Cidr = t.TypeOf<typeof cidr>;
 
-export const region = enums('Region', [
-  'af-south-1',
-  'ap-east-1',
-  'ap-northeast-1',
-  'ap-northeast-2',
-  'ap-northeast-3',
-  'ap-south-1',
-  'ap-southeast-1',
-  'ap-southeast-2',
-  'ca-central-1',
-  'cn-north-1',
-  'cn-northwest-1',
-  'eu-central-1',
-  'eu-north-1',
-  'eu-south-1',
-  'eu-west-1',
-  'eu-west-2',
-  'eu-west-3',
-  'me-south-1',
-  'sa-east-1',
-  'us-east-1',
-  'us-east-2',
-  'us-gov-east-1',
-  'us-gov-west-1',
-  'us-west-1',
-  'us-west-2',
-]);
+export const region = enums(
+  'Region',
+  [
+    'af-south-1',
+    'ap-east-1',
+    'ap-northeast-1',
+    'ap-northeast-2',
+    'ap-northeast-3',
+    'ap-south-1',
+    'ap-southeast-1',
+    'ap-southeast-2',
+    'ca-central-1',
+    'cn-north-1',
+    'cn-northwest-1',
+    'eu-central-1',
+    'eu-north-1',
+    'eu-south-1',
+    'eu-west-1',
+    'eu-west-2',
+    'eu-west-3',
+    'me-south-1',
+    'sa-east-1',
+    'us-east-1',
+    'us-east-2',
+    'us-gov-east-1',
+    'us-gov-west-1',
+    'us-west-1',
+    'us-west-2',
+  ],
+  'Value should be an AWS region.',
+);
 export type Region = t.TypeOf<typeof region>;
 
 export const availabilityZone = enums('AvailabilityZone', ['a', 'b', 'c', 'd', 'e', 'f']);

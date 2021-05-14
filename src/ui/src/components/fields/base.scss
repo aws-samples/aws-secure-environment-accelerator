@@ -1,0 +1,6 @@
+@use '~@awsui/design-tokens/index.scss' as awsui;
+
+.indented {
+  padding-left: 10px;
+  border-left: 3px solid awsui.$color-border-divider-default;
+}

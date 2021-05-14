@@ -296,7 +296,7 @@ async function createFirewallCluster(props: {
 export function additionalReplacements(configReplacements: c.ReplacementsConfig): { [key: string]: string } {
   const replacements: { [key: string]: string } = {};
   for (const [key, value] of Object.entries(configReplacements)) {
-    if (!c.ReplacementConfigValueType.is(value)) {
+    if (!c.ReplacementObject.is(value)) {
       if (StringType.is(value)) {
         replacements['${' + key.toUpperCase() + '}'] = value;
       }

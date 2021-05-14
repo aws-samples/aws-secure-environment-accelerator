@@ -7,6 +7,7 @@ workflow:
 
 stages:
   - checks
+  - build
 
 default:
   before_script:
@@ -32,3 +33,15 @@ typecheck:
   script:
     - pnpm -w lint:typecheck
   timeout: 3h
+
+ui:
+  stage: build
+  script:
+    - apt-get update
+    - apt-get install --yes zip
+    - cd src/ui
+    - zip -r bundle.zip build # Already built by the before_script
+  artifacts:
+    expire_in: 30 days
+    paths:
+      - src/ui/bundle.zip

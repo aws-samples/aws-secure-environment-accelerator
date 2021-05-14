@@ -3,7 +3,6 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-accelerator/common-config/src';
 import * as t from '@aws-accelerator/common-types';
 import * as constructs from '@aws-accelerator/cdk-constructs/src/vpc';
-import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 import * as sv from 'semver';
 import {
   AssignedSubnetCidrPool,
@@ -186,7 +185,7 @@ export class SecurityGroup extends cdk.Construct {
           };
         }
         ruleProps.push(ruleProp);
-      } else if (config.SecurityGroupRuleSubnetSourceConfig.is(ruleSource)) {
+      } else if (config.SubnetSourceConfig.is(ruleSource)) {
         const vpcAccountKey = ruleSource.account ? ruleSource.account : accountKey;
         const ruleResolvedVpcConfig = accountVpcConfigs?.find(
           x => x.vpcConfig.name === ruleSource.vpc && x.accountKey === vpcAccountKey,
@@ -236,7 +235,7 @@ export class SecurityGroup extends cdk.Construct {
             });
           } // Looping Through Subnet Definitions
         } // Looging Through subnets
-      } else if (config.SecurityGroupRuleSecurityGroupSourceConfig.is(ruleSource)) {
+      } else if (config.SecurityGroupSourceConfig.is(ruleSource)) {
         // Check for Security Group reference to Security Group
         for (const ruleSg of ruleSource['security-group']) {
           ruleProps.push({

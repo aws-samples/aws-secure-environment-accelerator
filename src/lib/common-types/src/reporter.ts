@@ -22,7 +22,7 @@ function getContextPath(context: Context): string {
 
 function getMessage(e: ValidationError): string {
   return e.message !== undefined
-    ? e.message
+    ? `${e.message} at ${getContextPath(e.context)}`
     : `Invalid value ${stringify(e.value)} supplied to ${getContextPath(e.context)}`;
 }
 

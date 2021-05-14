@@ -1,0 +1,173 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Errors } from 'io-ts';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Box, Button, Header, Modal, SpaceBetween, StatusIndicator, Tabs } from '@awsui/components-react';
+import * as c from '@aws-accelerator/config';
+import { usePathHistory } from '@/utils/hooks';
+import { useReplacements } from './replacements-context';
+import { CodeCommitFilePicker, useCodeCommitInputs } from './codecommit-file-picker';
+
+type State = InitialState | ValidState | InvalidState;
+
+interface InitialState {
+  _tag: 'Initial';
+}
+
+interface ValidState {
+  _tag: 'Valid';
+  configuration: c.AcceleratorConfigType;
+}
+
+interface InvalidState {
+  _tag: 'Invalid';
+  errors: Errors;
+}
+
+const initialState: InitialState = { _tag: 'Initial' };
+
+type TabId = 'file' | 'codecommit';
+
+export type ExportModalSubmit = ExportModalFileSubmit | ExportModalCodeCommitSubmit;
+
+export interface ExportModalFileSubmit {
+  type: 'file';
+  configuration: any;
+}
+
+export interface ExportModalCodeCommitSubmit {
+  type: 'codecommit';
+  configuration: any;
+  repositoryName: string;
+  branchName: string;
+  filePath: string;
+}
+
+export interface ExportModalProps {
+  state: any;
+  visible: boolean;
+  loading: boolean;
+  errorMessage?: string;
+  onDismiss(): void;
+  onSubmit(submit: ExportModalSubmit): void;
+}
+
+export function ExportModal(props: ExportModalProps): React.ReactElement {
+  const { replaceInObject } = useReplacements();
+  const { repositoryNameInputProps, branchNameInputProps, filePathInputProps } = useCodeCommitInputs();
+  const [state, setState] = useState<State>(initialState);
+  const [tabId, setTabId] = useState<TabId>('file');
+  const history = usePathHistory();
+
+  useEffect(() => {
+    setState(initialState);
+
+    if (props.visible) {
+      const replaced = replaceInObject(props.state);
+      const validation = c.AcceleratorConfigType.validate(replaced, []);
+      if (validation._tag === 'Right') {
+        setState({
+          _tag: 'Valid',
+          configuration: props.state,
+        });
+      } else {
+        setState({
+          _tag: 'Invalid',
+          errors: validation.left,
+        });
+      }
+    }
+  }, [props.visible, props.state]);
+
+  const handleSubmit = useCallback(() => {
+    if (state._tag === 'Valid') {
+      if (tabId === 'file') {
+        props.onSubmit({
+          type: 'file',
+          configuration: state.configuration,
+        });
+      } else {
+        props.onSubmit({
+          type: 'codecommit',
+          configuration: state.configuration,
+          repositoryName: repositoryNameInputProps.value,
+          branchName: branchNameInputProps.value,
+          filePath: filePathInputProps.value,
+        });
+      }
+    }
+  }, [state, tabId, repositoryNameInputProps, branchNameInputProps, filePathInputProps, props.onSubmit]);
+
+  let stateComponent = null;
+  if (state._tag === 'Valid') {
+    stateComponent = (
+      <>
+        <StatusIndicator type={'success'}>The configuration is valid.</StatusIndicator>
+        <Box>You can download the configuration as a file or save it as a file in a CodeCommit repository.</Box>
+        <Tabs
+          activeTabId={tabId}
+          onChange={event => setTabId(event.detail.activeTabId as TabId)}
+          tabs={[
+            {
+              id: 'file',
+              label: 'File',
+              content: <>Export the configuration as a file and download it with your browser.</>,
+            },
+            {
+              id: 'codecommit',
+              label: 'CodeCommit',
+              content: (
+                <SpaceBetween direction="vertical" size="s">
+                  <CodeCommitFilePicker
+                    repositoryNameInputProps={repositoryNameInputProps}
+                    branchNameInputProps={branchNameInputProps}
+                    filePathInputProps={filePathInputProps}
+                  />
+                  {props.errorMessage && <StatusIndicator type={'error'}>{props.errorMessage}</StatusIndicator>}
+                </SpaceBetween>
+              ),
+            },
+          ]}
+        ></Tabs>
+      </>
+    );
+  } else if (state._tag === 'Invalid') {
+    stateComponent = (
+      <>
+        {state.errors.map((error, index) => {
+          const path = error.context.map(entry => entry.key);
+          const href = history.createHref(path);
+          const message = error.message ?? 'Value should be set.';
+          return (
+            <React.Fragment key={index}>
+              <StatusIndicator type={'warning'}>
+                <a href={href}>{path.join('/')}</a>: {message}
+              </StatusIndicator>
+            </React.Fragment>
+          );
+        })}
+      </>
+    );
+  }
+
+  return (
+    <Modal
+      header={<Header variant="h3">Export Configuration</Header>}
+      visible={props.visible}
+      onDismiss={props.onDismiss}
+      footer={
+        <Box float="right">
+          <Button variant="link" onClick={props.onDismiss}>
+            Cancel
+          </Button>
+          <Button variant="primary" disabled={state._tag !== 'Valid'} onClick={handleSubmit} loading={props.loading}>
+            Export
+          </Button>
+        </Box>
+      }
+    >
+      <SpaceBetween direction="vertical" size="s">
+        {stateComponent}
+      </SpaceBetween>
+    </Modal>
+  );
+}

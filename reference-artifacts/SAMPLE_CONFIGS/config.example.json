@@ -858,10 +858,6 @@
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
-          "igw": false,
-          "vgw": false,
-          "pcx": false,
-          "natgw": false,
           "subnets": [
             {
               "name": "Endpoint",
@@ -1021,7 +1017,6 @@
       "account-warming-required": true,
       "limits": {},
       "src-filename": "config.json",
-      "share-mad-from": "",
       "iam": {
         "users": [],
         "policies": [
@@ -1081,7 +1076,6 @@
           "central-resolver-rule-account": "shared-network",
           "central-resolver-rule-vpc": "Endpoint",
           "log-group-name": "/${ACCELERATOR_PREFIX_ND}/MAD/example.local",
-          "share-to-account": "",
           "restrict_srcips": "${RANGE-RESTRICT}",
           "num-rdgw-hosts": 1,
           "min-rdgw-hosts": 1,
@@ -1209,7 +1203,6 @@
           "customer-confirm-inplace": false
         }
       },
-      "share-mad-from": "",
       "budget": {
         "name": "Perimeter Budget",
         "period": "Monthly",
@@ -1284,7 +1277,6 @@
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
               "health-check-port": 7001,
-              "lambda-filename": "",
               "target-instances": [
                 {
                   "target": "firewall",
@@ -1302,7 +1294,6 @@
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
               "health-check-port": 7001,
-              "lambda-filename": "",
               "target-instances": [
                 {
                   "target": "firewall",
@@ -1344,7 +1335,6 @@
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
               "health-check-port": 7001,
-              "lambda-filename": "",
               "target-instances": [
                 {
                   "target": "firewall",
@@ -1362,7 +1352,6 @@
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
               "health-check-port": 7001,
-              "lambda-filename": "",
               "target-instances": [
                 {
                   "target": "firewall",
@@ -1429,9 +1418,6 @@
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
           "igw": true,
-          "vgw": false,
-          "pcx": false,
-          "natgw": false,
           "subnets": [
             {
               "name": "Public",
@@ -1699,7 +1685,6 @@
               ]
             }
           ],
-          "tgw-attach": false,
           "interface-endpoints": {
             "subnet": "Proxy",
             "endpoints": ["ssm", "ssmmessages", "ec2messages"]
@@ -1780,7 +1765,6 @@
       "account-name": "primary",
       "email": "myemail+aseaT-management@example.com---------------------REPLACE----------------------",
       "ou": "core",
-      "share-mad-from": "",
       "src-filename": "config.json",
       "budget": {
         "name": "Organization Budget",
@@ -1858,10 +1842,6 @@
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
-          "igw": false,
-          "vgw": false,
-          "pcx": false,
-          "natgw": false,
           "subnets": [
             {
               "name": "ForSSO",
@@ -1902,9 +1882,7 @@
                 }
               ]
             }
-          ],
-          "tgw-attach": false,
-          "interface-endpoints": false
+          ]
         }
       ],
       "deployments": {
@@ -2107,15 +2085,12 @@
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
-          "igw": false,
-          "vgw": false,
           "pcx": {
             "source": "management",
             "source-vpc": "ForSSO",
             "source-subnets": "ForSSO",
             "local-subnets": "GCWide"
           },
-          "natgw": false,
           "subnets": [
             {
               "name": "TGW",
@@ -2549,8 +2524,7 @@
             "blackhole-route": false,
             "attach-subnets": ["TGW"],
             "options": ["DNS-support"]
-          },
-          "interface-endpoints": false
+          }
         }
       ],
       "iam": {
@@ -2697,7 +2671,6 @@
           "cert-name": "DevSelf-SignedCert",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
           "security-group": "Web",
-          "tg-stickiness": "",
           "access-logs": true,
           "targets": [
             {
@@ -2725,10 +2698,6 @@
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
-          "igw": false,
-          "vgw": false,
-          "pcx": false,
-          "natgw": false,
           "subnets": [
             {
               "name": "TGW",
@@ -3150,8 +3119,7 @@
             "blackhole-route": true,
             "attach-subnets": ["TGW"],
             "options": ["DNS-support"]
-          },
-          "interface-endpoints": false
+          }
         }
       ],
       "iam": {
@@ -3298,7 +3266,6 @@
           "cert-name": "TestSelf-SignedCert",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
           "security-group": "Web",
-          "tg-stickiness": "",
           "access-logs": true,
           "targets": [
             {
@@ -3326,10 +3293,6 @@
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
-          "igw": false,
-          "vgw": false,
-          "pcx": false,
-          "natgw": false,
           "subnets": [
             {
               "name": "TGW",
@@ -3751,8 +3714,7 @@
             "blackhole-route": true,
             "attach-subnets": ["TGW"],
             "options": ["DNS-support"]
-          },
-          "interface-endpoints": false
+          }
         }
       ],
       "iam": {
@@ -3899,7 +3861,6 @@
           "cert-name": "ProdSelf-SignedCert",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
           "security-group": "Web",
-          "tg-stickiness": "",
           "access-logs": true,
           "targets": [
             {
@@ -3927,10 +3888,6 @@
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
-          "igw": false,
-          "vgw": false,
-          "pcx": false,
-          "natgw": false,
           "subnets": [
             {
               "name": "TGW",
@@ -4352,8 +4309,7 @@
             "blackhole-route": true,
             "attach-subnets": ["TGW"],
             "options": ["DNS-support"]
-          },
-          "interface-endpoints": false
+          }
         }
       ],
       "iam": {
@@ -4495,10 +4451,6 @@
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
-          "igw": false,
-          "vgw": false,
-          "pcx": false,
-          "natgw": false,
           "subnets": [
             {
               "name": "TGW",
@@ -4920,8 +4872,7 @@
             "blackhole-route": true,
             "attach-subnets": ["TGW"],
             "options": ["DNS-support"]
-          },
-          "interface-endpoints": false
+          }
         }
       ],
       "iam": {
@@ -5010,7 +4961,6 @@
     },
     "Sandbox": {
       "type": "workload",
-      "share-mad-from": "",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sandbox"],
       "default-budgets": {
         "name": "Default Sandbox Budget",
@@ -5064,8 +5014,6 @@
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
           "igw": true,
-          "vgw": false,
-          "pcx": false,
           "natgw": {
             "subnet": {
               "name": "Web",
@@ -5411,9 +5359,7 @@
                 }
               ]
             }
-          ],
-          "tgw-attach": false,
-          "interface-endpoints": false
+          ]
         }
       ],
       "iam": {

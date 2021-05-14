@@ -12,7 +12,9 @@ packages:
   - src/lib/common-outputs
   - src/lib/common-types
   - src/lib/config
+  - src/lib/config-i18n
   - src/lib/custom-resources/*
   - src/lib/custom-resources/*/*
   - src/lib/io-ts-annotations
   - src/lib/io-ts-json-schema-gen
+  - src/ui

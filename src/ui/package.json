@@ -1,0 +1,67 @@
+{
+  "name": "@aws-accelerator/ui",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": ".",
+  "scripts": {
+    "start": "pnpx craco start",
+    "build": "pnpx craco build",
+    "test": "pnpx craco test",
+    "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "dependencies": {
+    "@aws-accelerator/common-types": "workspace:*",
+    "@aws-accelerator/config": "workspace:*",
+    "@aws-accelerator/config-i18n": "workspace:*",
+    "@awsui/components-react": "3.0.104",
+    "@awsui/design-tokens": "3.0.7",
+    "@awsui/global-styles": "1.0.7",
+    "@types/lodash.get": "^4.4.6",
+    "@types/lodash.set": "^4.3.6",
+    "ace-builds": "1.4.12",
+    "capital-case": "^1.0.4",
+    "fp-ts": "2.5.3",
+    "i18next": "^20.2.2",
+    "io-ts": "2.1.2",
+    "lodash.get": "^4.4.2",
+    "lodash.set": "^4.3.2",
+    "mobx": "^6.1.8",
+    "mobx-react-lite": "^3.2.0",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-router": "^5.2.0",
+    "react-router-dom": "^5.2.0"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-codecommit": "^3.13.0",
+    "@aws-sdk/types": "^3.12.0",
+    "@craco/craco": "6.1.1",
+    "@testing-library/jest-dom": "^5.11.9",
+    "@testing-library/react": "^11.2.5",
+    "@testing-library/user-event": "^12.6.3",
+    "@types/jest": "^26.0.20",
+    "@types/node": "^14.14.25",
+    "@types/react": "^17.0.1",
+    "@types/react-dom": "^17.0.0",
+    "@types/react-router": "^5.1.12",
+    "@types/react-router-dom": "^5.1.7",
+    "craco-alias": "^2.2.0",
+    "react-scripts": "4.0.3",
+    "sass": "^1.32.8",
+    "sass-loader": "^11.0.1",
+    "ts-loader": "^8.0.18",
+    "typescript": "4.2.3"
+  }
+}

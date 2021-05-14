@@ -49,10 +49,6 @@ test('the VPC creation should create the correct amount of subnets', () => {
     ],
     region: 'ca-central-1',
     deploy: 'local',
-    igw: false,
-    vgw: false,
-    pcx: false,
-    natgw: false,
     'flow-logs': 'NONE',
     'gateway-endpoints': ['s3', 'dynamodb'],
     subnets: [
@@ -259,11 +255,6 @@ test('the VPC creation should throw an error when a subnet uses a route table th
     cidr: [{ value: '10.2.0.0/16' }],
     region: 'ca-central-1',
     deploy: 'local',
-    igw: false,
-    vgw: false,
-    pcx: false,
-    natgw: false,
-    'flow-logs': 'NONE',
     subnets: [
       {
         name: 'TGW',
@@ -303,10 +294,6 @@ test('the VPC creation should create the internet gateway', () => {
     region: 'ca-central-1',
     deploy: 'local',
     igw: true,
-    vgw: false,
-    pcx: false,
-    natgw: false,
-    'flow-logs': 'NONE',
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
@@ -340,11 +327,7 @@ test('the VPC creation should create the VPN gateway', () => {
     cidr: [{ value: '10.2.0.0/16' }],
     region: 'ca-central-1',
     deploy: 'local',
-    igw: false,
-    vgw: true,
-    pcx: false,
-    natgw: false,
-    'flow-logs': 'NONE',
+    vgw: {},
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
@@ -406,9 +389,6 @@ test('the VPC creation should create the NAT gateway', () => {
     region: 'ca-central-1',
     deploy: 'local',
     igw: true,
-    vgw: false,
-    pcx: false,
-    'flow-logs': 'NONE',
     natgw: {
       subnet: {
         name: 'Public',
@@ -504,7 +484,6 @@ test('the VPC creation should create the NAT gateway', () => {
 
   const privateRoute = routeTables.find(x => x.LogicalId.startsWith('SharedNetworkPrivate'));
   const routes = resources.filter(r => r.Type === 'AWS::EC2::Route');
-  const natRoute = routes.find(x => x.Properties.NatGatewayId!! !== undefined);
 
   // Check NAT Gateway Route is assigned to Private Route Table
   expect(routes).toEqual(
