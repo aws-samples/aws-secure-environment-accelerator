@@ -7,6 +7,7 @@ import { FileInputState } from './file-input';
 import { useAwsConfiguration } from './aws-credentials-context';
 
 import './codecommit-file-picker.scss';
+import { useI18n } from './i18n-context';
 
 export interface CodeCommitFilePickerInputs {
   repositoryNameInputProps: UseInput;
@@ -33,11 +34,13 @@ export interface CodeCommitFilePickerProps extends CodeCommitFilePickerInputs {
 
 export const CodeCommitFilePicker = function CodeCommitFilePicker(props: CodeCommitFilePickerProps) {
   const { setModalVisible: setAwsConfigurationModalVisible } = useAwsConfiguration();
+  const { tr } = useI18n();
+  // TODO
 
   const {
-    repositoryLabelDescription = 'The name of the CodeCommit repository that contains the configuration file',
-    branchLabelDescription = 'The name of the branch in the CodeCommit repository',
-    filePathLabelDescription = 'The name of the configuration file in the CodeCommit repository',
+    repositoryLabelDescription = tr('labels.codecommit_repository_description'),
+    branchLabelDescription = tr('labels.codecommit_branch_description'),
+    filePathLabelDescription = tr('labels.codecommit_file_description'),
   } = props;
 
   const handleAwsConfiguration = useCallback(() => {
@@ -47,13 +50,13 @@ export const CodeCommitFilePicker = function CodeCommitFilePicker(props: CodeCom
   return (
     <>
       <Button onClick={handleAwsConfiguration}>Configure AWS</Button>
-      <FormField label="CodeCommit Repository Name" description={repositoryLabelDescription}>
+      <FormField label={tr('labels.codecommit_repository')} description={repositoryLabelDescription}>
         <Input {...props.repositoryNameInputProps} />
       </FormField>
-      <FormField label="CodeCommit Branch" description={branchLabelDescription}>
+      <FormField label={tr('labels.codecommit_branch')} description={branchLabelDescription}>
         <Input {...props.branchNameInputProps} />
       </FormField>
-      <FormField label="CodeCommit File Path" description={filePathLabelDescription}>
+      <FormField label={tr('labels.codecommit_file')} description={filePathLabelDescription}>
         <Input {...props.filePathInputProps} />
       </FormField>
     </>
@@ -79,7 +82,8 @@ export interface CodeCommitFilePickerModalProps {
 export const CodeCommitFilePickerModel = memo(function CodeCommitFilePickerModel(
   props: CodeCommitFilePickerModalProps,
 ) {
-  const { title = 'Choose CodeCommit File' } = props;
+  const { tr } = useI18n();
+  const { title = tr('headers.choose_codecommit_file') } = props;
   const { repositoryNameInputProps, branchNameInputProps, filePathInputProps } = useCodeCommitInputs();
 
   const handleDismiss = useCallback(() => {
@@ -104,10 +108,10 @@ export const CodeCommitFilePickerModel = memo(function CodeCommitFilePickerModel
         footer={
           <Box float="right">
             <Button variant="link" onClick={handleDismiss}>
-              Cancel
+              {tr('buttons.cancel')}
             </Button>
             <Button variant="primary" onClick={handleSubmit}>
-              Choose
+              {tr('buttons.choose')}
             </Button>
           </Box>
         }
@@ -132,6 +136,7 @@ export interface CodeCommitFileInputProps {
 }
 
 export function CodeCommitFileInput(props: CodeCommitFileInputProps) {
+  const { tr } = useI18n();
   const { configuration: awsConfiguration } = useAwsConfiguration();
   const [visible, setVisible] = useState(false);
 
@@ -182,7 +187,7 @@ export function CodeCommitFileInput(props: CodeCommitFileInputProps) {
   return (
     <>
       <Button onClick={handleSelectFile} iconName="upload" iconAlign="right">
-        Choose file
+        {tr('buttons.choose_file')}
       </Button>
       <CodeCommitFilePickerModel visible={visible} onDismiss={handleDismiss} onSubmit={handleSubmit} />
     </>

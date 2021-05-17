@@ -9,6 +9,7 @@ import { root } from './root';
 
 export default function Breadcrumbs(): React.ReactElement {
   const { setImportDialogVisible, setExportDialogVisible } = useUi();
+  const { tr } = useI18n();
   const history = usePathHistory();
   const node = getNodeAtPath(root, history.path);
 
@@ -31,9 +32,9 @@ export default function Breadcrumbs(): React.ReactElement {
       </Box>
       <Box float="right">
         <SpaceBetween direction="horizontal" size="xs">
-          <Button onClick={() => setImportDialogVisible(true)}>Import</Button>
+          <Button onClick={() => setImportDialogVisible(true)}>{tr('buttons.import')}</Button>
           <Button onClick={() => setExportDialogVisible(true)} variant="primary">
-            Export
+            {tr('buttons.export')}
           </Button>
         </SpaceBetween>
       </Box>

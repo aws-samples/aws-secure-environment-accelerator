@@ -42,7 +42,7 @@ export function DictionaryField(props: FieldProps<t.DictionaryType<t.Any, t.Any>
       <NodeField {...props} validation={false} stretch>
         <SpaceBetween direction="vertical" size="s">
           <Button onClick={handleAdd}>
-            <Icon name="add-plus" /> Add
+            <Icon name="add-plus" /> {tr('buttons.add')}
           </Button>
           <DictionaryFields {...props} />
         </SpaceBetween>
@@ -58,6 +58,7 @@ export function DictionaryField(props: FieldProps<t.DictionaryType<t.Any, t.Any>
  */
 const DictionaryFields = observer(function DictionaryFields(props: FieldProps<t.DictionaryType<t.Any, t.Any>>) {
   const { node, state } = props;
+  const { tr } = useI18n();
 
   const handleRemoveFn = (key: string) =>
     action(() => {
@@ -75,7 +76,7 @@ const DictionaryFields = observer(function DictionaryFields(props: FieldProps<t.
         {index > 0 ? <Box className="divider" /> : null}
         <SpaceBetween direction="vertical" size="s" className="indented">
           <Field state={state} node={elementNode} />
-          <Button onClick={handleRemoveFn(key)}>Remove</Button>
+          <Button onClick={handleRemoveFn(key)}>{tr('buttons.remove')}</Button>
         </SpaceBetween>
       </React.Fragment>
     );
@@ -99,6 +100,7 @@ function AddPropertyModal(props: {
 }) {
   const inputRef = React.createRef<InputProps.Ref>();
   const [key, setKey] = useState('');
+  const { tr } = useI18n();
 
   const handleSubmit = () => props.onSubmit(key);
   const handleChange: InputProps['onChange'] = e => setKey(e.detail.value);
@@ -113,8 +115,8 @@ function AddPropertyModal(props: {
   return (
     <Modal
       visible={props.visible}
-      header={<Header variant="h3">Add {props.title ?? 'Value'}</Header>}
-      footer={<Button onClick={handleSubmit}>Add</Button>}
+      header={<Header variant="h3">{tr('headers.add_dictionary_field', { value: props.title })}</Header>}
+      footer={<Button onClick={handleSubmit}>{tr('buttons.add')}</Button>}
       onDismiss={props.onDismiss}
     >
       <form

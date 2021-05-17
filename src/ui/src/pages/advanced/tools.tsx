@@ -40,5 +40,5 @@ export default observer(function Tools({ state }: { state: any }): React.ReactEl
       },
     );
   }
-  return <SideNavigation header={{ href: history.createHref(path), text: 'Properties' }} items={items} />;
+  return <SideNavigation header={{ href: history.createHref(path), text: tr('menu.properties') }} items={items} />;
 });

@@ -3,6 +3,7 @@ import { memo } from 'react';
 import { Button, Icon } from '@awsui/components-react';
 import { usePathHistory } from '@/utils/hooks';
 import { Path } from './fields';
+import { useI18n } from './i18n-context';
 
 /**
  * This functional component renders an "Edit" button that navigates to the given path.
@@ -10,6 +11,7 @@ import { Path } from './fields';
 export const NodeEditLink = memo(
   function NodeEditLink(props: { path: Path }) {
     const { path } = props;
+    const { tr } = useI18n();
     const history = usePathHistory();
     const href = history.createHref(path);
 
@@ -25,7 +27,7 @@ export const NodeEditLink = memo(
         }}
       >
         <Icon name="edit" />
-        Edit
+        {tr('buttons.edit')}
       </Button>
     );
   },

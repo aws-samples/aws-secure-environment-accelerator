@@ -31,7 +31,7 @@ export const NodeField = observer(function NodeField(props: React.PropsWithChild
     <FormField
       controlId={node.path.join('.')}
       label={<NodeFieldLabel title={title} replacement={replacement} onReplacementChange={handleReplacementChange} />}
-      constraintText={node.metadata.optional ? null : 'Required'}
+      constraintText={node.metadata.optional ? null : tr('labels.required')}
       description={description}
       errorText={validationAsErrorText(validation)}
       stretch={props.stretch}
@@ -68,17 +68,18 @@ interface NodeFieldLabelProps {
 }
 
 const NodeFieldLabel = memo(function NodeFieldLabel({ title, replacement, onReplacementChange }: NodeFieldLabelProps) {
+  const { tr } = useI18n();
   const handleReplacementChange: ToggleProps['onChange'] = e => onReplacementChange(e.detail.checked);
 
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
       <span>{title}</span>
       <div style={{ display: 'flex' }}>
-        <span>Toggle Replacement</span>
+        <span>{tr('labels.toggle_replacement')}</span>
         <Toggle
           checked={replacement}
           onChange={handleReplacementChange}
-          ariaLabel={'Toggle Replacement'}
+          ariaLabel={tr('labels.toggle_replacement')}
           className="replacement-toggle"
         />
       </div>

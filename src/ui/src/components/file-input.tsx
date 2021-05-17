@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { Button, ButtonProps } from '@awsui/components-react';
+import { useI18n } from './i18n-context';
 
 export type FileInputState = DoneState | LoadingState | ErrorState;
 
@@ -24,6 +25,7 @@ export interface FileInputProps {
 }
 
 export function FileInput(props: FileInputProps) {
+  const { tr } = useI18n();
   const fileInputRef = React.createRef<HTMLInputElement>();
 
   const handleSelectFile: ButtonProps['onClick'] = event => {
@@ -63,7 +65,7 @@ export function FileInput(props: FileInputProps) {
       />
       <Button onClick={handleSelectFile} iconName="upload" iconAlign="right">
         <label htmlFor="file" style={{ cursor: 'pointer' }}>
-          Choose file
+          {tr('buttons.choose_file')}
         </label>
       </Button>
     </>

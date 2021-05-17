@@ -3,29 +3,31 @@ import React from 'react';
 import { Box, SideNavigation, SpaceBetween } from '@awsui/components-react';
 import { usePathHistory } from '@/utils/hooks';
 import { LanguagePicker } from '@/components/language-picker';
+import { useI18n } from '@/components/i18n-context';
 
 export function DefaultNavigation(): React.ReactElement {
+  const { tr } = useI18n();
   const history = usePathHistory();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <div style={{ flexGrow: 1 }}>
         <SideNavigation
-          header={{ href: '#/', text: 'Accelerator Configuration' }}
+          header={{ href: '#/', text: tr('menu.accelerator_configuration') }}
           items={[
             {
               type: 'link',
-              text: 'Graphical Editor',
+              text: tr('menu.graphical_editor'),
               href: history.createHref([]),
             },
             {
               type: 'link',
-              text: 'Code Editor',
+              text: tr('menu.code_editor'),
               href: '#/editor',
             },
             {
               type: 'link-group',
-              text: 'Wizards',
+              text: tr('menu.wizards'),
               href: '#/wizards',
               items: [
                 {
@@ -46,7 +48,7 @@ export function DefaultNavigation(): React.ReactElement {
       <div style={{ justifySelf: 'end' }}>
         <Box padding={{ horizontal: 'xxl', bottom: 'xxl' }}>
           <SpaceBetween direction="vertical" size="xxs">
-            <Box>Choose language</Box>
+            <Box>{tr('labels.choose_language')}</Box>
             <LanguagePicker />
           </SpaceBetween>
         </Box>

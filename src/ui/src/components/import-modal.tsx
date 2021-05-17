@@ -111,15 +111,15 @@ export function ImportModal(props: ImportModalProps): React.ReactElement {
 
   let stateComponent = null;
   if (state._tag === 'Loading') {
-    stateComponent = <StatusIndicator type={'loading'}>Loading...</StatusIndicator>;
+    stateComponent = <StatusIndicator type={'loading'}>{tr('labels.loading')}</StatusIndicator>;
   } else if (state._tag === 'Valid') {
-    stateComponent = <StatusIndicator type={'success'}>The selected configuration file is valid.</StatusIndicator>;
+    stateComponent = <StatusIndicator type={'success'}>{tr('labels.selected_configuration_is_valid')}</StatusIndicator>;
   } else if (state._tag === 'Error') {
     stateComponent = <StatusIndicator type={'warning'}>{`${state.error}`}</StatusIndicator>;
   } else if (state._tag === 'Invalid') {
     stateComponent = (
       <>
-        <FormField label="Import with errors" description="The file will be imported even though there are errors.">
+        <FormField label={tr('labels.import_with_errors')} description={tr('labels.import_with_errors_description')}>
           <Checkbox checked={importOverride} onChange={event => setImportOverride(event.detail.checked)} />
         </FormField>
         {state.errors.map((error, index) => (
@@ -134,35 +134,35 @@ export function ImportModal(props: ImportModalProps): React.ReactElement {
   return (
     <Modal
       className="import-modal"
-      header={<Header variant="h3">{tr('import.title')}</Header>}
+      header={<Header variant="h3">{tr('headers.import_configuration')}</Header>}
       visible={props.visible}
       onDismiss={props.onDismiss}
       footer={
         <Box float="right">
           <Button variant="link" onClick={props.onDismiss}>
-            Cancel
+            {tr('buttons.cancel')}
           </Button>
           <Button variant="primary" disabled={state._tag !== 'Valid' && !importOverride} onClick={handleSubmit}>
-            Import
+            {tr('buttons.import')}
           </Button>
         </Box>
       }
     >
       <>
-        <Box>You can import configuration by uploading a file or choosing a file in CodeCommit.</Box>
+        <Box>{tr('labels.import_configuration_introduction')}</Box>
         <Tabs
           activeTabId={tabId}
           onChange={event => setTabId(event.detail.activeTabId as TabId)}
           tabs={[
             {
               id: 'file',
-              label: 'File',
+              label: tr('headers.import_file'),
               content: (
                 <SpaceBetween direction="vertical" size="s">
                   <FormField
-                    label="Configuration file"
-                    description="Upload a configuration file"
-                    constraintText="JSON formatted file"
+                    label={tr('labels.configuration_file')}
+                    description={tr('labels.configuration_file_description')}
+                    constraintText={tr('labels.configuration_file_constraint')}
                   >
                     <FileInput onStateChange={handleFileChange} />
                   </FormField>
@@ -172,13 +172,13 @@ export function ImportModal(props: ImportModalProps): React.ReactElement {
             },
             {
               id: 'codecommit',
-              label: 'CodeCommit',
+              label: tr('headers.import_codecommit'),
               content: (
                 <SpaceBetween direction="vertical" size="s">
                   <FormField
-                    label="Configuration file"
-                    description="Upload a configuration file"
-                    constraintText="JSON formatted file"
+                    label={tr('labels.configuration_file')}
+                    description={tr('labels.configuration_file_description')}
+                    constraintText={tr('labels.configuration_file_constraint')}
                   >
                     <CodeCommitFileInput onStateChange={handleFileChange} />
                   </FormField>

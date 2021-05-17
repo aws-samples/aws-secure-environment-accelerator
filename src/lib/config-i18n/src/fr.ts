@@ -2,16 +2,66 @@ import * as c from '@aws-accelerator/config';
 import * as t from '@aws-accelerator/common-types';
 import { translation } from './translations';
 
-const translations = translation('fr', {
-  menu: {},
-  import: {
-    title: 'Importer Configuration',
+const translations = translation('en', {
+  menu: {
+    accelerator_configuration: 'Configuration Accelerator',
+    properties: 'Propriétés',
+    graphical_editor: 'Éditeur graphique',
+    code_editor: 'Éditeur de code',
+    wizards: 'Assistants',
+  },
+  headers: {
+    add_dictionary_field: 'Ajouter {{value}}',
+    configure_credentials: 'Configure Credentials',
+    import_configuration: 'Importer la configuration',
+    choose_codecommit_file: 'Choisissez le fichier CodeCommit',
+    export_configuration: 'Exporter la configuration',
+    import_codecommit: 'CodeCommit',
+    import_file: 'Fichier',
+  },
+  buttons: {
+    add: 'Ajouter',
+    cancel: 'Annuler',
+    remove: 'Supprimer',
+    save: 'Sauvegarder',
+    choose: 'Choisissez',
+    export: 'Exporter',
+    choose_file: 'Choisissez le fichier',
+    edit: 'Modifier',
+    import: 'Importer',
+  },
+  labels: {
+    empty: '<empty>',
+    codecommit_repository: 'Nom du référentiel CodeCommit',
+    codecommit_repository_description: 'Le nom du référentiel CodeCommit qui contient le fichier de configuration.',
+    codecommit_branch: 'Nom de la branche CodeCommit',
+    codecommit_branch_description: 'Le nom de la branche dans le référentiel CodeCommit.',
+    codecommit_file: 'Fichier CodeCommit',
+    codecommit_file_description: 'Le nom du fichier de configuration dans le référentiel CodeCommit.',
+    export_as_file: 'Exportez la configuration comme un fichier et téléchargez-la avec votre navigateur.',
+    export_introduction:
+      "Vous pouvez télécharger la configuration comme un fichier ou l'enregistrer comme un fichier dans un référentiel CodeCommit.",
+    configuration_is_valid: 'La configuration est valide.',
+    array_element: 'Élément à l\'indice "{{index}}"',
+    required: 'Obligatoire',
+    toggle_replacement: 'Activer remplacements',
+    loading: 'Chargement...',
+    selected_configuration_is_valid: 'Le fichier de configuration sélectionné est valide.',
+    import_with_errors: 'Importation avec des erreurs',
+    import_with_errors_description: "Le fichier sera importé même s'il y a des erreurs.",
+    import_configuration_introduction:
+      'Vous pouvez importer la configuration en téléchargeant un fichier ou en choisissant un fichier dans CodeCommit.',
+    configuration_file: 'Fichier de configuration',
+    configuration_file_description: 'Télécharger un fichier de configuration',
+    configuration_file_constraint: 'JSON formatted file',
+    choose_language: 'Choisissez la langue',
   },
   languages: {
     en: 'English',
     fr: 'Français',
   },
 });
+
 const translate = translations.add.bind(translations);
 
 translate(t.cidr, {
@@ -2604,7 +2654,7 @@ translate(c.GlobalOptionsConfigType, {
 });
 
 translate(c.AcceleratorConfigType, {
-  title: '',
+  title: 'Configuration',
   description: '',
   fields: {
     replacements: {

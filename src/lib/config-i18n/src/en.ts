@@ -3,9 +3,58 @@ import * as t from '@aws-accelerator/common-types';
 import { translation } from './translations';
 
 const translations = translation('en', {
-  menu: {},
-  import: {
-    title: 'Import Configuration',
+  menu: {
+    accelerator_configuration: 'Accelerator Configuration',
+    properties: 'Properties',
+    graphical_editor: 'Graphical Editor',
+    code_editor: 'Code Editor',
+    wizards: 'Wizards',
+  },
+  headers: {
+    add_dictionary_field: 'Add {{value}}',
+    configure_credentials: 'Configure Credentials',
+    import_configuration: 'Import Configuration',
+    choose_codecommit_file: 'Choose CodeCommit File',
+    export_configuration: 'Export Configuration',
+    import_codecommit: 'CodeCommit',
+    import_file: 'File',
+  },
+  buttons: {
+    add: 'Add',
+    cancel: 'Cancel',
+    remove: 'Remove',
+    save: 'Save',
+    choose: 'Choose',
+    export: 'Export',
+    choose_file: 'Choose file',
+    edit: 'Edit',
+    import: 'Import',
+  },
+  labels: {
+    empty: '<empty>',
+    codecommit_repository: 'CodeCommit Repository Name',
+    codecommit_repository_description: 'The name of the CodeCommit repository that contains the configuration file.',
+    codecommit_branch: 'CodeCommit Branch',
+    codecommit_branch_description: 'The name of the branch in the CodeCommit repository.',
+    codecommit_file: 'CodeCommit File Path',
+    codecommit_file_description: 'The name of the configuration file in the CodeCommit repository.',
+    export_as_file: 'Export the configuration as a file and download it with your browser.',
+    export_introduction:
+      'You can download the configuration as a file or save it as a file in a CodeCommit repository.',
+    configuration_is_valid: 'The configuration is valid.',
+    array_element: 'Element at index "{{index}}"',
+    required: 'Required',
+    toggle_replacement: 'Toggle Replacement',
+    loading: 'Loading...',
+    selected_configuration_is_valid: 'The selected configuration file is valid.',
+    import_with_errors: 'Import with errors',
+    import_with_errors_description: 'The file will be imported even though there are errors.',
+    import_configuration_introduction:
+      'You can import configuration by uploading a file or choosing a file in CodeCommit.',
+    configuration_file: 'Configuration File',
+    configuration_file_description: 'Upload a configuration file',
+    configuration_file_constraint: 'JSON formatted file',
+    choose_language: 'Choose language',
   },
   languages: {
     en: 'English',
@@ -2605,7 +2654,7 @@ translate(c.GlobalOptionsConfigType, {
 });
 
 translate(c.AcceleratorConfigType, {
-  title: '',
+  title: 'Accelerator Configuration',
   description: '',
   fields: {
     replacements: {

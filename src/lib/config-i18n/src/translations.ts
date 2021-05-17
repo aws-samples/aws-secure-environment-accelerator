@@ -52,16 +52,65 @@ export type TypeTranslations<T> = T extends t.InterfaceType<infer P>
   : FieldTranslations;
 
 export interface I18nTranslations {
-  menu: {};
-  import: {
-    title: string;
+  menu: {
+    accelerator_configuration: string;
+    graphical_editor: string;
+    code_editor: string;
+    properties: string;
+    wizards: string;
+  };
+  labels: {
+    empty: string;
+    codecommit_repository: string;
+    codecommit_repository_description: string;
+    codecommit_branch: string;
+    codecommit_branch_description: string;
+    codecommit_file: string;
+    codecommit_file_description: string;
+    export_as_file: string;
+    export_introduction: string;
+    configuration_is_valid: string;
+    array_element: string;
+    required: string;
+    toggle_replacement: string;
+    loading: string;
+    selected_configuration_is_valid: string;
+    import_with_errors: string;
+    import_with_errors_description: string;
+    import_configuration_introduction: string;
+    configuration_file: string;
+    configuration_file_description: string;
+    configuration_file_constraint: string;
+    choose_language: string;
+  };
+  headers: {
+    add_dictionary_field: string;
+    configure_credentials: string;
+    import_configuration: string;
+    export_configuration: string;
+    choose_codecommit_file: string;
+    import_codecommit: string;
+    import_file: string;
+  };
+  buttons: {
+    add: string;
+    export: string;
+    remove: string;
+    save: string;
+    cancel: string;
+    choose: string;
+    choose_file: string;
+    edit: string;
+    import: string;
   };
   languages: { [key: string]: string };
 }
 
 export type I18nKey =
   | `menu.${keyof I18nTranslations['menu']}`
-  | `import.${keyof I18nTranslations['import']}`
+  | `labels.${keyof I18nTranslations['labels']}`
+  | `headers.${keyof I18nTranslations['headers']}`
+  | `buttons.${keyof I18nTranslations['buttons']}`
   | `languages.${keyof I18nTranslations['languages']}`;
 
 /**

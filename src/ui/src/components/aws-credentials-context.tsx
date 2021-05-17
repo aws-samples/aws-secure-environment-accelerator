@@ -4,6 +4,7 @@ import { Box, Button, FormField, Header, Input, Modal, SpaceBetween } from '@aws
 import { useInput, useLocalStorage } from '@/utils/hooks';
 
 import './aws-credentials-context.scss';
+import { useI18n } from './i18n-context';
 
 export interface AwsConfiguration {
   region?: string;
@@ -23,6 +24,7 @@ const AwsCredentialsContext = React.createContext<UseAwsConfiguration | undefine
 export const AwsCredentialsProvider: FC = ({ children }) => {
   const [configuration, setConfiguration] = useLocalStorage<AwsConfiguration>('aws.configuration', {});
   const [isModalVisible, setModalVisible] = useState(false);
+  const { tr } = useI18n();
 
   const awsRegionInputProps = useInput(configuration?.region);
   const awsAccessKeyIdInputProps = useInput(configuration?.credentials?.accessKeyId);
@@ -53,14 +55,14 @@ export const AwsCredentialsProvider: FC = ({ children }) => {
         className="aws-credentials-modal"
         visible={isModalVisible}
         onDismiss={handleDismiss}
-        header={<Header variant="h3">Configure Credentials</Header>}
+        header={<Header variant="h3">{tr('headers.configure_credentials')}</Header>}
         footer={
           <Box float="right">
             <Button variant="link" onClick={handleDismiss}>
-              Cancel
+              {tr('buttons.cancel')}
             </Button>
             <Button variant="primary" onClick={handleSubmit}>
-              Save
+              {tr('buttons.save')}
             </Button>
           </Box>
         }

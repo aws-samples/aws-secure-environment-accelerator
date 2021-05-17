@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import i18next, { i18n, StringMap, TOptions } from 'i18next';
 import { capitalCase } from 'capital-case';
-import { createContext, FC, useContext, useState } from 'react';
+import { createContext, FC, useContext, useEffect, useState } from 'react';
 import * as t from '@aws-accelerator/common-types';
 import { fr, en, isInterfaceTranslations, Translation, I18nKey } from '@aws-accelerator/config-i18n';
 import { TypeTreeNode } from '@/types';
@@ -21,6 +21,7 @@ export interface UseI18n {
 const I18nContextC = createContext<UseI18n | undefined>(undefined);
 
 const translations: Record<string, Translation> = { en, fr };
+
 void i18next.init({
   lng: 'en',
   fallbackLng: ['en', 'fr'],
@@ -34,11 +35,23 @@ void i18next.init({
  * Context provider that provides Accelerator configuration object.
  */
 export const I18nProvider: FC = ({ children }) => {
+  // TODO Store language in local storage
   const [translation, setTranslation] = useState<Translation>(translations[i18next.language]);
 
+  // Listen to i18next language changes
   i18next.on('languageChanged', () => {
     setTranslation(translations[i18next.language]);
   });
+
+  function tr(node: TypeTreeNode): NodeTranslations;
+  function tr(key: I18nKey | I18nKey[] | TypeTreeNode, options?: TOptions<StringMap>): string;
+  function tr(): NodeTranslations | string {
+    const argv0 = arguments[0];
+    if (typeof argv0 === 'string' || Array.isArray(argv0)) {
+      return i18next.t(argv0, arguments[1]);
+    }
+    return getNodeTranslations(argv0);
+  }
 
   function getNodeTranslations(node: TypeTreeNode): NodeTranslations {
     const { parent } = node;
@@ -52,8 +65,7 @@ export const I18nProvider: FC = ({ children }) => {
 
       label = `${fragment}`;
       if (parent.rawType instanceof t.ArrayType) {
-        // TODO Translate 'element'
-        description = `Element "${label}"`;
+        description = tr('labels.array_element', { index: fragment });
       } else if (parent.rawType instanceof t.InterfaceType) {
         title = capitalCase(label);
       }
@@ -71,16 +83,6 @@ export const I18nProvider: FC = ({ children }) => {
       description,
       ...typeTranslations,
     };
-  }
-
-  function tr(node: TypeTreeNode): NodeTranslations;
-  function tr(key: I18nKey | I18nKey[] | TypeTreeNode, options?: TOptions<StringMap>): string;
-  function tr(): NodeTranslations | string {
-    const argv0 = arguments[0];
-    if (typeof argv0 === 'string' || Array.isArray(argv0)) {
-      return i18next.t(argv0, arguments[1]);
-    }
-    return getNodeTranslations(argv0);
   }
 
   const value: UseI18n = {

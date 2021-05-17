@@ -5,11 +5,13 @@ import { Select, SelectProps } from '@awsui/components-react';
 import * as t from '@aws-accelerator/common-types';
 import { NodeField } from '@/components';
 import { FieldProps } from './field';
+import { useI18n } from '../i18n-context';
 
 /**
  * This functional component renders a dropdown with all enumeration values.
  */
 export const EnumField = observer(function EnumField(props: FieldProps<t.EnumType<any>>) {
+  const { tr } = useI18n();
   const { node, state } = props;
   const { metadata } = node;
   const value = node.get(state) ?? metadata.defaultValue;
@@ -22,7 +24,7 @@ export const EnumField = observer(function EnumField(props: FieldProps<t.EnumTyp
   // Add the option to select an "empty" undefined value if the field is optional
   if (metadata.optional) {
     options.unshift({
-      label: '<empty>',
+      label: tr('labels.empty'),
       value: undefined,
     });
   }

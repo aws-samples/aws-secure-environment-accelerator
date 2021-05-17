@@ -48,7 +48,7 @@ export function UnionField(props: FieldProps<t.UnionType<t.Any[]>>): React.React
   // Add the option to select an "empty" undefined value if the field is optional
   if (metadata.optional) {
     options.unshift({
-      label: '<empty>',
+      label: tr('labels.empty'),
     });
   }
 

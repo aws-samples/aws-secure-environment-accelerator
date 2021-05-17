@@ -6,6 +6,7 @@ import * as c from '@aws-accelerator/config';
 import { usePathHistory } from '@/utils/hooks';
 import { useReplacements } from './replacements-context';
 import { CodeCommitFilePicker, useCodeCommitInputs } from './codecommit-file-picker';
+import { useI18n } from './i18n-context';
 
 type State = InitialState | ValidState | InvalidState;
 
@@ -52,6 +53,7 @@ export interface ExportModalProps {
 }
 
 export function ExportModal(props: ExportModalProps): React.ReactElement {
+  const { tr } = useI18n();
   const { replaceInObject } = useReplacements();
   const { repositoryNameInputProps, branchNameInputProps, filePathInputProps } = useCodeCommitInputs();
   const [state, setState] = useState<State>(initialState);
@@ -101,8 +103,8 @@ export function ExportModal(props: ExportModalProps): React.ReactElement {
   if (state._tag === 'Valid') {
     stateComponent = (
       <>
-        <StatusIndicator type={'success'}>The configuration is valid.</StatusIndicator>
-        <Box>You can download the configuration as a file or save it as a file in a CodeCommit repository.</Box>
+        <StatusIndicator type={'success'}>{tr('labels.configuration_is_valid')}</StatusIndicator>
+        <Box>{tr('labels.export_introduction')}</Box>
         <Tabs
           activeTabId={tabId}
           onChange={event => setTabId(event.detail.activeTabId as TabId)}
@@ -110,7 +112,7 @@ export function ExportModal(props: ExportModalProps): React.ReactElement {
             {
               id: 'file',
               label: 'File',
-              content: <>Export the configuration as a file and download it with your browser.</>,
+              content: <>{tr('labels.export_as_file')}</>,
             },
             {
               id: 'codecommit',
@@ -151,16 +153,16 @@ export function ExportModal(props: ExportModalProps): React.ReactElement {
 
   return (
     <Modal
-      header={<Header variant="h3">Export Configuration</Header>}
+      header={<Header variant="h3">{tr('headers.export_configuration')}</Header>}
       visible={props.visible}
       onDismiss={props.onDismiss}
       footer={
         <Box float="right">
           <Button variant="link" onClick={props.onDismiss}>
-            Cancel
+            {tr('buttons.cancel')}
           </Button>
           <Button variant="primary" disabled={state._tag !== 'Valid'} onClick={handleSubmit} loading={props.loading}>
-            Export
+            {tr('buttons.export')}
           </Button>
         </Box>
       }

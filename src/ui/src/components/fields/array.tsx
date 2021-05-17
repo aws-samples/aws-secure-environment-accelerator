@@ -9,12 +9,14 @@ import { toArray } from '@/utils/cast';
 import { FieldProps, getFieldRenderer } from './field';
 
 import './array.scss';
+import { useI18n } from '../i18n-context';
 
 /**
  * This functional component renders an "Add" button and all the values in the array and their corresponding "Remove" buttons.
  */
 export function ArrayField(props: FieldProps<t.ArrayType<t.Any>>) {
   const { node, state } = props;
+  const { tr } = useI18n();
 
   const handleAdd = action(() => {
     const value = node.get(state);
@@ -26,7 +28,7 @@ export function ArrayField(props: FieldProps<t.ArrayType<t.Any>>) {
     <NodeField {...props} validation={false} stretch>
       <SpaceBetween direction="vertical" size="s">
         <Button onClick={handleAdd}>
-          <Icon name="add-plus" /> Add
+          <Icon name="add-plus" /> {tr('buttons.add')}
         </Button>
         <ArrayFields {...props} />
       </SpaceBetween>
@@ -41,6 +43,7 @@ export function ArrayField(props: FieldProps<t.ArrayType<t.Any>>) {
  */
 const ArrayFields = observer(function ArrayFields(props: FieldProps<t.ArrayType<t.Any>>) {
   const { node, state } = props;
+  const { tr } = useI18n();
 
   // Find the renderer for the elements of the array
   const ElementRenderer = getFieldRenderer(node.rawType);
@@ -64,7 +67,7 @@ const ArrayFields = observer(function ArrayFields(props: FieldProps<t.ArrayType<
         {index > 0 ? <Box className="divider" /> : null}
         <SpaceBetween direction="vertical" size="s" className="indented">
           <ElementRenderer state={state} node={elementNode} />
-          <Button onClick={handleRemoveFn(index)}>Remove</Button>
+          <Button onClick={handleRemoveFn(index)}>{tr('buttons.remove')}</Button>
         </SpaceBetween>
       </React.Fragment>
     );
