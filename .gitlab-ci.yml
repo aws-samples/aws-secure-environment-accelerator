@@ -1,4 +1,4 @@
-image: node:14
+image: public.ecr.aws/bitnami/node:14
 
 workflow:
   rules:
@@ -40,6 +40,7 @@ ui:
     - apt-get update
     - apt-get install --yes zip
     - cd src/ui
+    - pnpm build:ui
     - zip -r bundle.zip build # Already built by the before_script
   artifacts:
     expire_in: 30 days

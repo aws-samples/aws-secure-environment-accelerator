@@ -5,7 +5,7 @@
   "homepage": ".",
   "scripts": {
     "start": "pnpx craco start",
-    "build": "pnpx craco build",
+    "build:ui": "pnpx craco build",
     "test": "pnpx craco test",
     "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
   },
@@ -59,6 +59,7 @@
     "@types/react-router-dom": "^5.1.7",
     "craco-alias": "^2.2.0",
     "react-scripts": "4.0.3",
+    "jest": "26.6.0",
     "sass": "^1.32.8",
     "sass-loader": "^11.0.1",
     "ts-loader": "^8.0.18",

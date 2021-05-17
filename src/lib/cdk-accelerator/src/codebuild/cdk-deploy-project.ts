@@ -175,7 +175,7 @@ function installPackageManagerCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
     return ['npm install --global pnpm@6.2.3'];
   }
-  throw new Error(`Unknown package manager ${packageManager}`);
+  throw new Error(`Unsupported package manager ${packageManager}`);
 }
 
 /**
@@ -186,5 +186,5 @@ function installDependenciesCommands(packageManager: PackageManager) {
     // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
     return ['pnpm install --unsafe-perm --frozen-lockfile', 'pnpm recursive run build --unsafe-perm'];
   }
-  throw new Error(`Unknown package manager ${packageManager}`);
+  throw new Error(`Unsupported package manager ${packageManager}`);
 }
