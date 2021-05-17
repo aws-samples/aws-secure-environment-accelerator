@@ -193,7 +193,7 @@ async function main() {
       },
     }),
     environment: {
-      buildImage: codebuild.LinuxBuildImage.STANDARD_3_0,
+      buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
       privileged: true, // Allow access to the Docker daemon
       computeType: codebuild.ComputeType.MEDIUM,
       environmentVariables: {

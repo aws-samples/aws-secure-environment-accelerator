@@ -1,3 +1,4 @@
+import { optional } from '@aws-accelerator/common-types';
 import * as t from 'io-ts';
 import { StackOutput } from './stack-output';
 import { createStructuredOutputFinder } from './structured-output';
@@ -34,6 +35,8 @@ export const TransitGatewayAttachmentOutput = t.interface(
     tgwRoutePropagates: t.array(t.string),
     blackhole: t.boolean,
     cidr: t.string,
+    vpc: optional(t.string),
+    constructIndex: optional(t.string),
   },
   'TgwAttachmentOutput',
 );
