@@ -102,7 +102,7 @@ export class CdkDeployProject extends CdkDeployProjectBase {
         path: projectAsset.s3ObjectKey,
       }),
       environment: {
-        buildImage: codebuild.LinuxBuildImage.STANDARD_4_0,
+        buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
         computeType: computeType ?? codebuild.ComputeType.MEDIUM,
         environmentVariables: this.environmentVariables,
       },
