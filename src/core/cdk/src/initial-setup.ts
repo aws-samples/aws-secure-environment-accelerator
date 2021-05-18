@@ -724,6 +724,10 @@ export namespace InitialSetup {
             value: sfn.JsonPath.stringAt('$.scope'),
           },
           MODE: { type: codebuild.BuildEnvironmentVariableType.PLAINTEXT, value: sfn.JsonPath.stringAt('$.mode') },
+          CDK_DEBUG: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.verbose'),
+          },
         };
 
         const deployTask = new tasks.CodeBuildStartBuild(this, `Deploy Phase ${phase}`, {

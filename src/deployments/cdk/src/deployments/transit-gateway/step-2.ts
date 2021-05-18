@@ -26,7 +26,7 @@ export async function step2(props: TransitGatewayStep2Props) {
       continue;
     }
 
-    new TransitGatewayRoute(accountStack, `TgwRoute${index}`, {
+    new TransitGatewayRoute(accountStack, `TgwRoute${attachment.constructIndex || index}`, {
       tgwAttachmentId: attachment.tgwAttachmentId,
       tgwRouteAssociates: attachment.tgwRouteAssociates,
       tgwRoutePropagates: attachment.tgwRoutePropagates,

@@ -21,6 +21,10 @@ config_sections = {
     'mandatory-account-configs': 'account',
     'workload-account-configs': 'account',
 }
+pools = {
+    "main": "main",
+    "sub": "RFC6598",
+}
 
 
 def load_to_ddb(accel_prefix, region, config):
@@ -31,7 +35,7 @@ def load_to_ddb(accel_prefix, region, config):
     subnet_table = dynamodb.Table(subnet_table_name)
     i = 1
     j = 1
-    account_configs = copy.deepcopy(config['mandatory-account-configs']);
+    account_configs = copy.deepcopy(config['mandatory-account-configs'])
     account_configs.update(config.get('workload-account-configs', {}))
     for config_section in config_sections.keys():
         for key_name, section_config in config[config_section].items():
@@ -53,6 +57,20 @@ def load_to_ddb(accel_prefix, region, config):
                 cidrs = [cidr for cidr in vpc_config['cidr']] if type(vpc_config['cidr']) == list else [
                     {"value": vpc_config['cidr'], "pool": "main"}]
                 if vpc_config['deploy'] == 'local' and config_section == 'organizational-units':
+                    for cidr_object in cidrs:
+                        vpc_table.put_item(
+                            Item={
+                                "account-ou-key": 'organizational-unit/%s' % key_name,
+                                "cidr": cidr_object['value'],
+                                "id": "%s" % i,
+                                "pool": cidr_object['pool'],
+                                "region": vpc_region,
+                                "requester": "Manual",
+                                "status": "assigned",
+                                "vpc-name": vpc_config['name']
+                            }
+                        )
+                        i = i + 1
                     for account_key in account_keys:
                         for cidr_object in cidrs:
                             vpc_table.put_item(
@@ -90,13 +108,26 @@ def load_to_ddb(accel_prefix, region, config):
                     if type(vpc_config['cidr2']) == list:
                         for cidr in vpc_config['cidr2']:
                             if vpc_config['deploy'] == 'local' and config_section == 'organizational-units':
+                                vpc_table.put_item(
+                                    Item={
+                                        "account-ou-key": 'organizational-unit/%s' % key_name,
+                                        "cidr": cidr,
+                                        "id": "%s" % i,
+                                        "pool": pools['sub'],
+                                        "region": vpc_region,
+                                        "requester": "Manual",
+                                        "status": "assigned",
+                                        "vpc-name": vpc_config['name']
+                                    }
+                                )
+                                i = i + 1
                                 for account_key in account_keys:
                                     vpc_table.put_item(
                                         Item={
                                             "account-ou-key": "account/%s" % account_key,
                                             "cidr": cidr,
                                             "id": "%s" % i,
-                                            "pool": "RFC6598",
+                                            "pool": pools['sub'],
                                             "region": vpc_region,
                                             "requester": "Manual",
                                             "status": "assigned",
@@ -110,7 +141,7 @@ def load_to_ddb(accel_prefix, region, config):
                                         "account-ou-key": account_ou_key,
                                         "cidr": cidr,
                                         "id": "%s" % i,
-                                        "pool": "RFC6598",
+                                        "pool": pools['sub'],
                                         "region": vpc_region,
                                         "requester": "Manual",
                                         "status": "assigned",
@@ -120,13 +151,26 @@ def load_to_ddb(accel_prefix, region, config):
                                 i = i + 1
                     else:
                         if vpc_config['deploy'] == 'local' and config_section == 'organizational-units':
+                            vpc_table.put_item(
+                                Item={
+                                    "account-ou-key": 'organizational-unit/%s' % key_name,
+                                    "cidr": vpc_config['cidr2'],
+                                    "id": "%s" % i,
+                                    "pool": pools['sub'],
+                                    "region": vpc_region,
+                                    "requester": "Manual",
+                                    "status": "assigned",
+                                    "vpc-name": vpc_config['name']
+                                }
+                            )
+                            i = i + 1
                             for account_key in account_keys:
                                 vpc_table.put_item(
                                     Item={
                                         "account-ou-key": "account/%s" % account_key,
                                         "cidr": vpc_config['cidr2'],
                                         "id": "%s" % i,
-                                        "pool": "RFC6598",
+                                        "pool": pools['sub'],
                                         "region": vpc_region,
                                         "requester": "Manual",
                                         "status": "assigned",
@@ -140,7 +184,7 @@ def load_to_ddb(accel_prefix, region, config):
                                     "account-ou-key": account_ou_key,
                                     "cidr": vpc_config['cidr2'],
                                     "id": "%s" % i,
-                                    "pool": "RFC6598",
+                                    "pool": pools['sub'],
                                     "region": vpc_region,
                                     "requester": "Manual",
                                     "status": "assigned",
@@ -163,14 +207,29 @@ def load_to_ddb(accel_prefix, region, config):
                         elif subnet_definition.get('cidr2'):
                             cidr_obj = {
                                 'value': subnet_definition['cidr2'],
-                                'pool': 'RFC6598'
+                                'pool': pools['sub']
                             }
                         else:
                             cidr_obj = {
                                 'cidr': subnet_definition.get('cidr', subnet_definition.get('cidr2')),
-                                'pool': 'main' if subnet_definition.get('cidr') else 'RFC6598'
+                                'pool': 'main' if subnet_definition.get('cidr') else pools['sub']
                             }
                         if vpc_config['deploy'] == 'local' and config_section == 'organizational-units':
+                            subnet_table.put_item(
+                                Item={
+                                    "account-ou-key": 'organizational-unit/%s' % key_name,
+                                    "az": subnet_definition["az"],
+                                    "cidr": cidr_obj['value'],
+                                    "id": "%s" % j,
+                                    "region": vpc_region,
+                                    "requester": "Manual",
+                                    "status": "assigned",
+                                    "sub-pool": cidr_obj['pool'],
+                                    "subnet-name": subnet_name,
+                                    "vpc-name": vpc_config['name']
+                                }
+                            )
+                            j = j + 1
                             for account_key in account_keys:
                                 subnet_table.put_item(
                                     Item={
@@ -208,6 +267,9 @@ def load_to_ddb(accel_prefix, region, config):
 def impl(accel_prefix, config_file, region, load_db, load_config):
     with open(config_file) as f:
         config = json.load(f)
+        # print(str(config['organizational-units']['Sandbox']['vpc'][0]['cidr']))
+        # print(config['organizational-units']['Sandbox']['vpc'][0]['cidr'])
+        # exit(0)
     if load_db:
         load_to_ddb(accel_prefix, region, config)
     if not load_config:
@@ -231,13 +293,13 @@ def impl(accel_prefix, config_file, region, load_db, load_config):
                             config[config_section][key_name]['vpc'][vindex]['cidr'].append({
                                 'value': cidr,
                                 'size': int(cidr.split('/')[-1]),
-                                'pool': 'RFC6598',
+                                'pool': pools['sub'],
                             })
                     else:
                         config[config_section][key_name]['vpc'][vindex]['cidr'].append({
                             'value': vpcConfig['cidr2'],
                             'size': int(vpcConfig['cidr2'].split('/')[-1]),
-                            'pool': 'RFC6598',
+                            'pool': pools['sub'],
                         })
                     del config[config_section][key_name]['vpc'][vindex]['cidr2']
                 for sindex, subnetConfig in enumerate(vpcConfig['subnets']):
@@ -246,7 +308,7 @@ def impl(accel_prefix, config_file, region, load_db, load_config):
                         config[config_section][key_name]['vpc'][vindex]['subnets'][sindex]['definitions'][dindex]['cidr'] = {
                             'value': current_cidr,
                             'size': int(current_cidr.split('/')[-1]),
-                            'pool': 'main' if subnetDef.get('cidr') else 'RFC6598',
+                            'pool': 'main' if subnetDef.get('cidr') else pools['sub'],
                         }
     with open('update-config.json', 'w') as f:
         json.dump(config, f, indent=2)

@@ -438,6 +438,6 @@ async function downloadCustomRules(
       Bucket: bucketName,
       Key: `${rulePrefix}/${configRuleRuntime}`,
     });
-    fs.writeFileSync(path.join(configRulesTempDir, configRuleRuntime), runtimeFile as unknown as Buffer);
+    fs.writeFileSync(path.join(configRulesTempDir, configRuleRuntime), (runtimeFile as unknown) as Buffer);
   }
 }

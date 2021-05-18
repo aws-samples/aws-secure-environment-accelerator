@@ -45,7 +45,7 @@ jobs:
           node-version: 14
       - name: Install Prettier
         run: |
-          npm install -g prettier
+          npm install -g prettier@2.2.1
       - name: Analyze TypeScript files
         run: |
           prettier --check **/*.ts

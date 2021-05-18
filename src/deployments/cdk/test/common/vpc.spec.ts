@@ -127,7 +127,7 @@ test('the VPC creation should create the correct amount of subnets', () => {
             disabled: true,
           },
         ],
-      },
+      }
     ],
     'route-tables': [
       {
@@ -163,6 +163,7 @@ test('the VPC creation should create the correct amount of subnets', () => {
     installerVersion: '0.0.0',
     subnetPools: [],
     vpcPools: [],
+    existingAttachments: [],
   });
 
   // Convert the stack to a CloudFormation template
@@ -281,6 +282,7 @@ test('the VPC creation should throw an error when a subnet uses a route table th
       installerVersion: '0.0.0',
       subnetPools: [],
       vpcPools: [],
+      existingAttachments: [],
     });
   });
 });
@@ -307,6 +309,7 @@ test('the VPC creation should create the internet gateway', () => {
     installerVersion: '0.0.0',
     subnetPools: [],
     vpcPools: [],
+    existingAttachments: [],
   });
 
   // Convert the stack to a CloudFormation template
@@ -341,6 +344,7 @@ test('the VPC creation should create the VPN gateway', () => {
     installerVersion: '0.0.0',
     subnetPools: [],
     vpcPools: [],
+    existingAttachments: [],
   });
 
   // Convert the stack to a CloudFormation template
@@ -465,6 +469,7 @@ test('the VPC creation should create the NAT gateway', () => {
     installerVersion: '0.0.0',
     subnetPools: [],
     vpcPools: [],
+    existingAttachments: [],
   });
 
   // Convert the stack to a CloudFormation template

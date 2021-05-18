@@ -161,7 +161,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
 
   // creating an IPv4 range from CIDR notation
   for (const { accountKey, vpcConfig, ouKey } of config.getVpcConfigs()) {
-    if (vpcConfig['cidr-src'] !== 'dynamic') {
+    if (vpcConfig['cidr-src'] === 'provided') {
       continue;
     }
     const assignedVpcCidrPools = await loadAssignedVpcCidrPool(vpcCidrPoolAssignedTable);
@@ -171,13 +171,27 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
       if (!currentPool) {
         throw new Error(`Didn't find entry for "${vpcCidrObj.pool}" in cidr-pools DDB table`);
       }
-      const existingCidr = assignedVpcCidrPools.find(
+      let existingCidr = assignedVpcCidrPools.find(
         vp =>
           vp.region === vpcConfig.region &&
           vp['vpc-name'] === vpcConfig.name &&
           vp.pool === vpcCidrObj.pool &&
           ((vp['account-Key'] && vp['account-Key'] === accountKey) || vp['account-ou-key'] === `account/${accountKey}`),
       );
+      if (!existingCidr && vpcConfig['cidr-src'] === 'lookup') {
+        existingCidr = assignedVpcCidrPools.find(
+          vp =>
+            vp.region === vpcConfig.region &&
+            vp['vpc-name'] === vpcConfig.name &&
+            vp.pool === vpcCidrObj.pool &&
+            vp['account-ou-key'] === `organizational-unit/${ouKey}`,
+        );
+        if (!existingCidr) {
+          throw new Error(
+            `VPC "${vpcConfig.region}/${vpcConfig.name}" Cidr-Src is lookup and didn't find entry in DDB`,
+          );
+        }
+      }
       if (!existingCidr) {
         const usedCidrs = assignedVpcCidrPools
           .filter(
@@ -208,6 +222,16 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
           accountKey,
         });
       } else {
+        if (existingCidr['account-ou-key'] === `organizational-unit/${ouKey}`) {
+          await updateVpcCidr(vpcCidrPoolAssignedTable, uuidv4(), {
+            accountOuKey: `account/${accountKey}`,
+            cidr: existingCidr.cidr,
+            pool: existingCidr.pool,
+            region: vpcConfig.region,
+            vpc: vpcConfig.name,
+            accountKey,
+          });
+        }
         vpcCidr[vpcCidrObj.pool] = existingCidr.cidr;
       }
     }
@@ -228,7 +252,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
         );
         const subnetPool = Pool.fromCidrRanges([IPv4CidrRange.fromCidr(vpcCidr[subnetDef.cidr.pool])]);
         let subnetCidr = '';
-        const existingSubnet = assignedSubnetCidrPools.find(
+        let existingSubnet = assignedSubnetCidrPools.find(
           sp =>
             sp['subnet-name'] === subnetConfig.name &&
             sp.az === subnetDef.az &&
@@ -237,6 +261,21 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
             ((sp['account-Key'] && sp['account-Key'] === accountKey) ||
               sp['account-ou-key'] === `account/${accountKey}`),
         );
+        if (!existingSubnet && vpcConfig['cidr-src'] === 'lookup') {
+          existingSubnet = assignedSubnetCidrPools.find(
+            sp =>
+              sp['subnet-name'] === subnetConfig.name &&
+              sp.az === subnetDef.az &&
+              sp['vpc-name'] === vpcConfig.name &&
+              sp.region === vpcConfig.region &&
+              sp['account-ou-key'] === `organizational-unit/${ouKey}`,
+          );
+          if (!existingSubnet) {
+            throw new Error(
+              `Subnet "${vpcConfig.region}/${vpcConfig.name}/${subnetConfig.name}/${subnetDef.az}" Cidr-Src is lookup and didn't find entry in DDB`,
+            );
+          }
+        }
         if (!existingSubnet) {
           const currentSubnetCidrRange = subnetPool.getCidrRange(IPv4Prefix.fromNumber(subnetDef.cidr.size!));
           subnetCidr = getAvailableCidr(usedSubnetCidrs, currentSubnetCidrRange);
@@ -261,6 +300,18 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
             accountKey,
           });
         } else {
+          if (existingSubnet['account-ou-key'] === `organizational-unit/${ouKey}`) {
+            await updateSubnetCidr(subnetCidrPoolAssignedTable, uuidv4(), {
+              accountOuKey: `account/${accountKey}`,
+              cidr: existingSubnet.cidr,
+              pool: subnetDef.cidr.pool,
+              region: vpcConfig.region,
+              vpc: vpcConfig.name,
+              subnet: subnetConfig.name,
+              az: subnetDef.az,
+              accountKey,
+            });
+          }
           subnetCidr = existingSubnet.cidr;
         }
       }

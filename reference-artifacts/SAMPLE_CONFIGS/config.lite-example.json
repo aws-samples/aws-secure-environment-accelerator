@@ -767,7 +767,29 @@
           "name": "WAFV2_LOGGING_ENABLED"
         }
       ]
-    }
+    },
+    "cidr-pools": [
+      {
+        "cidr": "10.0.0.0/12",
+        "pool": "main",
+        "region": "ca-central-1"
+      },
+      {
+        "cidr": "100.96.252.0/23",
+        "pool": "RFC6598a",
+        "region": "ca-central-1"
+      },
+      {
+        "cidr": "100.96.250.0/23",
+        "pool": "RFC6598b",
+        "region": "ca-central-1"
+      },
+      {
+        "cidr": "10.249.1.0/24",
+        "pool": "ForSSO",
+        "region": "ca-central-1"
+      }
+    ]
   },
   "mandatory-account-configs": {
     "shared-network": {

@@ -317,6 +317,7 @@ Issues in Older Releases:
   - do NOT update to the latest firewall AMI - see the the last bullet in section [5.1. Accelerator Design Constraints / Decisions](#51-accelerator-design-constraints--decisions)
   - do NOT update the `organization-admin-role` - see bullet 2 in section [2.2.6. Other](#226-other)
   - do NOT update account-keys (i.e. existing installations cannot change the internal values to `management` from `master`)
+  - do NOT make changes outside those required for the upgrade (those stated in the release notes or found through the comparison with the sample config file(s)).  Customers wishing to change existing Accelerator configuration should either do so before their upgrade, ensuring a clean/successful state machine execution, or after a successful upgrade. 
 - The Accelerator name and prefix **_CANNOT_** be changed after the initial installation
 - Customers which customized any of the Accelerator provided default configuration files (SCPs, rsyslog config, ssm-documents, iam-policies, etc.) must manually merge the latest Accelerator provided updates with deployed customizations:
   - it is important customers assess the new defaults and integrate them into their custom configuration, or Accelerator functionality could break or Accelerator deployed features may be unprotected from modification
@@ -325,6 +326,8 @@ Issues in Older Releases:
 
 **Release Specific Upgrade Considerations:**
 
+- Upgrades to `v1.3.3 and above` from `v1.3.2 and below` requires mandatory config file schema changes as documented in the [release notes](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).  
+  - These updates cause the config file change validation to fail and require running the state machine with the following input to override the validation checks on impacted fields: ```{"scope": "FULL", "mode": "APPLY", "configOverrides": {"ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }}```
 - Upgrades to `v1.3.0 and above` from `v1.2.6 and below`:
   - **Please note MAJOR changes to state machine behavior, as documented [here](./customization-index.md#2-new-state-machine-behavior)**.
 - Upgrades to `v1.2.6 and above` from `v1.2.5 and below` - Ensure you apply the config file changes described in the release notes:
