@@ -8,6 +8,7 @@ export interface CentralServicesStep1Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
   accounts: Account[];
+  rootOuId: string;
 }
 
 /**
@@ -15,7 +16,7 @@ export interface CentralServicesStep1Props {
  * - Enable Sharing Organization accounts list to monitoring accounts in master account.
  */
 export async function step1(props: CentralServicesStep1Props) {
-  const { accountStacks, config, accounts } = props;
+  const { accountStacks, config, accounts, rootOuId } = props;
 
   const globalOptions = config['global-options'];
 
@@ -24,6 +25,7 @@ export async function step1(props: CentralServicesStep1Props) {
       accountStacks,
       config: globalOptions,
       accounts,
+      rootOuId,
     });
   }
 }
@@ -35,8 +37,9 @@ async function centralServicesSettingsInMaster(props: {
   accountStacks: AccountStacks;
   config: c.GlobalOptionsConfig;
   accounts: Account[];
+  rootOuId: string;
 }) {
-  const { accountStacks, config, accounts } = props;
+  const { accountStacks, config, accounts, rootOuId } = props;
 
   const accountIds: string[] = [];
   if (config['central-security-services'] && config['central-security-services'].cwl) {
@@ -58,6 +61,7 @@ async function centralServicesSettingsInMaster(props: {
   await cloudWatchSettingsInMaster({
     scope: masterStack,
     accountIds,
+    rootOuId,
   });
 }
 
@@ -65,14 +69,18 @@ async function centralServicesSettingsInMaster(props: {
  * Cloud Watch Cross Account Settings in Master Account
  * 5.15b - READY - Centralize CWL - Part 1
  */
-async function cloudWatchSettingsInMaster(props: { scope: cdk.Construct; accountIds: string[] }) {
-  const { scope, accountIds } = props;
+async function cloudWatchSettingsInMaster(props: { scope: cdk.Construct; accountIds: string[]; rootOuId: string }) {
+  const { scope, accountIds, rootOuId } = props;
   const accountPrincipals: iam.PrincipalBase[] = accountIds.map(accountId => {
     return new iam.AccountPrincipal(accountId);
   });
   const cwlCrossAccountSharingRole = new iam.Role(scope, 'CloudWatch-CrossAccountSharing', {
     roleName: 'CloudWatch-CrossAccountSharing-ListAccountsRole',
-    assumedBy: new iam.CompositePrincipal(...accountPrincipals),
+    assumedBy: new iam.PrincipalWithConditions(new iam.CompositePrincipal(...accountPrincipals), {
+      StringEquals: {
+        'aws:PrincipalOrgID': rootOuId,
+      },
+    }),
   });
   cwlCrossAccountSharingRole.addToPrincipalPolicy(
     new iam.PolicyStatement({

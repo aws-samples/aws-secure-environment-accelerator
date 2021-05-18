@@ -45,12 +45,20 @@ import * as cleanup from '../deployments/cleanup';
  * - enable Access Analyzer;
  */
 
-export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
+export async function deploy({
+  acceleratorConfig,
+  accountStacks,
+  accounts,
+  context,
+  outputs,
+  organizations,
+}: PhaseInput) {
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   if (!masterAccountId) {
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
   }
+  const rootOuId = organizations[0].rootOrgId!;
   const { acceleratorBaseline } = context;
   // verify and create ec2 instance to increase account limits
   await accountWarming.step1({
@@ -172,6 +180,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     accounts,
+    rootOuId,
   });
 
   // Transit Gateway step 1

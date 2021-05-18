@@ -4,6 +4,7 @@ import { Account } from '../utils/accounts';
 import { Limiter } from '../utils/limits';
 import { Context } from '../utils/context';
 import { AccountStacks } from '../common/account-stacks';
+import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
 
 export type PhaseDeploy = (input: PhaseInput) => Promise<void>;
 
@@ -14,4 +15,5 @@ export interface PhaseInput {
   context: Context;
   outputs: StackOutput[];
   limiter: Limiter;
+  organizations: OrganizationalUnit[];
 }

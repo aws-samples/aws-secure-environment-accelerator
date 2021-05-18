@@ -6,6 +6,7 @@ import { loadAcceleratorConfig } from './utils/config';
 import { loadContext } from './utils/context';
 import { loadStackOutputs } from './utils/outputs';
 import { loadLimits, Limiter } from './utils/limits';
+import { loadOrganizations } from './utils/organizations';
 
 export interface PhaseInfo {
   readonly runner: () => Promise<PhaseDeploy>;
@@ -40,6 +41,7 @@ export async function deploy(props: AppProps): Promise<cdk.Stage[]> {
   const limits = await loadLimits();
   const limiter = new Limiter(limits);
   const outputs = await loadStackOutputs();
+  const organizations = await loadOrganizations();
 
   const includeRegion = region;
   const includeAccountKey = accountKey;
@@ -76,6 +78,7 @@ export async function deploy(props: AppProps): Promise<cdk.Stage[]> {
     context,
     limiter,
     outputs,
+    organizations,
   });
 
   const apps = accountStacks.apps.filter(app => {

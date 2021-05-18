@@ -11,6 +11,7 @@ import { Limiter } from '../../src/utils/limits';
 import { PhaseInput } from '../../src/apps/shared';
 import { PhaseInfo } from '../../src/app';
 import { Context } from '../../src/utils/context';
+import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
 
 export async function* deployPhases(phases: PhaseInfo[]): AsyncIterable<cdk.Stage> {
   const input = createPhaseInput();
@@ -1357,11 +1358,29 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
   ];
 
+  const organizations: OrganizationalUnit[] = [
+    {
+      ouId: 'ou-core',
+      ouArn: 'arn:aws:organizations::111111111111:ou/o-test/ou-core',
+      ouName: 'Core',
+      ouPath: 'Core',
+      rootOrgId: 'o-test',
+    },
+    {
+      ouId: 'ou-test',
+      ouArn: 'arn:aws:organizations::111111111111:ou/o-test/ou-test',
+      ouName: 'Test',
+      ouPath: 'Test',
+      rootOrgId: 'o-test',
+    },
+  ];
+
   return {
     acceleratorConfig: config,
     accounts,
     context,
     limiter,
     outputs,
+    organizations,
   };
 }

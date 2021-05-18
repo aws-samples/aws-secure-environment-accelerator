@@ -48,9 +48,16 @@ import { logArchiveReadOnlyAccess } from '../deployments/s3/log-archive-read-acc
  * - TGW Peering Attachments
  */
 
-export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs, limiter }: PhaseInput) {
-  const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
-  const { acceleratorBaseline } = context;
+export async function deploy({
+  acceleratorConfig,
+  accountStacks,
+  accounts,
+  context,
+  outputs,
+  limiter,
+  organizations,
+}: PhaseInput) {
+  const rootOuId = organizations[0].rootOrgId!;
   // Find the account buckets in the outputs
   const accountBuckets = AccountBucketOutput.getAccountBuckets({
     accounts,
@@ -255,6 +262,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accounts,
     context,
     outputs,
+    rootOuId,
   });
 
   // Import all VPCs from all outputs

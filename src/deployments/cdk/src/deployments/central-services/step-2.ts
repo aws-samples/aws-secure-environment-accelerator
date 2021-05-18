@@ -14,6 +14,7 @@ export interface CentralServicesStep2Props {
   accounts: Account[];
   context: Context;
   outputs: StackOutput[];
+  rootOuId: string;
 }
 
 const LOG_PERMISSIONS = [
@@ -42,7 +43,7 @@ const LOG_PERMISSIONS = [
  * - Share Data in Sub Accounts to Monitoring Accounts
  */
 export async function step2(props: CentralServicesStep2Props) {
-  const { accountStacks, config, accounts, context, outputs } = props;
+  const { accountStacks, config, accounts, context, outputs, rootOuId } = props;
 
   const centralSecurityServices = config['global-options']['central-security-services'];
   const centralOperationsServices = config['global-options']['central-operations-services'];
@@ -98,6 +99,7 @@ export async function step2(props: CentralServicesStep2Props) {
       accessLevel,
       tagValue: context.acceleratorName,
       roleArn: iamCreateRoleOutput.roleArn,
+      rootOuId,
     });
   }
 }
@@ -123,8 +125,9 @@ async function centralLoggingShareDataSettings(props: {
   accessLevel: string;
   tagValue: string;
   roleArn: string;
+  rootOuId: string;
 }) {
-  const { scope, monitoringAccountIds, accessLevel, tagValue, roleArn } = props;
+  const { scope, monitoringAccountIds, accessLevel, tagValue, roleArn, rootOuId } = props;
 
   const logPermission = LOG_PERMISSIONS.find(lp => lp.level === accessLevel);
   if (!logPermission) {
@@ -139,5 +142,6 @@ async function centralLoggingShareDataSettings(props: {
     tagName: 'Accelerator',
     tagValue,
     lambdaRoleArn: roleArn,
+    rootOuId,
   });
 }

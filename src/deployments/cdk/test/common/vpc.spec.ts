@@ -127,7 +127,7 @@ test('the VPC creation should create the correct amount of subnets', () => {
             disabled: true,
           },
         ],
-      }
+      },
     ],
     'route-tables': [
       {

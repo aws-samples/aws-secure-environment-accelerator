@@ -12,6 +12,7 @@ export interface IamCreateRoleProperties {
   tagName: string;
   tagValue: string;
   lambdaRoleArn: string;
+  rootOuId: string;
 }
 
 /**
@@ -21,7 +22,7 @@ export class IamCreateRole extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: IamCreateRoleProperties) {
     super(scope, id);
 
-    const { roleName, accountIds, managedPolicies, tagName, tagValue, lambdaRoleArn } = props;
+    const { roleName, accountIds, managedPolicies, tagName, tagValue, lambdaRoleArn, rootOuId } = props;
 
     const createRole = this.lambdaFunction(lambdaRoleArn);
     new cdk.CustomResource(this, 'Resource', {
@@ -33,6 +34,7 @@ export class IamCreateRole extends cdk.Construct {
         managedPolicies,
         tagName,
         tagValue,
+        rootOuId,
       },
     });
   }

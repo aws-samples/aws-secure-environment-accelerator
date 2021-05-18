@@ -3,6 +3,7 @@ export interface OrganizationalUnit {
   ouArn: string;
   ouName: string;
   ouPath: string;
+  rootOrgId?: string;
 }
 export function getOrganizationalUnitIdByPath(organizations: OrganizationalUnit[], ouPath: string): string | undefined {
   const organizationalUnit = organizations.find(ou => ou.ouPath === ouPath);

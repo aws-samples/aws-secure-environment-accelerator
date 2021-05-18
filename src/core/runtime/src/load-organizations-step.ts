@@ -30,6 +30,7 @@ export const handler = async (input: LoadOrganizationsInput): Promise<Organizati
     commitId: configCommitId,
   });
 
+  const rootOrg = await organizations.describeOrganization();
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();
   const ignoredOus = config['global-options']['ignored-ous'];
@@ -43,6 +44,7 @@ export const handler = async (input: LoadOrganizationsInput): Promise<Organizati
       ouArn: awsOuWithPath.Arn!,
       ouName: awsOuWithPath.Path.split('/')[0],
       ouPath: awsOuWithPath.Path,
+      rootOrgId: rootOrg?.Id,
     });
   }
 

@@ -24,6 +24,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
+  const rootOuId = event.ResourceProperties.rootOuId;
   try {
     await throttlingBackOff(() =>
       iam
@@ -36,7 +37,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       iam
         .updateAssumeRolePolicy({
           RoleName: event.ResourceProperties.roleName,
-          PolicyDocument: buildPolicyDocument(event.ResourceProperties.accountIds),
+          PolicyDocument: buildPolicyDocument(event.ResourceProperties.accountIds, rootOuId),
         })
         .promise(),
     );
@@ -51,6 +52,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
               event.ResourceProperties.accountIds,
               event.ResourceProperties.tagName,
               event.ResourceProperties.tagValue,
+              rootOuId,
             ),
           )
           .promise(),
@@ -114,10 +116,11 @@ function buildCreateRoleRequest(
   accountIds: string[],
   tagName: string,
   tagValue: string,
+  rootOuId: string,
 ): AWS.IAM.CreateRoleRequest {
   return {
     RoleName: roleName,
-    AssumeRolePolicyDocument: buildPolicyDocument(accountIds),
+    AssumeRolePolicyDocument: buildPolicyDocument(accountIds, rootOuId),
     Tags: [
       {
         Key: tagName,
@@ -134,7 +137,7 @@ function buildAttachPolicyRequest(roleName: string, managedPolicy: string): AWS.
   };
 }
 
-function buildPolicyDocument(accountIds: string[]): string {
+function buildPolicyDocument(accountIds: string[], rootOuId: string): string {
   const policyDocument = {
     Version: '2012-10-17',
     Statement: [
@@ -144,6 +147,11 @@ function buildPolicyDocument(accountIds: string[]): string {
           AWS: accountIds.map(accountId => `arn:aws:iam::${accountId}:root`),
         },
         Action: 'sts:AssumeRole',
+        Condition: {
+          StringEquals: {
+            'aws:PrincipalOrgID': rootOuId,
+          },
+        },
       },
     ],
   };
