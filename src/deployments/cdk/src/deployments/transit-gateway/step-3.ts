@@ -66,19 +66,19 @@ export async function step3(props: TransitGatewayStep3Props) {
         }
 
         for (const route of tgwRoute.routes) {
-          if (route['target-tgw'] || route['blackhole-route']) {
+          if (route['target-tgw']) {
             if (!tgwPeeringAttachment) {
               console.warn(`No Peering Attachment found for "${tgwConfig.name}"`);
               continue;
             }
-            CreateRoute(
-              accountStack,
-              route.destination,
-              tgwRoute.name,
-              tgwPeeringAttachment.tgwAttachmentId,
+            CreateRoute({
+              scope: accountStack,
+              cidr: route.destination,
+              routeName: tgwRoute.name,
               transitGateway,
-              route['blackhole-route'],
-            );
+              attachmentId: tgwPeeringAttachment.tgwAttachmentId,
+              blackhole: route['blackhole-route'],
+            });
           } else if (route['target-vpc']) {
             const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
               outputs,
@@ -91,14 +91,14 @@ export async function step3(props: TransitGatewayStep3Props) {
               continue;
             }
             const tgwAttachmentIds = vpcOutput.tgwAttachments.map(t => t.id);
-            CreateRoutes(
-              accountStack,
-              route.destination,
-              tgwRoute.name,
-              tgwAttachmentIds,
+            CreateRoutes({
+              scope: accountStack,
+              cidr: route.destination,
+              routeName: tgwRoute.name,
               transitGateway,
-              route['blackhole-route'],
-            );
+              attachmentIds: tgwAttachmentIds,
+              blackhole: route['blackhole-route'],
+            });
           } else if (route['target-vpn']) {
             const vpnAttachments = TgwVpnAttachmentsOutputFinder.tryFindOneByName({
               outputs,
@@ -116,14 +116,22 @@ export async function step3(props: TransitGatewayStep3Props) {
             if (!tgwAttachmentId) {
               continue;
             }
-            CreateRoutes(
-              accountStack,
-              route.destination,
-              tgwRoute.name,
-              [tgwAttachmentId],
+            CreateRoutes({
+              scope: accountStack,
+              cidr: route.destination,
+              routeName: tgwRoute.name,
               transitGateway,
-              route['blackhole-route'],
-            );
+              attachmentIds: [tgwAttachmentId],
+              blackhole: route['blackhole-route'],
+            });
+          } else if (route['blackhole-route']) {
+            CreateRoute({
+              scope: accountStack,
+              cidr: route.destination,
+              routeName: tgwRoute.name,
+              transitGateway,
+              blackhole: route['blackhole-route'],
+            });
           }
         }
       }
@@ -170,35 +178,58 @@ export async function step3(props: TransitGatewayStep3Props) {
   }
 }
 
-function CreateRoutes(
-  scope: cdk.Construct,
-  cidr: string,
-  routeName: string,
-  attachmentIds: string[],
-  transitGateway: TransitGatewayOutput,
-  blackhole?: boolean,
-) {
+function CreateRoutes(props: {
+  scope: cdk.Construct;
+  cidr: string;
+  routeName: string;
+  transitGateway: TransitGatewayOutput;
+  attachmentIds?: string[];
+  blackhole?: boolean;
+}) {
+  const { cidr, routeName, scope, transitGateway, attachmentIds, blackhole } = props;
   for (const attachmentId of attachmentIds || []) {
-    CreateRoute(scope, cidr, routeName, attachmentId, transitGateway, blackhole);
+    CreateRoute({
+      scope,
+      cidr,
+      routeName,
+      transitGateway,
+      attachmentId,
+      blackhole,
+    });
   }
 }
 
-function CreateRoute(
-  scope: cdk.Construct,
-  cidr: string,
-  routeName: string,
-  attachmentId: string,
-  transitGateway: TransitGatewayOutput,
-  blackhole?: boolean,
-) {
+function CreateRoute(props: {
+  scope: cdk.Construct;
+  cidr: string;
+  routeName: string;
+  transitGateway: TransitGatewayOutput;
+  attachmentId?: string;
+  blackhole?: boolean;
+}) {
+  const { cidr, routeName, scope, transitGateway, attachmentId, blackhole } = props;
   const routesMap = transitGateway.tgwRouteTableNameToIdMap;
   if (routeName === '{TGW_ALL}') {
     for (const key of Object.keys(routesMap)) {
-      CreateTransitGatewayRoute(scope, key, attachmentId, routesMap[key], cidr, blackhole);
+      CreateTransitGatewayRoute({
+        scope,
+        name: key,
+        routeId: routesMap[key],
+        cidrBlock: cidr,
+        blackhole,
+        attachmentId,
+      });
     }
   } else {
     const routeId = routesMap[routeName];
-    CreateTransitGatewayRoute(scope, routeName, attachmentId, routeId, cidr, blackhole);
+    CreateTransitGatewayRoute({
+      scope,
+      name: routeName,
+      routeId,
+      cidrBlock: cidr,
+      attachmentId,
+      blackhole,
+    });
   }
 }
 
@@ -227,14 +258,15 @@ function CreateAssociations(
   }
 }
 
-function CreateTransitGatewayRoute(
-  scope: cdk.Construct,
-  name: string,
-  attachmentId: string,
-  routeId: string,
-  cidrBlock: string,
-  blackhole?: boolean,
-) {
+function CreateTransitGatewayRoute(props: {
+  scope: cdk.Construct;
+  name: string;
+  routeId: string;
+  cidrBlock: string;
+  attachmentId?: string;
+  blackhole?: boolean;
+}) {
+  const { attachmentId, cidrBlock, name, routeId, scope, blackhole } = props;
   // TODO need to update the id by calculating the hash of the properties
   const id = `${name}${attachmentId}${routeId}${cidrBlock}${blackhole}`;
   if (!blackhole) {
