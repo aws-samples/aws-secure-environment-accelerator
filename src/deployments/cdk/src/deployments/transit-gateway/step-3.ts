@@ -26,9 +26,6 @@ export async function step3(props: TransitGatewayStep3Props) {
   const tgwPeeringAttachmentOutputs = TransitGatewayPeeringAttachmentOutputFinder.findAll({
     outputs,
   });
-  if (tgwPeeringAttachmentOutputs.length === 0) {
-    return;
-  }
 
   const accountConfigs = config.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
@@ -44,6 +41,7 @@ export async function step3(props: TransitGatewayStep3Props) {
         name: tgwConfig.name,
       });
       if (!transitGateway) {
+        console.warn(`TGW not found "${accountKey}/${tgwConfig.name}"`);
         continue;
       }
 
@@ -57,9 +55,6 @@ export async function step3(props: TransitGatewayStep3Props) {
         const tgwPeer = output.tgws.find(tgw => tgw.name === tgwConfig.name && tgw.region === tgwConfig.region);
         return !!tgwPeer;
       });
-      if (!tgwPeeringAttachment) {
-        continue;
-      }
 
       if (!tgwConfig['tgw-routes']) {
         continue;
@@ -72,6 +67,10 @@ export async function step3(props: TransitGatewayStep3Props) {
 
         for (const route of tgwRoute.routes) {
           if (route['target-tgw'] || route['blackhole-route']) {
+            if (!tgwPeeringAttachment) {
+              console.warn(`No Peering Attachment found for "${tgwConfig.name}"`);
+              continue;
+            }
             CreateRoute(
               accountStack,
               route.destination,
@@ -131,6 +130,13 @@ export async function step3(props: TransitGatewayStep3Props) {
 
       const tgwAttachConfig = tgwConfig['tgw-attach'];
       if (!tgwAttachConfig) {
+        continue;
+      }
+
+      if (!tgwPeeringAttachment) {
+        console.warn(
+          `No Peering Attachment found for "${accountKey}/${tgwConfig.name}". Skipping Create associations fot tgw-attach`,
+        );
         continue;
       }
 
