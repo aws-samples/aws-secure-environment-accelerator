@@ -102,7 +102,7 @@ async function createMembers(memberAccounts: AccountDetail[], detectorId: string
     let currentAccounts: AccountDetail[] = paginate(memberAccounts, pageNumber, pageSize);
     while (currentAccounts.length > 0) {
       console.log(`Calling api "guardduty.createMembers()", ${currentAccounts}, ${detectorId}`);
-      await throttlingBackOff(() =>
+      const createMembersResp = await throttlingBackOff(() =>
         guardduty
           .createMembers({
             AccountDetails: currentAccounts,
@@ -111,6 +111,7 @@ async function createMembers(memberAccounts: AccountDetail[], detectorId: string
           .promise(),
       );
       currentAccounts = paginate(memberAccounts, ++pageNumber, pageSize);
+      console.log(`UnProcessedAccounts are : ${JSON.stringify(createMembersResp.UnprocessedAccounts)}`);
     }
   } catch (error) {
     console.error(
