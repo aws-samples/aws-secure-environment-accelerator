@@ -78,6 +78,7 @@
   - remove quarantine SCP from newly created accounts
   - we do not support forward slashes (`/`) in ou names, even though the AWS platform does
 - More details:
+  - If an AWS account is renamed, an account email is changed, or an OU is renamed, on the next state machine execution, the config file will automatically be updated.
   - If you edit an Accelerator controlled SCP through Organizations, we will reset it per what is defined in the Accelerator configuration files.
   - If you add/remove an SCP from a top-level ou or Accelerator controlled account, we will put them back as defined in the Accelerator configuration file.
   - If you move an account between top-level ou's, we will put it back to its original designated top-level ou.
