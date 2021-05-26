@@ -20,7 +20,8 @@
         "sumerian:*",
         "cloud9:*", 
         "gamelift:*", 
-        "appflow:*"
+        "appflow:*",
+        "iq:*"
       ],
       "Resource": "*",
       "Condition": {}
