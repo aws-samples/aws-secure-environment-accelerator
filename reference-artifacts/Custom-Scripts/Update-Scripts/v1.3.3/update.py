@@ -304,7 +304,7 @@ def impl(accel_prefix, config_file, region, load_db, load_config):
                     del config[config_section][key_name]['vpc'][vindex]['cidr2']
                 for sindex, subnetConfig in enumerate(vpcConfig['subnets']):
                     for dindex, subnetDef in enumerate(subnetConfig['definitions']):
-                        current_cidr = subnetDef.get('cidr') if subnetDef.get('cidr') else subnetDef.get('cid2')
+                        current_cidr = subnetDef['cidr'] if subnetDef.get('cidr', None) else subnetDef['cidr2']
                         config[config_section][key_name]['vpc'][vindex]['subnets'][sindex]['definitions'][dindex]['cidr'] = {
                             'value': current_cidr,
                             'size': int(current_cidr.split('/')[-1]),

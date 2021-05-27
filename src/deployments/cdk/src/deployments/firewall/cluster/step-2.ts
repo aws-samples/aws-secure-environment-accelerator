@@ -111,6 +111,7 @@ async function createCustomerGateways(props: {
 
   const firewallCgwName = firewallConfig['fw-cgw-name'];
   const firewallCgwAsn = firewallConfig['fw-cgw-asn'];
+  const firewallCgwRouting = firewallConfig['fw-cgw-routing'].toLowerCase();
 
   const addTagsDependencies = [];
   const addTagsToResources: AddTagsToResource[] = [];
@@ -130,13 +131,14 @@ async function createCustomerGateways(props: {
         customerGateway = new ec2.CfnCustomerGateway(scope, `${prefix}_cgw`, {
           type: 'ipsec.1',
           ipAddress: port.eipIpAddress,
-          bgpAsn: firewallCgwAsn,
+          bgpAsn: firewallCgwRouting === 'dynamic' ? firewallCgwAsn : 65000,
         });
 
         vpnConnection = new ec2.CfnVPNConnection(scope, `${prefix}_vpn`, {
           type: 'ipsec.1',
           transitGatewayId: transitGateway.tgwId,
           customerGatewayId: customerGateway.ref,
+          staticRoutesOnly: firewallCgwRouting === 'static' ? true : false,
         });
 
         // Creating VPN connection route table association and propagation
@@ -223,15 +225,16 @@ async function createCustomerGateways(props: {
       const customerGateway = new ec2.CfnCustomerGateway(scope, `${prefix}_cgw`, {
         type: 'ipsec.1',
         ipAddress: fwIp,
-        bgpAsn: firewallCgwAsn,
+        bgpAsn: firewallCgwRouting === 'dynamic' ? firewallCgwAsn : 65000,
       });
       const vpnConnection = new ec2.CfnVPNConnection(scope, `${prefix}_vpn`, {
         type: 'ipsec.1',
         transitGatewayId: transitGateway.tgwId,
         customerGatewayId: customerGateway.ref,
+        staticRoutesOnly: firewallCgwRouting === 'static' ? true : false,
       });
       // Creating VPN connection route table association and propagation
-      const attachments = new VpnAttachments(scope, `VpnAttachments-CGW${index}`, {
+      const attachments = new VpnAttachments(scope, `VpnAttachments-${prefix}_attach`, {
         vpnConnectionId: vpnConnection.ref,
         tgwId: transitGateway.tgwId,
       });
