@@ -73,8 +73,13 @@ export namespace PeeringConnection {
         });
         // Find the PCX output that contains the PCX route's VPC
         const peerVpcOutput = peerVpcOutputs.find(output => {
-          const pcxVpc = output.vpcs.find(vpc => vpc.accountKey === pcxRoute.account && vpc.vpcName === pcxRoute.vpc);
-          return !!pcxVpc;
+          const sourcePcxVpc = output.vpcs.find(
+            vpc => vpc.accountKey === pcxRoute.account && vpc.vpcName === pcxRoute.vpc,
+          );
+          const targetPcxVpc = output.vpcs.find(
+            vpc => vpc.accountKey === accountKey && vpc.vpcName === vpcConfig?.name!,
+          );
+          return !!sourcePcxVpc && !!targetPcxVpc;
         });
         const pcxId = peerVpcOutput?.pcxId;
         if (!pcxId) {
