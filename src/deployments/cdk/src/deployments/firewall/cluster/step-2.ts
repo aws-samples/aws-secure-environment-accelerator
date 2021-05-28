@@ -135,7 +135,7 @@ async function createCustomerGateways(props: {
         type: 'ipsec.1',
         transitGatewayId: transitGateway.tgwId,
         customerGatewayId: customerGateway.ref,
-        staticRoutesOnly: firewallCgwRouting === 'static' ? true : false,
+        staticRoutesOnly: firewallCgwRouting === 'static' ? true : undefined,
       });
 
       const options = new VpnTunnelOptions(scope, `VpnTunnelOptions${index}`, {
