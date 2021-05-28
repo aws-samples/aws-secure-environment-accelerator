@@ -28,6 +28,7 @@ import * as snsDeployment from '../deployments/sns';
 import * as ssmDeployment from '../deployments/ssm';
 import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { logArchiveReadOnlyAccess } from '../deployments/s3/log-archive-read-access';
+import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
 /**
  * This is the main entry point to deploy phase 2
@@ -86,10 +87,18 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       continue;
     }
 
-    // TODO store role name in outputs
-    // Get the exact same role name as in phase 1
-    const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
-    const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
+    const pcxAcceptRole = IamRoleOutputFinder.tryFindOneByName({
+      outputs,
+      accountKey: pcxConfig.source,
+      roleKey: 'PeeringConnectionAcceptRole',
+    });
+    let peerRoleArn = '';
+    if (pcxAcceptRole) {
+      peerRoleArn = pcxAcceptRole.roleArn;
+    } else {
+      const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
+      peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
+    }
 
     // Get Peer VPC Configuration
     const pcxSourceVpc = pcxConfig['source-vpc'];
