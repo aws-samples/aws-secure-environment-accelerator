@@ -15,7 +15,13 @@
         "aws-marketplace:ListPrivateMarketplaceProducts",
         "aws-marketplace:StartPrivateMarketplace",
         "aws-marketplace:StopPrivateMarketplace",
-        "aws-marketplace:UpdatePrivateMarketplaceProfile"
+        "aws-marketplace:UpdatePrivateMarketplaceProfile",
+        "lightsail:*", 
+        "sumerian:*",
+        "cloud9:*", 
+        "gamelift:*", 
+        "appflow:*",
+        "iq:*"
       ],
       "Resource": "*",
       "Condition": {}
