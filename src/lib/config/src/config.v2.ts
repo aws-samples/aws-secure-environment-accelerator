@@ -46,7 +46,7 @@ export type CidrConfig = t.TypeOf<typeof CidrConfigType>;
 
 export const SubnetDefinitionConfig = t.interface({
   az: t.availabilityZone,
-  cidr: CidrConfigType,
+  cidr: t.optional(CidrConfigType),
   'route-table': t.nonEmptyString,
   disabled: t.defaulted(t.boolean, false),
 });
@@ -220,7 +220,7 @@ export const VpcConfigType = t.interface({
   deploy: t.nonEmptyString,
   name: t.nonEmptyString,
   region: t.region,
-  cidr: t.array(CidrConfigType),
+  cidr: t.defaulted(t.array(CidrConfigType), []),
   'cidr-src': t.defaulted(CidrSrcTypes, 'provided'),
   'opt-in': t.defaulted(t.boolean, false),
   'dedicated-tenancy': t.defaulted(t.boolean, false),

@@ -195,13 +195,22 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     const vpcCidrs = props.vpcProps.vpcConfig.cidr;
     this.region = vpcConfig.region;
     // Retrive CIDR
-    if (['lookup', 'dynamic'].includes(props.vpcProps.vpcConfig['cidr-src'])) {
+    if (props.vpcProps.vpcConfig['cidr-src'] === 'dynamic') {
       this.cidrBlock = currentVpcPools.find(vpcPool => vpcPool.pool === vpcCidrs[0].pool)?.cidr!;
       if (!this.cidrBlock) {
         throw new Error(`No CIDR found for VPC : ${vpcConfig.name} in DynamoDB "cidr-vpc-assign"`);
       }
       if (vpcCidrs.length > 1) {
         this.cidr2Block.push(...currentVpcPools.filter(vpcPool => vpcPool.pool !== vpcCidrs[0].pool).map(c => c.cidr));
+      }
+    } else if (props.vpcProps.vpcConfig['cidr-src'] === 'lookup') {
+      if (currentVpcPools.length === 0) {
+        throw new Error(`No CIDR found for VPC : ${vpcConfig.name} in DDB`);
+      }
+      currentVpcPools.sort((a, b) => (a['vpc-assigned-id']! > b['vpc-assigned-id']! ? 1 : -1));
+      this.cidrBlock = currentVpcPools[0].cidr;
+      if (currentVpcPools.length > 1) {
+        this.cidr2Block.push(...currentVpcPools.slice(1, currentVpcPools.length).map(c => c.cidr));
       }
     } else {
       if (!vpcCidrs) {
@@ -312,7 +321,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             subnetCidr = subnetCidrPool.cidr;
           }
         } else {
-          subnetCidr = subnetDefinition.cidr.value?.toCidrString()!;
+          subnetCidr = subnetDefinition.cidr?.value?.toCidrString()!;
         }
         if (!subnetCidr) {
           console.warn(`Subnet with name "${subnetName}" and AZ "${subnetDefinition.az}" does not have a CIDR block`);

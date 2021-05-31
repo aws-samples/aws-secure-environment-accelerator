@@ -54,6 +54,9 @@ export const getUpdateValueInput = (attributes: Attribute[]) => {
   const expAttributeValues: DynamoDB.ExpressionAttributeValueMap = {};
   let updateExpression: string = 'set ';
   for (const att of attributes) {
+    if (!att.value) {
+      continue;
+    }
     const attributeValue: DynamoDB.AttributeValue = {};
     expAttributeNames[`#${att.key}`] = att.name;
     if (att.type === 'BOOL') {

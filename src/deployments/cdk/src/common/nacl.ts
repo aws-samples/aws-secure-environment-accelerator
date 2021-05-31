@@ -106,7 +106,7 @@ export class Nacl extends cdk.Construct {
                   cidrBlock = ruleVpcSubnets.find(s => s.az === subnetDefinition.az)?.cidr!;
                 }
               } else {
-                cidrBlock = subnetDefinition.cidr.value?.toCidrString()!;
+                cidrBlock = subnetDefinition.cidr?.value?.toCidrString()!;
               }
               if (!cidrBlock) {
                 throw new Error(`Please Declare cidr using cidr block or use dynamic or lookup`);

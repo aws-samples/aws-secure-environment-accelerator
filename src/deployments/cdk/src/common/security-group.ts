@@ -223,7 +223,7 @@ export class SecurityGroup extends cdk.Construct {
             if (['lookup', 'dynamic'].includes(ruleVpcConfig['cidr-src'])) {
               cidrBlock = ruleVpcSubnets.find(s => s.az === subnetDefinition.az)?.cidr!;
             } else {
-              cidrBlock = subnetDefinition.cidr.value?.toCidrString()!;
+              cidrBlock = subnetDefinition.cidr?.value?.toCidrString()!;
             }
             ruleProps.push({
               ipProtocol,

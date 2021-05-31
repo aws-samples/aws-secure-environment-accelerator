@@ -560,9 +560,18 @@ export async function validateDDBChanges(
     );
 
     // Validate VPC Cidrs
-
-    const primaryCidr = vpcAssignedCidrs.find(vpcPool => vpcPool.pool === vpcConfig.cidr[0].pool)?.cidr;
-    const additionalCidr = vpcAssignedCidrs.filter(vpcPool => vpcPool.pool !== vpcConfig.cidr[0].pool).map(c => c.cidr);
+    let primaryCidr: string = '';
+    let additionalCidr: string[] = [];
+    if (vpcConfig['cidr-src'] === 'lookup') {
+      vpcAssignedCidrs.sort((a, b) => (a['vpc-assigned-id']! > b['vpc-assigned-id']! ? 1 : -1));
+      primaryCidr = vpcAssignedCidrs[0].cidr;
+      if (vpcAssignedCidrs.length > 1) {
+        additionalCidr = vpcAssignedCidrs.slice(1, vpcAssignedCidrs.length).map(c => c.cidr);
+      }
+    } else {
+      primaryCidr = vpcAssignedCidrs.find(vpcPool => vpcPool.pool === vpcConfig.cidr[0].pool)?.cidr!;
+      additionalCidr = vpcAssignedCidrs.filter(vpcPool => vpcPool.pool !== vpcConfig.cidr[0].pool).map(c => c.cidr);
+    }
     if (primaryCidr !== vpcOutput.cidrBlock) {
       errors.push(`CIDR for VPC: ${accountKey}/${vpcConfig.region}/${vpcConfig.name} has been changed`);
     }

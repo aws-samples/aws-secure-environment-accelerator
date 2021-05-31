@@ -5,6 +5,7 @@ export interface AssignedCidrPool {
   region: string;
   requester: string;
   status: string;
+  'vpc-assigned-id'?: number;
   'account-Key'?: string;
   'account-id'?: string;
   'vpc-id'?: string;

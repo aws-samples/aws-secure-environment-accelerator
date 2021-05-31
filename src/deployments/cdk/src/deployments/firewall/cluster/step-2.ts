@@ -138,7 +138,7 @@ async function createCustomerGateways(props: {
           type: 'ipsec.1',
           transitGatewayId: transitGateway.tgwId,
           customerGatewayId: customerGateway.ref,
-          staticRoutesOnly: firewallCgwRouting === 'static' ? true : false,
+          staticRoutesOnly: firewallCgwRouting === 'static' ? true : undefined,
         });
 
         // Creating VPN connection route table association and propagation
@@ -231,7 +231,7 @@ async function createCustomerGateways(props: {
         type: 'ipsec.1',
         transitGatewayId: transitGateway.tgwId,
         customerGatewayId: customerGateway.ref,
-        staticRoutesOnly: firewallCgwRouting === 'static' ? true : false,
+        staticRoutesOnly: firewallCgwRouting === 'static' ? true : undefined,
       });
       // Creating VPN connection route table association and propagation
       const attachments = new VpnAttachments(scope, `VpnAttachments-${prefix}_attach`, {
