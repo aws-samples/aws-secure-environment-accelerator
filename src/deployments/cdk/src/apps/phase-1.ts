@@ -27,7 +27,7 @@ import * as ssm from '../deployments/ssm/session-manager';
 import * as macie from '../deployments/macie';
 import * as guardDutyDeployment from '../deployments/guardduty';
 import { PhaseInput } from './shared';
-import { getIamUserPasswordSecretValue } from '../deployments/iam';
+import { createIamRoleOutput, getIamUserPasswordSecretValue } from '../deployments/iam';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
 import * as vpcDeployment from '../deployments/vpc';
 import * as transitGateway from '../deployments/transit-gateway';
@@ -35,6 +35,7 @@ import * as centralEndpoints from '../deployments/central-endpoints';
 import { CfnResourceStackCleanupOutput } from '../deployments/cleanup/outputs';
 import { VpcOutputFinder, VpcSubnetOutput } from '@aws-accelerator/common-outputs/src/vpc';
 import { TransitGatewayAttachmentOutputFinder } from '@aws-accelerator/common-outputs/src/transit-gateway';
+import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -82,7 +83,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
   }
 
-  const { acceleratorName, installerVersion } = context;
+  const { acceleratorName, installerVersion, defaultRegion, acceleratorExecutionRoleName } = context;
   // Find the central bucket in the outputs
   const centralBucket = CentralBucketOutput.getBucket({
     accountStacks,
@@ -110,25 +111,29 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
    * @param sourceAccount : Source Account Key, Role will be created in this
    * @param accountKey : Target Account Key, Access will be provided to this account
    */
-  const createIamRoleForPCXAcceptence = (
-    roleName: string,
-    sourceAccount: string,
-    sourceVpcConfig: VpcConfig,
-    targetAccount: string,
-  ) => {
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(sourceAccount, sourceVpcConfig.region);
+  const createIamRoleForPCXAcceptence = (roleName: string, sourceAccount: string) => {
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(sourceAccount, defaultRegion);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${sourceAccount}`);
       return;
     }
-    const existing = accountStack.node.tryFindChild(roleName);
+    const existing = accountStack.node.tryFindChild('PeeringRole');
     if (existing) {
       return;
     }
+    const targetAccounts = acceleratorConfig
+      .getVpcConfigs()
+      .filter(rsv => PeeringConnectionConfig.is(rsv.vpcConfig.pcx) && rsv.vpcConfig.pcx.source === sourceAccount);
+    const targetAccountKeys = Array.from(new Set(targetAccounts.map(rsv => rsv.accountKey)));
     const peeringRole = new iam.Role(accountStack, 'PeeringRole', {
       roleName,
-      assumedBy: new iam.ArnPrincipal(
-        `arn:aws:iam::${getAccountId(accounts, targetAccount)}:role/${context.acceleratorExecutionRoleName}`,
+      assumedBy: new iam.CompositePrincipal(
+        ...targetAccountKeys.map(
+          targetAccountKey =>
+            new iam.ArnPrincipal(
+              `arn:aws:iam::${getAccountId(accounts, targetAccountKey)}:role/${acceleratorExecutionRoleName}`,
+            ),
+        ),
       ),
     });
 
@@ -138,6 +143,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         actions: ['ec2:AcceptVpcPeeringConnection'],
       }),
     );
+
+    createIamRoleOutput(accountStack, peeringRole, 'PeeringConnectionAcceptRole');
   };
 
   // Auxiliary method to create a VPC in the account with given account key
@@ -246,9 +253,16 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         console.warn(`Cannot find PCX source VPC ${pcxConfig['source-vpc']} in account ${pcxConfig.source}`);
       } else {
         // Create Accepter Role for Peering Connection **WITHOUT** random suffix
-        // TODO Region support
-        const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
-        createIamRoleForPCXAcceptence(roleName, pcxConfig.source, sourceVpcConfig.vpcConfig, accountKey);
+        const pcxAcceptRole = IamRoleOutputFinder.tryFindOneByName({
+          outputs,
+          accountKey: pcxConfig.source,
+          roleKey: 'PeeringConnectionAcceptRole',
+        });
+        let roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
+        if (pcxAcceptRole) {
+          roleName = pcxAcceptRole.roleName;
+        }
+        createIamRoleForPCXAcceptence(roleName, pcxConfig.source);
       }
     }
 

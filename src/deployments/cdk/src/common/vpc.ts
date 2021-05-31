@@ -526,20 +526,36 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             dynamoRoutes.push(routeTableObj);
             continue;
           } else if (route.target === 'TGW' && tgw && tgwAttachment) {
-            const tgwRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, {
+            let constructName = `${routeTableName}_${route.target}`;
+            if (typeof route.destination !== 'string') {
+              console.warn(`Route for TGW only supports cidr as destination`);
+              continue;
+            }
+            if (route.destination !== '0.0.0.0/0') {
+              constructName = `${routeTableName}_${route.target}_${route.destination}`;
+            }
+            const tgwRoute = new ec2.CfnRoute(this, constructName, {
               routeTableId: routeTableObj,
-              destinationCidrBlock: route.destination as string,
+              destinationCidrBlock: route.destination,
               transitGatewayId: tgw.tgwId,
             });
             tgwRoute.addDependsOn(tgwAttachment.resource);
             continue;
           } else if (route.target.startsWith('NATGW_')) {
+            if (typeof route.destination !== 'string') {
+              console.warn(`Route for NATGW only supports cidr as destination`);
+              continue;
+            }
+            let constructName = `${routeTableName}_natgw_route`;
+            if (route.destination !== '0.0.0.0/0') {
+              constructName = `${routeTableName}_natgw_${route.destination}_route`;
+            }
             const routeParams: ec2.CfnRouteProps = {
               routeTableId: routeTableObj,
-              destinationCidrBlock: typeof route.destination === 'string' ? route.destination : '0.0.0.0/0',
+              destinationCidrBlock: route.destination,
               natGatewayId: this.natgwNameToIdMap[route.target.toLowerCase()],
             };
-            new ec2.CfnRoute(this, `${routeTableName}_natgw_route`, routeParams);
+            new ec2.CfnRoute(this, constructName, routeParams);
             continue;
           } else {
             // Need to add for different Routes
