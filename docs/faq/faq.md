@@ -37,6 +37,8 @@
     - [1.6.5. Can you deploy the solution without Fortinet Firewall Licenses?](#165-can-you-deploy-the-solution-without-fortinet-firewall-licenses)
     - [1.6.6. I installed additional software on my Accelerator deployed RDGW / rsyslog host, where did it go?](#166-i-installed-additional-software-on-my-accelerator-deployed-rdgw--rsyslog-host-where-did-it-go)
     - [1.6.7. Some sample configurations provide NACLs and Security Groups. Is that enough?](#167-some-sample-configurations-provide-nacls-and-security-groups-is-that-enough)
+    - [1.6.8. Can I deploy the solution as root?](#168-can-i-deploy-the-solution-as-root)
+    - [1.6.9. Can GuardDuty monitor the Organizational Management root acccount from the Security account?](#169-can-guardduty-monitor-the-organizational-management-root-acccount-from-the-security-account)
 
 ## 1.1. Operational Activities
 
@@ -67,6 +69,7 @@
   - create and rename AWS accounts
   - move AWS accounts between ou's
   - create, delete and rename ou's, including support for nested ou's
+    - removing a top-level OU requires all AWS accounts within the OU be removed first. Then remove the top-level OU. The configuration change will be auto-reflecting in the config file in CodeCommit. 
   - create, rename, modify, apply and remove SCP's
 - What can't I do:
   - modify Accelerator controlled SCP's
@@ -417,6 +420,14 @@ Security group egress rules are often used in 'allow all' mode (`0.0.0.0/0`), wi
 The Accelerator provided sample security groups in the workload accounts offer a good balance that considers both security, ease of operations, and frictionless development.  They allow developers to focus on developing, enabling them to simply use the pre-created security constructs for their workloads, and avoid the creation of wide-open security groups.  Developers can equally choose to create more appropriate least-privilege security groups more suitable for their application, if they are skilled in this area.  It is expected as an application is promoted through the SDLC cycle from Dev through Test to Prod, these security groups will be further refined by the extended customers teams to further reduce privilege, as appropriate.  It is expected that each customer will review and tailor their Security Groups based on their own security requirements.  The provided security groups ensures day to day activities like patching, access to DNS, or to directory services access can function on instances without friction, with the understanding further protections are providing by the central ingress/egress firewalls.
 
 The use of NACLs are general discouraged, but leveraged in this architecture as a defense-in-depth mechanism.  Security groups should be used as the primary access control mechanism.  As with security groups, we encourage customers to review and tailor their NACLs based on their own security requirements.
+
+### 1.6.8. Can I deploy the solution as root?
+
+No you cannot install as root as root has no ability to assume roles. This would prevent the deployment.
+
+### 1.6.9. Can GuardDuty monitor the Organizational Management root acccount from the Security account?
+
+Yes - enabled by default.
 
 ---
 
