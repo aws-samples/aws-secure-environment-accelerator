@@ -82,8 +82,13 @@ export namespace PeeringConnection {
         });
         // Find the PCX output that contains the PCX route's VPC
         const peerVpcOutput = peerVpcOutputs.find(output => {
-          const pcxVpc = output.vpcs.find(vpc => vpc.accountKey === pcxRoute.account && vpc.vpcName === pcxRoute.vpc);
-          return !!pcxVpc;
+          const sourcePcxVpc = output.vpcs.find(
+            vpc => vpc.accountKey === pcxRoute.account && vpc.vpcName === pcxRoute.vpc,
+          );
+          const targetPcxVpc = output.vpcs.find(
+            vpc => vpc.accountKey === accountKey && vpc.vpcName === vpcConfig?.name!,
+          );
+          return !!sourcePcxVpc && !!targetPcxVpc;
         });
         const pcxId = peerVpcOutput?.pcxId;
         if (!pcxId) {
@@ -92,7 +97,7 @@ export namespace PeeringConnection {
         }
         // Add Route to RouteTable
         for (const [index, subnet] of targetSubnet.definitions.entries()) {
-          if (subnet.disabled || !subnet.cidr) {
+          if (subnet.disabled) {
             continue;
           }
           const destinationCidrBlock = targetVpcOutput.subnets.find(
@@ -100,7 +105,7 @@ export namespace PeeringConnection {
           )?.cidrBlock;
           if (!destinationCidrBlock) {
             console.warn(
-              `Cidr for VPC: "${pcxRoute.vpc}", SSubnet: "${pcxRoute.subnet}", AZ: "${subnet.az}" is not found in Outputs`,
+              `Cidr for VPC: "${pcxRoute.vpc}", Subnet: "${pcxRoute.subnet}", AZ: "${subnet.az}" is not found in Outputs`,
             );
             continue;
           }

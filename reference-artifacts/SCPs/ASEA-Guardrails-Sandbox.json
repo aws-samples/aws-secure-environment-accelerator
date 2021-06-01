@@ -24,8 +24,6 @@
         "globalaccelerator:*",
         "health:*",
         "iam:*",
-        "importexport:*",
-        "mobileanalytics:*",
         "networkmanager:*",
         "organizations:*",
         "pricing:*",
@@ -41,8 +39,7 @@
         "trustedadvisor:*",
         "waf-regional:*",
         "waf:*",
-        "wafv2:*",
-        "wellarchitected:*"
+        "wafv2:*"
       ],
       "Resource": "*",
       "Condition": {

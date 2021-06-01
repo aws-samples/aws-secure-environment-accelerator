@@ -6,7 +6,7 @@ import {
   VpcSecurityGroupOutput,
   VpcSubnetOutput,
 } from '@aws-accelerator/common-outputs/src/vpc';
-import { ResolvedVpcConfig, SecurityGroupConfig, SubnetConfig } from '@aws-accelerator/common-config/';
+import { ResolvedVpcConfig, SecurityGroupConfig, SubnetConfig } from '@aws-accelerator/common-config';
 import { SSM } from '@aws-accelerator/common/src/aws/ssm';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { STS } from '@aws-accelerator/common/src/aws/sts';

@@ -118,7 +118,7 @@
         },
         {
           "name": "CIS AWS Foundations Benchmark v1.2.0",
-          "controls-to-disable": ["CIS.1.20", "CIS.1.22", "CIS.2.8"]
+          "controls-to-disable": ["CIS.1.20", "CIS.1.22"]
         }
       ]
     },

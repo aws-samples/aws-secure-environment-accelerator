@@ -158,21 +158,20 @@ Before installing, you must first:
 
 If deploying to an internal AWS employee account, to successfully install the solution with the 3rd party firewalls, you need to enable Private Marketplace (PMP) before starting:
 
-**NOTE: As of Late January 2021 the process has changed - you must now also create an Account Group associated with your Organization management account number and associate this group with your default experience. Will update click-by-click instructions at a future time.**
-
 1. In the Organization Management account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
-2. Click Create Marketplace
-3. Go to Profile sub-tab, click the `Not Live` slider to make it `Live`
-4. Click the `Software requests` slider to turn `Requests off`
-5. Change the name field (i.e. append `-PMP`) and change the color, so it is clear PMP is enabled for users
-6. Search Private Marketplace for Fortinet products
-7. Unselect the `Approved Products` filter and then select:
-   - `Fortinet FortiGate (BYOL) Next-Generation Firewall`
-8. Select "Add to Private Marketplace" in the top right
-   - Due to PMP provisioning delays, this sometimes fails when attempted immediately following enablement of PMP - retry after 20 minutes.
-9. Wait a couple of minutes while it adds item to your PMP - do NOT subscribe or accept the EULA
-   - Repeat for `Fortinet FortiManager (BYOL) Centralized Security Management`
-10. While not used in this account, you must now subscribe to the two subscriptions and accept the EULA for each product (you will need to do the same in the perimeter account, once provisioned below)
+2. Click Create Marketplace, and wait for activation to complete
+3. Go to the "Account Groups" sub-menu and add the Management/root account number in `Associate AWS account`
+4. Use the default experience `New Private Marketplace`
+5. Go to "Experiences" sub-menu, "Settings" sub-tab, and click the `Not Live` slider to make it `Live`
+6. Ensure the `Software requests` slider is set to `Requests off`
+7. Change the name field (i.e. append `-PMP`) and change the color, so it is clear PMP is enabled for users
+8. Go to the "Products" sub-tab (in "Experiences"), then select the "All AWS Marketplace products" nested sub-tab
+9. Search Private Marketplace for Fortinet products and select 
+   - `Fortinet FortiGate (BYOL) Next-Generation Firewall` and 
+   - `Fortinet FortiManager (BYOL) Centralized Security Management`
+1.  Select "Add" in the top right
+   - Due to PMP provisioning delays, this sometimes fails when attempted immediately following enablement of PMP or if adding each product individually - retry after 20 minutes.
+11. While not used in this account, you must now subscribe to the two subscriptions and accept the EULA for each product (you will need to do the same in the perimeter account, once provisioned below)
     - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (v6.4.4 recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
 
 ![New AMI ID](img/new-ami-id.png)
