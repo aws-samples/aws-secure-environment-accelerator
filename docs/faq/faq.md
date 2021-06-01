@@ -69,7 +69,7 @@
   - create and rename AWS accounts
   - move AWS accounts between ou's
   - create, delete and rename ou's, including support for nested ou's
-    - removing a top-level OU requires all AWS accounts within the OU be removed first. Then remove the top-level OU. The configuration change will be auto-reflecting in the config file in CodeCommit. 
+    - deleting a top-level OU requires all AWS accounts within the OU be deleted first. Then delete the top-level OU. The configuration change will be auto-reflecting in the config file in CodeCommit. 
   - create, rename, modify, apply and remove SCP's
 - What can't I do:
   - modify Accelerator controlled SCP's
