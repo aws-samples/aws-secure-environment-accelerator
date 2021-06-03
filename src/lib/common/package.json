@@ -27,7 +27,7 @@
     "@types/lodash.omit": "^4.5.6",
     "@types/prettier": "2.2.3",
     "adm-zip": "0.5.5",
-    "aws-sdk": "2.804.0",
+    "aws-sdk": "2.920.0",
     "exponential-backoff": "3.1.0",
     "fp-ts": "2.10.5",
     "io-ts": "2.2.16",

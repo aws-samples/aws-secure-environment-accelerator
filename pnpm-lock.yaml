@@ -87,7 +87,7 @@ importers:
       '@types/adm-zip': 0.4.34
       '@types/node': 14.14.31
       adm-zip: 0.5.5
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       eslint: 7.25.0
       ip-num: 1.3.1
@@ -102,7 +102,7 @@ importers:
       '@aws-accelerator/common-config': link:../../lib/common-config
       '@aws-accelerator/common-outputs': link:../../lib/common-outputs
       adm-zip: 0.5.5
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       ip-num: 1.3.1
       original-fs: 1.1.0
       uuid: 8.3.2
@@ -337,7 +337,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       eslint: 7.25.0
       jest: 25.2.4
@@ -350,7 +350,7 @@ importers:
       '@aws-accelerator/common-config': link:../../lib/common-config
       '@aws-accelerator/common-outputs': link:../../lib/common-outputs
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       pascal-case: 3.1.2
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -376,7 +376,7 @@ importers:
       '@types/jest': 25.2.3
       '@types/node': 14.14.31
       aws-cdk: 1.101.0
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       eslint: 7.25.0
       jest: 25.2.4
       ts-jest: 25.3.0
@@ -396,7 +396,7 @@ importers:
       '@types/jest': 25.2.3
       '@types/node': 14.14.31
       aws-cdk: 1.101.0
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       eslint: 7.25.0
       jest: 25.2.4
       ts-jest: 25.3.0_jest@25.2.4
@@ -489,7 +489,7 @@ importers:
       '@aws-cdk/core': 1.101.0
       '@types/hash-sum': 1.0.0
       '@types/node': 14.14.31
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       eslint: 7.25.0
       hash-sum: 2.0.0
       ip-num: 1.3.1
@@ -518,7 +518,7 @@ importers:
       '@aws-cdk/aws-s3-assets': 1.101.0
       '@aws-cdk/aws-ssm': 1.101.0
       '@aws-cdk/core': 1.101.0
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       hash-sum: 2.0.0
       ip-num: 1.3.1
     devDependencies:
@@ -535,14 +535,14 @@ importers:
     specifiers:
       '@types/node': 14.14.31
       aws-cdk: 1.101.0
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       colors: 1.4.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
     dependencies:
       aws-cdk: 1.101.0
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       colors: 1.4.0
       exponential-backoff: 3.1.0
     devDependencies:
@@ -562,7 +562,7 @@ importers:
       '@types/prettier': 2.2.3
       '@types/uuid': 8.3.0
       adm-zip: 0.5.5
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       eslint: 7.25.0
       exponential-backoff: 3.1.0
       fp-ts: 2.10.5
@@ -582,7 +582,7 @@ importers:
       '@types/lodash.omit': 4.5.6
       '@types/prettier': 2.2.3
       adm-zip: 0.5.5
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
       fp-ts: 2.10.5
       io-ts: 2.2.16_fp-ts@2.10.5
@@ -733,7 +733,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
@@ -741,7 +741,7 @@ importers:
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       '@aws-accelerator/custom-resource-runtime-cfn-tags': link:../../runtime-cfn-tags
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -770,7 +770,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -778,7 +778,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -808,7 +808,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -816,7 +816,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -849,13 +849,13 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -899,14 +899,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -935,7 +935,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -943,7 +943,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -973,7 +973,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -981,7 +981,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -1017,14 +1017,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1053,7 +1053,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -1061,7 +1061,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -1118,14 +1118,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1155,13 +1155,13 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1194,14 +1194,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1231,13 +1231,13 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1274,7 +1274,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       jest: 25.2.4
       ts-node: 9.1.1
@@ -1283,7 +1283,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1314,7 +1314,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -1322,7 +1322,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -1375,14 +1375,14 @@ importers:
       '@types/node': 14.14.31
       '@types/xml2js': 0.4.8
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
       xml2js: 0.4.23
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       xml2js: 0.4.23
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -1440,14 +1440,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1484,14 +1484,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1528,14 +1528,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1572,14 +1572,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1612,14 +1612,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1649,13 +1649,13 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1690,14 +1690,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1730,14 +1730,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1766,7 +1766,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -1774,7 +1774,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -1829,14 +1829,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1896,14 +1896,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1917,14 +1917,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -1961,14 +1961,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -2005,14 +2005,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -2052,7 +2052,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
@@ -2060,7 +2060,7 @@ importers:
       '@aws-accelerator/custom-resource-macie-enable-runtime': link:../../cdk-macie-enable/runtime
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -2123,7 +2123,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -2131,7 +2131,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -2167,14 +2167,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -2218,7 +2218,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -2226,7 +2226,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -2256,7 +2256,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -2264,7 +2264,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -2300,14 +2300,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -2341,13 +2341,13 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -2376,14 +2376,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -2412,7 +2412,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -2420,7 +2420,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -2450,7 +2450,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -2458,7 +2458,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -2488,14 +2488,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -2524,7 +2524,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -2532,7 +2532,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -2562,7 +2562,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -2570,7 +2570,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -2600,7 +2600,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -2608,7 +2608,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -2638,7 +2638,7 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       exponential-backoff: 3.1.0
       typescript: 4.2.4
@@ -2646,7 +2646,7 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       exponential-backoff: 3.1.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
@@ -2680,14 +2680,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -2720,14 +2720,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -2757,13 +2757,13 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -2798,14 +2798,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -2846,14 +2846,14 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -2865,13 +2865,13 @@ importers:
       '@aws-accelerator/custom-resource-cfn-utils': workspace:*
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       esbuild: 0.11.18
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       aws-lambda: 1.0.6
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/node': 14.14.31
       esbuild: 0.11.18
@@ -2895,10 +2895,10 @@ importers:
   src/lib/custom-resources/runtime-cfn-tags:
     specifiers:
       '@types/node': 14.14.31
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
       typescript: 4.2.4
     dependencies:
-      aws-sdk: 2.804.0
+      aws-sdk: 2.920.0
     devDependencies:
       '@types/node': 14.14.31
       typescript: 4.2.4
@@ -9597,8 +9597,8 @@ packages:
       xml2js: 0.4.19
     dev: false
 
-  /aws-sdk/2.804.0:
-    resolution: {integrity: sha512-a02pZdjL06MunElAZPPEjpghOp/ZA+16f+t4imh1k9FCDpsNVQrT23HRq/PMvRADA5uZZRkYwX8r9o6oH/1RlA==}
+  /aws-sdk/2.873.0:
+    resolution: {integrity: sha512-pww0ImyviDpBDbD2Tj+OyIcSuBKoC7g1g6IzMIFlbWSjbz4WWX46IwZ6jRMy2zGcbEpkl7FjI+s1E7tV9Pcjgg==}
     engines: {node: '>= 0.8.0'}
     dependencies:
       buffer: 4.9.2
@@ -9611,9 +9611,10 @@ packages:
       uuid: 3.3.2
       xml2js: 0.4.19
 
-  /aws-sdk/2.873.0:
-    resolution: {integrity: sha512-pww0ImyviDpBDbD2Tj+OyIcSuBKoC7g1g6IzMIFlbWSjbz4WWX46IwZ6jRMy2zGcbEpkl7FjI+s1E7tV9Pcjgg==}
+  /aws-sdk/2.920.0:
+    resolution: {integrity: sha512-tbMZ/Y2rRo6R6TTBODJXTiil+MXaoT6Qzotws3yvI1IWGpYxKo7N/3L06XB8ul8tCG0TigxIOY70SMICM70Ppg==}
     engines: {node: '>= 0.8.0'}
+    requiresBuild: true
     dependencies:
       buffer: 4.9.2
       events: 1.1.1

@@ -12,7 +12,7 @@
   "dependencies": {
     "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:*",
     "aws-lambda": "1.0.6",
-    "aws-sdk": "2.804.0"
+    "aws-sdk": "2.920.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.76",
