@@ -57,7 +57,7 @@ export interface I18nTranslations {
     graphical_editor: string;
     code_editor: string;
     properties: string;
-    wizards: string;
+    wizard: string;
   };
   labels: {
     empty: string;
@@ -71,6 +71,7 @@ export interface I18nTranslations {
     export_introduction: string;
     configuration_is_valid: string;
     array_element: string;
+    object_element: string;
     required: string;
     toggle_replacement: string;
     loading: string;
@@ -102,6 +103,8 @@ export interface I18nTranslations {
     choose_file: string;
     edit: string;
     import: string;
+    next: string;
+    previous: string;
   };
   languages: { [key: string]: string };
 }

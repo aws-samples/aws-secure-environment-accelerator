@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { Select, SelectProps, SpaceBetween, FormField } from '@awsui/components-react';
+import { Select, SelectProps, SpaceBetween } from '@awsui/components-react';
 import * as t from '@aws-accelerator/common-types';
-import { NodeField } from '@/components';
+import { FormFieldWrapper } from '@/components';
 import { useI18n } from '@/components/i18n-context';
 import { useLocalStorage } from '@/utils/hooks';
 import { Field, FieldProps } from './field';
@@ -13,8 +13,8 @@ interface UnionOption extends SelectProps.Option {
 /**
  * This functional component renders a dropdown with the possible values of the UnionType and renders the field for the selected union type.
  */
-export function UnionField(props: FieldProps<t.UnionType<t.Any[]>>): React.ReactElement {
-  const { node, state } = props;
+export function UnionFormField(props: FieldProps<t.UnionType<t.Any[]>>): React.ReactElement {
+  const { node, state, FieldC = Field, FieldWrapperC = FormFieldWrapper } = props;
   const { metadata } = node;
   const { tr } = useI18n();
 
@@ -61,11 +61,19 @@ export function UnionField(props: FieldProps<t.UnionType<t.Any[]>>): React.React
   };
 
   return (
-    <NodeField {...props} validation={false} stretch>
+    <FieldWrapperC {...props} validation={false}>
       <SpaceBetween direction="vertical" size="s">
         <Select selectedOption={selectedOption} options={options} onChange={handleChange} />
-        {selectedNode ? <Field state={state} node={selectedNode} /> : null}
+        {selectedNode ? (
+          <FieldC
+            state={state}
+            node={selectedNode}
+            context={props.context}
+            FieldC={props.FieldC}
+            FieldWrapperC={props.FieldWrapperC}
+          />
+        ) : null}
       </SpaceBetween>
-    </NodeField>
+    </FieldWrapperC>
   );
 }

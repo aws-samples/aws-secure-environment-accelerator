@@ -2,21 +2,45 @@
 import React from 'react';
 import { action, observable } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { Box, Button, Icon, SpaceBetween } from '@awsui/components-react';
+import { Box, Button, SpaceBetween, SpaceBetweenProps } from '@awsui/components-react';
 import * as t from '@aws-accelerator/common-types';
-import { NodeField } from '@/components/node-field';
+import { FormFieldWrapper } from '@/components/node-field';
+import { useI18n } from '@/components/i18n-context';
+import { Indent } from '@/components/indent';
 import { toArray } from '@/utils/cast';
-import { FieldProps, getFieldRenderer } from './field';
+import { Field, FieldProps } from './field';
 
-import './array.scss';
-import { useI18n } from '../i18n-context';
+export interface ArrayFormFieldProps<T extends t.ArrayType<t.Any> = t.ArrayType<t.Any>> extends FieldProps<T> {
+  /**
+   * @default 'm'
+   */
+  spaceBetween?: SpaceBetweenProps['size'];
+  /**
+   * @default true
+   */
+  divider?: boolean;
+}
 
 /**
  * This functional component renders an "Add" button and all the values in the array and their corresponding "Remove" buttons.
  */
-export function ArrayField(props: FieldProps<t.ArrayType<t.Any>>) {
-  const { node, state } = props;
+export function ArrayFormField<T extends t.ArrayType<t.Any>>(props: ArrayFormFieldProps<T>) {
+  const { FieldWrapperC = FormFieldWrapper } = props;
+
+  return (
+    <FieldWrapperC {...props} validation={false}>
+      <ArrayField {...props} />
+    </FieldWrapperC>
+  );
+}
+
+/**
+ * This functional component renders an "Add" button and all the values in the array and their corresponding "Remove" buttons.
+ */
+export function ArrayField<T extends t.ArrayType<t.Any>>(props: ArrayFormFieldProps<T>) {
+  const { disabled = false, node, state } = props;
   const { tr } = useI18n();
+  const { title } = tr(node);
 
   const handleAdd = action(() => {
     const value = node.get(state);
@@ -25,14 +49,14 @@ export function ArrayField(props: FieldProps<t.ArrayType<t.Any>>) {
   });
 
   return (
-    <NodeField {...props} validation={false} stretch>
-      <SpaceBetween direction="vertical" size="s">
-        <Button onClick={handleAdd}>
-          <Icon name="add-plus" /> {tr('buttons.add')}
+    <SpaceBetween direction="vertical" size="s">
+      {!disabled && (
+        <Button onClick={handleAdd} iconName="add-plus">
+          {tr('buttons.add', { title })}
         </Button>
-        <ArrayFields {...props} />
-      </SpaceBetween>
-    </NodeField>
+      )}
+      <ArrayFields {...props} />
+    </SpaceBetween>
   );
 }
 
@@ -41,12 +65,10 @@ export function ArrayField(props: FieldProps<t.ArrayType<t.Any>>) {
  *
  * This component observes the state and will re-render when the array's values change.
  */
-const ArrayFields = observer(function ArrayFields(props: FieldProps<t.ArrayType<t.Any>>) {
-  const { node, state } = props;
+const ArrayFields = observer(function ArrayFields<T extends t.ArrayType<t.Any>>(props: ArrayFormFieldProps<T>) {
+  const { disabled = false, divider = true, node, state, spaceBetween = 's', FieldC = Field } = props;
   const { tr } = useI18n();
-
-  // Find the renderer for the elements of the array
-  const ElementRenderer = getFieldRenderer(node.rawType);
+  const { title } = tr(node);
 
   const handleRemoveFn = (index: number) =>
     action(() => {
@@ -64,16 +86,29 @@ const ArrayFields = observer(function ArrayFields(props: FieldProps<t.ArrayType<
     const elementNode = node.nested(index);
     return (
       <React.Fragment key={index}>
-        {index > 0 ? <Box className="divider" /> : null}
-        <SpaceBetween direction="vertical" size="s" className="indented">
-          <ElementRenderer state={state} node={elementNode} />
-          <Button onClick={handleRemoveFn(index)}>{tr('buttons.remove')}</Button>
-        </SpaceBetween>
+        {divider && index > 0 ? <Box className="divider" /> : null}
+        <Indent>
+          <SpaceBetween direction="vertical" size="s">
+            <FieldC
+              state={state}
+              node={elementNode}
+              context={props.context}
+              FieldC={props.FieldC}
+              FieldWrapperC={props.FieldWrapperC}
+            />
+            {!disabled && (
+              <Button onClick={handleRemoveFn(index)} iconName="close">
+                {tr('buttons.remove', { title })}
+              </Button>
+            )}
+          </SpaceBetween>
+        </Indent>
       </React.Fragment>
     );
   });
+
   return (
-    <SpaceBetween direction="vertical" size="m">
+    <SpaceBetween direction="vertical" size={spaceBetween}>
       {fields}
     </SpaceBetween>
   );

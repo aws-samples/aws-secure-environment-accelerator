@@ -26,21 +26,9 @@ export function DefaultNavigation(): React.ReactElement {
               href: '#/editor',
             },
             {
-              type: 'link-group',
-              text: tr('menu.wizards'),
-              href: '#/wizards',
-              items: [
-                {
-                  type: 'link',
-                  text: 'PBMM',
-                  href: '#/wizards/pbmm',
-                },
-                {
-                  type: 'link',
-                  text: 'NIST',
-                  href: '#/wizards/nist',
-                },
-              ],
+              type: 'link',
+              text: tr('menu.wizard'),
+              href: '#/wizard',
             },
           ]}
         />

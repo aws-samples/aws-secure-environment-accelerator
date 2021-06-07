@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { createContext, FC, useContext, useEffect, useState } from 'react';
 import * as c from '@aws-accelerator/config';
 import * as t from '@aws-accelerator/common-types';
-import { useAcceleratorConfig } from './accelerator-config-context';
+import { useObservable } from './accelerator-config-context';
 
 interface Replacements {
   readonly replacements: readonly Replacement[];
@@ -18,14 +18,36 @@ interface Replacement {
   readonly description?: string;
 }
 
-const ReplacementsC = createContext<Replacements | undefined>(undefined);
+export function createReplacements(configReplacements: any): Replacements {
+  const replacements = [...createDefaultReplacements(), ...createReplacementsFromConfig(configReplacements)];
+  const replaceInString = (value: string) =>
+    replacements.reduce((current, replacement) => current.replace(replacement.search, replacement.value), value);
 
-export function useReplacements(): Replacements {
-  return useContext(ReplacementsC)!;
+  const replaceInObject = (value: any) => {
+    if (value != null) {
+      const stringified = JSON.stringify(value);
+      // TODO Make this more efficient
+      try {
+        const replaced = replaceInString(stringified);
+        return JSON.parse(replaced);
+      } catch (e) {
+        console.log(stringified);
+        console.warn(e);
+      }
+    }
+    return value;
+  };
+
+  return {
+    replacements,
+    replaceInString,
+    replaceInObject,
+  };
 }
 
-export const ReplacementsContext: FC = observer(function ReplacementsContext({ children }) {
-  const acceleratorConfiguration = useAcceleratorConfig();
+export function useReplacements(name?: string): Replacements {
+  // TODO Cleanup
+  const acceleratorConfiguration = useObservable(name);
   const [replacements, setReplacements] = useState<Replacement[]>([]);
   const configReplacements = acceleratorConfiguration.replacements;
 
@@ -52,14 +74,12 @@ export const ReplacementsContext: FC = observer(function ReplacementsContext({ c
     return value;
   };
 
-  const value = {
+  return {
     replacements,
     replaceInString,
     replaceInObject,
   };
-
-  return <ReplacementsC.Provider value={value}>{children}</ReplacementsC.Provider>;
-});
+}
 
 /**
  * Create replacements from replacement object in Accelerator configuration.

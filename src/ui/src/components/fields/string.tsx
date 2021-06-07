@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { Autosuggest, AutosuggestProps, InputProps } from '@awsui/components-react';
+import { Autosuggest, AutosuggestProps, Input, InputProps } from '@awsui/components-react';
 import * as t from '@aws-accelerator/common-types';
-import { NodeField } from '@/components';
+import { FormFieldWrapper } from '@/components';
 import { useReplacements } from '@/components/replacements-context';
 import { FieldProps } from './field';
 
@@ -15,8 +15,26 @@ const enteredTextLabel = (value: string) => value;
 /**
  * This functional component renders an autosuggest field. The field allows any string input and suggests replacements.
  */
-export const StringField = observer(function StringField(props: FieldProps<StringLikeType>): React.ReactElement {
-  const { node, state } = props;
+export function AutosuggestStringFormField(props: FieldProps<StringLikeType>): React.ReactElement {
+  const { FieldWrapperC = FormFieldWrapper } = props;
+  const [currentValue, setCurrentValue] = useState<string>();
+
+  return (
+    <FieldWrapperC {...props} overrideValue={currentValue}>
+      <AutosuggestStringField {...props} onCurrentValueChange={setCurrentValue} />
+    </FieldWrapperC>
+  );
+}
+
+export interface AutosuggestStringProps extends FieldProps<StringLikeType> {
+  onCurrentValueChange?(value: string): void;
+}
+
+/**
+ * This functional component renders an autosuggest field. The field allows any string input and suggests replacements.
+ */
+export const AutosuggestStringField = observer(function StringField(props: AutosuggestStringProps): React.ReactElement {
+  const { node, state, onCurrentValueChange } = props;
   const value = node.get(state) ?? node.metadata.defaultValue;
   const replacements = useReplacements();
   const [options, setOptions] = useState<AutosuggestProps.Option[]>([]);
@@ -45,6 +63,7 @@ export const StringField = observer(function StringField(props: FieldProps<Strin
           };
         });
       }
+      onCurrentValueChange && onCurrentValueChange(currentValue);
     }
     setOptions(newOptions);
   }, [currentValue]);
@@ -59,16 +78,52 @@ export const StringField = observer(function StringField(props: FieldProps<Strin
   });
 
   return (
-    <NodeField {...props} overrideValue={currentValue} stretch>
-      <Autosuggest
-        enteredTextLabel={enteredTextLabel}
-        value={currentValue ?? ''}
-        options={options}
-        onChange={handleChange}
-        onBlur={handleBlur}
-      />
-    </NodeField>
+    <Autosuggest
+      enteredTextLabel={enteredTextLabel}
+      value={currentValue ?? ''}
+      options={options}
+      onChange={handleChange}
+      onBlur={handleBlur}
+    />
   );
+});
+
+/**
+ * This functional component a string field. The field allows any string input and suggests replacements.
+ */
+export function StringFormField(props: FieldProps<StringLikeType>): React.ReactElement {
+  const { FieldWrapperC = FormFieldWrapper } = props;
+  const [currentValue, setCurrentValue] = useState<string>();
+
+  return (
+    <FieldWrapperC {...props} overrideValue={currentValue}>
+      <StringField {...props} onCurrentValueChange={setCurrentValue} />
+    </FieldWrapperC>
+  );
+}
+
+export interface StringFieldProps extends FieldProps<StringLikeType> {
+  onCurrentValueChange?(value: string): void;
+}
+
+/**
+ * This functional component renders an autosuggest field. The field allows any string input and suggests replacements.
+ */
+export const StringField = observer(function StringField(props: StringFieldProps): React.ReactElement {
+  const { node, state } = props;
+  const value = node.get(state) ?? node.metadata.defaultValue;
+  const [currentValue, setCurrentValue] = useState(emptyStringAsUndefined(value));
+
+  const handleChange: InputProps['onChange'] = event => {
+    setCurrentValue(emptyStringAsUndefined(event.detail.value));
+  };
+
+  // Only actually set the value in state when the field is blurred
+  const handleBlur = action(() => {
+    node.set(state, emptyStringAsUndefined(currentValue));
+  });
+
+  return <Input value={currentValue ?? ''} onChange={handleChange} onBlur={handleBlur} disabled={props.disabled} />;
 });
 
 /**

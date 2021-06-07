@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Errors } from 'io-ts';
 import React, { useCallback, useEffect, useState } from 'react';
+import { Errors } from 'io-ts';
 import { Box, Button, Header, Modal, SpaceBetween, StatusIndicator, Tabs } from '@awsui/components-react';
+import { CodeCommitClient, GetBranchCommand, PutFileCommand } from '@aws-sdk/client-codecommit';
 import * as c from '@aws-accelerator/config';
 import { usePathHistory } from '@/utils/hooks';
 import { useReplacements } from './replacements-context';
+import { useAwsConfiguration } from './aws-credentials-context';
 import { CodeCommitFilePicker, useCodeCommitInputs } from './codecommit-file-picker';
 import { useI18n } from './i18n-context';
 
@@ -172,4 +174,87 @@ export function ExportModal(props: ExportModalProps): React.ReactElement {
       </SpaceBetween>
     </Modal>
   );
+}
+
+export interface HandleExportSubmitProps {
+  setExportDialogVisible(visible: boolean): void;
+  setExportLoading(visible: boolean): void;
+  setExportErrorMessage(message: string): void;
+}
+
+/**
+ * React hook that handles export to file and CodeCommit.
+ */
+export function useHandleExportSubmit(props: HandleExportSubmitProps) {
+  const { configuration: awsConfiguration } = useAwsConfiguration();
+  const { setExportDialogVisible, setExportErrorMessage, setExportLoading } = props;
+
+  /*
+   * Handle submit when file tab is selected.
+   */
+  const handleFileSubmit = useCallback((configuration: any) => {
+    const file = new Blob([JSON.stringify(configuration, null, 2)], { type: 'application/json' });
+
+    const element = document.createElement('a');
+    element.href = URL.createObjectURL(file);
+    element.download = 'config.json';
+    document.body.appendChild(element); // Required for this to work in FireFox
+    element.click();
+
+    setExportDialogVisible(false);
+  }, []);
+
+  /*
+   * Handle submit when CodeCommit tab is selected.
+   */
+  const handleCodeCommitSubmit = useCallback(
+    (submit: ExportModalCodeCommitSubmit) => {
+      setExportLoading(true);
+
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      (async () => {
+        try {
+          const encoder = new TextEncoder();
+          const content = encoder.encode(JSON.stringify(submit.configuration, null, 2));
+
+          const client = new CodeCommitClient(awsConfiguration);
+          const { branch } = await client.send(
+            new GetBranchCommand({
+              repositoryName: submit.repositoryName,
+              branchName: submit.branchName,
+            }),
+          );
+          const { commitId } = await client.send(
+            new PutFileCommand({
+              repositoryName: submit.repositoryName,
+              filePath: submit.filePath,
+              branchName: submit.branchName,
+              parentCommitId: branch?.commitId,
+              fileContent: content,
+            }),
+          );
+        } catch (e) {
+          console.error(e);
+          setExportErrorMessage(`${e}`);
+        } finally {
+          setExportLoading(false);
+          setExportDialogVisible(false);
+        }
+      })();
+    },
+    [awsConfiguration],
+  );
+
+  const handleSubmit = useCallback(
+    (submit: ExportModalSubmit) => {
+      if (submit.type === 'file') {
+        handleFileSubmit(submit.configuration);
+      } else {
+        handleCodeCommitSubmit(submit);
+      }
+    },
+    [handleFileSubmit, handleCodeCommitSubmit],
+  );
+
+  return handleSubmit;
 }

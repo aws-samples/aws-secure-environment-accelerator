@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { InputProps } from '@awsui/components-react';
 import { Path } from '@/components/fields';
+
+export const useEffectAsync = (fn: () => Promise<void>, deps?: ReadonlyArray<unknown>): void =>
+  useEffect(() => (fn() as unknown) as void, deps);
 
 export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
   const [storedValue, setStoredValue] = useState(() => {

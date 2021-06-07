@@ -4,18 +4,19 @@ import { action, observable } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { Box, Button, FormField, Header, Icon, Input, InputProps, Modal, SpaceBetween } from '@awsui/components-react';
 import * as t from '@aws-accelerator/common-types';
-import { NodeField } from '@/components/node-field';
+import { FormFieldWrapper } from '@/components/node-field';
 import { useI18n } from '@/components/i18n-context';
+import { Indent } from '@/components/indent';
 import { toObject } from '@/utils/cast';
 import { Field, FieldProps } from './field';
 
-import './dictionary.scss';
+export type DictionaryFormFieldProps = FieldProps<t.DictionaryType<t.Any, t.Any>>;
 
 /**
  * This functional component renders an "Add" button and all the values in the dictionary and their corresponding "Remove" buttons.
  */
-export function DictionaryField(props: FieldProps<t.DictionaryType<t.Any, t.Any>>) {
-  const { node, state } = props;
+export function DictionaryFormField(props: DictionaryFormFieldProps) {
+  const { disabled = false, node, state, FieldWrapperC = FormFieldWrapper } = props;
   const [modalVisible, setModalVisible] = useState(false);
   const { tr } = useI18n();
   const { title } = tr(node);
@@ -33,20 +34,24 @@ export function DictionaryField(props: FieldProps<t.DictionaryType<t.Any, t.Any>
 
   return (
     <>
-      <AddPropertyModal
-        title={title}
-        visible={modalVisible}
-        onDismiss={() => setModalVisible(false)}
-        onSubmit={handleSubmit}
-      />
-      <NodeField {...props} validation={false} stretch>
+      {!disabled && (
+        <AddPropertyModal
+          title={title}
+          visible={modalVisible}
+          onDismiss={() => setModalVisible(false)}
+          onSubmit={handleSubmit}
+        />
+      )}
+      <FieldWrapperC {...props} validation={false}>
         <SpaceBetween direction="vertical" size="s">
-          <Button onClick={handleAdd}>
-            <Icon name="add-plus" /> {tr('buttons.add')}
-          </Button>
+          {!disabled && (
+            <Button onClick={handleAdd} iconName="add-plus">
+              {tr('buttons.add', { title })}
+            </Button>
+          )}
           <DictionaryFields {...props} />
         </SpaceBetween>
-      </NodeField>
+      </FieldWrapperC>
     </>
   );
 }
@@ -57,8 +62,9 @@ export function DictionaryField(props: FieldProps<t.DictionaryType<t.Any, t.Any>
  * This component observes the state and will re-render when the dictionary's values change.
  */
 const DictionaryFields = observer(function DictionaryFields(props: FieldProps<t.DictionaryType<t.Any, t.Any>>) {
-  const { node, state } = props;
+  const { disabled = false, node, state, FieldC = Field } = props;
   const { tr } = useI18n();
+  const { title } = tr(node);
 
   const handleRemoveFn = (key: string) =>
     action(() => {
@@ -74,10 +80,22 @@ const DictionaryFields = observer(function DictionaryFields(props: FieldProps<t.
     return (
       <React.Fragment key={key}>
         {index > 0 ? <Box className="divider" /> : null}
-        <SpaceBetween direction="vertical" size="s" className="indented">
-          <Field state={state} node={elementNode} />
-          <Button onClick={handleRemoveFn(key)}>{tr('buttons.remove')}</Button>
-        </SpaceBetween>
+        <Indent>
+          <SpaceBetween direction="vertical" size="s">
+            <FieldC
+              state={state}
+              node={elementNode}
+              context={props.context}
+              FieldC={props.FieldC}
+              FieldWrapperC={props.FieldWrapperC}
+            />
+            {!disabled && (
+              <Button onClick={handleRemoveFn(key)} iconName="close">
+                {tr('buttons.remove', { title })}
+              </Button>
+            )}
+          </SpaceBetween>
+        </Indent>
       </React.Fragment>
     );
   });
@@ -116,7 +134,7 @@ function AddPropertyModal(props: {
     <Modal
       visible={props.visible}
       header={<Header variant="h3">{tr('headers.add_dictionary_field', { value: props.title })}</Header>}
-      footer={<Button onClick={handleSubmit}>{tr('buttons.add')}</Button>}
+      footer={<Button onClick={handleSubmit}>{tr('buttons.add', { title: props.title })}</Button>}
       onDismiss={props.onDismiss}
     >
       <form

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import i18next, { i18n, StringMap, TOptions } from 'i18next';
 import { capitalCase } from 'capital-case';
-import { createContext, FC, useContext, useEffect, useState } from 'react';
-import * as t from '@aws-accelerator/common-types';
+import { createContext, FC, useContext, useState } from 'react';
+import { ArrayType, DictionaryType, InterfaceType } from '@aws-accelerator/common-types';
 import { fr, en, isInterfaceTranslations, Translation, I18nKey } from '@aws-accelerator/config-i18n';
 import { TypeTreeNode } from '@/types';
 
@@ -64,10 +64,12 @@ export const I18nProvider: FC = ({ children }) => {
       fragment = node.path[node.path.length - 1];
 
       label = `${fragment}`;
-      if (parent.rawType instanceof t.ArrayType) {
+      if (parent.rawType instanceof ArrayType) {
         description = tr('labels.array_element', { index: fragment });
-      } else if (parent.rawType instanceof t.InterfaceType) {
+      } else if (parent.rawType instanceof InterfaceType) {
         title = capitalCase(label);
+      } else if (parent.rawType instanceof DictionaryType) {
+        description = tr('labels.object_element', { key: fragment });
       }
 
       const parentTranslations = en.tr(parent.type);

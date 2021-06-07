@@ -3,16 +3,30 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { Select, SelectProps } from '@awsui/components-react';
 import * as t from '@aws-accelerator/common-types';
-import { NodeField } from '@/components';
+import { FormFieldWrapper } from '@/components';
 import { FieldProps } from './field';
 import { useI18n } from '../i18n-context';
+
+export interface EnumFieldProps extends FieldProps<t.EnumType<any>> {}
 
 /**
  * This functional component renders a dropdown with all enumeration values.
  */
-export const EnumField = observer(function EnumField(props: FieldProps<t.EnumType<any>>) {
+export function EnumFormField(props: FieldProps<t.EnumType<any>>) {
+  const { FieldWrapperC = FormFieldWrapper } = props;
+  return (
+    <FieldWrapperC {...props}>
+      <EnumField {...props} />
+    </FieldWrapperC>
+  );
+}
+
+/**
+ * This functional component renders a dropdown with all enumeration values.
+ */
+export const EnumField = observer(function EnumField(props: EnumFieldProps) {
   const { tr } = useI18n();
-  const { node, state } = props;
+  const { node, state, disabled } = props;
   const { metadata } = node;
   const value = node.get(state) ?? metadata.defaultValue;
 
@@ -36,9 +50,5 @@ export const EnumField = observer(function EnumField(props: FieldProps<t.EnumTyp
     node.set(state, event.detail.selectedOption.value);
   });
 
-  return (
-    <NodeField {...props} stretch>
-      <Select selectedOption={selectedOption} options={options} onChange={handleChange} />
-    </NodeField>
-  );
+  return <Select selectedOption={selectedOption} options={options} onChange={handleChange} disabled={disabled} />;
 });

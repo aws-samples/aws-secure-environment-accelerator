@@ -14,16 +14,14 @@ export default function Content({ state }: { state: any }): React.ReactElement {
   const { title, description } = tr(node);
 
   return (
-    <>
-      <Container
-        header={
-          <Header variant="h2" description={description}>
-            {title}
-          </Header>
-        }
-      >
-        <NestedField node={node} state={state} />
-      </Container>
-    </>
+    <Container
+      header={
+        <Header variant="h2" description={description}>
+          {title}
+        </Header>
+      }
+    >
+      <NestedField node={node} state={state} />
+    </Container>
   );
 }

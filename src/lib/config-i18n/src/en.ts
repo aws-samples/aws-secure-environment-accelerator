@@ -8,7 +8,7 @@ const translations = translation('en', {
     properties: 'Properties',
     graphical_editor: 'Graphical Editor',
     code_editor: 'Code Editor',
-    wizards: 'Wizards',
+    wizard: 'Wizard',
   },
   headers: {
     add_dictionary_field: 'Add {{value}}',
@@ -20,15 +20,17 @@ const translations = translation('en', {
     import_file: 'File',
   },
   buttons: {
-    add: 'Add',
+    add: 'Add {{title}}',
     cancel: 'Cancel',
-    remove: 'Remove',
+    remove: 'Remove {{title}}',
     save: 'Save',
     choose: 'Choose',
     export: 'Export',
     choose_file: 'Choose file',
     edit: 'Edit',
     import: 'Import',
+    next: 'Next',
+    previous: 'Previous',
   },
   labels: {
     empty: '<empty>',
@@ -42,7 +44,8 @@ const translations = translation('en', {
     export_introduction:
       'You can download the configuration as a file or save it as a file in a CodeCommit repository.',
     configuration_is_valid: 'The configuration is valid.',
-    array_element: 'Element at index "{{index}}"',
+    array_element: 'Element with index "{{index}}"',
+    object_element: 'Element with key "{{key}}"',
     required: 'Required',
     toggle_replacement: 'Toggle Replacement',
     loading: 'Loading...',
@@ -1738,10 +1741,6 @@ translate(c.MandatoryAccountConfigType, {
   title: 'Account Configuration',
   description: '',
   fields: {
-    'landing-zone-account-type': {
-      title: '',
-      description: '',
-    },
     'account-name': {
       title: '',
       description: 'Name of the network account',

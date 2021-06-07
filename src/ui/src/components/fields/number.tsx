@@ -3,13 +3,24 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { Input, InputProps } from '@awsui/components-react';
 import * as t from '@aws-accelerator/common-types';
-import { NodeField } from '@/components';
+import { FormFieldWrapper } from '@/components';
 import { FieldProps } from './field';
 
 /**
  * This functional component renders a number input field.
  */
-export const NumberField = observer((props: FieldProps<t.NumberType>) => {
+export function NumberFormField(props: FieldProps<t.NumberType>) {
+  const { FieldWrapperC = FormFieldWrapper } = props;
+  return (
+    <FieldWrapperC {...props}>
+      <NumberField {...props} />
+    </FieldWrapperC>
+  );
+}
+
+export interface NumberFieldProps extends FieldProps<t.NumberType> {}
+
+export const NumberField = observer((props: NumberFieldProps) => {
   const { node, state } = props;
   const value = node.get(state) ?? node.metadata.defaultValue;
 
@@ -22,9 +33,5 @@ export const NumberField = observer((props: FieldProps<t.NumberType>) => {
     }
   });
 
-  return (
-    <NodeField {...props} overrideValue={value} stretch>
-      <Input value={`${value}`} onChange={handleChange} type="number" />
-    </NodeField>
-  );
+  return <Input value={`${value}`} onChange={handleChange} type="number" disabled={props.disabled} />;
 });

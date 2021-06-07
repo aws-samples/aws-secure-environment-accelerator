@@ -4,7 +4,7 @@ import * as t from 'io-ts';
 import { either } from 'fp-ts/lib/Either';
 import { IPv4CidrRange } from 'ip-num';
 
-export type { Any, AnyProps, Props, TypeOf } from 'io-ts';
+export type { Any, AnyProps, Mixed, Props, TypeC, TypeOf } from 'io-ts';
 export {
   array,
   Array,
@@ -152,10 +152,10 @@ export class EnumType<T extends string | number> extends t.Type<T> {
   }
 }
 
-export type Definition<P extends t.Props> = t.InterfaceType<P> & { definitionName: string };
+export type Definition<P extends t.Props> = t.TypeC<P> & { definitionName: string };
 
 export function definition<P extends t.Props>(name: string, props: P): Definition<P> {
-  return Object.assign(t.interface(props, name), { definitionName: name });
+  return Object.assign(t.type(props, name), { definitionName: name });
 }
 
 export function isDefinition<P extends t.Props>(type: t.TypeC<P>): type is Definition<P> {

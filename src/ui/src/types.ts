@@ -31,7 +31,7 @@ export interface TypeTreeNode<T extends t.Any = t.Any> {
   /**
    * Return a child node at the given path fragment.
    */
-  nested(fragment: Fragment): TypeTreeNode;
+  nested<S extends t.Any>(fragment: Fragment): TypeTreeNode<S>;
   /**
    * Get the value of the current node in the given state.
    */
@@ -51,6 +51,7 @@ export interface TypeMetadata {
 }
 
 export type RawType =
+  | t.UnknownType
   | t.UndefinedType
   | t.LiteralType<any>
   | t.BooleanType
@@ -62,6 +63,36 @@ export type RawType =
   | t.InterfaceType<any>
   | t.UnionType<any>
   | t.DictionaryType<any, any>;
+
+export type RawTypeOf<T extends t.Any> = T extends t.DefaultedType<infer S>
+  ? RawTypeOf<S>
+  : T extends t.OptionalType<infer S>
+  ? RawTypeOf<S>
+  : T extends t.SizedType<any, infer S>
+  ? RawTypeOf<S>
+  : T extends t.InterfaceType<any>
+  ? T
+  : T extends t.DictionaryType<any, any>
+  ? T
+  : T extends t.UnionType<any>
+  ? T
+  : T extends t.ArrayType<any>
+  ? T
+  : T extends t.EnumType<any>
+  ? T
+  : T extends t.CidrType
+  ? T
+  : T extends t.StringType
+  ? T
+  : T extends t.NumberType
+  ? T
+  : T extends t.BooleanType
+  ? T
+  : T extends t.LiteralType<any>
+  ? T
+  : T extends t.UndefinedType
+  ? T
+  : t.UnknownType;
 
 export function isRawType(type: t.Any): type is RawType {
   return (
@@ -190,14 +221,21 @@ export function getTypeTree(type: t.Any, initialPath: Path = []): TypeTreeNode {
     };
 
     if (rawType instanceof t.InterfaceType) {
-      node.nested = (key: Fragment) =>
-        rec({
+      // @ts-ignore
+      node.nested = (key: Fragment) => {
+        const subtype = rawType.props[key];
+        if (!subtype) {
+          throw new Error(`Cannot find interface nested type at ${[...treePath, key].join('.')}`);
+        }
+        return rec({
           parent: node,
-          type: rawType.props[key],
+          type: subtype,
           treePath: [...treePath, key],
           statePath: [...statePath, key],
         });
+      };
     } else if (rawType instanceof t.ArrayType) {
+      // @ts-ignore
       node.nested = (key: Fragment) =>
         rec({
           parent: node,
@@ -206,6 +244,7 @@ export function getTypeTree(type: t.Any, initialPath: Path = []): TypeTreeNode {
           statePath: [...statePath, key],
         });
     } else if (rawType instanceof t.DictionaryType) {
+      // @ts-ignore
       node.nested = (key: Fragment) =>
         rec({
           parent: node,
@@ -214,13 +253,19 @@ export function getTypeTree(type: t.Any, initialPath: Path = []): TypeTreeNode {
           statePath: [...statePath, key],
         });
     } else if (rawType instanceof t.UnionType) {
-      node.nested = (key: Fragment) =>
-        rec({
+      // @ts-ignore
+      node.nested = (key: Fragment) => {
+        const subtype = rawType.types[key];
+        if (!subtype) {
+          throw new Error(`Cannot find union nested type at ${[...treePath, key].join('.')}`);
+        }
+        return rec({
           parent: node,
           type: rawType.types[key as number],
           treePath: [...treePath, key],
           statePath, // `statePath` remains the same for union
         });
+      };
     }
     return node;
   }
@@ -231,10 +276,10 @@ export function getTypeTree(type: t.Any, initialPath: Path = []): TypeTreeNode {
   });
 }
 
-export function getNodeAtPath(node: TypeTreeNode, path: Path): TypeTreeNode {
+export function getNodeAtPath<T extends t.Any = t.Any>(node: TypeTreeNode, path: Path): TypeTreeNode<T> {
   let current = node;
   for (const fragment of path) {
     current = current.nested(fragment);
   }
-  return current;
+  return current as TypeTreeNode<T>;
 }

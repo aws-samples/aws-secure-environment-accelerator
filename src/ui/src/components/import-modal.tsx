@@ -14,7 +14,7 @@ import {
   Tabs,
 } from '@awsui/components-react';
 import { CodeCommitFileInput, ErrorState, FileInput, FileInputState, LoadingState } from '@/components';
-import { useReplacements } from '@/components/replacements-context';
+import { createReplacements } from '@/components/replacements-context';
 import { useI18n } from './i18n-context';
 
 import './import-modal.scss';
@@ -47,7 +47,6 @@ export interface ImportModalProps {
 }
 
 export function ImportModal(props: ImportModalProps): React.ReactElement {
-  const { replaceInString } = useReplacements();
   const { tr } = useI18n();
   const [state, setState] = useState<State>(initialState);
   const [tabId, setTabId] = useState<TabId>('file');
@@ -79,12 +78,16 @@ export function ImportModal(props: ImportModalProps): React.ReactElement {
       try {
         const content = await file?.text();
         if (content) {
-          const replaced = replaceInString(content);
+          const raw = JSON.parse(content);
+          const replacements = createReplacements(raw.replacements || {});
+          const replaced = replacements.replaceInString(content);
           const object = JSON.parse(replaced);
           const validation = c.AcceleratorConfigType.validate(object, []);
           if (validation._tag === 'Right') {
             setState({
               _tag: 'Valid',
+              // Use the raw JSON object instead of the validated configuration object.
+              // Otherwise we will end up with values that are replaced by the replacements object.
               configuration: object,
             });
           } else {

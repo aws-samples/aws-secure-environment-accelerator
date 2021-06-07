@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react';
 import { set } from 'mobx';
-import { useAcceleratorConfig } from '@/components/accelerator-config-context';
+import { useObservable } from '@/components/accelerator-config-context';
 import { DefaultAppLayout } from '@/pages/default/app-layout';
 import Breadcrumbs from './breadcrumbs';
 import Content from './content';
 
 export default function EditorPage() {
-  const state = useAcceleratorConfig();
+  const state = useObservable();
   const [value, setValue] = useState('{}');
 
   const handleSave = () => {

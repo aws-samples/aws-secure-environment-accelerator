@@ -349,6 +349,8 @@ export const ADUserConfig = t.interface({
   groups: t.array(t.nonEmptyString),
 });
 
+export type ADUserConfig = t.TypeOf<typeof ADUserConfig>;
+
 export const MadConfigType = t.interface({
   'dir-id': t.number,
   deploy: t.boolean,
@@ -597,7 +599,6 @@ export const AwsConfigAccountConfig = t.interface({
 });
 
 export const MandatoryAccountConfigType = t.interface({
-  'landing-zone-account-type': t.optional(LandingZoneAccountType),
   'account-name': t.nonEmptyString,
   email: t.nonEmptyString,
   ou: t.nonEmptyString,
@@ -863,9 +864,9 @@ export const ReplacementsConfig = t.record(t.string, ReplacementConfigValue);
 export type ReplacementsConfig = t.TypeOf<typeof ReplacementsConfig>;
 
 export const CidrPoolConfigType = t.interface({
-  cidr: t.cidr,
   pool: t.nonEmptyString,
   region: t.nonEmptyString,
+  cidr: t.cidr,
 });
 
 export const GlobalOptionsConfigType = t.interface({
