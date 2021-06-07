@@ -49,7 +49,8 @@
     "keep-default-vpc-regions": [],
     "aws-org-management": {
       "account": "management",
-      "region": "${HOME_REGION}"
+      "region": "${HOME_REGION}",
+      "add-sns-topics": true
     },
     "central-security-services": {
       "account": "security",
@@ -66,7 +67,11 @@
       "config-aggr-excl-regions": [],
       "macie": true,
       "macie-excl-regions": [],
-      "macie-frequency": "FIFTEEN_MINUTES"
+      "macie-frequency": "FIFTEEN_MINUTES",
+      "macie-sensitive-sh": true,
+      "fw-mgr-alert-level": "High",
+      "security-hub-findings-sns": "High",
+      "add-sns-topics": true
     },
     "central-operations-services": {
       "account": "operations",
@@ -410,7 +415,8 @@
             "alarm-name": "AWS-Security-Group-Changed",
             "metric-name": "SecurityGroupEventCount",
             "sns-alert-level": "Low",
-            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Security Group (in any account, any region of your AWS Organization)."
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Security Group (in any account, any region of your AWS Organization).",
+            "in-org-mgmt-use-lcl-sns": false
           },
           {
             "alarm-name": "AWS-Network-ACL-Changed",

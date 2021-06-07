@@ -60,6 +60,7 @@ export const handler = async (input: StepInput) => {
     'ov-nacl': false,
     'ov-cidr': false,
     'ov-acct-vpc-optin': false,
+    'ov-acct-warming': false,
   };
 
   const {

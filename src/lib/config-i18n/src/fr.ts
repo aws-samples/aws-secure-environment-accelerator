@@ -2148,6 +2148,22 @@ translate(c.CentralServicesConfigType, {
       title: '',
       description: '',
     },
+    'add-sns-topics': {
+      title: '',
+      description: '',
+    },
+    'fw-mgr-alert-level': {
+      title: '',
+      description: '',
+    },
+    'macie-sensitive-sh': {
+      title: '',
+      description: '',
+    },
+    'security-hub-findings-sns': {
+      title: '',
+      description: '',
+    },
   },
 });
 
@@ -2319,6 +2335,10 @@ translate(c.CloudWatchAlarmDefinitionConfigType, {
       description: '',
     },
     'alarm-description': {
+      title: '',
+      description: '',
+    },
+    'in-org-mgmt-use-lcl-sns': {
       title: '',
       description: '',
     },

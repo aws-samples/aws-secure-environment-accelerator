@@ -14,6 +14,7 @@ const macie = new AWS.Macie2();
 export interface HandlerProperties {
   findingPublishingFrequency: MacieFrequency;
   status: MacieStatus;
+  publishSensitiveFindings: boolean;
 }
 
 export const handler = errorHandler(onEvent);
@@ -42,8 +43,9 @@ function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
 async function onCreateOrUpdate(
   event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
 ) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = getPropertiesFromEvent(event);
   const response = await configSession(properties);
+  await updatePublishConfiguration(properties.publishSensitiveFindings);
   return {
     physicalResourceId: getPhysicalId(event),
     data: {},
@@ -59,6 +61,26 @@ async function configSession(properties: HandlerProperties) {
       })
       .promise(),
   );
-
   return updateSession;
+}
+
+async function updatePublishConfiguration(enableSensitiveData: boolean) {
+  await throttlingBackOff(() =>
+    macie
+      .putFindingsPublicationConfiguration({
+        securityHubConfiguration: {
+          publishClassificationFindings: enableSensitiveData,
+          publishPolicyFindings: true,
+        },
+      })
+      .promise(),
+  );
+}
+
+function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  if (typeof properties.publishSensitiveFindings === 'string') {
+    properties.publishSensitiveFindings = properties.publishSensitiveFindings === 'true';
+  }
+  return properties;
 }

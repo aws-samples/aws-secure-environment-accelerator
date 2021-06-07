@@ -39,7 +39,7 @@ Parameters:
     Type: String
   AcceleratorPrefix:
     Description: Accelerator prefix used for deployment.
-    Default: PBMMAccel-
+    Default: ASEA-
     Type: String
     AllowedPattern: "[a-zA-Z][a-zA-Z0-9-]*-"
 Conditions:
@@ -83,6 +83,7 @@ Resources:
   FileAssetsBucketEncryptionKey:
     Type: AWS::KMS::Key
     Properties:
+      EnableKeyRotation: true
       KeyPolicy:
         Statement:
           - Action:

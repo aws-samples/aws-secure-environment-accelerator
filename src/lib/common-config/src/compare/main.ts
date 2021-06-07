@@ -96,6 +96,10 @@ export async function compareAcceleratorConfig(props: {
   if (!overrideConfig['ov-acct-email']) {
     await validate.validateAccountEmail(configChanges, errors);
   }
+
+  if (!overrideConfig['ov-acct-warming']) {
+    await validate.validateAccountWarming(configChanges, errors);
+  }
   if (!overrideConfig['ov-acct-ou']) {
     await validate.validateAccountOu(configChanges, errors);
   }

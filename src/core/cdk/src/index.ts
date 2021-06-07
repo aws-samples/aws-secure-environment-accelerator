@@ -16,8 +16,8 @@ async function main() {
   // Load accelerator parameters
   const app = new cdk.App();
 
-  const acceleratorName = env.ACCELERATOR_NAME || 'PBMM';
-  const acceleratorPrefix = env.ACCELERATOR_PREFIX || 'PBMMAccel-';
+  const acceleratorName = env.ACCELERATOR_NAME || 'ASEA';
+  const acceleratorPrefix = env.ACCELERATOR_PREFIX || 'ASEA-';
   const stateMachineName = env.ACCELERATOR_STATE_MACHINE_NAME || `${acceleratorPrefix}MainStateMachine_sm`;
   const stateMachineExecutionRole = env.ACCELERATOR_STATE_MACHINE_ROLE_NAME || `${acceleratorPrefix}PipelineRole`;
 

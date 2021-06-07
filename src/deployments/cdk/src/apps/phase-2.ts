@@ -350,6 +350,7 @@ export async function deploy({
     accountStacks,
     config: acceleratorConfig,
     outputs,
+    accounts,
   });
 
   const logBucket = accountBuckets[acceleratorConfig['global-options']['central-log-services'].account];

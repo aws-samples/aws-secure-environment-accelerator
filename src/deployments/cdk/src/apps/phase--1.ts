@@ -118,4 +118,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
     accountStacks,
     accounts,
   });
+
+  await globalRoles.createFmsCustomResourceRole({
+    accountStacks,
+    config: acceleratorConfig,
+  });
 }

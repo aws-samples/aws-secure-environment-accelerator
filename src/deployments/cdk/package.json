@@ -40,6 +40,7 @@
     "@aws-accelerator/custom-resource-ec2-modify-transit-gateway-vpc-attachment": "workspace:*",
     "@aws-accelerator/custom-resource-ec2-vpn-attachment": "workspace:*",
     "@aws-accelerator/custom-resource-ec2-vpn-tunnel-options": "workspace:*",
+    "@aws-accelerator/custom-resource-fms-notification-channel": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-guardduty-admin-setup": "workspace:*",
     "@aws-accelerator/custom-resource-guardduty-create-publish": "workspace:*",
     "@aws-accelerator/custom-resource-guardduty-enable-admin": "workspace:*",

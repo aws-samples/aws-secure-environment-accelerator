@@ -7,7 +7,7 @@ import copy
 parser = argparse.ArgumentParser(
     description="A Script to load existing cidrs to DDB Cidr Pool table and generate new config based for upgrade"
 )
-parser.add_argument('--AcceleratorPrefix', default='PBMMAccel-',
+parser.add_argument('--AcceleratorPrefix', default='ASEA-',
                     help='The value set in AcceleratorPrefix')
 parser.add_argument('--ConfigFile', required=True, help='ConfigFile location')
 parser.add_argument('--Region', required=True,

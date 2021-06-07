@@ -13,6 +13,15 @@ export const ConfigRuleType = t.enums('ConfigRuleType', ['managed', 'custom']);
 
 export type ConfigRuleType = t.TypeOf<typeof ConfigRuleType>;
 
+export const SecurityHubFindingsSnsType = t.enums('SecurityHubFindingsSnsType', [
+  'None',
+  'Low',
+  'Medium',
+  'High',
+  'Critical',
+]);
+export type SecurityHubFindingsSnsType = t.TypeOf<typeof SecurityHubFindingsSnsType>;
+
 export const asn = t.sized<number>(t.number, {
   min: 0,
   max: 65535,
@@ -733,6 +742,10 @@ export const CentralServicesConfigType = t.interface({
   'sns-excl-regions': t.optional(t.array(t.nonEmptyString)),
   'sns-subscription-emails': t.defaulted(t.record(t.nonEmptyString, t.array(t.nonEmptyString)), {}),
   's3-retention': t.optional(t.number),
+  'add-sns-topics': t.defaulted(t.boolean, false),
+  'macie-sensitive-sh': t.defaulted(t.boolean, false),
+  'fw-mgr-alert-level': t.defaulted(t.string, 'Medium'),
+  'security-hub-findings-sns': t.defaulted(SecurityHubFindingsSnsType, 'None'),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
@@ -793,6 +806,7 @@ export const CloudWatchAlarmDefinitionConfigType = t.interface({
   'metric-name': t.nonEmptyString,
   'sns-alert-level': t.nonEmptyString,
   'alarm-description': t.nonEmptyString,
+  'in-org-mgmt-use-lcl-sns': t.defaulted(t.boolean, true),
 });
 
 export type CloudWatchAlarmsConfig = t.TypeOf<typeof CloudWatchAlarmsConfigType>;

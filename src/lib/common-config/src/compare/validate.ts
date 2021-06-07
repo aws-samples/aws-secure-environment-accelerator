@@ -522,6 +522,24 @@ export async function validateAccountOptInVpc(differences: Diff<LHS, RHS>[], err
 
 /**
  *
+ * function to validate account warming change
+ *
+ * @param differences
+ * @param errors
+ */
+export async function validateAccountWarming(
+  differences: Diff<LHS, RHS>[],
+  errors: string[],
+): Promise<void | undefined> {
+  // the below function checks renaming of the sub accounts
+  const accountWarming = validateConfig.matchEditedConfigPath(differences, 'account-warming-required', true);
+  if (accountWarming) {
+    errors.push(...accountWarming);
+  }
+}
+
+/**
+ *
  * function to validate VPC Outputs of previous executions with DDB Cidr values
  *
  * @param differences

@@ -22,6 +22,7 @@ import { checkAccountWarming } from '../../account-warming/outputs';
 import { createIamInstanceProfileName } from '../../../common/iam-assets';
 import { RegionalBucket } from '../../defaults';
 import { string as StringType } from 'io-ts';
+import { CfnSleep } from '@aws-accelerator/custom-resource-cfn-sleep';
 
 export interface FirewallStep3Props {
   accountBuckets: { [accountKey: string]: RegionalBucket };
@@ -51,7 +52,11 @@ export async function step3(props: FirewallStep3Props) {
       continue;
     }
 
-    if (accountConfig['account-warming-required'] && !checkAccountWarming(accountKey, outputs)) {
+    const accountWarming = checkAccountWarming(accountKey, outputs);
+    const accountWarmingStatus =
+      accountConfig['account-warming-required'] &&
+      !(accountWarming.accountWarmed || (accountWarming.timeLeft && accountWarming.timeLeft > 0));
+    if (accountWarmingStatus) {
       console.log(`Skipping firewall deployment: account "${accountKey}" is not warmed`);
       continue;
     }
@@ -114,6 +119,24 @@ export async function step3(props: FirewallStep3Props) {
         continue;
       }
 
+      let sleep: CfnSleep | undefined;
+      if (
+        accountConfig['account-warming-required'] &&
+        !accountWarming.accountWarmed &&
+        accountWarming.timeLeft &&
+        accountWarming.timeLeft > 0
+      ) {
+        const existing = accountStack.node.tryFindChild('ClusterSleep');
+        if (existing) {
+          sleep = existing as CfnSleep;
+        } else {
+          sleep = new CfnSleep(accountStack, 'ClusterSleep', {
+            // Setting 5 minutes sleep and performing firewall cluster creation.
+            sleep: 5 * 60 * 1000,
+          });
+        }
+      }
+
       await createFirewallCluster({
         accountBucket,
         accountStack,
@@ -123,6 +146,7 @@ export async function step3(props: FirewallStep3Props) {
         vpc,
         vpcConfig,
         replacements,
+        sleep,
       });
     }
   }
@@ -140,6 +164,7 @@ async function createFirewallCluster(props: {
   vpc: Vpc;
   vpcConfig: c.VpcConfig;
   replacements?: { [key: string]: string };
+  sleep?: CfnSleep;
 }) {
   const {
     accountStack,
@@ -150,6 +175,7 @@ async function createFirewallCluster(props: {
     vpc,
     vpcConfig,
     replacements,
+    sleep,
   } = props;
 
   const {
@@ -195,6 +221,10 @@ async function createFirewallCluster(props: {
       templateConfigPath: configFile,
     },
   });
+
+  if (sleep) {
+    cluster.node.addDependency(sleep);
+  }
 
   // Make sure the instance can read the configuration
   accountBucket.grantRead(instanceRole);

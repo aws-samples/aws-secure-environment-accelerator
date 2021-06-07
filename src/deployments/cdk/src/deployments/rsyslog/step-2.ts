@@ -38,7 +38,7 @@ export async function step2(props: RSysLogStep1Props) {
       continue;
     }
 
-    if (accountConfig['account-warming-required'] && !checkAccountWarming(accountKey, outputs)) {
+    if (accountConfig['account-warming-required'] && !checkAccountWarming(accountKey, outputs).accountWarmed) {
       console.log(`Skipping rsyslog deployment: account "${accountKey}" is not warmed`);
       continue;
     }

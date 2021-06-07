@@ -2,6 +2,7 @@ import { SNS } from '@aws-accelerator/common/src/aws/sns';
 import { SNSEvent, Context } from 'aws-lambda';
 
 const logCentralRegion = process.env.CENTRAL_LOG_SERVICES_REGION!;
+const logCentralAccount = process.env.CENTRAL_LOG_ACCOUNT!;
 const sns = new SNS(undefined, logCentralRegion);
 
 export const handler = async (input: SNSEvent, context: Context): Promise<void> => {
@@ -10,10 +11,9 @@ export const handler = async (input: SNSEvent, context: Context): Promise<void> 
   const snsNotificationConfig = input.Records[0].Sns;
   const topicArn = snsNotificationConfig.TopicArn;
   const topicName = topicArn.split(':').pop();
-  const accountId = context.invokedFunctionArn.split(':')[4];
   await sns.publish({
     Message: snsNotificationConfig.Message,
     Subject: snsNotificationConfig.Subject,
-    TopicArn: `arn:aws:sns:${logCentralRegion}:${accountId}:${topicName}`,
+    TopicArn: `arn:aws:sns:${logCentralRegion}:${logCentralAccount}:${topicName}`,
   });
 };

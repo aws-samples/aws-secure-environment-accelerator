@@ -11,6 +11,7 @@ export interface MacieUpdateSessionProps {
   findingPublishingFrequency: MacieFrequency;
   status: MacieStatus;
   roleArn: string;
+  publishSensitiveFindings: boolean;
 }
 /**
  * Custom resource implementation that turn on auto enable for Macie

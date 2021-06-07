@@ -166,7 +166,7 @@ export async function createMacieUpdateSessionRole(stack: AccountStack) {
 
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
-      actions: ['macie2:UpdateMacieSession'],
+      actions: ['macie2:UpdateMacieSession', 'macie2:PutFindingsPublicationConfiguration'],
       resources: ['*'],
     }),
   );

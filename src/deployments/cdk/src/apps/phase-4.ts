@@ -2,6 +2,7 @@ import { PhaseInput } from './shared';
 import * as securityHub from '../deployments/security-hub';
 import * as cloudWatchDeployment from '../deployments/cloud-watch';
 import * as centralEndpoints from '../deployments/central-endpoints';
+import * as fmsDeployment from '../deployments/fms';
 
 export interface RdgwArtifactsOutput {
   accountKey: string;
@@ -59,5 +60,18 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
     accounts,
     executionRole: context.acceleratorPipelineRoleName,
     assumeRole: context.acceleratorExecutionRoleName,
+  });
+
+  await fmsDeployment.putNotificationChannel({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    assumeRole: context.acceleratorExecutionRoleName,
+    outputs,
+  });
+
+  await cloudWatchDeployment.step3({
+    accountStacks,
+    config: acceleratorConfig,
   });
 }

@@ -27,19 +27,33 @@ export function getTimeDiffInMinutes(instanceLaunchTime: string): number {
   return minutes;
 }
 
-export function checkAccountWarming(accountKey: string, outputs: StackOutput[]): boolean {
+export function checkAccountWarming(
+  accountKey: string,
+  outputs: StackOutput[],
+): {
+  accountWarmed: boolean;
+  timeLeft?: number;
+} {
   const instanceTimeOutputs = StructuredOutput.fromOutputs(outputs, {
     type: InstanceTimeOutputType,
     accountKey,
   });
   if (!instanceTimeOutputs || instanceTimeOutputs.length === 0) {
     console.warn(`Cannot find InstanceOutput for account ${accountKey}`);
-    return false;
+    return {
+      accountWarmed: false,
+    };
   } else {
-    if (getTimeDiffInMinutes(instanceTimeOutputs[0].time) < 15) {
+    const differenceTime = getTimeDiffInMinutes(instanceTimeOutputs[0].time);
+    if (differenceTime < 15) {
       console.warn(`Minimum 15 minutes of account warming required for account ${accountKey}`);
-      return false;
+      return {
+        accountWarmed: false,
+        timeLeft: 15 - differenceTime,
+      };
     }
   }
-  return true;
+  return {
+    accountWarmed: true,
+  };
 }

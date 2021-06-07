@@ -217,7 +217,7 @@ export async function step3(props: MacieStep3Props) {
   const regions = await getValidRegions(config);
   const masterBucketKeyArn = masterBucket.encryptionKey?.keyArn;
   const findingPublishingFrequency = await getFrequency(config);
-  for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
+  for (const [accountKey, _] of config.getAccountConfigs()) {
     const macieExportConfigRoleOutput = IamRoleOutputFinder.tryFindOneByName({
       outputs,
       accountKey,
@@ -253,6 +253,7 @@ export async function step3(props: MacieStep3Props) {
         findingPublishingFrequency,
         status: MacieStatus.ENABLED,
         roleArn: macieUpdateSessionOutput.roleArn,
+        publishSensitiveFindings: config['global-options']['central-security-services']['macie-sensitive-sh'],
       });
     }
   }

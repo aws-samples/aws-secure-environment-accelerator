@@ -19,6 +19,8 @@ export async function step2(props: CloudWatchStep2Props) {
     console.log(`No Configuration defined for CloudWatch Deployment`);
     return;
   }
+  const managementAccount = config['global-options']['aws-org-management'].account;
+  const managementRegion = config['global-options']['aws-org-management'].region;
   const alarmsConfig = globalOptions.cloudwatch.alarms;
   const alarmDefaultDefinition: c.CloudWatchDefaultAlarmDefinition = alarmsConfig;
   for (const alarmconfig of alarmsConfig.definitions) {
@@ -58,9 +60,14 @@ export async function step2(props: CloudWatchStep2Props) {
           treatMissingData: alarmconfig['treat-missing-data'] || alarmDefaultDefinition['default-treat-missing-data'],
           threshold: alarmconfig.threshold || alarmDefaultDefinition['default-threshold'],
           alarmActions: [
-            `arn:aws:sns:${cdk.Aws.REGION}:${getAccountId(accounts, centralLogServices.account)}:${createSnsTopicName(
-              alarmconfig['sns-alert-level'],
-            )}`,
+            accountKey === managementAccount && region === managementRegion && alarmconfig['in-org-mgmt-use-lcl-sns']
+              ? `arn:aws:sns:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:${createSnsTopicName(
+                  alarmconfig['sns-alert-level'],
+                )}`
+              : `arn:aws:sns:${cdk.Aws.REGION}:${getAccountId(
+                  accounts,
+                  centralLogServices.account,
+                )}:${createSnsTopicName(alarmconfig['sns-alert-level'])}`,
           ],
         });
       }
