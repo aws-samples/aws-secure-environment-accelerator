@@ -27,22 +27,22 @@ If the customer is an Enterprise Support customer and has ES enabled at the ALZ 
 ### 1.4.
 
 Make sure the ALZ Pipeline is running cleanly.    Execute the ALZ Code Pipeline from the mgmt account to make sure it has a clean run.
-    * AWS→CodePipeline
-    * Select “AWS-Landing-Zone-CodePipeline”
-    * Select “Release Change”
-    * Click on the pipeline and confirm it successfully runs through to completion
+- AWS→CodePipeline
+- Select “AWS-Landing-Zone-CodePipeline”
+- Select “Release Change”
+- Click on the pipeline and confirm it successfully runs through to completion
 
 ### 1.5.
 
 Confirm SSO temporary command line access from the mgmt account with an SSO user with AdminAccess. Confirm you have the AWS CLI tool installed.
-    * SSO login → Select linked account → “Command line or programmatic access”
-        * Select Option 2 and add to your AWS credentials file under “[default]“
-        * This is required as the python script in step 3 takes a “profile” paramater
-    * CLI - https://aws.amazon.com/cli/
-    * Confirm by running a command such as “aws s3 ls”
+- SSO login → Select linked account → “Command line or programmatic access”
+  - Select Option 2 and add to your AWS credentials file under “[default]“
+  - his is required as the python script in step 3 takes a “profile” paramater
+- CLI - https://aws.amazon.com/cli/
+- Confirm by running a command such as “aws s3 ls”
 
 ### 1.6.
 
 Make sure you have python3 and the AWS python library (boto3) installed which is required in step 2 to confirm the account has been disassociated from the landing zone.
-    * BOTO3 - https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html
+- BOTO3 - https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html
 
