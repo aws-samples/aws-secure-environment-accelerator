@@ -46,3 +46,60 @@ Confirm SSO temporary command line access from the mgmt account with an SSO user
 Make sure you have python3 and the AWS python library (boto3) installed which is required in step 2 to confirm the account has been disassociated from the landing zone.
 - BOTO3 - https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html
 
+## 2. Landing Zone (ALZ): Disassociate the account from the Landing Zone
+
+- 2.0 - Login to the ALZ management account, and go to “Service Catalog” -> “Provisioned products”
+- 2.1 - Select “Access Filter” -> “Account” to see a list of the account products
+
+### 2.2. Select the product for the specific linked account 
+- Put the linked account name in the provisioned products search bar
+- This will narrow down the list and show a product name “AWS-Landing-Zone-Account-Vending-Machine” with a name *“lz_applicaitons_<ACCOUNT_NAME>_<date>”*
+- Select that product and then “Actions->Terminate”
+  
+### 2.3. Confirm that successfully terminates
+- The provisioned product entry will show Status “Under change”
+- You can also verify by going to CloudFormation→Stacks and you will see “DELETE IN PROGRESS” for the AVM Template stack being deleted. 
+  - Go to the Resources tab to see the deleted resources associated to this stack.
+- Once the provisioned product no longer says “Under change” move to the next step.  
+- Please note, this can take 1-2 hours.
+
+### 2.4. Go to the linked account (assume role)
+- From mgmt account, assume role to the linked account with role “AWSCloudFormationStackSetExecutionRole”
+  - or optionally, SSO with console access to that account
+
+### 2.5. Under “CloudFormation” verify that the ALZ Stacks (StackSets from ALZ mgmt) were deleted.  
+- There should be no stack left in the linked account with the prefix “StackSet-AWS-Landing-Zone-Baseline*.".  For example:
+  - StackSet-AWS-Landing-Zone-Baseline-CentralizedLoggingSpoke-
+  - StackSet-AWS-Landing-Zone-Baseline-EnableConfigRules-
+  - StackSet-AWS-Landing-Zone-Baseline-EnableNotifications-
+  - StackSet-AWS-Landing-Zone-Baseline-EnableConfigRulesGlobal-
+  - StackSet-AWS-Landing-Zone-Baseline-EnableConfig-
+  - StackSet-AWS-Landing-Zone-Baseline-ConfigRole-
+  - StackSet-AWS-Landing-Zone-Baseline-IamPasswordPolicy-
+  - StackSet-AWS-Landing-Zone-Baseline-SecurityRoles-
+  - StackSet-AWS-Landing-Zone-Baseline-EnableCloudTrail-
+  
+### 2.6. Verify that the accounts are ready to be invited to the ASEA and baselined by ASEA:
+- You need to ensure that resources don’t exist in the default VPC, there is no config recorder channel, no CloudTrail Trail and STS is active in all regions.
+- This can be done manually, but ideally use this python script that can be run as well to automate the verification
+  - https://github.com/paulbayer/Inventory_Scripts/blob/mainline/ALZ_CheckAccount.py
+  - mkdir test; cd test
+  - git clone https://github.com/paulbayer/Inventory_Scripts.git
+  - python3 ALZ_CheckAccount.py -a <LINKED ACCOUNT> -p default*
+- It will run through 5 steps and output the following.   If you were to run this script before the “terminate” step above is complete you would have warnings in steps 2 and 3 below.
+  - ** Step 0 completed without issues
+  - Checking account 111122223333 for default VPCs in any region
+  - ** Step 1 completed with no issues
+  - Checking account 111122223333 for a Config Recorders and Delivery Channels in any region
+  - ** Step 2 completed with no issues
+  - Checking account 111122223333 for a specially named CloudTrail in all regions
+  - ** Step 3 completed with no issues
+  - * Checking account 111122223333 for any GuardDuty invites
+  - * ** Step 4 completed with no issues
+  - * Checking that the account is part of the AWS Organization.
+  - * ** Step 5 completed with no issues
+  - * **** We've found NO issues that would hinder the adoption of this account ****  
+  
+  
+
+
