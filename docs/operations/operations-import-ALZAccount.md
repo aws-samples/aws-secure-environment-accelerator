@@ -2,8 +2,8 @@
 
 <!-- TOC depthFrom:1 depthTo:4 -->
 
-- [1. Prerequisites (Setup)](#1-toc)
-- [2. Landing Zone - Disassociate the account from the Landing Zone](#2-toc)
+- [1. Prerequisites (Setup)](#1-prerequisites-setup)
+- [2. Landing Zone - Disassociate the account from the Landing Zone](#2-landing-zone---disassociate-the-account-from-the-landing-zone)
 - [3. Landing Zone - Remove the account from the landing Zone (ALZ) organizations and make standalone](#3-toc)
 - [4. Accelerator (ASEA) - Invite the account into it's organization](#4-toc)
 - [5. Accelerator (ASEA) - Move the linked account from top level root OU into appropriate OU managed by ASEA](#5-toc)
