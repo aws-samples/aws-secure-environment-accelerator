@@ -4,11 +4,11 @@
 
 - [1. Prerequisites (Setup)](#1-prerequisites-setup)
 - [2. Landing Zone - Disassociate the account from the Landing Zone](#2-landing-zone---disassociate-the-account-from-the-landing-zone)
-- [3. Landing Zone - Remove the account from the landing Zone (ALZ) organizations and make standalone](#3-toc)
-- [4. Accelerator (ASEA) - Invite the account into it's organization](#4-toc)
-- [5. Accelerator (ASEA) - Move the linked account from top level root OU into appropriate OU managed by ASEA](#5-toc)
-- [6. Accelerator (ASEA) - Verify access control via roles, SSO, etc](#6-toc)
-- [7. Landing Zone - Close down the remainder of the Landing zone core accounts and then the mgmt. account](#7-toc)
+- [3. Landing Zone - Remove the account from the landing Zone (ALZ) organizations and make standalone](#3-landing-zone---remove-the-account-from-the-landing-zone-alz-organizations-and-make-standalone)
+- [4. Accelerator (ASEA) - Invite the account into it's organization](#4-acceleartor-asea---invite-the-account-into-its-organization)
+- [5. Accelerator (ASEA) - Move the linked account from top level root OU into appropriate OU managed by ASEA](#5-acceleartor-asea---move-the-linked-account-from-the-top-level-root-ou-into-appropriate-ou-managed-by-asea)
+- [6. Accelerator (ASEA) - Verify access control via roles, SSO, etc](#6-acceleartor-asea---verify-access-control-via-roles-sso-etc)
+- [7. Landing Zone - Close down the remainder of the Landing zone core accounts and then the mgmt. account](#7-landing-zone---close-down-the-remainder-of-the-landing-zone-core-accounts-and-then-the-mgmt-account)
 
 # Purpose
 
