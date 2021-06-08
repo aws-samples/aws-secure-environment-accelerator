@@ -1,5 +1,15 @@
 # Operations - How to migrate an Amazon Landing Zone (ALZ) account "as is" into an Amazon Secure Environment Accelerator.
 
+<!-- TOC depthFrom:1 depthTo:4 -->
+
+- [1. Prerequisites (Setup)](#1-toc)
+- [2. Landing Zone - Disassociate the account from the Landing Zone](#2-toc)
+- [3. Landing Zone - Remove the account from the landing Zone (ALZ) organizations and make standalone](#3-toc)
+- [4. Accelerator (ASEA) - Invite the account into it's organization](#4-toc)
+- [5. Accelerator (ASEA) - Move the linked account from top level root OU into appropriate OU managed by ASEA](#5-toc)
+- [6. Accelerator (ASEA) - Verify access control via roles, SSO, etc](#6-toc)
+- [7. Landing Zone - Close down the remainder of the Landing zone core accounts and then the mgmt. account](#7-toc)
+
 # Purpose
 
 This document describes the steps to migrate an existing Linked account from an Amazon Landing Zone (ALZ) to an Amazon Secure Environment Accelerator.
@@ -46,7 +56,7 @@ Confirm SSO temporary command line access from the mgmt account with an SSO user
 Make sure you have python3 and the AWS python library (boto3) installed which is required in step 2 to confirm the account has been disassociated from the landing zone.
 - BOTO3 - https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html
 
-## 2. Landing Zone (ALZ): Disassociate the account from the Landing Zone
+## 2. Landing Zone - Disassociate the account from the Landing Zone
 
 - 2.0 - Login to the ALZ management account, and go to “Service Catalog” -> “Provisioned products”
 - 2.1 - Select “Access Filter” -> “Account” to see a list of the account products
@@ -101,7 +111,7 @@ Make sure you have python3 and the AWS python library (boto3) installed which is
   - We've found NO issues that would hinder the adoption of this account ****  
   
   
-## 3. Remove the account from the landing Zone (ALZ) organizations and make standalone
+## 3. Landing Zone - Remove the account from the landing Zone (ALZ) organizations and make standalone
 
 Removing the account from the ALZ organizations to standalone is required so that the ASEA can invite this account into its organization.
   
@@ -124,7 +134,7 @@ Removing the account from the ALZ organizations to standalone is required so tha
 - https://aws.amazon.com/blogs/security/aws-organizations-now-supports-self-service-removal-of-accounts-from-an-organization
 - Note, when moving the account standalone you won’t (do not select) Enterprise Support.  You shouldn't get a popup dialog asking for Credit Card and Support level since the account should have been moved to invoicing.  Support can be reenabled on the linked account once it’s invited into the ASEA mgmt account that has ES already active (if ASEA has ES active on the mgmt account).
 
-## 4.0 Acceleartor (ASEA) invites the account into it's organization
+## 4. Acceleartor (ASEA) - Invite the account into it's organization
 
 ### 4.1 From the ASEA mgmt account, send an invite to the account (now standalone)
 - Follow the instructions on the following link to invite the account. 
@@ -154,7 +164,7 @@ Removing the account from the ALZ organizations to standalone is required so tha
   - Update the trust relationship to have the mgmt account ID of the ASEA (instead of the account ID of the previous ALZ)
 - Note, there is also a CFN stack which will create this role here: \reference-artifacts\Custom-Scripts\Import-Account-CFN-Role-Template.yml
 
-## 5. Acceleartor (ASEA) will move the linked account from top level root OU into appropriate OU managed by ASEA
+## 5. Acceleartor (ASEA) - Move the linked account from the top level root OU into appropriate OU managed by ASEA
 
 ### 5.0. Plan what OU this account will be moved into
 - Option 1 - Create a new OU and move account into that OU 
