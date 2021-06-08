@@ -85,21 +85,41 @@ Make sure you have python3 and the AWS python library (boto3) installed which is
   - https://github.com/paulbayer/Inventory_Scripts/blob/mainline/ALZ_CheckAccount.py
   - mkdir test; cd test
   - git clone https://github.com/paulbayer/Inventory_Scripts.git
-  - python3 ALZ_CheckAccount.py -a <LINKED ACCOUNT> -p default*
+  - python3 ALZ_CheckAccount.py -a <LINKED ACCOUNT> -p default
 - It will run through 5 steps and output the following.   If you were to run this script before the “terminate” step above is complete you would have warnings in steps 2 and 3 below.
-  - ** Step 0 completed without issues
+  - Step 0 completed without issues
   - Checking account 111122223333 for default VPCs in any region
-  - ** Step 1 completed with no issues
+  - Step 1 completed with no issues
   - Checking account 111122223333 for a Config Recorders and Delivery Channels in any region
-  - ** Step 2 completed with no issues
+  - Step 2 completed with no issues
   - Checking account 111122223333 for a specially named CloudTrail in all regions
-  - ** Step 3 completed with no issues
-  - * Checking account 111122223333 for any GuardDuty invites
-  - * ** Step 4 completed with no issues
-  - * Checking that the account is part of the AWS Organization.
-  - * ** Step 5 completed with no issues
-  - * **** We've found NO issues that would hinder the adoption of this account ****  
+  - Step 3 completed with no issues
+  - Checking account 111122223333 for any GuardDuty invites
+  - Step 4 completed with no issues
+  - Checking that the account is part of the AWS Organization.
+  - Step 5 completed with no issues
+  - We've found NO issues that would hinder the adoption of this account ****  
   
   
+## 3. Remove the account from the landing Zone (ALZ) organizations and make standalone
 
+Removing the account from the ALZ organizations to standalone is required so that the ASEA can invite this account into its organization.
+  
+### 3.0. Read the following summary/considerations
+- https://aws.amazon.com/premiumsupport/knowledge-center/organizations-move-accounts/
+
+### 3.1. Verify access
+- As stated in the previous sections, verify you have a mechanism to get access to the account post leaving the ALZ organization
+  - Former SSO roles will no longer function nor will the “AWSCloudFormationStackSetExecutionRole” as it was locked to the previous org root account
+  - Could be as simple as ensuring the root credentials have been recovered and are usable
+  - Could be a new role/IAM user with Admin access within the account
+
+### 3.2. Verify billing flipped to invoicing
+ - As stated in the previous sections, verify the account billing has been flipped to “invoicing” to avoid having to enter a Credit Card when going standalone.  This can be done working with your AWS account team who will coordinate internally, or by raising a support case describing the use case.
+
+### 3.3. Remove the account from the organizations and make standalone
+- Follow the instructions on the following link to remove the account.  Simply select the account from the ALZ mgmt account Organizations and select "remove".
+- https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html
+- https://aws.amazon.com/blogs/security/aws-organizations-now-supports-self-service-removal-of-accounts-from-an-organization
+- Note, when moving the account standalone you won’t (do not select) Enterprise Support.  You shouldn't get a popup dialog asking for Credit Card and Support level since the account should have been moved to invoicing.  Support can be reenabled on the linked account once it’s invited into the ASEA mgmt account that has ES already active (if ASEA has ES active on the mgmt account).
 
