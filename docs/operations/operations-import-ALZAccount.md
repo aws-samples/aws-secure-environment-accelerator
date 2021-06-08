@@ -118,8 +118,81 @@ Removing the account from the ALZ organizations to standalone is required so tha
  - As stated in the previous sections, verify the account billing has been flipped to “invoicing” to avoid having to enter a Credit Card when going standalone.  This can be done working with your AWS account team who will coordinate internally, or by raising a support case describing the use case.
 
 ### 3.3. Remove the account from the organizations and make standalone
-- Follow the instructions on the following link to remove the account.  Simply select the account from the ALZ mgmt account Organizations and select "remove".
+- Follow the instructions on the following link to remove the account.  
+- Short version is select the account from the ALZ mgmt account Organizations and select "remove".
 - https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html
 - https://aws.amazon.com/blogs/security/aws-organizations-now-supports-self-service-removal-of-accounts-from-an-organization
 - Note, when moving the account standalone you won’t (do not select) Enterprise Support.  You shouldn't get a popup dialog asking for Credit Card and Support level since the account should have been moved to invoicing.  Support can be reenabled on the linked account once it’s invited into the ASEA mgmt account that has ES already active (if ASEA has ES active on the mgmt account).
+
+## 4.0 Acceleartor (ASEA) invites the account into it's organization
+
+### 4.1 From the ASEA mgmt account, send an invite to the account (now standalone)
+- Follow the instructions on the following link to invite the account. 
+- Short version is go to the ASEA mgmt account organizations and select "Add an account" - "Invite existing account" - "enter the linked account account ID"
+- https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_invites.html
+  
+### 4.2 In the former ALZ account, Accept the invitation 
+- https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_invites.html#orgs_manage_accounts_accept-decline-invite
+  
+### 4.3 Keep the linked account at the root level of the Organization (for now)
+- Verify access to the linked account using existing login credentials (ie-root, etc)
+  
+### 4.4 Activate Enterprise Support (ES) on this linked account
+- If ES is enabled on the ASEA mgmt account, open a support case to enable ES on this linked account
+- Go to the Support center and open billing support case, with Account and Activation.
+- Subject "Requesting ES enablement on linked account"
+- Body "Requesting ES enablement on linked account <ACCOUNT ID>"
+- AWS TAM will escalate the case with the support team if it’s time sensitive.  
+- This is to make sure an ES support case can be created and escalated during the next step if any unforeseen issue occurs.
+  
+### 4.5 Update (or add) the Organization Adming Role so one can assume the role into the linked account.
+- Login to the linked account which just joined the organization.  
+- Create a new Organization Admin role, as defined in the customers config file: *"organization-admin-role": "OrganizationAccountAccessRole".
+- With newer customers the default is "OrganizationAccountAccessRole, with older customers it is: "AWSCloudFormationStackSetExecutionRole".  
+- If "AWSCloudFormationStackSetExecutionRole" then you can edit the trust relationship directly
+  - Go to IAM -> Role -> AWSCloudFormationStackSetExecutionRole 
+  - Update the trust relationship to have the mgmt account ID of the ASEA (instead of the account ID of the previous ALZ)
+- Note, there is also a CFN stack which will create this role here: \reference-artifacts\Custom-Scripts\Import-Account-CFN-Role-Template.yml
+
+## 5. Acceleartor (ASEA) will move the linked account from top level root OU into appropriate OU managed by ASEA
+
+### 5.0. Plan what OU this account will be moved into
+- Option 1 - Create a new OU and move account into that OU 
+  - Before the migration the team would have created a new OU (ie-similar to the sandbox OU).
+  - This would be needed if they need to isolate this account from TGW attachments/Networking and want to keep it isolated.
+  - The state machine will run and start to baseline the account. it will create a new VPC and deploy resources using CFN such as config, cloudtrail trail, etc.
+  - If the OU is setup similar to sandbox OU it does not provide access to the shared VPCs that have the TGW attachments. Truly standalone.
+  - Creating a new OU in AWS Orgs also requires adding that new OU and the OU persona to the config file in advance of the next state machine execution.  
+- Option 2 - Move account into an existing OU (ie-prod)
+  - The state machine will run and start to baseline the account. it will create a new VPC and deploy resources using CFN such as config, cloudtrail trail, etc.
+  - You would be creating a new VPC within the account or sharing the existing SEA based OU VPC into the account.  
+  - The customers existing VPC will remain, as a 2nd DETACHED VPC.  
+  - If it is non-compliant to security rules, it remains non-compliant and needs to be cleaned up and brought into compliance/potentially have workloads migrated to the existing VPC.  if the VPC is compliant, and it has unique IP addresses, it COULD be attached to the TGW.
+
+### 5.1. Move the account from the root OU to the correct OU
+- THIS CANNOT BE EASILY UNDONE - MAKE SURE YOU MOVE TO THE CORRECT OU
+- Follow the instructions on the following link to move the account to the proper OU 
+- Short version is go to the ASEA mgmt account organizations and select the account - "actions" - "move" - and select the correct OU
+- NOTE: The ASEA state machine will start within 1-2 minutes of the account being moved into the OU
+- https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html#move_account_to_ou
+- Verify that the ASEA main state machine (under AWS->Step Functions) is triggered and runs cleanly (~30-45 minutes)
+  
+## 6. Acceleartor (ASEA) - Verify access control via roles, SSO, etc
+- Update and verify SSO/permission sets for the linked account now part of the ASEA
+- Verify you still have access to the linked account via root (or other mechanisms)
+- Verify you still can assume the operations role into the linked 
+  
+## 7. Landing Zone - Close down the remainder of the Landing zone core accounts and then the mgmt. account
+
+### 7.1. Close down the ALZ linked accounts
+- Once all the workload accounts are migrated and functional within the ASEA then close down the ALZ 
+- Close all the linked accounts “as is” without making them standalone
+- https://aws.amazon.com/premiumsupport/knowledge-center/close-aws-account
+- The mgmt. account will remain with organizations and the core accounts will show as suspended for 90 days.
+  
+### 7.2. Close down the ALZ mgmt account
+- After 90 days, the suspended linked accounts will be completely closed.  
+- Go to the root account and turn off Organizations and then close the root account.
+
+
 
