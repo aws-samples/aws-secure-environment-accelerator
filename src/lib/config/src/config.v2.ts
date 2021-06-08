@@ -806,7 +806,7 @@ export const CloudWatchAlarmDefinitionConfigType = t.interface({
   'metric-name': t.nonEmptyString,
   'sns-alert-level': t.nonEmptyString,
   'alarm-description': t.nonEmptyString,
-  'in-org-mgmt-use-lcl-sns': t.defaulted(t.boolean, true),
+  'in-org-mgmt-use-lcl-sns': t.defaulted(t.boolean, false),
 });
 
 export type CloudWatchAlarmsConfig = t.TypeOf<typeof CloudWatchAlarmsConfigType>;

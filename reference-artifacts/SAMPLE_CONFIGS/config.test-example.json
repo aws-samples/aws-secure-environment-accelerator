@@ -18,7 +18,6 @@
     "alarm-not-ip": "10.10.10.*"
   },
   "global-options": {
-    "alz-baseline": false,
     "ct-baseline": false,
     "default-s3-retention": 30,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
@@ -49,7 +48,7 @@
       "us-west-2"
     ],
     "keep-default-vpc-regions": [],
-    "aws-org-master": {
+    "aws-org-management": {
       "account": "management",
       "region": "${HOME_REGION}",
       "add-sns-topics": true
@@ -135,8 +134,8 @@
       ],
       "macie-frequency": "FIFTEEN_MINUTES",
       "macie-sensitive-sh": true,
-      "fw-mgr-alert-level": "High",
-      "security-hub-findings-sns": "High",
+      "fw-mgr-alert-level": "Low",
+      "security-hub-findings-sns": "Low",
       "add-sns-topics": true
     },
     "central-operations-services": {
@@ -476,13 +475,13 @@
         "default-threshold": 1,
         "default-evaluation-periods": 1,
         "default-treat-missing-data": "notBreaching",
+        "in-org-mgmt-use-lcl-sns": true,
         "definitions": [
           {
             "alarm-name": "AWS-Security-Group-Changed",
             "metric-name": "SecurityGroupEventCount",
             "sns-alert-level": "Low",
-            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Security Group (in any account, any region of your AWS Organization).",
-            "in-org-mgmt-use-lcl-sns": false
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Security Group (in any account, any region of your AWS Organization)."
           },
           {
             "alarm-name": "AWS-Network-ACL-Changed",
@@ -636,7 +635,7 @@
           "name": "EC2-INSTANCE-PROFILE",
           "type": "custom",
           "resource-types": ["AWS::EC2::Instance"],
-          "runtime": "nodejs12.x",
+          "runtime": "nodejs14.x",
           "remediation-action": "Attach-IAM-Instance-Profile",
           "remediation": true,
           "remediation-params": {
@@ -648,7 +647,7 @@
           "name": "EC2-INSTANCE-PROFILE-PERMISSIONS",
           "type": "custom",
           "resource-types": ["AWS::IAM::Role"],
-          "runtime": "nodejs12.x",
+          "runtime": "nodejs14.x",
           "parameters": {
             "AWSManagedPolicies": "AmazonSSMManagedInstanceCore, AmazonSSMDirectoryServiceAccess, CloudWatchAgentServerPolicy",
             "CustomerManagedPolicies": "${SEA::EC2InstaceProfilePermissions}",
@@ -657,10 +656,14 @@
           "remediation": true,
           "remediation-action": "Attach-IAM-Role-Policy",
           "remediation-params": {
-            "AWSManagedPolicies": ["AmazonSSMManagedInstanceCore", "AmazonSSMDirectoryServiceAccess", "CloudWatchAgentServerPolicy"],
+            "AWSManagedPolicies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
             "CustomerManagedPolicies": ["${SEA::EC2InstaceProfilePermissions}"],
             "ResourceId": "RESOURCE_ID"
-          }  
+          }
         },
         {
           "name": "ELB_LOGGING_ENABLED",
@@ -835,7 +838,29 @@
           "name": "WAFV2_LOGGING_ENABLED"
         }
       ]
-    }
+    },
+    "cidr-pools": [
+      {
+        "cidr": "10.0.0.0/13",
+        "pool": "main",
+        "region": "ca-central-1"
+      },
+      {
+        "cidr": "100.96.252.0/23",
+        "pool": "RFC6598a",
+        "region": "ca-central-1"
+      },
+      {
+        "cidr": "100.96.250.0/23",
+        "pool": "RFC6598b",
+        "region": "ca-central-1"
+      },
+      {
+        "cidr": "10.249.1.0/24",
+        "pool": "ForSSO",
+        "region": "ca-central-1"
+      }
+    ]
   },
   "mandatory-account-configs": {
     "shared-network": {
@@ -914,15 +939,18 @@
         {
           "deploy": "local",
           "name": "Endpoint",
-          "cidr": "10.7.0.0/22",
+          "cidr-src": "provided",
+          "cidr": [
+            {
+              "value": "10.7.0.0/22",
+              "pool": "main",
+              "size": 22
+            }
+          ],
           "region": "${HOME_REGION}",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
-          "igw": false,
-          "vgw": false,
-          "pcx": false,
-          "natgw": false,
           "subnets": [
             {
               "name": "Endpoint",
@@ -930,12 +958,20 @@
                 {
                   "az": "a",
                   "route-table": "EndpointVPC_Common",
-                  "cidr": "10.7.0.0/24"
+                  "cidr": {
+                    "value": "10.7.0.0/24",
+                    "pool": "main",
+                    "size": 24
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "EndpointVPC_Common",
-                  "cidr": "10.7.1.0/24"
+                  "cidr": {
+                    "value": "10.7.1.0/24",
+                    "pool": "main",
+                    "size": 24
+                  }
                 }
               ]
             }
@@ -1004,7 +1040,6 @@
       "account-warming-required": true,
       "limits": {},
       "src-filename": "config.json",
-      "share-mad-from": "",
       "iam": {
         "users": [],
         "policies": [
@@ -1063,13 +1098,13 @@
           "central-resolver-rule-account": "shared-network",
           "central-resolver-rule-vpc": "Endpoint",
           "log-group-name": "/${ACCELERATOR_PREFIX_ND}/MAD/example.local",
-          "share-to-account": "",
           "restrict_srcips": "${RANGE-RESTRICT}",
           "num-rdgw-hosts": 1,
           "min-rdgw-hosts": 1,
           "max-rdgw-hosts": 2,
           "rdgw-max-instance-age": 30,
           "rdgw-instance-type": "t2.medium",
+          "image-path": "/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base",
           "rdgw-instance-role": "${ACCELERATOR_PREFIX_ND}-RDGW-Role",
           "password-policies": {
             "history": 24,
@@ -1191,7 +1226,6 @@
           "customer-confirm-inplace": false
         }
       },
-      "share-mad-from": "",
       "budget": {
         "name": "Perimeter Budget",
         "period": "Monthly",
@@ -1266,7 +1300,6 @@
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
               "health-check-port": 7001,
-              "lambda-filename": "",
               "target-instances": [
                 {
                   "target": "firewall",
@@ -1284,7 +1317,6 @@
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
               "health-check-port": 7001,
-              "lambda-filename": "",
               "target-instances": [
                 {
                   "target": "firewall",
@@ -1326,7 +1358,6 @@
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
               "health-check-port": 7001,
-              "lambda-filename": "",
               "target-instances": [
                 {
                   "target": "firewall",
@@ -1344,7 +1375,6 @@
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
               "health-check-port": 7001,
-              "lambda-filename": "",
               "target-instances": [
                 {
                   "target": "firewall",
@@ -1393,16 +1423,24 @@
         {
           "deploy": "local",
           "name": "Perimeter",
-          "cidr": "10.7.4.0/22",
-          "cidr2": ["100.96.250.0/23"],
+          "cidr-src": "provided",
+          "cidr": [
+            {
+              "value": "10.7.4.0/22",
+              "pool": "main",
+              "size": 22
+            },
+            {
+              "value": "100.96.250.0/23",
+              "pool": "RFC6598b",
+              "size": 23
+            }
+          ],
           "region": "${HOME_REGION}",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
           "igw": true,
-          "vgw": false,
-          "pcx": false,
-          "natgw": false,
           "subnets": [
             {
               "name": "Public",
@@ -1410,12 +1448,20 @@
                 {
                   "az": "a",
                   "route-table": "Public_Shared",
-                  "cidr": "100.96.250.0/26"
+                  "cidr": {
+                    "value": "100.96.250.0/26",
+                    "pool": "RFC6598b",
+                    "size": 26
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "Public_Shared",
-                  "cidr": "100.96.250.128/26"
+                  "cidr": {
+                    "value": "100.96.250.128/26",
+                    "pool": "RFC6598b",
+                    "size": 26
+                  }
                 }
               ]
             },
@@ -1425,12 +1471,20 @@
                 {
                   "az": "a",
                   "route-table": "FWMgmt_azA",
-                  "cidr": "100.96.251.32/27"
+                  "cidr": {
+                    "value": "100.96.251.32/27",
+                    "pool": "RFC6598b",
+                    "size": 27
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "FWMgmt_azB",
-                  "cidr": "100.96.251.160/27"
+                  "cidr": {
+                    "value": "100.96.251.160/27",
+                    "pool": "RFC6598b",
+                    "size": 27
+                  }
                 }
               ]
             },
@@ -1440,12 +1494,20 @@
                 {
                   "az": "a",
                   "route-table": "Proxy_azA",
-                  "cidr": "100.96.251.64/26"
+                  "cidr": {
+                    "value": "100.96.251.64/26",
+                    "pool": "RFC6598b",
+                    "size": 26
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "Proxy_azB",
-                  "cidr": "100.96.251.192/26"
+                  "cidr": {
+                    "value": "100.96.251.192/26",
+                    "pool": "RFC6598b",
+                    "size": 26
+                  }
                 }
               ]
             },
@@ -1455,12 +1517,20 @@
                 {
                   "az": "a",
                   "route-table": "OnPremise_Shared",
-                  "cidr": "100.96.250.64/26"
+                  "cidr": {
+                    "value": "100.96.250.64/26",
+                    "pool": "RFC6598b",
+                    "size": 26
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "OnPremise_Shared",
-                  "cidr": "100.96.250.192/26"
+                  "cidr": {
+                    "value": "100.96.250.192/26",
+                    "pool": "RFC6598b",
+                    "size": 26
+                  }
                 }
               ]
             },
@@ -1470,12 +1540,20 @@
                 {
                   "az": "a",
                   "route-table": "Detonation_Shared",
-                  "cidr": "10.7.4.0/24"
+                  "cidr": {
+                    "value": "10.7.4.0/24",
+                    "pool": "main",
+                    "size": 24
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "Detonation_Shared",
-                  "cidr": "10.7.5.0/24"
+                  "cidr": {
+                    "value": "10.7.5.0/24",
+                    "pool": "main",
+                    "size": 24
+                  }
                 }
               ]
             }
@@ -1629,9 +1707,7 @@
                 }
               ]
             }
-          ],
-          "tgw-attach": false,
-          "interface-endpoints": false
+          ]
         }
       ],
       "deployments": {
@@ -1705,10 +1781,9 @@
       }
     },
     "management": {
-      "account-name": "primary",
+      "account-name": "ASEA-Main",
       "email": "myemail+aseaT-management@example.com---------------------REPLACE----------------------",
       "ou": "core",
-      "share-mad-from": "",
       "src-filename": "config.json",
       "budget": {
         "name": "Organization Budget",
@@ -1774,15 +1849,18 @@
         {
           "deploy": "local",
           "name": "ForSSO",
-          "cidr": "10.249.1.0/24",
+          "cidr-src": "provided",
+          "cidr": [
+            {
+              "value": "10.249.1.0/24",
+              "pool": "ForSSO",
+              "size": 24
+            }
+          ],
           "region": "${HOME_REGION}",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
-          "igw": false,
-          "vgw": false,
-          "pcx": false,
-          "natgw": false,
           "subnets": [
             {
               "name": "ForSSO",
@@ -1790,12 +1868,20 @@
                 {
                   "az": "a",
                   "route-table": "ForSSO_Shared",
-                  "cidr": "10.249.1.0/27"
+                  "cidr": {
+                    "value": "10.249.1.0/27",
+                    "pool": "ForSSO",
+                    "size": 27
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "ForSSO_Shared",
-                  "cidr": "10.249.1.32/27"
+                  "cidr": {
+                    "value": "10.249.1.32/27",
+                    "pool": "ForSSO",
+                    "size": 27
+                  }
                 }
               ]
             }
@@ -1815,9 +1901,7 @@
                 }
               ]
             }
-          ],
-          "tgw-attach": false,
-          "interface-endpoints": false
+          ]
         }
       ],
       "deployments": {
@@ -1890,7 +1974,12 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
         }
       ],
       "aws-config": [
@@ -2001,22 +2090,30 @@
       "vpc": [
         {
           "deploy": "shared-network",
-          "name": "Central",
-          "cidr": "10.1.0.0/16",
-          "cidr2": ["100.96.252.0/23"],
+          "name": "${CONFIG::OU_NAME}",
+          "cidr-src": "provided",
+          "cidr": [
+            {
+              "value": "10.1.0.0/16",
+              "pool": "main",
+              "size": 16
+            },
+            {
+              "value": "100.96.252.0/23",
+              "pool": "RFC6598a",
+              "size": 23
+            }
+          ],
           "region": "${HOME_REGION}",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
-          "igw": false,
-          "vgw": false,
           "pcx": {
             "source": "management",
             "source-vpc": "ForSSO",
             "source-subnets": "ForSSO",
             "local-subnets": "GCWide"
           },
-          "natgw": false,
           "subnets": [
             {
               "name": "TGW",
@@ -2025,18 +2122,30 @@
               "definitions": [
                 {
                   "az": "a",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.88.0/27"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.88.0/27",
+                    "pool": "main",
+                    "size": 27
+                  }
                 },
                 {
                   "az": "b",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.88.32/27"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.88.32/27",
+                    "pool": "main",
+                    "size": 27
+                  }
                 },
                 {
                   "az": "d",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.88.64/27",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.88.64/27",
+                    "pool": "main",
+                    "size": 27
+                  },
                   "disabled": true
                 }
               ]
@@ -2048,18 +2157,30 @@
               "definitions": [
                 {
                   "az": "a",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.32.0/20"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.32.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
                 },
                 {
                   "az": "b",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.128.0/20"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.128.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
                 },
                 {
                   "az": "d",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.192.0/20",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.192.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
                   "disabled": true
                 }
               ]
@@ -2071,18 +2192,30 @@
               "definitions": [
                 {
                   "az": "a",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.0.0/19"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.0.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
                 },
                 {
                   "az": "b",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.96.0/19"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.96.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
                 },
                 {
                   "az": "d",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.160.0/19",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.160.0/19",
+                    "pool": "main",
+                    "size": 19
+                  },
                   "disabled": true
                 }
               ]
@@ -2094,18 +2227,30 @@
               "definitions": [
                 {
                   "az": "a",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.48.0/20"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.48.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
                 },
                 {
                   "az": "b",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.144.0/20"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.144.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
                 },
                 {
                   "az": "d",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.208.0/20",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.208.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
                   "disabled": true
                 }
               ],
@@ -2118,7 +2263,7 @@
                   "egress": true,
                   "cidr-blocks": [
                     {
-                      "vpc": "Central",
+                      "vpc": "${CONFIG::VPC_NAME}",
                       "subnet": ["Web"]
                     }
                   ]
@@ -2139,7 +2284,7 @@
                   "egress": false,
                   "cidr-blocks": [
                     {
-                      "vpc": "Central",
+                      "vpc": "${CONFIG::VPC_NAME}",
                       "subnet": ["Web"]
                     }
                   ]
@@ -2161,18 +2306,30 @@
               "definitions": [
                 {
                   "az": "a",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.64.0/21"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.64.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
                 },
                 {
                   "az": "b",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.72.0/21"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.72.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
                 },
                 {
                   "az": "d",
-                  "route-table": "CentralVPC_Common",
-                  "cidr": "10.1.80.0/21",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.80.0/21",
+                    "pool": "main",
+                    "size": 21
+                  },
                   "disabled": true
                 }
               ]
@@ -2184,18 +2341,30 @@
               "definitions": [
                 {
                   "az": "a",
-                  "route-table": "CentralVPC_GCWide",
-                  "cidr": "100.96.252.0/25"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_GCWide",
+                  "cidr": {
+                    "value": "100.96.252.0/25",
+                    "pool": "RFC6598a",
+                    "size": 25
+                  }
                 },
                 {
                   "az": "b",
-                  "route-table": "CentralVPC_GCWide",
-                  "cidr": "100.96.252.128/25"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_GCWide",
+                  "cidr": {
+                    "value": "100.96.252.128/25",
+                    "pool": "RFC6598a",
+                    "size": 25
+                  }
                 },
                 {
                   "az": "d",
-                  "route-table": "CentralVPC_GCWide",
-                  "cidr": "100.96.253.0/25",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_GCWide",
+                  "cidr": {
+                    "value": "100.96.253.0/25",
+                    "pool": "RFC6598a",
+                    "size": 25
+                  },
                   "disabled": true
                 }
               ]
@@ -2204,7 +2373,7 @@
           "gateway-endpoints": ["s3", "dynamodb"],
           "route-tables": [
             {
-              "name": "CentralVPC_Common",
+              "name": "${CONFIG::VPC_NAME}VPC_Common",
               "routes": [
                 {
                   "destination": "0.0.0.0/0",
@@ -2221,7 +2390,7 @@
               ]
             },
             {
-              "name": "CentralVPC_GCWide",
+              "name": "${CONFIG::VPC_NAME}VPC_GCWide",
               "routes": [
                 {
                   "destination": "0.0.0.0/0",
@@ -2378,8 +2547,7 @@
             "blackhole-route": false,
             "attach-subnets": ["TGW"],
             "options": ["DNS-support"]
-          },
-          "interface-endpoints": false
+          }
         }
       ],
       "iam": {
@@ -2408,7 +2576,12 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
         }
       ],
       "aws-config": [
@@ -2537,7 +2710,6 @@
           "cert-name": "WorkloadsSelf-SignedCert",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
           "security-group": "Web",
-          "tg-stickiness": "",
           "access-logs": true,
           "targets": [
             {
@@ -2552,16 +2724,19 @@
       "vpc": [
         {
           "deploy": "shared-network",
-          "name": "Workloads",
-          "cidr": "10.2.0.0/16",
+          "name": "${CONFIG::OU_NAME}",
+          "cidr-src": "provided",
+          "cidr": [
+            {
+              "value": "10.2.0.0/16",
+              "pool": "main",
+              "size": 16
+            }
+          ],
           "region": "${HOME_REGION}",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
-          "igw": false,
-          "vgw": false,
-          "pcx": false,
-          "natgw": false,
           "subnets": [
             {
               "name": "TGW",
@@ -2570,18 +2745,30 @@
               "definitions": [
                 {
                   "az": "a",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.88.0/27"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.88.0/27",
+                    "pool": "main",
+                    "size": 27
+                  }
                 },
                 {
                   "az": "b",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.88.32/27"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.88.32/27",
+                    "pool": "main",
+                    "size": 27
+                  }
                 },
                 {
                   "az": "d",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.88.64/27",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.88.64/27",
+                    "pool": "main",
+                    "size": 27
+                  },
                   "disabled": true
                 }
               ]
@@ -2593,18 +2780,30 @@
               "definitions": [
                 {
                   "az": "a",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.32.0/20"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.32.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
                 },
                 {
                   "az": "b",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.128.0/20"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.128.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
                 },
                 {
                   "az": "d",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.192.0/20",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.192.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
                   "disabled": true
                 }
               ]
@@ -2616,18 +2815,30 @@
               "definitions": [
                 {
                   "az": "a",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.0.0/19"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.0.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
                 },
                 {
                   "az": "b",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.96.0/19"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.96.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
                 },
                 {
                   "az": "d",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.160.0/19",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.160.0/19",
+                    "pool": "main",
+                    "size": 19
+                  },
                   "disabled": true
                 }
               ]
@@ -2639,18 +2850,30 @@
               "definitions": [
                 {
                   "az": "a",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.48.0/20"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.48.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
                 },
                 {
                   "az": "b",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.144.0/20"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.144.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
                 },
                 {
                   "az": "d",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.208.0/20",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.208.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
                   "disabled": true
                 }
               ],
@@ -2663,7 +2886,7 @@
                   "egress": true,
                   "cidr-blocks": [
                     {
-                      "vpc": "Workloads",
+                      "vpc": "${CONFIG::VPC_NAME}",
                       "subnet": ["Web"]
                     },
                     {
@@ -2688,7 +2911,7 @@
                   "egress": false,
                   "cidr-blocks": [
                     {
-                      "vpc": "Workloads",
+                      "vpc": "${CONFIG::VPC_NAME}",
                       "subnet": ["Web"]
                     },
                     {
@@ -2714,18 +2937,30 @@
               "definitions": [
                 {
                   "az": "a",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.64.0/21"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.64.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
                 },
                 {
                   "az": "b",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.72.0/21"
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.72.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
                 },
                 {
                   "az": "d",
-                  "route-table": "WorkloadsVPC_Common",
-                  "cidr": "10.2.80.0/21",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.80.0/21",
+                    "pool": "main",
+                    "size": 21
+                  },
                   "disabled": true
                 }
               ]
@@ -2734,7 +2969,7 @@
           "gateway-endpoints": ["s3", "dynamodb"],
           "route-tables": [
             {
-              "name": "WorkloadsVPC_Common",
+              "name": "${CONFIG::VPC_NAME}VPC_Common",
               "routes": [
                 {
                   "destination": "0.0.0.0/0",
@@ -2923,8 +3158,7 @@
             "blackhole-route": true,
             "attach-subnets": ["TGW"],
             "options": ["DNS-support"]
-          },
-          "interface-endpoints": false
+          }
         }
       ],
       "iam": {
@@ -2953,7 +3187,12 @@
         {
           "account": "operations",
           "regions": ["${HOME_REGION}"],
-          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption", "Attach-IAM-Instance-Profile", "Attach-IAM-Role-Policy"]
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
         }
       ],
       "aws-config": [
@@ -3024,7 +3263,6 @@
     },
     "Sandbox": {
       "type": "workload",
-      "share-mad-from": "",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sandbox"],
       "default-budgets": {
         "name": "Default Sandbox Budget",
@@ -3064,15 +3302,20 @@
       "vpc": [
         {
           "deploy": "local",
-          "name": "Sandbox",
-          "cidr": "10.6.0.0/16",
+          "name": "${CONFIG::OU_NAME}",
+          "cidr-src": "provided",
+          "cidr": [
+            {
+              "value": "10.6.0.0/16",
+              "pool": "main",
+              "size": 16
+            }
+          ],
           "region": "${HOME_REGION}",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
           "igw": true,
-          "vgw": false,
-          "pcx": false,
           "natgw": {
             "subnet": {
               "name": "Web",
@@ -3088,17 +3331,29 @@
                 {
                   "az": "a",
                   "route-table": "SandboxVPC_IGW",
-                  "cidr": "10.6.32.0/20"
+                  "cidr": {
+                    "value": "10.6.32.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "SandboxVPC_IGW",
-                  "cidr": "10.6.128.0/20"
+                  "cidr": {
+                    "value": "10.6.128.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "SandboxVPC_IGW",
-                  "cidr": "10.6.192.0/20",
+                  "cidr": {
+                    "value": "10.6.192.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
                   "disabled": true
                 }
               ]
@@ -3111,17 +3366,29 @@
                 {
                   "az": "a",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.0.0/19"
+                  "cidr": {
+                    "value": "10.6.0.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.96.0/19"
+                  "cidr": {
+                    "value": "10.6.96.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.160.0/19",
+                  "cidr": {
+                    "value": "10.6.160.0/19",
+                    "pool": "main",
+                    "size": 19
+                  },
                   "disabled": true
                 }
               ]
@@ -3134,17 +3401,29 @@
                 {
                   "az": "a",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.48.0/20"
+                  "cidr": {
+                    "value": "10.6.48.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.144.0/20"
+                  "cidr": {
+                    "value": "10.6.144.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.208.0/20",
+                  "cidr": {
+                    "value": "10.6.208.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
                   "disabled": true
                 }
               ],
@@ -3211,17 +3490,29 @@
                 {
                   "az": "a",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.64.0/21"
+                  "cidr": {
+                    "value": "10.6.64.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
                 },
                 {
                   "az": "b",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.72.0/21"
+                  "cidr": {
+                    "value": "10.6.72.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
                 },
                 {
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
-                  "cidr": "10.6.80.0/21",
+                  "cidr": {
+                    "value": "10.6.80.0/21",
+                    "pool": "main",
+                    "size": 21
+                  },
                   "disabled": true
                 }
               ]
@@ -3370,9 +3661,7 @@
                 }
               ]
             }
-          ],
-          "tgw-attach": false,
-          "interface-endpoints": false
+          ]
         }
       ],
       "iam": {

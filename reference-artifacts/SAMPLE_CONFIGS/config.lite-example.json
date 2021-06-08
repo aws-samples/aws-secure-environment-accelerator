@@ -69,8 +69,8 @@
       "macie-excl-regions": [],
       "macie-frequency": "FIFTEEN_MINUTES",
       "macie-sensitive-sh": true,
-      "fw-mgr-alert-level": "High",
-      "security-hub-findings-sns": "High",
+      "fw-mgr-alert-level": "Low",
+      "security-hub-findings-sns": "Low",
       "add-sns-topics": true
     },
     "central-operations-services": {
@@ -410,13 +410,13 @@
         "default-threshold": 1,
         "default-evaluation-periods": 1,
         "default-treat-missing-data": "notBreaching",
+        "in-org-mgmt-use-lcl-sns": true,
         "definitions": [
           {
             "alarm-name": "AWS-Security-Group-Changed",
             "metric-name": "SecurityGroupEventCount",
             "sns-alert-level": "Low",
-            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Security Group (in any account, any region of your AWS Organization).",
-            "in-org-mgmt-use-lcl-sns": false
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Security Group (in any account, any region of your AWS Organization)."
           },
           {
             "alarm-name": "AWS-Network-ACL-Changed",
@@ -776,7 +776,7 @@
     },
     "cidr-pools": [
       {
-        "cidr": "10.0.0.0/12",
+        "cidr": "10.0.0.0/13",
         "pool": "main",
         "region": "ca-central-1"
       },
@@ -1048,7 +1048,6 @@
           "region": "${HOME_REGION}",
           "subnet": "GCWide",
           "size": "Enterprise",
-          "image-path": "/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base",
           "dns-domain": "example.local",
           "netbios-domain": "example",
           "central-resolver-rule-account": "shared-network",
@@ -1060,6 +1059,7 @@
           "max-rdgw-hosts": 2,
           "rdgw-max-instance-age": 30,
           "rdgw-instance-type": "t2.large",
+          "image-path": "/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base",
           "rdgw-instance-role": "${ACCELERATOR_PREFIX_ND}-RDGW-Role",
           "password-policies": {
             "history": 24,
@@ -1736,7 +1736,7 @@
       }
     },
     "management": {
-      "account-name": "primary",
+      "account-name": "ASEA-Main",
       "email": "myemail+aseaT-management@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "src-filename": "config.json",
