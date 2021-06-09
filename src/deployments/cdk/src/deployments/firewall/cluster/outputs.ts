@@ -45,17 +45,17 @@ export const FirewallPortOutputFinder = createStructuredOutputFinder(FirewallPor
 export const FirewallVpnTunnelOptions = t.interface({
   cgwTunnelInsideAddress1: t.string,
   cgwTunnelOutsideAddress1: t.string,
-  cgwBgpAsn1: t.string,
+  cgwBgpAsn1: optional(t.string),
   vpnTunnelInsideAddress1: t.string,
   vpnTunnelOutsideAddress1: t.string,
-  vpnBgpAsn1: t.string,
+  vpnBgpAsn1: optional(t.string),
   preSharedSecret1: t.string,
   cgwTunnelInsideAddress2: t.string,
   cgwTunnelOutsideAddress2: t.string,
-  cgwBgpAsn2: t.string,
+  cgwBgpAsn2: optional(t.string),
   vpnTunnelInsideAddress2: t.string,
   vpnTunnelOutsideAddress2: t.string,
-  vpnBgpAsn2: t.string,
+  vpnBgpAsn2: optional(t.string),
   preSharedSecret2: t.string,
 });
 
