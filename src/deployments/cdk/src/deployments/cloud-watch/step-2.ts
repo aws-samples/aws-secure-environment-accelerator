@@ -60,7 +60,10 @@ export async function step2(props: CloudWatchStep2Props) {
           treatMissingData: alarmconfig['treat-missing-data'] || alarmDefaultDefinition['default-treat-missing-data'],
           threshold: alarmconfig.threshold || alarmDefaultDefinition['default-threshold'],
           alarmActions: [
-            accountKey === managementAccount && region === managementRegion && alarmconfig['in-org-mgmt-use-lcl-sns']
+            accountKey === managementAccount &&
+            region === managementRegion &&
+            (alarmconfig['in-org-mgmt-use-lcl-sns'] === true ||
+              alarmDefaultDefinition['default-in-org-mgmt-use-lcl-sns'])
               ? `arn:aws:sns:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:${createSnsTopicName(
                   alarmconfig['sns-alert-level'],
                 )}`

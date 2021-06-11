@@ -10,6 +10,7 @@ test.each([
   'reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json',
   'reference-artifacts/SAMPLE_CONFIGS/config.multi-region-example.json',
   'reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json',
+  'reference-artifacts/SAMPLE_CONFIGS/config.test-example.json',
   'test/config.example.json',
 ])('%s should be parsed correctly', file => {
   const content = fs.readFileSync(path.join(baseDir, file));

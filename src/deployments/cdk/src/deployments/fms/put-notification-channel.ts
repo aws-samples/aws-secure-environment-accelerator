@@ -28,6 +28,9 @@ export async function putNotificationChannel(props: PutNotificationChannelProps)
   const centralLogAccountId = getAccountId(accounts, centralLogConfig.account);
   const supportedRegions = config['global-options']['supported-regions'];
   const excludeRegions = centralLogConfig['sns-excl-regions'];
+  if (fmsNotificationAlertLevel === 'None') {
+    return;
+  }
   const fmsRoleOutput = IamRoleOutputFinder.tryFindOneByName({
     outputs,
     accountKey: centralSecurityConfig.account,

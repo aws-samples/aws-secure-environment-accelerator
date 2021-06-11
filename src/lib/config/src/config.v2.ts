@@ -22,6 +22,14 @@ export const SecurityHubFindingsSnsType = t.enums('SecurityHubFindingsSnsType', 
 ]);
 export type SecurityHubFindingsSnsType = t.TypeOf<typeof SecurityHubFindingsSnsType>;
 
+export const FirewallManagerAlertLevelType = t.enums('FirewallManagerAlertLevelType', [
+  'None',
+  'Low',
+  'Medium',
+  'High',
+]);
+export type FirewallManagerAlertLevelType = t.TypeOf<typeof FirewallManagerAlertLevelType>;
+
 export const asn = t.sized<number>(t.number, {
   min: 0,
   max: 65535,
@@ -744,7 +752,7 @@ export const CentralServicesConfigType = t.interface({
   's3-retention': t.optional(t.number),
   'add-sns-topics': t.defaulted(t.boolean, false),
   'macie-sensitive-sh': t.defaulted(t.boolean, false),
-  'fw-mgr-alert-level': t.defaulted(t.string, 'Medium'),
+  'fw-mgr-alert-level': t.defaulted(FirewallManagerAlertLevelType, 'Medium'),
   'security-hub-findings-sns': t.defaulted(SecurityHubFindingsSnsType, 'None'),
 });
 
@@ -806,7 +814,7 @@ export const CloudWatchAlarmDefinitionConfigType = t.interface({
   'metric-name': t.nonEmptyString,
   'sns-alert-level': t.nonEmptyString,
   'alarm-description': t.nonEmptyString,
-  'in-org-mgmt-use-lcl-sns': t.defaulted(t.boolean, false),
+  'in-org-mgmt-use-lcl-sns': t.optional(t.boolean),
 });
 
 export type CloudWatchAlarmsConfig = t.TypeOf<typeof CloudWatchAlarmsConfigType>;
@@ -822,6 +830,7 @@ export const CloudWatchAlarmsConfigType = t.interface({
   'default-threshold': t.number,
   'default-evaluation-periods': t.number,
   'default-treat-missing-data': t.nonEmptyString,
+  'default-in-org-mgmt-use-lcl-sns': t.defaulted(t.boolean, false),
   definitions: t.array(CloudWatchAlarmDefinitionConfigType),
 });
 

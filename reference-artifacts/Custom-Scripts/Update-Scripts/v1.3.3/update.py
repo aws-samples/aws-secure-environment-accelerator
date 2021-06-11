@@ -57,7 +57,7 @@ def load_to_ddb(accel_prefix, region, config):
                 cidrs = [cidr for cidr in vpc_config['cidr']] if type(vpc_config['cidr']) == list else [
                     {"value": vpc_config['cidr'], "pool": "main"}]
                 if vpc_config['deploy'] == 'local' and config_section == 'organizational-units':
-                    for cidr_object in cidrs:
+                    for cidr_index, cidr_object in enumerate(cidrs):
                         vpc_table.put_item(
                             Item={
                                 "account-ou-key": 'organizational-unit/%s' % key_name,
@@ -67,12 +67,13 @@ def load_to_ddb(accel_prefix, region, config):
                                 "region": vpc_region,
                                 "requester": "Manual",
                                 "status": "assigned",
-                                "vpc-name": vpc_config['name']
+                                "vpc-name": vpc_config['name'],
+                                "vpc-assigned-id": cidr_index,
                             }
                         )
                         i = i + 1
                     for account_key in account_keys:
-                        for cidr_object in cidrs:
+                        for cidr_index, cidr_object in enumerate(cidrs):
                             vpc_table.put_item(
                                 Item={
                                     "account-ou-key": 'account/%s' % account_key,
@@ -82,12 +83,13 @@ def load_to_ddb(accel_prefix, region, config):
                                     "region": vpc_region,
                                     "requester": "Manual",
                                     "status": "assigned",
-                                    "vpc-name": vpc_config['name']
+                                    "vpc-name": vpc_config['name'],
+                                    "vpc-assigned-id": cidr_index,
                                 }
                             )
                             i = i + 1
                 else:
-                    for cidr_object in cidrs:
+                    for cidr_index, cidr_object in enumerate(cidrs):
                         vpc_table.put_item(
                             Item={
                                 "account-ou-key": account_ou_key,
@@ -97,7 +99,8 @@ def load_to_ddb(accel_prefix, region, config):
                                 "region": vpc_region,
                                 "requester": "Manual",
                                 "status": "assigned",
-                                "vpc-name": vpc_config['name']
+                                "vpc-name": vpc_config['name'],
+                                "vpc-assigned-id": cidr_index,
                             }
                         )
                         i = i + 1
@@ -106,7 +109,7 @@ def load_to_ddb(accel_prefix, region, config):
                     print("Adding CIDR2 for VPC %s in table %s" %
                           (vpc_config['name'], vpc_table_name))
                     if type(vpc_config['cidr2']) == list:
-                        for cidr in vpc_config['cidr2']:
+                        for cidr_index, cidr in enumerate(vpc_config['cidr2']):
                             if vpc_config['deploy'] == 'local' and config_section == 'organizational-units':
                                 vpc_table.put_item(
                                     Item={
@@ -117,7 +120,8 @@ def load_to_ddb(accel_prefix, region, config):
                                         "region": vpc_region,
                                         "requester": "Manual",
                                         "status": "assigned",
-                                        "vpc-name": vpc_config['name']
+                                        "vpc-name": vpc_config['name'],
+                                        "vpc-assigned-id": cidr_index + 1,
                                     }
                                 )
                                 i = i + 1
@@ -132,6 +136,7 @@ def load_to_ddb(accel_prefix, region, config):
                                             "requester": "Manual",
                                             "status": "assigned",
                                             "vpc-name": vpc_config['name'],
+                                            "vpc-assigned-id": cidr_index + 1,
                                         }
                                     )
                                     i = i + 1
@@ -146,6 +151,7 @@ def load_to_ddb(accel_prefix, region, config):
                                         "requester": "Manual",
                                         "status": "assigned",
                                         "vpc-name": vpc_config['name'],
+                                        "vpc-assigned-id": cidr_index + 1,
                                     }
                                 )
                                 i = i + 1
@@ -160,7 +166,8 @@ def load_to_ddb(accel_prefix, region, config):
                                     "region": vpc_region,
                                     "requester": "Manual",
                                     "status": "assigned",
-                                    "vpc-name": vpc_config['name']
+                                    "vpc-name": vpc_config['name'],
+                                    "vpc-assigned-id": 1,
                                 }
                             )
                             i = i + 1
@@ -175,6 +182,7 @@ def load_to_ddb(accel_prefix, region, config):
                                         "requester": "Manual",
                                         "status": "assigned",
                                         "vpc-name": vpc_config['name'],
+                                        "vpc-assigned-id": 1,
                                     }
                                 )
                                 i = i + 1
@@ -189,6 +197,7 @@ def load_to_ddb(accel_prefix, region, config):
                                     "requester": "Manual",
                                     "status": "assigned",
                                     "vpc-name": vpc_config['name'],
+                                    "vpc-assigned-id": 1,
                                 }
                             )
                             i = i + 1

@@ -64,7 +64,7 @@ export async function step1(props: SnsStep1Props) {
         ? getAccountId(accounts, managementAccountConfig.account)
         : undefined,
       orgSecurityAccount:
-        !!centralSecurityServices['fw-mgr-alert-level'] || centralSecurityServices['add-sns-topics']
+        centralSecurityServices['fw-mgr-alert-level'] !== 'None' || centralSecurityServices['add-sns-topics']
           ? getAccountId(accounts, centralSecurityServices.account)
           : undefined,
     });

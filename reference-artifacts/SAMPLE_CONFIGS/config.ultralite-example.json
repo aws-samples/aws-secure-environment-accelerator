@@ -379,7 +379,7 @@
         "default-threshold": 1,
         "default-evaluation-periods": 1,
         "default-treat-missing-data": "notBreaching",
-        "in-org-mgmt-use-lcl-sns": true,
+        "default-in-org-mgmt-use-lcl-sns": true,
         "definitions": [
           {
             "alarm-name": "AWS-Security-Group-Changed",

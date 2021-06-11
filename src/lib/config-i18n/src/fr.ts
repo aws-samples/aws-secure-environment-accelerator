@@ -2389,6 +2389,10 @@ translate(c.CloudWatchAlarmsConfigType, {
       title: '',
       description: '',
     },
+    'default-in-org-mgmt-use-lcl-sns': {
+      title: '',
+      description: '',
+    },
     definitions: {
       title: '',
       description: '',
