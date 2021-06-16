@@ -11,6 +11,14 @@ export class S3 {
     });
   }
 
+  async objectExists(input: s3.HeadObjectRequest): Promise<boolean> {
+    try {
+      await this.client.headObject(input).promise();
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
   async getObjectBody(input: s3.GetObjectRequest): Promise<s3.Body> {
     const object = await throttlingBackOff(() => this.client.getObject(input).promise());
     return object.Body!;

@@ -685,6 +685,14 @@ translate(c.VpcConfigType, {
       title: 'Peering Connection',
       description: 'Create a peering connection.',
     },
+    nfw: {
+      title: 'AWS Network Firewall',
+      description: 'Create the AWS NFW',
+    },
+    'alb-forwarding': {
+      title: 'ALB IP Forwarding',
+      description: 'Enable ALB to ALB forwarding with IPv4 lookup',
+    },
     natgw: {
       title: 'NAT Gateway',
       description: 'Create a NAT gateway.',

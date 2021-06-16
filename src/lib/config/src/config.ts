@@ -38,6 +38,21 @@ export const NatGatewayConfig = t.interface({
   }),
 });
 
+export const AWSNetworkFirewallConfig = t.interface({
+  subnet: t.interface({
+    name: t.string,
+    az: optional(availabilityZone),
+  }),
+  policy: t.interface({
+    name: t.string,
+    path: t.string,
+  }),
+});
+
+export const AlbIpForwardingConfig = t.interface({
+  'alb-forwarding': optional(t.boolean),
+});
+
 export const CidrConfigType = t.interface({
   value: optional(cidr),
   size: optional(t.number),
@@ -236,6 +251,8 @@ export const VpcConfigType = t.interface({
   vgw: t.union([VirtualPrivateGatewayConfig, t.boolean, t.undefined]),
   pcx: t.union([PeeringConnectionConfig, t.boolean, t.undefined]),
   natgw: t.union([NatGatewayConfig, t.boolean, t.undefined]),
+  'alb-forwarding': t.union([AlbIpForwardingConfig, t.boolean, t.undefined]),
+  nfw: t.union([AWSNetworkFirewallConfig, t.boolean, t.undefined]),
   subnets: optional(t.array(SubnetConfigType)),
   'gateway-endpoints': optional(t.array(GatewayEndpointType)),
   'route-tables': optional(t.array(RouteTableConfigType)),

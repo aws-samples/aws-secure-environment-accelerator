@@ -226,6 +226,32 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       vpcName: vpcConfig.name,
     });
 
+    if (vpcConfig.nfw?.policy.path) {
+      // Try to get policy document for nfw
+      const sts = new STS();
+      const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(
+        masterAccountId,
+        context.acceleratorExecutionRoleName,
+      );
+      const configBucket = acceleratorConfig['global-options']['central-bucket'];
+      console.log('config bucket', configBucket);
+      const s3 = new S3(masterAcctCredentials);
+      const policyExists = await s3.objectExists({
+        Bucket: configBucket,
+        Key: vpcConfig.nfw.policy.path,
+      });
+      if (policyExists) {
+        vpcConfig.nfw.policyString = await s3.getObjectBodyAsString({
+          Bucket: configBucket,
+          Key: vpcConfig.nfw.policy.path,
+        });
+      } else {
+        console.log(`The NFW Policy doesn't exist in ${centralBucket.bucketName}/${vpcConfig.nfw.policy.path}`);
+      }
+    } else {
+      console.log('No NFW policy path found skipping');
+    }
+
     const vpc = createVpc(accountKey, {
       accountKey,
       accountStacks,

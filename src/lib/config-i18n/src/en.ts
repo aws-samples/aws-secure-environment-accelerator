@@ -179,6 +179,24 @@ translate(c.NatGatewayConfig, {
   },
 });
 
+translate(c.AlbIpForwardingConfig, {
+  title: '',
+  description: '',
+});
+
+translate(c.AWSNetworkFirewallConfig, {
+  title: '',
+  description: '',
+  fields: {
+    subnet: {
+      title: '',
+      description: '',
+    },
+    policy: {},
+    policyString: {},
+  },
+});
+
 translate(c.SubnetDefinitionConfig, {
   title: '',
   description: '',
@@ -688,6 +706,14 @@ translate(c.VpcConfigType, {
     natgw: {
       title: 'NAT Gateway',
       description: 'Create a NAT gateway.',
+    },
+    nfw: {
+      title: 'AWS Network Firewall',
+      description: 'Create the AWS NFW',
+    },
+    'alb-forwarding': {
+      title: 'ALB IP Forwarding',
+      description: 'Enable ALB to ALB forwarding with IPv4 lookup',
     },
     subnets: {
       title: '',

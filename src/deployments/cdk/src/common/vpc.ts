@@ -17,6 +17,7 @@ import {
   TransitGatewayOutput,
   TransitGatewayAttachmentOutput,
 } from '@aws-accelerator/common-outputs/src/transit-gateway';
+
 import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gateway/outputs';
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
 import { VpcDefaultSecurityGroup } from '@aws-accelerator/custom-resource-vpc-default-security-group';
@@ -29,6 +30,8 @@ import {
   getSubnetCidrPools,
   getVpcCidrPools,
 } from '@aws-accelerator/common-outputs/src/cidr-pools';
+import { Nfw } from './nfw';
+import { AlbIpForwarding } from './alb-ip-forwarding';
 
 export interface VpcCommonProps {
   /**
@@ -149,8 +152,9 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
   readonly securityGroup?: SecurityGroup;
   readonly routeTableNameToIdMap: NameToIdMap = {};
   readonly natgwNameToIdMap: NameToIdMap = {};
-
+  readonly nfwNameToIdMap: NameToIdMap = {};
   readonly tgwAttachments: TgwAttachment[] = [];
+  readonly nfwSubnets: AzSubnet[] = [];
 
   constructor(scope: cdk.Construct, name: string, vpcProps: VpcProps) {
     super(scope, name);
@@ -563,6 +567,41 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       }
     }
 
+    const nfwProps = vpcConfig.nfw;
+    if (config.AWSNetworkFirewallConfig.is(nfwProps)) {
+      const subnetConfig = nfwProps.subnet;
+      const nfwSubnets: AzSubnet[] = [];
+      if (subnetConfig.az) {
+        nfwSubnets.push(this.azSubnets.getAzSubnetForNameAndAz(subnetConfig.name, subnetConfig.az)!);
+      } else {
+        nfwSubnets.push(...this.azSubnets.getAzSubnetsForSubnetName(subnetConfig.name));
+      }
+      this.nfwSubnets = nfwSubnets;
+      // enable aws-nfw
+      const nfw = new Nfw(this, `${nfwProps.policy.name}-nfw`, {
+        nfwPolicy: nfwProps.policyString,
+        nfwPolicyConfig: nfwProps.policy,
+        subnets: this.nfwSubnets,
+        vpcId: this.vpcId,
+      });
+      this.nfwNameToIdMap = this.nfwSubnets.reduce((acc: NameToIdMap, nfwSubnet, index) => {
+        const endpointAttr = cdk.Fn.select(index, nfw.firewall.attrEndpointIds);
+        const endpointAttrArray = cdk.Fn.split(':', endpointAttr);
+        const endpointId = cdk.Fn.select(1, endpointAttrArray);
+
+        acc[`NFW_${nfwSubnet.name}_az${nfwSubnet.az.toUpperCase()}`.toLowerCase()] = endpointId;
+        return acc;
+      }, {});
+      console.log('NFW MAP: ', JSON.stringify(this.nfwNameToIdMap, null, 4));
+    }
+
+    if (vpcConfig?.['alb-forwarding']) {
+      console.log('Deploying ALB forwarding');
+      const albipforward = new AlbIpForwarding(this, 'albIpForwarding');
+      console.log('ALB forwarding enabled');
+    } else {
+      console.log('alb ip forwarding not enabled. Skipping.');
+    }
     // Add Routes to Route Tables
     if (routeTablesProps) {
       for (const routeTableProp of routeTablesProps) {
@@ -621,6 +660,26 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
               destinationCidrBlock: route.destination,
               natGatewayId: this.natgwNameToIdMap[route.target.toLowerCase()],
             };
+            new ec2.CfnRoute(this, constructName, routeParams);
+            continue;
+          } else if (route.target.startsWith('NFW_')) {
+            if (typeof route.destination !== 'string') {
+              console.warn(`Route for NFW only supports cidr as destination`);
+              continue;
+            }
+            console.log('Route: ', JSON.stringify(route, null, 4));
+            let constructName = `${routeTableName}_nfw_route`;
+            if (route.destination !== '0.0.0.0/0') {
+              constructName = `${routeTableName}_nfw_${route.destination}_route`;
+            }
+            const routeParams: ec2.CfnRouteProps = {
+              routeTableId: routeTableObj,
+              destinationCidrBlock: route.destination,
+              vpcEndpointId: this.nfwNameToIdMap[route.target.toLowerCase()],
+            };
+
+            console.log('ROUTE PARAMS: ', JSON.stringify(routeParams, null, 4));
+
             new ec2.CfnRoute(this, constructName, routeParams);
             continue;
           } else {
