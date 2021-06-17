@@ -10,16 +10,16 @@ import { CfnSleep } from '@aws-accelerator/custom-resource-cfn-sleep';
 export interface FirewallVpnTunnelOptions {
   cgwTunnelInsideAddress1: string;
   cgwTunnelOutsideAddress1: string;
-  cgwBgpAsn1: string;
   vpnTunnelInsideAddress1: string;
   vpnTunnelOutsideAddress1: string;
-  vpnBgpAsn1: string;
   preSharedSecret1: string;
   preSharedSecret2: string;
   vpnTunnelInsideAddress2: string;
   vpnTunnelOutsideAddress2: string;
   cgwTunnelInsideAddress2: string;
   cgwTunnelOutsideAddress2: string;
+  cgwBgpAsn1?: string;
+  vpnBgpAsn1?: string;
 }
 
 export interface FirewallConfigurationProps {
@@ -171,10 +171,14 @@ export class FirewallInstance extends cdk.Construct {
     if (vpnTunnelOptions) {
       this.template.addReplacement(`\${${name}CgwTunnelOutsideAddress1}`, vpnTunnelOptions?.cgwTunnelOutsideAddress1);
       this.template.addReplacement(`\${${name}CgwTunnelInsideAddress1}`, vpnTunnelOptions?.cgwTunnelInsideAddress1);
-      this.template.addReplacement(`\${${name}CgwBgpAsn1}`, vpnTunnelOptions?.cgwBgpAsn1);
+      if (vpnTunnelOptions.cgwBgpAsn1) {
+        this.template.addReplacement(`\${${name}CgwBgpAsn1}`, vpnTunnelOptions.cgwBgpAsn1);
+      }
       this.template.addReplacement(`\${${name}VpnTunnelOutsideAddress1}`, vpnTunnelOptions?.vpnTunnelOutsideAddress1);
       this.template.addReplacement(`\${${name}VpnTunnelInsideAddress1}`, vpnTunnelOptions?.vpnTunnelInsideAddress1);
-      this.template.addReplacement(`\${${name}VpnBgpAsn1}`, vpnTunnelOptions?.vpnBgpAsn1);
+      if (vpnTunnelOptions.vpnBgpAsn1) {
+        this.template.addReplacement(`\${${name}VpnBgpAsn1}`, vpnTunnelOptions.vpnBgpAsn1);
+      }
       this.template.addReplacement(`\${${name}PreSharedSecret1}`, vpnTunnelOptions?.preSharedSecret1);
       this.template.addReplacement(`\${${name}CgwTunnelOutsideAddress2}`, vpnTunnelOptions?.cgwTunnelOutsideAddress2);
       this.template.addReplacement(`\${${name}CgwTunnelInsideAddress2}`, vpnTunnelOptions?.cgwTunnelInsideAddress2);

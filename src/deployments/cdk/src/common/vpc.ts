@@ -17,7 +17,6 @@ import {
   TransitGatewayOutput,
   TransitGatewayAttachmentOutput,
 } from '@aws-accelerator/common-outputs/src/transit-gateway';
-
 import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gateway/outputs';
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
 import { VpcDefaultSecurityGroup } from '@aws-accelerator/custom-resource-vpc-default-security-group';
