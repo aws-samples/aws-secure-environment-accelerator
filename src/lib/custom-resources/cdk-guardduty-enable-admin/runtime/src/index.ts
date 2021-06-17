@@ -52,8 +52,17 @@ async function enableOrgAdmin(properties: HandlerProperties) {
   };
 
   try {
+    const detectors = await throttlingBackOff(() => guardduty.listDetectors().promise());
+    if (detectors.DetectorIds.length === 0) {
+      await throttlingBackOff(() =>
+        guardduty
+          .createDetector({
+            Enable: true,
+          })
+          .promise(),
+      );
+    }
     const enableAdmin = await throttlingBackOff(() => guardduty.enableOrganizationAdminAccount(params).promise());
-
     return enableAdmin;
   } catch (e) {
     const message = `${e}`;

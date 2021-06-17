@@ -58,7 +58,7 @@ export async function step1(props: GuardDutyStepProps) {
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterOrgKey, region);
 
     if (masterAccountId) {
-      const admin = new GuardDutyAdmin(masterAccountStack, 'GuardDutyAdmin', {
+      new GuardDutyAdmin(masterAccountStack, 'GuardDutyAdminSetup', {
         accountId: masterAccountId,
         roleArn: adminRoleOutput.roleArn,
       });
