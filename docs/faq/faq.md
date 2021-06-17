@@ -37,8 +37,8 @@
     - [1.6.5. Can you deploy the solution without Fortinet Firewall Licenses?](#165-can-you-deploy-the-solution-without-fortinet-firewall-licenses)
     - [1.6.6. I installed additional software on my Accelerator deployed RDGW / rsyslog host, where did it go?](#166-i-installed-additional-software-on-my-accelerator-deployed-rdgw--rsyslog-host-where-did-it-go)
     - [1.6.7. Some sample configurations provide NACLs and Security Groups. Is that enough?](#167-some-sample-configurations-provide-nacls-and-security-groups-is-that-enough)
-    - [1.6.8. Can I deploy the solution as root?](#168-can-i-deploy-the-solution-as-root)
-    - [1.6.9. Can GuardDuty monitor the Organizational Management root acccount from the Security account?](#169-can-guardduty-monitor-the-organizational-management-root-acccount-from-the-security-account)
+    - [1.6.8. Can I deploy the solution as the account root user?](#168-can-i-deploy-the-solution-as-the-account-root-user)
+    - [1.6.9. Is the Organizational Management root account monitored similarly to the other accounts in the organization?](#169-is-the-organizational-management-root-account-monitored-similarly-to-the-other-accounts-in-the-organization)
 
 ## 1.1. Operational Activities
 
@@ -69,7 +69,6 @@
   - create and rename AWS accounts
   - move AWS accounts between ou's
   - create, delete and rename ou's, including support for nested ou's
-    - deleting a top-level OU requires all AWS accounts within the OU be deleted first. Then delete the top-level OU. The configuration change will be auto-reflecting in the config file in CodeCommit. 
   - create, rename, modify, apply and remove SCP's
 - What can't I do:
   - modify Accelerator controlled SCP's
@@ -421,13 +420,13 @@ The Accelerator provided sample security groups in the workload accounts offer a
 
 The use of NACLs are general discouraged, but leveraged in this architecture as a defense-in-depth mechanism.  Security groups should be used as the primary access control mechanism.  As with security groups, we encourage customers to review and tailor their NACLs based on their own security requirements.
 
-### 1.6.8. Can I deploy the solution as root?
+### 1.6.8. Can I deploy the solution as the account root user?
 
-No you cannot install as root as root has no ability to assume roles. This would prevent the deployment.
+No you cannot install as root as root has no ability to assume roles. This would prevent the deployment. As per the [installation instructions](../installation/installation.md#231-general), you require a user with the `AdministratorAccess` policy attached.
 
-### 1.6.9. Can GuardDuty monitor the Organizational Management root acccount from the Security account?
+### 1.6.9. Is the Organizational Management root account monitored similarly to the other accounts in the organization?
 
-Yes - enabled by default.
+Yes, all accounts including the Organizational Management root account have the same monitoring and logging services enabled by default in the configuration file. This is achieved by enabling Services trusted access within AWS Organizations and IAM roles for cross account access. For example, GuardDuty delivers information about potential security risks that it detects in your environment as findings. The Security account is the primary account for GuardDuty while all other accounts including the Organizational Management root account are secondary accounts to centrally manage potential security risks. For more information about monitoring and logging refer to [architecture documentation](../architectures/pbmm/architecture.md#7-logging-and-monitoring).
 
 ---
 
