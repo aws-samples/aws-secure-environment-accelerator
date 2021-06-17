@@ -17,6 +17,7 @@ test('the handler should be successfully return when the configuration is correc
     configCommitId: 'latestCommitId',
     organizationAdminRole: '',
     acceleratorPrefix: 'PBMMAccel-',
+    parametersTableName: 'PBMMAccel-Parameters',
   });
   expect(result);
 });
@@ -33,6 +34,7 @@ test('the handler should be successfully return when a mandatory account is miss
     configCommitId: '',
     organizationAdminRole: '',
     acceleratorPrefix: 'PBMMAccel-',
+    parametersTableName: 'PBMMAccel-Parameters',
   });
 
   // Returns only Accounts that needs to be created
@@ -51,6 +53,7 @@ test('the handler should throw an error when the Accelerator config name does no
       configCommitId: 'fasdjfkhsdf',
       organizationAdminRole: '',
       acceleratorPrefix: 'PBMMAccel-',
+      parametersTableName: 'PBMMAccel-Parameters',
     });
   } catch (e) {
     expect(e.message).toMatch('does not match the name in the Accelerator configuration');
@@ -69,6 +72,7 @@ test('the handler should throw an error when the Accelerator config OU does not 
       configCommitId: 'fasdjfkhsdf',
       organizationAdminRole: '',
       acceleratorPrefix: 'PBMMAccel-',
+      parametersTableName: 'PBMMAccel-Parameters',
     });
   } catch (e) {
     expect(e.message).toMatch('is not in OU');

@@ -281,6 +281,7 @@ export namespace InitialSetup {
           'organizationAdminRole.$': '$.configuration.baselineOutput.organizationAdminRole',
           'smInput.$': '$.configuration.smInput',
           acceleratorPrefix: props.acceleratorPrefix,
+          parametersTableName: parametersTable.tableName,
         },
         resultPath: '$.configuration',
       });

@@ -2,6 +2,7 @@ import * as org from 'aws-sdk/clients/organizations';
 import { Organizations, OrganizationalUnit } from '@aws-accelerator/common/src/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import {
   LoadConfigurationInput,
@@ -11,6 +12,7 @@ import {
 } from '../load-configuration-step';
 import { AcceleratorConfig } from '@aws-accelerator/common-config';
 import { ServiceControlPolicy } from '../../../../lib/common/src/scp';
+import { loadAccounts } from '../utils/load-accounts';
 
 const MAX_SCPS_ALLOWED = 5;
 interface LoadOrganizationConfigurationOutput extends LoadConfigurationOutput {
@@ -19,13 +21,14 @@ interface LoadOrganizationConfigurationOutput extends LoadConfigurationOutput {
 
 // Using sts  getCallerIdentity() to get account nunber
 const sts = new STS();
+const dynamoDB = new DynamoDB();
 const organizations = new Organizations();
 
 export const handler = async (input: LoadConfigurationInput): Promise<LoadOrganizationConfigurationOutput> => {
   console.log(`Loading Organization baseline configuration...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configFilePath, configRepositoryName, configCommitId, acceleratorPrefix } = input;
+  const { configFilePath, configRepositoryName, configCommitId, acceleratorPrefix, parametersTableName } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -37,6 +40,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
   const accountIdentity = await sts.getCallerIdentity();
   const masterAccountId = accountIdentity.Account;
   const masterAccount = await organizations.getAccount(masterAccountId!);
+  const previousAccounts = await loadAccounts(parametersTableName, dynamoDB);
 
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();
@@ -185,6 +189,10 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
       if (!accountInOu) {
         errors.push(`The account with name "${accountConfigName}" is not in OU "${organizationalUnitName}".`);
         continue;
+      }
+    } else {
+      if (previousAccounts.find(acc => acc.key === accountKey)) {
+        errors.push(`Invalid Account Configuration found for account ${accountKey}`);
       }
     }
 

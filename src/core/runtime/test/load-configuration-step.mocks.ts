@@ -2,6 +2,7 @@ import * as aws from 'aws-sdk';
 import { Account, OrganizationalUnit } from 'aws-sdk/clients/organizations';
 import { AcceleratorConfig } from '@aws-accelerator/common-config';
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -61,6 +62,10 @@ export function install() {
     .mockImplementation(async (accountId: string) => values.masterAccount);
 
   jest.spyOn(Organizations.prototype, 'listPoliciesForTarget').mockImplementation(async () => []);
+
+  jest
+    .spyOn(DynamoDB.prototype, 'getItem')
+    .mockImplementation(async (tableName: string, client: DynamoDB) => Promise.resolve([]));
 
   // Mock "loadAcceleratorConfig" directly with content from test/config.example.json
   const configFilePath = path.join(__dirname, '..', '..', '..', '..', 'test', 'config.example.json');

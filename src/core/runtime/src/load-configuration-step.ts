@@ -6,6 +6,7 @@ export interface LoadConfigurationInput {
   configCommitId: string;
   organizationAdminRole: string;
   acceleratorPrefix: string;
+  parametersTableName: string;
   baseline?: BaseLineType;
   acceleratorVersion?: string;
   configRootFilePath?: string;
