@@ -11,7 +11,7 @@
   },
   "jest": {
     "testMatch": [
-      "<rootDir>/(src|test)/**/(*.)+(spec|test).ts"
+      "<rootDir>/(src|test)/**/(*.)+(spec|test).{ts,tsx}"
     ]
   },
   "browserslist": {

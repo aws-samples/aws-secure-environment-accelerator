@@ -3,12 +3,11 @@ import { removeDisabledObjects } from './util';
 describe('export disabled objects', () => {
   test('should remove disabled objects', () => {
     const value = {
+      __disabled: ['a'],
       a: {
-        __enabled: false,
         ba: 'a',
       },
       b: {
-        __enabled: true,
         ba: 'a',
       },
     };
@@ -23,24 +22,21 @@ describe('export disabled objects', () => {
   });
   test('should remove disabled objects from an array', () => {
     const value = {
+      __disabled: ['a', 'c/0', 'c/3'],
       a: {
-        __enabled: false,
         ba: 'a',
       },
       b: {
-        __enabled: true,
         ba: 'a',
       },
       c: [
         {
-          __enabled: false,
           ca: 'a',
         },
         {
           cb: 'b',
         },
         {
-          __enabled: true,
           cc: 'c',
         },
       ],

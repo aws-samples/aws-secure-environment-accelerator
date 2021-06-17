@@ -16,7 +16,6 @@ export default function Breadcrumbs(): React.ReactElement {
   const breadcrumbs: BreadcrumbGroupProps.Item[] = [];
   let current: TypeTreeNode | undefined = node;
   while (current) {
-    const { tr } = useI18n();
     const { label, title } = tr(current);
     breadcrumbs.unshift({
       text: label ?? title,

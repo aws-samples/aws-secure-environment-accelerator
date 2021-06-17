@@ -7,6 +7,7 @@ import * as t from '@aws-accelerator/common-types';
 import { FormFieldWrapper } from '@/components';
 import { useReplacements } from '@/components/replacements-context';
 import { FieldProps } from './field';
+import { emptyStringAsUndefined } from '@/utils';
 
 type StringLikeType = t.Type<any, string, any>;
 
@@ -77,6 +78,9 @@ export const AutosuggestStringField = observer(function StringField(props: Autos
     node.set(state, emptyStringAsUndefined(currentValue));
   });
 
+  // Update current value when value changes
+  useEffect(() => setCurrentValue(emptyStringAsUndefined(value)), [value]);
+
   return (
     <Autosuggest
       enteredTextLabel={enteredTextLabel}
@@ -123,15 +127,8 @@ export const StringField = observer(function StringField(props: StringFieldProps
     node.set(state, emptyStringAsUndefined(currentValue));
   });
 
+  // Update current value when value changes
+  useEffect(() => setCurrentValue(emptyStringAsUndefined(value)), [value]);
+
   return <Input value={currentValue ?? ''} onChange={handleChange} onBlur={handleBlur} disabled={props.disabled} />;
 });
-
-/**
- * Returns the given value if the value is a string and if it is not empty. Return undefined otherwise.
- */
-function emptyStringAsUndefined(value: any): string | undefined {
-  if (typeof value === 'string' && /\S/.test(value)) {
-    return value;
-  }
-  return undefined;
-}

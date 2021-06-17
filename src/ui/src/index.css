@@ -11,3 +11,13 @@
   margin-left: 0.5em;
   margin-right: 0.5em;
 }
+
+.break-word,
+.break-word * {
+  word-break: break-word !important;
+}
+
+.nowrap,
+.nowrap * {
+  white-space: nowrap !important;
+}

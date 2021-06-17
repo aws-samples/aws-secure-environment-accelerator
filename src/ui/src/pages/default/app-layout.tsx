@@ -1,4 +1,4 @@
-import { useLocalStorage } from '@/utils/hooks';
+import { useStorage } from '@/utils/hooks';
 import { AppLayout, AppLayoutProps } from '@awsui/components-react';
 import { DefaultNavigation } from './navigation';
 
@@ -8,8 +8,8 @@ export type DefaultAppLayoutProps = Omit<
 >;
 
 export const DefaultAppLayout: React.FC<DefaultAppLayoutProps> = props => {
-  const [toolsOpen, setToolsOpen] = useLocalStorage('advanced.tools.open', false);
-  const [navigationOpen, setNavigationOpen] = useLocalStorage('advanced.navigation.open', true);
+  const [toolsOpen, setToolsOpen] = useStorage('advanced.tools.open', false);
+  const [navigationOpen, setNavigationOpen] = useStorage('advanced.navigation.open', true);
 
   const handleNavigationChange: AppLayoutProps['onNavigationChange'] = e => setNavigationOpen(e.detail.open);
   const handleToolsChange: AppLayoutProps['onToolsChange'] = e => setToolsOpen(e.detail.open);

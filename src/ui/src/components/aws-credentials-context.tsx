@@ -1,7 +1,7 @@
 import React, { FC, useContext, useState } from 'react';
 import { Credentials } from '@aws-sdk/types';
 import { Box, Button, FormField, Header, Input, Modal, SpaceBetween } from '@awsui/components-react';
-import { useInput, useLocalStorage } from '@/utils/hooks';
+import { useInput, useStorage } from '@/utils/hooks';
 
 import './aws-credentials-context.scss';
 import { useI18n } from './i18n-context';
@@ -22,7 +22,7 @@ const AwsCredentialsContext = React.createContext<UseAwsConfiguration | undefine
  * Context provider that provides AWS credentials context and allows sub-components to open the credentials modal.
  */
 export const AwsCredentialsProvider: FC = ({ children }) => {
-  const [configuration, setConfiguration] = useLocalStorage<AwsConfiguration>('aws.configuration', {});
+  const [configuration, setConfiguration] = useStorage<AwsConfiguration>('aws.configuration', {});
   const [isModalVisible, setModalVisible] = useState(false);
   const { tr } = useI18n();
 

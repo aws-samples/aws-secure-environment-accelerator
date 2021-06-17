@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { action } from 'mobx';
 import { TypeTreeNode } from '@/types';
+import { Path } from '@/components/fields';
 import * as t from '@aws-accelerator/common-types';
+import { valueAsArray } from '@/utils';
 
-const ENABLED_KEY = '__enabled';
+const DISABLED_KEY = '__disabled';
 
 /**
  * Creates a hook that adds an additional "__enabled" field to the value of the given node to track if the value is enabled or not.
@@ -10,46 +13,54 @@ const ENABLED_KEY = '__enabled';
 export function useEnableNode<T extends t.Any>(
   node: TypeTreeNode<T>,
   state: any,
-  createInitialValue: () => t.TypeOf<T>,
+  createInitialValue?: () => t.TypeOf<T>,
 ): [boolean, (enabled: boolean) => void] {
-  const value = node.get(state);
-  const enabled = value != null && value[ENABLED_KEY] !== false;
+  const enabled = node.get(state) != null && !isDisabled(state, node.path);
 
   const handleChange = action((value: boolean) => {
-    const currentValue: any = node.get(state);
-    if (value) {
-      if (!currentValue) {
-        const initialValue: any = createInitialValue();
-        initialValue[ENABLED_KEY] = true;
-        node.set(state, initialValue);
-      } else {
-        currentValue[ENABLED_KEY] = true;
-      }
-    } else if (currentValue) {
-      currentValue[ENABLED_KEY] = false;
+    let currentValue: any = node.get(state);
+    if (value && currentValue == null && createInitialValue) {
+      currentValue = createInitialValue();
+      node.set(state, currentValue);
     }
+    setDisabled(state, node.path, !value);
   });
 
   return [enabled, handleChange];
 }
 
+export function isDisabled(state: any, path: Path) {
+  const disabled: any[] = valueAsArray(state[DISABLED_KEY]);
+  return disabled.includes(path.join('/'));
+}
+
+export function setDisabled(state: any, path: Path, value: boolean) {
+  const disabled: any[] = valueAsArray(state[DISABLED_KEY]);
+  if (value) {
+    state[DISABLED_KEY] = [...disabled, path.join('/')];
+  } else {
+    state[DISABLED_KEY] = disabled.filter(value => value !== path.join('/'));
+  }
+}
+
 /**
- * Returns a copy of the given value omitting objects that have `__enabled === false`.
+ * Returns a copy of the given value omitting objects whose path is not in the __disabled array.
  */
-export function removeDisabledObjects(value: any): any {
-  if (value === null) {
+export function removeDisabledObjects(value: any, disabled: string[] = value?.[DISABLED_KEY], path: Path = []): any {
+  if (disabled && Array.isArray(disabled) && disabled.includes(path.join('/'))) {
+    return undefined;
+  } else if (value === null) {
     return value;
   } else if (Array.isArray(value)) {
-    return value.map(removeDisabledObjects).filter(value => !!value);
+    return value
+      .map((value, index) => removeDisabledObjects(value, disabled, [...path, index]))
+      .filter(value => !!value);
   } else if (typeof value === 'object') {
-    if (value[ENABLED_KEY] === false) {
-      return undefined;
-    }
     // Create object with same key-value, only values are mapped by a recursive call to `removeDisabledObjects`
     return Object.fromEntries(
       Object.getOwnPropertyNames(value)
-        .filter(key => key !== ENABLED_KEY)
-        .map(key => [key, removeDisabledObjects(value[key])])
+        .filter(key => key !== DISABLED_KEY)
+        .map(key => [key, removeDisabledObjects(value[key], disabled, [...path, key])])
         .filter(([, value]) => value !== undefined),
     );
   }

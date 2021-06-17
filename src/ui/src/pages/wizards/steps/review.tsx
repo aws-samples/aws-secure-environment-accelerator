@@ -11,9 +11,7 @@ export const ReviewStep = observer(function ReviewStep({ state, configuration }:
   return (
     <>
       <SpaceBetween size="xxl">
-        <Container header={<Header variant="h2">Review</Header>}>
-          <SpaceBetween size="xl" direction="vertical"></SpaceBetween>
-        </Container>
+        <Container header={<Header variant="h2">Review</Header>}></Container>
       </SpaceBetween>
     </>
   );

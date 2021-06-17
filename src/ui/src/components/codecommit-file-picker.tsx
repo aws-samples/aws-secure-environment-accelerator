@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { memo, useCallback, useState } from 'react';
 import { Box, Button, FormField, Header, Input, Modal, SpaceBetween } from '@awsui/components-react';
-import { UseInput, useLocalStorageInput } from '@/utils/hooks';
+import { UseInput, useStorageInput } from '@/utils/hooks';
 import { CodeCommitClient, GetFileCommand } from '@aws-sdk/client-codecommit';
 import { FileInputState } from './file-input';
 import { useAwsConfiguration } from './aws-credentials-context';
@@ -16,9 +16,9 @@ export interface CodeCommitFilePickerInputs {
 }
 
 export function useCodeCommitInputs(): CodeCommitFilePickerInputs {
-  const repositoryNameInputProps = useLocalStorageInput('codecommit.repository');
-  const branchNameInputProps = useLocalStorageInput('codecommit.branch', 'main');
-  const filePathInputProps = useLocalStorageInput('codecommit.file', 'config.json');
+  const repositoryNameInputProps = useStorageInput('codecommit.repository');
+  const branchNameInputProps = useStorageInput('codecommit.branch', 'main');
+  const filePathInputProps = useStorageInput('codecommit.file', 'config.json');
   return {
     repositoryNameInputProps,
     branchNameInputProps,

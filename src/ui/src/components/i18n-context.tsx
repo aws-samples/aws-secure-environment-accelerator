@@ -16,6 +16,7 @@ export interface UseI18n {
   i18n: i18n;
   tr(node: TypeTreeNode): NodeTranslations;
   tr(key: I18nKey | I18nKey[], options?: TOptions<StringMap>): string;
+  currency(value: number, currency?: string): string;
 }
 
 const I18nContextC = createContext<UseI18n | undefined>(undefined);
@@ -65,18 +66,19 @@ export const I18nProvider: FC = ({ children }) => {
 
       label = `${fragment}`;
       if (parent.rawType instanceof ArrayType) {
+        title = getNodeTranslations(parent)?.title;
         description = tr('labels.array_element', { index: fragment });
       } else if (parent.rawType instanceof InterfaceType) {
         title = capitalCase(label);
+
+        const parentTranslations = en.tr(parent.type);
+        if (parentTranslations && isInterfaceTranslations(parentTranslations)) {
+          const wrappedTranslations = parentTranslations.fields[fragment];
+          title = wrappedTranslations?.title ?? title;
+          description = wrappedTranslations?.description ?? description;
+        }
       } else if (parent.rawType instanceof DictionaryType) {
         description = tr('labels.object_element', { key: fragment });
-      }
-
-      const parentTranslations = en.tr(parent.type);
-      if (parentTranslations && isInterfaceTranslations(parentTranslations)) {
-        const wrappedTranslations = parentTranslations.fields[fragment];
-        title = wrappedTranslations?.title ?? title;
-        description = wrappedTranslations?.description ?? description;
       }
     }
     return {
@@ -90,6 +92,7 @@ export const I18nProvider: FC = ({ children }) => {
   const value: UseI18n = {
     i18n: i18next,
     tr,
+    currency: translation.currency.bind(translation),
   };
   return <I18nContextC.Provider value={value}>{children}</I18nContextC.Provider>;
 };

@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import { InputProps } from '@awsui/components-react';
+import { CheckboxProps, InputProps } from '@awsui/components-react';
 import { Path } from '@/components/fields';
 
 export const useEffectAsync = (fn: () => Promise<void>, deps?: ReadonlyArray<unknown>): void =>
   useEffect(() => (fn() as unknown) as void, deps);
 
-export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+export function useStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
   const [storedValue, setStoredValue] = useState(() => {
     try {
-      const item = window.localStorage.getItem(key);
+      const item = window.sessionStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
       console.log(error);
@@ -21,7 +21,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value;
       setStoredValue(valueToStore);
-      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      window.sessionStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (error) {
       console.log(error);
     }
@@ -44,16 +44,32 @@ export function usePathHistory() {
   };
 }
 
-export type UseInput = Pick<InputProps, 'value' | 'onChange'>;
+export interface UseInput {
+  value: string;
+  onChange: InputProps['onChange'];
+  setValue: (value: string) => void;
+}
 
 export function useInput(initialValue?: string): UseInput {
   const [value, setValue] = useState<string>(initialValue ?? '');
   const onChange: InputProps['onChange'] = event => setValue(event.detail.value);
-  return { value, onChange };
+  return { value, setValue, onChange };
 }
 
-export function useLocalStorageInput(key: string, initialValue?: string): UseInput {
-  const [value, setValue] = useLocalStorage<string>(key, initialValue ?? '');
+export interface UseCheckbox {
+  checked: boolean;
+  onChange: CheckboxProps['onChange'];
+  setChecked: (value: boolean) => void;
+}
+
+export function useCheckboxInput(initialValue?: boolean): UseCheckbox {
+  const [checked, setChecked] = useState<boolean>(initialValue ?? false);
+  const onChange: CheckboxProps['onChange'] = event => setChecked(event.detail.checked);
+  return { checked, setChecked, onChange };
+}
+
+export function useStorageInput(key: string, initialValue?: string): UseInput {
+  const [value, setValue] = useStorage<string>(key, initialValue ?? '');
   const onChange: InputProps['onChange'] = event => setValue(event.detail.value);
-  return { value, onChange };
+  return { value, setValue, onChange };
 }

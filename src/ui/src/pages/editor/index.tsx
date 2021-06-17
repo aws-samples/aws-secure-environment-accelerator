@@ -28,7 +28,7 @@ export default function EditorPage() {
 
   return (
     <DefaultAppLayout breadcrumbs={<Breadcrumbs onSave={handleSave} onReset={handleReset} />}>
-      <Content value={value} setValue={setValue} />
+      <Content value={value} onChange={setValue} />
     </DefaultAppLayout>
   );
 }

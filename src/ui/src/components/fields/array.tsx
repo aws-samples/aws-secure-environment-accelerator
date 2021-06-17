@@ -51,7 +51,7 @@ export function ArrayField<T extends t.ArrayType<t.Any>>(props: ArrayFormFieldPr
   return (
     <SpaceBetween direction="vertical" size="s">
       {!disabled && (
-        <Button onClick={handleAdd} iconName="add-plus">
+        <Button onClick={handleAdd} iconName="add-plus" formAction="none">
           {tr('buttons.add', { title })}
         </Button>
       )}
@@ -97,7 +97,7 @@ const ArrayFields = observer(function ArrayFields<T extends t.ArrayType<t.Any>>(
               FieldWrapperC={props.FieldWrapperC}
             />
             {!disabled && (
-              <Button onClick={handleRemoveFn(index)} iconName="close">
+              <Button onClick={handleRemoveFn(index)} iconName="close" formAction="none">
                 {tr('buttons.remove', { title })}
               </Button>
             )}

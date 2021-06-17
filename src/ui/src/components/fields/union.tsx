@@ -3,7 +3,7 @@ import { Select, SelectProps, SpaceBetween } from '@awsui/components-react';
 import * as t from '@aws-accelerator/common-types';
 import { FormFieldWrapper } from '@/components';
 import { useI18n } from '@/components/i18n-context';
-import { useLocalStorage } from '@/utils/hooks';
+import { useStorage } from '@/utils/hooks';
 import { Field, FieldProps } from './field';
 
 interface UnionOption extends SelectProps.Option {
@@ -19,7 +19,7 @@ export function UnionFormField(props: FieldProps<t.UnionType<t.Any[]>>): React.R
   const { tr } = useI18n();
 
   // Keep track of the last selected union type index.
-  const [typeIndex, setTypeIndex] = useLocalStorage<number | undefined>('advanced.' + node.path.join('.'), undefined);
+  const [typeIndex, setTypeIndex] = useStorage<number | undefined>('advanced.' + node.path.join('.'), undefined);
 
   // Try to restore the exact subtype of the union type from the state value
   useEffect(() => {

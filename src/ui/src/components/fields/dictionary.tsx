@@ -45,7 +45,7 @@ export function DictionaryFormField(props: DictionaryFormFieldProps) {
       <FieldWrapperC {...props} validation={false}>
         <SpaceBetween direction="vertical" size="s">
           {!disabled && (
-            <Button onClick={handleAdd} iconName="add-plus">
+            <Button onClick={handleAdd} iconName="add-plus" formAction="none">
               {tr('buttons.add', { title })}
             </Button>
           )}
@@ -90,7 +90,7 @@ const DictionaryFields = observer(function DictionaryFields(props: FieldProps<t.
               FieldWrapperC={props.FieldWrapperC}
             />
             {!disabled && (
-              <Button onClick={handleRemoveFn(key)} iconName="close">
+              <Button onClick={handleRemoveFn(key)} iconName="close" formAction="none">
                 {tr('buttons.remove', { title })}
               </Button>
             )}

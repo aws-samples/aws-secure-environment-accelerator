@@ -2,68 +2,241 @@ import * as c from '@aws-accelerator/config';
 import * as t from '@aws-accelerator/common-types';
 import { translation } from './translations';
 
-const translations = translation('en', {
-  menu: {
-    accelerator_configuration: 'Configuration Accelerator',
-    properties: 'Propriétés',
-    graphical_editor: 'Éditeur graphique',
-    code_editor: 'Éditeur de code',
-    wizard: 'Assistant',
+const translations = translation(
+  'fr',
+  {
+    menu: {
+      accelerator_configuration: 'Configuration Accelerator',
+      properties: 'Propriétés',
+      graphical_editor: 'Éditeur graphique',
+      code_editor: 'Éditeur de code',
+      wizard: 'Assistant',
+    },
+    headers: {
+      add_dictionary_field: 'Ajouter {{value}}',
+      configure_credentials: 'Configure Credentials',
+      import_configuration: 'Importer la configuration',
+      choose_codecommit_file: 'Choisissez le fichier CodeCommit',
+      export_configuration: 'Exporter la configuration',
+      import_codecommit: 'CodeCommit',
+      import_file: 'Fichier',
+    },
+    buttons: {
+      add: 'Ajouter {{title}}',
+      cancel: 'Annuler',
+      remove: 'Supprimer {{title}}',
+      save: 'Sauvegarder',
+      choose: 'Choisissez',
+      export: 'Exporter',
+      choose_file: 'Choisissez le fichier',
+      edit: 'Modifier',
+      import: 'Importer',
+      next: 'Next', // TODO
+      previous: 'Previous', // TODO
+    },
+    labels: {
+      empty: '<empty>',
+      codecommit_repository: 'Nom du référentiel CodeCommit',
+      codecommit_repository_description: 'Le nom du référentiel CodeCommit qui contient le fichier de configuration.',
+      codecommit_branch: 'Nom de la branche CodeCommit',
+      codecommit_branch_description: 'Le nom de la branche dans le référentiel CodeCommit.',
+      codecommit_file: 'Fichier CodeCommit',
+      codecommit_file_description: 'Le nom du fichier de configuration dans le référentiel CodeCommit.',
+      export_as_file: 'Exportez la configuration comme un fichier et téléchargez-la avec votre navigateur.',
+      export_introduction:
+        "Vous pouvez télécharger la configuration comme un fichier ou l'enregistrer comme un fichier dans un référentiel CodeCommit.",
+      configuration_is_valid: 'La configuration est valide.',
+      array_element: 'Élément à l\'indice "{{index}}"',
+      object_element: 'Élément à l\'indice "{{key}}"',
+      required: 'Obligatoire',
+      toggle_replacement: 'Activer remplacements',
+      loading: 'Chargement...',
+      selected_configuration_is_valid: 'Le fichier de configuration sélectionné est valide.',
+      import_with_errors: 'Importation avec des erreurs',
+      import_with_errors_description: "Le fichier sera importé même s'il y a des erreurs.",
+      import_configuration_introduction:
+        'Vous pouvez importer la configuration en téléchargeant un fichier ou en choisissant un fichier dans CodeCommit.',
+      configuration_file: 'Fichier de configuration',
+      configuration_file_description: 'Télécharger un fichier de configuration',
+      configuration_file_constraint: 'JSON formatted file',
+      choose_language: 'Choisissez la langue',
+    },
+    wizard: {
+      steps: {
+        configure_global_settings: 'Basic Settings',
+        select_security_guardrails: 'Additional AWS Regions for Governance',
+        select_security_services: 'Security Services',
+        structure_organization: 'Organization Structure',
+        structure_accounts: 'Account Structure',
+        configure_network: 'Networking',
+        configure_ad: 'Directory Services',
+        review: 'Save and Export',
+      },
+      headers: {
+        aws_configuration: 'Credentials',
+        aws_configuration_desc: '',
+        framework: 'Framework Template',
+        framework_desc: '',
+        basic_settings: 'Basic Settings',
+        basic_settings_desc: '',
+        security_notifications: 'Security Notifications',
+        security_notifications_desc: '',
+        security_guardrails_always_on: 'Always Enabled Regions',
+        security_guardrails_always_on_desc: '',
+        security_guardrails_opt_in: 'Opt-In Regions',
+        security_guardrails_opt_in_desc: '',
+        security_services: 'Security Service Deployment',
+        security_services_desc: '',
+        security_services_logging: 'Logging',
+        security_services_logging_desc: '',
+        cidr_pools: 'CIDR Pools',
+        cidr_pools_desc: '',
+        add_cidr_pool: 'Add CIDR pool',
+        edit_cidr_pool: 'Edit CIDR pool',
+        add_organizational_unit: 'Add organizational unit',
+        edit_organizational_unit: 'Edit organizational unit',
+        organizational_units: 'Organizational Units (Top level)',
+        organizational_units_desc: '',
+        mandatory_accounts: 'Shared Accounts',
+        mandatory_accounts_desc: '',
+        workload_accounts: 'Workload Accounts',
+        workload_accounts_desc: '',
+        add_mandatory_account: 'Add shared account',
+        add_workload_account: 'Add workload account',
+        edit_mandatory_account: 'Edit shared account',
+        edit_workload_account: 'Edit workload account',
+        vpcs: 'VPCs',
+        vpcs_desc: '',
+        add_vpc: 'Add VPC',
+        edit_vpc: 'Edit VPC',
+        mads: 'Managed active directory',
+        mads_desc: '',
+        edit_mad: 'Edit managed active directory',
+        zones: 'Route53 zones',
+        zones_desc: '',
+        edit_zone: 'Edit Route53 zone',
+      },
+      labels: {
+        credentials_not_set: 'Please enter credentials.',
+        credentials_valid: 'The provided credentials appear valid.',
+        credentials_not_valid: 'The provided credentials are NOT valid.',
+        ct_enabled_not_authenticated:
+          'Credentials NOT provided, validation bypassed. When installing with Control Tower, the Accelerator Home region MUST match the Control Tower home region.  Additionally, Control Tower must be pre-installed before starting the Accelerator installation. At this time, it is not possible to switch between installation types after installation.',
+        ct_disabled_not_authenticated:
+          'Credentials NOT provided, validation bypassed. If Control Tower is installed, this option MUST be set to Control Tower. While a standalone installation is supported, AWS generally recommends installing the Accelerator on top of AWS Control Tower. At this time, it is not possible to switch between installation types after installation.',
+        ct_detected_and_enabled: 'AWS Control Tower installation detected. Installing using Control Tower as the base.',
+        ct_detected_and_disabled:
+          'AWS Control Tower installation detected. A standalone deployment of the Accelerator is NOT supported.',
+        ct_not_detected_and_enabled:
+          'An AWS Control Tower installation was NOT detected and you have selected to leverage Control Tower as a base ' +
+          'which is the recommended installation type. Control Tower must be installed before starting the ' +
+          'Accelerator installation. To install without Control Tower, please change to a Standalone installation.',
+        ct_not_detected_and_disabled:
+          'Standalone installation selected. While supported, AWS generally recommends installing the Accelerator ' +
+          'on top of AWS Control Tower (which requires installing AWS Control Tower before starting the Accelerator installation).',
+        security_notifications_text:
+          'The Accelerator provides the ability to send notifications for security findings and alerts.  These    notifications' +
+          'can be classified into three priorities. Please provide an email address for each notification priority:',
+        security_notifications_email_not_unique: 'These email addresses do not need to be unique.',
+        security_guardrails_always_on_text:
+          'The selected framework recommends deploying security guardrails in the following AWS regions.',
+        security_guardrails_opt_in_text:
+          'The selected framework recommends deploying security guardrails in the following AWS regions.',
+        security_services_text: 'The selected framework recommends enabling the following security services.',
+        security_services_logging_text: 'The selected framework recommends enabling the following security services.',
+        cidr_pools_use_graphical_editor:
+          'If you want to prescriptively assign your own CIDRs, please use the Advanced editor after running the wizard mode.',
+        ou_key: 'OU Key',
+        ou_name: 'OU Name',
+        ou_default_per_account_budget: 'Default budget (per account)',
+        ou_default_per_account_email: 'Budget alert email address',
+        ou_name_email_change_text:
+          'Account names, organizational units and email address are very hard to change after initial installation.',
+        ou_email_uniqueness_text: 'Budget alert email addresses do not need to be unique.',
+        account_key: 'Account Key',
+        account_budget_amount: 'Budget',
+        account_budget_email: 'Budget alert email address',
+        account_budget_use_ou: 'Use OU budget settings',
+        account_name_email_change_text: '$t(wizard.labels.ou_name_email_change_text)',
+        account_email_uniqueness_text:
+          'Account email addresses must each be unique and never before used to open an AWS account. Budget alert email addresses do not need to be unique.',
+        account_existing_account_text:
+          'To leverage an existing AWS account requires specifying an identical account name and email address to the existing account name &mdash; this is extremely important when installing on top of Control Tower.',
+        vpcs_use_graphical_editor: '$t(wizard.labels.cidr_pools_use_graphical_editor)',
+        zone_account: 'Account',
+        zone_vpc_name: 'VPC name',
+        zone_central_vpc: 'Central VPC',
+        zone_has_zones: 'Has Zones',
+        zone_has_resolvers: 'Has Resolvers',
+      },
+      fields: {
+        aws_credentials: 'Please provide credentials for the AWS Organizations management account',
+        aws_credentials_desc: '',
+        architecture_template: 'Please select a prescriptive architecture template',
+        architecture_template_desc:
+          'The template is used to guide the wizard and provide suggested defaults based on the selected compliance framework or country security standard.',
+        installation_region: 'Installation or Home region',
+        installation_region_desc: '',
+        installation_type: 'Installation type',
+        installation_type_desc: '',
+        high_priority_email: 'High priority notification email address',
+        high_priority_email_desc: '',
+        medium_priority_email: 'Medium priority notification email address',
+        medium_priority_email_desc: '',
+        low_priority_email: 'Low priority notification email address',
+        low_priority_email_desc: '',
+        aws_config: 'AWS Config',
+        aws_config_desc: '',
+        aws_config_rules: 'Framework provided rules ({{count}} rules)',
+        aws_config_remediations: 'Framework provided remediations ({{count}} remediations)',
+        cwl_centralized_access: 'CloudWatch centralized access from',
+        cwl_centralized_access_desc: '',
+        cwl_central_security_services_account: 'Central security services account',
+        cwl_central_security_services_account_desc: '',
+        cwl_central_operations_account: 'Central operations account',
+        cwl_central_operations_account_desc: '',
+        retention_periods_for: 'Retention periods for',
+        retention_periods_for_desc: '',
+        vpc_flow_logs_all_vcps: 'VPC flow logs for all VPCs',
+        vpc_flow_logs_all_vcps_desc: '',
+        vpc_flow_logs_s3: 'S3 central logging bucket',
+        vpc_flow_logs_cwl: 'CloudWatch logs',
+        ssm_logs_to: 'Systems Manager Session Manager logs to',
+        ssm_logs_to_desc: '',
+        dns_resolver_logging_all_vpcs: 'DNS resolver logging for all VPCs',
+      },
+      buttons: {
+        configure_aws_credentials: 'Configure credentials',
+        select_configuration_file: 'Select configuration file',
+      },
+    },
+    splash: {
+      category: 'Management &amp; Governance',
+      title: 'Secure Environment Accelerator',
+      subtitle: 'Deploy and operate secure multi-account, multi-region environments',
+      description:
+        'The AWS Accelerator is a tool designed to help deploy and operate secure multi-account, multi-region' +
+        'AWS environments on an ongoing basis. The power of the solution is the configuration file that drives' +
+        'the architecture deployed by the tool. This enables extensive flexibility and for the completely' +
+        'automated deployment of a customized architecture within AWS without changing a single line of code.',
+      create_configuration: 'Create configuration',
+      next_step: 'Next step',
+    },
+    languages: {
+      en: 'English',
+      fr: 'Français',
+    },
   },
-  headers: {
-    add_dictionary_field: 'Ajouter {{value}}',
-    configure_credentials: 'Configure Credentials',
-    import_configuration: 'Importer la configuration',
-    choose_codecommit_file: 'Choisissez le fichier CodeCommit',
-    export_configuration: 'Exporter la configuration',
-    import_codecommit: 'CodeCommit',
-    import_file: 'Fichier',
+  {
+    currency(value: number, currency: string = 'USD'): string {
+      // TODO Cache NumberFormats
+      return new Intl.NumberFormat('fr-CA', {
+        style: 'currency',
+        currency,
+      }).format(value);
+    },
   },
-  buttons: {
-    add: 'Ajouter {{title}}',
-    cancel: 'Annuler',
-    remove: 'Supprimer {{title}}',
-    save: 'Sauvegarder',
-    choose: 'Choisissez',
-    export: 'Exporter',
-    choose_file: 'Choisissez le fichier',
-    edit: 'Modifier',
-    import: 'Importer',
-    next: 'Next', // TODO
-    previous: 'Previous', // TODO
-  },
-  labels: {
-    empty: '<empty>',
-    codecommit_repository: 'Nom du référentiel CodeCommit',
-    codecommit_repository_description: 'Le nom du référentiel CodeCommit qui contient le fichier de configuration.',
-    codecommit_branch: 'Nom de la branche CodeCommit',
-    codecommit_branch_description: 'Le nom de la branche dans le référentiel CodeCommit.',
-    codecommit_file: 'Fichier CodeCommit',
-    codecommit_file_description: 'Le nom du fichier de configuration dans le référentiel CodeCommit.',
-    export_as_file: 'Exportez la configuration comme un fichier et téléchargez-la avec votre navigateur.',
-    export_introduction:
-      "Vous pouvez télécharger la configuration comme un fichier ou l'enregistrer comme un fichier dans un référentiel CodeCommit.",
-    configuration_is_valid: 'La configuration est valide.',
-    array_element: 'Élément à l\'indice "{{index}}"',
-    object_element: 'Élément à l\'indice "{{key}}"',
-    required: 'Obligatoire',
-    toggle_replacement: 'Activer remplacements',
-    loading: 'Chargement...',
-    selected_configuration_is_valid: 'Le fichier de configuration sélectionné est valide.',
-    import_with_errors: 'Importation avec des erreurs',
-    import_with_errors_description: "Le fichier sera importé même s'il y a des erreurs.",
-    import_configuration_introduction:
-      'Vous pouvez importer la configuration en téléchargeant un fichier ou en choisissant un fichier dans CodeCommit.',
-    configuration_file: 'Fichier de configuration',
-    configuration_file_description: 'Télécharger un fichier de configuration',
-    configuration_file_constraint: 'JSON formatted file',
-    choose_language: 'Choisissez la langue',
-  },
-  languages: {
-    en: 'English',
-    fr: 'Français',
-  },
-});
+);
 
 const translate = translations.add.bind(translations);
 
@@ -637,6 +810,10 @@ translate(c.VpcConfigType, {
       title: '',
       description: 'The name of the VPC that will be deployed inside the account.',
     },
+    description: {
+      title: 'Description',
+      description: '',
+    },
     region: {
       title: '',
       description: 'Region for the VPC.',
@@ -1014,6 +1191,10 @@ translate(c.MadConfigType, {
   title: '',
   description: '',
   fields: {
+    description: {
+      title: 'Description',
+      description: '',
+    },
     'dir-id': {
       title: '',
       description: '',
@@ -1749,6 +1930,10 @@ translate(c.MandatoryAccountConfigType, {
   title: 'Configuration des Accounts',
   description: '',
   fields: {
+    description: {
+      title: 'Description',
+      description: '',
+    },
     'account-name': {
       title: '',
       description: 'Name of the network account',
@@ -1862,6 +2047,10 @@ translate(c.OrganizationalUnitConfigType, {
   title: '',
   description: '',
   fields: {
+    description: {
+      title: 'Description',
+      description: '',
+    },
     type: {
       title: '',
       description: '',

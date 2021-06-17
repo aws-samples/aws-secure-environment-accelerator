@@ -250,6 +250,7 @@ export type CidrSrcTypes = t.TypeOf<typeof CidrSrcTypes>;
 export const VpcConfigType = t.interface({
   deploy: t.nonEmptyString,
   name: t.nonEmptyString,
+  description: t.optional(t.nonEmptyString),
   region: t.region,
   cidr: t.defaulted(t.array(CidrConfigType), []),
   'cidr-src': t.defaulted(CidrSrcTypes, 'provided'),
@@ -385,6 +386,7 @@ export const ADUserConfig = t.interface({
 export type ADUserConfig = t.TypeOf<typeof ADUserConfig>;
 
 export const MadConfigType = t.interface({
+  description: t.optional(t.nonEmptyString),
   'dir-id': t.number,
   deploy: t.boolean,
   'vpc-name': t.nonEmptyString,
@@ -620,6 +622,8 @@ export const SsmShareAutomation = t.interface({
   documents: t.array(t.nonEmptyString),
 });
 
+export type SsmShareAutomation = t.TypeOf<typeof SsmShareAutomation>;
+
 export const AwsConfigRules = t.interface({
   'excl-regions': t.array(t.nonEmptyString),
   rules: t.array(t.nonEmptyString),
@@ -633,6 +637,7 @@ export const AwsConfigAccountConfig = t.interface({
 
 export const MandatoryAccountConfigType = t.interface({
   'account-name': t.nonEmptyString,
+  description: t.optional(t.nonEmptyString),
   email: t.nonEmptyString,
   ou: t.nonEmptyString,
   'ou-path': t.optional(t.nonEmptyString),
@@ -668,6 +673,7 @@ export const AccountsConfigType = t.record(t.nonEmptyString, MandatoryAccountCon
 export type AccountsConfig = t.TypeOf<typeof AccountsConfigType>;
 
 export const OrganizationalUnitConfigType = t.interface({
+  description: t.optional(t.nonEmptyString),
   type: t.nonEmptyString,
   scps: t.array(t.nonEmptyString),
   'share-mad-from': t.optional(t.nonEmptyString),
@@ -906,6 +912,7 @@ export const CidrPoolConfigType = t.interface({
   pool: t.nonEmptyString,
   region: t.nonEmptyString,
   cidr: t.cidr,
+  description: t.optional(t.nonEmptyString),
 });
 
 export const GlobalOptionsConfigType = t.interface({

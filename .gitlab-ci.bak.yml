@@ -1,4 +1,9 @@
-image: public.ecr.aws/bitnami/node:14
+image: node:latest
+
+cache:
+  untracked: true
+  paths:
+    - ~/.pnpm-store
 
 workflow:
   rules:
@@ -6,29 +11,28 @@ workflow:
     - if: $CI_COMMIT_BRANCH == 'main'
 
 stages:
+  - setup
+  - checks
   - build
 
 default:
   before_script:
-    - export NODE_OPTIONS=--max_old_space_size=4096
     - npm install -g pnpm@6.2.3
+
+install:
+  stage: setup
+  script:
     - pnpm recursive install
     - pnpm -w build
 
 test:
-  stage: build
+  stage: checks
   script:
     - pnpm -w test
   timeout: 3h
 
-eslint:
-  stage: build
-  script:
-    - pnpm -w lint:eslint
-  timeout: 3h
-
 typecheck:
-  stage: build
+  stage: checks
   script:
     - pnpm -w lint:typecheck
   timeout: 3h
@@ -36,10 +40,10 @@ typecheck:
 ui:
   stage: build
   script:
-    - apt-get update
+    - apt-get install zip
     - cd src/ui
-    - pnpm build:ui
+    - zip -r bundle.zip build # Already built by the before_script
   artifacts:
     expire_in: 30 days
     paths:
-      - src/ui/build
+      - src/ui/bundle.zip

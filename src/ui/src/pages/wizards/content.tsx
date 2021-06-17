@@ -2,24 +2,19 @@
 import { observer } from 'mobx-react-lite';
 import { useCallback, useState } from 'react';
 import { Wizard, WizardProps } from '@awsui/components-react';
-import { SyncObservable } from '@/components/accelerator-config-context';
+import { SyncObservable, useObservable } from '@/components/accelerator-config-context';
 import { ExportModal, useHandleExportSubmit } from '@/components/export-modal';
-import { useLocalStorage } from '@/utils/hooks';
-import {
-  useWizardConfigurationObservable,
-  useWizardObservable,
-  WIZARD_CONFIGURATION_NAME,
-  WIZARD_STATE_NAME,
-} from './configuration';
-import * as steps from './steps';
-
-import './i18n';
+import { useStorage } from '@/utils/hooks';
+import { useI18n } from '@/components/i18n-context';
 import { removeDisabledObjects } from './util';
+import { useWizardObservable, WIZARD_STATE_NAME } from './configuration';
+import * as steps from './steps';
 
 export default observer(function Content(): React.ReactElement {
   const state = useWizardObservable();
-  const configuration = useWizardConfigurationObservable();
-  const [activeStepIndex, setActiveStepIndex] = useLocalStorage('pbmm.step', 0);
+  const configuration = useObservable();
+  const [activeStepIndex, setActiveStepIndex] = useStorage('pbmm.step', 0);
+  const { tr } = useI18n();
 
   const [exportVisible, setExportDialogVisible] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
@@ -38,43 +33,45 @@ export default observer(function Content(): React.ReactElement {
 
   const wizardSteps = [
     {
-      title: 'Configure global settings',
+      title: tr('wizard.steps.configure_global_settings'),
       content: <steps.ConfigureGlobalSettingsStep state={state} configuration={configuration} />,
     },
     {
-      title: 'Select security guardrails',
+      title: tr('wizard.steps.select_security_guardrails'),
       content: <steps.SelectGuardrailsStep configuration={configuration} />,
     },
     {
-      title: 'Select security services',
+      title: tr('wizard.steps.select_security_services'),
       content: <steps.SelectSecurityServicesStep configuration={configuration} />,
     },
     {
-      title: 'Structure organization',
+      title: tr('wizard.steps.structure_organization'),
       content: <steps.StructureOrganizationStep configuration={configuration} />,
     },
     {
-      title: 'Configure network',
+      title: tr('wizard.steps.structure_accounts'),
+      content: <steps.StructureAccountStep configuration={configuration} />,
+    },
+    {
+      title: tr('wizard.steps.configure_network'),
       content: <steps.ConfigureNetworkStep configuration={configuration} />,
     },
     {
-      title: 'Configure active directory',
+      title: tr('wizard.steps.configure_ad'),
       content: <steps.ConfigureMadStep configuration={configuration} />,
     },
     {
-      title: 'Review',
+      title: tr('wizard.steps.review'),
       content: <steps.ReviewStep state={state} configuration={configuration} />,
     },
   ];
 
   const handleSubmit = () => {
-    // Remove __enabled === false
     setExportValue(removeDisabledObjects(configuration));
     setExportDialogVisible(true);
   };
 
   const handleNavigate: WizardProps['onNavigate'] = e => {
-    console.log('onNavigate', e);
     // TODO Loading and validation
     setActiveStepIndex(e.detail.requestedStepIndex);
   };
@@ -82,14 +79,14 @@ export default observer(function Content(): React.ReactElement {
   return (
     <>
       <SyncObservable name={WIZARD_STATE_NAME} />
-      <SyncObservable name={WIZARD_CONFIGURATION_NAME} />
       <Wizard
         steps={wizardSteps}
         i18nStrings={{
-          cancelButton: 'Cancel',
-          nextButton: 'Next',
-          previousButton: 'Previous',
-          submitButton: 'Export',
+          cancelButton: tr('buttons.cancel'),
+          nextButton: tr('buttons.next'),
+          previousButton: tr('buttons.previous'),
+          submitButton: tr('buttons.save'),
+          // TODO Translations
           collapsedStepsLabel: (stepNumber, stepsCount) => `Step ${stepNumber} of ${stepsCount}`,
           stepNumberLabel: stepNumber => `Step ${stepNumber}`,
         }}

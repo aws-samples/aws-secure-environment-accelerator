@@ -25,14 +25,16 @@ The `build` directory now contains the compiled application.
 
 ```
 src
-├── components    # Reusable React components across the project.
-│   └── fields    # Reusable React components that render fields for the corresponding `io-ts` types.
+├── components          # Reusable React components across the project.
+│   └── fields          # Reusable React components that render fields for the corresponding `io-ts` types.
 ├── pages
-│   ├── advanced  # React components to build the advanced page.
-│   ├── default   # Default React components to reuse in other pages.
-│   ├── editor    # React components to build the editor page.
-│   ├── home      # React components to build the home page.
-│   └── wizards   # React components to build the wizards page.
+│   ├── advanced        # React components to build the advanced page.
+│   ├── default         # Default React components to reuse in other pages.
+│   ├── editor          # React components to build the editor page.
+│   ├── home            # React components to build the home page.
+│   └── wizards         # React components to build the wizard page.
+│       ├── components  # Reusable React components that render fields for the wizards.
+│       └── steps       # React components to render steps in the wizard page.
 └── utils
 ```
 
@@ -137,14 +139,8 @@ For example you might have the type:
 
 ```typescript
 const Vpc = t.interface({
-  accountName: annotate(t.optional(t.nonEmptyString), {
-    title: 'Account Name',
-    description: 'The name of the account as specified in the configuration.',
-  }),
-  cidrs: annotate(t.array(t.cidr), {
-    title: 'CIDR',
-    description: 'The CIDR ranges to assign to this VPC.',
-  }),
+  accountName: t.optional(t.nonEmptyString),
+  cidrs: t.array(t.cidr),
 });
 ```
 
@@ -155,21 +151,22 @@ root (Vpc)
 ├── accountName
 │   ├── parent: root
 │   ├── path: ['accountName']
-│   ├── type: AnnotateType<OptionalType<SizedType<StringType>>>
+│   ├── type: OptionalType<SizedType<StringType>>
 │   ├── rawType: StringType
 │   ├── metadata
-│   │   ├── title: 'Account Name'
-│   │   ├── description: 'The name of the account as specified in the configuration.'
 │   │   ├── optional: true
 │   │   └── min: 1
 ├── cidrs
 │   ├── parent: root
 │   ├── path: ['cidrs']
-│   ├── type: AnnotateType<ArrayType<CidrType>>
-│   ├── rawType: CidrType
-│   ├── metadata
-│   │   ├── title: 'CIDR'
-│   │   └── description: 'The CIDR ranges to assign to this VPC.'
+│   ├── type: ArrayType<CidrType>
+│   ├── rawType: ArrayType
+│   ├── nested
+│   │   ├── 0
+│   │   │   ├── parent: cidrs
+│   │   │   ├── path: ['cidrs', 0]
+│   │   │   ├── type: CidrType
+│   │   │   └── rawType: ArrayType
 ```
 
 You can find the code that builds the tree in `src/types.ts`.

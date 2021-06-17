@@ -4,11 +4,17 @@ import { getTypeTree, TypeTreeNode } from '@/types';
 import { I18nProvider, useI18n } from './i18n-context';
 import { en } from '@aws-accelerator/config-i18n';
 
+const nested = t.interface({
+  pool: t.nonEmptyString,
+  size: t.number,
+});
+
 const type = t.interface({
   name: t.string,
   unnamed: t.string,
   array: t.array(t.string),
   record: t.record(t.string, t.string),
+  nestedArray: t.array(nested),
 });
 const root = getTypeTree(type);
 
@@ -21,8 +27,16 @@ describe('useI18n', () => {
         unnamed: {},
         array: { title: 'Array' },
         record: { title: 'Record' },
+        nestedArray: { title: 'Nested Array' },
       },
     });
+  });
+
+  en.add(nested, {
+    fields: {
+      pool: { title: 'Pool' },
+      size: { title: 'Size' },
+    },
   });
 
   test('should render the correct title for the root', () => {
@@ -68,6 +82,24 @@ describe('useI18n', () => {
       </I18nProvider>,
     );
     expect(screen.getByText(/Element with key "thekey"/)).toBeTruthy();
+  });
+
+  test('should render the correct title for the nested array string field', () => {
+    render(
+      <I18nProvider>
+        <TitleRenderer node={root.nested('nestedArray').nested(0).nested('pool')} />
+      </I18nProvider>,
+    );
+    expect(screen.getByText(/Pool/)).toBeTruthy();
+  });
+
+  test('should render the correct title for the nested array number field', () => {
+    render(
+      <I18nProvider>
+        <TitleRenderer node={root.nested('nestedArray').nested(0).nested('size')} />
+      </I18nProvider>,
+    );
+    expect(screen.getByText(/Size/)).toBeTruthy();
   });
 });
 

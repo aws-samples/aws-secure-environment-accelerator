@@ -17,6 +17,11 @@ export function DefaultNavigation(): React.ReactElement {
           items={[
             {
               type: 'link',
+              text: tr('menu.wizard'),
+              href: '#/wizard',
+            },
+            {
+              type: 'link',
               text: tr('menu.graphical_editor'),
               href: history.createHref([]),
             },
@@ -24,11 +29,6 @@ export function DefaultNavigation(): React.ReactElement {
               type: 'link',
               text: tr('menu.code_editor'),
               href: '#/editor',
-            },
-            {
-              type: 'link',
-              text: tr('menu.wizard'),
-              href: '#/wizard',
             },
           ]}
         />

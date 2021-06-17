@@ -1955,6 +1955,7 @@
   "organizational-units": {
     "core": {
       "type": "ignore",
+      "description": "Core OU",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Core Budget",
