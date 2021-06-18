@@ -82,7 +82,7 @@ export async function step3(props: TransitGatewayStep3Props) {
           } else if (route['target-vpc']) {
             const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
               outputs,
-              accountKey,
+              accountKey: route['target-account'] || accountKey,
               region: tgwConfig.region,
               vpcName: route['target-vpc'],
             });

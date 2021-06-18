@@ -248,6 +248,7 @@ class Installer extends cdk.Stack {
           },
         },
       },
+      cache: codebuild.Cache.local(codebuild.LocalCacheMode.SOURCE),
     });
 
     // This artifact is used as output for the Github code and as input for the build step

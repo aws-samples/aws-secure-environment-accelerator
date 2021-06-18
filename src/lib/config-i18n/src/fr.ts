@@ -599,6 +599,10 @@ translate(c.TransitGatewayRouteConfigType, {
       title: '',
       description: '',
     },
+    'target-account': {
+      title: '',
+      description: '',
+    },
   },
 });
 

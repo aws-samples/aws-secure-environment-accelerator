@@ -159,6 +159,7 @@ export const TransitGatewayRouteConfigType = t.interface({
   destination: t.nonEmptyString,
   'target-tgw': t.optional(t.nonEmptyString),
   'target-vpc': t.optional(t.nonEmptyString),
+  'target-account': t.optional(t.nonEmptyString),
   'target-vpn': t.optional(
     t.interface({
       name: t.nonEmptyString,

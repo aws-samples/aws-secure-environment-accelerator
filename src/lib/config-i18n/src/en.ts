@@ -649,6 +649,10 @@ translate(c.TransitGatewayRouteConfigType, {
       description:
         'Indicates whether to drop traffic that is destined to this route. True or false are expected values',
     },
+    'target-account': {
+      title: '',
+      description: '',
+    },
   },
 });
 
