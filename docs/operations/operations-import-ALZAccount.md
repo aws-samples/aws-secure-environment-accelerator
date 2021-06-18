@@ -2,13 +2,13 @@
 
 <!-- TOC depthFrom:1 depthTo:4 -->
 
-- [1. Prerequisites / Setup](#1-prerequisites-setup)
-- [2. Landing Zone - Disassociate the account from the ALZ](#2-landing-zone---disassociate-the-account-from-the-landing-zone)
-- [3. Landing Zone - Remove the account from the ALZ organizations and make standalone](#3-landing-zone---remove-the-account-from-the-landing-zone-alz-organizations-and-make-standalone)
-- [4. Accelerator - Invite the account into its organization](#4-acceleartor-asea---invite-the-account-into-its-organization)
-- [5. Accelerator - Move the linked account from the top level root OU into the appropriate OU managed by the ASEA](#5-acceleartor-asea---move-the-linked-account-from-the-top-level-root-ou-into-the-appropriate-ou-managed-by-the-asea)
-- [6. Accelerator - Verify access control with roles, SSO, etc](#6-acceleartor-asea---verify-access-control-via-roles-sso-etc)
-- [7. Landing Zone - Close down the ALZ core accounts and then the management account](#7-landing-zone---close-down-the-remainder-of-the-landing-zone-core-accounts-and-then-the-mgmt-account)
+ - [1. Prerequisites / Setup](#1-prerequisites--setup)
+ - [2. Landing Zone - Disassociate the account from the ALZ](#2-landing-zone---disassociate-the-account-from-the-alz)
+ - [3. Landing Zone - Remove the account from the ALZ organizations and make standalone](#3-landing-zone-alz---remove-the-account-from-the-alz-organizations-and-make-standalone)
+- [4. Accelerator - Invite the account into its organization](#4-accelerator---invite-the-account-into-its-organization)
+- [5. Accelerator - Move the linked account from the top level root OU into the appropriate OU managed by the ASEA](#5-accelerator---move-the-linked-account-from-the-top-level-root-ou-into-the-appropriate-ou-managed-by-the-asea)
+- [6. Accelerator - Verify access control with roles, SSO, etc](#6-accelerator-asea---verify-access-control-with-roles-sso-etc)
+- [7. Landing Zone - Close down the ALZ core accounts and then the management account](#7-landing-zone---close-down-the-alz-core-accounts-and-then-the-management-account)
 
 # Purpose
 
