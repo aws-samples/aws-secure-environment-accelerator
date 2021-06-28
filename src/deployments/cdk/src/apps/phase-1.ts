@@ -295,7 +295,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     // Validate subscription for Firewall images only once per account
     // TODO Add region to check
     // TODO Check if VPC or deployments exists
-    if (!subscriptionCheckDone.includes(accountKey)) {
+    if (!subscriptionCheckDone.includes(`${accountKey}-region-${vpcConfig.region}`)) {
       console.log(`Checking Subscription for ${accountKey}`);
       await firewallSubscription.validate({
         accountKey,
@@ -303,7 +303,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         vpc: vpc!,
         accountStacks,
       });
-      subscriptionCheckDone.push(accountKey);
+      subscriptionCheckDone.push(`${accountKey}-region-${vpcConfig.region}`);
     }
 
     if (vpc) {

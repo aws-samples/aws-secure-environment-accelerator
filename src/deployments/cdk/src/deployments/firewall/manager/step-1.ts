@@ -9,12 +9,17 @@ import {
   getStackJsonOutput,
   OUTPUT_SUBSCRIPTION_REQUIRED,
 } from '@aws-accelerator/common-outputs/src/stack-output';
+import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import { addReplacementsToUserData } from '../cluster/step-4';
+import { Account } from '../../../utils/accounts';
 
 export interface FirewallManagerStep1Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
   vpcs: Vpc[];
   outputs: StackOutput[];
+  defaultRegion: string;
+  accounts: Account[];
 }
 
 /**
@@ -24,7 +29,7 @@ export interface FirewallManagerStep1Props {
  *   - VPC with the name equals firewallManagementConfig.vpc and with the necessary subnets and security group
  */
 export async function step1(props: FirewallManagerStep1Props) {
-  const { accountStacks, config, vpcs, outputs } = props;
+  const { accountStacks, config, vpcs, outputs, accounts, defaultRegion } = props;
 
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
     const managerConfig = accountConfig.deployments?.['firewall-manager'];
@@ -54,10 +59,35 @@ export async function step1(props: FirewallManagerStep1Props) {
       return;
     }
 
+    const keyPairs = accountConfig['key-pairs'].filter(kp => kp.region === managerConfig.region).map(kp => kp.name);
+    let keyName = managerConfig['key-pair'];
+    if (keyName && keyPairs.includes(keyName)) {
+      keyName = createName({
+        name: keyName,
+        suffixLength: 0,
+      });
+    }
+
     await createFirewallManager({
       scope: accountStack,
       vpc,
       firewallManagerConfig: managerConfig,
+      keyPairName: keyName,
+      userData: managerConfig['user-data']
+        ? await addReplacementsToUserData({
+            accountKey,
+            accountStack,
+            config,
+            defaultRegion,
+            outputs,
+            userData: managerConfig['user-data'],
+            accounts,
+            fwManagerName: managerConfig.name,
+            launchConfigName:
+              accountConfig.deployments?.firewalls?.find(fwc => fwc.type === 'autoscale' && fwc.deploy)?.name ||
+              undefined,
+          })
+        : undefined,
     });
   }
 }
@@ -69,8 +99,10 @@ async function createFirewallManager(props: {
   scope: cdk.Construct;
   vpc: Vpc;
   firewallManagerConfig: c.FirewallManagerConfig;
+  keyPairName?: string;
+  userData?: string;
 }) {
-  const { scope, vpc, firewallManagerConfig: config } = props;
+  const { scope, vpc, firewallManagerConfig: config, keyPairName, userData } = props;
 
   const subnetConfig = config.subnet;
   const subnet = vpc.tryFindSubnetByNameAndAvailabilityZone(subnetConfig.name, subnetConfig.az);
@@ -92,11 +124,29 @@ async function createFirewallManager(props: {
     });
   }
 
+  const blockDeviceMappings: ec2.CfnInstance.BlockDeviceMappingProperty[] = config['block-device-mappings'].map(
+    deviceName => ({
+      deviceName,
+      ebs: {
+        encrypted: true,
+      },
+    }),
+  );
   const manager = new FirewallManager(scope, 'FirewallManager', {
-    name: config.name,
+    name: createName({
+      name: config.name,
+      suffixLength: 0,
+    }),
     imageId: config['image-id'],
     instanceType: config['instance-sizes'],
+    blockDeviceMappings,
+    userData,
+    keyPairName,
   });
+
+  for (const [key, value] of Object.entries(config['apply-tags'] || {})) {
+    cdk.Tags.of(manager).add(key, value);
+  }
 
   manager.addNetworkInterface({
     securityGroup,

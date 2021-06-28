@@ -17,7 +17,6 @@ import { ImageIdOutputFinder } from '@aws-accelerator/common-outputs/src/ami-out
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { Context } from '../../utils/context';
 import { CfnLoadBalancerOutput } from '../alb/outputs';
-import { AesBucketOutput } from '../defaults';
 
 export interface RSysLogStep1Props {
   accountStacks: AccountStacks;
@@ -115,12 +114,15 @@ export function createNlb(
   });
 
   new CfnLoadBalancerOutput(accountStack, `NlbRsyslog${accountKey}-Output`, {
+    accountKey,
+    region: vpc.region,
     displayName: balancer.name,
     dnsName: balancer.dns,
     hostedZoneId: balancer.hostedZoneId,
     name: 'RsyslogNLB',
     type: 'NETWORK',
     arn: balancer.arn,
+    targets: {},
   });
 }
 

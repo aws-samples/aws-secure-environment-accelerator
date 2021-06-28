@@ -431,6 +431,21 @@ function createDefaultEbsEncryptionKey(props: DefaultsStep1Props): AccountRegion
         }),
       );
 
+      key.addToResourcePolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          principals: [new iam.AnyPrincipal()],
+          actions: ['kms:*'],
+          resources: ['*'],
+          conditions: {
+            StringEquals: {
+              'kms:CallerAccount': cdk.Aws.ACCOUNT_ID,
+              'kms:ViaService': `ec2.${cdk.Aws.REGION}.${cdk.Aws.URL_SUFFIX}`,
+            },
+          },
+        }),
+      );
+
       // Enable default EBS encryption
       new EbsDefaultEncryption(accountStack, 'EbsDefaultEncryptionSet', {
         key,

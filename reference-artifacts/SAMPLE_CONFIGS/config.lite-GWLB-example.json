@@ -1,0 +1,5077 @@
+{
+  "replacements": {
+    "addl_regions": {
+      "a": ["${HOME_REGION}"],
+      "b": ["${HOME_REGION}", "${GBL_REGION}"],
+      "c": ["${HOME_REGION}", "${GBL_REGION}", "us-east-2", "us-west-1", "us-west-2"]
+    },
+    "INFO": "Deploying in us-east-1 requires removing ${GBL_REGION} from the above variables",
+    "INFO1": "If deploying the firewalls, both cidr values below MUST be supplied",
+    "cloud-cidr1": "10.0.0.0",
+    "cloud-mask1": "255.0.0.0",
+    "cloud-cidr2": "100.96.252.0",
+    "cloud-mask2": "255.255.254.0",
+    "range-restrict": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"],
+    "range-mad": "100.96.252.0/23",
+    "range-dev-test": ["0.0.0.0/0"],
+    "alarm-not-ip": "10.10.10.*"
+  },
+  "global-options": {
+    "ct-baseline": false,
+    "default-s3-retention": 90,
+    "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
+    "organization-admin-role": "OrganizationAccountAccessRole",
+    "default-cwl-retention": 731,
+    "workloadaccounts-suffix": 1,
+    "workloadaccounts-prefix": "config",
+    "workloadaccounts-param-filename": "config.json",
+    "ignored-ous": [],
+    "additional-global-output-regions": [],
+    "supported-regions": [
+      "ap-northeast-1",
+      "ap-northeast-2",
+      "ap-northeast-3",
+      "ap-south-1",
+      "ap-southeast-1",
+      "ap-southeast-2",
+      "ca-central-1",
+      "eu-central-1",
+      "eu-north-1",
+      "eu-west-1",
+      "eu-west-2",
+      "eu-west-3",
+      "sa-east-1",
+      "us-east-1",
+      "us-east-2",
+      "us-west-1",
+      "us-west-2"
+    ],
+    "keep-default-vpc-regions": [],
+    "aws-org-management": {
+      "account": "management",
+      "region": "${HOME_REGION}",
+      "add-sns-topics": true
+    },
+    "central-security-services": {
+      "account": "security",
+      "region": "${HOME_REGION}",
+      "security-hub-excl-regions": [],
+      "security-hub": true,
+      "guardduty": true,
+      "guardduty-excl-regions": [],
+      "guardduty-s3": true,
+      "guardduty-s3-excl-regions": [],
+      "cwl": true,
+      "access-analyzer": true,
+      "config-excl-regions": [],
+      "config-aggr-excl-regions": [],
+      "macie": true,
+      "macie-excl-regions": [],
+      "macie-frequency": "FIFTEEN_MINUTES",
+      "macie-sensitive-sh": true,
+      "fw-mgr-alert-level": "Low",
+      "security-hub-findings-sns": "Low",
+      "add-sns-topics": true
+    },
+    "central-operations-services": {
+      "account": "operations",
+      "region": "${HOME_REGION}",
+      "cwl": true,
+      "cwl-access-level": "full"
+    },
+    "central-log-services": {
+      "account": "log-archive",
+      "region": "${HOME_REGION}",
+      "s3-retention": 730,
+      "cwl-glbl-exclusions": [],
+      "cwl-exclusions": [],
+      "ssm-to-s3": true,
+      "ssm-to-cwl": true,
+      "sns-excl-regions": [],
+      "sns-subscription-emails": {
+        "High": ["notify+high@example.com"],
+        "Medium": ["notify+medium@example.com"],
+        "Low": ["notify+low@example.com"]
+      }
+    },
+    "additional-cwl-regions": {},
+    "reports": {
+      "cost-and-usage-report": {
+        "additional-schema-elements": ["RESOURCES"],
+        "compression": "Parquet",
+        "format": "Parquet",
+        "report-name": "Cost-and-Usage-Report",
+        "s3-prefix": "cur",
+        "time-unit": "HOURLY",
+        "additional-artifacts": ["ATHENA"],
+        "refresh-closed-reports": true,
+        "report-versioning": "OVERWRITE_REPORT"
+      }
+    },
+    "vpc-flow-logs": {
+      "filter": "ALL",
+      "interval": 60,
+      "default-format": false,
+      "custom-fields": [
+        "version",
+        "account-id",
+        "interface-id",
+        "srcaddr",
+        "dstaddr",
+        "srcport",
+        "dstport",
+        "protocol",
+        "packets",
+        "bytes",
+        "start",
+        "end",
+        "action",
+        "log-status",
+        "vpc-id",
+        "subnet-id",
+        "instance-id",
+        "tcp-flags",
+        "type",
+        "pkt-srcaddr",
+        "pkt-dstaddr",
+        "region",
+        "az-id",
+        "pkt-src-aws-service",
+        "pkt-dst-aws-service",
+        "flow-direction",
+        "traffic-path"
+      ]
+    },
+    "security-hub-frameworks": {
+      "standards": [
+        {
+          "name": "AWS Foundational Security Best Practices v1.0.0",
+          "controls-to-disable": ["IAM.1"]
+        },
+        {
+          "name": "PCI DSS v3.2.1",
+          "controls-to-disable": ["PCI.IAM.3", "PCI.S3.3", "PCI.EC2.3", "PCI.Lambda.2"]
+        },
+        {
+          "name": "CIS AWS Foundations Benchmark v1.2.0",
+          "controls-to-disable": ["CIS.1.20", "CIS.1.22"]
+        }
+      ]
+    },
+    "iam-password-policies": {
+      "allow-users-to-change-password": true,
+      "hard-expiry": false,
+      "require-uppercase-characters": true,
+      "require-lowercase-characters": true,
+      "require-symbols": true,
+      "require-numbers": true,
+      "minimum-password-length": 14,
+      "password-reuse-prevention": 24,
+      "max-password-age": 90
+    },
+    "scps": [
+      {
+        "name": "Guardrails-Part-0",
+        "description": "ASEA Guardrails Part 0",
+        "policy": "ASEA-Guardrails-Part0.json"
+      },
+      {
+        "name": "Guardrails-Part-1",
+        "description": "ASEA Guardrails Part 1",
+        "policy": "ASEA-Guardrails-Part1.json"
+      },
+      {
+        "name": "Guardrails-Part-2",
+        "description": "ASEA Guardrails Part 2",
+        "policy": "ASEA-Guardrails-Part2.json"
+      },
+      {
+        "name": "Guardrails-Sensitive",
+        "description": "ASEA Guardrails Sensitive Environment Specific",
+        "policy": "ASEA-Guardrails-Sensitive.json"
+      },
+      {
+        "name": "Guardrails-Unclass",
+        "description": "ASEA Guardrails Unclassified Environment Specific",
+        "policy": "ASEA-Guardrails-Unclass.json"
+      },
+      {
+        "name": "Guardrails-Sandbox",
+        "description": "ASEA Guardrails Sandbox Environment Specific",
+        "policy": "ASEA-Guardrails-Sandbox.json"
+      },
+      {
+        "name": "Quarantine-New-Object",
+        "description": "ASEA Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
+        "policy": "Quarantine-New-Object.json"
+      }
+    ],
+    "cloudwatch": {
+      "metrics": [
+        {
+          "filter-name": "SecurityGroupChangeMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "SecurityGroupEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "NetworkAclChangeMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateNetworkAcl) || ($.eventName = CreateNetworkAclEntry) || ($.eventName = DeleteNetworkAcl) || ($.eventName = DeleteNetworkAclEntry) || ($.eventName = ReplaceNetworkAclEntry) || ($.eventName = ReplaceNetworkAclAssociation)}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "NetworkAclEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "GatewayChangeMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateCustomerGateway) || ($.eventName = DeleteCustomerGateway) || ($.eventName = AttachInternetGateway) || ($.eventName = CreateInternetGateway) || ($.eventName = DeleteInternetGateway) || ($.eventName = DetachInternetGateway)}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "GatewayEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "VpcChangeMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "VpcEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "Ec2InstanceChangeMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{ ($.eventName = RunInstances) || ($.eventName = RebootInstances)|| ($.eventName = StartInstances) || ($.eventName = StopInstances) || ($.eventName= TerminateInstances) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "EC2InstanceEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "Ec2LargeInstanceChangeMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{ (($.eventName = RunInstances) || ($.eventName = RebootInstances)|| ($.eventName = StartInstances) || ($.eventName = StopInstances) || ($.eventName= TerminateInstances)) && (($.requestParameters.instanceType= *.32xlarge) || ($.requestParameters.instanceType= *.24xlarge) || ($.requestParameters.instanceType= *.18xlarge) || ($.requestParameters.instanceType= *.16xlarge) || ($.requestParameters.instanceType= *.12xlarge) || ($.requestParameters.instanceType= *.10xlarge) || ($.requestParameters.instanceType= *.9xlarge) || ($.requestParameters.instanceType= *.8xlarge) || ($.requestParameters.instanceType = *.4xlarge)) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "EC2LargeInstanceEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "CloudTrailChangeMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateTrail) || ($.eventName = UpdateTrail)|| ($.eventName = DeleteTrail) || ($.eventName = StartLogging) || ($.eventName= StopLogging) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "CloudTrailEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "ConsoleSignInFailureMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{ ($.eventName = ConsoleLogin) && ($.errorMessage = \"Failedauthentication\") }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "ConsoleSignInFailureCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "AuthorizationFailureMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{ (($.errorCode = \"*UnauthorizedOperation\") || ($.errorCode =\"AccessDenied*\") && ($.userIdentity.principalId != \"*AWSConfig-BucketConfigCheck\")) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "AuthorizationFailureCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "IamPolicyChangesMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{($.eventName=DeleteGroupPolicy)||($.eventName=DeleteRolePolicy)||($.eventName=DeleteUserPolicy)||($.eventName=PutGroupPolicy)||($.eventName=PutRolePolicy)||($.eventName=PutUserPolicy)||($.eventName=CreatePolicy)||($.eventName=DeletePolicy)||($.eventName=CreatePolicyVersion)||($.eventName=DeletePolicyVersion)||($.eventName=AttachRolePolicy)||($.eventName=DetachRolePolicy)||($.eventName=AttachUserPolicy)||($.eventName=DetachUserPolicy)||($.eventName=AttachGroupPolicy)||($.eventName=DetachGroupPolicy)}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "IAMPolicyEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "ConsoleSignInWithoutMfaMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{($.eventName=\"ConsoleLogin\") && ($.additionalEventData.MFAUsed !=\"Yes\") && ($.userIdentity.type != \"AssumedRole\")}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "ConsoleSignInWithoutMfaCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "RootLoginMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{ $.userIdentity.type = \"Root\" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != \"AwsServiceEvent\" }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "RootLoginEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "DisableOrDeleteCMKMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{($.eventSource=kms.amazonaws.com) && (($.eventName=DisableKey) || ($.eventName=ScheduleKeyDeletion))}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "DisableOrDeleteCMKCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "AWSConfigChangesMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{($.eventSource=config.amazonaws.com) && (($.eventName=StopConfigurationRecorder) || ($.eventName=DeleteDeliveryChannel) || ($.eventName=PutDeliveryChannel) || ($.eventName=PutConfigurationRecorder))}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "AWSConfigChangesCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "RouteTableChangesMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{($.eventName=CreateRoute) || ($.eventName=CreateRouteTable) || ($.eventName=ReplaceRoute) || ($.eventName=ReplaceRouteTableAssociation) || ($.eventName=DeleteRouteTable) || ($.eventName=DeleteRoute) || ($.eventName=DisassociateRouteTable)}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "RouteTableChangesCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "S3BucketPolicyChangesMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{($.eventSource=s3.amazonaws.com) && (($.eventName=PutBucketAcl) || ($.eventName=PutBucketPolicy) || ($.eventName=PutBucketCors) || ($.eventName=PutBucketLifecycle) || ($.eventName=PutBucketReplication) || ($.eventName=DeleteBucketPolicy) || ($.eventName=DeleteBucketCors) || ($.eventName=DeleteBucketLifecycle) || ($.eventName=DeleteBucketReplication))}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "S3BucketPolicyChangesCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "SSOAuthUnapprovedIPMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{ ($.eventSource=sso.amazonaws.com) && ($.eventName=Authenticate) && ($.sourceIPAddress != ${ALARM-NOT-IP}) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "SSOAuthUnapprovedIPCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "IAMAuthUnapprovedIPMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{ ($.eventName=ConsoleLogin) && ($.userIdentity.type=IAMUser) && ($.sourceIPAddress != ${ALARM-NOT-IP}) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "IAMAuthUnapprovedIPCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "UnencryptedFilesystemCreatedMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateFileSystem) && ($.responseElements.encrypted IS FALSE) } ",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "UnencryptedFilesystemCreatedCount",
+          "metric-value": "1"
+        }
+      ],
+      "alarms": {
+        "default-accounts": ["management"],
+        "default-regions": ["${HOME_REGION}"],
+        "default-namespace": "CloudTrailMetrics",
+        "default-statistic": "Sum",
+        "default-period": 300,
+        "default-threshold-type": "Static",
+        "default-comparison-operator": "GreaterThanOrEqualToThreshold",
+        "default-threshold": 1,
+        "default-evaluation-periods": 1,
+        "default-treat-missing-data": "notBreaching",
+        "default-in-org-mgmt-use-lcl-sns": true,
+        "definitions": [
+          {
+            "alarm-name": "AWS-Security-Group-Changed",
+            "metric-name": "SecurityGroupEventCount",
+            "sns-alert-level": "Low",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Security Group (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Network-ACL-Changed",
+            "metric-name": "NetworkAclEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Network ACL (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Gateway-Changed",
+            "metric-name": "GatewayEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Customer or Internet Gateway (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-VPC-Changed",
+            "metric-name": "VpcEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a VPC, VPC peering connection or VPC connection to classic (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-EC2-Instances-Changed",
+            "metric-name": "EC2InstanceEventCount",
+            "sns-alert-level": "Low",
+            "alarm-description": "Alarms when one or more API calls are made to create, terminate, start, stop or reboot any EC2 instance (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-EC2-Large-Instance-Changed",
+            "metric-name": "EC2LargeInstanceEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, terminate, start, stop or reboot a 4x, 8x, 9x, 10x, 12x, 16x, 18x, 24x, 32x-large EC2 instance (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-CloudTrail-Changed",
+            "metric-name": "CloudTrailEventCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a CloudTrail trail, or to start or stop logging to a trail (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Console-SignIn-Failure",
+            "metric-name": "ConsoleSignInFailureCount",
+            "sns-alert-level": "High",
+            "threshold": 3,
+            "alarm-description": "Alarms when one or more unauthenticated API calls are made to sign into the console (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Authorization-Failure",
+            "metric-name": "AuthorizationFailureCount",
+            "sns-alert-level": "Low",
+            "alarm-description": "Alarms when one or more unauthorized API calls are made (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-IAM-Policy-Changed",
+            "metric-name": "IAMPolicyEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to change an IAM policy (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Console-SignIn-Without-MFA",
+            "metric-name": "ConsoleSignInWithoutMfaCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when MFA is NOT used to sign into the console with IAM (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Root-Login",
+            "metric-name": "RootLoginEventCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when the root user successfully logs in one or more times (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Disable-Or-Delete-KMS-CMK",
+            "metric-name": "DisableOrDeleteCMKCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when one or more Key Management Service Customer Managed Keys are disabled or scheduled for deletion (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Config-Changed",
+            "metric-name": "AWSConfigChangesCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when one or more modifications are made to AWS Config Settings (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Route-Table-Changed",
+            "metric-name": "RouteTableChangesCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Route table (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-S3-Bucket-Policy-Changed",
+            "metric-name": "S3BucketPolicyChangesCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete an S3 Bucket policy (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-SSO-Authentication-From-Unapproved-IP",
+            "metric-name": "SSOAuthUnapprovedIPCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when someone authenticates using AWS SSO from an unauthorized IP address range."
+          },
+          {
+            "alarm-name": "AWS-IAM-Authentication-From-Unapproved-IP",
+            "metric-name": "IAMAuthUnapprovedIPCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when someone authenticates using AWS IAM from an unauthorized IP address range."
+          },
+          {
+            "alarm-name": "AWS-Unencrypted-Filesystem-Created",
+            "metric-name": "UnencryptedFilesystemCreatedCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when one or more API calls are made to create an Unencrypted filesystem (i.e. EFS) (in any account, any region of your AWS Organization)."
+          }
+        ]
+      }
+    },
+    "ssm-automation": [
+      {
+        "accounts": ["operations"],
+        "regions": ["${HOME_REGION}"],
+        "documents": [
+          {
+            "name": "SSM-ELB-Enable-Logging",
+            "description": "Calls the AWS CLI to enable access logs on a specified ELB.",
+            "template": "ssm-elb-enable-logging.yaml"
+          },
+          {
+            "name": "Put-S3-Encryption",
+            "description": "Enables S3 encryption using KMS",
+            "template": "s3-encryption.yaml"
+          },
+          {
+            "name": "Attach-IAM-Instance-Profile",
+            "description": "Attaches instance profiles to an EC2 instance",
+            "template": "attach-iam-instance-profile.yaml"
+          },
+          {
+            "name": "Attach-IAM-Role-Policy",
+            "description": "Attachs Aws IAM Managed Policy to IAM Role.",
+            "template": "attach-iam-role-policy.yaml"
+          }
+        ]
+      }
+    ],
+    "aws-config": {
+      "defaults": {
+        "remediation": false,
+        "remediation-attempts": 5,
+        "remediation-retry-seconds": 60,
+        "remediation-concurrency": 10
+      },
+      "rules": [
+        {
+          "name": "EC2-INSTANCE-PROFILE",
+          "type": "custom",
+          "resource-types": ["AWS::EC2::Instance"],
+          "runtime": "nodejs14.x",
+          "remediation-action": "Attach-IAM-Instance-Profile",
+          "remediation": true,
+          "remediation-params": {
+            "IamInstanceProfile": "EC2-Default-SSM-AD-Role-ip",
+            "InstanceId": "RESOURCE_ID"
+          }
+        },
+        {
+          "name": "EC2-INSTANCE-PROFILE-PERMISSIONS",
+          "type": "custom",
+          "resource-types": ["AWS::IAM::Role"],
+          "runtime": "nodejs14.x",
+          "parameters": {
+            "AWSManagedPolicies": "AmazonSSMManagedInstanceCore, AmazonSSMDirectoryServiceAccess, CloudWatchAgentServerPolicy",
+            "CustomerManagedPolicies": "${SEA::EC2InstaceProfilePermissions}",
+            "ResourceId": "RESOURCE_ID"
+          },
+          "remediation": true,
+          "remediation-action": "Attach-IAM-Role-Policy",
+          "remediation-params": {
+            "AWSManagedPolicies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "CustomerManagedPolicies": ["${SEA::EC2InstaceProfilePermissions}"],
+            "ResourceId": "RESOURCE_ID"
+          }
+        },
+        {
+          "name": "ELB_LOGGING_ENABLED",
+          "remediation-action": "SSM-ELB-Enable-Logging",
+          "remediation": true,
+          "parameters": {
+            "s3BucketNames": "${SEA::LogArchiveAesBucket}"
+          },
+          "remediation-params": {
+            "LoadBalancerArn": "RESOURCE_ID",
+            "LogDestination": "${SEA::LogArchiveAesBucket}"
+          }
+        },
+        {
+          "name": "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+          "remediation-action": "Put-S3-Encryption",
+          "remediation": true,
+          "remediation-params": {
+            "BucketName": "RESOURCE_ID",
+            "KMSMasterKey": "${SEA::S3BucketEncryptionKey}"
+          }
+        },
+        {
+          "name": "ACM_CERTIFICATE_EXPIRATION_CHECK",
+          "parameters": {
+            "daysToExpiration": "90"
+          }
+        },
+        {
+          "name": "ALB_WAF_ENABLED"
+        },
+        {
+          "name": "API_GW_CACHE_ENABLED_AND_ENCRYPTED"
+        },
+        {
+          "name": "API_GW_EXECUTION_LOGGING_ENABLED"
+        },
+        {
+          "name": "CLOUD_TRAIL_ENABLED"
+        },
+        {
+          "name": "CLOUDTRAIL_S3_DATAEVENTS_ENABLED"
+        },
+        {
+          "name": "CLOUDTRAIL_SECURITY_TRAIL_ENABLED"
+        },
+        {
+          "name": "CLOUDWATCH_ALARM_ACTION_CHECK",
+          "parameters": {
+            "alarmActionRequired": "TRUE",
+            "insufficientDataActionRequired": "TRUE",
+            "okActionRequired": "FALSE"
+          }
+        },
+        {
+          "name": "CW_LOGGROUP_RETENTION_PERIOD_CHECK"
+        },
+        {
+          "name": "DB_INSTANCE_BACKUP_ENABLED"
+        },
+        {
+          "name": "DYNAMODB_IN_BACKUP_PLAN"
+        },
+        {
+          "name": "DYNAMODB_TABLE_ENCRYPTED_KMS"
+        },
+        {
+          "name": "EBS_IN_BACKUP_PLAN"
+        },
+        {
+          "name": "EC2_INSTANCE_DETAILED_MONITORING_ENABLED"
+        },
+        {
+          "name": "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK"
+        },
+        {
+          "name": "EC2_VOLUME_INUSE_CHECK",
+          "parameters": {
+            "deleteOnTermination": "TRUE"
+          }
+        },
+        {
+          "name": "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK"
+        },
+        {
+          "name": "ELB_ACM_CERTIFICATE_REQUIRED"
+        },
+        {
+          "name": "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED"
+        },
+        {
+          "name": "EMR_KERBEROS_ENABLED"
+        },
+        {
+          "name": "GUARDDUTY_NON_ARCHIVED_FINDINGS",
+          "parameters": {
+            "daysHighSev": "1",
+            "daysLowSev": "30",
+            "daysMediumSev": "7"
+          }
+        },
+        {
+          "name": "IAM_GROUP_HAS_USERS_CHECK"
+        },
+        {
+          "name": "IAM_PASSWORD_POLICY",
+          "parameters": {
+            "MaxPasswordAge": "90",
+            "MinimumPasswordLength": "14",
+            "PasswordReusePrevention": "24",
+            "RequireLowercaseCharacters": "TRUE",
+            "RequireNumbers": "TRUE",
+            "RequireSymbols": "TRUE",
+            "RequireUppercaseCharacters": "TRUE"
+          }
+        },
+        {
+          "name": "IAM_USER_GROUP_MEMBERSHIP_CHECK"
+        },
+        {
+          "name": "INCOMING_SSH_DISABLED"
+        },
+        {
+          "name": "INSTANCES_IN_VPC"
+        },
+        {
+          "name": "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY"
+        },
+        {
+          "name": "RDS_IN_BACKUP_PLAN"
+        },
+        {
+          "name": "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
+          "parameters": {
+            "clusterDbEncrypted": "TRUE",
+            "loggingEnabled": "TRUE"
+          }
+        },
+        {
+          "name": "RESTRICTED_INCOMING_TRAFFIC",
+          "parameters": {
+            "blockedPort1": "20",
+            "blockedPort2": "21",
+            "blockedPort3": "3389",
+            "blockedPort4": "3306",
+            "blockedPort5": "4333"
+          }
+        },
+        {
+          "name": "S3_BUCKET_POLICY_GRANTEE_CHECK"
+        },
+        {
+          "name": "S3_BUCKET_VERSIONING_ENABLED"
+        },
+        {
+          "name": "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED"
+        },
+        {
+          "name": "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED"
+        },
+        {
+          "name": "SECURITYHUB_ENABLED"
+        },
+        {
+          "name": "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
+          "parameters": {
+            "authorizedTcpPorts": "443",
+            "authorizedUdpPorts": "1020-1025"
+          }
+        },
+        {
+          "name": "WAFV2_LOGGING_ENABLED"
+        }
+      ]
+    },
+    "cidr-pools": [
+      {
+        "cidr": "10.0.0.0/13",
+        "pool": "main",
+        "description": "The main address pool used to dynamically assign CIDR ranges.",
+        "region": "${HOME_REGION}"
+      },
+      {
+        "cidr": "100.96.252.0/23",
+        "pool": "RFC6598a",
+        "description": "Address pool used to dynamically assign CIDR ranges for the Managed Active Directory subnets in the Ops account.",
+        "region": "${HOME_REGION}"
+      },
+      {
+        "cidr": "100.96.250.0/23",
+        "pool": "RFC6598b",
+        "description": "Address pool used to dynamically assign CIDR ranges for the Perimeter VPC.",
+        "region": "${HOME_REGION}"
+      },
+      {
+        "cidr": "10.249.1.0/24",
+        "pool": "ForSSO",
+        "description": "A non-routable pool of addresses used to dynamically assign CIDR ranges for the Active Directory Connector subnets in the Organization Management/root account.",
+        "region": "${HOME_REGION}"
+      }
+    ]
+  },
+  "mandatory-account-configs": {
+    "shared-network": {
+      "account-name": "SharedNetwork",
+      "email": "myemail+aseaT-network@example.com---------------------REPLACE----------------------",
+      "ou": "core",
+      "share-mad-from": "operations",
+      "src-filename": "config.json",
+      "description": "This Account is used for centralized or shared networking resources.",
+      "budget": {
+        "name": "SharedNetwork Budget",
+        "period": "Monthly",
+        "amount": 2000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          }
+        ]
+      },
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "role": "EC2-Default-SSM-AD-Role",
+            "type": "ec2",
+            "ssm-log-archive-write-access": true,
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
+          }
+        ]
+      },
+      "limits": {
+        "Amazon VPC/Interface VPC endpoints per VPC": {
+          "value": 90,
+          "customer-confirm-inplace": false
+        },
+        "Amazon VPC/VPCs per Region": {
+          "value": 15
+        }
+      },
+      "vpc": [
+        {
+          "deploy": "local",
+          "name": "Endpoint",
+          "description": "This VPC is used to host AWS Service Endpoints, making AWS services available using private address space.",
+          "cidr-src": "provided",
+          "cidr": [
+            {
+              "value": "10.7.0.0/22",
+              "pool": "main",
+              "size": 22
+            }
+          ],
+          "region": "${HOME_REGION}",
+          "use-central-endpoints": false,
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
+          "subnets": [
+            {
+              "name": "Endpoint",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "EndpointVPC_Common",
+                  "cidr": {
+                    "value": "10.7.0.0/24",
+                    "pool": "main",
+                    "size": 24
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "EndpointVPC_Common",
+                  "cidr": {
+                    "value": "10.7.1.0/24",
+                    "pool": "main",
+                    "size": 24
+                  }
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": [],
+          "route-tables": [
+            {
+              "name": "EndpointVPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "Main",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": ["core"],
+            "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],
+            "blackhole-route": false,
+            "attach-subnets": ["Endpoint"],
+            "options": ["DNS-support"]
+          },
+          "interface-endpoints": {
+            "subnet": "Endpoint",
+            "endpoints": [
+              "ec2",
+              "ec2messages",
+              "ssm",
+              "ssmmessages",
+              "secretsmanager",
+              "cloudformation",
+              "kms",
+              "logs",
+              "monitoring"
+            ]
+          },
+          "resolvers": {
+            "subnet": "Endpoint",
+            "outbound": true,
+            "inbound": true
+          },
+          "on-premise-rules": [
+            {
+              "zone": "on-premise-privatedomain1.example.ca",
+              "outbound-ips": ["10.254.254.1", "10.254.253.1"]
+            },
+            {
+              "zone": "on-premise-privatedomain2.example.ca",
+              "outbound-ips": ["10.254.254.1", "10.254.253.1"]
+            }
+          ],
+          "zones": {
+            "public": ["cloud-hosted-publicdomain.example.ca"],
+            "private": ["cloud-hosted-privatedomain.example.ca"]
+          },
+          "central-endpoint": true
+        }
+      ],
+      "deployments": {
+        "tgw": [
+          {
+            "name": "Main",
+            "asn": 65521,
+            "region": "${HOME_REGION}",
+            "features": {
+              "DNS-support": true,
+              "VPN-ECMP-support": true,
+              "Default-route-table-association": false,
+              "Default-route-table-propagation": false,
+              "Auto-accept-sharing-attachments": true
+            },
+            "route-tables": ["core", "segregated", "shared", "standalone"],
+            "tgw-routes": [
+              {
+                "name": "{TGW_ALL}",
+                "routes": [
+                  {
+                    "destination": "0.0.0.0/0",
+                    "target-vpc": "Perimeter",
+                    "target-account": "perimeter"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "operations": {
+      "account-name": "Operations",
+      "email": "myemail+aseaT-operations@example.com---------------------REPLACE----------------------",
+      "ou": "core",
+      "account-warming-required": true,
+      "limits": {},
+      "src-filename": "config.json",
+      "description": "This Account is used for centralized IT Operational resources (MAD, rsyslog, ITSM, etc.).",
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
+          },
+          {
+            "policy-name": "${ACCELERATOR_PREFIX_ND}-RDGW-Custom-Policy",
+            "policy": "rdgw-custom-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "role": "EC2-Default-SSM-AD-Role",
+            "type": "ec2",
+            "ssm-log-archive-write-access": true,
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
+          },
+          {
+            "role": "${ACCELERATOR_PREFIX_ND}-RDGW-Role",
+            "type": "ec2",
+            "ssm-log-archive-write-access": true,
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy",
+              "${ACCELERATOR_PREFIX_ND}-RDGW-Custom-Policy"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
+          },
+          {
+            "role": "${ACCELERATOR_PREFIX_ND}-Rsyslog-Role",
+            "type": "ec2",
+            "ssm-log-archive-write-access": true,
+            "policies": ["AmazonSSMManagedInstanceCore", "CloudWatchAgentServerPolicy", "AmazonS3ReadOnlyAccess"],
+            "boundary-policy": "Default-Boundary-Policy"
+          }
+        ]
+      },
+      "deployments": {
+        "mad": {
+          "dir-id": 1001,
+          "description": "This directory is a) shared to most accounts in the organization to provide centralized Windows and Linux authentication for cloud workloads, b) used as an identity source for AWS SSO, c) used to inter-connect with on-premises directory services, and d) provides a single identities source for instance and AWS console access.",
+          "deploy": true,
+          "vpc-name": "Central",
+          "region": "${HOME_REGION}",
+          "subnet": "GCWide",
+          "size": "Enterprise",
+          "dns-domain": "example.local",
+          "netbios-domain": "example",
+          "central-resolver-rule-account": "shared-network",
+          "central-resolver-rule-vpc": "Endpoint",
+          "log-group-name": "/${ACCELERATOR_PREFIX_ND}/MAD/example.local",
+          "restrict_srcips": "${RANGE-RESTRICT}",
+          "num-rdgw-hosts": 1,
+          "min-rdgw-hosts": 1,
+          "max-rdgw-hosts": 2,
+          "rdgw-max-instance-age": 30,
+          "rdgw-instance-type": "t2.large",
+          "image-path": "/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base",
+          "rdgw-instance-role": "${ACCELERATOR_PREFIX_ND}-RDGW-Role",
+          "password-policies": {
+            "history": 24,
+            "max-age": 90,
+            "min-age": 1,
+            "min-len": 14,
+            "complexity": true,
+            "reversible": false,
+            "failed-attempts": 6,
+            "lockout-duration": 30,
+            "lockout-attempts-reset": 30
+          },
+          "ad-groups": ["aws-Provisioning", "aws-Billing"],
+          "ad-per-account-groups": ["*-Admin", "*-PowerUser", "*-View"],
+          "adc-group": "ADConnector-grp",
+          "ad-users": [
+            {
+              "user": "adconnector-usr",
+              "email": "myemail+aseaT-adc-usr@example.com",
+              "groups": ["ADConnector-grp"]
+            },
+            {
+              "user": "User1",
+              "email": "myemail+aseaT-User1@example.com",
+              "groups": ["aws-Provisioning", "*-View", "*-Admin", "*-PowerUser", "AWS Delegated Administrators"]
+            },
+            {
+              "user": "User2",
+              "email": "myemail+aseaT-User2@example.com",
+              "groups": ["*-View"]
+            }
+          ],
+          "security-groups": [
+            {
+              "name": "RemoteDesktopGatewaySG",
+              "inbound-rules": [
+                {
+                  "description": "Allow RDP Traffic Inbound",
+                  "type": ["RDP"],
+                  "source": "${RANGE-RESTRICT}"
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ]
+        },
+        "rsyslog": {
+          "deploy": true,
+          "vpc-name": "Central",
+          "region": "${HOME_REGION}",
+          "log-group-name": "rsyslog/var/log/messages",
+          "security-groups": [
+            {
+              "name": "rsyslog",
+              "inbound-rules": [
+                {
+                  "description": "Allow Traffic Inbound",
+                  "tcp-ports": [514],
+                  "udp-ports": [514],
+                  "source": "${RANGE-RESTRICT}"
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "app-subnets": [
+            {
+              "name": "App",
+              "az": "a"
+            },
+            {
+              "name": "App",
+              "az": "b"
+            }
+          ],
+          "web-subnets": [
+            {
+              "name": "Web",
+              "az": "a"
+            },
+            {
+              "name": "Web",
+              "az": "b"
+            }
+          ],
+          "min-rsyslog-hosts": 1,
+          "desired-rsyslog-hosts": 2,
+          "max-rsyslog-hosts": 2,
+          "ssm-image-id": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2",
+          "rsyslog-instance-type": "t2.large",
+          "rsyslog-instance-role": "${ACCELERATOR_PREFIX_ND}-Rsyslog-Role",
+          "rsyslog-root-volume-size": 100,
+          "rsyslog-max-instance-age": 30
+        }
+      }
+    },
+    "perimeter": {
+      "account-name": "Perimeter",
+      "email": "myemail+aseaT-perimeter@example.com---------------------REPLACE----------------------",
+      "ou": "core",
+      "account-warming-required": true,
+      "src-filename": "config.json",
+      "description": "This Account is used for internet facing ingress/egress security services.",
+      "populate-all-elbs-in-param-store": true,
+      "limits": {
+        "Amazon EC2/Number of EIPs": {
+          "value": 5,
+          "customer-confirm-inplace": false
+        }
+      },
+      "budget": {
+        "name": "Perimeter Budget",
+        "period": "Monthly",
+        "amount": 2000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          }
+        ]
+      },
+      "certificates": [
+        {
+          "name": "PerimSelf-SignedCert",
+          "type": "import",
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt"
+        }
+      ],
+      "alb": [
+        {
+          "name": "Public-Prod",
+          "scheme": "internet-facing",
+          "action-type": "forward",
+          "ip-type": "ipv4",
+          "listeners": "HTTPS",
+          "ports": 443,
+          "vpc": "Perimeter",
+          "subnets": "Public",
+          "cert-name": "PerimSelf-SignedCert",
+          "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
+          "security-group": "Public-Prod-ALB",
+          "tg-stickiness": "1 hour",
+          "target-alarms-notify": "AWS-Landing-Zone-Security-Notification",
+          "target-alarms-when": "Minimum",
+          "target-alarms-of": "Healthy Hosts",
+          "target-alarms-is": "<",
+          "target-alarms-Count": "2",
+          "target-alarms-for": "5",
+          "target-alarms-periods-of": "1",
+          "access-logs": true,
+          "targets": [
+            {
+              "target-name": "FG1-Web-azA",
+              "target-type": "instance",
+              "protocol": "HTTPS",
+              "port": 7001,
+              "health-check-protocol": "HTTPS",
+              "health-check-path": "/health-check",
+              "health-check-port": 7001,
+              "target-instances": [
+                {
+                  "target": "firewall",
+                  "name": "Firewall",
+                  "az": "a"
+                }
+              ],
+              "tg-weight": 1
+            },
+            {
+              "target-name": "FG1-Web-azB",
+              "target-type": "instance",
+              "protocol": "HTTPS",
+              "port": 7001,
+              "health-check-protocol": "HTTPS",
+              "health-check-path": "/health-check",
+              "health-check-port": 7001,
+              "target-instances": [
+                {
+                  "target": "firewall",
+                  "name": "Firewall",
+                  "az": "b"
+                }
+              ],
+              "tg-weight": 1
+            }
+          ]
+        },
+        {
+          "name": "Public-DevTest",
+          "scheme": "internet-facing",
+          "action-type": "forward",
+          "ip-type": "ipv4",
+          "listeners": "HTTPS",
+          "ports": 443,
+          "vpc": "Perimeter",
+          "subnets": "Public",
+          "cert-name": "PerimSelf-SignedCert",
+          "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
+          "security-group": "Public-DevTest-ALB",
+          "tg-stickiness": "1 hour",
+          "target-alarms-notify": "AWS-Landing-Zone-Security-Notification",
+          "target-alarms-when": "Minimum",
+          "target-alarms-of": "Healthy Hosts",
+          "target-alarms-is": "<",
+          "target-alarms-Count": "2",
+          "target-alarms-for": "5",
+          "target-alarms-periods-of": "1",
+          "access-logs": true,
+          "targets": [
+            {
+              "target-name": "FG1-Web-azA",
+              "target-type": "instance",
+              "protocol": "HTTPS",
+              "port": 7002,
+              "health-check-protocol": "HTTPS",
+              "health-check-path": "/health-check",
+              "health-check-port": 7001,
+              "target-instances": [
+                {
+                  "target": "firewall",
+                  "name": "Firewall",
+                  "az": "a"
+                }
+              ],
+              "tg-weight": 1
+            },
+            {
+              "target-name": "FG1-Web-azB",
+              "target-type": "instance",
+              "protocol": "HTTPS",
+              "port": 7002,
+              "health-check-protocol": "HTTPS",
+              "health-check-path": "/health-check",
+              "health-check-port": 7001,
+              "target-instances": [
+                {
+                  "target": "firewall",
+                  "name": "Firewall",
+                  "az": "b"
+                }
+              ],
+              "tg-weight": 1
+            }
+          ]
+        },
+        {
+          "type": "GWLB",
+          "name": "Inspection-GWLB",
+          "action-type": "forward",
+          "ip-type": "ipv4",
+          "cross-zone": true,
+          "vpc": "Inspection",
+          "subnets": "Appliance",
+          "targets": [
+            {
+              "target-name": "Appliances",
+              "target-type": "instance",
+              "protocol": "GENEVE",
+              "port": 6081,
+              "health-check-protocol": "TCP",
+              "health-check-port": 8117,
+              "target-instances": [],
+              "tg-weight": 1
+            }
+          ],
+          "endpoint-subnets": [
+            {
+              "vpc": "Perimeter",
+              "subnet": "Proxy"
+            }
+          ]
+        }
+      ],
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
+          },
+          {
+            "policy-name": "Firewall-Policy",
+            "policy": "firewall-fg-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "role": "EC2-Default-SSM-AD-Role",
+            "type": "ec2",
+            "ssm-log-archive-write-access": true,
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
+          },
+          {
+            "role": "Firewall-Role",
+            "type": "ec2",
+            "policies": ["Firewall-Policy"],
+            "boundary-policy": "Default-Boundary-Policy"
+          }
+        ]
+      },
+      "vpc": [
+        {
+          "deploy": "local",
+          "name": "Perimeter",
+          "description": "This VPC is used to hold centralized ingress/egress (perimeter) security services.",
+          "cidr-src": "provided",
+          "cidr": [
+            {
+              "value": "10.7.4.0/22",
+              "pool": "main",
+              "size": 22
+            },
+            {
+              "value": "100.96.250.0/23",
+              "pool": "RFC6598b",
+              "size": 23
+            }
+          ],
+          "region": "${HOME_REGION}",
+          "use-central-endpoints": false,
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
+          "igw": true,
+          "alb-forwarding": true,
+          "natgw": {
+            "subnet": {
+              "name": "Public"
+            }
+          },
+          "subnets": [
+            {
+              "name": "Public",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "Public_azA",
+                  "cidr": {
+                    "value": "100.96.250.0/26",
+                    "pool": "RFC6598b",
+                    "size": 26
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "Public_azB",
+                  "cidr": {
+                    "value": "100.96.250.128/26",
+                    "pool": "RFC6598b",
+                    "size": 26
+                  }
+                }
+              ]
+            },
+            {
+              "name": "FWMgmt",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "FWMgmt_azA",
+                  "cidr": {
+                    "value": "100.96.251.32/27",
+                    "pool": "RFC6598b",
+                    "size": 27
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "FWMgmt_azB",
+                  "cidr": {
+                    "value": "100.96.251.160/27",
+                    "pool": "RFC6598b",
+                    "size": 27
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Proxy",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "Proxy_azA",
+                  "cidr": {
+                    "value": "100.96.251.64/26",
+                    "pool": "RFC6598b",
+                    "size": 26
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "Proxy_azB",
+                  "cidr": {
+                    "value": "100.96.251.192/26",
+                    "pool": "RFC6598b",
+                    "size": 26
+                  }
+                }
+              ]
+            },
+            {
+              "name": "OnPremise",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "OnPremise_azA",
+                  "cidr": {
+                    "value": "100.96.250.64/26",
+                    "pool": "RFC6598b",
+                    "size": 26
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "OnPremise_azB",
+                  "cidr": {
+                    "value": "100.96.250.192/26",
+                    "pool": "RFC6598b",
+                    "size": 26
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Detonation",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "Detonation_Shared",
+                  "cidr": {
+                    "value": "10.7.4.0/24",
+                    "pool": "main",
+                    "size": 24
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "Detonation_Shared",
+                  "cidr": {
+                    "value": "10.7.5.0/24",
+                    "pool": "main",
+                    "size": 24
+                  }
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": ["s3"],
+          "route-tables": [
+            {
+              "name": "OnPremise_azA",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "GWLB",
+                  "name": "Inspection-GWLB",
+                  "az": "a"
+                }
+              ]
+            },
+            {
+              "name": "OnPremise_azB",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "GWLB",
+                  "name": "Inspection-GWLB",
+                  "az": "b"
+                }
+              ]
+            },
+            {
+              "name": "Public_azA",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "IGW"
+                },
+                {
+                  "destination": "10.0.0.0/8",
+                  "target": "GWLB",
+                  "name": "Inspection-GWLB",
+                  "az": "a"
+                },
+                {
+                  "destination": "100.96.252.0/23",
+                  "target": "GWLB",
+                  "name": "Inspection-GWLB",
+                  "az": "a"
+                }
+              ]
+            },
+            {
+              "name": "Public_azB",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "IGW"
+                },
+                {
+                  "destination": "10.0.0.0/8",
+                  "target": "GWLB",
+                  "name": "Inspection-GWLB",
+                  "az": "b"
+                },
+                {
+                  "destination": "100.96.252.0/23",
+                  "target": "GWLB",
+                  "name": "Inspection-GWLB",
+                  "az": "b"
+                }
+              ]
+            },
+            {
+              "name": "FWMgmt_azA",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "firewall",
+                  "name": "Firewall",
+                  "az": "a",
+                  "port": "OnPremise"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                }
+              ]
+            },
+            {
+              "name": "FWMgmt_azB",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "firewall",
+                  "name": "Firewall",
+                  "az": "b",
+                  "port": "OnPremise"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                }
+              ]
+            },
+            {
+              "name": "Proxy_azA",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "NATGW_Public_azA"
+                },
+                {
+                  "destination": "10.0.0.0/8",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "100.96.252.0/23",
+                  "target": "TGW"
+                }
+              ]
+            },
+            {
+              "name": "Proxy_azB",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "NATGW_Public_azB"
+                },
+                {
+                  "destination": "10.0.0.0/8",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "100.96.252.0/23",
+                  "target": "TGW"
+                }
+              ]
+            },
+            {
+              "name": "Detonation_Shared"
+            }
+          ],
+          "security-groups": [
+            {
+              "name": "Public-Prod-ALB",
+              "inbound-rules": [
+                {
+                  "description": "TLS Traffic Inbound",
+                  "type": ["HTTPS"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Public-DevTest-ALB",
+              "inbound-rules": [
+                {
+                  "description": "TLS Traffic Inbound",
+                  "type": ["HTTPS"],
+                  "source": "${RANGE-DEV-TEST}"
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "FirewallMgr",
+              "inbound-rules": [
+                {
+                  "description": "Allow Mgmt Traffic Inbound",
+                  "tcp-ports": [22, 443, 514, 541, 2032, 3000, 5199, 6020, 6028, 8080],
+                  "udp-ports": [9443],
+                  "source": "${RANGE-RESTRICT}"
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Firewalls",
+              "inbound-rules": [
+                {
+                  "description": "All Allowed Inbound Traffic",
+                  "tcp-ports": [443, 8080],
+                  "source": ["0.0.0.0/0"]
+                },
+                {
+                  "description": "Mgmt Traffic, Customer Outbound traffic and ALBs",
+                  "type": ["ALL"],
+                  "source": "${RANGE-RESTRICT}"
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "Main",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": ["core"],
+            "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],
+            "blackhole-route": false,
+            "attach-subnets": ["OnPremise"],
+            "options": ["DNS-support"]
+          }
+        },
+        {
+          "deploy": "local",
+          "name": "Inspection",
+          "description": "This VPC is used to hold 3rd party security appliances used for traffic inspection deployed behind a Gateway Load Balancer.",
+          "cidr-src": "dynamic",
+          "cidr": [
+            {
+              "size": 24,
+              "pool": "main"
+            }
+          ],
+          "region": "${HOME_REGION}",
+          "flow-logs": "BOTH",
+          "igw": true,
+          "subnets": [
+            {
+              "name": "Appliance",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "Appliance_Shared",
+                  "cidr": {
+                    "size": 26,
+                    "pool": "main"
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "Appliance_Shared",
+                  "cidr": {
+                    "size": 26,
+                    "pool": "main"
+                  }
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": ["s3"],
+          "route-tables": [
+            {
+              "name": "Appliance_Shared",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "IGW"
+                }
+              ]
+            }
+          ],
+          "security-groups": [
+            {
+              "name": "Inspection-GWLB",
+              "inbound-rules": [
+                {
+                  "description": "TLS Traffic Inbound",
+                  "type": ["HTTPS"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "deployments": {
+        "firewalls": [
+          {
+            "name": "Firewall",
+            "image-id": "ami-0c4cecd2e2f91c577",
+            "instance-sizes": "c5n.xlarge",
+            "region": "${HOME_REGION}",
+            "security-group": "Firewalls",
+            "fw-instance-role": "Firewall-Role",
+            "vpc": "Perimeter",
+            "ports": [
+              {
+                "name": "Public",
+                "subnet": "Public",
+                "create-eip": true,
+                "create-cgw": true
+              },
+              {
+                "name": "OnPremise",
+                "subnet": "OnPremise",
+                "create-eip": false,
+                "create-cgw": false
+              },
+              {
+                "name": "FWMgmt",
+                "subnet": "FWMgmt",
+                "create-eip": false,
+                "create-cgw": false
+              },
+              {
+                "name": "Proxy",
+                "subnet": "Proxy",
+                "create-eip": false,
+                "create-cgw": false
+              }
+            ],
+            "license": ["firewall/license1.lic", "firewall/license2.lic"],
+            "config": "firewall/firewall-example.txt",
+            "block-device-mappings": ["/dev/sda1", "/dev/sdb"],
+            "fw-cgw-name": "Perimeter_fw",
+            "fw-cgw-asn": 65523,
+            "fw-cgw-routing": "Dynamic",
+            "tgw-attach": {
+              "associate-to-tgw": "Main",
+              "account": "shared-network",
+              "name": "TGW-to-Perimeter",
+              "associate-type": "VPN",
+              "tgw-rt-associate": ["core"],
+              "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],
+              "blackhole-route": false,
+              "attach-subnets": [],
+              "options": ["DNS-support"]
+            }
+          },
+          {
+            "type": "autoscale",
+            "deploy": true,
+            "name": "Checkpoint-Firewall",
+            "image-id": "ami-0217611bf09d5b4c1",
+            "instance-sizes": "c5.xlarge",
+            "block-device-mappings": ["/dev/xvda"],
+            "region": "${HOME_REGION}",
+            "security-group": "Inspection-GWLB",
+            "vpc": "Inspection",
+            "load-balancer": "Inspection-GWLB",
+            "subnet": "Appliance",
+            "root-volume-size": 100,
+            "min-hosts": 1,
+            "desired-hosts": 2,
+            "max-hosts": 2,
+            "max-instance-age": 30,
+            "key-pair": "Appliances",
+            "user-data": "#!/bin/bash\r\nset -e\r\nlogfile=/var/log/aws-user-data.log\r\n> ${logfile}\r\nexec 1>>${logfile} 2>>${logfile}\r\necho -e \"\\nStarting user-data\\n\"\r\necho \"Setting up parameters\"\r\npwd_hash='' ; shell=/etc/cli.sh ; allow_info=true ; cw=false ; eic=false\r\nsic=${SEA::SECRET-FIREWALL}\r\nbootstrap=\"$(echo ZWNobyAtZSAiXG5TdGFydGluZyBCb290c3RyYXAgc2NyaXB0XG4iO2VjaG8gIlVwZGF0aW5nIGNsb3VkLXZlcnNpb24gZmlsZSI7dGVtcGxhdGU9ImF1dG9zY2FsZV9nd2xiIjtjdl9wYXRoPSIvZXRjL2Nsb3VkLXZlcnNpb24iO2lmIHRlc3QgLWYgJHtjdl9wYXRofTsgdGhlbiBzZWQgLWkgJy90ZW1wbGF0ZV9uYW1lL2NcdGVtcGxhdGVfbmFtZTogJyIke3RlbXBsYXRlfSInJyAvZXRjL2Nsb3VkLXZlcnNpb247IGZpO2N2X2pzb25fcGF0aD0iL2V0Yy9jbG91ZC12ZXJzaW9uLmpzb24iO2N2X2pzb25fcGF0aF90bXA9Ii9ldGMvY2xvdWQtdmVyc2lvbi10bXAuanNvbiI7aWYgdGVzdCAtZiAke2N2X2pzb25fcGF0aH07IHRoZW4gY2F0ICR7Y3ZfanNvbl9wYXRofSB8IGpxICcudGVtcGxhdGVfbmFtZSA9ICInIiR7dGVtcGxhdGV9IiciJyA+ICR7Y3ZfanNvbl9wYXRoX3RtcH07IG12ICR7Y3ZfanNvbl9wYXRoX3RtcH0gJHtjdl9qc29uX3BhdGh9OyBmaTtlY2hvIC1lICJcbkZpbmlzaGVkIEJvb3RzdHJhcCBzY3JpcHRcbiI= | base64 -d)\"\r\necho \"Updating cloud-version file\"\r\ntemplate=\"autoscale\"\r\ncv_path=\"/etc/cloud-version\"\r\necho \"Updating cloud-version file\"\r\nif test -f ${cv_path}; then\r\n    echo template_name: ${template} >> ${cv_path}\r\n    echo template_version: 20210525 >> ${cv_path}\r\nfi\r\ncv_json_path=\"/etc/cloud-version.json\"\r\ncv_json_path_tmp=\"/etc/cloud-version-tmp.json\"\r\nif test -f ${cv_json_path}; then\r\n    cat ${cv_json_path} | jq '.template_name = \"'\"${template}\"'\"' | jq '.template_version = \"20210525\"' > ${cv_json_path_tmp}\r\n    mv ${cv_json_path_tmp} ${cv_json_path}\r\nfi\r\nif [[ -z ${pwd_hash} ]]; then\r\n    echo \"Generating random password hash\"\r\n    pwd_hash=\"$(dd if=/dev/urandom count=1 2>/dev/null | sha1sum | cut -c -28)\"\r\nfi\r\necho \"Setting admin shell to ${shell}\"\r\nclish -c \"set user admin shell ${shell}\" -s\r\necho \"Starting First Time Wizard\"\r\nblink_config -s \"gateway_cluster_member=false&ftw_sic_key=${sic}&upload_info=${allow_info}&download_info=${allow_info}&admin_hash=${pwd_hash}\"\r\necho \"Setting admin password\"\r\nclish -c \"set user admin password-hash ${pwd_hash}\" -s\r\necho \"Setting LocalGateway dynamic object\"\r\naddr=\"$(ip addr show dev eth0 | awk '/inet/{print $2; exit}' | cut -d / -f 1)\"\r\ndynamic_objects -n LocalGateway -r ${addr} ${addr} -a || true\r\nif ${cw}; then\r\n    echo \"Enabling CloudWatch\"\r\n    echo {\"version\": \"1\"} > /etc/fw/conf/cloudwatch.json\r\n    cloudwatch start\r\nfi\r\nif ${eic}; then\r\n    echo \"Enabling ec2 instance connect\"\r\n    if [[ -d \"/etc/ec2-instance-connect\" ]]; then\r\n        ec2-instance-connect-config on\r\n    else\r\n        echo \"Could not enable eic, /etc/ec2-instance-connect was not found\"\r\n    fi\r\nfi\r\nif [[ -n ${bootstrap} ]]; then\r\n    echo \"Invoking bootstrap script\"\r\n    eval ${bootstrap}\r\nfi",
+            "apply-tags": {
+              "x-chkp-tags": "management=${SEA::FirewallManager}:template=${SEA::FirewallLaunchConfig}:ip-address=private",
+              "x-chkp-template": "x-chkp-topology=internal"
+            },
+            "cpu-utilization-scale-in": 80,
+            "cpu-utilization-scale-out": 60
+          }
+        ],
+        "xxfirewall-manager": {
+          "name": "FirewallMgr",
+          "image-id": "ami-0e3faadf2331f79bd",
+          "instance-sizes": "c5.large",
+          "block-device-mappings": ["/dev/sda1", "/dev/sdb"],
+          "version": "6.4.4",
+          "region": "${HOME_REGION}",
+          "vpc": "Perimeter",
+          "security-group": "FirewallMgr",
+          "subnet": {
+            "name": "FWMgmt",
+            "az": "a"
+          },
+          "create-eip": true
+        },
+        "xxxfirewall-manager": {
+          "name": "Checkpoint-FirewallMgr",
+          "image-id": "ami-02d056c86e83cad06",
+          "instance-sizes": "m5.large",
+          "block-device-mappings": ["/dev/xvda"],
+          "version": "R8030BYOLMGMT",
+          "region": "${HOME_REGION}",
+          "vpc": "Inspection",
+          "security-group": "Inspection-GWLB",
+          "subnet": {
+            "name": "Appliance",
+            "az": "a"
+          },
+          "create-eip": true,
+          "key-pair": "Appliances",
+          "user-data": "#!/bin/bash\r\nset -e\r\nlogfile=/var/log/aws-user-data.log\r\n> ${logfile}\r\nexec 1>>${logfile} 2>>${logfile}\r\nfunction report-status() {\r\n    local rc=${?}\r\n    local status=\"\"\r\n    local reason=\"Security Management Server configuration\"\r\n    local data=\"\"\r\n    set +e\r\n    printf H4sIAEQeOVoCAzNoYuE3aGL6voCZiZGJiZHBgJeNU6vNo+07LyMjKyuDQYYhtwEnG3MoC5swU2iwoaqBMojDJSwTXJJYlJaZmpOiEJKanJGXn5OfnplarKPgmZesZ2hkYABSxi2siVDmnJNYXKxgpOCcWlSSmZaZnFiSmZ+n4FhakpFflFlSaSAnzmtgYmBmZGlobmxpaBYlzmuMzKWjS5oYFZCDgZGVgbmJkZcBKM7B1MTIyLDd6MS/l4XLWFrX8gim3D/n+/4Es0S7/cLVv22Wzf9weOGtKzfytIMn/FZZYtfyYd6L+DdP1V2+aiyzr773QOvDifXB+vNOsTJOlutPk7Fc7vsralsxi2ra6/L655HHvGaqioS8Vjv+uV7yqkFB//oNblr/177WfHt9/iqW9sVXfnYuNYm/7Tyxyexmms3GHTub/s6xshM4Yf2eLTWtarakhO3/wkAbA734fbblxZti2XIOK4fN0m5VmySznGnzE3ve9RyVTTvMbF/NuWy6eU/mqa9n5r74m9Ir3mCcF+cVO/OkXPuWuVIHruYJmyrH3Z8db/v+2veyQ6/sdlfwyjilZ7Pc+HHtVn73J5cFjKuZGJkXNx41aDxkIAsMW1k+FjEWkf3x2y+euyvf9iU6dM2d6wKH+FZ2PDdonASSV2Zp7DJobG/AqmZhzpIs+kVtEzCB84DcJMzCasDMyPgfLbkzg6KXda59x9yLJ6VCF67J/Pw58tZsxnYp//CVCys5tW5/198kd+Z4XNaN5vaF0997mtqVszlGJO3vi9jBlW7/ZvNdxTT5kyG/is7Y+jjcaFxfPq+5avei419NxPtuCjp8+aOj5StavzwpVk/1MgO3gpRsxk/xHV/2dr/ViLzrK9Yt3nxiU+px3aqlq/YEt+XeDV9y6oeCI3fGhy+/S/aFxVZVfv0p2/pYd+q+r4UTnM/0ys9i4GrXfBmqFMGg/OqxkLNmtDvH3R7HrFS2FU8VVzlumao4dWftRZPVwtfW7rnzyNby7F670oKFEpHMJ5W29M+5Gqd1fem2K1y5P7Y7CLrNkq/kS9rPP/3NA3158SkAHEuNARMEAAA= | base64 -d | gunzip -c | cpopenssl x509 -inform DER >${CPDIR}/tmp/wait-handle.crt\r\n    cat ${CPDIR}/conf/ca-bundle.crt >>${CPDIR}/tmp/wait-handle.crt\r\n    if [[ ${rc} -eq 0 ]]; then\r\n        status=\"SUCCESS\"\r\n        reason+=\" completed\"\r\n        data=\"Configuration completed.\"\r\n    else\r\n        status=\"FAILURE\"\r\n        reason+=\" failed\"\r\n        data=\"None\"\r\n    fi\r\n    echo \"Reporting status ${status}: ${reason}\"\r\n    curl_cli -s -S --cacert ${CPDIR}/tmp/wait-handle.crt -X PUT -H \"Content-Type:\" --data-binary \"{\\\"Status\\\" : \\\"${status}\\\", \\\"Reason\\\" : \\\"${reason}\\\", \\\"UniqueId\\\" : \\\"${instance_id}\\\", \\\"Data\\\" : \\\"${data}\\\"}\" ${wait_handle}\r\n}\r\necho -e \"\\nStarting user-data\\n\"\r\necho \"Setting up parameters\"\r\npwd_hash='' ; shell=/etc/cli.sh ; allow_info=true ; hostname=mgmt-aws ; primary=true ; eic=false ; admin_subnet=0.0.0.0/0 ; eip=true ; ntp1=169.254.169.123 ; ntp2=0.pool.ntp.org\r\nsic=\"\"\r\npub_mgmt=false\r\nbootstrap=echo -e \"\\nStarting Bootstrap script\\n\";echo \"Setting up bootstrap parameters\";policy=Standard ; region=ca-central-1 ; conf_template=${SEA::FirewallLaunchConfig} ; mgmt=${SEA::FirewallManager};version=R80.40;sic=${SEA::SECRET-FIREWALL};echo \"Adding GatewayLoadBalancer identifier to cloud-version\";template=\"management_gwlb\";cv_path=\"/etc/cloud-version\";if test -f ${cv_path}; then sed -i '/template_name/c\\template_name: '\"${template}\"'' /etc/cloud-version; fi;cv_json_path=\"/etc/cloud-version.json\";cv_json_path_tmp=\"/etc/cloud-version-tmp.json\";if test -f ${cv_json_path}; then cat ${cv_json_path} | jq '.template_name = \"'\"${template}\"'\"' > ${cv_json_path_tmp}; mv ${cv_json_path_tmp} ${cv_json_path}; fi;controller=\"gwlb-controller\";echo \"Creating CME configuration\";autoprov_cfg -f init AWS -mn \"${mgmt}\" -tn \"${conf_template}\" -cn \"${controller}\" -po \"${policy}\" -otp \"${sic}\" -r \"${region}\" -ver \"${version}\" -iam;echo -e \"\\nFinished Bootstrap script\\n\"\r\ninstance_id=\"$(curl_cli -s -S 169.254.169.254/latest/meta-data/instance-id)\"\r\necho \"Updating cloud-version file\"\r\ntemplate=\"management\"\r\ncv_path=\"/etc/cloud-version\"\r\necho \"Updating cloud-version file\"\r\nif test -f ${cv_path}; then\r\n    echo template_name: ${template} >> ${cv_path}\r\n    echo template_version: 20210606 >> ${cv_path}\r\nfi\r\ncv_json_path=\"/etc/cloud-version.json\"\r\ncv_json_path_tmp=\"/etc/cloud-version-tmp.json\"\r\nif test -f ${cv_json_path}; then\r\n    cat ${cv_json_path} | jq '.template_name = \"'\"${template}\"'\"' | jq '.template_version = \"20210606\"' > ${cv_json_path_tmp}\r\n    mv ${cv_json_path_tmp} ${cv_json_path}\r\nfi\r\nif [[ -z ${pwd_hash} ]]; then\r\n    echo \"Generating random password hash\"\r\n    pwd_hash=\"$(dd if=/dev/urandom count=1 2>/dev/null | sha1sum | cut -c -28)\"\r\nfi\r\necho \"Setting admin password\"\r\nclish -c \"set user admin password-hash ${pwd_hash}\" -s\r\necho \"Setting admin shell to ${shell}\"\r\nclish -c \"set user admin shell ${shell}\" -s\r\nif [[ -n ${ntp1} ]]; then\r\n    echo \"Setting primary NTP server to ${ntp1}\"\r\n    clish -c \"set ntp server primary ${ntp1} version 4\" -s\r\n    if [[ -n ${ntp2} ]]; then\r\n        echo \"Setting secondary NTP server to ${ntp2}\"\r\n        clish -c \"set ntp server secondary ${ntp2} version 4\" -s\r\n    fi\r\n    clish -c \"set ntp active on\" -s\r\nfi\r\nif [[ -n ${hostname} ]]; then\r\n    echo \"Setting hostname to ${hostname}\"\r\n    clish -c \"set hostname ${hostname}\" -s\r\nfi\r\nif [[ \"0.0.0.0/0\" == ${admin_subnet} ]]; then\r\n    mgmt_clients=\"mgmt_gui_clients_radio=any\"\r\nelse\r\n    admin_subnet_ip=\"$(echo ${admin_subnet} | cut -d / -f 1)\"\r\n    admin_subnet_bits=\"$(echo ${admin_subnet} | cut -d / -f 2)\"\r\n    mgmt_clients=\"mgmt_gui_clients_radio=network&mgmt_gui_clients_ip_field=${admin_subnet_ip}&mgmt_gui_clients_subnet_field=${admin_subnet_bits}\"\r\nfi\r\nif ${primary}; then\r\n    secondary=false\r\n    sic=notused\r\nelse\r\n    secondary=true\r\nfi\r\necho \"Starting First Time Wizard\"\r\nconfig_system -s \"install_security_gw=false&install_security_managment=true&${mgmt_clients}&install_mgmt_primary=${primary}&install_mgmt_secondary=${secondary}&mgmt_admin_radio=gaia_admin&ftw_sic_key=${sic}&download_info=${allow_info}&upload_info=${allow_info}\"\r\nif ${eic}; then\r\n    echo \"Enabling ec2 instance connect\"\r\n    if [[ -d \"/etc/ec2-instance-connect\" ]]; then\r\n        ec2-instance-connect-config on\r\n    else\r\n        echo \"Could not enable eic, /etc/ec2-instance-connect was not found\"\r\n    fi\r\nfi\r\nif ${primary}; then\r\n    until mgmt_cli -r true discard; do\r\n        sleep 30\r\n    done\r\nfi\r\nif ${pub_mgmt}; then\r\n    addr=\"$(ip addr show dev eth0 | sed -n -e 's|^ *inet \\([^/]*\\)/.*eth0$|\\1|p')\"\r\n    pub_addr=\"$(ip addr show dev eth0 | sed -n -e 's|^ *inet \\([^/]*\\)/.*eth0:1$|\\1|p')\"\r\n    uid=\"$(mgmt_cli -r true show-generic-objects class-name com.checkpoint.objects.classes.dummy.CpmiHostCkp details-level full -f json | jq -r '.objects[] | select(.ipaddr == \"'\"${addr}\"'\") | .uid')\"\r\n    if [[ -n ${uid}  && -n ${pub_addr} ]]; then\r\n        mgmt_cli -r true set-generic-object uid \"${uid}\" ipaddr \"${pub_addr}\"\r\n    fi\r\nfi\r\nchkconfig --add autoprovision\r\nservice autoprovision start\r\nif [[ -n ${bootstrap} ]]; then\r\n    echo \"Invoking bootstrap script\"\r\n    eval ${bootstrap}\r\nfi"
+        }
+      },
+      "key-pairs": [
+        {
+          "name": "Appliances",
+          "region": "${HOME_REGION}"
+        }
+      ]
+    },
+    "management": {
+      "account-name": "ASEA-Main",
+      "email": "myemail+aseaT-management@example.com---------------------REPLACE----------------------",
+      "ou": "core",
+      "src-filename": "config.json",
+      "description": "This is the Organization Management or root account.  Access must be highly restricted.  This account should not contain customer resources.",
+      "budget": {
+        "name": "Organization Budget",
+        "period": "Monthly",
+        "amount": 10000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          }
+        ]
+      },
+      "s3-retention": 180,
+      "limits": {},
+      "iam": {
+        "users": [
+          {
+            "user-ids": ["bgUser1", "bgUser2"],
+            "group": "BreakGlassAdmins",
+            "policies": ["AdministratorAccess"],
+            "boundary-policy": "Default-Boundary-Policy"
+          },
+          {
+            "user-ids": ["OpsUser1", "OpsUser2"],
+            "group": "OpsAdmins",
+            "policies": ["AdministratorAccess"],
+            "boundary-policy": "Default-Boundary-Policy"
+          }
+        ],
+        "policies": [
+          {
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
+          }
+        ],
+        "roles": []
+      },
+      "vpc": [
+        {
+          "deploy": "local",
+          "name": "ForSSO",
+          "description": "This VPC is deployed in the Organization Management/root account to enable the deployment of the Active Directory Connector, enabling the use of Active Directory as the Identity source for AWS SSO.",
+          "cidr-src": "provided",
+          "cidr": [
+            {
+              "value": "10.249.1.0/24",
+              "pool": "ForSSO",
+              "size": 24
+            }
+          ],
+          "region": "${HOME_REGION}",
+          "use-central-endpoints": false,
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
+          "subnets": [
+            {
+              "name": "ForSSO",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "ForSSO_Shared",
+                  "cidr": {
+                    "value": "10.249.1.0/27",
+                    "pool": "ForSSO",
+                    "size": 27
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "ForSSO_Shared",
+                  "cidr": {
+                    "value": "10.249.1.32/27",
+                    "pool": "ForSSO",
+                    "size": 27
+                  }
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": [],
+          "route-tables": [
+            {
+              "name": "ForSSO_Shared",
+              "routes": [
+                {
+                  "destination": {
+                    "account": "shared-network",
+                    "vpc": "Central",
+                    "subnet": "GCWide"
+                  },
+                  "target": "pcx"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "deployments": {
+        "adc": {
+          "deploy": true,
+          "vpc-name": "ForSSO",
+          "subnet": "ForSSO",
+          "size": "Small",
+          "restrict_srcips": ["10.249.1.0/24", "${RANGE-MAD}"],
+          "connect-account-key": "operations",
+          "connect-dir-id": 1001
+        }
+      }
+    },
+    "log-archive": {
+      "account-name": "log-archive",
+      "ou": "core",
+      "email": "myemail+aseaT-log@example.com---------------------REPLACE----------------------",
+      "description": "This Account is used to centralized and store immutable logs for the Organization.",
+      "src-filename": "config.json"
+    },
+    "security": {
+      "account-name": "security",
+      "ou": "core",
+      "email": "myemail+aseaT-sec@example.com---------------------REPLACE----------------------",
+      "description": "This Account is used to centralized access to AWS security tooling and consoles.",
+      "src-filename": "config.json"
+    }
+  },
+  "workload-account-configs": {
+    "fun-acct": {
+      "account-name": "TheFunAccount",
+      "email": "myemail+aseaT-funacct@example.com---------------------REPLACE----------------------",
+      "src-filename": "config.json",
+      "description": "This is an OPTIONAL SAMPLE workload account.  As this is a Sandbox account, it is used for extreme FUN!",
+      "ou": "Sandbox"
+    },
+    "mydevacct1": {
+      "account-name": "MyDev1",
+      "email": "myemail+aseaT-dev1@example.com---------------------REPLACE----------------------",
+      "src-filename": "config.json",
+      "description": "This is an OPTIONAL SAMPLE workload account.  As this is a Dev account, it is to be used for Development.",
+      "ou": "Dev"
+    }
+  },
+  "organizational-units": {
+    "core": {
+      "type": "ignore",
+      "description": "The core OU is used to hold accounts with critical shared resources used by the rest of the Organization.",
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "default-budgets": {
+        "name": "Default Core Budget",
+        "period": "Monthly",
+        "amount": 1000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          }
+        ]
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["${HOME_REGION}"],
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": ["ap-northeast-3"],
+          "rules": [
+            "EC2-INSTANCE-PROFILE",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
+            "ELB_LOGGING_ENABLED",
+            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "ACM_CERTIFICATE_EXPIRATION_CHECK",
+            "ALB_WAF_ENABLED",
+            "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
+            "API_GW_EXECUTION_LOGGING_ENABLED",
+            "CLOUD_TRAIL_ENABLED",
+            "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
+            "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
+            "CLOUDWATCH_ALARM_ACTION_CHECK",
+            "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
+            "DB_INSTANCE_BACKUP_ENABLED",
+            "DYNAMODB_IN_BACKUP_PLAN",
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+            "EBS_IN_BACKUP_PLAN",
+            "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
+            "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
+            "EC2_VOLUME_INUSE_CHECK",
+            "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
+            "ELB_ACM_CERTIFICATE_REQUIRED",
+            "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
+            "EMR_KERBEROS_ENABLED",
+            "GUARDDUTY_NON_ARCHIVED_FINDINGS",
+            "IAM_GROUP_HAS_USERS_CHECK",
+            "IAM_PASSWORD_POLICY",
+            "IAM_USER_GROUP_MEMBERSHIP_CHECK",
+            "INCOMING_SSH_DISABLED",
+            "INSTANCES_IN_VPC",
+            "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
+            "RDS_IN_BACKUP_PLAN",
+            "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
+            "RESTRICTED_INCOMING_TRAFFIC",
+            "S3_BUCKET_POLICY_GRANTEE_CHECK",
+            "S3_BUCKET_VERSIONING_ENABLED",
+            "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
+            "SECURITYHUB_ENABLED",
+            "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
+            "WAFV2_LOGGING_ENABLED"
+          ],
+          "remediate-regions": ["${HOME_REGION}"]
+        }
+      ]
+    },
+    "Central": {
+      "type": "mandatory",
+      "description": "The Central OU is used to hold accounts containing resources shared across groups of accounts, but not the entire Organization like the core OU.",
+      "share-mad-from": "operations",
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "default-budgets": {
+        "name": "Default Central Budget",
+        "period": "Monthly",
+        "amount": 500,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          }
+        ]
+      },
+      "vpc": [
+        {
+          "deploy": "shared-network",
+          "name": "${CONFIG::OU_NAME}",
+          "description": "This VPC is deployed in the shared network account and it's subnets are shared out to the Operations account and every account in the Central OU.",
+          "cidr-src": "provided",
+          "cidr": [
+            {
+              "value": "10.1.0.0/16",
+              "pool": "main",
+              "size": 16
+            },
+            {
+              "value": "100.96.252.0/23",
+              "pool": "RFC6598a",
+              "size": 23
+            }
+          ],
+          "region": "${HOME_REGION}",
+          "use-central-endpoints": true,
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
+          "pcx": {
+            "source": "management",
+            "source-vpc": "ForSSO",
+            "source-subnets": "ForSSO",
+            "local-subnets": "GCWide"
+          },
+          "subnets": [
+            {
+              "name": "TGW",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.88.0/27",
+                    "pool": "main",
+                    "size": 27
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.88.32/27",
+                    "pool": "main",
+                    "size": 27
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.88.64/27",
+                    "pool": "main",
+                    "size": 27
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": ["operations"],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.32.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.128.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.192.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": ["operations"],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.0.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.96.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.160.0/19",
+                    "pool": "main",
+                    "size": 19
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": ["operations"],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.48.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.144.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.208.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
+                  "disabled": true
+                }
+              ],
+              "nacls": [
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": true,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "${CONFIG::VPC_NAME}",
+                      "subnet": ["Web"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": true,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                },
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": false,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "${CONFIG::VPC_NAME}",
+                      "subnet": ["Web"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": false,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Mgmt",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": ["operations"],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.64.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.72.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.1.80.0/21",
+                    "pool": "main",
+                    "size": 21
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "GCWide",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": ["operations"],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_GCWide",
+                  "cidr": {
+                    "value": "100.96.252.0/25",
+                    "pool": "RFC6598a",
+                    "size": 25
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_GCWide",
+                  "cidr": {
+                    "value": "100.96.252.128/25",
+                    "pool": "RFC6598a",
+                    "size": 25
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_GCWide",
+                  "cidr": {
+                    "value": "100.96.253.0/25",
+                    "pool": "RFC6598a",
+                    "size": 25
+                  },
+                  "disabled": true
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": ["s3", "dynamodb"],
+          "route-tables": [
+            {
+              "name": "${CONFIG::VPC_NAME}VPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                }
+              ]
+            },
+            {
+              "name": "${CONFIG::VPC_NAME}VPC_GCWide",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                },
+                {
+                  "destination": {
+                    "account": "management",
+                    "vpc": "ForSSO",
+                    "subnet": "ForSSO"
+                  },
+                  "target": "pcx"
+                }
+              ]
+            }
+          ],
+          "security-groups": [
+            {
+              "name": "Mgmt",
+              "inbound-rules": [
+                {
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
+                  "type": ["RDP", "SSH"],
+                  "source": "${RANGE-RESTRICT}"
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "inbound-rules": [
+                {
+                  "description": "World Web Traffic Inbound",
+                  "type": ["HTTP", "HTTPS"],
+                  "source": ["0.0.0.0/0"]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "inbound-rules": [
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Web Tier Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Web"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "inbound-rules": [
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local App DB Traffic Inbound",
+                  "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Data"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "Main",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": ["shared"],
+            "tgw-rt-propagate": ["core", "shared", "segregated"],
+            "blackhole-route": false,
+            "attach-subnets": ["TGW"],
+            "options": ["DNS-support"]
+          }
+        }
+      ],
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "role": "EC2-Default-SSM-AD-Role",
+            "type": "ec2",
+            "ssm-log-archive-write-access": true,
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
+          }
+        ]
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["${HOME_REGION}"],
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": ["ap-northeast-3"],
+          "rules": [
+            "EC2-INSTANCE-PROFILE",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
+            "ELB_LOGGING_ENABLED",
+            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "ACM_CERTIFICATE_EXPIRATION_CHECK",
+            "ALB_WAF_ENABLED",
+            "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
+            "API_GW_EXECUTION_LOGGING_ENABLED",
+            "CLOUD_TRAIL_ENABLED",
+            "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
+            "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
+            "CLOUDWATCH_ALARM_ACTION_CHECK",
+            "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
+            "DB_INSTANCE_BACKUP_ENABLED",
+            "DYNAMODB_IN_BACKUP_PLAN",
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+            "EBS_IN_BACKUP_PLAN",
+            "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
+            "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
+            "EC2_VOLUME_INUSE_CHECK",
+            "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
+            "ELB_ACM_CERTIFICATE_REQUIRED",
+            "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
+            "EMR_KERBEROS_ENABLED",
+            "GUARDDUTY_NON_ARCHIVED_FINDINGS",
+            "IAM_GROUP_HAS_USERS_CHECK",
+            "IAM_PASSWORD_POLICY",
+            "IAM_USER_GROUP_MEMBERSHIP_CHECK",
+            "INCOMING_SSH_DISABLED",
+            "INSTANCES_IN_VPC",
+            "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
+            "RDS_IN_BACKUP_PLAN",
+            "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
+            "RESTRICTED_INCOMING_TRAFFIC",
+            "S3_BUCKET_POLICY_GRANTEE_CHECK",
+            "S3_BUCKET_VERSIONING_ENABLED",
+            "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
+            "SECURITYHUB_ENABLED",
+            "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
+            "WAFV2_LOGGING_ENABLED"
+          ],
+          "remediate-regions": ["${HOME_REGION}"]
+        }
+      ]
+    },
+    "Dev": {
+      "type": "workload",
+      "description": "The Dev OU is used to hold accounts at the Development or similiarly permissioned stage of the SDLC cycle containing sensitive unclassified data or workloads.",
+      "share-mad-from": "operations",
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "default-budgets": {
+        "name": "Default Dev Budget",
+        "period": "Monthly",
+        "amount": 2000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          }
+        ]
+      },
+      "certificates": [
+        {
+          "name": "DevSelf-SignedCert",
+          "type": "import",
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt"
+        }
+      ],
+      "alb": [
+        {
+          "name": "Core",
+          "scheme": "internal",
+          "action-type": "forward",
+          "ip-type": "ipv4",
+          "listeners": "HTTPS",
+          "ports": 443,
+          "vpc": "Dev",
+          "subnets": "Web",
+          "cert-name": "DevSelf-SignedCert",
+          "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
+          "security-group": "Web",
+          "access-logs": true,
+          "targets": [
+            {
+              "target-name": "health-check-Lambda",
+              "target-type": "lambda",
+              "health-check-path": "/health-check",
+              "lambda-filename": "internal-dev-alb-lambda.txt"
+            }
+          ]
+        }
+      ],
+      "vpc": [
+        {
+          "deploy": "shared-network",
+          "name": "${CONFIG::OU_NAME}",
+          "description": "This VPC is deployed in the shared network account and it's subnets are shared out to every account in the Dev OU.",
+          "cidr-src": "provided",
+          "cidr": [
+            {
+              "value": "10.2.0.0/16",
+              "pool": "main",
+              "size": 16
+            }
+          ],
+          "region": "${HOME_REGION}",
+          "use-central-endpoints": true,
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
+          "subnets": [
+            {
+              "name": "TGW",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.88.0/27",
+                    "pool": "main",
+                    "size": 27
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.88.32/27",
+                    "pool": "main",
+                    "size": 27
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.88.64/27",
+                    "pool": "main",
+                    "size": 27
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.32.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.128.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.192.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.0.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.96.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.160.0/19",
+                    "pool": "main",
+                    "size": 19
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.48.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.144.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.208.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
+                  "disabled": true
+                }
+              ],
+              "nacls": [
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": true,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "${CONFIG::VPC_NAME}",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": true,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                },
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": false,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "${CONFIG::VPC_NAME}",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": false,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Mgmt",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.64.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.72.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.2.80.0/21",
+                    "pool": "main",
+                    "size": 21
+                  },
+                  "disabled": true
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": ["s3", "dynamodb"],
+          "route-tables": [
+            {
+              "name": "${CONFIG::VPC_NAME}VPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                }
+              ]
+            }
+          ],
+          "security-groups": [
+            {
+              "name": "Mgmt",
+              "inbound-rules": [
+                {
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
+                  "type": ["RDP", "SSH"],
+                  "source": "${RANGE-RESTRICT}"
+                },
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "inbound-rules": [
+                {
+                  "description": "World Web Traffic Inbound",
+                  "type": ["HTTP", "HTTPS"],
+                  "source": ["0.0.0.0/0"]
+                },
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "inbound-rules": [
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Web Tier Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Web"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "inbound-rules": [
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local App DB Traffic Inbound",
+                  "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Data"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "Main",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": ["segregated"],
+            "tgw-rt-propagate": ["core", "shared"],
+            "blackhole-route": true,
+            "attach-subnets": ["TGW"],
+            "options": ["DNS-support"]
+          }
+        }
+      ],
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "role": "EC2-Default-SSM-AD-Role",
+            "type": "ec2",
+            "ssm-log-archive-write-access": true,
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
+          }
+        ]
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["${HOME_REGION}"],
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": ["ap-northeast-3"],
+          "rules": [
+            "EC2-INSTANCE-PROFILE",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
+            "ELB_LOGGING_ENABLED",
+            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "ACM_CERTIFICATE_EXPIRATION_CHECK",
+            "ALB_WAF_ENABLED",
+            "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
+            "API_GW_EXECUTION_LOGGING_ENABLED",
+            "CLOUD_TRAIL_ENABLED",
+            "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
+            "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
+            "CLOUDWATCH_ALARM_ACTION_CHECK",
+            "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
+            "DB_INSTANCE_BACKUP_ENABLED",
+            "DYNAMODB_IN_BACKUP_PLAN",
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+            "EBS_IN_BACKUP_PLAN",
+            "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
+            "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
+            "EC2_VOLUME_INUSE_CHECK",
+            "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
+            "ELB_ACM_CERTIFICATE_REQUIRED",
+            "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
+            "EMR_KERBEROS_ENABLED",
+            "GUARDDUTY_NON_ARCHIVED_FINDINGS",
+            "IAM_GROUP_HAS_USERS_CHECK",
+            "IAM_PASSWORD_POLICY",
+            "IAM_USER_GROUP_MEMBERSHIP_CHECK",
+            "INCOMING_SSH_DISABLED",
+            "INSTANCES_IN_VPC",
+            "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
+            "RDS_IN_BACKUP_PLAN",
+            "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
+            "RESTRICTED_INCOMING_TRAFFIC",
+            "S3_BUCKET_POLICY_GRANTEE_CHECK",
+            "S3_BUCKET_VERSIONING_ENABLED",
+            "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
+            "SECURITYHUB_ENABLED",
+            "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
+            "WAFV2_LOGGING_ENABLED"
+          ],
+          "remediate-regions": ["${HOME_REGION}"]
+        }
+      ]
+    },
+    "Test": {
+      "type": "workload",
+      "description": "The Test OU is used to hold accounts at the Test or similiarly permissioned (i.e. QA) stage of the SDLC cycle containing sensitive unclassified data or workloads.",
+      "share-mad-from": "operations",
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "default-budgets": {
+        "name": "Default Test Budget",
+        "period": "Monthly",
+        "amount": 1000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          }
+        ]
+      },
+      "certificates": [
+        {
+          "name": "TestSelf-SignedCert",
+          "type": "import",
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt"
+        }
+      ],
+      "alb": [
+        {
+          "name": "Core",
+          "scheme": "internal",
+          "action-type": "forward",
+          "ip-type": "ipv4",
+          "listeners": "HTTPS",
+          "ports": 443,
+          "vpc": "Test",
+          "subnets": "Web",
+          "cert-name": "TestSelf-SignedCert",
+          "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
+          "security-group": "Web",
+          "access-logs": true,
+          "targets": [
+            {
+              "target-name": "health-check-Lambda",
+              "target-type": "lambda",
+              "health-check-path": "/health-check",
+              "lambda-filename": "internal-test-alb-lambda.txt"
+            }
+          ]
+        }
+      ],
+      "vpc": [
+        {
+          "deploy": "shared-network",
+          "name": "${CONFIG::OU_NAME}",
+          "description": "This VPC is deployed in the shared network account and it's subnets are shared out to every account in the Test OU.",
+          "cidr-src": "provided",
+          "cidr": [
+            {
+              "value": "10.3.0.0/16",
+              "pool": "main",
+              "size": 16
+            }
+          ],
+          "region": "${HOME_REGION}",
+          "use-central-endpoints": true,
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
+          "subnets": [
+            {
+              "name": "TGW",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.88.0/27",
+                    "pool": "main",
+                    "size": 27
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.88.32/27",
+                    "pool": "main",
+                    "size": 27
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.88.64/27",
+                    "pool": "main",
+                    "size": 27
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.32.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.128.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.192.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.0.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.96.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.160.0/19",
+                    "pool": "main",
+                    "size": 19
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.48.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.144.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.208.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
+                  "disabled": true
+                }
+              ],
+              "nacls": [
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": true,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "${CONFIG::VPC_NAME}",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": true,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                },
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": false,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "${CONFIG::VPC_NAME}",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": false,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Mgmt",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.64.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.72.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.3.80.0/21",
+                    "pool": "main",
+                    "size": 21
+                  },
+                  "disabled": true
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": ["s3", "dynamodb"],
+          "route-tables": [
+            {
+              "name": "${CONFIG::VPC_NAME}VPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                }
+              ]
+            }
+          ],
+          "security-groups": [
+            {
+              "name": "Mgmt",
+              "inbound-rules": [
+                {
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
+                  "type": ["RDP", "SSH"],
+                  "source": "${RANGE-RESTRICT}"
+                },
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "inbound-rules": [
+                {
+                  "description": "World Web Traffic Inbound",
+                  "type": ["HTTP", "HTTPS"],
+                  "source": ["0.0.0.0/0"]
+                },
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "inbound-rules": [
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Web Tier Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Web"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "inbound-rules": [
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local App DB Traffic Inbound",
+                  "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Data"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "Main",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": ["segregated"],
+            "tgw-rt-propagate": ["core", "shared"],
+            "blackhole-route": true,
+            "attach-subnets": ["TGW"],
+            "options": ["DNS-support"]
+          }
+        }
+      ],
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "role": "EC2-Default-SSM-AD-Role",
+            "type": "ec2",
+            "ssm-log-archive-write-access": true,
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
+          }
+        ]
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["${HOME_REGION}"],
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": ["ap-northeast-3"],
+          "rules": [
+            "EC2-INSTANCE-PROFILE",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
+            "ELB_LOGGING_ENABLED",
+            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "ACM_CERTIFICATE_EXPIRATION_CHECK",
+            "ALB_WAF_ENABLED",
+            "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
+            "API_GW_EXECUTION_LOGGING_ENABLED",
+            "CLOUD_TRAIL_ENABLED",
+            "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
+            "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
+            "CLOUDWATCH_ALARM_ACTION_CHECK",
+            "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
+            "DB_INSTANCE_BACKUP_ENABLED",
+            "DYNAMODB_IN_BACKUP_PLAN",
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+            "EBS_IN_BACKUP_PLAN",
+            "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
+            "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
+            "EC2_VOLUME_INUSE_CHECK",
+            "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
+            "ELB_ACM_CERTIFICATE_REQUIRED",
+            "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
+            "EMR_KERBEROS_ENABLED",
+            "GUARDDUTY_NON_ARCHIVED_FINDINGS",
+            "IAM_GROUP_HAS_USERS_CHECK",
+            "IAM_PASSWORD_POLICY",
+            "IAM_USER_GROUP_MEMBERSHIP_CHECK",
+            "INCOMING_SSH_DISABLED",
+            "INSTANCES_IN_VPC",
+            "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
+            "RDS_IN_BACKUP_PLAN",
+            "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
+            "RESTRICTED_INCOMING_TRAFFIC",
+            "S3_BUCKET_POLICY_GRANTEE_CHECK",
+            "S3_BUCKET_VERSIONING_ENABLED",
+            "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
+            "SECURITYHUB_ENABLED",
+            "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
+            "WAFV2_LOGGING_ENABLED"
+          ],
+          "remediate-regions": ["${HOME_REGION}"]
+        }
+      ]
+    },
+    "Prod": {
+      "type": "workload",
+      "description": "The Prod OU is used to hold accounts at the Production or similiarly permissioned (i.e. Pre-Prod) stage of the SDLC cycle containing sensitive unclassified data or workloads.",
+      "share-mad-from": "operations",
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "default-budgets": {
+        "name": "Default Prod Budget",
+        "period": "Monthly",
+        "amount": 1000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          }
+        ]
+      },
+      "certificates": [
+        {
+          "name": "ProdSelf-SignedCert",
+          "type": "import",
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt"
+        }
+      ],
+      "alb": [
+        {
+          "name": "Core",
+          "scheme": "internal",
+          "action-type": "forward",
+          "ip-type": "ipv4",
+          "listeners": "HTTPS",
+          "ports": 443,
+          "vpc": "Prod",
+          "subnets": "Web",
+          "cert-name": "ProdSelf-SignedCert",
+          "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
+          "security-group": "Web",
+          "access-logs": true,
+          "targets": [
+            {
+              "target-name": "health-check-Lambda",
+              "target-type": "lambda",
+              "health-check-path": "/health-check",
+              "lambda-filename": "internal-prod-alb-lambda.txt"
+            }
+          ]
+        }
+      ],
+      "vpc": [
+        {
+          "deploy": "shared-network",
+          "name": "${CONFIG::OU_NAME}",
+          "description": "This VPC is deployed in the shared network account and it's subnets are shared out to every account in the Prod OU.",
+          "cidr-src": "provided",
+          "cidr": [
+            {
+              "value": "10.4.0.0/16",
+              "pool": "main",
+              "size": 16
+            }
+          ],
+          "region": "${HOME_REGION}",
+          "use-central-endpoints": true,
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
+          "subnets": [
+            {
+              "name": "TGW",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.88.0/27",
+                    "pool": "main",
+                    "size": 27
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.88.32/27",
+                    "pool": "main",
+                    "size": 27
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.88.64/27",
+                    "pool": "main",
+                    "size": 27
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.32.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.128.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.192.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.0.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.96.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.160.0/19",
+                    "pool": "main",
+                    "size": 19
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.48.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.144.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.208.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
+                  "disabled": true
+                }
+              ],
+              "nacls": [
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": true,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "${CONFIG::VPC_NAME}",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": true,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                },
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": false,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "${CONFIG::VPC_NAME}",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": false,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Mgmt",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.64.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.72.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_Common",
+                  "cidr": {
+                    "value": "10.4.80.0/21",
+                    "pool": "main",
+                    "size": 21
+                  },
+                  "disabled": true
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": ["s3", "dynamodb"],
+          "route-tables": [
+            {
+              "name": "${CONFIG::VPC_NAME}VPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                }
+              ]
+            }
+          ],
+          "security-groups": [
+            {
+              "name": "Mgmt",
+              "inbound-rules": [
+                {
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
+                  "type": ["RDP", "SSH"],
+                  "source": "${RANGE-RESTRICT}"
+                },
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "inbound-rules": [
+                {
+                  "description": "World Web Traffic Inbound",
+                  "type": ["HTTP", "HTTPS"],
+                  "source": ["0.0.0.0/0"]
+                },
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "inbound-rules": [
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Web Tier Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Web"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "inbound-rules": [
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local App DB Traffic Inbound",
+                  "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Data"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "Main",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": ["segregated"],
+            "tgw-rt-propagate": ["core", "shared"],
+            "blackhole-route": true,
+            "attach-subnets": ["TGW"],
+            "options": ["DNS-support"]
+          }
+        }
+      ],
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "role": "EC2-Default-SSM-AD-Role",
+            "type": "ec2",
+            "ssm-log-archive-write-access": true,
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
+          }
+        ]
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["${HOME_REGION}"],
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": ["ap-northeast-3"],
+          "rules": [
+            "EC2-INSTANCE-PROFILE",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
+            "ELB_LOGGING_ENABLED",
+            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "ACM_CERTIFICATE_EXPIRATION_CHECK",
+            "ALB_WAF_ENABLED",
+            "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
+            "API_GW_EXECUTION_LOGGING_ENABLED",
+            "CLOUD_TRAIL_ENABLED",
+            "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
+            "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
+            "CLOUDWATCH_ALARM_ACTION_CHECK",
+            "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
+            "DB_INSTANCE_BACKUP_ENABLED",
+            "DYNAMODB_IN_BACKUP_PLAN",
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+            "EBS_IN_BACKUP_PLAN",
+            "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
+            "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
+            "EC2_VOLUME_INUSE_CHECK",
+            "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
+            "ELB_ACM_CERTIFICATE_REQUIRED",
+            "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
+            "EMR_KERBEROS_ENABLED",
+            "GUARDDUTY_NON_ARCHIVED_FINDINGS",
+            "IAM_GROUP_HAS_USERS_CHECK",
+            "IAM_PASSWORD_POLICY",
+            "IAM_USER_GROUP_MEMBERSHIP_CHECK",
+            "INCOMING_SSH_DISABLED",
+            "INSTANCES_IN_VPC",
+            "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
+            "RDS_IN_BACKUP_PLAN",
+            "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
+            "RESTRICTED_INCOMING_TRAFFIC",
+            "S3_BUCKET_POLICY_GRANTEE_CHECK",
+            "S3_BUCKET_VERSIONING_ENABLED",
+            "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
+            "SECURITYHUB_ENABLED",
+            "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
+            "WAFV2_LOGGING_ENABLED"
+          ],
+          "remediate-regions": ["${HOME_REGION}"]
+        }
+      ]
+    },
+    "Sandbox": {
+      "type": "workload",
+      "description": "The Sandbox OU offers the most cloud native, agile experience and is used for experimentation.  It is not to be used to hold production workloads or data as it offers the fewest security controls.",
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sandbox"],
+      "default-budgets": {
+        "name": "Default Sandbox Budget",
+        "period": "Monthly",
+        "amount": 200,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          }
+        ]
+      },
+      "vpc": [
+        {
+          "deploy": "local",
+          "name": "${CONFIG::OU_NAME}",
+          "description": "This VPC is deployed locally in each Sandbox account and each account/VPC is deployed with the same identical CIDR range.  This VPC has no access to the rest of the Organizations networking and has direct internet access and does not use the perimeter ingress/egress services.",
+          "cidr-src": "provided",
+          "cidr": [
+            {
+              "value": "10.6.0.0/16",
+              "pool": "main",
+              "size": 16
+            }
+          ],
+          "region": "${HOME_REGION}",
+          "use-central-endpoints": false,
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
+          "igw": true,
+          "natgw": {
+            "subnet": {
+              "name": "Web",
+              "az": "a"
+            }
+          },
+          "subnets": [
+            {
+              "name": "Web",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "SandboxVPC_IGW",
+                  "cidr": {
+                    "value": "10.6.32.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "SandboxVPC_IGW",
+                  "cidr": {
+                    "value": "10.6.128.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "SandboxVPC_IGW",
+                  "cidr": {
+                    "value": "10.6.192.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": {
+                    "value": "10.6.0.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": {
+                    "value": "10.6.96.0/19",
+                    "pool": "main",
+                    "size": 19
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": {
+                    "value": "10.6.160.0/19",
+                    "pool": "main",
+                    "size": 19
+                  },
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": {
+                    "value": "10.6.48.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": {
+                    "value": "10.6.144.0/20",
+                    "pool": "main",
+                    "size": 20
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": {
+                    "value": "10.6.208.0/20",
+                    "pool": "main",
+                    "size": 20
+                  },
+                  "disabled": true
+                }
+              ],
+              "nacls": [
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": true,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "Sandbox",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "account": "shared-network",
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": true,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                },
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": false,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "Sandbox",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "account": "shared-network",
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": false,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Mgmt",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": {
+                    "value": "10.6.64.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
+                },
+                {
+                  "az": "b",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": {
+                    "value": "10.6.72.0/21",
+                    "pool": "main",
+                    "size": 21
+                  }
+                },
+                {
+                  "az": "d",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": {
+                    "value": "10.6.80.0/21",
+                    "pool": "main",
+                    "size": 21
+                  },
+                  "disabled": true
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": [],
+          "route-tables": [
+            {
+              "name": "SandboxVPC_IGW",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "IGW"
+                }
+              ]
+            },
+            {
+              "name": "SandboxVPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "NATGW_Web_azA"
+                }
+              ]
+            }
+          ],
+          "security-groups": [
+            {
+              "name": "Mgmt",
+              "inbound-rules": [
+                {
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
+                  "type": ["RDP", "SSH"],
+                  "source": "${RANGE-RESTRICT}"
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "inbound-rules": [
+                {
+                  "description": "World Web Traffic Inbound",
+                  "type": ["HTTP", "HTTPS"],
+                  "source": ["0.0.0.0/0"]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "inbound-rules": [
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Web Tier Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Web"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "inbound-rules": [
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local App DB Traffic Inbound",
+                  "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Data"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "role": "EC2-Default-SSM-AD-Role",
+            "type": "ec2",
+            "ssm-log-archive-write-access": true,
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
+          }
+        ]
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["${HOME_REGION}"],
+          "documents": ["Put-S3-Encryption"]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": [],
+          "rules": ["S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"],
+          "remediate-regions": ["${HOME_REGION}"]
+        }
+      ]
+    }
+  }
+}

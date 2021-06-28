@@ -26,7 +26,12 @@ async function createTgwRole(stack: AccountStack) {
 
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
-      actions: ['ec2:DescribeTransitGatewayVpcAttachments', 'ec2:ModifyTransitGatewayVpcAttachment'],
+      actions: [
+        'ec2:DescribeTransitGatewayVpcAttachments',
+        'ec2:ModifyTransitGatewayVpcAttachment',
+        'ec2:ModifyVpcEndpointServicePermissions',
+        'ec2:AcceptVpcEndpointConnections',
+      ],
       resources: ['*'],
     }),
   );

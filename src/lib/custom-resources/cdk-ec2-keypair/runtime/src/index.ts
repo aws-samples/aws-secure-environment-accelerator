@@ -71,9 +71,13 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const physicalResourceId = getPhysicalId(event);
+  if (physicalResourceId !== event.PhysicalResourceId) {
+    return;
+  }
   await deleteKeypair(properties);
   return {
-    physicalResourceId: getPhysicalId(event),
+    physicalResourceId,
   };
 }
 

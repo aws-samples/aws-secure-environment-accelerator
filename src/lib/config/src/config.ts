@@ -424,20 +424,20 @@ export const RsyslogConfig = t.interface({
   'rsyslog-max-instance-age': t.number,
 });
 
-export const AlbTargetInstanceFirewallConfigType = t.interface({
+export const ElbTargetInstanceFirewallConfigType = t.interface({
   target: t.literal('firewall'),
   name: t.string,
   az: t.string,
 });
 
-export type AlbTargetInstanceFirewallConfig = t.TypeOf<typeof AlbTargetInstanceFirewallConfigType>;
+export type ElbTargetInstanceFirewallConfig = t.TypeOf<typeof ElbTargetInstanceFirewallConfigType>;
 
 // Could be a t.union in the future if we allow multiple config types
-export const AlbTargetInstanceConfigType = AlbTargetInstanceFirewallConfigType;
+export const ElbTargetInstanceConfigType = ElbTargetInstanceFirewallConfigType;
 
-export type AlbTargetInstanceConfig = t.TypeOf<typeof AlbTargetInstanceConfigType>;
+export type ElbTargetInstanceConfig = t.TypeOf<typeof ElbTargetInstanceConfigType>;
 
-export const AlbTargetConfigType = t.interface({
+export const ElbTargetConfigType = t.interface({
   'target-name': t.string,
   'target-type': t.string,
   protocol: optional(t.string),
@@ -446,13 +446,13 @@ export const AlbTargetConfigType = t.interface({
   'health-check-path': t.string,
   'health-check-port': optional(t.number),
   'lambda-filename': optional(t.string),
-  'target-instances': optional(t.array(AlbTargetInstanceConfigType)),
+  'target-instances': optional(t.array(ElbTargetInstanceConfigType)),
   'tg-weight': optional(t.number),
 });
 
-export type AlbTargetConfig = t.TypeOf<typeof AlbTargetConfigType>;
+export type ElbTargetConfig = t.TypeOf<typeof ElbTargetConfigType>;
 
-export const AlbConfigType = t.interface({
+export const ElbConfigType = t.interface({
   name: t.string,
   scheme: t.string,
   'action-type': t.string,
@@ -474,7 +474,8 @@ export const AlbConfigType = t.interface({
   'target-alarms-for': optional(t.string),
   'target-alarms-periods-of': optional(t.string),
   'access-logs': t.boolean,
-  targets: t.array(AlbTargetConfigType),
+  targets: t.array(ElbTargetConfigType),
+  'cross-zone': defaulted(t.boolean, false),
 });
 
 export const AccountConfigType = t.interface({
@@ -623,7 +624,7 @@ export const MandatoryAccountConfigType = t.interface({
   certificates: optional(t.array(CertificateConfigType)),
   vpc: optional(t.array(VpcConfigType)),
   deployments: optional(DeploymentConfigType),
-  alb: optional(t.array(AlbConfigType)),
+  alb: optional(t.array(ElbConfigType)),
   's3-retention': optional(t.number),
   budget: optional(BudgetConfigType),
   'account-warming-required': optional(t.boolean),
@@ -653,7 +654,7 @@ export const OrganizationalUnitConfigType = t.interface({
   'share-mad-from': optional(t.string),
   certificates: optional(t.array(CertificateConfigType)),
   iam: optional(IamConfigType),
-  alb: optional(t.array(AlbConfigType)),
+  alb: optional(t.array(ElbConfigType)),
   vpc: optional(t.array(VpcConfigType)),
   'default-budgets': optional(BudgetConfigType),
   'ssm-automation': defaulted(t.array(SsmShareAutomation), []),
@@ -929,4 +930,4 @@ export type MadDeploymentConfig = t.TypeOf<typeof MadConfigType>;
 
 export type RsyslogConfig = t.TypeOf<typeof RsyslogConfig>;
 
-export type AlbConfig = t.TypeOf<typeof AlbConfigType>;
+export type ElbConfig = t.TypeOf<typeof ElbConfigType>;

@@ -72,7 +72,7 @@
         "us-east-2",
         "us-west-1",
         "us-west-2"
-	  ],
+      ],
       "security-hub": true,
       "guardduty": true,
       "guardduty-excl-regions": [],
@@ -843,22 +843,26 @@
       {
         "cidr": "10.0.0.0/13",
         "pool": "main",
-        "region": "ca-central-1"
+        "description": "The main address pool used to dynamically assign CIDR ranges.",
+        "region": "${HOME_REGION}"
       },
       {
         "cidr": "100.96.252.0/23",
         "pool": "RFC6598a",
-        "region": "ca-central-1"
+        "description": "Address pool used to dynamically assign CIDR ranges for the Managed Active Directory subnets in the Ops account.",
+        "region": "${HOME_REGION}"
       },
       {
         "cidr": "100.96.250.0/23",
         "pool": "RFC6598b",
-        "region": "ca-central-1"
+        "description": "Address pool used to dynamically assign CIDR ranges for the Perimeter VPC.",
+        "region": "${HOME_REGION}"
       },
       {
         "cidr": "10.249.1.0/24",
         "pool": "ForSSO",
-        "region": "ca-central-1"
+        "description": "A non-routable pool of addresses used to dynamically assign CIDR ranges for the Active Directory Connector subnets in the Organization Management/root account.",
+        "region": "${HOME_REGION}"
       }
     ]
   },
@@ -869,6 +873,7 @@
       "ou": "core",
       "share-mad-from": "operations",
       "src-filename": "config.json",
+      "description": "This Account is used for centralized or shared networking resources.",
       "budget": {
         "name": "SharedNetwork Budget",
         "period": "Monthly",
@@ -939,6 +944,7 @@
         {
           "deploy": "local",
           "name": "Endpoint",
+          "description": "This VPC is used to host AWS Service Endpoints, making AWS services available using private address space.",
           "cidr-src": "provided",
           "cidr": [
             {
@@ -1000,7 +1006,17 @@
           },
           "interface-endpoints": {
             "subnet": "Endpoint",
-            "endpoints": ["ec2", "ec2messages", "ssm", "ssmmessages", "secretsmanager", "cloudformation", "kms", "logs", "monitoring"]
+            "endpoints": [
+              "ec2",
+              "ec2messages",
+              "ssm",
+              "ssmmessages",
+              "secretsmanager",
+              "cloudformation",
+              "kms",
+              "logs",
+              "monitoring"
+            ]
           },
           "resolvers": {
             "subnet": "Endpoint",
@@ -1040,6 +1056,7 @@
       "account-warming-required": true,
       "limits": {},
       "src-filename": "config.json",
+      "description": "This Account is used for centralized IT Operational resources (MAD, rsyslog, ITSM, etc.).",
       "iam": {
         "users": [],
         "policies": [
@@ -1088,6 +1105,7 @@
       "deployments": {
         "mad": {
           "dir-id": 1001,
+          "description": "This directory is a) shared to most accounts in the organization to provide centralized Windows and Linux authentication for cloud workloads, b) used as an identity source for AWS SSO, c) used to inter-connect with on-premises directory services, and d) provides a single identities source for instance and AWS console access.",
           "deploy": true,
           "vpc-name": "Central",
           "region": "${HOME_REGION}",
@@ -1219,6 +1237,7 @@
       "ou": "core",
       "account-warming-required": true,
       "src-filename": "config.json",
+      "description": "This Account is used for internet facing ingress/egress security services.",
       "populate-all-elbs-in-param-store": true,
       "limits": {
         "Amazon EC2/Number of EIPs": {
@@ -1423,6 +1442,7 @@
         {
           "deploy": "local",
           "name": "Perimeter",
+          "description": "This VPC is used to hold centralized ingress/egress (perimeter) security services.",
           "cidr-src": "provided",
           "cidr": [
             {
@@ -1748,6 +1768,7 @@
             ],
             "license": ["firewall/license1.lic", "firewall/license2.lic"],
             "config": "firewall/firewall-example.txt",
+            "block-device-mappings": ["/dev/sda1", "/dev/sdb"],
             "fw-cgw-name": "Perimeter_fw",
             "fw-cgw-asn": 65523,
             "fw-cgw-routing": "Dynamic",
@@ -1768,6 +1789,7 @@
           "name": "FirewallMgr",
           "image-id": "ami-0e3faadf2331f79bd",
           "instance-sizes": "c5.large",
+          "block-device-mappings": ["/dev/sda1", "/dev/sdb"],
           "version": "6.4.4",
           "region": "${HOME_REGION}",
           "vpc": "Perimeter",
@@ -1785,6 +1807,7 @@
       "email": "myemail+aseaT-management@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "src-filename": "config.json",
+      "description": "This is the Organization Management or root account.  Access must be highly restricted.  This account should not contain customer resources.",
       "budget": {
         "name": "Organization Budget",
         "period": "Monthly",
@@ -1849,6 +1872,7 @@
         {
           "deploy": "local",
           "name": "ForSSO",
+          "description": "This VPC is deployed in the Organization Management/root account to enable the deployment of the Active Directory Connector, enabling the use of Active Directory as the Identity source for AWS SSO.",
           "cidr-src": "provided",
           "cidr": [
             {
@@ -1920,20 +1944,22 @@
       "account-name": "log-archive",
       "ou": "core",
       "email": "myemail+aseaT-log@example.com---------------------REPLACE----------------------",
+      "description": "This Account is used to centralized and store immutable logs for the Organization.",
       "src-filename": "config.json"
     },
     "security": {
       "account-name": "security",
       "ou": "core",
       "email": "myemail+aseaT-sec@example.com---------------------REPLACE----------------------",
+      "description": "This Account is used to centralized access to AWS security tooling and consoles.",
       "src-filename": "config.json"
     }
   },
-  "workload-account-configs": {
-  },
+  "workload-account-configs": {},
   "organizational-units": {
     "core": {
       "type": "ignore",
+      "description": "The core OU is used to hold accounts with critical shared resources used by the rest of the Organization.",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Core Budget",
@@ -2050,6 +2076,7 @@
     },
     "Central": {
       "type": "mandatory",
+      "description": "The Central OU is used to hold accounts containing resources shared across groups of accounts, but not the entire Organization like the core OU.",
       "share-mad-from": "operations",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
       "default-budgets": {
@@ -2091,6 +2118,7 @@
         {
           "deploy": "shared-network",
           "name": "${CONFIG::OU_NAME}",
+          "description": "This VPC is deployed in the shared network account and it's subnets are shared out to the Operations account and every account in the Central OU.",
           "cidr-src": "provided",
           "cidr": [
             {
@@ -2652,6 +2680,7 @@
     },
     "Workloads": {
       "type": "workload",
+      "description": "The Workload OU is used to hold accounts containing sensitive unclassified data or workloads.",
       "share-mad-from": "operations",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
       "default-budgets": {
@@ -2725,6 +2754,7 @@
         {
           "deploy": "shared-network",
           "name": "${CONFIG::OU_NAME}",
+          "description": "This VPC is deployed in the shared network account and it's subnets are shared out to every account in the Workload OU.",
           "cidr-src": "provided",
           "cidr": [
             {
@@ -3263,6 +3293,7 @@
     },
     "Sandbox": {
       "type": "workload",
+      "description": "The Sandbox OU offers the most cloud native, agile experience and is used for experimentation.  It is not to be used to hold production workloads or data as it offers the fewest security controls.",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sandbox"],
       "default-budgets": {
         "name": "Default Sandbox Budget",
@@ -3303,6 +3334,7 @@
         {
           "deploy": "local",
           "name": "${CONFIG::OU_NAME}",
+          "description": "This VPC is deployed locally in each Sandbox account and each account/VPC is deployed with the same identical CIDR range.  This VPC has no access to the rest of the Organizations networking and has direct internet access and does not use the perimeter ingress/egress services.",
           "cidr-src": "provided",
           "cidr": [
             {

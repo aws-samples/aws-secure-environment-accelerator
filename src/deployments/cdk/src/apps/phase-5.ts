@@ -15,6 +15,7 @@ import { ImageIdOutputFinder } from '@aws-accelerator/common-outputs/src/ami-out
 import * as cloudWatchDeployment from '../deployments/cloud-watch';
 import * as ssmDeployment from '../deployments/ssm';
 import * as defaults from '../deployments/defaults';
+import * as alb from '../deployments/alb';
 
 /**
  * This is the main entry point to deploy phase 5
@@ -29,6 +30,7 @@ import * as defaults from '../deployments/defaults';
  */
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
+  const { defaultRegion } = context;
   // Find the account buckets in the outputs
   const accountBuckets = defaults.AccountBucketOutput.getAccountBuckets({
     accounts,
@@ -227,6 +229,15 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accounts,
     config: acceleratorConfig,
     centralBucket,
+    outputs,
+  });
+
+  /**
+   * Create Routes for GatewayLoadBalancer endpoints
+   */
+  await alb.step4({
+    accountStacks,
+    config: acceleratorConfig,
     outputs,
   });
 }

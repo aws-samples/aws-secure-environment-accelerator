@@ -1834,7 +1834,8 @@
               "blackhole-route": false,
               "attach-subnets": [],
               "options": ["DNS-support"]
-            }
+            },
+            "block-device-mappings": ["/dev/sda1", "/dev/sdb"]
           }
         ],
         "firewall-manager": {
@@ -1849,7 +1850,8 @@
             "name": "FWMgmt",
             "az": "a"
           },
-          "create-eip": true
+          "create-eip": true,
+          "block-device-mappings": ["/dev/sda1", "/dev/sdb"]
         }
       }
     },

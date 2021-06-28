@@ -13,6 +13,9 @@ export const ConfigRuleType = t.enums('ConfigRuleType', ['managed', 'custom']);
 
 export type ConfigRuleType = t.TypeOf<typeof ConfigRuleType>;
 
+export const LBType = t.enums('LBType', ['ALB', 'GWLB']);
+
+export type LBType = t.TypeOf<typeof LBType>;
 export const SecurityHubFindingsSnsType = t.enums('SecurityHubFindingsSnsType', [
   'None',
   'Low',
@@ -120,6 +123,14 @@ export const PcxRouteConfigType = t.interface({
 });
 
 export type PcxRouteConfig = t.TypeOf<typeof PcxRouteConfigType>;
+
+export const AccountVpcConfigType = t.interface({
+  account: t.defaulted(t.nonEmptyString, 'local'),
+  vpc: t.nonEmptyString,
+  subnet: t.nonEmptyString,
+});
+
+export type AccountVpcConfigType = t.TypeOf<typeof AccountVpcConfigType>;
 
 export const RouteConfig = t.interface({
   destination: t.union([t.nonEmptyString, PcxRouteConfigType]), // TODO Can be string or destination in another account
@@ -445,60 +456,75 @@ export const RsyslogConfig = t.interface({
 
 export type RsyslogConfig = t.TypeOf<typeof RsyslogConfig>;
 
-export const AlbTargetInstanceFirewallConfigType = t.interface({
+export const ElbTargetInstanceFirewallConfigType = t.interface({
   target: t.literal('firewall'),
   name: t.nonEmptyString,
   az: t.nonEmptyString,
 });
 
-export type AlbTargetInstanceFirewallConfig = t.TypeOf<typeof AlbTargetInstanceFirewallConfigType>;
+export type ElbTargetInstanceFirewallConfig = t.TypeOf<typeof ElbTargetInstanceFirewallConfigType>;
 
 // Could be a t.union in the future if we allow multiple config types
-export const AlbTargetInstanceConfigType = AlbTargetInstanceFirewallConfigType;
+export const ElbTargetInstanceConfigType = ElbTargetInstanceFirewallConfigType;
 
-export type AlbTargetInstanceConfig = t.TypeOf<typeof AlbTargetInstanceConfigType>;
+export type ElbTargetInstanceConfig = t.TypeOf<typeof ElbTargetInstanceConfigType>;
 
-export const AlbTargetConfigType = t.interface({
+export const ElbTargetConfigType = t.interface({
   'target-name': t.nonEmptyString,
   'target-type': t.nonEmptyString,
   protocol: t.optional(t.nonEmptyString),
   port: t.optional(t.number),
   'health-check-protocol': t.optional(t.nonEmptyString),
-  'health-check-path': t.nonEmptyString,
+  'health-check-path': t.optional(t.nonEmptyString),
   'health-check-port': t.optional(t.number),
   'lambda-filename': t.optional(t.nonEmptyString),
-  'target-instances': t.optional(t.array(AlbTargetInstanceConfigType)),
+  'target-instances': t.optional(t.array(ElbTargetInstanceConfigType)),
   'tg-weight': t.optional(t.number),
 });
 
-export type AlbTargetConfig = t.TypeOf<typeof AlbTargetConfigType>;
+export type ElbTargetConfig = t.TypeOf<typeof ElbTargetConfigType>;
 
 export const AlbConfigType = t.interface({
-  name: t.nonEmptyString,
-  scheme: t.nonEmptyString,
-  'action-type': t.nonEmptyString,
-  'ip-type': t.nonEmptyString,
-  listeners: t.nonEmptyString,
+  type: t.defaulted(t.literal('ALB'), 'ALB'),
+  name: t.string,
+  scheme: t.string,
+  'action-type': t.string,
+  'ip-type': t.string,
+  listeners: t.string,
   ports: t.number,
-  vpc: t.nonEmptyString,
-  subnets: t.nonEmptyString,
-  'cert-name': t.nonEmptyString,
-  'cert-arn': t.optional(t.nonEmptyString),
-  'security-policy': t.nonEmptyString,
-  'security-group': t.nonEmptyString,
-  'tg-stickiness': t.optional(t.nonEmptyString),
-  'target-alarms-notify': t.optional(t.nonEmptyString),
-  'target-alarms-when': t.optional(t.nonEmptyString),
-  'target-alarms-of': t.optional(t.nonEmptyString),
-  'target-alarms-is': t.optional(t.nonEmptyString),
-  'target-alarms-Count': t.optional(t.nonEmptyString),
-  'target-alarms-for': t.optional(t.nonEmptyString),
-  'target-alarms-periods-of': t.optional(t.nonEmptyString),
-  'access-logs': t.boolean,
-  targets: t.array(AlbTargetConfigType),
+  vpc: t.string,
+  subnets: t.string,
+  'cert-name': t.string,
+  'cert-arn': t.optional(t.string),
+  'security-policy': t.string,
+  'security-group': t.string,
+  'tg-stickiness': t.optional(t.string),
+  'target-alarms-notify': t.optional(t.string),
+  'target-alarms-when': t.optional(t.string),
+  'target-alarms-of': t.optional(t.string),
+  'target-alarms-is': t.optional(t.string),
+  'target-alarms-Count': t.optional(t.string),
+  'target-alarms-for': t.optional(t.string),
+  'target-alarms-periods-of': t.optional(t.string),
+  'access-logs': t.defaulted(t.boolean, false),
+  targets: t.array(ElbTargetConfigType),
 });
 
-export type AlbConfig = t.TypeOf<typeof AlbConfigType>;
+export type AlbConfigType = t.TypeOf<typeof AlbConfigType>;
+
+export const GwlbConfigType = t.interface({
+  type: t.literal('GWLB'),
+  name: t.nonEmptyString,
+  'action-type': t.nonEmptyString,
+  'ip-type': t.nonEmptyString,
+  vpc: t.nonEmptyString,
+  subnets: t.nonEmptyString,
+  targets: t.array(ElbTargetConfigType),
+  'cross-zone': t.defaulted(t.boolean, false),
+  'endpoint-subnets': t.array(AccountVpcConfigType),
+});
+
+export type GwlbConfigType = t.TypeOf<typeof GwlbConfigType>;
 
 export const AccountConfigType = t.interface({
   // 'password-policies': PasswordPolicyType,
@@ -527,6 +553,7 @@ export const FirewallPortConfigType = t.interface({
 
 export const FirewallEC2ConfigType = t.interface({
   type: t.defaulted(t.literal('EC2'), 'EC2'),
+  deploy: t.defaulted(t.boolean, true),
   name: t.nonEmptyString,
   'instance-sizes': t.nonEmptyString,
   'image-id': t.nonEmptyString,
@@ -535,18 +562,22 @@ export const FirewallEC2ConfigType = t.interface({
   'security-group': t.nonEmptyString,
   ports: t.array(FirewallPortConfigType),
   license: t.optional(t.array(t.nonEmptyString)),
-  config: t.nonEmptyString,
+  config: t.optional(t.nonEmptyString),
   'fw-instance-role': t.nonEmptyString,
   'fw-cgw-name': t.nonEmptyString,
   'fw-cgw-asn': t.number,
   'fw-cgw-routing': t.nonEmptyString,
   'tgw-attach': t.union([TransitGatewayAttachConfigType, t.boolean, t.undefined]),
+  'block-device-mappings': t.array(t.string),
+  'user-data': t.optional(t.nonEmptyString),
+  'apply-tags': t.optional(t.record(t.string, t.string)),
 });
 
 export type FirewallEC2ConfigType = t.TypeOf<typeof FirewallEC2ConfigType>;
 
 export const FirewallCGWConfigType = t.interface({
   type: t.literal('CGW'),
+  deploy: t.defaulted(t.boolean, false),
   name: t.nonEmptyString,
   region: t.nonEmptyString,
   'fw-ips': t.array(t.nonEmptyString),
@@ -554,9 +585,38 @@ export const FirewallCGWConfigType = t.interface({
   'fw-cgw-asn': t.number,
   'fw-cgw-routing': t.nonEmptyString,
   'tgw-attach': t.union([TransitGatewayAttachConfigType, t.boolean, t.undefined]),
+  'apply-tags': t.optional(t.record(t.string, t.string)),
 });
 
 export type FirewallCGWConfigType = t.TypeOf<typeof FirewallCGWConfigType>;
+
+export const FirewallAutoScaleConfigType = t.interface({
+  type: t.literal('autoscale'),
+  deploy: t.defaulted(t.boolean, false),
+  name: t.nonEmptyString,
+  'instance-sizes': t.nonEmptyString,
+  'image-id': t.nonEmptyString,
+  region: t.nonEmptyString,
+  vpc: t.nonEmptyString,
+  subnet: t.nonEmptyString,
+  'security-group': t.nonEmptyString,
+  'fw-instance-role': t.optional(t.string),
+  'user-data': t.optional(t.string),
+  'root-volume-size': t.number,
+  'min-hosts': t.number,
+  'max-hosts': t.number,
+  'desired-hosts': t.number,
+  'max-instance-age': t.number,
+  'load-balancer': t.nonEmptyString,
+  'key-pair': t.optional(t.nonEmptyString),
+  'block-device-mappings': t.array(t.string),
+  'create-eip': t.defaulted(t.boolean, false),
+  'cpu-utilization-scale-in': t.optional(t.number),
+  'cpu-utilization-scale-out': t.optional(t.number),
+  'apply-tags': t.optional(t.record(t.string, t.string)),
+});
+
+export type FirewallAutoScaleConfigType = t.TypeOf<typeof FirewallAutoScaleConfigType>;
 
 export const FirewallManagerConfigType = t.interface({
   name: t.nonEmptyString,
@@ -570,6 +630,15 @@ export const FirewallManagerConfigType = t.interface({
     az: t.nonEmptyString,
   }),
   'create-eip': t.boolean,
+  'user-data': t.optional(t.string),
+  'key-pair': t.optional(t.nonEmptyString),
+  /**
+   * Possible values are
+   * Fortinet: ["/dev/sda1", "/dev/sdb"]
+   * Checkpoint: ["/dev/xvda"]
+   */
+  'block-device-mappings': t.array(t.string),
+  'apply-tags': t.optional(t.record(t.string, t.string)),
 });
 
 export type FirewallManagerConfig = t.TypeOf<typeof FirewallManagerConfigType>;
@@ -590,7 +659,7 @@ export const DeploymentConfigType = t.interface({
   mad: t.optional(MadConfigType),
   rsyslog: t.optional(RsyslogConfig),
   adc: t.optional(AdcConfigType),
-  firewalls: t.optional(t.array(t.union([FirewallEC2ConfigType, FirewallCGWConfigType]))),
+  firewalls: t.optional(t.array(t.union([FirewallEC2ConfigType, FirewallCGWConfigType, FirewallAutoScaleConfigType]))),
   'firewall-manager': t.optional(FirewallManagerConfigType),
 });
 
@@ -636,6 +705,11 @@ export const AwsConfigAccountConfig = t.interface({
   'excl-rules': t.array(t.nonEmptyString),
 });
 
+export const KeyPairConfig = t.interface({
+  name: t.nonEmptyString,
+  region: t.nonEmptyString,
+});
+
 export const MandatoryAccountConfigType = t.interface({
   'account-name': t.nonEmptyString,
   description: t.optional(t.nonEmptyString),
@@ -649,7 +723,7 @@ export const MandatoryAccountConfigType = t.interface({
   certificates: t.optional(t.array(CertificateConfigType)),
   vpc: t.optional(t.array(VpcConfigType)),
   deployments: t.optional(DeploymentConfigType),
-  alb: t.optional(t.array(AlbConfigType)),
+  alb: t.optional(t.array(t.union([AlbConfigType, GwlbConfigType]))),
   's3-retention': t.optional(t.number),
   budget: t.optional(BudgetConfigType),
   'account-warming-required': t.optional(t.boolean),
@@ -663,6 +737,7 @@ export const MandatoryAccountConfigType = t.interface({
   'aws-config': t.defaulted(t.array(AwsConfigAccountConfig), []),
   scps: t.optional(t.array(t.nonEmptyString)),
   'opt-in-vpcs': t.optional(t.array(t.nonEmptyString)),
+  'key-pairs': t.defaulted(t.array(KeyPairConfig), []),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -680,7 +755,7 @@ export const OrganizationalUnitConfigType = t.interface({
   'share-mad-from': t.optional(t.nonEmptyString),
   certificates: t.optional(t.array(CertificateConfigType)),
   iam: t.optional(IamConfigType),
-  alb: t.optional(t.array(AlbConfigType)),
+  alb: t.optional(t.array(t.union([AlbConfigType, GwlbConfigType]))),
   vpc: t.optional(t.array(VpcConfigType)),
   'default-budgets': t.optional(BudgetConfigType),
   'ssm-automation': t.defaulted(t.array(SsmShareAutomation), []),

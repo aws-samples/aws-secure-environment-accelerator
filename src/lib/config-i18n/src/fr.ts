@@ -1396,7 +1396,7 @@ translate(c.RsyslogConfig, {
   },
 });
 
-translate(c.AlbTargetInstanceFirewallConfigType, {
+translate(c.ElbTargetInstanceFirewallConfigType, {
   title: '',
   description: '',
   fields: {
@@ -1415,7 +1415,7 @@ translate(c.AlbTargetInstanceFirewallConfigType, {
   },
 });
 
-translate(c.AlbTargetConfigType, {
+translate(c.ElbTargetConfigType, {
   title: '',
   description: '',
   fields: {
@@ -1466,6 +1466,10 @@ translate(c.AlbConfigType, {
   title: '',
   description: '',
   fields: {
+    type: {
+      title: '',
+      description: '',
+    },
     name: {
       title: '',
       description: '',
@@ -1551,6 +1555,49 @@ translate(c.AlbConfigType, {
       description: '',
     },
     targets: {
+      title: '',
+      description: '',
+    },
+  },
+});
+
+translate(c.GwlbConfigType, {
+  title: '',
+  description: '',
+  fields: {
+    type: {
+      title: '',
+      description: '',
+    },
+    name: {
+      title: '',
+      description: '',
+    },
+    'action-type': {
+      title: '',
+      description: '',
+    },
+    'ip-type': {
+      title: '',
+      description: '',
+    },
+    vpc: {
+      title: '',
+      description: '',
+    },
+    subnets: {
+      title: '',
+      description: '',
+    },
+    targets: {
+      title: '',
+      description: '',
+    },
+    'cross-zone': {
+      title: '',
+      description: '',
+    },
+    'endpoint-subnets': {
       title: '',
       description: '',
     },
@@ -1683,6 +1730,22 @@ translate(c.FirewallEC2ConfigType, {
       title: '',
       description: '',
     },
+    deploy: {
+      title: '',
+      description: '',
+    },
+    'block-device-mappings': {
+      title: '',
+      description: '',
+    },
+    'user-data': {
+      title: '',
+      description: '',
+    },
+    'apply-tags': {
+      title: '',
+      description: '',
+    },
   },
 });
 
@@ -1722,6 +1785,113 @@ translate(c.FirewallCGWConfigType, {
       title: '',
       description: '',
     },
+    deploy: {
+      title: '',
+      description: '',
+    },
+    'apply-tags': {
+      title: '',
+      description: '',
+    },
+  },
+});
+
+translate(c.FirewallAutoScaleConfigType, {
+  title: '',
+  description: '',
+  fields: {
+    type: {
+      title: '',
+      description: '',
+    },
+    name: {
+      title: '',
+      description: '',
+    },
+    region: {
+      title: '',
+      description: '',
+    },
+    deploy: {
+      title: '',
+      description: '',
+    },
+    'desired-hosts': {
+      title: '',
+      description: '',
+    },
+    'fw-instance-role': {
+      title: '',
+      description: '',
+    },
+    'image-id': {
+      title: '',
+      description: '',
+    },
+    'instance-sizes': {
+      title: '',
+      description: '',
+    },
+    'key-pair': {
+      title: '',
+      description: '',
+    },
+    'load-balancer': {
+      title: '',
+      description: '',
+    },
+    'max-hosts': {
+      title: '',
+      description: '',
+    },
+    'max-instance-age': {
+      title: '',
+      description: '',
+    },
+    'min-hosts': {
+      title: '',
+      description: '',
+    },
+    'root-volume-size': {
+      title: '',
+      description: '',
+    },
+    'security-group': {
+      title: '',
+      description: '',
+    },
+    'user-data': {
+      title: '',
+      description: '',
+    },
+    subnet: {
+      title: '',
+      description: '',
+    },
+    vpc: {
+      title: '',
+      description: '',
+    },
+    'block-device-mappings': {
+      title: '',
+      description: '',
+    },
+    'cpu-utilization-scale-in': {
+      title: '',
+      description: '',
+    },
+    'cpu-utilization-scale-out': {
+      title: '',
+      description: '',
+    },
+    'create-eip': {
+      title: '',
+      description: '',
+    },
+    'apply-tags': {
+      title: '',
+      description: '',
+    },
   },
 });
 
@@ -1758,6 +1928,22 @@ translate(c.FirewallManagerConfigType, {
       description: '',
     },
     'create-eip': {
+      title: '',
+      description: '',
+    },
+    'key-pair': {
+      title: '',
+      description: '',
+    },
+    'user-data': {
+      title: '',
+      description: '',
+    },
+    'block-device-mappings': {
+      title: '',
+      description: '',
+    },
+    'apply-tags': {
       title: '',
       description: '',
     },
@@ -2036,6 +2222,10 @@ translate(c.MandatoryAccountConfigType, {
       description: '',
     },
     'opt-in-vpcs': {
+      title: '',
+      description: '',
+    },
+    'key-pairs': {
       title: '',
       description: '',
     },

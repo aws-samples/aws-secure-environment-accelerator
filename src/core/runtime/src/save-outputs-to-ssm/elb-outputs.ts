@@ -111,7 +111,7 @@ export async function saveElbOutputs(props: SaveOutputsInput) {
     .filter(lb => lb.accountKey !== account.key)
     .map(al => al.accountKey);
   const additionalAlbAccountKeys = config
-    .getAlbConfigs()
+    .getElbConfigs()
     .filter(lb => lb.accountKey !== account.key)
     .map(al => al.accountKey);
   const additionalAccountKeys = Array.from(new Set([...additionalNlbAccountKeys, ...additionalAlbAccountKeys]));

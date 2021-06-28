@@ -2,7 +2,8 @@ import {
   AcceleratorConfig,
   TransitGatewayAttachConfigType,
   TransitGatewayAttachConfig,
-} from '@aws-accelerator/common-config/src';
+  FirewallAutoScaleConfigType,
+} from '@aws-accelerator/common-config';
 import { AccountStacks } from '../../common/account-stacks';
 import { TransitGatewaySharing } from '../../common/transit-gateway-sharing';
 import { TransitGateway } from '@aws-accelerator/cdk-constructs/src/vpc';
@@ -35,6 +36,9 @@ export async function step1(props: TransitGatewayStep1Props) {
       continue;
     }
     for (const firewall of firewalls) {
+      if (FirewallAutoScaleConfigType.is(firewall)) {
+        continue;
+      }
       const attachConfig = firewall['tgw-attach'];
       if (TransitGatewayAttachConfigType.is(attachConfig) && attachConfig['associate-type'] === 'ATTACH') {
         attachConfigs.push([accountKey, attachConfig]);

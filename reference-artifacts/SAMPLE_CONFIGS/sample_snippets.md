@@ -1,25 +1,31 @@
 # AWS Secure Environment Accelerator
 
 ## **Config File Sample Snippets (Parameters not in sample config files)**
+
 ---
+
 ## - Tweak Interface Endpoint security groups
 
 SEA v1.3.3 locked down interface endpoint security groups to 0.0.0.0/0:443 inbound, no outbound-rules
+
 - Some endpoints may require additional inbound ports
 - these can be specified by adding the following to the config file, for each specific interface endpoint
-- this setting overides the default port 443 for the specified endpoint(s) only
-- the below example overides the sg for the logs endpoint and the ssmmessages endpoints on all vpcs with endpoints
+- this setting overrides the default port 443 for the specified endpoint(s) only
+- the below example overrides the sg for the logs endpoint and the ssmmessages endpoints on all vpcs with endpoints
 
 In global-options:
+
 ```
-    "endpoint-port-orverides": {
+    "endpoint-port-overrides": {
       "logs": ["TCP:443", "UDP:9418"],
       "ssmmessages": ["TCP:443", "TCP:8080"]
     }
 ```
+
 - additionally customers can lock down the endpoints on each vpc to specific CIDR ranges
 
 In vpc section, under interface endpoints:
+
 ```
 	"interface-endpoints": {
             "allowed-cidrs": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
@@ -28,6 +34,7 @@ In vpc section, under interface endpoints:
 ---
 
 ## - Create a role with trust policies
+
 ```
 {
             "role": "Demo-Role",
@@ -57,6 +64,7 @@ In vpc section, under interface endpoints:
       "ou": "Sandbox"
     }
 ```
+
 ---
 
 ## - Creates DNS query logging and associate to the VPC
@@ -69,6 +77,86 @@ In vpc section, under interface endpoints:
 
 ---
 
+## - Alter Firewall userdata from the default Fortinet format on EC2 VPN firewall launch type
+
+```
+"user-data": "{\"bucket\":\"${SEA::AccountBucketName}\",\"region\":\"${HOME_REGION}\",\"config\":\"${SEA::FirewallConfig}\",\"license\":\"${SEA::FirewallLicense}\"}",
+```
+
+---
+
+## - Deploy AWS Network Firewall
+
+Add the following to VPC config, similiar to NATGW
+
+```
+          "nfw": {
+            "subnet": {
+              "name": "Proxy"
+            },
+            "policy": {
+              "name": "example-nfw-policy",
+              "path": "nfw/nfwPolicy.json"
+            }
+          },
+```
+
+To reference this in a route table, add the following to the appropriate route, replacing `subnet` and `X` with the appropriate values.
+
+```
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "NFW_Subnet_azX"
+                }
+              ]
+```
+
+---
+
+## - To deploy the ALB to ALB DNS to IP auto-updater, add the following to a VPC in the appropriate region
+
+This is only required once per account / region combination (i.e. it is not tied to this VPC)
+This is typically only deployed in the perimeter account, but could be used elsewhere
+
+```
+          "alb-forwarding": true,
+```
+
+---
+
+## - To deploy a CGW on the TGW without deploying EC2 based firewalls
+
+- Can deploy at same time as EC2 firewall type
+
+```
+      "firewalls": [
+          {
+            "type": "CGW",
+            "deploy": false,
+            "name": "OnPremFirewall",
+            "region": "${HOME_REGION}",
+            "fw-cgw-name": "OnPremise_fw",
+            "fw-ips": ["99.80.205.24"],    ---->on-premise firewall IP or IP's
+            "fw-cgw-asn": 65530,
+            "fw-cgw-routing": "Dynamic",
+            "tgw-attach": {
+              "associate-to-tgw": "Main",
+              "account": "shared-network",
+              "name": "TGW-to-Perimeter",
+              "associate-type": "VPN",
+              "tgw-rt-associate": ["core"],
+              "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],
+              "blackhole-route": false,
+              "attach-subnets": [],
+              "options": ["DNS-support"]
+            }
+          },
+
+```
+
+---
+
 ## - Update Central Logging Kinesis stream shard count as accounts are added
 
 ```
@@ -76,11 +164,12 @@ In vpc section, under interface endpoints:
 	  "kinesis-stream-shard-count": 2
     }
 ```
+
 ---
 
 ## - CWL retention values
 
-```"default-cwl-retention"``` valid values are one of: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653]
+`"default-cwl-retention"` valid values are one of: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653]
 
 ---
 
@@ -109,7 +198,8 @@ In vpc section, under interface endpoints:
 ---
 
 ## - Control MAD/ADC AZ's:
-  - if not specified and more than 2 az's exist, selects the first two defined az's in the subnet
+
+- if not specified and more than 2 az's exist, selects the first two defined az's in the subnet
 
 ```
       "azs": ["a", "d"]
@@ -140,6 +230,7 @@ In vpc section, under interface endpoints:
 ```
 
 ---
+
 ## - CloudWatch Metric Filters and Alarms
 
 ```
@@ -535,7 +626,6 @@ In vpc section, under interface endpoints:
 ```
 
 ---
-
 
 ---
 

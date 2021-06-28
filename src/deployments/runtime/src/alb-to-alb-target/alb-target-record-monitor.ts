@@ -132,6 +132,7 @@ const deleteTargetGroup = async (targetGroupArn: string) => {
   return elbv2.deleteTargetGroup(targetGroupParams).promise();
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const putRecord = async (table: string, record: any) => {
   const putParams = {
     TableName: table,
@@ -140,6 +141,7 @@ const putRecord = async (table: string, record: any) => {
   return docClient.put(putParams).promise();
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const targetGroupChange = (oldRecord: any, newRecord: any) => {
   const oldTargetGroupAttributes = {
     vpcId: oldRecord.vpcId,
@@ -155,6 +157,7 @@ const targetGroupChange = (oldRecord: any, newRecord: any) => {
   return !_.isEqual(oldTargetGroupAttributes, newTargetGroupAttributes);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const listernerRulesChange = (oldRecord: any, newRecord: any) => {
   const oldListenerRules = {
     sourceListenerArn: oldRecord.rule.sourceListenerArn,
@@ -173,6 +176,7 @@ const listernerRulesChange = (oldRecord: any, newRecord: any) => {
   return !_.isEqual(oldListenerRules, newListenerRules);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createRecordHandler = async (record: any) => {
   console.log('Record creation detected.');
   try {
@@ -211,6 +215,7 @@ const createRecordHandler = async (record: any) => {
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const deleteRecordHandler = async (record: any) => {
   try {
     console.log(`Deleting listener rule and target group for  ${record.id}`);
@@ -228,6 +233,7 @@ const deleteRecordHandler = async (record: any) => {
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const updateRecordHandler = async (newRecord: any, oldRecord: any) => {
   try {
     console.log(`The record with id ${newRecord.id} was updated. Performing comparison.`);
@@ -267,7 +273,9 @@ const updateRecordHandler = async (newRecord: any, oldRecord: any) => {
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const handler = async (event: any, _context: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const records = event.Records.map((record: any) => {
     if (record.dynamodb.OldImage) {
       record.dynamodb.OldImage = AWS.DynamoDB.Converter.unmarshall(record.dynamodb.OldImage);

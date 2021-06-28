@@ -23,13 +23,13 @@ export async function step1(props: FirewallSubscriptionStep1Props) {
   const { accountKey, deployments, vpc, accountStacks } = props;
 
   const managerConfig = deployments?.['firewall-manager'];
-  const firewallConfigs = deployments?.firewalls;
+  const firewallConfigs = deployments?.firewalls?.filter(fw => fw.region === vpc.region);
   if (!firewallConfigs || firewallConfigs.length === 0) {
     return;
   }
 
   for (const [index, firewallConfig] of Object.entries(firewallConfigs)) {
-    if (!c.FirewallEC2ConfigType.is(firewallConfig)) {
+    if (!firewallConfig.deploy || c.FirewallCGWConfigType.is(firewallConfig)) {
       continue;
     }
     if (!vpc) {
@@ -57,7 +57,7 @@ export async function step1(props: FirewallSubscriptionStep1Props) {
       value: firewallAmiSubOutput,
     });
 
-    if (managerConfig) {
+    if (managerConfig && managerConfig.region === vpc.region) {
       const firewallManagerAmiSubOutput: AmiSubscriptionOutput = {
         imageId: managerConfig['image-id'],
         status: checkStatus(accountStack, managerConfig['image-id'], subnetId, `ManagerAmiSubCheck${index}`),

@@ -13,7 +13,7 @@ import * as firewallManagement from '../deployments/firewall/manager';
 import * as firewallCluster from '../deployments/firewall/cluster';
 import * as securityHub from '../deployments/security-hub';
 import { createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import { CentralBucketOutput, AccountBucketOutput } from '../deployments/defaults';
+import { CentralBucketOutput, AccountBucketOutput, AesBucketOutput } from '../deployments/defaults';
 import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
 import { StructuredOutput } from '../common/structured-output';
 import { PhaseInput } from './shared';
@@ -29,6 +29,7 @@ import * as ssmDeployment from '../deployments/ssm';
 import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { logArchiveReadOnlyAccess } from '../deployments/s3/log-archive-read-access';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import * as alb from '../deployments/alb';
 
 /**
  * This is the main entry point to deploy phase 2
@@ -58,10 +59,17 @@ export async function deploy({
   limiter,
   organizations,
 }: PhaseInput) {
+  const { defaultRegion } = context;
   const rootOuId = organizations[0].rootOrgId!;
   // Find the account buckets in the outputs
   const accountBuckets = AccountBucketOutput.getAccountBuckets({
     accounts,
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  const aesLogArchiveBucket = AesBucketOutput.getBucket({
     accountStacks,
     config: acceleratorConfig,
     outputs,
@@ -307,6 +315,8 @@ export async function deploy({
     config: acceleratorConfig,
     outputs,
     vpcs: allVpcs,
+    accounts,
+    defaultRegion,
   });
 
   await firewallManagement.step1({
@@ -314,6 +324,8 @@ export async function deploy({
     config: acceleratorConfig,
     vpcs: allVpcs,
     outputs,
+    accounts,
+    defaultRegion,
   });
 
   await tgwDeployment.step2({
@@ -395,5 +407,15 @@ export async function deploy({
     accountStacks,
     accounts,
     outputs,
+  });
+
+  await alb.step1({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+    aesLogArchiveBucket,
+    acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
+    accounts,
+    deployGlb: true,
   });
 }

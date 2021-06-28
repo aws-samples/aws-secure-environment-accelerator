@@ -80,6 +80,16 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     outputs,
     aesLogArchiveBucket,
+    deployAlb: true,
+  });
+
+  /**
+   * Create VPC Endpoints pointing to GatewayLoadBalancer Endpoint Service
+   */
+  await alb.step2({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
   });
 
   // Import all VPCs from all outputs

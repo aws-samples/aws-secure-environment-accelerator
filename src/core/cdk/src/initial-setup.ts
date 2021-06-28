@@ -818,6 +818,7 @@ export namespace InitialSetup {
       const deployPhase4Task = createDeploymentTask(4);
       const storePhase4Output = createStoreOutputTask(4);
       const deployPhase5Task = createDeploymentTask(5);
+      const storePhase5Output = createStoreOutputTask(5);
 
       const createConfigRecorderSfn = new sfn.StateMachine(this, 'Create Config Recorder Sfn', {
         stateMachineName: `${props.acceleratorPrefix}CreateConfigRecorder_sfn`,
@@ -973,6 +974,7 @@ export namespace InitialSetup {
         .next(addTagsToSharedResourcesTask)
         .next(enableDirectorySharingTask)
         .next(deployPhase5Task)
+        .next(storePhase5Output)
         .next(createAdConnectorTask)
         .next(storeCommitIdTask)
         .next(detachQuarantineScpTask)

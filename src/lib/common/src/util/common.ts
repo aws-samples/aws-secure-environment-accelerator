@@ -307,3 +307,18 @@ export async function loadCidrPools(tableName: string, client?: DynamoDB): Promi
   });
   return (cidrPools as unknown) as CidrPool[];
 }
+
+export function randomAlphanumericString(length: number) {
+  const numbers = Math.random().toString(11).slice(2);
+  const chars = randomString(length - 2);
+  return numbers.slice(0, 2) + chars;
+}
+
+function randomString(length: number, charSet?: string) {
+  charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  let randomString = '';
+  for (let i = 0; i < length; i++) {
+    randomString += charSet.charAt(Math.floor(Math.random() * charSet.length));
+  }
+  return randomString;
+}

@@ -18,6 +18,7 @@ import * as transitGateway from '../deployments/transit-gateway';
 import { getAccountId } from '../utils/accounts';
 import * as rsyslogDeployment from '../deployments/rsyslog';
 import * as cleanup from '../deployments/cleanup';
+import * as keyPair from '../deployments/key-pair';
 
 /**
  * This is the main entry point to deploy phase 0.
@@ -216,6 +217,11 @@ export async function deploy({
     config: acceleratorConfig,
     outputs,
     context,
+  });
+
+  await keyPair.step1({
+    accountStacks,
+    config: acceleratorConfig,
   });
 
   // TODO Deprecate these outputs

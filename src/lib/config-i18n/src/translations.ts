@@ -9,6 +9,7 @@ export interface FieldTranslations {
   url?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type InterfaceFieldTranslations<P, K extends keyof P> = P[K] extends t.InterfaceType<any>
   ? FieldTranslations | undefined | never
   : FieldTranslations;
@@ -47,7 +48,8 @@ export type TypeTranslations<T> = T extends t.InterfaceType<infer P>
   ? InterfaceTranslations<P>
   : T extends t.EnumType<infer P>
   ? EnumTranslations<P>
-  : T extends t.SizedType<any, any>
+  : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  T extends t.SizedType<any, any>
   ? SizedTranslations
   : FieldTranslations;
 
@@ -309,6 +311,7 @@ export function translation(
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isInterfaceTranslations(value: FieldTranslations): value is InterfaceTranslations<any> {
   return 'fields' in value;
 }

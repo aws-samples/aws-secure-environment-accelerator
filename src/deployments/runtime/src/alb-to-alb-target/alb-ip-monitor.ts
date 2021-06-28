@@ -89,6 +89,7 @@ const dnslookup = async (host: string): Promise<string[]> => {
   });
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const removeItem = (arr: any[], item: any) => {
   const index = arr.indexOf(item);
   if (index > -1) {
@@ -97,6 +98,7 @@ const removeItem = (arr: any[], item: any) => {
   return arr;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const putRecord = async (record: any) => {
   const putParams: AWS.DynamoDB.DocumentClient.PutItemInput = {
     TableName: routeLookupTable,
@@ -105,6 +107,7 @@ const putRecord = async (record: any) => {
   return docClient.put(putParams).promise();
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const handler = async (_event: any, _context: any) => {
   const targetGroupRecords = (await scanTable(routeLookupTable)) ?? [];
 

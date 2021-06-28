@@ -28,3 +28,14 @@ export const SecretEncryptionKeyOutput = t.interface(
 export type SecretEncryptionKeyOutput = t.TypeOf<typeof SecretEncryptionKeyOutput>;
 
 export const SecretEncryptionKeyOutputFinder = createStructuredOutputFinder(SecretEncryptionKeyOutput, () => ({}));
+
+export const DynamicSecretOutput = t.interface(
+  {
+    name: t.string,
+    arn: t.string,
+    value: t.string,
+  },
+  'DynamicSecretOutput',
+);
+export type DynamicSecretOutput = t.TypeOf<typeof DynamicSecretOutput>;
+export const DynamicSecretOutputFinder = createStructuredOutputFinder(DynamicSecretOutput, () => ({}));

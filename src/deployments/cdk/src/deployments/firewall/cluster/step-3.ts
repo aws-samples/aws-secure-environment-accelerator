@@ -2,6 +2,7 @@ import { pascalCase } from 'pascal-case';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
+import * as cdk from '@aws-cdk/core';
 import { Vpc } from '@aws-accelerator/cdk-constructs/src/vpc';
 import { InstanceProfile } from '@aws-accelerator/cdk-constructs/src/iam';
 import * as c from '@aws-accelerator/common-config/src';
@@ -10,7 +11,7 @@ import {
   getStackJsonOutput,
   OUTPUT_SUBSCRIPTION_REQUIRED,
 } from '@aws-accelerator/common-outputs/src/stack-output';
-import { FirewallCluster, FirewallInstance } from '@aws-accelerator/cdk-constructs/src/firewall';
+import { FirewallCluster, FirewallClusterProps, FirewallInstance } from '@aws-accelerator/cdk-constructs/src/firewall';
 import { AccountStacks, AccountStack } from '../../../common/account-stacks';
 import {
   FirewallVpnConnection,
@@ -23,6 +24,8 @@ import { createIamInstanceProfileName } from '../../../common/iam-assets';
 import { RegionalBucket } from '../../defaults';
 import { string as StringType } from 'io-ts';
 import { CfnSleep } from '@aws-accelerator/custom-resource-cfn-sleep';
+import { addReplacementsToUserData } from './step-4';
+import { Account } from '../../../utils/accounts';
 
 export interface FirewallStep3Props {
   accountBuckets: { [accountKey: string]: RegionalBucket };
@@ -31,6 +34,8 @@ export interface FirewallStep3Props {
   config: c.AcceleratorConfig;
   outputs: StackOutput[];
   vpcs: Vpc[];
+  defaultRegion: string;
+  accounts: Account[];
 }
 
 /**
@@ -41,7 +46,7 @@ export interface FirewallStep3Props {
  *   - VPC with the name equals firewallConfig.vpc and with the necessary subnets and security group
  */
 export async function step3(props: FirewallStep3Props) {
-  const { accountBuckets, accountStacks, centralBucket, config, outputs, vpcs } = props;
+  const { accountBuckets, accountStacks, centralBucket, config, outputs, vpcs, defaultRegion, accounts } = props;
   const vpcConfigs = config.getVpcConfigs();
   const replacementsConfig = config.replacements;
   const replacements = additionalReplacements(replacementsConfig);
@@ -72,6 +77,10 @@ export async function step3(props: FirewallStep3Props) {
     });
 
     for (const firewallConfig of firewallConfigs.filter(firewall => c.FirewallEC2ConfigType.is(firewall))) {
+      if (!firewallConfig.deploy) {
+        console.log(`Deploy set to false for "${firewallConfig.name}"`);
+        continue;
+      }
       if (!c.FirewallEC2ConfigType.is(firewallConfig)) {
         continue;
       }
@@ -147,6 +156,17 @@ export async function step3(props: FirewallStep3Props) {
         vpcConfig,
         replacements,
         sleep,
+        userData: firewallConfig['user-data']
+          ? await addReplacementsToUserData({
+              userData: firewallConfig['user-data']!,
+              accountKey,
+              accountStack,
+              config,
+              defaultRegion,
+              outputs,
+              accounts,
+            })
+          : undefined,
       });
     }
   }
@@ -165,6 +185,7 @@ async function createFirewallCluster(props: {
   vpcConfig: c.VpcConfig;
   replacements?: { [key: string]: string };
   sleep?: CfnSleep;
+  userData?: string;
 }) {
   const {
     accountStack,
@@ -176,6 +197,7 @@ async function createFirewallCluster(props: {
     vpcConfig,
     replacements,
     sleep,
+    userData,
   } = props;
 
   const {
@@ -186,6 +208,8 @@ async function createFirewallCluster(props: {
     'fw-instance-role': instanceRoleName,
     'image-id': imageId,
     'instance-sizes': instanceType,
+    'block-device-mappings': blockDeviceMappings,
+    'apply-tags': tags,
   } = firewallConfig;
 
   const securityGroup = vpc.tryFindSecurityGroupByName(securityGroupName);
@@ -205,8 +229,6 @@ async function createFirewallCluster(props: {
     instanceProfileName: createIamInstanceProfileName(instanceRoleName),
   });
 
-  // TODO Condition to check if `firewallConfig.license` and `firewallConfig.config` exist
-
   const cluster = new FirewallCluster(accountStack, `Firewall${firewallName}`, {
     vpcCidrBlock: vpc.cidrBlock,
     additionalCidrBlocks: vpc.additionalCidrBlocks,
@@ -220,6 +242,12 @@ async function createFirewallCluster(props: {
       templateBucket: centralBucket,
       templateConfigPath: configFile,
     },
+    blockDeviceMappings: blockDeviceMappings.map(deviceName => ({
+      deviceName,
+      ebs: {
+        encrypted: true,
+      },
+    })),
   });
 
   if (sleep) {
@@ -260,9 +288,14 @@ async function createFirewallCluster(props: {
         hostname: instanceName,
         licensePath,
         licenseBucket,
+        userData,
       });
       instancePerAz[az] = instance;
       licenseIndex++;
+
+      for (const [key, value] of Object.entries(tags || {})) {
+        cdk.Tags.of(instance).add(key, value);
+      }
 
       new CfnFirewallInstanceOutput(accountStack, `Fgt${firewallName}${pascalCase(az)}Output`, {
         id: instance.instanceId,
@@ -310,7 +343,7 @@ async function createFirewallCluster(props: {
 
   for (const instance of Object.values(instancePerAz)) {
     const replacements: { [key: string]: string } = {};
-    Object.entries(instance.replacements).forEach(([key, value]) => {
+    Object.entries(instance.replacements || {}).forEach(([key, value]) => {
       replacements[key.replace(/[^-a-zA-Z0-9_.]+/gi, '')] = value;
     });
     new CfnFirewallConfigReplacementsOutput(accountStack, `FirewallReplacementOutput${instance.instanceName}`, {

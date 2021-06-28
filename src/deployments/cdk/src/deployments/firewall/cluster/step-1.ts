@@ -26,6 +26,10 @@ export async function step1(props: FirewallStep1Props) {
     }
 
     for (const firewallConfig of firewallConfigs.filter(firewall => c.FirewallEC2ConfigType.is(firewall))) {
+      if (!firewallConfig.deploy) {
+        console.log(`Deploy set to false for "${firewallConfig.name}"`);
+        continue;
+      }
       if (!c.FirewallEC2ConfigType.is(firewallConfig)) {
         continue;
       }

@@ -10,7 +10,9 @@ export interface FirewallManagerProps {
    */
   imageId: string;
   instanceType: string;
+  blockDeviceMappings: ec2.CfnInstance.BlockDeviceMappingProperty[];
   keyPairName?: string;
+  userData?: string;
 }
 
 export class FirewallManager extends cdk.Construct {
@@ -25,20 +27,8 @@ export class FirewallManager extends cdk.Construct {
       instanceType: this.props.instanceType,
       keyName: this.props.keyPairName,
       networkInterfaces: this.networkInterfacesProps,
-      blockDeviceMappings: [
-        {
-          deviceName: '/dev/sda1',
-          ebs: {
-            encrypted: true,
-          },
-        },
-        {
-          deviceName: '/dev/sdb',
-          ebs: {
-            encrypted: true,
-          },
-        },
-      ],
+      blockDeviceMappings: this.props.blockDeviceMappings,
+      userData: this.props.userData ? cdk.Fn.base64(this.props.userData) : undefined,
     });
     cdk.Tags.of(this.resource).add('Name', this.props.name);
   }

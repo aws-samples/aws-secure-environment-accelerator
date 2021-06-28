@@ -102,7 +102,7 @@ export const handler = async (input: StepInput) => {
     if (!configOverrides) {
       configOverrides = {};
     }
-    // Explicitly setting true even if user provides false in overideConfig when baseline is ORGANIZATIONS
+    // Explicitly setting true even if user provides false in overrideConfig when baseline is ORGANIZATIONS
     configOverrides['ov-acct-ou'] = true;
     configOverrides['ov-ren-accts'] = true;
     configOverrides['ov-acct-email'] = true;

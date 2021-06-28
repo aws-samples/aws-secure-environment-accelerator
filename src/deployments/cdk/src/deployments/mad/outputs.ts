@@ -4,6 +4,9 @@ import { createMadPasswordSecretName, createMadUserPasswordSecretName } from '@a
 import { createCfnStructuredOutput } from '../../common/structured-output';
 export { createMadPasswordSecretName, createMadUserPasswordSecretName } from '@aws-accelerator/common-outputs/src/mad';
 import { ImageIdOutput } from '@aws-accelerator/common-outputs/src/ami-output';
+import { DynamicSecretOutput } from '@aws-accelerator/common-outputs/src/secrets';
+
+export const CfnDynamicSecretOutput = createCfnStructuredOutput(DynamicSecretOutput);
 
 export const MadAutoScalingRoleOutputType = t.interface(
   {

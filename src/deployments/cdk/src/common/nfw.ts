@@ -9,12 +9,15 @@ export interface NfwProps {
     name: string;
     path: string;
   };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   nfwPolicy: any;
 }
 
 export class Nfw extends Construct {
   private vpcId: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private nfwPolicyConfig: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private nfwPolicy: any;
   readonly firewall: nfw.CfnFirewall;
   constructor(scope: Construct, id: string, props: NfwProps) {
@@ -22,14 +25,17 @@ export class Nfw extends Construct {
     this.vpcId = props.vpcId;
     this.nfwPolicy = JSON.parse(props.nfwPolicy);
     this.nfwPolicyConfig = props.nfwPolicyConfig;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const policy: any = {};
     if (this.nfwPolicy.statelessRuleGroup) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const statelessRuleGroup: any[] = this.nfwPolicy.statelessRuleGroup.map((ruleGroup: any) => {
         return {
           group: new nfw.CfnRuleGroup(this, `${ruleGroup.ruleGroupName}-rule`, ruleGroup),
           priority: ruleGroup.priority,
         };
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       policy.statelessRuleGroupReferences = statelessRuleGroup.map((ruleGroup: any) => {
         return { resourceArn: ruleGroup.group.ref, priority: ruleGroup.priority };
       });

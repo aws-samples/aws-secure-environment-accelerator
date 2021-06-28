@@ -126,13 +126,18 @@ async function verifyFirewallFiles(
       continue;
     }
     for (const firewallConfig of firewallConfigs.filter(firewall => c.FirewallEC2ConfigType.is(firewall))) {
+      if (!firewallConfig.deploy) {
+        continue;
+      }
       if (!c.FirewallEC2ConfigType.is(firewallConfig)) {
         continue;
       }
       if (firewallConfig.license) {
         firewallFiles.push(...firewallConfig.license);
       }
-      firewallFiles.push(firewallConfig.config);
+      if (firewallConfig.config) {
+        firewallFiles.push(firewallConfig.config);
+      }
     }
   }
   await verifyFiles(centralBucketOutput.bucketName, firewallFiles, errors);

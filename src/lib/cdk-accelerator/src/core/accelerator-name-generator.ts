@@ -35,6 +35,14 @@ export function createLogGroupName(name: string, suffixLength?: number): string 
   );
 }
 
+export function createSecretPrefix(name: string, suffixLength?: number): string {
+  return createName({
+    name,
+    separator: '/',
+    suffixLength,
+  });
+}
+
 export function createSnsTopicName(name: string, suffixLength?: number): string {
   return createName({
     name: `Notification-${name}`,

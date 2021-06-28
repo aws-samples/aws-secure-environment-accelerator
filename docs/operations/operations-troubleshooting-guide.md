@@ -379,10 +379,10 @@ Why do we wait until so late in the state machine execution to perform this task
 
 1. we do not want to add or delete files from a customer supplied bucket
 2. we do not want to force customers to need to copy and supply standard configuration files for 3. prescriptive installation
-3. we want to allow customers to overide the sample or standard configuration files
+3. we want to allow customers to override the sample or standard configuration files
 4. the config bucket is only created in Phase 0
 5. we copy all the relevant sample files from reference-artifacts folders to our config bucket, and then, we copy any customer supplied config files over top of our sample files
-6. This allows customers to overide the sample configs, with customer custom configs without needing to either fork the repo, or supply the files on a vanilla install
+6. This allows customers to override the sample configs, with customer custom configs without needing to either fork the repo, or supply the files on a vanilla install
 7. Until we do this file copy, we cannot be sure that the combination of customer supplied and reference-artifact sample files provides all the required files.
 
 ### 3.2.23. Create Config Recorders

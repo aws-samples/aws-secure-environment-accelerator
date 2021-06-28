@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
+import * as ec2 from '@aws-cdk/aws-ec2';
 import { IInstanceProfile } from '../iam';
 import { FirewallInstance, FirewallConfigurationProps } from './instance';
 
@@ -15,6 +16,7 @@ export interface FirewallClusterProps {
   instanceProfile: IInstanceProfile;
   keyPairName?: string;
   configuration: FirewallClusterConfigurationProps;
+  blockDeviceMappings: ec2.CfnInstance.BlockDeviceMappingProperty[];
 }
 
 export class FirewallCluster extends cdk.Construct {
@@ -29,10 +31,22 @@ export class FirewallCluster extends cdk.Construct {
     hostname: string;
     licensePath?: string;
     licenseBucket?: s3.IBucket;
+    userData?: string;
   }): FirewallInstance {
     const { name, hostname, licensePath, licenseBucket } = props;
-
+    let { userData } = props;
     const index = this.instances.length;
+    if (userData) {
+      /* eslint-disable no-template-curly-in-string */
+      userData = userData.replace(
+        new RegExp('\\${SEA:CUSTOM::FirewallConfig}', 'g'),
+        `/fgtconfig-init-${hostname}-${index}.txt`,
+      );
+      if (licensePath) {
+        userData = userData.replace(new RegExp('\\${SEA:CUSTOM::FirewallLicense}', 'g'), `/${licensePath}`);
+      }
+      /* eslint-enable */
+    }
     const instance = new FirewallInstance(this, `Instance${index}`, {
       name,
       hostname,
@@ -48,6 +62,8 @@ export class FirewallCluster extends cdk.Construct {
         ...this.props.configuration,
         configPath: `fgtconfig-init-${hostname}-${index}.txt`,
       },
+      blockDeviceMappings: this.props.blockDeviceMappings,
+      userData,
     });
 
     this.instances.push(instance);

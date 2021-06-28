@@ -43,6 +43,10 @@ export async function step2(props: FirewallStep2Props) {
     }
 
     for (const firewallConfig of firewallConfigs) {
+      if (!firewallConfig.deploy || c.FirewallAutoScaleConfigType.is(firewallConfig)) {
+        console.log(`Deploy set to false for "${firewallConfig.name}"`);
+        continue;
+      }
       const firewallPorts: FirewallPort[] = [];
       if (c.FirewallEC2ConfigType.is(firewallConfig)) {
         // Find the firewall EIPs in the firewall account

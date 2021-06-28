@@ -1476,7 +1476,7 @@ translate(c.RsyslogConfig, {
   },
 });
 
-translate(c.AlbTargetInstanceFirewallConfigType, {
+translate(c.ElbTargetInstanceFirewallConfigType, {
   title: 'ALB Target Firewall Instance',
   description: 'Used in the perimeter ALBs for routing traffic to firewalls in the perimeter VPC',
   fields: {
@@ -1495,7 +1495,7 @@ translate(c.AlbTargetInstanceFirewallConfigType, {
   },
 });
 
-translate(c.AlbTargetConfigType, {
+translate(c.ElbTargetConfigType, {
   title: 'ALB Target Config',
   description: 'ALB target configuration',
   fields: {
@@ -1551,6 +1551,10 @@ translate(c.AlbConfigType, {
   description:
     'A load balancer serves as the single point of contact for clients. Clients send requests to the load balancer, and the load balancer sends them to targets, such as EC2 instances',
   fields: {
+    type: {
+      title: '',
+      description: '',
+    },
     name: {
       title: '',
       description: 'Name of the ALB',
@@ -1644,6 +1648,49 @@ translate(c.AlbConfigType, {
     targets: {
       title: '',
       description: 'Targets for the ALB',
+    },
+  },
+});
+
+translate(c.GwlbConfigType, {
+  title: '',
+  description: '',
+  fields: {
+    type: {
+      title: '',
+      description: '',
+    },
+    name: {
+      title: '',
+      description: '',
+    },
+    'action-type': {
+      title: '',
+      description: '',
+    },
+    'ip-type': {
+      title: '',
+      description: '',
+    },
+    vpc: {
+      title: '',
+      description: '',
+    },
+    subnets: {
+      title: '',
+      description: '',
+    },
+    targets: {
+      title: '',
+      description: '',
+    },
+    'cross-zone': {
+      title: '',
+      description: '',
+    },
+    'endpoint-subnets': {
+      title: '',
+      description: '',
     },
   },
 });
@@ -1777,6 +1824,22 @@ translate(c.FirewallEC2ConfigType, {
       title: 'Transit Gateway Attachment',
       description: 'Perimeter firewalls can attach to the centralized TGW through tunnels',
     },
+    deploy: {
+      title: '',
+      description: '',
+    },
+    'block-device-mappings': {
+      title: '',
+      description: '',
+    },
+    'user-data': {
+      title: '',
+      description: '',
+    },
+    'apply-tags': {
+      title: '',
+      description: '',
+    },
   },
 });
 
@@ -1816,6 +1879,113 @@ translate(c.FirewallCGWConfigType, {
       title: '',
       description: '',
     },
+    deploy: {
+      title: '',
+      description: '',
+    },
+    'apply-tags': {
+      title: '',
+      description: '',
+    },
+  },
+});
+
+translate(c.FirewallAutoScaleConfigType, {
+  title: '',
+  description: '',
+  fields: {
+    type: {
+      title: '',
+      description: '',
+    },
+    name: {
+      title: '',
+      description: '',
+    },
+    region: {
+      title: '',
+      description: '',
+    },
+    deploy: {
+      title: '',
+      description: '',
+    },
+    'desired-hosts': {
+      title: '',
+      description: '',
+    },
+    'fw-instance-role': {
+      title: '',
+      description: '',
+    },
+    'image-id': {
+      title: '',
+      description: '',
+    },
+    'instance-sizes': {
+      title: '',
+      description: '',
+    },
+    'key-pair': {
+      title: '',
+      description: '',
+    },
+    'load-balancer': {
+      title: '',
+      description: '',
+    },
+    'max-hosts': {
+      title: '',
+      description: '',
+    },
+    'max-instance-age': {
+      title: '',
+      description: '',
+    },
+    'min-hosts': {
+      title: '',
+      description: '',
+    },
+    'root-volume-size': {
+      title: '',
+      description: '',
+    },
+    'security-group': {
+      title: '',
+      description: '',
+    },
+    'user-data': {
+      title: '',
+      description: '',
+    },
+    subnet: {
+      title: '',
+      description: '',
+    },
+    vpc: {
+      title: '',
+      description: '',
+    },
+    'block-device-mappings': {
+      title: '',
+      description: '',
+    },
+    'cpu-utilization-scale-in': {
+      title: '',
+      description: '',
+    },
+    'cpu-utilization-scale-out': {
+      title: '',
+      description: '',
+    },
+    'create-eip': {
+      title: '',
+      description: '',
+    },
+    'apply-tags': {
+      title: '',
+      description: '',
+    },
   },
 });
 
@@ -1852,6 +2022,22 @@ translate(c.FirewallManagerConfigType, {
       description: '',
     },
     'create-eip': {
+      title: '',
+      description: '',
+    },
+    'key-pair': {
+      title: '',
+      description: '',
+    },
+    'user-data': {
+      title: '',
+      description: '',
+    },
+    'block-device-mappings': {
+      title: '',
+      description: '',
+    },
+    'apply-tags': {
       title: '',
       description: '',
     },
@@ -2089,7 +2275,7 @@ translate(c.MandatoryAccountConfigType, {
       description: 'Deploy application load balancers and their configuration in this section',
     },
     's3-retention': {
-      title: 'Overide local accounts S3 logging bucket retention period',
+      title: 'Override local accounts S3 logging bucket retention period',
       description:
         'In certain cases, logs must be delivered to the local account before being centralized to the central logging bucket (i.e. VPC FLow logs).  This setting determines the retention for the local account copy of the logs.',
     },
@@ -2103,9 +2289,9 @@ translate(c.MandatoryAccountConfigType, {
         'Usually set to true this allows for resources to be created in accounts created programmatically as part of the execution of the Accelerator',
     },
     'cwl-retention': {
-      title: 'Overide CloudWatch Log Retention',
+      title: 'Override CloudWatch Log Retention',
       description:
-        'Overides the default retention period (in days) for CloudWatch Log Groups for this account.  Valid values include: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653.',
+        'Overrides the default retention period (in days) for CloudWatch Log Groups for this account.  Valid values include: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653.',
     },
     deleted: {
       title: '',
@@ -2144,6 +2330,10 @@ translate(c.MandatoryAccountConfigType, {
     'opt-in-vpcs': {
       title: 'Opt-In VPCs',
       description: 'The names of the Opt-In VPCs, defined in the OU, to opt this account in to.',
+    },
+    'key-pairs': {
+      title: '',
+      description: '',
     },
   },
 });

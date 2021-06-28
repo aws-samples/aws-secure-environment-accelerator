@@ -51,7 +51,7 @@ export interface ResolvedAlbConfig extends ResolvedConfigBase {
   /**
    * The albs config to be deployed.
    */
-  albs: c.AlbConfig[];
+  albs: (c.AlbConfigType | c.GwlbConfigType)[];
 }
 
 export interface ResolvedMadConfig extends ResolvedConfigBase {
@@ -310,7 +310,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof c.AcceleratorConfigTyp
   /**
    * Find all alb configurations in mandatory accounts, workload accounts and organizational units.
    */
-  getAlbConfigs(): ResolvedAlbConfig[] {
+  getElbConfigs(): ResolvedAlbConfig[] {
     const result: ResolvedAlbConfig[] = [];
     for (const [key, config] of this.getAccountAndOuConfigs()) {
       const albs = config.alb;
