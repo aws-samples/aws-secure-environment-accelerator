@@ -288,6 +288,7 @@ async function main() {
     runtime: lambda.Runtime.NODEJS_12_X,
     code: lambda.Code.fromInline(stateMachineStartExecutionCode.toString()),
     handler: 'index.handler',
+    deadLetterQueueEnabled: true,
   });
 
   // Create the Lambda function that is responsible for launching the state machine
@@ -297,6 +298,7 @@ async function main() {
     runtime: lambda.Runtime.NODEJS_12_X,
     code: lambda.Code.fromInline(saveApplicationVersionCode.toString()),
     handler: 'index.handler',
+    deadLetterQueueEnabled: true,
   });
 
   // Create the Lambda function that is responsible for validating previous parameters
@@ -306,6 +308,7 @@ async function main() {
     runtime: lambda.Runtime.NODEJS_12_X,
     code: lambda.Code.fromInline(vallidateParametersCode.toString()),
     handler: 'index.handler',
+    deadLetterQueueEnabled: true,
   });
 
   // Role that is used by the CodePipeline

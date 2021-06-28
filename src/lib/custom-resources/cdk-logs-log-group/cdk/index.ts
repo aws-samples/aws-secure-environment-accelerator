@@ -116,6 +116,7 @@ export class LogGroup extends cdk.Construct implements cdk.ITaggable {
       handler: 'index.handler',
       role,
       timeout: cdk.Duration.minutes(15),
+      deadLetterQueueEnabled: true,
     });
   }
 }

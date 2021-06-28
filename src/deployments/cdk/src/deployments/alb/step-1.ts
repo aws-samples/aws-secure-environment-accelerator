@@ -259,6 +259,7 @@ export function getLambdaFunctionArn(
     code: lambda.Code.fromInline(artifactsFilePath.toString()),
     handler: 'index.handler',
     role,
+    deadLetterQueueEnabled: true,
   });
   elbLambdaFunction.addPermission(`InvokePermission${albName}${targetName}`, {
     action: 'lambda:InvokeFunction',

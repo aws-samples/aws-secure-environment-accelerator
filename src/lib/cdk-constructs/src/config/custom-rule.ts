@@ -45,6 +45,7 @@ export class CustomRule extends cdk.Construct {
       code: lambda.Code.fromAsset(this.runtimeFileLocation),
       handler: 'index.handler',
       role: this.role,
+      deadLetterQueueEnabled: true,
     });
 
     return lambdaFunction;

@@ -88,6 +88,7 @@ export class Keypair extends cdk.Construct implements cdk.ITaggable {
       handler: 'index.handler',
       role,
       timeout: cdk.Duration.seconds(10),
+      deadLetterQueueEnabled: true,
     });
   }
 }

@@ -58,6 +58,7 @@ export async function changePolicy(input: PolicyChangeEventProps) {
     },
     timeout: cdk.Duration.minutes(15),
     memorySize: 512,
+    deadLetterQueueEnabled: true,
   });
 
   policyChangeFunc.addPermission(`InvokePermission-ChangePolicy_rule`, {

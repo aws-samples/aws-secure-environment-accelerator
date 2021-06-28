@@ -63,6 +63,7 @@ export async function step1(props: SnsStep1Props) {
           CENTRAL_LOG_SERVICES_REGION: centralLogServices.region,
         },
         timeout: cdk.Duration.minutes(15),
+        deadLetterQueueEnabled: true,
       });
 
       snsSubscriberFunc.addPermission(`InvokePermission-SnsSubscriberLambda`, {
@@ -77,6 +78,7 @@ export async function step1(props: SnsStep1Props) {
       code: lambdaCode,
       role,
       timeout: cdk.Duration.minutes(15),
+      deadLetterQueueEnabled: true,
     });
 
     ignoreActionFunc.addPermission(`InvokePermission-IgnoreActionLambda`, {
