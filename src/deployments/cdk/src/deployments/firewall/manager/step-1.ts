@@ -86,6 +86,8 @@ export async function step1(props: FirewallManagerStep1Props) {
             launchConfigName:
               accountConfig.deployments?.firewalls?.find(fwc => fwc.type === 'autoscale' && fwc.deploy)?.name ||
               undefined,
+            fwRegion: managerConfig.region,
+            bootstrap: managerConfig.bootstrap,
           })
         : undefined,
     });

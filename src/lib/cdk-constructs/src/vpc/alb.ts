@@ -18,7 +18,7 @@ export class ApplicationLoadBalancer extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, private readonly props: ApplicationLoadBalancerProps) {
     super(scope, id);
 
-    const { albName, scheme, subnetIds, securityGroupIds, ipType } = props;
+    const { albName, scheme, subnetIds, securityGroupIds, ipType, tags } = props;
 
     this.resource = new elb.CfnLoadBalancer(this, 'Alb', {
       name: albName,
@@ -26,6 +26,7 @@ export class ApplicationLoadBalancer extends cdk.Construct {
       scheme,
       subnets: subnetIds,
       securityGroups: securityGroupIds,
+      tags: Object.entries(tags || {}).map(([key, value]) => ({ key, value })),
     });
 
     new ElbDeletionProtection(this, 'AlbDeletionProtection', {

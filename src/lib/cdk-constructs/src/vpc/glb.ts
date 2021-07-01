@@ -27,7 +27,7 @@ export class GatewayLoadBalancer extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, private readonly props: GatewayLoadBalancerProps) {
     super(scope, id);
 
-    const { name, subnetIds, ipType, crossZone } = props;
+    const { name, subnetIds, ipType, crossZone, tags } = props;
 
     this.resource = new elb.CfnLoadBalancer(this, 'Gwlb', {
       name,
@@ -44,6 +44,7 @@ export class GatewayLoadBalancer extends cdk.Construct {
           value: String(crossZone),
         },
       ],
+      tags: Object.entries(tags || {}).map(([key, value]) => ({ key, value })),
     });
 
     this.endpointService = new ec2.CfnVPCEndpointService(this, 'GwlbVpcEndpointService', {

@@ -12,13 +12,10 @@ import { LaunchConfiguration } from '@aws-accelerator/cdk-constructs/src/autosca
 import * as elb from '@aws-cdk/aws-autoscaling';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { LoadBalancerOutputFinder } from '@aws-accelerator/common-outputs/src/elb';
-import { randomAlphanumericString } from '@aws-accelerator/common/src/util/common';
-import { DynamicSecretOutput, DynamicSecretOutputFinder } from '@aws-accelerator/common-outputs/src/secrets';
+import { DynamicSecretOutputFinder } from '@aws-accelerator/common-outputs/src/secrets';
 import * as cloudwatch from '@aws-cdk/aws-cloudwatch';
-import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import { Account } from '../../../utils/accounts';
 import { getDynamicReplaceableValue } from '../../../common/replacements';
-import { CfnDynamicSecretOutput } from '../../mad';
 
 export interface FirewallStep4Props {
   accountStacks: AccountStacks;
@@ -122,6 +119,7 @@ export async function step4(props: FirewallStep4Props) {
           accounts,
           launchConfigName: `${firewallConfig.name}-config`,
           fwManagerName: accountConfig.deployments?.['firewall-manager']?.name || undefined,
+          bootstrap: firewallConfig.bootstrap,
         }),
         firewallManagerName: accountConfig.deployments?.['firewall-manager']?.name,
       });
@@ -316,8 +314,21 @@ export async function addReplacementsToUserData(props: {
   defaultRegion: string;
   launchConfigName?: string;
   fwManagerName?: string;
+  fwRegion?: string;
+  bootstrap?: string;
 }) {
-  const { accountKey, accountStack, accounts, config, outputs, defaultRegion, launchConfigName, fwManagerName } = props;
+  const {
+    accountKey,
+    accountStack,
+    accounts,
+    config,
+    outputs,
+    defaultRegion,
+    launchConfigName,
+    fwManagerName,
+    fwRegion,
+    bootstrap,
+  } = props;
   let { userData } = props;
   /* eslint-disable no-template-curly-in-string */
   while (!!userData.match('\\${SEA::([a-zA-Z0-9-]*)}')) {
@@ -338,8 +349,7 @@ export async function addReplacementsToUserData(props: {
             // replaceValue = cdk.SecretValue.secretsManager(secretOutput.arn).toString();
             replaceValue = secretOutput.value;
           } else {
-            const secretString = getOrCreateDynamicSecret(accountStack, secretKey);
-            replaceValue = secretString;
+            console.warn(`Didn't find Secret ${secretKey} in account ${accountKey}`);
           }
         }
       } else {
@@ -353,6 +363,24 @@ export async function addReplacementsToUserData(props: {
             name: fwManagerName,
             suffixLength: 0,
           });
+        } else if (replaceKey === 'FirewallRegion' && fwRegion) {
+          replaceValue = fwRegion;
+        } else if (replaceKey === 'BOOTSTRAP') {
+          if (bootstrap) {
+            const bootstrapValue = await addReplacementsToUserData({
+              userData: bootstrap,
+              accountKey,
+              accountStack,
+              config,
+              defaultRegion,
+              outputs,
+              accounts,
+              launchConfigName,
+              fwManagerName,
+              fwRegion,
+            });
+            replaceValue = cdk.Fn.base64(bootstrapValue);
+          }
         } else {
           replaceValue = getDynamicReplaceableValue({
             paramKey: replaceKey,
@@ -368,43 +396,4 @@ export async function addReplacementsToUserData(props: {
   }
   /* eslint-enable */
   return userData;
-}
-
-export function getOrCreateDynamicSecret(accountStack: AccountStack, name: string): string {
-  let secretString = '';
-  let secretObj: secretsmanager.CfnSecret;
-  const secretConstruct = accountStack.node.tryFindChild(`Dynamic-Secret-${name}`);
-  if (secretConstruct) {
-    secretObj = secretConstruct as secretsmanager.CfnSecret;
-    secretString = secretObj.secretString!;
-  } else {
-    // TODO: Use GenerateSecretString and use cli to query secret from secrets manager
-    // secretObj = new secretsmanager.Secret(accountStack, `Dynamic-Secret-${name}`, {
-    //   generateSecretString: {
-    //     excludePunctuation: true,
-    //     passwordLength: 14,
-    //     includeSpace: false,
-    //   },
-    //   description: `Secret Created for Userdata Replacement`,
-    //   secretName: createName({
-    //     name: name,
-    //     suffixLength: 0,
-    //   }),
-    // });
-    secretString = randomAlphanumericString(14);
-    secretObj = new secretsmanager.CfnSecret(accountStack, `Dynamic-Secret-${name}`, {
-      description: `Secret Created for Userdata Replacement`,
-      name: createName({
-        name,
-        suffixLength: 0,
-      }),
-      secretString,
-    });
-    new CfnDynamicSecretOutput(accountStack, `Dynamic-Secret-${name}-Output`, {
-      arn: secretObj.ref,
-      name,
-      value: secretString,
-    });
-  }
-  return secretString;
 }

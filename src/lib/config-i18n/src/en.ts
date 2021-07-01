@@ -1649,6 +1649,10 @@ translate(c.AlbConfigType, {
       title: '',
       description: 'Targets for the ALB',
     },
+    'apply-tags': {
+      title: '',
+      description: '',
+    },
   },
 });
 
@@ -1689,6 +1693,10 @@ translate(c.GwlbConfigType, {
       description: '',
     },
     'endpoint-subnets': {
+      title: '',
+      description: '',
+    },
+    'apply-tags': {
       title: '',
       description: '',
     },
@@ -1840,6 +1848,10 @@ translate(c.FirewallEC2ConfigType, {
       title: '',
       description: '',
     },
+    bootstrap: {
+      title: '',
+      description: '',
+    },
   },
 });
 
@@ -1986,6 +1998,10 @@ translate(c.FirewallAutoScaleConfigType, {
       title: '',
       description: '',
     },
+    bootstrap: {
+      title: '',
+      description: '',
+    },
   },
 });
 
@@ -2038,6 +2054,10 @@ translate(c.FirewallManagerConfigType, {
       description: '',
     },
     'apply-tags': {
+      title: '',
+      description: '',
+    },
+    bootstrap: {
       title: '',
       description: '',
     },
@@ -2332,6 +2352,10 @@ translate(c.MandatoryAccountConfigType, {
       description: 'The names of the Opt-In VPCs, defined in the OU, to opt this account in to.',
     },
     'key-pairs': {
+      title: '',
+      description: '',
+    },
+    secrets: {
       title: '',
       description: '',
     },

@@ -19,7 +19,7 @@ import { SecurityGroupsOutput, VpcOutputFinder } from '@aws-accelerator/common-o
 import { StackOutput, getStackJsonOutput, ALB_NAME_REGEXP } from '@aws-accelerator/common-outputs/src/stack-output';
 import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorStack } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-stack';
-import { createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import { createName, createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { createCertificateSecretName } from '../certificates';
 import { FirewallInstanceOutputFinder } from '../firewall/cluster/outputs';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
@@ -75,23 +75,84 @@ export async function step1(props: ElbStep1Props) {
         console.warn(`Cannot find account stack ${accountKey}`);
         continue;
       }
+      const accountConfig = config.getAccountConfigs().find(([accKey, _]) => accKey === accountKey)?.[1];
+      const tags = albConfig['apply-tags'] || {};
+      /* eslint-disable no-template-curly-in-string */
+      for (const [key, value] of Object.entries(tags)) {
+        let tagValue = value;
+        let replacementValue = tagValue.match('\\${SEA::([a-zA-Z0-9-]*)}');
+        while (replacementValue) {
+          const replaceKey = replacementValue[1];
+          let replaceValue = replaceKey;
+          if (replaceKey === 'FirewallLaunchConfig') {
+            if (
+              accountConfig &&
+              accountConfig.deployments &&
+              accountConfig.deployments.firewalls &&
+              accountConfig.deployments.firewalls.length > 0
+            ) {
+              const fwConfig = accountConfig.deployments.firewalls.find(
+                fw => fw.type === 'autoscale' && fw.deploy && fw['load-balancer'] === albConfig.name,
+              );
+              if (fwConfig) {
+                replaceValue = createName({
+                  name: `${fwConfig.name}-config`,
+                  suffixLength: 0,
+                });
+              }
+            }
+          } else if (
+            replaceKey === 'FirewallManager' &&
+            accountConfig &&
+            accountConfig.deployments &&
+            accountConfig.deployments['firewall-manager']
+          ) {
+            replaceValue = createName({
+              name: accountConfig.deployments['firewall-manager'].name,
+              suffixLength: 0,
+            });
+          }
+          tagValue = tagValue.replace(new RegExp('\\${SEA::' + replaceKey + '}', 'g'), replaceValue);
+          replacementValue = tagValue.match('\\${SEA::([a-zA-Z0-9-]*)}');
+        }
+        /* eslint-enable */
+        tags[key] = tagValue;
+      }
       if (albConfig.type === 'ALB' && deployAlb) {
-        createAlb(accountKey, albConfig, accountStack, outputs, aesLogArchiveBucket, vpcConfig.deploy);
+        createAlb({
+          accountKey,
+          albConfig,
+          accountStack,
+          outputs,
+          aesLogArchiveBucket,
+          deploy: vpcConfig.deploy,
+          tags,
+        });
       } else if (albConfig.type === 'GWLB' && deployGlb) {
-        createGlb(accountKey, albConfig, accountStack, outputs, acceleratorExecutionRoleName!, accounts || []);
+        createGlb({
+          accountKey,
+          lbConfig: albConfig,
+          accountStack,
+          outputs,
+          acceleratorExecutionRoleName: acceleratorExecutionRoleName!,
+          accounts: accounts!,
+          tags,
+        });
       }
     }
   }
 }
 
-export function createAlb(
-  accountKey: string,
-  albConfig: AlbConfigType,
-  accountStack: AcceleratorStack,
-  outputs: StackOutput[],
-  aesLogArchiveBucket: s3.IBucket,
-  deploy: string,
-) {
+export function createAlb(props: {
+  accountKey: string;
+  albConfig: AlbConfigType;
+  accountStack: AcceleratorStack;
+  outputs: StackOutput[];
+  aesLogArchiveBucket: s3.IBucket;
+  deploy: string;
+  tags?: { [key: string]: string };
+}) {
+  const { accountKey, accountStack, aesLogArchiveBucket, albConfig, deploy, outputs, tags } = props;
   const certificateSecretName = createCertificateSecretName(albConfig['cert-name']!);
   const certificateSecret = cdk.SecretValue.secretsManager(certificateSecretName);
 
@@ -167,6 +228,7 @@ export function createAlb(
     subnetIds: subnets.map(s => s.subnetId),
     securityGroupIds: [securityGroupId],
     ipType: albConfig['ip-type'],
+    tags,
   });
 
   // Enable logging to the default AES bucket
@@ -199,14 +261,16 @@ export function createAlb(
   });
 }
 
-export function createGlb(
-  accountKey: string,
-  lbConfig: GwlbConfigType,
-  accountStack: AcceleratorStack,
-  outputs: StackOutput[],
-  acceleratorExecutionRoleName: string,
-  accounts: Account[],
-) {
+export function createGlb(props: {
+  accountKey: string;
+  lbConfig: GwlbConfigType;
+  accountStack: AcceleratorStack;
+  outputs: StackOutput[];
+  acceleratorExecutionRoleName: string;
+  accounts: Account[];
+  tags?: { [key: string]: string };
+}) {
+  const { acceleratorExecutionRoleName, accountKey, accountStack, accounts, lbConfig, outputs, tags } = props;
   // Import all VPCs from all outputs
   const vpc = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
     outputs,
@@ -249,6 +313,7 @@ export function createGlb(
     vpcId: vpc.vpcId,
     ipType: lbConfig['ip-type'],
     crossZone: lbConfig['cross-zone'],
+    tags,
   });
 
   // Add default listener

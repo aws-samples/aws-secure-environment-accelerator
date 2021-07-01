@@ -508,6 +508,7 @@ export const AlbConfigType = t.interface({
   'target-alarms-periods-of': t.optional(t.string),
   'access-logs': t.defaulted(t.boolean, false),
   targets: t.array(ElbTargetConfigType),
+  'apply-tags': t.optional(t.record(t.string, t.string)),
 });
 
 export type AlbConfigType = t.TypeOf<typeof AlbConfigType>;
@@ -522,6 +523,7 @@ export const GwlbConfigType = t.interface({
   targets: t.array(ElbTargetConfigType),
   'cross-zone': t.defaulted(t.boolean, false),
   'endpoint-subnets': t.array(AccountVpcConfigType),
+  'apply-tags': t.optional(t.record(t.string, t.string)),
 });
 
 export type GwlbConfigType = t.TypeOf<typeof GwlbConfigType>;
@@ -570,6 +572,7 @@ export const FirewallEC2ConfigType = t.interface({
   'tgw-attach': t.union([TransitGatewayAttachConfigType, t.boolean, t.undefined]),
   'block-device-mappings': t.array(t.string),
   'user-data': t.optional(t.nonEmptyString),
+  bootstrap: t.optional(t.nonEmptyString),
   'apply-tags': t.optional(t.record(t.string, t.string)),
 });
 
@@ -602,6 +605,7 @@ export const FirewallAutoScaleConfigType = t.interface({
   'security-group': t.nonEmptyString,
   'fw-instance-role': t.optional(t.string),
   'user-data': t.optional(t.string),
+  bootstrap: t.optional(t.nonEmptyString),
   'root-volume-size': t.number,
   'min-hosts': t.number,
   'max-hosts': t.number,
@@ -631,6 +635,7 @@ export const FirewallManagerConfigType = t.interface({
   }),
   'create-eip': t.boolean,
   'user-data': t.optional(t.string),
+  bootstrap: t.optional(t.nonEmptyString),
   'key-pair': t.optional(t.nonEmptyString),
   /**
    * Possible values are
@@ -710,6 +715,12 @@ export const KeyPairConfig = t.interface({
   region: t.nonEmptyString,
 });
 
+export const SecretConfig = t.interface({
+  name: t.nonEmptyString,
+  region: t.string,
+  size: t.number,
+});
+
 export const MandatoryAccountConfigType = t.interface({
   'account-name': t.nonEmptyString,
   description: t.optional(t.nonEmptyString),
@@ -738,6 +749,7 @@ export const MandatoryAccountConfigType = t.interface({
   scps: t.optional(t.array(t.nonEmptyString)),
   'opt-in-vpcs': t.optional(t.array(t.nonEmptyString)),
   'key-pairs': t.defaulted(t.array(KeyPairConfig), []),
+  secrets: t.defaulted(t.array(SecretConfig), []),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;

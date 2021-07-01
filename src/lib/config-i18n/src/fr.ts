@@ -1558,6 +1558,10 @@ translate(c.AlbConfigType, {
       title: '',
       description: '',
     },
+    'apply-tags': {
+      title: '',
+      description: '',
+    },
   },
 });
 
@@ -1598,6 +1602,10 @@ translate(c.GwlbConfigType, {
       description: '',
     },
     'endpoint-subnets': {
+      title: '',
+      description: '',
+    },
+    'apply-tags': {
       title: '',
       description: '',
     },
@@ -1743,6 +1751,10 @@ translate(c.FirewallEC2ConfigType, {
       description: '',
     },
     'apply-tags': {
+      title: '',
+      description: '',
+    },
+    bootstrap: {
       title: '',
       description: '',
     },
@@ -1892,6 +1904,10 @@ translate(c.FirewallAutoScaleConfigType, {
       title: '',
       description: '',
     },
+    bootstrap: {
+      title: '',
+      description: '',
+    },
   },
 });
 
@@ -1944,6 +1960,10 @@ translate(c.FirewallManagerConfigType, {
       description: '',
     },
     'apply-tags': {
+      title: '',
+      description: '',
+    },
+    bootstrap: {
       title: '',
       description: '',
     },
@@ -2226,6 +2246,10 @@ translate(c.MandatoryAccountConfigType, {
       description: '',
     },
     'key-pairs': {
+      title: '',
+      description: '',
+    },
+    secrets: {
       title: '',
       description: '',
     },
