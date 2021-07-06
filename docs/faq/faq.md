@@ -212,11 +212,13 @@ Example:
 
 ### 1.2.2. Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?
 
-Existing ALZ customers are required to uninstall their ALZ deployment before deploying the Accelerator. Please work with your AWS account team to find the best mechanism to uninstall the ALZ solution (procedures and scripts exist). Additionally, please reference section 4 of the Instation and Upgrade Guide.
+Existing ALZ customers are required to uninstall their ALZ deployment before deploying the Accelerator. Please work with your AWS account team to find the best mechanism to uninstall the ALZ solution (procedures and scripts exist). Additionally, please reference section 4 of the Instation and Upgrade Guide.  It may be easier to migrate AWS accounts to a new Accelerator Organization, per the process detailed in FAQ #1.2.3.
 
 ### 1.2.3. What if I want to move an account from an AWS Organization that has the ALZ deployed into an AWS Organization running the Accelerator?
 
 Before removing the AWS account from the source organization, terminate the AWS Service Catalog product associated with the member account that you're interested in moving. Ensuring the product terminates successfully and that there aren't any remaining CloudFormation stacks in the account that were deployed by the ALZ. You can then remove the account from the existing Organization and invite it into the new organization. Accounts invited into the Organization do NOT get the `Deny All` SCP applied, as we do not want to break existing running workloads. Moving the newly invited account into its destination OU will trigger the state machine and result in the account being ingested into the Accelerator and having the guardrails applied per the target OU persona.
+
+For a detailed procedure, please review this [document](../operations/operations-import-ALZAccount.md).
 
 ## 1.3. End User Enviroment
 
@@ -422,11 +424,11 @@ The use of NACLs are general discouraged, but leveraged in this architecture as 
 
 ### 1.6.8. Can I deploy the solution as the account root user?
 
-No you cannot install as root as root has no ability to assume roles. This would prevent the deployment. As per the [installation instructions](../installation/installation.md#231-general), you require a user with the `AdministratorAccess` policy attached.
+No, you cannot install as the root user.  The root user has no ability to assume roles which is a requirement to configure the sub-accounts and will prevent the deployment. As per the [installation instructions](../installation/installation.md#231-general), you require an IAM user with the `AdministratorAccess` policy attached.
 
 ### 1.6.9. Is the Organizational Management root account monitored similarly to the other accounts in the organization?
 
-Yes, all accounts including the Organizational Management root account have the same monitoring and logging services enabled by default in the configuration file. This is achieved by enabling Services trusted access within AWS Organizations and IAM roles for cross account access. For example, GuardDuty delivers information about potential security risks that it detects in your environment as findings. The Security account is the primary account for GuardDuty while all other accounts including the Organizational Management root account are secondary accounts to centrally manage potential security risks. For more information about monitoring and logging refer to [architecture documentation](../architectures/pbmm/architecture.md#7-logging-and-monitoring).
+Yes, all accounts including the Organization Management or root account have the same monitoring and logging services enabled. When supported, AWS security services like GuardDuty, Macie, and Security Hub have their delegated administrator account configured as the "security" account.  These tools can be used within each local account (including the Organization Management account) within the organization to gain account level visibility or within the Security account for Organization wide visibility.  For more information about monitoring and logging refer to [architecture documentation](../architectures/pbmm/architecture.md#7-logging-and-monitoring).
 
 ---
 
