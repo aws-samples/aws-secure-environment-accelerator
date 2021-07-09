@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { CodeEditor, CodeEditorProps } from '@awsui/components-react';
+
+// See https://github.com/ajaxorg/ace-builds/issues/129#issuecomment-619524731
+import { default as ace } from 'ace-builds';
+import 'ace-builds/src-noconflict/mode-json';
+import 'ace-builds/src-noconflict/mode-yaml';
 
 export interface AceCodeEditorProps {
   value: string;
@@ -31,32 +36,16 @@ const defaultI18nStrings = {
 
 export function AceCodeEditor(props: AceCodeEditorProps) {
   const [preferences, setPreferences] = useState<CodeEditorProps.Preferences | undefined>(undefined);
-  const [ace, setAce] = useState<unknown>(undefined);
-  const [loading, setLoading] = useState(true);
 
   const handleChange: CodeEditorProps['onChange'] = e => props.onChange && props.onChange(e.detail.value);
   const handlePreferenceChange: CodeEditorProps['onPreferencesChange'] = e => setPreferences(e.detail);
-
-  // Load the ace library
-  useEffect(() => {
-    import('ace-builds')
-      .then(({ default: _ace }) => {
-        import('ace-builds/webpack-resolver')
-          .then(() => {
-            setAce(_ace);
-            setLoading(false);
-          })
-          .catch(() => setLoading(false));
-      })
-      .catch(() => setLoading(false));
-  }, []);
 
   return (
     <CodeEditor
       ace={ace}
       language={props.language}
       value={props.value}
-      loading={loading}
+      loading={false}
       preferences={preferences}
       onChange={handleChange}
       onPreferencesChange={handlePreferenceChange}
