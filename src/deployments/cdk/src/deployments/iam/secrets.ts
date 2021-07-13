@@ -38,6 +38,7 @@ export async function createSecrets(props: IamSecretsProps): Promise<IamSecretsR
         generateSecretString: {
           passwordLength: 24,
           requireEachIncludedType: true,
+          excludeCharacters: '",./:;<>?\\`~',
         },
         principals: [accountPrincipal],
       });
