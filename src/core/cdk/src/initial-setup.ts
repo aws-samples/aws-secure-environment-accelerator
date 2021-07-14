@@ -85,6 +85,7 @@ export namespace InitialSetup {
         partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
         encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
         encryptionKey: installerCmk,
+        pointInTimeRecovery: true,
       });
 
       const outputsTable = new dynamodb.Table(this, 'Outputs', {
@@ -98,6 +99,7 @@ export namespace InitialSetup {
         },
         encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
         encryptionKey: installerCmk,
+        pointInTimeRecovery: true,
       });
 
       const outputUtilsTable = new dynamodb.Table(this, 'OutputUtils', {
@@ -111,6 +113,7 @@ export namespace InitialSetup {
         },
         encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
         encryptionKey: installerCmk,
+        pointInTimeRecovery: true,
       });
 
       // Tables required for VPC Cidr mappings for VPC, Account and OU
@@ -125,6 +128,7 @@ export namespace InitialSetup {
         },
         encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
         encryptionKey: installerCmk,
+        pointInTimeRecovery: true,
       });
 
       const subnetCidrPoolTable = new dynamodb.Table(this, 'CidrSubnetAssign', {
@@ -138,6 +142,7 @@ export namespace InitialSetup {
         },
         encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
         encryptionKey: installerCmk,
+        pointInTimeRecovery: true,
       });
 
       const cidrPoolTable = new dynamodb.Table(this, 'CidrPoolTable', {
@@ -151,6 +156,7 @@ export namespace InitialSetup {
         },
         encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
         encryptionKey: installerCmk,
+        pointInTimeRecovery: true,
       });
 
       // This is the maximum time before a build times out
