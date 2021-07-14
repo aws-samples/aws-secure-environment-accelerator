@@ -49,6 +49,7 @@ export class MacieExportConfig extends cdk.Construct {
       handler: 'index.handler',
       role,
       timeout: cdk.Duration.minutes(10),
+      deadLetterQueueEnabled: true,
     });
   }
 }

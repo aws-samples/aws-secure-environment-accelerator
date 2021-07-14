@@ -62,6 +62,7 @@ export class GuardDutyAdminSetup extends cdk.Construct {
       handler: 'index.handler',
       role,
       timeout: cdk.Duration.minutes(10),
+      deadLetterQueueEnabled: true,
     });
   }
 }

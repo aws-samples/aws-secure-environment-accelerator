@@ -106,6 +106,7 @@ export class Grant extends cdk.Construct {
       handler: 'index.handler',
       role,
       timeout: cdk.Duration.seconds(10),
+      deadLetterQueueEnabled: true,
     });
   }
 }
