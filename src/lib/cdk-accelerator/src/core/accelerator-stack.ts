@@ -16,7 +16,8 @@ export class AcceleratorStack extends cdk.Stack {
     this.acceleratorName = props.acceleratorName;
     this.acceleratorPrefix = props.acceleratorPrefix;
 
-    cdk.Aspects.of(this).add(new cdk.Tag('Accelerator', this.acceleratorName));
+    // cdk.Aspects.of(this).add(new cdk.Tag('Accelerator', this.acceleratorName));
+	// Why: caused double identical tags which causes TGW creation failure
     cdk.Aspects.of(this).add(new AcceleratorNameTagger());
     cdk.Aspects.of(this).add(new AcceleratorProtectedTagger(this.acceleratorName));
   }
