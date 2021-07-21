@@ -1990,10 +1990,6 @@ Array [
       "MulticastSupport": undefined,
       "Tags": Array [
         Object {
-          "Key": "Accelerator",
-          "Value": "PBMM",
-        },
-        Object {
           "Key": "Name",
           "Value": "Main_tgw",
         },
