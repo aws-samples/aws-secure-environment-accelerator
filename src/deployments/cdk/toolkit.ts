@@ -302,7 +302,13 @@ function tagsForStack(stack: CloudFormationStackArtifact): Tag[] {
     // unfortunately.
     x => toCloudFormationTags(x.data as cxschema.Tag[]),
   );
-  return Array.prototype.concat([], ...tagLists);
+  // return Array.prototype.concat([], ...tagLists);
+  return [
+    {
+      Key: "Accelerator",
+      Value: "PBMM"
+    }
+  ]
 }
 
 /**
