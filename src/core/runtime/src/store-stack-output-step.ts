@@ -40,9 +40,9 @@ export const handler = async (input: StoreStackOutputInput) => {
       console.warn(`Could not load stack with name "${summary.StackName}"`);
       continue;
     }
-    const acceleratorTag = stack.Tags?.find(t => t.Key === 'Accelerator');
+    const acceleratorTag = stack.Tags?.find(t => t.Key === 'AcceleratorName');
     if (!acceleratorTag) {
-      console.warn(`Could not find Accelerator tag in stack with name "${summary.StackName}"`);
+      console.warn(`Could not find AcceleratorName tag in stack with name "${summary.StackName}"`);
       continue;
     }
 

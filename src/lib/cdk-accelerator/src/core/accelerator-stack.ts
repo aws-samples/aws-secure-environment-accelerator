@@ -16,6 +16,8 @@ export class AcceleratorStack extends cdk.Stack {
     this.acceleratorName = props.acceleratorName;
     this.acceleratorPrefix = props.acceleratorPrefix;
 
+    // Add Stack level tags using this.tags, so that CDK won't add them to resource in CFN
+    this.tags.setTag('AcceleratorName', this.acceleratorName);
     cdk.Aspects.of(this).add(new cdk.Tag('Accelerator', this.acceleratorName));
     cdk.Aspects.of(this).add(new AcceleratorNameTagger());
     cdk.Aspects.of(this).add(new AcceleratorProtectedTagger(this.acceleratorName));
