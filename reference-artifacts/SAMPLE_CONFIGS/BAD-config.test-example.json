@@ -1,4 +1,5 @@
 {
+"NOTE": "THIS FILE IS CONTAMINATED WITH ARTIFACTS FROM FUTURE v1.5.0",
   "replacements": {
     "addl_regions": {
       "a": ["${HOME_REGION}"],
@@ -1632,7 +1633,7 @@
         "firewalls": [
           {
             "name": "Firewall",
-            "image-id": "ami-0c4cecd2e2f91c577",
+            "image-id": "ami-0d8e2e78e928def11",
             "instance-sizes": "c5.xlarge",
             "region": "${HOME_REGION}",
             "security-group": "Firewalls",
@@ -1684,7 +1685,7 @@
         ],
         "xxfirewall-manager": {
           "name": "FirewallMgr",
-          "image-id": "ami-0e3faadf2331f79bd",
+          "image-id": "ami-0e9f45c3ec34c3a9a",
           "instance-sizes": "c5.large",
           "version": "6.4.4",
           "region": "${HOME_REGION}",
