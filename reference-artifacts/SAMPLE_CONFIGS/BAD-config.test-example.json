@@ -1,4 +1,5 @@
 {
+"NOTE": "THIS FILE IS CONTAMINATED WITH ARTIFACTS FROM FUTURE v1.5.0",
   "replacements": {
     "addl_regions": {
       "a": ["${HOME_REGION}"],
