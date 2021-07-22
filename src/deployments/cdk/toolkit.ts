@@ -304,7 +304,8 @@ function tagsForStack(stack: CloudFormationStackArtifact): Tag[] {
     // unfortunately.
     x => toCloudFormationTags(x.data as cxschema.Tag[]),
   );
-  return Array.prototype.concat([], ...tagLists);
+  // Conditional operator to remove undefined (Will get for Accelerator)
+  return Array.prototype.concat([], tagLists.length > 0 ? tagLists[0].filter(t => !!t) : []);
 }
 
 /**
@@ -314,5 +315,10 @@ function tagsForStack(stack: CloudFormationStackArtifact): Tag[] {
  * to the way that CloudFormation expects them. (Different casing).
  */
 function toCloudFormationTags(tags: cxschema.Tag[]): Tag[] {
-  return tags.map(t => ({ Key: t.key, Value: t.value }));
+  return tags.map(t => {
+    // Ignoring Accelerator tag in CFN since that is duplicated
+    if (t.key !== 'Accelerator') {
+      return { Key: t.key, Value: t.value };
+    }
+  });
 }

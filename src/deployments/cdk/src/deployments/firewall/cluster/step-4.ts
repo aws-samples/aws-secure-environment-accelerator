@@ -117,7 +117,7 @@ export async function step4(props: FirewallStep4Props) {
           defaultRegion,
           outputs,
           accounts,
-          launchConfigName: `${firewallConfig.name}-config`,
+          launchConfigName: firewallConfig.name,
           fwManagerName: accountConfig.deployments?.['firewall-manager']?.name || undefined,
           bootstrap: firewallConfig.bootstrap,
         }),
@@ -166,7 +166,7 @@ async function createFirewallCluster(props: {
   }
 
   const launchConfigurationName = createName({
-    name: `${firewallName}-config`,
+    name: `${firewallName}`,
     suffixLength: 0,
   });
   const blockDeviceMappings = deviceNames.map(deviceName => ({

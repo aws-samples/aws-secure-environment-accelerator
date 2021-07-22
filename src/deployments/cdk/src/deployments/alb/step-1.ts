@@ -96,7 +96,7 @@ export async function step1(props: ElbStep1Props) {
               );
               if (fwConfig) {
                 replaceValue = createName({
-                  name: `${fwConfig.name}-config`,
+                  name: fwConfig.name,
                   suffixLength: 0,
                 });
               }

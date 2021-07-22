@@ -94,6 +94,7 @@ export async function deploy({
   const { secretsContainer } = await secretsDeployment.step1({
     accountStacks,
     config: acceleratorConfig,
+    outputs,
   });
 
   // Create IAM secrets

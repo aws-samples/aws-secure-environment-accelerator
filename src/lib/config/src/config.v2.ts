@@ -644,6 +644,7 @@ export const FirewallManagerConfigType = t.interface({
    */
   'block-device-mappings': t.array(t.string),
   'apply-tags': t.optional(t.record(t.string, t.string)),
+  'fw-instance-role': t.optional(t.string),
 });
 
 export type FirewallManagerConfig = t.TypeOf<typeof FirewallManagerConfigType>;

@@ -7,14 +7,21 @@ import { randomAlphanumericString } from '@aws-accelerator/common/src/util/commo
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CfnDynamicSecretOutput } from '../mad';
+import { DynamicSecretOutputFinder } from '@aws-accelerator/common-outputs/src/secrets';
+import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 
 export interface SecretsStep1Props {
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
+  /**
+   * outputs: to validate secret is already created or not.
+   * Need to validate since we are assigning random value which will change on every execution.
+   */
+  outputs: StackOutput[];
 }
 
 export async function step1(props: SecretsStep1Props) {
-  const { accountStacks, config } = props;
+  const { accountStacks, config, outputs } = props;
 
   const masterAccountKey = config.getMandatoryAccountKey('master');
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
@@ -38,9 +45,20 @@ export async function step1(props: SecretsStep1Props) {
         console.warn(`Cannot find account stack ${accountKey}`);
         continue;
       }
-      const secretString = randomAlphanumericString(size);
+      const secretOutput = DynamicSecretOutputFinder.tryFindOne({
+        accountKey,
+        region,
+        outputs,
+        predicate: o => o.name === name,
+      });
+      let secretString = '';
+      if (secretOutput) {
+        secretString = secretOutput.value;
+      } else {
+        secretString = randomAlphanumericString(size);
+      }
       const secretObj = new secretsmanager.CfnSecret(accountStack, `Dynamic-Secret-${name}`, {
-        description: `Secret Created for Userdata Replacement`,
+        description: `Secret Created by Accelerator`,
         name: createName({
           name,
           suffixLength: 0,

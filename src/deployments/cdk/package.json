@@ -12,7 +12,7 @@
     "preset": "ts-jest",
     "testEnvironment": "node",
     "testMatch": [
-      "<rootDir>/test/**/(*.)+(spec|test).ts"
+      "<rootDir>/test/**/*(*.)@(spec|test).[t]s?(x)"
     ]
   },
   "dependencies": {

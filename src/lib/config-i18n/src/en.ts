@@ -2061,6 +2061,10 @@ translate(c.FirewallManagerConfigType, {
       title: '',
       description: '',
     },
+    'fw-instance-role': {
+      title: '',
+      description: '',
+    },
   },
 });
 

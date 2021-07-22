@@ -12,6 +12,7 @@ import {
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { addReplacementsToUserData } from '../cluster/step-4';
 import { Account } from '../../../utils/accounts';
+import { createIamInstanceProfileName } from '../../../common/iam-assets';
 
 export interface FirewallManagerStep1Props {
   accountStacks: AccountStacks;
@@ -144,6 +145,9 @@ async function createFirewallManager(props: {
     blockDeviceMappings,
     userData,
     keyPairName,
+    iamInstanceProfile: config['fw-instance-role']
+      ? createIamInstanceProfileName(config['fw-instance-role'])
+      : undefined,
   });
 
   for (const [key, value] of Object.entries(config['apply-tags'] || {})) {
