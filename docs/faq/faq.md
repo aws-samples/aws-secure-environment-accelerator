@@ -37,6 +37,8 @@
     - [1.6.5. Can you deploy the solution without Fortinet Firewall Licenses?](#165-can-you-deploy-the-solution-without-fortinet-firewall-licenses)
     - [1.6.6. I installed additional software on my Accelerator deployed RDGW / rsyslog host, where did it go?](#166-i-installed-additional-software-on-my-accelerator-deployed-rdgw--rsyslog-host-where-did-it-go)
     - [1.6.7. Some sample configurations provide NACLs and Security Groups. Is that enough?](#167-some-sample-configurations-provide-nacls-and-security-groups-is-that-enough)
+    - [1.6.8. Can I deploy the solution as the account root user?](#168-can-i-deploy-the-solution-as-the-account-root-user)
+    - [1.6.9. Is the Organizational Management root account monitored similarly to the other accounts in the organization?](#169-is-the-organizational-management-root-account-monitored-similarly-to-the-other-accounts-in-the-organization)
 
 ## 1.1. Operational Activities
 
@@ -210,11 +212,13 @@ Example:
 
 ### 1.2.2. Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?
 
-Existing ALZ customers are required to uninstall their ALZ deployment before deploying the Accelerator. Please work with your AWS account team to find the best mechanism to uninstall the ALZ solution (procedures and scripts exist). Additionally, please reference section 4 of the Instation and Upgrade Guide.
+Existing ALZ customers are required to uninstall their ALZ deployment before deploying the Accelerator. Please work with your AWS account team to find the best mechanism to uninstall the ALZ solution (procedures and scripts exist). Additionally, please reference section 4 of the Instation and Upgrade Guide.  It may be easier to migrate AWS accounts to a new Accelerator Organization, per the process detailed in FAQ #1.2.3.
 
 ### 1.2.3. What if I want to move an account from an AWS Organization that has the ALZ deployed into an AWS Organization running the Accelerator?
 
 Before removing the AWS account from the source organization, terminate the AWS Service Catalog product associated with the member account that you're interested in moving. Ensuring the product terminates successfully and that there aren't any remaining CloudFormation stacks in the account that were deployed by the ALZ. You can then remove the account from the existing Organization and invite it into the new organization. Accounts invited into the Organization do NOT get the `Deny All` SCP applied, as we do not want to break existing running workloads. Moving the newly invited account into its destination OU will trigger the state machine and result in the account being ingested into the Accelerator and having the guardrails applied per the target OU persona.
+
+For a detailed procedure, please review this [document](../operations/operations-import-ALZAccount.md).
 
 ## 1.3. End User Enviroment
 
@@ -417,6 +421,14 @@ Security group egress rules are often used in 'allow all' mode (`0.0.0.0/0`), wi
 The Accelerator provided sample security groups in the workload accounts offer a good balance that considers both security, ease of operations, and frictionless development.  They allow developers to focus on developing, enabling them to simply use the pre-created security constructs for their workloads, and avoid the creation of wide-open security groups.  Developers can equally choose to create more appropriate least-privilege security groups more suitable for their application, if they are skilled in this area.  It is expected as an application is promoted through the SDLC cycle from Dev through Test to Prod, these security groups will be further refined by the extended customers teams to further reduce privilege, as appropriate.  It is expected that each customer will review and tailor their Security Groups based on their own security requirements.  The provided security groups ensures day to day activities like patching, access to DNS, or to directory services access can function on instances without friction, with the understanding further protections are providing by the central ingress/egress firewalls.
 
 The use of NACLs are general discouraged, but leveraged in this architecture as a defense-in-depth mechanism.  Security groups should be used as the primary access control mechanism.  As with security groups, we encourage customers to review and tailor their NACLs based on their own security requirements.
+
+### 1.6.8. Can I deploy the solution as the account root user?
+
+No, you cannot install as the root user.  The root user has no ability to assume roles which is a requirement to configure the sub-accounts and will prevent the deployment. As per the [installation instructions](../installation/installation.md#231-general), you require an IAM user with the `AdministratorAccess` policy attached.
+
+### 1.6.9. Is the Organizational Management root account monitored similarly to the other accounts in the organization?
+
+Yes, all accounts including the Organization Management or root account have the same monitoring and logging services enabled. When supported, AWS security services like GuardDuty, Macie, and Security Hub have their delegated administrator account configured as the "security" account.  These tools can be used within each local account (including the Organization Management account) within the organization to gain account level visibility or within the Security account for Organization wide visibility.  For more information about monitoring and logging refer to [architecture documentation](../architectures/pbmm/architecture.md#7-logging-and-monitoring).
 
 ---
 

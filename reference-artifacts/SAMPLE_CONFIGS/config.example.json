@@ -804,7 +804,7 @@
   "mandatory-account-configs": {
     "shared-network": {
       "account-name": "SharedNetwork",
-      "email": "myemail+aseaT-network@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-network@example.com---------------------REPLACE------------",
       "ou": "core",
       "share-mad-from": "operations",
       "src-filename": "config.json",
@@ -1046,7 +1046,7 @@
     },
     "operations": {
       "account-name": "Operations",
-      "email": "myemail+aseaT-operations@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-operations@example.com---------------------REPLACE------------",
       "ou": "core",
       "account-warming-required": true,
       "limits": {},
@@ -1228,7 +1228,7 @@
     },
     "perimeter": {
       "account-name": "Perimeter",
-      "email": "myemail+aseaT-perimeter@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-perimeter@example.com---------------------REPLACE------------",
       "ou": "core",
       "account-warming-required": true,
       "src-filename": "config.json",
@@ -1803,7 +1803,7 @@
     },
     "management": {
       "account-name": "ASEA-Main",
-      "email": "myemail+aseaT-management@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-management@example.com---------------------REPLACE------------",
       "ou": "core",
       "src-filename": "config.json",
       "description": "This is the Organization Management or root account.  Access must be highly restricted.  This account should not contain customer resources.",
@@ -1942,14 +1942,14 @@
     "log-archive": {
       "account-name": "log-archive",
       "ou": "core",
-      "email": "myemail+aseaT-log@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-log@example.com---------------------REPLACE------------",
       "description": "This Account is used to centralized and store immutable logs for the Organization.",
       "src-filename": "config.json"
     },
     "security": {
       "account-name": "security",
       "ou": "core",
-      "email": "myemail+aseaT-sec@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-sec@example.com---------------------REPLACE------------",
       "description": "This Account is used to centralized access to AWS security tooling and consoles.",
       "src-filename": "config.json"
     }
@@ -1957,14 +1957,14 @@
   "workload-account-configs": {
     "fun-acct": {
       "account-name": "TheFunAccount",
-      "email": "myemail+aseaT-funacct@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-funacct@example.com---------------------REPLACE------------",
       "src-filename": "config.json",
       "description": "This is an OPTIONAL SAMPLE workload account.  As this is a Sandbox account, it is used for extreme FUN!",
       "ou": "Sandbox"
     },
     "mydevacct1": {
       "account-name": "MyDev1",
-      "email": "myemail+aseaT-dev1@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-dev1@example.com---------------------REPLACE------------",
       "src-filename": "config.json",
       "description": "This is an OPTIONAL SAMPLE workload account.  As this is a Dev account, it is to be used for Development.",
       "ou": "Dev"
@@ -1973,7 +1973,7 @@
   "organizational-units": {
     "core": {
       "type": "ignore",
-      "description": "The core OU is used to hold accounts with critical shared resources used by the rest of the Organization.",
+      "description": "The core OU is used to hold AWS accounts containing AWS resources shared or utilized by the rest of the Organization.",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Core Budget",
@@ -2074,7 +2074,7 @@
     },
     "Central": {
       "type": "mandatory",
-      "description": "The Central OU is used to hold accounts containing resources shared across groups of accounts, but not the entire Organization like the core OU.",
+      "description": "The Central OU is used to hold AWS accounts which contain group or team resources used across OU boundaries like code promotion tools.",
       "share-mad-from": "operations",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
       "default-budgets": {
