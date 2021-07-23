@@ -174,7 +174,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 - Due to PMP provisioning delays, this sometimes fails when attempted immediately following enablement of PMP or if adding each product individually - retry after 20 minutes.
 
 11. While not used in this account, you must now subscribe to the two subscriptions and accept the EULA for each product (you will need to do the same in the perimeter account, once provisioned below)
-    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (v6.4.4 recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
+    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (v6.4.6 recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
 
 ![New AMI ID](img/new-ami-id.png)
 
@@ -197,7 +197,7 @@ If deploying to an internal AWS employee account, to successfully install the so
    - While it is generally supported, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts to the config file and rerun the state machine.
 3. A successful deployment of the prescriptive architecture requires VPC access to 7 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 7 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms).
 4. When deploying to regions other than `ca-central-1`, you need to:
-   1. Update the firewall and firewall manager AMI id's to reflect your home regions regional AMI id's (see 1.1.3, item 10) Make sure you select the right version, v6.4.4 is recommended at this time.
+   1. Update the firewall and firewall manager AMI id's to reflect your home regions regional AMI id's (see 1.1.3, item 10) Make sure you select the right version, v6.4.6 is recommended at this time.
    2. Validate all the Interface Endpoints defined in your config file are supported in your home region (i.e. Endpoint VPC). Remove unsupported entries from the config file.
 5. Create an S3 bucket in your Organization Management account with versioning enabled `your-bucket-name`
    - you must supply this bucket name in the CFN parameters _and_ in the config file (`global-options\central-bucket`)
