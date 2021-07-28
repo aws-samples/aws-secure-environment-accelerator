@@ -1373,7 +1373,9 @@ Array [
       "EnclaveOptions": undefined,
       "HibernationOptions": undefined,
       "HostResourceGroupArn": undefined,
-      "ImageId": "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2}}",
+      "ImageId": Object {
+        "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestamznamihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter",
+      },
       "Ipv6AddressCount": undefined,
       "Ipv6Addresses": undefined,
       "KeyName": undefined,

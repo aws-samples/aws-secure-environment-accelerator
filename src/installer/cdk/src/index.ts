@@ -482,7 +482,7 @@ class Installer extends cdk.Stack {
       ],
     });
 
-    cdk.Aspects.of(this).add(new cdk.Tag('Accelerator', acceleratorName));
+    cdk.Aspects.of(this).add(new cdk.Tag('Accelerator', `${acceleratorName}1`));
   }
 }
 

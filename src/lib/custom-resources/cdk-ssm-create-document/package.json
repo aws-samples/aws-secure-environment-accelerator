@@ -8,9 +8,9 @@
     "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
   },
   "dependencies": {
-    "@aws-cdk/aws-iam": "1.101.0",
-    "@aws-cdk/aws-lambda": "1.101.0",
-    "@aws-cdk/core": "1.101.0"
+    "@aws-cdk/aws-iam": "1.113.0",
+    "@aws-cdk/aws-lambda": "1.113.0",
+    "@aws-cdk/core": "1.113.0"
   },
   "devDependencies": {
     "@aws-accelerator/custom-resource-ssm-create-document-runtime": "workspace:*",
