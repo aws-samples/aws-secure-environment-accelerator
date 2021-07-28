@@ -29,7 +29,6 @@ export async function createOrganizationalUnit(input: CreateOrganizationalUnitEv
     },
     timeout: cdk.Duration.minutes(15),
     memorySize: 512,
-    deadLetterQueueEnabled: true,
   });
 
   orgChangeFunc.addPermission(`InvokePermission-CreateOrganization_rule`, {

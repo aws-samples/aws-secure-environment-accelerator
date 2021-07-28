@@ -84,7 +84,6 @@ export class S3UpdateLogArchivePolicy extends cdk.Construct {
       handler: 'index.handler',
       role,
       timeout: cdk.Duration.seconds(30),
-      deadLetterQueueEnabled: true,
     });
   }
 }

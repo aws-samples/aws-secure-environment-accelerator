@@ -63,7 +63,6 @@ export class CreateResolverRule extends cdk.Construct {
       handler: 'index.handler',
       role: this.role,
       timeout: cdk.Duration.minutes(15),
-      deadLetterQueueEnabled: true,
     });
   }
 }

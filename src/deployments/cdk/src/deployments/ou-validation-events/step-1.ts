@@ -161,7 +161,6 @@ async function moveAccount(input: MoveAccountProps) {
     },
     timeout: cdk.Duration.minutes(15),
     memorySize: 512,
-    deadLetterQueueEnabled: true,
   });
 
   moveAccountFunc.addPermission(`InvokePermission-MoveAccount_rule`, {

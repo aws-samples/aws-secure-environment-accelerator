@@ -85,7 +85,6 @@ export class Ec2MarketPlaceSubscriptionCheck extends cdk.Construct {
       role,
       // Set timeout to maximum timeout
       timeout: cdk.Duration.minutes(15),
-      deadLetterQueueEnabled: true,
     });
   }
 }

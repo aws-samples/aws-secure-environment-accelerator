@@ -1104,7 +1104,6 @@ class LambdaFun extends cdk.Construct {
       runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset(runtimeDir),
       handler: 'index.handler', // The `handler` function in `index.js`
-      deadLetterQueueEnabled: true, // create a DLQ to suppress warning in Security Hub
     });
   }
 }

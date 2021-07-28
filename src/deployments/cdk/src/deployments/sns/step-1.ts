@@ -183,7 +183,6 @@ function createSnsTopics(props: {
         CENTRAL_LOG_ACCOUNT: centralAccount,
       },
       timeout: cdk.Duration.minutes(15),
-      deadLetterQueueEnabled: true,
     });
 
     snsSubscriberFunc.addPermission(`InvokePermission-SnsSubscriberLambda`, {
@@ -198,7 +197,6 @@ function createSnsTopics(props: {
     code: lambdaCode,
     role,
     timeout: cdk.Duration.minutes(15),
-    deadLetterQueueEnabled: true,
   });
 
   ignoreActionFunc.addPermission(`InvokePermission-IgnoreActionLambda`, {

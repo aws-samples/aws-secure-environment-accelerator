@@ -95,7 +95,6 @@ export class S3Template extends cdk.Construct {
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,
-      deadLetterQueueEnabled: true,
     });
   }
 }

@@ -45,7 +45,6 @@ export async function removeAccount(input: RemoveAccountProps) {
     },
     timeout: cdk.Duration.minutes(15),
     memorySize: 512,
-    deadLetterQueueEnabled: true,
   });
 
   removeAccountFunc.addPermission(`InvokePermission-RemoveAccount_rule`, {

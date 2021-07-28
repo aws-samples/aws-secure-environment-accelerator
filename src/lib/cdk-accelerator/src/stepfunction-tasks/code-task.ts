@@ -42,7 +42,6 @@ export class CodeTask extends sfn.StateMachineFragment {
       handler: 'index.handler',
       memorySize: 512,
       ...props.functionProps,
-      deadLetterQueueEnabled: true,
     });
 
     const funcAlias = new lambda.Alias(this, 'LambdaAlias', {

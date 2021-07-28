@@ -35,7 +35,6 @@ export class AlbIpForwarding extends Construct {
       environment: {
         LOOKUP_TABLE: ddbTable.tableName,
       },
-      deadLetterQueueEnabled: true,
     });
 
     ddbTable.grantReadWriteData(dnsFWLambda);
@@ -59,7 +58,6 @@ export class AlbIpForwarding extends Construct {
       environment: {
         LOOKUP_TABLE: ddbTable.tableName,
       },
-      deadLetterQueueEnabled: true,
     });
 
     ddbTable.grantReadWriteData(lambdaDnsRecordMonitor);

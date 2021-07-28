@@ -54,7 +54,6 @@ export class CfnSleep extends cdk.Construct {
       role: this.ensureRole(),
       // Set timeout to maximum timeout
       timeout: cdk.Duration.minutes(15),
-      deadLetterQueueEnabled: true,
     });
   }
 
