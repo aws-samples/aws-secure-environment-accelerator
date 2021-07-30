@@ -2,6 +2,39 @@
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "DenySBTag",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:DeleteNatGateway",
+        "ec2:DeleteTransitGatewayRoute",
+        "ec2:DeleteTransitGatewayRouteTable",
+        "ec2:DeleteTransitGatewayVpcAttachment",
+        "ec2:DeleteVpc",
+        "ec2:DeleteVpcEndpoints",
+        "ec2:DeleteVpcPeeringConnection",
+        "ec2:DeleteCustomerGateway",
+        "ec2:DeleteDhcpOptions",
+        "ec2:DeleteInternetGateway",
+        "ec2:DeleteRouteTable",
+        "ec2:DeleteSubnet",
+        "ec2:DeleteRoute",
+        "ec2:DetachInternetGateway",
+        "ec2:DisassociateRouteTable"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "ec2:ResourceTag/Accelerator": "${ACCELERATOR_NAME}"
+        },
+        "ArnNotLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
+            "arn:aws:iam::*:role/${ACCELERATOR_NAME}Ops-*"
+          ]
+        }
+      }
+    },
+    {
       "Sid": "DenyAllOutsideCanadaUS",
       "Effect": "Deny",
       "NotAction": [

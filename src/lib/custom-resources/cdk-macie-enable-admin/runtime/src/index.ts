@@ -67,6 +67,12 @@ async function enableOrgAdmin(properties: HandlerProperties) {
       )
     ) {
       console.warn(e);
+    } else if (
+      message.includes(
+        `The request failed because there's already a delegated Macie administrator account for your organization`,
+      )
+    ) {
+      console.warn(e);
     } else {
       throw e;
     }
