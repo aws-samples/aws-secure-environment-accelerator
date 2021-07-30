@@ -1,5 +1,4 @@
 {
-"NOTE": "THIS FILE IS CONTAMINATED WITH ARTIFACTS FROM FUTURE v1.5.0",
   "replacements": {
     "addl_regions": {
       "a": ["${HOME_REGION}"],
@@ -1063,7 +1062,7 @@
           "num-rdgw-hosts": 1,
           "min-rdgw-hosts": 1,
           "max-rdgw-hosts": 2,
-          "rdgw-max-instance-age": 30,
+          "rdgw-max-instance-age": 7,
           "rdgw-instance-type": "t2.medium",
           "rdgw-instance-role": "${ACCELERATOR_PREFIX_ND}-RDGW-Role",
           "password-policies": {
@@ -1169,7 +1168,7 @@
           "rsyslog-instance-type": "t2.medium",
           "rsyslog-instance-role": "${ACCELERATOR_PREFIX_ND}-Rsyslog-Role",
           "rsyslog-root-volume-size": 100,
-          "rsyslog-max-instance-age": 30
+          "rsyslog-max-instance-age": 7
         }
       }
     },
@@ -1254,7 +1253,7 @@
           "access-logs": true,
           "targets": [
             {
-              "target-name": "FG1-Web-azA",
+              "target-name": "Firewalls",
               "target-type": "instance",
               "protocol": "HTTPS",
               "port": 7001,
@@ -1267,20 +1266,7 @@
                   "target": "firewall",
                   "name": "Firewall",
                   "az": "a"
-                }
-              ],
-              "tg-weight": 1
-            },
-            {
-              "target-name": "FG1-Web-azB",
-              "target-type": "instance",
-              "protocol": "HTTPS",
-              "port": 7001,
-              "health-check-protocol": "HTTPS",
-              "health-check-path": "/health-check",
-              "health-check-port": 7001,
-              "lambda-filename": "",
-              "target-instances": [
+                },
                 {
                   "target": "firewall",
                   "name": "Firewall",
@@ -1314,7 +1300,7 @@
           "access-logs": true,
           "targets": [
             {
-              "target-name": "FG1-Web-azA",
+              "target-name": "Firewalls",
               "target-type": "instance",
               "protocol": "HTTPS",
               "port": 7002,
@@ -1327,20 +1313,7 @@
                   "target": "firewall",
                   "name": "Firewall",
                   "az": "a"
-                }
-              ],
-              "tg-weight": 1
-            },
-            {
-              "target-name": "FG1-Web-azB",
-              "target-type": "instance",
-              "protocol": "HTTPS",
-              "port": 7002,
-              "health-check-protocol": "HTTPS",
-              "health-check-path": "/health-check",
-              "health-check-port": 7001,
-              "lambda-filename": "",
-              "target-instances": [
+                },
                 {
                   "target": "firewall",
                   "name": "Firewall",
