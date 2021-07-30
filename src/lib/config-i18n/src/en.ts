@@ -3108,12 +3108,12 @@ translate(c.GlobalOptionsConfigType, {
   fields: {
     'ct-baseline': {
       title: 'Control Tower Baseline',
-      description: 'For future integration with Control Tower.',
+      description: 'Indicates the installation requires Control Tower to be installed before installing the Accelerator.',
     },
     'default-s3-retention': {
       title: 'Local accounts S3 logging bucket retention period',
       description:
-        'In certain cases, logs must be delivered to the local account before being centralized to the central logging bucket (i.e. VPC FLow logs).  This setting determines the retention for the local account copy of the logs.',
+        'In certain cases, logs must be delivered to the local account before being centralized to the central logging bucket (i.e. VPC Flow logs).  This setting determines the retention for the local account copy of the logs.',
     },
     'central-bucket': {
       title: 'Customer S3 Input Bucket',
@@ -3147,7 +3147,7 @@ translate(c.GlobalOptionsConfigType, {
     },
     scps: {
       title: 'SCPs',
-      description: 'Section to define service control policies',
+      description: 'Section to define service control policies which can be applied on accounts and OUs.',
     },
     'organization-admin-role': {
       title: 'Organization Admin Role',
@@ -3180,7 +3180,7 @@ translate(c.GlobalOptionsConfigType, {
     },
     'install-cloudformation-master-role': {
       title: '',
-      description: '',
+      description: 'Whether to create the CloudFormation role in the root account.',
     },
     'workloadaccounts-prefix': {
       title: 'Workload Accounts Config Filename Prefix',

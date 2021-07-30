@@ -869,7 +869,7 @@
   "mandatory-account-configs": {
     "shared-network": {
       "account-name": "SharedNetwork",
-      "email": "myemail+aseaT-network@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-network@example.com---------------------REPLACE------------",
       "ou": "core",
       "share-mad-from": "operations",
       "src-filename": "config.json",
@@ -1051,7 +1051,7 @@
     },
     "operations": {
       "account-name": "Operations",
-      "email": "myemail+aseaT-operations@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-operations@example.com---------------------REPLACE------------",
       "ou": "core",
       "account-warming-required": true,
       "limits": {},
@@ -1120,7 +1120,7 @@
           "num-rdgw-hosts": 1,
           "min-rdgw-hosts": 1,
           "max-rdgw-hosts": 2,
-          "rdgw-max-instance-age": 30,
+          "rdgw-max-instance-age": 7,
           "rdgw-instance-type": "t2.medium",
           "image-path": "/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base",
           "rdgw-instance-role": "${ACCELERATOR_PREFIX_ND}-RDGW-Role",
@@ -1227,13 +1227,13 @@
           "rsyslog-instance-type": "t2.medium",
           "rsyslog-instance-role": "${ACCELERATOR_PREFIX_ND}-Rsyslog-Role",
           "rsyslog-root-volume-size": 100,
-          "rsyslog-max-instance-age": 30
+          "rsyslog-max-instance-age": 7
         }
       }
     },
     "perimeter": {
       "account-name": "Perimeter",
-      "email": "myemail+aseaT-perimeter@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-perimeter@example.com---------------------REPLACE------------",
       "ou": "core",
       "account-warming-required": true,
       "src-filename": "config.json",
@@ -1312,7 +1312,7 @@
           "access-logs": true,
           "targets": [
             {
-              "target-name": "FG1-Web-azA",
+              "target-name": "Firewalls",
               "target-type": "instance",
               "protocol": "HTTPS",
               "port": 7001,
@@ -1324,19 +1324,7 @@
                   "target": "firewall",
                   "name": "Firewall",
                   "az": "a"
-                }
-              ],
-              "tg-weight": 1
-            },
-            {
-              "target-name": "FG1-Web-azB",
-              "target-type": "instance",
-              "protocol": "HTTPS",
-              "port": 7001,
-              "health-check-protocol": "HTTPS",
-              "health-check-path": "/health-check",
-              "health-check-port": 7001,
-              "target-instances": [
+                },
                 {
                   "target": "firewall",
                   "name": "Firewall",
@@ -1370,7 +1358,7 @@
           "access-logs": true,
           "targets": [
             {
-              "target-name": "FG1-Web-azA",
+              "target-name": "Firewalls",
               "target-type": "instance",
               "protocol": "HTTPS",
               "port": 7002,
@@ -1382,19 +1370,7 @@
                   "target": "firewall",
                   "name": "Firewall",
                   "az": "a"
-                }
-              ],
-              "tg-weight": 1
-            },
-            {
-              "target-name": "FG1-Web-azB",
-              "target-type": "instance",
-              "protocol": "HTTPS",
-              "port": 7002,
-              "health-check-protocol": "HTTPS",
-              "health-check-path": "/health-check",
-              "health-check-port": 7001,
-              "target-instances": [
+                },
                 {
                   "target": "firewall",
                   "name": "Firewall",
@@ -1734,7 +1710,7 @@
         "firewalls": [
           {
             "name": "Firewall",
-            "image-id": "ami-0c4cecd2e2f91c577",
+            "image-id": "ami-0d8e2e78e928def11",
             "instance-sizes": "c5.xlarge",
             "region": "${HOME_REGION}",
             "security-group": "Firewalls",
@@ -1787,7 +1763,7 @@
         ],
         "xxfirewall-manager": {
           "name": "FirewallMgr",
-          "image-id": "ami-0e3faadf2331f79bd",
+          "image-id": "ami-0e9f45c3ec34c3a9a",
           "instance-sizes": "c5.large",
           "block-device-mappings": ["/dev/sda1", "/dev/sdb"],
           "version": "6.4.4",
@@ -1804,7 +1780,7 @@
     },
     "management": {
       "account-name": "ASEA-Main",
-      "email": "myemail+aseaT-management@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-management@example.com---------------------REPLACE------------",
       "ou": "core",
       "src-filename": "config.json",
       "description": "This is the Organization Management or root account.  Access must be highly restricted.  This account should not contain customer resources.",
@@ -1943,14 +1919,14 @@
     "log-archive": {
       "account-name": "log-archive",
       "ou": "core",
-      "email": "myemail+aseaT-log@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-log@example.com---------------------REPLACE------------",
       "description": "This Account is used to centralized and store immutable logs for the Organization.",
       "src-filename": "config.json"
     },
     "security": {
       "account-name": "security",
       "ou": "core",
-      "email": "myemail+aseaT-sec@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-sec@example.com---------------------REPLACE------------",
       "description": "This Account is used to centralized access to AWS security tooling and consoles.",
       "src-filename": "config.json"
     }
@@ -1959,7 +1935,7 @@
   "organizational-units": {
     "core": {
       "type": "ignore",
-      "description": "The core OU is used to hold accounts with critical shared resources used by the rest of the Organization.",
+      "description": "The core OU is used to hold AWS accounts containing AWS resources shared or utilized by the rest of the Organization.",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Core Budget",
@@ -2076,7 +2052,7 @@
     },
     "Central": {
       "type": "mandatory",
-      "description": "The Central OU is used to hold accounts containing resources shared across groups of accounts, but not the entire Organization like the core OU.",
+      "description": "The Central OU is used to hold AWS accounts which contain group or team resources used across OU boundaries like code promotion tools.",
       "share-mad-from": "operations",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
       "default-budgets": {
