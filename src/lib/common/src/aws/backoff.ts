@@ -25,4 +25,7 @@ export const isThrottlingError = (e: any) =>
   e.code === 'Throttling' ||
   e.code === 'ThrottlingException' ||
   e.code === 'InternalErrorException' ||
-  e.code === 'InternalException';
+  e.code === 'InternalException' ||
+  e.message.includes(
+    'The request is rejected because service linked role cannot be created for AWS Organization management account',
+  ); // Retry for GuardDuty
