@@ -1,5 +1,6 @@
 import { PhaseInput } from './shared';
 import * as globalRoles from '../deployments/iam';
+import { IamCreateRole } from '@aws-accelerator/custom-resource-iam-create-role';
 
 /**
  * This is the main entry point to deploy phase -1.

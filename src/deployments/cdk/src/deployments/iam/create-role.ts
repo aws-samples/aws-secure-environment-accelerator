@@ -35,6 +35,7 @@ export async function createRole(stack: AccountStack) {
       actions: [
         'iam:GetRole',
         'iam:CreateRole',
+        'iam:CreateServiceLinkedRole',
         'iam:AttachRolePolicy',
         'iam:TagRole',
         'iam:DeleteRole',

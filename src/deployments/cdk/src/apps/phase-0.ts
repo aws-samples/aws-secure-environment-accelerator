@@ -18,7 +18,8 @@ import * as transitGateway from '../deployments/transit-gateway';
 import { getAccountId } from '../utils/accounts';
 import * as rsyslogDeployment from '../deployments/rsyslog';
 import * as cleanup from '../deployments/cleanup';
-
+import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import { IamServiceRole } from '@aws-accelerator/custom-resource-iam-service-role';
 /**
  * This is the main entry point to deploy phase 0.
  *
@@ -208,6 +209,30 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
     context,
   });
+
+  const iamCreateRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+    outputs,
+    accountKey: masterAccountKey,
+    roleKey: 'IamCreateRole',
+  });
+  if (!iamCreateRoleOutput) {
+    console.error(`IAM Role required to create ServiceLinkedRole is not created`);
+  } else {
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(masterAccountKey, context.defaultRegion);
+    if (!accountStack) {
+      console.error(
+        `Not able to create stack for "${masterAccountKey}:${context.defaultRegion}" whicle creating role for CWL Central logging`,
+      );
+      return;
+    }
+    new IamServiceRole(accountStack, 'GuardDutyServiceLinkedRole', {
+      lambdaRoleArn: iamCreateRoleOutput.roleArn,
+      roleName: 'AWSServiceRoleForAmazonGuardDuty',
+      serviceName: `guardduty.${cdk.Aws.URL_SUFFIX}`,
+      tagName: 'Accelerator',
+      tagValue: context.acceleratorName,
+    });
+  }
 
   // TODO Deprecate these outputs
   const logArchiveAccountKey = acceleratorConfig['global-options']['central-log-services'].account;
