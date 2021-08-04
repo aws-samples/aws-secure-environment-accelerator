@@ -66,20 +66,31 @@ The logic of the script is the following:
 
 ## Instructions
 
-1. Paste AWS temporary credentials (or set AWS_PROFILE) into the command terminal that will execute the script and set AWS_DEFAULT_REGION.
+~~Paste AWS temporary credentials (or set AWS_PROFILE) into the command terminal that will execute the script and set AWS_DEFAULT_REGION.~~
 
-2. Install the python3 required libaries (ex: `pip3 install -r requirements.txt`)
+1. Log into the AWS console as a Full Administrator to the Organization Management account.
+2. Start a CloudShell session.
+3. Copy the files from this folder and your `config.json` to the CloudShell session;
+   - ensure the management account name is properly reflected in the config file, or the script will fail;
+   - the script does not handle the use of the {HOME_REGION} variable (at this time), replace all occurances with the actual name of the home region (i.e. ca-central-1).
+4. Install the python3 required libaries (ex: `pip3 install -r requirements.txt`).
+5. Make the Python script executable (ex: `chmod +x aws-sea-cleanup.py`).
 
-3. Before running this script you must manually delete AWS SSO.
+6. Before running this script you must manually delete AWS SSO.
 
-4. Execute the script `python3 aws-sea-cleanup.py`.
+7. Execute the script `python3 aws-sea-cleanup.py`, a stacks.json should be generated.
 
 **Note: ** if you used a different AcceleratorPrefix you can use `python3 aws-sea-cleanup.py --AcceleratorPrefix YOUR_ACCELERATOR_PREFIX`.
 
-5. Manual steps (in the Organization Management account):
+7. Execute the script `python3 aws-sea-cleanup.py`, it should delete/cleanup your environment.
+
+   - if the script fails with an `Explicit Denied` error messages, manually remove all SCP's from all OU's and accounts from within AWS Organizations
+   - this requires first disabling the CloudWatch Event Rule, or the policies will auto re-attach
+
+8. Manual steps (in the Organization Management account):
    - In Secrets Manager, set the Secret `accelerator/config/last-successful-commit` to an empty string;
    - In DynamoDB, delete the 3 `PBMMAccel-*` tables;
-   - In Systems Manager Parameter Store, delete the `/accelerator/version` parameter;
+   - In Systems Manager Parameter Store, delete the `/accelerator/version` and `/accelerator/first-version` parameters;
    - In CodeCommit, delete the repository `PBMMAccel-Config-Repo`.
 
 ## Considerations
@@ -88,7 +99,7 @@ The logic of the script is the following:
 
    a. Certificates in ACM
 
-   b. The initial CDK bootstrap CloudFormation Stack (`CDKToolkit`)
+   b. The initial CDK bootstrap CloudFormation Stack (`PBMMAccel-CDKToolkit`) and `ASEA-CloudFormationStackSetExecutionRole` stack
 
    c. CDK S3 buckets (`cdktoolkit-stagingbucket-*`)
 
