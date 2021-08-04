@@ -232,6 +232,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       tagName: 'Accelerator',
       tagValue: context.acceleratorName,
     });
+
+    new IamServiceRole(accountStack, 'MacieServiceLinkedRole', {
+      lambdaRoleArn: iamCreateRoleOutput.roleArn,
+      roleName: 'AWSServiceRoleForAmazonMacie',
+      serviceName: `macie.${cdk.Aws.URL_SUFFIX}`,
+      tagName: 'Accelerator',
+      tagValue: context.acceleratorName,
+    });
   }
 
   // TODO Deprecate these outputs
