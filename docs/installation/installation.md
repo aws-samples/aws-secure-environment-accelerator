@@ -268,6 +268,8 @@ If deploying to an internal AWS employee account, to successfully install the so
 Current Issues:
 
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine.
+- In v1.3.5 new deployments the State Machine fails in Phase 1 on a GuardDuty delegated admin issue which causes the stack to rollback and then causes an issue with Macie. In the Organization Management account, in every 'supported-region' defined in the config file, check for the existance of a completed Phase 1 stack. If the Phase 1 stack does NOT exist in the region, disable or ensure the Macie Delegated Admin account is removed from Macie for that region. If the Phase 1 stack exists, Macie Delegated Admin should be and remain enabled. Once validated for all regions, rerun the state machine.
+- In v1.3.6 the Macie issue from v1.3.5 has been resolved, but Guardduty continues to cause the state machine to fail. Simply rerun the state machine. We are working on a fix.
 
 Issues in Older Releases:
 
