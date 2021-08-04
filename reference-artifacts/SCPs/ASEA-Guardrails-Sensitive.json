@@ -99,6 +99,7 @@
       "NotAction": [
         "a4b:*",
         "acm:*",
+        "access-analyzer:ValidatePolicy",
         "aws-marketplace-management:*",
         "aws-marketplace:*",
         "aws-portal:*",
