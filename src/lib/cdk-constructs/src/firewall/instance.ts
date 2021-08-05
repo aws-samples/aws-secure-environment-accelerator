@@ -98,7 +98,7 @@ export class FirewallInstance extends cdk.Construct {
                 bucket: configuration.bucket.bucketName,
                 region: configuration.bucketRegion,
                 config: `/${configuration.configPath}`,
-                license: `/${props.licensePath}`,
+                license: props.licensePath ? `/${props.licensePath}` : '',
               },
               null,
               2,
