@@ -1849,7 +1849,7 @@
                   "type": ["ALL"],
                   "source": [
                     {
-                      "security-group": ["Inspection1-GWLB"]
+                      "security-group": ["Inspection-GWLB"]
                     }
                   ]
                 },
