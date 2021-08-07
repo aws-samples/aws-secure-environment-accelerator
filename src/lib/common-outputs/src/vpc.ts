@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { defaulted } from '@aws-accelerator/common-types';
+import { defaulted, optional } from '@aws-accelerator/common-types';
 import { createStructuredOutputFinder } from './structured-output';
 import { StackOutput } from './stack-output';
 
@@ -41,6 +41,12 @@ export const VpcSecurityGroupOutput = t.interface({
   securityGroupName: t.string,
 });
 
+export const NfwOutput = t.interface({
+  az: t.string,
+  vpcEndpoint: t.string,
+  subnets: t.array(VpcSubnetOutput),
+});
+
 export const VpcOutput = t.interface(
   {
     accountKey: t.string,
@@ -55,6 +61,7 @@ export const VpcOutput = t.interface(
     securityGroups: t.array(VpcSecurityGroupOutput),
     tgwAttachments: t.array(TgwAttachmentOutput),
     initialSubnets: defaulted(t.array(VpcSubnetOutput), []),
+    nfw: optional(t.array(NfwOutput)),
   },
   'VpcOutput',
 );

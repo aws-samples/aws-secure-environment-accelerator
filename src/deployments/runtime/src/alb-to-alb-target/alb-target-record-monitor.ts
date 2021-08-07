@@ -5,28 +5,6 @@ const elbv2 = new AWS.ELBv2();
 const docClient = new AWS.DynamoDB.DocumentClient();
 const ddbTable = process.env.LOOKUP_TABLE || '';
 
-/* interface dnsForwardItem {
-  id: string;
-  vpcId: string;
-  targetAlbDnsName: string;
-  targetGroupDestinationPort: number;
-  targetGroupProtocol: string;
-  rule: {
-    sourceListenerArn: string;
-    condition: {
-      paths: string[];
-      hosts: string[];
-      priority: number;
-    };
-  };
-  metadata?: {
-    targetGroupArn: string;
-    ruleArn: string;
-    targetGroupIpAddresses: string[];
-  };
-}
-*/
-
 const sleep = (ms: number) => {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
@@ -43,6 +21,41 @@ const createTargetGroup = async (name: string, port: number, vpcId: string, prot
   };
 
   return elbv2.createTargetGroup(targetGroupParams).promise();
+};
+
+const enableTargetStickyness = async (targetGroupArn: string) => {
+  const targetGroupAtrributesParams = {
+    Attributes: [{ Key: 'stickiness.enabled', Value: 'true' }],
+    TargetGroupArn: targetGroupArn,
+  };
+
+  return elbv2.modifyTargetGroupAttributes(targetGroupAtrributesParams).promise();
+};
+
+const isValidPriority = async (priority: number, listenerArn: string) => {
+  const ruleParams = {
+    ListenerArn: listenerArn,
+  };
+
+  const ruleList = await elbv2.describeRules(ruleParams).promise();
+  const priorityExists =
+    ruleList.Rules?.filter(rule => {
+      return rule.Priority === priority.toString();
+    }) || [];
+  return priorityExists.length === 0;
+};
+
+const listenerExists = async (listenerArn: string): Promise<Boolean> => {
+  try {
+    const listenerParams: AWS.ELBv2.DescribeListenersInput = {
+      ListenerArns: [listenerArn],
+    };
+    await elbv2.describeListeners(listenerParams).promise();
+    return Promise.resolve(true);
+  } catch (err) {
+    console.log(err);
+    return Promise.resolve(false);
+  }
 };
 
 const createListenerRule = async (
@@ -132,6 +145,18 @@ const deleteTargetGroup = async (targetGroupArn: string) => {
   return elbv2.deleteTargetGroup(targetGroupParams).promise();
 };
 
+const updateRulePriority = async (ruleArn: string, priority: number) => {
+  const rulePriorityParams = {
+    RulePriorities: [
+      {
+        Priority: priority,
+        RuleArn: ruleArn,
+      },
+    ],
+  };
+  return elbv2.setRulePriorities(rulePriorityParams).promise();
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const putRecord = async (table: string, record: any) => {
   const putParams = {
@@ -176,10 +201,28 @@ const listernerRulesChange = (oldRecord: any, newRecord: any) => {
   return !_.isEqual(oldListenerRules, newListenerRules);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const priorityChange = (oldRecord: any, newRecord: any) => {
+  const oldPriority = oldRecord.rule.condition.priority;
+  const newPriority = newRecord.rule.condition.priority;
+
+  return !(oldPriority === newPriority);
+};
+
 const createRecordHandler = async (record: any) => {
   console.log('Record creation detected.');
   try {
+    if (!(await listenerExists(record.rule.sourceListenerArn))) {
+      throw new Error(`The ALB Listener ARN: ${record.rule.sourceListenerArn} does not exist. Exiting`);
+    }
+
+    console.log('Checking if priority is valid');
+    if (!(await isValidPriority(record.rule.condition.priority, record.rule.sourceListenerArn))) {
+      throw new Error(
+        `The priority ${record.rule.condition.priority.toString()} matches an existing rule priority on the listener arn ${
+          record.rule.sourceListenerArn
+        }. Priorities must not match. Exiting`,
+      );
+    }
     const targetGroup = await createTargetGroup(
       record.id,
       record.targetGroupDestinationPort,
@@ -188,6 +231,9 @@ const createRecordHandler = async (record: any) => {
     );
 
     const targetGroupArn = targetGroup?.TargetGroups?.[0].TargetGroupArn ?? '';
+
+    await enableTargetStickyness(targetGroupArn);
+
     const rule = await createListenerRule(
       record.rule.sourceListenerArn,
       record.rule.condition.paths,
@@ -222,21 +268,27 @@ const deleteRecordHandler = async (record: any) => {
 
     await deleteListenerRule(record.metadata.ruleArn);
     console.log('Deleted listener rule.');
+  } catch (err) {
+    console.log(err);
+    console.log('Could not delete listener rule for record. Continuing...', JSON.stringify(record, null, 4));
+  }
+  try {
     await deleteTargetGroup(record.metadata.targetGroupArn);
     console.log('Deleted target group');
-
     return;
   } catch (err) {
-    console.log('There was a problem deleteing the record: ', JSON.stringify(record, null, 4));
-
-    throw err;
+    console.log('Could not delete target group for record', JSON.stringify(record, null, 4));
+    console.log(err);
   }
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const updateRecordHandler = async (newRecord: any, oldRecord: any) => {
   try {
     console.log(`The record with id ${newRecord.id} was updated. Performing comparison.`);
+    if (!(await listenerExists(newRecord.rule.sourceListenerArn))) {
+      throw new Error(`The ALB Listener ARN: ${newRecord.rule.sourceListenerArn} does not exist. Exiting`);
+    }
+
     const newRecordClone = _.cloneDeep(newRecord);
     const oldRecordClone = _.cloneDeep(oldRecord);
     delete newRecordClone.metadata;
@@ -246,9 +298,15 @@ const updateRecordHandler = async (newRecord: any, oldRecord: any) => {
       console.log(`Update Record hanlder found no changes made for record with Id ${newRecord.id}`);
       return;
     }
+
+    if (!oldRecord.metadata) {
+      console.log('No previous metadata detected for record. Creating metadata based off of new entry');
+      await createRecordHandler(newRecord);
+      return;
+    }
+
     if (listernerRulesChange(oldRecord, newRecord)) {
       console.log(`Detected a listener rule change. Modifying rule ${newRecord.metadata.ruleArn}`);
-
       await updateListenerRule(
         newRecord.metadata.ruleArn,
         newRecord.rule.condition.paths,
@@ -256,7 +314,16 @@ const updateRecordHandler = async (newRecord: any, oldRecord: any) => {
         newRecord.metadata.targetGroupArn,
       );
     }
-
+    if (priorityChange(oldRecord, newRecord)) {
+      if (!(await isValidPriority(newRecord.rule.condition.priority, newRecord.rule.sourceListenerArn))) {
+        throw new Error(
+          `The priority ${newRecord.rule.condition.priority.toString()} matches an existing rule priority on the listener arn ${
+            newRecord.rule.sourceListenerArn
+          }. Priorities must not match.`,
+        );
+      }
+      await updateRulePriority(newRecord.metadata.ruleArn, newRecord.rule.condition.priority);
+    }
     if (targetGroupChange(oldRecord, newRecord)) {
       console.log(
         `Detected a target group change. deleting target group  ${newRecord.metadata.targetGroupArn} and creating a new target group`,

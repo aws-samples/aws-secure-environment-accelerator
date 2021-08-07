@@ -50,6 +50,7 @@ export const handler = async (input: VerifyFilesInput) => {
   await verifyRsyslogFiles(outputs, errors);
   await verifySsmDocumentFiles(outputs, acceleratorConfig, errors);
   await verifyConfigRuleFiles(outputs, acceleratorConfig, errors);
+  await verifyNfwFiles(masterAccountKey, outputs, acceleratorConfig, errors);
 
   if (errors.length > 0) {
     throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
@@ -141,6 +142,34 @@ async function verifyFirewallFiles(
     }
   }
   await verifyFiles(centralBucketOutput.bucketName, firewallFiles, errors);
+}
+
+async function verifyNfwFiles(
+  masterAccountKey: string,
+  outputs: StackOutput[],
+  config: c.AcceleratorConfig,
+  errors: string[],
+): Promise<void> {
+  const centralBucketOutput = CentralBucketOutputFinder.findOneByName({
+    outputs,
+    accountKey: masterAccountKey,
+  });
+
+  const nfwFiles: string[] = [];
+  for (const [_, accountConfig] of config.getAccountConfigs()) {
+    for (const vpc of accountConfig?.vpc || []) {
+      if (!vpc.nfw) {
+        continue;
+      }
+      if (!c.AWSNetworkFirewallConfig.is(vpc.nfw)) {
+        continue;
+      }
+      if (vpc.nfw.policy.path) {
+        nfwFiles.push(vpc.nfw.policy.path);
+      }
+    }
+  }
+  await verifyFiles(centralBucketOutput.bucketName, nfwFiles, errors);
 }
 
 async function verifyCertificates(

@@ -25,7 +25,15 @@ export async function step1(props: ArtifactsStep1Props) {
   const centralConfigBucket = s3.Bucket.fromBucketAttributes(masterAccountStack, 'CentralBucket', {
     bucketName: centralConfigBucketName,
   });
-
+  // upload AWS NFW Artifacts
+  const nfwUpload = uploadArtifacts({
+    accountStack: masterAccountStack,
+    artifactName: 'NFW',
+    artifactFolderName: 'NFW',
+    artifactKeyPrefix: 'nfw',
+    centralBucket,
+    destinationKeyPrefix: 'nfw',
+  });
   // upload SCP Artifacts
   const scpUpload = uploadArtifacts({
     accountStack: masterAccountStack,
@@ -103,6 +111,7 @@ export async function step1(props: ArtifactsStep1Props) {
   copyFiles.node.addDependency(iamUpload);
   copyFiles.node.addDependency(scpUpload);
   copyFiles.node.addDependency(configRulesUpload);
+  copyFiles.node.addDependency(nfwUpload);
 }
 
 function uploadArtifacts(props: {

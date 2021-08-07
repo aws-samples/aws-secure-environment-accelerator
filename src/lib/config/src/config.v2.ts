@@ -57,6 +57,7 @@ export const NatGatewayConfig = t.interface({
 });
 
 export const AWSNetworkFirewallConfig = t.interface({
+  'firewall-name': t.optional(t.nonEmptyString),
   subnet: t.interface({
     name: t.nonEmptyString,
     az: t.optional(t.availabilityZone),

@@ -17,6 +17,7 @@ import {
   TransitGatewayOutput,
   TransitGatewayAttachmentOutput,
 } from '@aws-accelerator/common-outputs/src/transit-gateway';
+
 import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gateway/outputs';
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
 import { VpcDefaultSecurityGroup } from '@aws-accelerator/custom-resource-vpc-default-security-group';
@@ -62,6 +63,10 @@ export interface VpcCommonProps {
    * List of account stacks in the organization.
    */
   accountStacks: AccountStacks;
+
+  ddbKmsKey?: string;
+
+  acceleratorPrefix?: string;
 }
 
 export interface AzSubnet extends constructs.Subnet {
@@ -151,9 +156,9 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
   readonly securityGroup?: SecurityGroup;
   readonly routeTableNameToIdMap: NameToIdMap = {};
   readonly natgwNameToIdMap: NameToIdMap = {};
-  readonly nfwNameToIdMap: NameToIdMap = {};
   readonly tgwAttachments: TgwAttachment[] = [];
-  readonly nfwSubnets: AzSubnet[] = [];
+  readonly nfw?: Nfw;
+  readonly ddbKmsKey: string;
 
   constructor(scope: cdk.Construct, name: string, vpcProps: VpcProps) {
     super(scope, name);
@@ -176,7 +181,6 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       existingAttachments,
     } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
-
     const currentVpcPools: AssignedVpcCidrPool[] = [];
     const currentSubnetPools: AssignedSubnetCidrPool[] = [];
     if (['lookup', 'dynamic'].includes(vpcConfig['cidr-src'])) {
@@ -193,7 +197,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         }),
       );
     }
-
+    this.ddbKmsKey = props.vpcProps.ddbKmsKey || '';
     this.name = props.vpcProps.vpcConfig.name;
     const vpcCidrs = props.vpcProps.vpcConfig.cidr;
     this.region = vpcConfig.region;
@@ -575,28 +579,24 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       } else {
         nfwSubnets.push(...this.azSubnets.getAzSubnetsForSubnetName(subnetConfig.name));
       }
-      this.nfwSubnets = nfwSubnets;
       // enable aws-nfw
-      const nfw = new Nfw(this, `${nfwProps.policy.name}-nfw`, {
+      this.nfw = new Nfw(this, `${nfwProps['firewall-name']}`, {
         nfwPolicy: nfwProps.policyString,
         nfwPolicyConfig: nfwProps.policy,
-        subnets: this.nfwSubnets,
+        subnets: nfwSubnets,
         vpcId: this.vpcId,
+        nfwName: nfwProps['firewall-name'] || 'awsnfw',
+        acceleratorPrefix: vpcProps.acceleratorPrefix || '',
       });
-      this.nfwNameToIdMap = this.nfwSubnets.reduce((acc: NameToIdMap, nfwSubnet, index) => {
-        const endpointAttr = cdk.Fn.select(index, nfw.firewall.attrEndpointIds);
-        const endpointAttrArray = cdk.Fn.split(':', endpointAttr);
-        const endpointId = cdk.Fn.select(1, endpointAttrArray);
-
-        acc[`NFW_${nfwSubnet.name}_az${nfwSubnet.az.toUpperCase()}`.toLowerCase()] = endpointId;
-        return acc;
-      }, {});
-      console.log('NFW MAP: ', JSON.stringify(this.nfwNameToIdMap, null, 4));
     }
 
     if (vpcConfig?.['alb-forwarding']) {
       console.log('Deploying ALB forwarding');
-      const albipforward = new AlbIpForwarding(this, 'albIpForwarding');
+      const albipforward = new AlbIpForwarding(this, 'albIpForwarding', {
+        vpcId: this.vpcId,
+        ddbKmsKey: this.ddbKmsKey,
+        acceleratorPrefix: vpcProps.acceleratorPrefix || '',
+      });
       console.log('ALB forwarding enabled');
     } else {
       console.log('alb ip forwarding not enabled. Skipping.');
@@ -659,26 +659,6 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
               destinationCidrBlock: route.destination,
               natGatewayId: this.natgwNameToIdMap[route.target.toLowerCase()],
             };
-            new ec2.CfnRoute(this, constructName, routeParams);
-            continue;
-          } else if (route.target.startsWith('NFW_')) {
-            if (typeof route.destination !== 'string') {
-              console.warn(`Route for NFW only supports cidr as destination`);
-              continue;
-            }
-            console.log('Route: ', JSON.stringify(route, null, 4));
-            let constructName = `${routeTableName}_nfw_route`;
-            if (route.destination !== '0.0.0.0/0') {
-              constructName = `${routeTableName}_nfw_${route.destination}_route`;
-            }
-            const routeParams: ec2.CfnRouteProps = {
-              routeTableId: routeTableObj,
-              destinationCidrBlock: route.destination,
-              vpcEndpointId: this.nfwNameToIdMap[route.target.toLowerCase()],
-            };
-
-            console.log('ROUTE PARAMS: ', JSON.stringify(routeParams, null, 4));
-
             new ec2.CfnRoute(this, constructName, routeParams);
             continue;
           } else {

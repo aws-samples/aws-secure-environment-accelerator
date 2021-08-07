@@ -3,7 +3,7 @@ import * as cdk from '@aws-cdk/core';
 import { getAccountId } from '../utils/accounts';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
-import { VpcOutputFinder, SharedSecurityGroupIndexOutput } from '@aws-accelerator/common-outputs/src/vpc';
+import { VpcOutputFinder, SharedSecurityGroupIndexOutput, NfwOutput } from '@aws-accelerator/common-outputs/src/vpc';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { PeeringConnectionConfig, VpcConfigType } from '@aws-accelerator/common-config/src';
 import { getVpcSharedAccountKeys } from '../common/vpc-subnet-sharing';
@@ -83,11 +83,66 @@ export async function deploy({
     context,
   });
 
+  const vpcConfigs = acceleratorConfig.getVpcConfigs();
+  /**
+   * Add NFW Routes if they exist
+   *
+   */
+
+  for (const { accountKey, vpcConfig } of vpcConfigs) {
+    const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+      outputs,
+      vpcName: vpcConfig.name,
+      region: vpcConfig.region,
+      accountKey,
+    });
+    if (!vpcOutput) {
+      console.warn(`Cannot find output with vpc name ${vpcConfig.name}`);
+      continue;
+    }
+
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
+    const nfwNameToIdMap = vpcOutput.nfw?.reduce((acc: any, nfwConfig) => {
+      const vpcEndpointAz = nfwConfig.az.substr(-1);
+      const vpcEndpointId = nfwConfig.vpcEndpoint;
+      const mapSubnet = nfwConfig.subnets.filter(subnet => {
+        return vpcEndpointAz === subnet.az;
+      });
+      acc[`NFW_${mapSubnet[0].subnetName}_az${vpcEndpointAz.toUpperCase()}`.toLowerCase()] = vpcEndpointId;
+      return acc;
+    }, {});
+    console.log(nfwNameToIdMap);
+    const routeTables = vpcConfig['route-tables'] || [];
+    for (const routeTable of routeTables) {
+      for (const route of routeTable.routes || []) {
+        if (route.target.startsWith('NFW_')) {
+          if (typeof route.destination !== 'string') {
+            console.warn(`Route for NFW only supports cidr as destination`);
+            continue;
+          }
+          let constructName = `${routeTable.name}_nfw_route`;
+          if (route.destination !== '0.0.0.0/0') {
+            constructName = `${routeTable.name}_nfw_${route.destination}_route`;
+          }
+          const routeParams: ec2.CfnRouteProps = {
+            routeTableId: vpcOutput.routeTables[routeTable.name],
+            destinationCidrBlock: route.destination,
+            vpcEndpointId: nfwNameToIdMap[route.target.toLowerCase()],
+          };
+          new ec2.CfnRoute(accountStack, constructName, routeParams);
+        }
+      }
+    }
+  }
+
   /**
    * Code to create Peering Connection in all accounts
    */
 
-  const vpcConfigs = acceleratorConfig.getVpcConfigs();
   for (const { accountKey, vpcConfig } of vpcConfigs) {
     const pcxConfig = vpcConfig.pcx;
     if (!PeeringConnectionConfig.is(pcxConfig)) {

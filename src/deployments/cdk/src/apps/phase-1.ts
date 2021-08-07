@@ -32,9 +32,10 @@ import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-
 import * as vpcDeployment from '../deployments/vpc';
 import * as transitGateway from '../deployments/transit-gateway';
 import * as centralEndpoints from '../deployments/central-endpoints';
-import { VpcOutputFinder, VpcSubnetOutput } from '@aws-accelerator/common-outputs/src/vpc';
+import { NfwOutput, VpcOutputFinder, VpcSubnetOutput } from '@aws-accelerator/common-outputs/src/vpc';
 import { loadAssignedVpcCidrPool, loadAssignedSubnetCidrPool } from '@aws-accelerator/common/src/util/common';
 import { TransitGatewayAttachmentOutputFinder } from '@aws-accelerator/common-outputs/src/transit-gateway';
+import { EbsKmsOutputFinder } from '@aws-accelerator/common-outputs/src/ebs';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
 export interface IamPolicyArtifactsOutput {
@@ -80,7 +81,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   if (!masterAccountId) {
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
   }
-
   const { acceleratorName, installerVersion, defaultRegion, acceleratorExecutionRoleName } = context;
   // Find the central bucket in the outputs
   const centralBucket = CentralBucketOutput.getBucket({
@@ -88,7 +88,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     outputs,
   });
-
+  console.log(centralBucket.bucketName);
   const logBucket = LogBucketOutput.getBucket({
     accountStacks,
     config: acceleratorConfig,
@@ -154,7 +154,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       console.warn(`Cannot find account stack ${accountKey}`);
       return;
     }
-
     const vpcStackPrettyName = pascalCase(props.vpcConfig.name);
 
     const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, props);
@@ -174,6 +173,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     } else {
       initialSubnets.push(...subnets);
     }
+    const nfwOutputs = vpc.nfw?.nfwOutput;
 
     // Store the VPC output so that subsequent phases can access the output
     new vpcDeployment.CfnVpcOutput(vpc, `VpcOutput`, {
@@ -193,6 +193,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       ),
       tgwAttachments: vpc.tgwAVpcAttachments,
       initialSubnets,
+      nfw: nfwOutputs || [],
     });
 
     return vpcStack.vpc;
@@ -226,32 +227,23 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       vpcName: vpcConfig.name,
     });
 
-    if (vpcConfig.nfw?.policy.path) {
+    if (vpcConfig.nfw) {
       // Try to get policy document for nfw
       const sts = new STS();
       const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(
         masterAccountId,
         context.acceleratorExecutionRoleName,
       );
-      const configBucket = acceleratorConfig['global-options']['central-bucket'];
-      console.log('config bucket', configBucket);
+
       const s3 = new S3(masterAcctCredentials);
-      const policyExists = await s3.objectExists({
-        Bucket: configBucket,
-        Key: vpcConfig.nfw.policy.path,
+      vpcConfig.nfw.policyString = await s3.getObjectBodyAsString({
+        Bucket: centralBucket.bucketName,
+        Key: vpcConfig.nfw.policy.path || 'nfw/nfwPolicy.json',
       });
-      if (policyExists) {
-        vpcConfig.nfw.policyString = await s3.getObjectBodyAsString({
-          Bucket: configBucket,
-          Key: vpcConfig.nfw.policy.path,
-        });
-      } else {
-        console.log(`The NFW Policy doesn't exist in ${centralBucket.bucketName}/${vpcConfig.nfw.policy.path}`);
-      }
     } else {
       console.log('No NFW policy path found skipping');
     }
-
+    const ebsKmsKey = EbsKmsOutputFinder.findOneByName({ accountKey, region: vpcConfig.region, outputs });
     const vpc = createVpc(accountKey, {
       accountKey,
       accountStacks,
@@ -268,6 +260,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       vpcPools: assignedVpcCidrPools,
       subnetPools: assignedSubnetCidrPools,
       existingAttachments,
+      ddbKmsKey: ebsKmsKey?.encryptionKeyArn,
+      acceleratorPrefix: context.acceleratorPrefix,
     });
 
     const pcxConfig = vpcConfig.pcx;
@@ -535,7 +529,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   /**
    * DisAssociate HostedZone to VPC
-   * - On Adding of InterfaceEndpoint in local VPC whose use-central-endpoint: true and Endpoint also esists in Central VPC
+   * - On Adding of InterfaceEndpoint in local VPC whose use-central-endpoint: true and Endpoint also exists in Central VPC
    */
 
   await centralEndpoints.step5({

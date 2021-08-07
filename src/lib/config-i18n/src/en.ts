@@ -76,14 +76,15 @@ const translations = translation(
         aws_configuration: 'Credentials',
         aws_configuration_desc: '',
         framework: 'Framework Template',
-        framework_desc: 
-		'The template is used to guide the wizard and provide suggested defaults based on the selected compliance framework or country security standard.',
+        framework_desc:
+          'The template is used to guide the wizard and provide suggested defaults based on the selected compliance framework or country security standard.',
         basic_settings: 'Basic Settings',
         basic_settings_desc: '',
         security_notifications: 'Security Notifications',
         security_notifications_desc: '',
         security_guardrails_always_on: 'AWS Regions for governance',
-        security_guardrails_always_on_desc: 'AWS generally recommends enabling the deployment of security guardrails in all enabled regions, regardless of the regions actually being used by a customer.',
+        security_guardrails_always_on_desc:
+          'AWS generally recommends enabling the deployment of security guardrails in all enabled regions, regardless of the regions actually being used by a customer.',
         security_guardrails_opt_in: 'Opt-In Regions requiring governance',
         security_guardrails_opt_in_desc: 'These regions are NOT supported at this time.',
         security_services: 'Security Service Deployment',
@@ -91,17 +92,21 @@ const translations = translation(
         security_services_logging: 'Logging',
         security_services_logging_desc: '',
         cidr_pools: 'CIDR Pools',
-        cidr_pools_desc: 'Address pools that will be used to dynamically assign CIDR ranges to each VPC set for dynamic address assignment.',
+        cidr_pools_desc:
+          'Address pools that will be used to dynamically assign CIDR ranges to each VPC set for dynamic address assignment.',
         add_cidr_pool: 'Add CIDR pool',
         edit_cidr_pool: 'Edit CIDR pool',
         add_organizational_unit: 'Add organizational unit',
         edit_organizational_unit: 'Edit organizational unit',
         organizational_units: 'Organizational Units (Top level)',
-        organizational_units_desc: 'OUs are used to group accounts by major changes in permissions. While they often resemble the SDLC cycle, they should only reflect MAJOR shifts (QA often fits with Test, Pre-Prod within Prod, etc.)',
+        organizational_units_desc:
+          'OUs are used to group accounts by major changes in permissions. While they often resemble the SDLC cycle, they should only reflect MAJOR shifts (QA often fits with Test, Pre-Prod within Prod, etc.)',
         mandatory_accounts: 'Shared Accounts',
-        mandatory_accounts_desc: 'These are AWS accounts (private cloud environments) which are used to provide centralized functionality across the entire organization.  These typically do not change over the course of a customers AWS journey.',
+        mandatory_accounts_desc:
+          'These are AWS accounts (private cloud environments) which are used to provide centralized functionality across the entire organization.  These typically do not change over the course of a customers AWS journey.',
         workload_accounts: 'Workload Accounts',
-        workload_accounts_desc: 'These are AWS accounts (private cloud environments) containing business workloads.  As customers grow and evolve, new workload  accounts are typically created.',
+        workload_accounts_desc:
+          'These are AWS accounts (private cloud environments) containing business workloads.  As customers grow and evolve, new workload  accounts are typically created.',
         add_mandatory_account: 'Add shared account',
         add_workload_account: 'Add workload account',
         edit_mandatory_account: 'Edit shared account',
@@ -176,10 +181,12 @@ const translations = translation(
         architecture_template: 'Please select a prescriptive architecture template',
         architecture_template_desc:
           'Accelerator JSON config file (YAML NOT supported).  While any valid Accelerator config file can be used, the template limits and controls the wizards capabilities.',
-        installation_region: 'Installation or Home region. Defaults to the region provided when suplying security credentials.',
+        installation_region:
+          'Installation or Home region. Defaults to the region provided when suplying security credentials.',
         installation_region_desc: 'The primary or main region used to host your AWS workloads.',
         installation_type: 'Installation type',
-        installation_type_desc: 'While AWS generally recommends deploying using a Control Tower based installation type, the supplied template recommends the following installation type.',
+        installation_type_desc:
+          'While AWS generally recommends deploying using a Control Tower based installation type, the supplied template recommends the following installation type.',
         high_priority_email: 'High priority notification email address',
         high_priority_email_desc: '',
         medium_priority_email: 'Medium priority notification email address',
@@ -387,10 +394,19 @@ translate(c.AlbIpForwardingConfig, {
   description: '',
 });
 
+translate(c.AlbIpForwardingConfig, {
+  title: '',
+  description: '',
+});
+
 translate(c.AWSNetworkFirewallConfig, {
   title: '',
   description: '',
   fields: {
+    'firewall-name': {
+      title: '',
+      description: '',
+    },
     subnet: {
       title: '',
       description: '',
@@ -419,7 +435,8 @@ translate(c.SubnetDefinitionConfig, {
     },
     disabled: {
       title: 'Subnet Disabled',
-      description: 'Define the subnet in the Accelerator to reserve the address space, but do not create it at this time.  Used to define a 3 AZ config, but deploy a 2 AZ config.',
+      description:
+        'Define the subnet in the Accelerator to reserve the address space, but do not create it at this time.  Used to define a 3 AZ config, but deploy a 2 AZ config.',
     },
   },
 });

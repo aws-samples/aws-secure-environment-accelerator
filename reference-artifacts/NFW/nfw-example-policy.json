@@ -1,0 +1,93 @@
+{
+  "statelessDefaultActions": ["aws:forward_to_sfe"],
+  "statelessFragmentDefaultActions": ["aws:forward_to_sfe"],
+  "statelessRuleGroup": [
+    {
+      "priority": 10,
+      "ruleGroupName": "allowDomainsRuleGroup1",
+      "type": "STATELESS",
+      "capacity": 100,
+      "ruleGroup": {
+        "rulesSource": {
+          "statelessRulesAndCustomActions": {
+            "statelessRules": [
+              {
+                "ruleDefinition": {
+                  "matchAttributes": {
+                    "sources": [
+                      {
+                        "addressDefinition": "10.0.0.0/13"
+                      }
+                    ],
+                    "destinations": [
+                      {
+                        "addressDefinition": "0.0.0.0/0"
+                      }
+                    ],
+                    "destinationPorts": [
+                      {
+                        "fromPort": 443,
+                        "toPort": 443
+                      }
+                    ],
+                    "protocols": [6]
+                  },
+                  "actions": ["aws:forward_to_sfe"]
+                },
+                "priority": 10
+              },
+              {
+                "ruleDefinition": {
+                  "matchAttributes": {
+                    "sources": [
+                      {
+                        "addressDefinition": "0.0.0.0/0"
+                      }
+                    ],
+                    "destinations": [
+                      {
+                        "addressDefinition": "10.7.4.0/22"
+                      }
+                    ],
+                    "destinationPorts": [
+                      {
+                        "fromPort": 443,
+                        "toPort": 443
+                      }
+                    ],
+                    "protocols": [6]
+                  },
+                  "actions": ["aws:forward_to_sfe"]
+                },
+                "priority": 20
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "statefulRuleGroup": [
+    {
+      "ruleGroupName": "DomainAllowStatefulRuleGroup",
+      "type": "STATEFUL",
+      "capacity": 100,
+      "ruleGroup": {
+        "ruleVariables": {
+          "ipSets": {
+            "HOME_NET": {
+              "definition": ["10.0.0.0/8"]
+            }
+          }
+        },
+        "rulesSource": {
+          "rulesSourceList": {
+            "targetTypes": ["HTTP_HOST", "TLS_SNI"],
+            "targets": ["amazon.com", "github.com", "microsoft.com"],
+            "generatedRulesType": "ALLOWLIST"
+          }
+        }
+      }
+    }
+  ]
+}
