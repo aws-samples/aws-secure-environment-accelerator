@@ -4,7 +4,7 @@ import * as dynamodb from 'aws-sdk/clients/dynamodb';
 
 const DEV_OUTPUTS_FILE_PATH = '../../../src/deployments/cdk/outputs.json';
 const env = process.env;
-const acceleratorPrefix = env.ACCELERATOR_PREFIX || 'PBMMAccel-';
+const acceleratorPrefix = env.ACCELERATOR_PREFIX || 'ASEA-';
 const documentClient = new aws.DynamoDB.DocumentClient();
 export async function loadOutputs(tableName: string) {
   const outputs = [];

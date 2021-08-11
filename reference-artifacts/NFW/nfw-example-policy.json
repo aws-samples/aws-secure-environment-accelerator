@@ -4,7 +4,7 @@
   "statelessRuleGroup": [
     {
       "priority": 10,
-      "ruleGroupName": "allowDomainsRuleGroup1",
+      "ruleGroupName": "StatelessCIDRRuleGroup",
       "type": "STATELESS",
       "capacity": 100,
       "ruleGroup": {
@@ -17,6 +17,12 @@
                     "sources": [
                       {
                         "addressDefinition": "10.0.0.0/13"
+                      },
+                      {
+                        "addressDefinition": "100.96.252.0/23"
+                      },
+                      {
+                        "addressDefinition": "100.96.250.0/23"
                       }
                     ],
                     "destinations": [
@@ -28,6 +34,10 @@
                       {
                         "fromPort": 443,
                         "toPort": 443
+                      },
+                      {
+                        "fromPort": 80,
+                        "toPort": 80
                       }
                     ],
                     "protocols": [6]
@@ -69,22 +79,22 @@
   ],
   "statefulRuleGroup": [
     {
-      "ruleGroupName": "DomainAllowStatefulRuleGroup",
+      "ruleGroupName": "DeniedDomainsStatefulRuleGroup",
       "type": "STATEFUL",
       "capacity": 100,
       "ruleGroup": {
         "ruleVariables": {
           "ipSets": {
             "HOME_NET": {
-              "definition": ["10.0.0.0/8"]
+              "definition": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23","1.1.1.1/32"]
             }
           }
         },
         "rulesSource": {
           "rulesSourceList": {
             "targetTypes": ["HTTP_HOST", "TLS_SNI"],
-            "targets": ["amazon.com", "github.com", "microsoft.com"],
-            "generatedRulesType": "ALLOWLIST"
+            "targets": ["abc.com", "github.com", "test.com"],
+            "generatedRulesType": "DENYLIST"
           }
         }
       }

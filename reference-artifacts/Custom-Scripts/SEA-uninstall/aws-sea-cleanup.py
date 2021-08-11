@@ -17,7 +17,7 @@ from os import path
 parser = argparse.ArgumentParser(
         description="A development script that cleans up resources deployed by the accelerator. Use Administrator AWS credentials in the master account when running this script."
 )
-parser.add_argument('--AcceleratorPrefix', default='PBMMAccel', help='The value set in AcceleratorPrefix')
+parser.add_argument('--AcceleratorPrefix', default='ASEA', help='The value set in AcceleratorPrefix')
 
 organizations = boto3.client("organizations")
 sts = boto3.client("sts")
@@ -926,10 +926,10 @@ def backup_config():
         print("Backing up config.json from CodeCommit...")
         try:
             for repo in repos["repositories"]:
-                if AcceleratorPrefix != 'PBMMAccel':
+                if AcceleratorPrefix != 'ASEA':
                     CodeCommitPrefix = AcceleratorPrefix
                 else:
-                    CodeCommitPrefix = 'PBMM'
+                    CodeCommitPrefix = 'ASEA'
                 if repo["repositoryName"].startswith(CodeCommitPrefix):
                     file = cc.get_file(
                         repositoryName=repo["repositoryName"],
