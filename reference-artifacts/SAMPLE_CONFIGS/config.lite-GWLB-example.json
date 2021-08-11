@@ -146,7 +146,7 @@
       "standards": [
         {
           "name": "AWS Foundational Security Best Practices v1.0.0",
-          "controls-to-disable": ["IAM.1"]
+          "controls-to-disable": ["IAM.1", "EC2.10"]
         },
         {
           "name": "PCI DSS v3.2.1",
@@ -154,7 +154,7 @@
         },
         {
           "name": "CIS AWS Foundations Benchmark v1.2.0",
-          "controls-to-disable": ["CIS.1.20", "CIS.1.22"]
+          "controls-to-disable": ["CIS.1.20", "CIS.1.22", "CIS.2.6"]
         }
       ]
     },
@@ -299,6 +299,16 @@
           "metric-value": "1"
         },
         {
+          "filter-name": "IgnoreAuthorizationFailureMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{($.errorCode=\"*UnauthorizedOperation\") || ($.errorCode=\"AccessDenied*\")}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "IgnoreAuthorizationFailureCount",
+          "metric-value": "1"
+        },
+        {
           "filter-name": "IamPolicyChangesMetric",
           "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
@@ -316,6 +326,16 @@
           "filter-pattern": "{($.eventName=\"ConsoleLogin\") && ($.additionalEventData.MFAUsed !=\"Yes\") && ($.userIdentity.type != \"AssumedRole\")}",
           "metric-namespace": "CloudTrailMetrics",
           "metric-name": "ConsoleSignInWithoutMfaCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "IgnoreConsoleSignInWithoutMfaMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{($.eventName=\"ConsoleLogin\") && ($.additionalEventData.MFAUsed !=\"Yes\")}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "IgnoreConsoleSignInWithoutMfaCount",
           "metric-value": "1"
         },
         {
@@ -468,6 +488,12 @@
             "alarm-description": "Alarms when one or more unauthorized API calls are made (in any account, any region of your AWS Organization)."
           },
           {
+            "alarm-name": "IGNORE-AWS-Authorization-Failure",
+            "metric-name": "IgnoreAuthorizationFailureCount",
+            "sns-alert-level": "Ignore",
+            "alarm-description": "Alarms when one or more unauthorized API calls are made (in any account, any region of your AWS Organization)."
+          },
+          {
             "alarm-name": "AWS-IAM-Policy-Changed",
             "metric-name": "IAMPolicyEventCount",
             "sns-alert-level": "Medium",
@@ -477,6 +503,12 @@
             "alarm-name": "AWS-Console-SignIn-Without-MFA",
             "metric-name": "ConsoleSignInWithoutMfaCount",
             "sns-alert-level": "High",
+            "alarm-description": "Alarms when MFA is NOT used to sign into the console with IAM (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "IGNORE-AWS-Console-SignIn-Without-MFA",
+            "metric-name": "IgnoreConsoleSignInWithoutMfaCount",
+            "sns-alert-level": "Ignore",
             "alarm-description": "Alarms when MFA is NOT used to sign into the console with IAM (in any account, any region of your AWS Organization)."
           },
           {
@@ -1268,26 +1300,10 @@
           "access-logs": true,
           "targets": [
             {
-              "target-name": "Firewalls",
-              "target-type": "instance",
-              "protocol": "HTTPS",
-              "port": 7001,
-              "health-check-protocol": "HTTPS",
+              "target-name": "health-check-Lambda",
+              "target-type": "lambda",
               "health-check-path": "/health-check",
-              "health-check-port": 7001,
-              "target-instances": [
-                {
-                  "target": "firewall",
-                  "name": "Firewall",
-                  "az": "a"
-                },
-                {
-                  "target": "firewall",
-                  "name": "Firewall",
-                  "az": "b"
-                }
-              ],
-              "tg-weight": 1
+              "lambda-filename": "internal-prod-alb-lambda.txt"
             }
           ]
         },
@@ -1314,26 +1330,10 @@
           "access-logs": true,
           "targets": [
             {
-              "target-name": "Firewalls",
-              "target-type": "instance",
-              "protocol": "HTTPS",
-              "port": 7002,
-              "health-check-protocol": "HTTPS",
+              "target-name": "health-check-Lambda",
+              "target-type": "lambda",
               "health-check-path": "/health-check",
-              "health-check-port": 7001,
-              "target-instances": [
-                {
-                  "target": "firewall",
-                  "name": "Firewall",
-                  "az": "a"
-                },
-                {
-                  "target": "firewall",
-                  "name": "Firewall",
-                  "az": "b"
-                }
-              ],
-              "tg-weight": 1
+              "lambda-filename": "internal-prod-alb-lambda.txt"
             }
           ]
         },
@@ -1633,13 +1633,6 @@
               "name": "FWMgmt_azA",
               "routes": [
                 {
-                  "destination": "0.0.0.0/0",
-                  "target": "firewall",
-                  "name": "Firewall",
-                  "az": "a",
-                  "port": "OnPremise"
-                },
-                {
                   "destination": "s3",
                   "target": "s3"
                 }
@@ -1648,13 +1641,6 @@
             {
               "name": "FWMgmt_azB",
               "routes": [
-                {
-                  "destination": "0.0.0.0/0",
-                  "target": "firewall",
-                  "name": "Firewall",
-                  "az": "b",
-                  "port": "OnPremise"
-                },
                 {
                   "destination": "s3",
                   "target": "s3"
@@ -1997,10 +1983,10 @@
         },
         "firewall-manager": {
           "name": "Checkpoint-FirewallMgr",
-          "image-id": "ami-02d056c86e83cad06",
+          "image-id": "ami-0071a3b4ef9ac766a",
           "instance-sizes": "m5.large",
           "block-device-mappings": ["/dev/xvda"],
-          "version": "R8030BYOLMGMT",
+          "version": "R8110BYOLMGMT",
           "fw-instance-role": "Firewall-Role",
           "region": "${HOME_REGION}",
           "vpc": "Inspection",

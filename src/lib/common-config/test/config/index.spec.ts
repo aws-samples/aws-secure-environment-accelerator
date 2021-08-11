@@ -7,7 +7,7 @@ const baseDir = path.join(__dirname, '..', '..', '..', '..', '..');
 
 test.each([
   'reference-artifacts/SAMPLE_CONFIGS/config.example.json',
-  'reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json',
+  'reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json',
   'reference-artifacts/SAMPLE_CONFIGS/config.multi-region-example.json',
   'reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json',
   'reference-artifacts/SAMPLE_CONFIGS/config.test-example.json',
