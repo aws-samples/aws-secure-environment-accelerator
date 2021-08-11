@@ -95,19 +95,19 @@ The Accelerator-management `Installer` stack contains the necessary resources to
 
 The Installer stack consists of the following resources:
 
-- `PBMMAccel-InstallerPipeline`: this is a `AWS::CodePipeline::Pipeline` that pulls the latest Accelerator code from GitHub. It launches the CodeBuild project `PBMMAccel-InstallerProject_pl`, executes the `PBMMAccel-Installer-SaveApplicationVersion` Lambda and launches the Accelerator state machine.
-- `PBMMAccel-InstallerProject_pl`: this is a `AWS::CodeBuild::Project` that installs the Accelerator in AWS account.
-- `PBMMAccel-Installer-SaveApplicationVersion`: this is a `AWS::Lambda::Function` that stores the current Accelerator version into Parameter Store.
-- `PBMMAccel-Installer-StartExecution`: this is a `AWS::Lambda::Function` that launches the Accelerator after CodeBuild deploys the Accelerator.
-- Creation of AWS::DynamoDB::Table - `PBMMAccel-Parameters` and `PBMMAccel-Outputs` which are used for the internal operation of the Accelerator. `PBMMAccel-Outputs` is used to share CloudFormation stack outputs between regions, stacks and phases. `PBMMAccel-Parameters` is used to various configuration items like managed accounts, organizations structure, and limits.
+- `ASEA-InstallerPipeline`: this is a `AWS::CodePipeline::Pipeline` that pulls the latest Accelerator code from GitHub. It launches the CodeBuild project `ASEA-InstallerProject_pl`, executes the `ASEA-Installer-SaveApplicationVersion` Lambda and launches the Accelerator state machine.
+- `ASEA-InstallerProject_pl`: this is a `AWS::CodeBuild::Project` that installs the Accelerator in AWS account.
+- `ASEA-Installer-SaveApplicationVersion`: this is a `AWS::Lambda::Function` that stores the current Accelerator version into Parameter Store.
+- `ASEA-Installer-StartExecution`: this is a `AWS::Lambda::Function` that launches the Accelerator after CodeBuild deploys the Accelerator.
+- Creation of AWS::DynamoDB::Table - `ASEA-Parameters` and `ASEA-Outputs` which are used for the internal operation of the Accelerator. `ASEA-Outputs` is used to share CloudFormation stack outputs between regions, stacks and phases. `ASEA-Parameters` is used to various configuration items like managed accounts, organizations structure, and limits.
 
 ![Installer Diagram](img/installer.png)
 
-The `PBMMAccel-InstallerPipeline` starts when first installed using the CloudFormation template. The administrator can also start the pipeline manually by clicking the `Release Change` button in the AWS Console.
+The `ASEA-InstallerPipeline` starts when first installed using the CloudFormation template. The administrator can also start the pipeline manually by clicking the `Release Change` button in the AWS Console.
 
 ![CodePipeline Release Change](img/codepipeline-release-change.png)
 
-This starts the `PBMMAccel-InstallerProject_pl` CodeBuild project. The CodeBuild project uses the GitHub source artifact. The CodeBuild projects spins up a new Linux instances and installs the Accelerator dependencies and starts the deployment of the Accelerator using the AWS Cloud Development Kit (CDK<sup>[1](#cdk)</sup>).
+This starts the `ASEA-InstallerProject_pl` CodeBuild project. The CodeBuild project uses the GitHub source artifact. The CodeBuild projects spins up a new Linux instances and installs the Accelerator dependencies and starts the deployment of the Accelerator using the AWS Cloud Development Kit (CDK<sup>[1](#cdk)</sup>).
 
 CDK bootstraps its environment and creates the `CDKToolkit` stack in the AWS account. It creates the S3 bucket `cdktoolkit-stagingbucket-*` and the ECR repository `aws-cdk/assets`.
 
@@ -135,13 +135,13 @@ If the Installer Stack was removed, it would need to be re-installed to upgrade 
 
 ## 3.2. Initial Setup Stack
 
-The Accelerator-management `Initial Setup` stack, named `PBMMAccel-InitialSetup`, consists of a state machine, named `PBMMAccel-MainStateMachine_sm`, that executes various steps to create the Accelerator-managed stacks and resources in the Accelerator-managed accounts. Using a state machine, we can clearly define the deployment process and systematically control branches of execution and handle exceptions.
+The Accelerator-management `Initial Setup` stack, named `ASEA-InitialSetup`, consists of a state machine, named `ASEA-MainStateMachine_sm`, that executes various steps to create the Accelerator-managed stacks and resources in the Accelerator-managed accounts. Using a state machine, we can clearly define the deployment process and systematically control branches of execution and handle exceptions.
 
-The Accelerator comprises a primary state machine `PBMMAccel-MainStateMachine_sm`, and nine supporting state machines (as of v1.2.1). Customer will only ever Execute the `PBMMAccel-MainStateMachine_sm`. All troubleshooting will also typically begin with the `PBMMAccel-MainStateMachine_sm`.
+The Accelerator comprises a primary state machine `ASEA-MainStateMachine_sm`, and nine supporting state machines (as of v1.2.1). Customer will only ever Execute the `ASEA-MainStateMachine_sm`. All troubleshooting will also typically begin with the `ASEA-MainStateMachine_sm`.
 
 ![All Accelerator State Machine](img/all-state-machines.png)
 
-The image below depicts the latest state `PBMMAccel-MainStateMachine_sm` machine. Each green or white square in the image represents a step in the state machine. This all green diagram represents a successul Accelerator state machine execution.
+The image below depicts the latest state `ASEA-MainStateMachine_sm` machine. Each green or white square in the image represents a step in the state machine. This all green diagram represents a successul Accelerator state machine execution.
 
 ![Accelerator State Machine](img/step-functions-main-sm.png)
 
@@ -156,24 +156,24 @@ The state machine contains three different types of steps:
 The stack additionally consists of the following resources:
 
 - AWS::CodeBuild::Project
-  - `PBMMAccel-Deploy` or `PBMMAccel-DeployPrebuilt`
+  - `ASEA-Deploy` or `ASEA-DeployPrebuilt`
 - AWS::CodeCommit::Repository
-  - `PBMMAccel-Config-Repo`
+  - `ASEA-Config-Repo`
 - AWS::IAM::Role
-  - `PBMMAccel-L-SFN-MasterRole`
-  - `PBMMAccel-L-SFN-Execution`
+  - `ASEA-L-SFN-MasterRole`
+  - `ASEA-L-SFN-Execution`
 - AWS::Lambda::Function
   - A Lambda function for every Lambda function step in the state machine.
 - AWS::StepFunctions::StateMachine
-  - `PBMMAccel-ALZCreateAccount_sm`: See [_Create Landing Zone Account_](#create-landing-zone-account);
-  - `PBMMAccel-OrgCreateAccount_sm`: See [_Create Organization Account_](#create-organization-account);
-  - `PBMMAccel-InstallCfnRoleMaster_sm`: See [Install CloudFormation Execution Role](#install-cloudformation-role-in-root);
-  - `PBMMAccel-InstallRoles_sm`: See [_Install Execution Roles_](#install-execution-roles);
-  - `PBMMAccel-DeleteDefaultVpcs_sfn`: See [_Delete Default VPCs_](#delete-default-vpcs);
-  - `PBMMAccel-CodeBuild_sm`: See [_Deploy Phase 0_](#deploy-phase-0);
-  - `PBMMAccel-CreateConfigRecorder_sfn`: See [_Create Config Recorders_]();
-  - `PBMMAccel-CreateAdConnector_sm`: See [_Create AD Connector_](#create-ad-connector);
-  - `PBMMAccel-StoreOutputs_sm`: See [_Share Outputs_]() - new in v1.2.1.
+  - `ASEA-ALZCreateAccount_sm`: See [_Create Landing Zone Account_](#create-landing-zone-account);
+  - `ASEA-OrgCreateAccount_sm`: See [_Create Organization Account_](#create-organization-account);
+  - `ASEA-InstallCfnRoleMaster_sm`: See [Install CloudFormation Execution Role](#install-cloudformation-role-in-root);
+  - `ASEA-InstallRoles_sm`: See [_Install Execution Roles_](#install-execution-roles);
+  - `ASEA-DeleteDefaultVpcs_sfn`: See [_Delete Default VPCs_](#delete-default-vpcs);
+  - `ASEA-CodeBuild_sm`: See [_Deploy Phase 0_](#deploy-phase-0);
+  - `ASEA-CreateConfigRecorder_sfn`: See [_Create Config Recorders_]();
+  - `ASEA-CreateAdConnector_sm`: See [_Create AD Connector_](#create-ad-connector);
+  - `ASEA-StoreOutputs_sm`: See [_Share Outputs_]() - new in v1.2.1.
 
 _Note: Most resources have a random suffix to their name. This is because we use CDK to deploy the resources. See [https://docs.aws.amazon.com/cdk/latest/guide/identifiers.html#identifiers_logical_ids]()_
 
@@ -240,7 +240,7 @@ This step calls a Lambda function that adds the state machine's IAM role to the 
 
 _Executed only when using AWS Landing Zone baseline_
 
-This step starts the `PBMMAccel-ALZCreateAccount_sm` state machine. This state machine is responsible for creating an account using the AVM and waits for the account to be created and configured.
+This step starts the `ASEA-ALZCreateAccount_sm` state machine. This state machine is responsible for creating an account using the AVM and waits for the account to be created and configured.
 
 ### 3.2.7. Organizational Unit (OU) Validation
 
@@ -266,31 +266,31 @@ This step fails when
 
 _Executed only when using AWS Organizations baseline_
 
-This step starts the `PBMMAccel-InstallCfnRoleMaster_sm` state machine. This state machine is responsible for creating the IAM role defined in `organization-admin-role` (default: `AWSCloudFormationStackSetAdministrationRole`) in the root account. You can read more about why this role is created [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html).
+This step starts the `ASEA-InstallCfnRoleMaster_sm` state machine. This state machine is responsible for creating the IAM role defined in `organization-admin-role` (default: `AWSCloudFormationStackSetAdministrationRole`) in the root account. You can read more about why this role is created [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html).
 
 ### 3.2.10. Create Organization Account
 
 _Executed only when using AWS Organizations baseline_
 
-This step starts the `PBMMAccel-OrgCreateAccount_sm` state machine. This state machine is responsible for creating an account using the AWS Organizations and waits for the account to be created and configured. The newly created account will be moved to the correct organizational unit and will have an the `PBMMAccel-Quarantine-New-Object` Service Control Policy (SCP) attached to it. The SCP will only be removed after the Accelerator state machine has completed.
+This step starts the `ASEA-OrgCreateAccount_sm` state machine. This state machine is responsible for creating an account using the AWS Organizations and waits for the account to be created and configured. The newly created account will be moved to the correct organizational unit and will have an the `ASEA-Quarantine-New-Object` Service Control Policy (SCP) attached to it. The SCP will only be removed after the Accelerator state machine has completed.
 
 Application of this SCP ensures that new AWS accounts cannot be used until they have been properly configured and had all Accelerator guardrails applied per the configuration file. It is important that guardrails be consistently in place from the time a user first accesses a new AWS account, until the account is decommissioned. Should the state machine fail, still be in-progress, or has not yet processed the account (for whatever reason), users who access it will be prevented from doing _anything_.
 
 ### 3.2.11. Load Organizational Units
 
-This step calls a Lambda function that loads all Organizational Units. The Organizational Units are stored in the DynamoDB table `PBMMAccel-Parameters` in the root account. The Organizational Units will later be used to determine which configuration file options apply to an AWS account.
+This step calls a Lambda function that loads all Organizational Units. The Organizational Units are stored in the DynamoDB table `ASEA-Parameters` in the root account. The Organizational Units will later be used to determine which configuration file options apply to an AWS account.
 
 ### 3.2.12. Load Accounts
 
-This step calls a Lambda function that loads all accounts. The accounts are stored in the DynamoDB table `PBMMAccel-Parameters` in the root account. The accounts will later be used to deploy stacks in the correct accounts.
+This step calls a Lambda function that loads all accounts. The accounts are stored in the DynamoDB table `ASEA-Parameters` in the root account. The accounts will later be used to deploy stacks in the correct accounts.
 
 ### 3.2.13. Install Execution Roles
 
-This step calls a Lambda function that creates stack sets in all Accelerator accounts. This stack sets contains a single resource, i.e. an IAM role `PBMMAccel-PipelineRole` that can be assumed by the `PBMMAccel-L-SFN-MasterRole`. This IAM role allows the root account to administer the Accelerator accounts.
+This step calls a Lambda function that creates stack sets in all Accelerator accounts. This stack sets contains a single resource, i.e. an IAM role `ASEA-PipelineRole` that can be assumed by the `ASEA-L-SFN-MasterRole`. This IAM role allows the root account to administer the Accelerator accounts.
 
 ### 3.2.14. Delete Default VPCs
 
-This step starts the `PBMMAccel-DeleteDefaultVpcs_sfn` state machine. This state machine is responsible for deleting default subnets, internet gateways and VPCs for all regions and accounts in the Accelerator configuration.
+This step starts the `ASEA-DeleteDefaultVpcs_sfn` state machine. This state machine is responsible for deleting default subnets, internet gateways and VPCs for all regions and accounts in the Accelerator configuration.
 
 This step fails when one or more default VPCs cannot be deleted. This step does not fail on the first error, it executes on all accounts/regions and then fails with a complete list of errors.
 
@@ -330,11 +330,11 @@ This step only executes on the first run of the state machine after it has been 
 
 ### 3.2.19. Store Phase -1 Output
 
-This step calls a Lambda function that stores the outputs from the deployed stacks in sub-accounts in the DynamoDB table `PBMMAccel-Outputs` in AWS Secrets Manager in the root account.
+This step calls a Lambda function that stores the outputs from the deployed stacks in sub-accounts in the DynamoDB table `ASEA-Outputs` in AWS Secrets Manager in the root account.
 
 ### 3.2.20. Deploy Phase 0
 
-This step starts the `PBMMAccel-CodeBuild_sm` state machine. This state machine is responsible for starting a CodeBuild execution that deploys CloudFormation stacks in Accelerator-managed accounts using CDK.
+This step starts the `ASEA-CodeBuild_sm` state machine. This state machine is responsible for starting a CodeBuild execution that deploys CloudFormation stacks in Accelerator-managed accounts using CDK.
 
 ![CodeBuild State Machine](img/step-functions-codebuild-sm.png)
 
@@ -369,7 +369,7 @@ The following resources are deployed in phase 0:
 
 ### 3.2.21. Store Phase 0 Output
 
-This step calls a Lambda function that stores the outputs from the deployed stacks in sub-accounts in the secret `PBMMAccel-Outputs` in AWS Secrets Manager in the root account.
+This step calls a Lambda function that stores the outputs from the deployed stacks in sub-accounts in the secret `ASEA-Outputs` in AWS Secrets Manager in the root account.
 
 ### 3.2.22. Verify Files
 
@@ -387,7 +387,7 @@ Why do we wait until so late in the state machine execution to perform this task
 
 ### 3.2.23. Create Config Recorders
 
-This step starts the `PBMMAccel-CreateConfigRecorder_sfn` state machine. This state machine is responsible for creating Config recorders in all accounts and regions.
+This step starts the `ASEA-CreateConfigRecorder_sfn` state machine. This state machine is responsible for creating Config recorders in all accounts and regions.
 
 ### 3.2.24. Add SCPs to Organization
 
@@ -516,7 +516,7 @@ This step calls a Lambda function that shares Managed Active Directory according
 
 ### 3.2.38. Create AD Connector
 
-This step starts the `PBMMAccel-DeleteDefaultVpcs_sfn` state machine. This state machine is responsible for creating AD connectors according to the Accelerator configuration.
+This step starts the `ASEA-DeleteDefaultVpcs_sfn` state machine. This state machine is responsible for creating AD connectors according to the Accelerator configuration.
 
 This step fails when one or more AD connectors failed to be created.
 
@@ -570,19 +570,19 @@ b. In case the failed step started another state machine, you will see the follo
 
 To view the state machine execution that failed you can click the link in the `Resource` section.
 
-In case the failed step started the CodeBuild state machine, `PBMMAccel-CodeBuild_sm`, you will be able to see the CodeBuild project and execution ID that failed by looking at the output of the `Start Build` step in the `PBMMAccel-CodeBuild_sm` state machine.
+In case the failed step started the CodeBuild state machine, `ASEA-CodeBuild_sm`, you will be able to see the CodeBuild project and execution ID that failed by looking at the output of the `Start Build` step in the `ASEA-CodeBuild_sm` state machine.
 
 ![State Machine CodeBuild Failure](img/state-machine-codebuild-failure.png).
 
-In the image above the execution of CodeBuild project `PBMMAccel-DeployPrebuilt` with ID `PBMMAccel-DeployPrebuilt:717584a9-c406-4569-9cc2-0d23e9ff9ef0` failed. See the [CodeBuild](#codebuild) section to troubleshoot.
+In the image above the execution of CodeBuild project `ASEA-DeployPrebuilt` with ID `ASEA-DeployPrebuilt:717584a9-c406-4569-9cc2-0d23e9ff9ef0` failed. See the [CodeBuild](#codebuild) section to troubleshoot.
 
 ### 4.1.2. CodeBuild
 
-The Accelerator deploys and leverages two CodeBuild projects. The `PBMMAccel-InstallerProject_pl` project is used by the Code Pipeline/Installer stack and `PBMMAccel-DeployPrebuilt` which is used throughout the Accelerator state machine. Both are similar in that they use CDK to deploy stacks. The installer project will not exist, if the installer has been removed.
+The Accelerator deploys and leverages two CodeBuild projects. The `ASEA-InstallerProject_pl` project is used by the Code Pipeline/Installer stack and `ASEA-DeployPrebuilt` which is used throughout the Accelerator state machine. Both are similar in that they use CDK to deploy stacks. The installer project will not exist, if the installer has been removed.
 
 ![CodeBuild Projects](img/code-build-projects.png)
 
-After a successful installation you will see the following in Codebuild, for the `PBMMAccel-DeployPrebuilt` project:
+After a successful installation you will see the following in Codebuild, for the `ASEA-DeployPrebuilt` project:
 
 ![CodeBuild Success](img/code-build-success.png)
 
@@ -594,7 +594,7 @@ You can click on the name of the CodeBuild execution and then look inside the lo
 
 ![CodeBuild Execution Build Failure](img/codebuild-build-failure.png)
 
-You can for example see the error message `The stack named PBMMAccel-Perimeter-Phase2 is in a failed state: UPDATE_ROLLBACK_COMPLETE`. This means the stack `PBMMAccel-Perimeter-Phase2` failed to update and it had to rollback. The error indicated at the bottom of the Codebuild screen is typically NOT the cause of the failure, just the end result. You need to scroll up and find the FIRST occurrence of an error in the log file. Often starting at the top of the log file and searching for the text `FAIL` (case sensitive), will allow you to find the relevant error message(s) quickly. The failure is typically listed in the CloudFormation update logs.
+You can for example see the error message `The stack named ASEA-Perimeter-Phase2 is in a failed state: UPDATE_ROLLBACK_COMPLETE`. This means the stack `ASEA-Perimeter-Phase2` failed to update and it had to rollback. The error indicated at the bottom of the Codebuild screen is typically NOT the cause of the failure, just the end result. You need to scroll up and find the FIRST occurrence of an error in the log file. Often starting at the top of the log file and searching for the text `FAIL` (case sensitive), will allow you to find the relevant error message(s) quickly. The failure is typically listed in the CloudFormation update logs.
 
 ![CodeBuild Execution Update Failed](img/codebuild-build-failure-update-failed.png)
 
@@ -623,10 +623,10 @@ Custom resources are backed by a Lambda function that implements the creation, m
 Example custom resource log group names:
 
 ```
-/aws/lambda/PBMMAccel-Master-Phase1-CustomCurReportDefinitionL-14IHLQCC1LY8L
-/aws/lambda/PBMMAccel-Master-Phase2-AWS679f53fac002430cb0da5b7-Z75Q4GG9LIV5
-/aws/lambda/PBMMAccel-Operations-Phas-AWS679f53fac002430cb0da5-HMV2YF6OKJET
-/aws/lambda/PBMMAccel-Operations-Phas-CustomGetDetectorIdLambd-HEM07DR0DOOJ
+/aws/lambda/ASEA-Master-Phase1-CustomCurReportDefinitionL-14IHLQCC1LY8L
+/aws/lambda/ASEA-Master-Phase2-AWS679f53fac002430cb0da5b7-Z75Q4GG9LIV5
+/aws/lambda/ASEA-Operations-Phas-AWS679f53fac002430cb0da5-HMV2YF6OKJET
+/aws/lambda/ASEA-Operations-Phas-CustomGetDetectorIdLambd-HEM07DR0DOOJ
 ```
 
 ### 4.1.5. CloudWatch
@@ -667,7 +667,7 @@ We will then click onn the red failed box, select `Exception` and we can see a c
 ![Debug 5](img/debug5.png)
 Alternatively, in case the `Exception` error is not clear, we can select `Details` and then select `CloudWatch logs` for the **end** of the `Resource` section:
 ![Debug 6](img/debug6.png)
-If you open the latest log stream in the opened log group (`/aws/lambda/PBMMAccel-InitialSetup-StartAccountCreationHandler-1IZ2N4EP29D72`) and review the last several messages in the stream, the following clear message also appears:
+If you open the latest log stream in the opened log group (`/aws/lambda/ASEA-InitialSetup-StartAccountCreationHandler-1IZ2N4EP29D72`) and review the last several messages in the stream, the following clear message also appears:
 
 ![Debug 7](img/debug7.png)
 
@@ -675,7 +675,7 @@ If you open the latest log stream in the opened log group (`/aws/lambda/PBMMAcce
 
 In the next example the state machine failed in one of the CodeBuild state machine steps, based on the `Resource` name of the failed step.
 ![Debug 9](img/debug9a.png)
-Rather than tracing this failure through the sub-state machine and then into the failed CodeBuild task, we are simply going to open AWS CodeBuild, and open the `PBMMAccel-DeployPrebuilt` task. The failed task should be on the top of the Codebuild `build run` list. Open the build job.
+Rather than tracing this failure through the sub-state machine and then into the failed CodeBuild task, we are simply going to open AWS CodeBuild, and open the `ASEA-DeployPrebuilt` task. The failed task should be on the top of the Codebuild `build run` list. Open the build job.
 ![Debug 10](img/debug10.png)
 Using your browser, from the top of the page, search for "FAIL", and we are immediately brought to the error. In this particular case we had an issue with the creation of VPC endpoints. We defined something not supported by the current configuration file. The solution was to simply remove the offending endpoints from the config file and re-run the state machine.
 ![Debug 11](img/debug11a.png)
@@ -690,7 +690,7 @@ The state machine will execute:
 
 - automatically after each execution of the Code Pipeline (new installs, code upgrades, or manual pipeline executions)
 - automatically when new AWS accounts are moved into any Accelerator controller OU in AWS Organizations
-- when someone manual starts it: `Step Functions`, `PBMMAccel-MainStateMachine_sm`, `Start Execution`, `Start Execution` (leave default values in name and json box)
+- when someone manual starts it: `Step Functions`, `ASEA-MainStateMachine_sm`, `Start Execution`, `Start Execution` (leave default values in name and json box)
 
 The state machine prevents users from accidentally performing certain major breaking changes, specifically unsupported AWS platform changes, changes that will fail to deploy, or changes that could be catastrophic to users. If someone knows exactly what they are doing and the full implications of these changes, we provide the option to override these checks. Customers should expect that items we have blocked CANNOT be changed after the Accelerator installation.
 

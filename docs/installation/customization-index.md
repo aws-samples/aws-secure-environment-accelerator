@@ -5,7 +5,7 @@
   - [1.2. **Deployment Customizations**](#12-deployment-customizations)
   - [1.3. Other Configuration File Hints and Tips](#13-other-configuration-file-hints-and-tips)
   - [1.4. Config file and Deployment Protections](#14-config-file-and-deployment-protections)
-- [2. **NEW: State Machine Behavior**](#2-new-state-machine-behavior)
+- [2. **State Machine Behavior**](#2-state-machine-behavior)
 
 ## 1.1. **Sample Accelerator Configuration Files**
 
@@ -16,15 +16,21 @@ Samples with Descriptions:
 
 1. **Full PBMM configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.example.json) (`config.example.json`)
    - The full PBMM configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the deployed architecture solution.
-2. **Light weight PBMM configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json) (`config.lite-example.json`) **(Recommended for most new PBMM customers)**
+2. **Light weight PBMM configuration** files
+   - Three variants with differing central ingress/egress firewalls
+     - AWS Network Firewall ([config.lite-NFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json)) **(Recommended starting point)**
+     - IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP) ([config.lite-VPN-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json)) **(Recommended for new GC PBMM customers)**
+       - requires 3rd party licensing (BYOL or PAYGO)
+     - Gateway Load Balancer with Checkpoint firewalls in an autoscaling group ([config.lite-GWLB-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-GWLB-example.json))
+       - requires 3rd party licensing (BYOL or PAYGO)
    - To reduce solution costs and allow customers to grow into more advanced AWS capabilities, we created this lighter weight configuration that does not sacrifice functionality, but could limit performance. This config file:
      - only deploys the 9 required centralized Interface Endpoints (removes 50). All services remain accessible using the AWS public endpoints, but require traversing the perimeter firewalls
      - removes the perimeter VPC Interface Endpoints
-     - reduces the Fortigate instance sizes from c5n.2xl to c5n.xl (VM08 to VM04)
+     - reduces the Fortigate instance sizes from c5n.2xl to c5n.xl (VM08 to VM04) in VPN option
      - removes the Unclass ou and VPC
    - The Accelerator allows customers to easily add or change this functionality in future, as and when required without any impact
 3. **Ultra-Light sample configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json) (`config.ultralite-example.json`)
-   - This configuration file was created to represent an extremely minimalistic Accelerator deployment, simply to demonstrate the art of the possible for an extremely simple config.  This example is NOT recommended as it violates many AWS best practices.  This  This config has:
+   - This configuration file was created to represent an extremely minimalistic Accelerator deployment, simply to demonstrate the art of the possible for an extremely simple config. This example is NOT recommended as it violates many AWS best practices. This This config has:
      - no `shared-network` or `perimeter` accounts
      - no networking (VPC, TGW, ELB, SG, NACL, endpoints) or route53 (zones, resolvers) objects
      - no Managed AD, AD Connector, rsyslog cluster, RDGW host, or 3rd party firewalls
@@ -49,22 +55,20 @@ Samples with Descriptions:
      - uses the Light weight PBMM configuration as the starting point
      - consolidates Dev/Test/Prod OU to a single Workloads OU/VPC
      - only enables Security Hub, Config and Macie in ca-central-1 and us-east-1
-     - reduces the Fortigate instance sizes from c5n.xl to c5.xl
-     - reduces the rsyslog and RDGW instance sizes from t2.large to t2.medium
-     - removes the second rsyslog node
+     - removes the Fortigate firewall cluster
+     - removes the rsyslog cluster
+     - reduces the RDGW instance sizes from t2.large to t2.medium
      - reduces the size of the MAD from Enterprise to Standard edition
      - removes the on-premise R53 resolvers (hybrid dns)
      - reduced various log retention periods and the VPCFlow log interval
      - removes the two example workload accounts
-     - The most expensive individual component of this sample is the perimeter 3rd party firewalls 
-       - this example will be updated in the near future, removing the 3rd party firewalls
-       - we will add a NATGW for egress.  For ingress, customers will need to manually target the perimeter ALB to point to each backend-ALB's IP's and manually update the IP's when they change (the next major SEA code release will include functionality to automate this capability)
+     - adds AWS Network Firewall (NFW) and AWS NATGW for centralized ingress/egress
 
 ## 1.2. **Deployment Customizations**
 
 - Multi-file config file and YAML formatting [option](./multi-file-config-capabilities.md):
 
-  - The sample configuration files are provided as single, all encompassing, json files. The Accelerator also supports both splitting the config file into multiple component files and configuration files built using YAML instead of json. This is documented
+  - The sample configuration files are provided as single, all encompassing, json files. The Accelerator also supports both splitting the config file into multiple component files and configuration files built using YAML instead of json. Details can be found in the linked document.
 
 - Sample Snippets:
 
@@ -91,18 +95,17 @@ Samples with Descriptions:
 - When adding a new subnet or subnets to a VPC (including enabling an additional AZ), you need to:
   - increment any impacted NACL id's in the config file (`100` to `101`, `32000` to `32001`) (CFN does not allow nacl updates)
   - make a minor change to any impacted route table names (`MyRouteTable` to `MyRouteTable1`) (CFN does not allow updates to route table associated ids)
-- The sample firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
+- The sample VPN firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
 - Firewall names, CGW names, TGW names, MAD Directory ID, account keys, and OU's must all be unique throughout the entire configuration file (also true for VPC names given NACL and security group referencing design)
 - The configuration file _does_ have validation checks in place that prevent users from making certain major unsupported configuration changes
 - **The configuration file does _NOT_ have extensive error checking. It is expected you know what you are doing. We eventually hope to offer a config file, wizard based GUI editor and add the validation logic in this separate tool. In most cases the State Machine will fail with an error, and you will simply need to troubleshoot, rectify and rerun the state machine.**
-- You cannot move an account between top-level OU's. This would be a security violation and cause other issues. You can move accounts between sub-ou. Note: The ALZ version of the Accelerator does not support sub-ou.
-- v1.1.5 and above adds support for customer provided YAML config file(s) as well as JSON. We only support the subset of yaml that converts to JSON (we do not support anchors)
+- You cannot move an account between top-level OU's. This would be a security violation and cause other issues. You can move accounts between sub-ou. Note: The CT version of the Accelerator does not support sub-ou.
+- When using YAML configuration files, we only support the subset of yaml that converts to JSON (we do not support anchors)
 - Security Group names were designed to be identical between environments, if you want the VPC name in the SG name, you need to do it manually in the config file
 - Adding more than approximately 50 _new_ VPC Interface Endpoints across _all_ regions in any one account in any single state machine execution will cause the state machine to fail due to Route 53 throttling errors. If adding endpoints at scale, only deploy 1 region at a time. In this scenario, the stack(s) will fail to properly delete, also based on the throttling, and will require manual removal.
 - We do not support Directory unsharing or ADC deletion, delete methods were not implemented. We only support ADC creation in mandatory accounts.
 - If `use-central-endpoints` is changed from true to false, you cannot add a local vpc endpoint on the same state machine execution (add the endpoint on a prior or subsequent execution)
 - If you update the firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the management port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
-
 
 ## 1.4. Config file and Deployment Protections
 
@@ -118,7 +121,7 @@ Samples with Descriptions:
   - If a customer is purposefully making extensive changes across the config file and wants to simply override all checks with a single override flag, we also have this option, but discourage it use.
   - The various override flags and their format can be found in [here](./sm_inputs.md).
 
-# 2. **NEW: State Machine Behavior**
+# 2. **State Machine Behavior**
 
 Accelerator v1.3.0 makes a significant change to the manner in which the state machine operates. These changes include:
 

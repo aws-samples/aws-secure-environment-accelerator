@@ -244,7 +244,7 @@ This is typically only deployed in the perimeter account, but could be used else
             "regions": [
               "${HOME_REGION}"
             ],
-            "loggroup-name": "/PBMMAccel/CloudTrail",
+            "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
             "filter-pattern": "{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup) }",
             "metric-namespace": "CloudTrailMetrics",
             "metric-name": "SecurityGroupEventCountTest",
@@ -366,13 +366,13 @@ This is typically only deployed in the perimeter account, but could be used else
   "workload-account-configs": {
     "fun-acct": {
       "account-name": "TheFunAccount",
-      "email": "myemail+pbmmT-funacct@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-funacct@example.com---------------------REPLACE----------------------",
       "ou": "Sandbox",
       "exclude-ou-albs": true
     },
     "mydevacct1": {
       "account-name": "MyDev1",
-      "email": "myemail+pbmmT-dev1@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-dev1@example.com---------------------REPLACE----------------------",
       "ou": "Dev",
       "share-mad-from": "operations",
       "enable-s3-public-access": true,

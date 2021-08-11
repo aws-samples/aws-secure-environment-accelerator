@@ -39,7 +39,9 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Route 53 Private and Public Zones, Resolver Rules and Endpoints, VPC Endpoint Overloaded Zones
 - All completely and individually customizable (per account, VPC, subnet, or OU)
 - Layout and customize your VPCs, subnets, CIDRs and connectivity the way you want
+- Static or Dynamic CIDR assignments
 - Deletes default VPC's (worldwide)
+- AWS Network Firewall
 
 ### Cross-Account Object Sharing
 
@@ -84,7 +86,8 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Creates and configures AWS budgets (customizable per ou and per account)
 - Imports or requests certificates into AWS Certificate Manager
 - Deploys both perimeter and account level ALB's w/Lambda health checks, certificates and TLS policies
-- Deploys & configures 3rd party firewall clusters and management instances w/vendor best practices and sample security policies, w/automated TGW ECMP BGP tunnel standup (leverages marketplace)
+- Deploys & configures 3rd party firewall clusters and management instances (leverages marketplace)
+  - Gateway Load Balancer w/auto-scaling and VPN IPSec BGP ECMP deployment options
 - Protects Accelerator deployed and managed objects
 - Sets Up SNS Alerting topics (High, Medium, Low, Blackhole priorities)
 - Deploys CloudWatch Log Metrics and Alarms
@@ -106,6 +109,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
   - ALB Logs
   - SSM Session Logs (also sent to CWL)
   - Resolver Query Logs (also sent to CWL)
+- Email alerting for CloudTrail Metric Alarms, Firewall Manager Events, Security Hub Findings incl. Guardduty Findings
 
 ## Relationship with AWS Landing Zone Solution (ALZ)
 
@@ -129,7 +133,7 @@ This summarizes the installation process, the full installation document can be 
 - Download and execute the latest installer CloudFormation template in your root accounts preferred 'primary' / 'home' region
 - Wait for:
   - CloudFormation to deploy and start the Code Pipeline (~5 mins)
-  - Code Pipeline to download the Accelerator codebase and install the Accelerator State Machine (~20 mins)
+  - Code Pipeline to download the Accelerator codebase and install the Accelerator State Machine (~10 mins)
   - The Accelerator State Machine to finish execution (~1.5 hrs)
 - Perform required manual follow-up activities (configure AWS SSO, set firewall passwords, etc.)
 - When required:
