@@ -6,7 +6,6 @@ import {
   CloudFormationCustomResourceUpdateEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
-import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const macie = new AWS.Macie2();
 
@@ -31,50 +30,60 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
   }
 }
 
-function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-
-  return `${properties.accountId}`;
-}
-
 async function onCreateOrUpdate(
   event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
 ) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const response = await enableOrgAdmin(properties);
+  const accountId = event.ResourceProperties.accountId;
+  const sleepTime = 30000;
+  const retryCount = 10;
+  await enableOrgAdmin(accountId);
+  let macieAdminEnabled = await isMacieAdminEnabled(accountId);
+  let retries = 0;
+  while (!macieAdminEnabled && retries < retryCount) {
+    console.warn(
+      `Macie Admin not enabled. Retrying in ${sleepTime / 1000} seconds. Retry: ${retries + 1} of ${retryCount}`,
+    );
+    await sleep(sleepTime);
+    await enableOrgAdmin(accountId);
+    macieAdminEnabled = await isMacieAdminEnabled(accountId);
+    retries++;
+  }
   return {
-    physicalResourceId: getPhysicalId(event),
+    physicalResourceId: accountId,
     data: {},
   };
 }
 
-async function enableOrgAdmin(properties: HandlerProperties) {
-  try {
-    const enableAdmin = await throttlingBackOff(() =>
-      macie
-        .enableOrganizationAdminAccount({
-          adminAccountId: properties.accountId,
-        })
-        .promise(),
-    );
-
-    return enableAdmin;
-  } catch (e) {
-    const message = `${e}`;
-    if (
-      message.includes(
-        'The request failed because an account is already enabled as the Macie delegated administrator for the organization',
-      )
-    ) {
-      console.warn(e);
-    } else if (
-      message.includes(
-        `The request failed because there's already a delegated Macie administrator account for your organization`,
-      )
-    ) {
-      console.warn(e);
-    } else {
-      throw e;
-    }
+async function isMacieAdminEnabled(accountId: string) {
+  console.log(`Checking if Macie Administration is enabled for account ${accountId}`);
+  const adminList = await macie.listOrganizationAdminAccounts().promise();
+  const isAccountAdded = adminList.adminAccounts?.filter(account => {
+    return account.accountId === accountId;
+  });
+  if (isAccountAdded!.length === 0) {
+    console.log('Account has not been added.');
+  } else {
+    console.log('Account has been added.');
   }
+  return isAccountAdded!.length > 0;
+}
+
+async function enableOrgAdmin(accountId: string) {
+  console.info(`Enabling Macie Admin Account ${accountId}`);
+  try {
+    const macieAdmin = await macie
+      .enableOrganizationAdminAccount({
+        adminAccountId: accountId,
+      })
+      .promise();
+    console.info(macieAdmin);
+  } catch (e) {
+    console.warn('Could not enable Macie Admin account');
+    console.warn(e);
+    return;
+  }
+}
+
+async function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
