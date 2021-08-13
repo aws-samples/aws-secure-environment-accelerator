@@ -13,6 +13,7 @@
     - [1.1.9. How do I suspend an AWS account?](#119-how-do-i-suspend-an-aws-account)
     - [1.1.10. I need a new VPC, where shall I define it?](#1110-i-need-a-new-vpc-where-shall-i-define-it)
     - [1.1.11. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?](#1111-how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes)
+    - [1.1.12. How can I easily access my virtual machines or EC2 instances?](#1112-how-can-i-easily-access-my-virtual-machines-or-ec2-instances)
   - [1.2. Existing Accounts/Organizations](#12-existing-accountsorganizations)
     - [1.2.1. How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?](#121-how-do-i-import-an-existing-aws-account-into-my-accelerator-managed-aws-organization-or-what-if-i-created-a-new-aws-account-with-a-different-organization-trust-role)
     - [1.2.2. Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?](#122-is-it-possible-to-deploy-the-accelerator-on-top-of-an-aws-organization-that-i-have-already-installed-the-aws-landing-zone-alz-solution-into)
@@ -51,7 +52,7 @@
   ```
   "fun-acct": {
     "account-name": "TheFunAccount",
-    "email": "myemail+pbmmT-funacct@example.com",
+    "email": "myemail+aseaT-funacct@example.com",
     "src-filename": "config.json",
     "ou": "Sandbox"
   }
@@ -136,6 +137,13 @@ NOTE: Most of the provided SCPs are designed to protect the Accelerator deployed
 
 Customers have clearly indicated they do NOT want to use the Accelerator to manage their Active Directory domain or change the way they manage Active Directory on an ongoing basis. Customer have also indicated, they need help getting up and running quickly. For these reasons, the Accelerator only sets the domain password policy, and creates AD users and groups on the initial installation of MAD. After the initial installation, customers must manage Windows users and groups using their traditional tools. A bastion Windows host is deployed as a mechanism to support these capabilities. Passwords for all newly created MAD users have been stored, encrypted, in AWS Secrets Manager in the Management (root) Organization AWS account.
 
+To create new users and groups:
+
+- RDP into the ASEA-RDGW bastion host in the Ops account
+  - Run ADUC and create users and groups as you please under the NETBIOSDOMAIN (example) tree
+- Or run the appropriate powershell command
+- Go to AWS SSO and map the Active Directory group to the appropriate AWS account and permission set
+
 The Accelerator will not create/update/delete new AD users or groups, nor will it update the domain password policy after the initial installation of Managed Active Directory. It is your responsibility to rotate these passwords on a regular basis per your organizations password policy. (NOTE: After updating the admin password it needs to be stored back in secrets manager).
 
 ### 1.1.9. How do I suspend an AWS account?
@@ -188,8 +196,47 @@ Extensibility:
 
 Example:
 
-- One of our early adopter customers has developed a custom user interface which allows their clients to request new AWS environments. Clients provide items like cost center, budget, and select their environment requirements (i.e. Sandbox, Unclass or full PBMM SDLC account set). On appropriate approval, this pushes the changes to the Accelerator configuration file and triggers the state machine.
+- One of our early adopter customers has developed a custom user interface which allows their clients to request new AWS environments. Clients provide items like cost center, budget, and select their environment requirements (i.e. Sandbox, Unclass or full sensitive SDLC account set). On appropriate approval, this pushes the changes to the Accelerator configuration file and triggers the state machine.
 - Once the state machine completes, the SNS topic triggers their follow-up workflow, validates the requested accounts were provisioned, updates the customer's account database, and then executes a collection of customer specific follow-up workflow actions on any newly provisioned accounts.
+
+### 1.1.12. How can I easily access my virtual machines or EC2 instances?
+
+The preferred and recommended method to connect to instances within the Accelerator is by using AWS Systems Manager Session Manager. Session Manager allows access to instances without the need to have any open firewall ports. Session Manager allows for Command line access to instances (both Windows and Linux) directly through the AWS console, with all activity logged to CloudWatch Logs. Session Manager enables customers to connect to Windows instances with a native RDP client and Linux instances with a native SSH client, if desired. Customers can gain quick access to instances through the AWS consolve, or using their preferred clients.
+
+**General**
+
+- Both the RDGW and rsyslog instances deployed in the Ops account are properly configured for Systems Manager Session Manager
+- We have implemented automation such that all instances are also automatically configured for Session Manager (i.e. configured with the appropriate launch role, has a recent session manager agent installed (most amazon ami's do), has access to an SSM endpoint)
+
+**Connecting to an Instance**
+
+- From the AWS Console
+  - Go to: EC2, Instances, select the instance (i.e. ASEA-RDGW), click “Connect”, select Session Manager, Connect
+  - Ideal for Linux or Windows Powershell users
+  - Everything is fully logged for future reference
+- Directly through local RDP client using Session Managers tunnel capability:
+  - Provides direct access to your instances/host without any open internet ports on the RDGW instance, using a local/fat client tool
+  - Install AWS CLI v2 on your PC - available [here](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) (uninstall CLIv1 first, if installed)
+  - Install the SSM plugin on your PC - available [here](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html)
+  - Get AWS temporary credentials from AWS SSO for the account your workload resides (i.e. Ops account when accessing the ASEA-RDGW instance) by selecting “Command line or programmatic access” instead of “Management Console” and paste them into a command prompt
+    - i.e. via logging in here: https://xxxxxxx.awsapps.com/start or
+    - This [blog](https://aws.amazon.com/blogs/developer/aws-cli-v2-now-supports-aws-single-sign-on/) describes the process to use SSO to get credentials for the AWS CLI directly without the GUI
+  - Then enter: aws ssm start-session --target "i-12345678901234567" --document-name AWS-StartPortForwardingSession --parameters portNumber="3389",localPortNumber="56789"--region ca-central-1
+    - Command syntax is slightly different on Linux/Mac
+    - Replace i-1111adddce582b23c with the instance id of your RDGW instance
+    - A tunnel will open
+    - As these are tunnels to proprietary protocols (i.e. RDP/screen scraping) session content is not logged.
+  - Run mstsc/rdp client and connect to 127.0.0.1:56789
+    - By replacing 3389 with a new port for another applications (i.e. SSH running on a Linux instance), you can connect to a different application type
+    - You can change the local port by changing 56789 to any other valid port number (i.e. connecting to multiple instances at the same time)
+  - Login with the windows credentials discussed above in the format NETBIOSDOMAIN\User1 (i.e. example\user1)
+    - Your netbios domain is found here in your config file: "netbios-domain": "example",
+- Connect to your desktop command line to command line interface of remote Windows or Linux servers, instead of through console (i.e. no tunnel):
+  - aws ssm start-session --target "i-090c25e64c2d9d276""--region ca-central-1
+  - Replace i-xxx with your instance ID
+  - Everything is fully logged for future reference
+- If you want to remove the region from your command line, you can:
+  - Type: “aws configure” from command prompt, hit {enter} (key), {enter} (secret), enter: ca-central-1, {enter}
 
 ## 1.2. Existing Accounts/Organizations
 
@@ -212,7 +259,7 @@ Example:
 
 ### 1.2.2. Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?
 
-Existing ALZ customers are required to uninstall their ALZ deployment before deploying the Accelerator. Please work with your AWS account team to find the best mechanism to uninstall the ALZ solution (procedures and scripts exist). Additionally, please reference section 4 of the Instation and Upgrade Guide.  It may be easier to migrate AWS accounts to a new Accelerator Organization, per the process detailed in FAQ #1.2.3.
+Existing ALZ customers are required to uninstall their ALZ deployment before deploying the Accelerator. Please work with your AWS account team to find the best mechanism to uninstall the ALZ solution (procedures and scripts exist). Additionally, please reference section 4 of the Instation and Upgrade Guide. It may be easier to migrate AWS accounts to a new Accelerator Organization, per the process detailed in FAQ #1.2.3.
 
 ### 1.2.3. What if I want to move an account from an AWS Organization that has the ALZ deployed into an AWS Organization running the Accelerator?
 
@@ -404,9 +451,11 @@ The rsyslog servers are included to accept logs for appliances and third party a
 
 Yes, if license files are not provided, the firewalls will come up configured and route traffic, but customers will have no mechanism to manage the firewalls/change the configuration until a valid license file is added. If invalid licence files are provided, the firewalls will fail to load the provided configuration, will not enable routing, will not bring up the VPN tunnels and will not be manageable. Customers will need to either remove and redeploy the firewalls, or manually configure them. If performing a test deployment, please work with your local Fortinet account team to discuss any options for temporary evaluation licenses.
 
+Additionally, several additional firewall options are now available, including using AWS Network Firewall, a native AWS service.
+
 ### 1.6.6. I installed additional software on my Accelerator deployed RDGW / rsyslog host, where did it go?
 
-The RDGW and rsyslog hosts are members of auto-scaling groups. These auto-scaling groups have been configured to refresh instances in the pool on a regular basis (30-days in the sample config files). This ensures these instances are always clean. Additionally, if the Accelerator State Machine has been run in the previous 30-days, the ASG will have also been updated with the latest AWS AMI for the instances. When the auto-scaling group refreshes its instances, they will be redeployed with the latest patch release of the AMI/OS.
+The RDGW and rsyslog hosts are members of auto-scaling groups. These auto-scaling groups have been configured to refresh instances in the pool on a regular basis (7-days in the current sample config files). This ensures these instances are always clean. Additionally, on every execution of the Accelerator state machine the ASG are updated to the latest AWS AMI for the instances. When the auto-scaling group refreshes its instances, they will be redeployed with the latest patch release of the AMI/OS. It is recommended that the state machine be executed monthly to ensure the latest AMI's are always in use.
 
 Customers wanting to install additional software on these instances should either a) update the automated deployment scripts to install the new software on new instance launch, or b) create and specify a custom AMI in the Accelerator configuration file which has the software pre-installed ensuring they are also managing patch compliance on the instance through some other mechanism.
 
@@ -414,21 +463,19 @@ At any time, customers can terminate the RDGW or rsyslog hosts and they will aut
 
 ### 1.6.7. Some sample configurations provide NACLs and Security Groups. Is that enough?
 
-The Accelerator provided sample security groups 
+Security group egress rules are often used in 'allow all' mode (`0.0.0.0/0`), with the focus primarily being on consistently whitelisting required ingress traffic (centralized ingress/egress controls are in-place using the perimeter firewalls). This ensures day to day activities like patching, access to DNS, or to directory services access can function on instances without friction.
 
-Security group egress rules are often used in 'allow all' mode (`0.0.0.0/0`), with the focus primarily being on consistently whitelisting required ingress traffic (centralized ingress/egress controls are in-place using the perimeter firewalls).  This ensures day to day activities like patching, access to DNS, or to directory services access can function on instances without friction. 
+The Accelerator provided sample security groups in the workload accounts offer a good balance that considers both security, ease of operations, and frictionless development. They allow developers to focus on developing, enabling them to simply use the pre-created security constructs for their workloads, and avoid the creation of wide-open security groups. Developers can equally choose to create more appropriate least-privilege security groups more suitable for their application, if they are skilled in this area. It is expected as an application is promoted through the SDLC cycle from Dev through Test to Prod, these security groups will be further refined by the extended customers teams to further reduce privilege, as appropriate. It is expected that each customer will review and tailor their Security Groups based on their own security requirements. The provided security groups ensures day to day activities like patching, access to DNS, or to directory services access can function on instances without friction, with the understanding further protections are providing by the central ingress/egress firewalls.
 
-The Accelerator provided sample security groups in the workload accounts offer a good balance that considers both security, ease of operations, and frictionless development.  They allow developers to focus on developing, enabling them to simply use the pre-created security constructs for their workloads, and avoid the creation of wide-open security groups.  Developers can equally choose to create more appropriate least-privilege security groups more suitable for their application, if they are skilled in this area.  It is expected as an application is promoted through the SDLC cycle from Dev through Test to Prod, these security groups will be further refined by the extended customers teams to further reduce privilege, as appropriate.  It is expected that each customer will review and tailor their Security Groups based on their own security requirements.  The provided security groups ensures day to day activities like patching, access to DNS, or to directory services access can function on instances without friction, with the understanding further protections are providing by the central ingress/egress firewalls.
-
-The use of NACLs are general discouraged, but leveraged in this architecture as a defense-in-depth mechanism.  Security groups should be used as the primary access control mechanism.  As with security groups, we encourage customers to review and tailor their NACLs based on their own security requirements.
+The use of NACLs are general discouraged, but leveraged in this architecture as a defense-in-depth mechanism. Security groups should be used as the primary access control mechanism. As with security groups, we encourage customers to review and tailor their NACLs based on their own security requirements.
 
 ### 1.6.8. Can I deploy the solution as the account root user?
 
-No, you cannot install as the root user.  The root user has no ability to assume roles which is a requirement to configure the sub-accounts and will prevent the deployment. As per the [installation instructions](../installation/installation.md#231-general), you require an IAM user with the `AdministratorAccess` policy attached.
+No, you cannot install as the root user. The root user has no ability to assume roles which is a requirement to configure the sub-accounts and will prevent the deployment. As per the [installation instructions](../installation/installation.md#231-general), you require an IAM user with the `AdministratorAccess` policy attached.
 
 ### 1.6.9. Is the Organizational Management root account monitored similarly to the other accounts in the organization?
 
-Yes, all accounts including the Organization Management or root account have the same monitoring and logging services enabled. When supported, AWS security services like GuardDuty, Macie, and Security Hub have their delegated administrator account configured as the "security" account.  These tools can be used within each local account (including the Organization Management account) within the organization to gain account level visibility or within the Security account for Organization wide visibility.  For more information about monitoring and logging refer to [architecture documentation](../architectures/pbmm/architecture.md#7-logging-and-monitoring).
+Yes, all accounts including the Organization Management or root account have the same monitoring and logging services enabled. When supported, AWS security services like GuardDuty, Macie, and Security Hub have their delegated administrator account configured as the "security" account. These tools can be used within each local account (including the Organization Management account) within the organization to gain account level visibility or within the Security account for Organization wide visibility. For more information about monitoring and logging refer to [architecture documentation](../architectures/pbmm/architecture.md#7-logging-and-monitoring).
 
 ---
 
