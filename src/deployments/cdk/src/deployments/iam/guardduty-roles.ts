@@ -49,6 +49,7 @@ export async function createAdminRole(stack: AccountStack) {
     new iam.PolicyStatement({
       actions: [
         'guardduty:EnableOrganizationAdminAccount',
+        'guardduty:ListOrganizationAdminAccounts',
         'guardduty:ListDetectors',
         'guardduty:createDetector',
         'iam:CreateServiceLinkedRole',

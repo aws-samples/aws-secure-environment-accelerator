@@ -60,7 +60,7 @@ export async function createMacieAdminRole(stack: AccountStack) {
   );
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
-      actions: ['macie2:EnableOrganizationAdminAccount'],
+      actions: ['macie2:EnableOrganizationAdminAccount', 'macie2:ListOrganizationAdminAccounts'],
       resources: ['*'],
     }),
   );

@@ -6,7 +6,6 @@ import {
   CloudFormationCustomResourceUpdateEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
-import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const guardduty = new AWS.GuardDuty();
 
@@ -29,50 +28,61 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
   }
 }
 
-function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-
-  return `${properties.accountId}`;
-}
-
 async function onCreateOrUpdate(
   event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
 ) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const response = await enableOrgAdmin(properties);
+  const accountId = event.ResourceProperties.accountId;
+  const sleepTime = 30000;
+  const retryCount = 10;
+  await enableOrgAdmin(accountId);
+  let guardDutyAdminEnabled = await isGuardDutyAdminEnabled(accountId);
+  let retries = 0;
+  while (!guardDutyAdminEnabled && retries < retryCount) {
+    console.log(
+      `GuardDuty Admin not enabled. Retrying in ${sleepTime / 1000} seconds. Retry: ${retries + 1} of ${retryCount}`,
+    );
+    await sleep(sleepTime);
+    await enableOrgAdmin(accountId);
+    guardDutyAdminEnabled = await isGuardDutyAdminEnabled(accountId);
+    retries++;
+  }
   return {
-    physicalResourceId: getPhysicalId(event),
+    physicalResourceId: event.ResourceProperties.accountId,
     data: {},
   };
 }
+async function isGuardDutyAdminEnabled(accountId: string) {
+  console.log(`Checking if GuardDuty Administration is enabled for account ${accountId}`);
+  const adminList = await guardduty.listOrganizationAdminAccounts().promise();
+  console.log(adminList);
+  const isAccountAdded = adminList.AdminAccounts?.filter(account => {
+    return account.AdminAccountId === accountId;
+  });
 
-async function enableOrgAdmin(properties: HandlerProperties) {
+  if (isAccountAdded!.length === 0) {
+    console.log('Account has not been added.');
+  } else {
+    console.log('Account has been added.');
+  }
+  return isAccountAdded!.length > 0;
+}
+
+async function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function enableOrgAdmin(accountId: string) {
   const params = {
-    AdminAccountId: properties.accountId,
+    AdminAccountId: accountId,
   };
 
   try {
-    const detectors = await throttlingBackOff(() => guardduty.listDetectors().promise());
-    if (detectors.DetectorIds.length === 0) {
-      await throttlingBackOff(() =>
-        guardduty
-          .createDetector({
-            Enable: true,
-          })
-          .promise(),
-      );
-    }
-    const enableAdmin = await throttlingBackOff(() => guardduty.enableOrganizationAdminAccount(params).promise());
+    console.log(`Enabling GuardDuty Admin for account ${accountId}`);
+    const enableAdmin = await guardduty.enableOrganizationAdminAccount(params).promise();
+    console.log(enableAdmin);
     return enableAdmin;
   } catch (e) {
-    const message = `${e}`;
-    // if account is already enabled as delegated admin, do not error out
-    if (
-      message.includes(`the account is already enabled as the GuardDuty delegated administrator for the organization`)
-    ) {
-      console.warn(message);
-    } else {
-      throw e;
-    }
+    console.log('Could not enable Guard Duty Admin.');
+    console.log(e);
   }
 }
