@@ -2,9 +2,9 @@
 
 The AWS Accelerator is a tool designed to help deploy and operate secure multi-account, multi-region AWS environments on an ongoing basis. The power of the solution is the configuration file that drives the architecture deployed by the tool. This enables extensive flexibility and for the completely automated deployment of a customized architecture within AWS without changing a single line of code.
 
-While flexible, the AWS Accelerator is delivered with a sample configuration file which deploys an opinionated and prescriptive architecture designed to help meet the security and operational requirements of many governments around the world (initial focus was the Government of Canada). Tuning the parameters within the configuration file allows for the deployment of customized architectures and enables the solution to help meet the multitude of requirements of a broad range of governments and public sector organizations.
+While flexible, the AWS Accelerator is delivered with a sample configuration file which deploys an opinionated and prescriptive architecture designed to help meet the security and operational requirements of many governments around the world. Tuning the parameters within the configuration file allows for the deployment of customized architectures and enables the solution to help meet the multitude of requirements of a broad range of governments and public sector organizations.
 
-The installation of the provided prescriptive architecture is reasonably simple, deploying a customized architecture does require extensive understanding of the AWS platform.
+The installation of the provided prescriptive architecture is reasonably simple, deploying a customized architecture does require extensive understanding of the AWS platform. The sample deployment specifically help customers meet NIST 800-53 and/or CCCS Medium Cloud Control Profile (formerly PBMM).
 
 ![Diagram](./docs/operations/img/ASEA-high-level-architecture.png)
 
@@ -29,6 +29,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Supports AWS Organizations nested [ou's](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html) and importing existing AWS accounts
 - Performs 'account warming' to establish initial limits, when required
 - Automatically submits limit increases, when required (complies with initial limits until increased)
+- AWS Control Tower support
 
 ### Creates Networking
 
@@ -113,15 +114,13 @@ Specifically the accelerator deploys and manages the following functionality, bo
 
 ## Relationship with AWS Landing Zone Solution (ALZ)
 
-The ALZ is an AWS Solution designed to deploy a multi-account AWS architecture for customers based on best practices and lessons learned from some of AWS' largest customers. The AWS Accelerator draws on design patterns from the Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it, nor does it leverage any code from the ALZ. The initial versions of the AWS Accelerator presupposed the existence of an AWS Landing Zone Solution in the AWS Organization; this requirement has since been removed as of release `v1.1.0`.
-
-The Accelerator is now a completely standalone solution.
+The ALZ is an AWS Solution designed to deploy a multi-account AWS architecture for customers based on best practices and lessons learned from some of AWS' largest customers. The AWS Accelerator draws on design patterns from the Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it, nor does it leverage any code from the ALZ. The Accelerator is a standalone solution with no dependence on ALZ.
 
 ## Relationship with AWS Control Tower
 
 AWS Control Tower is the successor to the ALZ, but offered as an AWS managed service.
 
-When appropriate, it is envisioned that the AWS Accelerator will add the capability to be deployed on top of AWS Control Tower, as we initially allowed with the ALZ.
+With the release of v1.5.0, the AWS Accelerator adds the capability to be deployed on top of AWS Control Tower. Customers get the benefits of the fully managed capabilities of AWS Control Tower combined with the power and flexibility of the Accelerators Networking and Security orchestration.
 
 ## Accelerator Deployment Process (Summary)
 
@@ -134,13 +133,13 @@ This summarizes the installation process, the full installation document can be 
 - Wait for:
   - CloudFormation to deploy and start the Code Pipeline (~5 mins)
   - Code Pipeline to download the Accelerator codebase and install the Accelerator State Machine (~10 mins)
-  - The Accelerator State Machine to finish execution (~1.5 hrs)
+  - The Accelerator State Machine to finish execution (~1.25 hrs Standalone version, ~2.25 hrs Control Tower Version)
 - Perform required manual follow-up activities (configure AWS SSO, set firewall passwords, etc.)
 - When required:
   - Use AWS Organizations to create new AWS accounts, which will automatically be guardrailed by the Accelerator
-  - Update the config file in CodeCommit and run the Accelerator State Machine (~25 min) to:
-    - deploy, configure and guardrail multiple accounts at the same time
-    - change Accelerator configuration settings
+  - Update the config file in CodeCommit and run the Accelerator State Machine to:
+    - deploy, configure and guardrail multiple accounts at the same time (~25 min Standalone, ~50 min/account Control Tower)
+    - change Accelerator configuration settings (~25 min)
 
 # **Documentation**
 

@@ -53,6 +53,10 @@ These installation instructions assume the prescribed architecture is being depl
 - Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
 - Valid configuration file, updated to reflect your requirements (see below)
 - Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
+- Decide if you are doing an AWS Control Tower based or a Standalone installation
+  - AWS generally recommends customers install on top of AWS Control Tower, unless customers have requirements not met by Control Tower
+  - Government of Canada customers are required to do a Standalone installation at this time
+  - While an upgrade path is planned, at this time no upgrade path exists from a Standalone installation to a Control Tower based installation
 - The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in [section 4](#4-existing-organizations--accounts) below
 - Existing AWS Landing Zone Solution (ALZ) customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
 
@@ -64,7 +68,9 @@ These installation instructions assume the prescribed architecture is being depl
 
 ### 2.2.2. OU Structure Planning
 
-Plan your OU structure carefully. By default, we suggest: `Core, Central, Sandbox, Unclass, Dev, Test, Prod`. These OUs correspond with major permission shifts in the SDLC cycle and NOT every stage an organization has in their SDLC cycle (i.e. QA or pre-prod would be included in one of the other OUs).
+Plan your OU and core account structure carefully. By default, we suggest: `Security, Infrastructure, Central, Sandbox, Dev, Test, Prod`. The `Security` OU will contain the `Security` account and the `Log Archive` account. The `Infrastructure` OU will hold the remainder of the accounts shared or utilized by the rest of the organization (`Shared Network`, `Perimeter`, `Operations`). The remainder of the OUs correspond with major permission shifts in the SDLC cycle and NOT every stage an organization has in their SDLC cycle (i.e. QA or pre-prod would be included in one of the other OUs). The `Central` OU is used to hold accounts with workloads shared across Dev, Test, and Prod environments like centralized CI/CD tooling.
+
+v1.5.0 better aligns the Accelerator OU and account structure with the latest AWS multi-account guidance, splitting the `core` OU into the `Security` and `Infrastructure` OUs.
 
 **Note:** While OUs can be renamed or additional OUs added at a later point in time, deployed AWS accounts CANNOT be moved between top-level OUs (guardrail violation), nor can top-level OUs easily be deleted (requires deleting all AWS accounts from within the OU first).
 
@@ -135,7 +141,7 @@ Note: While we only provide a single example for each 3rd party implementation t
 
 1. We recommend installing with the default Accelerator Name (`ASEA`) and Accelerator Prefix (`ASEA-`), but allow customization. Prior to v1.5.0 the defaults were (`PBMM`) and (`PBMMAccel-`) respectively.
    - The Accelerator name and prefix **_CANNOT_** be changed after the initial installation.
-2. We recommend using `OrganizationAccountAccessRole` as the `organization-admin-role`, as this role is used by AWS Organizations if no role name is specified when creating AWS accounts through the AWS console.
+2. If installing with Control Tower, the `organization-admin-role` must be set to `OrganizationAccountAccessRole`. For standalone installations customers can select a role name of their choosing, but, we recommend using `OrganizationAccountAccessRole` as the `organization-admin-role`, as this role is used by AWS Organizations by default if no role name is specified when creating AWS accounts through the AWS console.
    - the Accelerator leverages this role name to create all new accounts in the organization;
    - this role name, as defined in the config file, _MUST_ be utilized when manually creating all new sub-accounts in the Organization;
    - existing installs wishing to change the role name are required to first deploy a new role with a trust to the root account, in all accounts in the organization
@@ -149,28 +155,46 @@ Before installing, you must first:
 
 1. Login to the Organization **Management or root AWS account** with `AdministratorAccess`.
 2. **_Set the region to your desired `home` region_** (i.e. `ca-central-1`)
-3. Enable AWS Organizations in `All features` mode
-   - Navigate to AWS Organizations, click `Create Organization`, `Create Organization`
-4. Enable Service Control Policies
-   - In Organizations, select `Policies`, `Service control policies`, `Enable service control policies`
+3. For Control Tower based installs ONLY:
+   - OU and account names can ONLY be customized during initial installation. These values MUST match with the values supplied in the Accelerator config file.
+   1. Go to the AWS Control Tower console and click `Set up landing zone`
+   2. Select your `home` region (i.e. `ca-central-1`)
+      - the Accelerator home region must match the Control Tower home region
+   3. Select _all_ regions for `Additional AWS Regions for governance`, click `Next`
+   4. For the `Foundational OU`, leave the default value `Security`
+   5. For the `Additional OU` provide the value `Infrastructure`, click `Next`
+   6. Enter the email addresses for your `Log Archive` and `Audit` accounts, change the `Audit` account name to `Security`, click `Next`
+      - OU and account names can ONLY be customized during initial installation. OU names, account names and email addresses _must_ match identically with the values supplied in the Accelerator config file.
+   7. Click setup and wait ~60 minutes for the Control Tower installation to complete
+   8. Select `Add or register organizational units`, Click `Add an OU`
+   9. Type `Dev`, click `Add`, wait until the OU is finished provisioning (or it will error)
+   10. Repeat step 9 for each OU (i.e. `Test`, `Prod`, `Central`, `Sandbox`)
+   11. Select `Account factory`, Edit, Subnets: 0, Deselect all regions, click `Save`
+4. For Standalone based installs ONLY:
+   1. Enable AWS Organizations in `All features` mode
+      - Navigate to AWS Organizations, click `Create Organization`, `Create Organization`
+   2. Enable Service Control Policies
+      - In Organizations, select `Policies`, `Service control policies`, `Enable service control policies`
 5. Verify the Organization Management (root) account email address
    - In AWS Organizations, Settings, ["Send Verification Request"](https://aws.amazon.com/blogs/security/aws-organizations-now-requires-email-address-verification/)
-6. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
+6. Move the Management account from the `root` OU into the `Security` OU
+7. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
    - AWS Key Management Service, Customer Managed Keys, Create Key, Symmetric, and then provide a key name (`ASEA-Source-Bucket-Key`), Next
    - Select a key administrator (Admin Role or Group for the Organization Management account), Next
    - Select key users (Admin Role or Group for the Organization Management account), Next
    - Validate an entry exists to "Enable IAM User Permissions" (critical step if using an existing key)
      - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_Organization Management_** account id.
    - Click Finish
-   - Select the new key, Select `Key Rotation`, `Automatically rotate this CMK every year`.
-7. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
+   - Select the new key, Select `Key Rotation`, `Automatically rotate this CMK every year`, click Save.
+8. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
    - With recent platform changes, Cost Explorer _may_ now be auto-enabled (unable to confirm)
-8. Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
-9. It is **_extremely important_** that **_all_** the account contact details be validated in the Organization Management (root) account before deploying any new sub-accounts.
-   - This information is copied to every new sub-account on creation.
-   - Subsequent changes to this information require manually updating it in **_each_** sub-account.
-   - Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section.
-   - Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
+9. Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
+10. It is **_extremely important_** that **_all_** the account contact details be validated in the Organization Management (root) account before deploying any new sub-accounts.
+
+- This information is copied to every new sub-account on creation.
+- Subsequent changes to this information require manually updating it in **_each_** sub-account.
+- Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section.
+- Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
 
 ### 2.3.2. Create GitHub Personal Access Token and Store in Secrets Manager
 
@@ -189,7 +213,7 @@ As of v1.5.0, the Accelerator offers deployment from either GitHub or CodeCommit
      - Set the secret name to `accelerator/github-token` (case sensitive)
      - Select `Disable rotation`
 
-**CodeCommit** (more complex options)
+**CodeCommit** (more complex option)
 
 - Multiple options exist for downloading the GitHub Accelerator codebase and pushing it into CodeCommit. As this option is only for advanced users, detailed instructions are not provided.
 
@@ -201,7 +225,7 @@ As of v1.5.0, the Accelerator offers deployment from either GitHub or CodeCommit
 
 ### 2.3.3. AWS Internal (Employee) Accounts Only
 
-If deploying to an internal AWS employee account, to successfully install the solution with the 3rd party firewalls, you need to enable Private Marketplace (PMP) before starting:
+If deploying to an internal AWS employee account and installing the solution with a 3rd party firewall, you need to enable Private Marketplace (PMP) before starting:
 
 1. In the Organization Management account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
 2. Click `Create a Private Marketplace`, and wait for activation to complete
@@ -235,7 +259,7 @@ If deploying to an internal AWS employee account, to successfully install the so
    - **IMPORTANT: Use a config file from the Github code branch you are deploying from, as valid parameters change over time. The `main` branch is NOT the current release and often will not work with the GA releases.**
    - sample config files can be found in [this](../../reference-artifacts/SAMPLE_CONFIGS/) folder;
    - descriptions of the sample config files and customization guidance can be found [here](./customization-index.md);
-   - unsure where to start, use the `config.lite-XXX-example.json`, where XXX is VPN for Fortinet, GWLB for Checkpoint and NFW for AWS;
+   - unsure where to start, use the `config.lite-XXX-example.json`, where XXX is VPN for Fortinet, GWLB for Checkpoint, NFW for AWS, and CTNFW for Control Tower w/NFW;
    - These configuration files can be used, as-is, with only minor modification to successfully deploy the sample architectures;
    - A _Beta_ GUI based config file editor is available for download with the v1.5.0 release
      - it is NOT production ready, please compare the before and after config files and ensure only desired changes were made to your config before proceeding;
@@ -258,12 +282,13 @@ If deploying to an internal AWS employee account, to successfully install the so
    - the bucket must be `S3-KMS` encrypted using the `ASEA-Source-Bucket-Key` created above
 6. Place your customized config file(s), named `config.json` (or `config.yaml`), in your new bucket
 7. If required, place the firewall configuration and license files in the folder and path defined in the config file
+   - For AWS Network Firewall: `nfw/nfw-example‎-policy.json`
    - For Fortinet: `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
      - We have made several samples available [here](../../reference-artifacts/Third-Party): `./reference-artifacts/Third-Party/`
      - Both samples comprise an active / active firewall pair. Until recently we only brought up one tunnel per firewall, you now also have an example which brings up both tunnels per firewall
      - If you updated your perimeter VPC subnet names, you must also make these changes in your firewall-example.txt file
      - If you don't have any license files, update the config file with an empty array (`"license": []`). Do NOT use the following: `[""]`.
-   - For AWS Network Firewall: `firewall/nfw-example‎-policy.json`
+   - The basic Checkpoint configuration is stored directly in config.json
 8. Place any defined certificate files in the folder and path defined in the config file
    - i.e. `certs/example1-cert.key`, `certs/example1-cert.crt`
    - Sample available [here](../../reference-artifacts/Certs-Sample/): `./reference-artifacts/Certs-Sample/*`
@@ -287,7 +312,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 8. Add an `Email` address to be used for State Machine Status notification
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.3.6`, case sensitive
+   - the latest stable branch is currently `release/v1.5.0`, case sensitive
 10. Apply a tag on the stack, Key=`Accelerator`, Value=`ASEA` (case sensitive).
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
@@ -322,19 +347,20 @@ If deploying to an internal AWS employee account, to successfully install the so
 
 Current Issues:
 
-- In v1.3.6 Guardduty and/or Macie causes the state machine to fail. Simply rerun the state machine. We are working on a fix.
-
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine.
 
 Issues in Older Releases:
 
 - New installs and upgrades to releases prior to v1.3.6 are no longer supported.
 
+- In v1.3.6 Guardduty and/or Macie causes the state machine to fail. Simply rerun the state machine. We are working on a fix.
+
 ## 2.6. Post-Installation
 
 The Accelerator installation is complete, but several manual steps remain:
 
 1. In your `home` region (i.e. ca-central-1), Enable AWS SSO, Set the SSO directory to MAD, set the SSO email attrib to: \${dir:email}, configure MFA, create all default permission sets and any desired custom permission sets, map MAD groups to perm sets and accounts.
+   - For Control Tower based installations, remove the orphaned Permission Sets from each AWS accounts (select the account, expand Permission Sets, click Remove for each)
 2. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts, in each account:
 
    - Go to CloudWatch, Settings, Under `Cross-account cross-region` select `Configure`, Under `View cross-account cross-region` select `Enable`, choose `AWS Organization account selector`, click `Enable`
