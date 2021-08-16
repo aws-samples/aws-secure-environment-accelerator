@@ -87,10 +87,6 @@ export namespace InitialSetup {
         encryptionKey: installerCmk,
         pointInTimeRecovery: true,
       });
-      const parametersScaling = parametersTable.autoScaleReadCapacity({ minCapacity: 1, maxCapacity: 10 });
-      parametersScaling.scaleOnUtilization({
-        targetUtilizationPercent: 90,
-      });
 
       const outputsTable = new dynamodb.Table(this, 'Outputs', {
         tableName: createName({
@@ -105,10 +101,6 @@ export namespace InitialSetup {
         encryptionKey: installerCmk,
         pointInTimeRecovery: true,
       });
-      const outputsScaling = outputsTable.autoScaleReadCapacity({ minCapacity: 1, maxCapacity: 10 });
-      outputsScaling.scaleOnUtilization({
-        targetUtilizationPercent: 90,
-      });
 
       const outputUtilsTable = new dynamodb.Table(this, 'OutputUtils', {
         tableName: createName({
@@ -122,10 +114,6 @@ export namespace InitialSetup {
         encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
         encryptionKey: installerCmk,
         pointInTimeRecovery: true,
-      });
-      const outputUtilsScaling = outputUtilsTable.autoScaleReadCapacity({ minCapacity: 1, maxCapacity: 10 });
-      outputUtilsScaling.scaleOnUtilization({
-        targetUtilizationPercent: 90,
       });
 
       // Tables required for VPC Cidr mappings for VPC, Account and OU
@@ -142,10 +130,6 @@ export namespace InitialSetup {
         encryptionKey: installerCmk,
         pointInTimeRecovery: true,
       });
-      const vpcCidrPoolScaling = vpcCidrPoolTable.autoScaleReadCapacity({ minCapacity: 1, maxCapacity: 10 });
-      vpcCidrPoolScaling.scaleOnUtilization({
-        targetUtilizationPercent: 90,
-      });
 
       const subnetCidrPoolTable = new dynamodb.Table(this, 'CidrSubnetAssign', {
         tableName: createName({
@@ -160,10 +144,6 @@ export namespace InitialSetup {
         encryptionKey: installerCmk,
         pointInTimeRecovery: true,
       });
-      const subnetCidrPoolScaling = subnetCidrPoolTable.autoScaleReadCapacity({ minCapacity: 1, maxCapacity: 10 });
-      subnetCidrPoolScaling.scaleOnUtilization({
-        targetUtilizationPercent: 90,
-      });
 
       const cidrPoolTable = new dynamodb.Table(this, 'CidrPoolTable', {
         tableName: createName({
@@ -177,10 +157,6 @@ export namespace InitialSetup {
         encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
         encryptionKey: installerCmk,
         pointInTimeRecovery: true,
-      });
-      const cidrPoolScaling = cidrPoolTable.autoScaleReadCapacity({ minCapacity: 1, maxCapacity: 10 });
-      cidrPoolScaling.scaleOnUtilization({
-        targetUtilizationPercent: 90,
       });
 
       // This is the maximum time before a build times out
