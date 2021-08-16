@@ -78,6 +78,7 @@ export namespace InitialSetup {
           suffixLength: 0,
         }),
         partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST
       });
 
       const outputsTable = new dynamodb.Table(this, 'Outputs', {
@@ -89,6 +90,7 @@ export namespace InitialSetup {
           name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST
       });
 
       const outputUtilsTable = new dynamodb.Table(this, 'OutputUtils', {
@@ -100,6 +102,7 @@ export namespace InitialSetup {
           name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST
       });
 
       // This is the maximum time before a build times out
