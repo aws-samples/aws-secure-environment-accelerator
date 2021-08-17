@@ -30,6 +30,7 @@ export class AlbIpForwarding extends Construct {
       tableName: `${prefix}Alb-Ip-Forwarding-${albIpProps.vpcId}`,
       encryption: ddb.TableEncryption.CUSTOMER_MANAGED,
       encryptionKey: kmsKey,
+      billingMode: ddb.BillingMode.PAY_PER_REQUEST,
     });
 
     const tableEventSource = new DynamoEventSource(ddbTable, {

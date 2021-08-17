@@ -20,7 +20,7 @@
     "workloadaccounts-suffix": 1,
     "workloadaccounts-prefix": "config",
     "workloadaccounts-param-filename": "config.json",
-    "ignored-ous": [],
+    "ignored-ous": ["UnManaged"],
     "additional-global-output-regions": [],
     "supported-regions": [
       "ap-northeast-1",
@@ -141,7 +141,7 @@
       "standards": [
         {
           "name": "AWS Foundational Security Best Practices v1.0.0",
-          "controls-to-disable": ["IAM.1", "EC2.10"]
+          "controls-to-disable": ["IAM.1", "EC2.10", "Lambda.4"]
         },
         {
           "name": "PCI DSS v3.2.1",

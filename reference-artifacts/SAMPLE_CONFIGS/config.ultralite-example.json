@@ -16,7 +16,7 @@
     "workloadaccounts-suffix": 1,
     "workloadaccounts-prefix": "config",
     "workloadaccounts-param-filename": "config.json",
-    "ignored-ous": [],
+    "ignored-ous": ["UnManaged"],
     "additional-global-output-regions": [],
     "supported-regions": ["${HOME_REGION}"],
     "keep-default-vpc-regions": [],
@@ -119,7 +119,7 @@
       "standards": [
         {
           "name": "AWS Foundational Security Best Practices v1.0.0",
-          "controls-to-disable": ["IAM.1", "EC2.10"]
+          "controls-to-disable": ["IAM.1", "EC2.10", "Lambda.4"]
         },
         {
           "name": "CIS AWS Foundations Benchmark v1.2.0",

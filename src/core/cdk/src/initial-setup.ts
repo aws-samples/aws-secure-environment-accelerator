@@ -86,6 +86,7 @@ export namespace InitialSetup {
         encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
         encryptionKey: installerCmk,
         pointInTimeRecovery: true,
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       });
 
       const outputsTable = new dynamodb.Table(this, 'Outputs', {
@@ -100,6 +101,7 @@ export namespace InitialSetup {
         encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
         encryptionKey: installerCmk,
         pointInTimeRecovery: true,
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       });
 
       const outputUtilsTable = new dynamodb.Table(this, 'OutputUtils', {
@@ -114,6 +116,7 @@ export namespace InitialSetup {
         encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
         encryptionKey: installerCmk,
         pointInTimeRecovery: true,
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       });
 
       // Tables required for VPC Cidr mappings for VPC, Account and OU
@@ -129,6 +132,7 @@ export namespace InitialSetup {
         encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
         encryptionKey: installerCmk,
         pointInTimeRecovery: true,
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       });
 
       const subnetCidrPoolTable = new dynamodb.Table(this, 'CidrSubnetAssign', {
@@ -143,6 +147,7 @@ export namespace InitialSetup {
         encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
         encryptionKey: installerCmk,
         pointInTimeRecovery: true,
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       });
 
       const cidrPoolTable = new dynamodb.Table(this, 'CidrPoolTable', {
@@ -157,6 +162,7 @@ export namespace InitialSetup {
         encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
         encryptionKey: installerCmk,
         pointInTimeRecovery: true,
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       });
 
       // This is the maximum time before a build times out
