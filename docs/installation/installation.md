@@ -237,7 +237,7 @@ If deploying to an internal AWS employee account and installing the solution wit
 8. Ensure the `Software requests` slider is set to `Requests off` and wait for it to complete
 9. Change the name field (i.e. append `-PMP`) and change the color, so it is clear PMP is enabled for users, click `Update`
 10. Go to the "Products" sub-tab, then select the `All AWS Marketplace products` nested sub-tab
-11. Search Private Marketplace for the Fortinet or CHeckpoint products and select
+11. Search Private Marketplace for the Fortinet or Checkpoint products and select
 
 - `Fortinet FortiGate (BYOL) Next-Generation Firewall` and
 - `Fortinet FortiManager (BYOL) Centralized Security Management` **or**
@@ -391,23 +391,22 @@ The Accelerator installation is complete, but several manual steps remain:
 
    - Download and install Checkpoint SmartConsole client on your PC
    - Retrieve the firewall and firewall manager SSL certificate from secrets manager and save to a pem file (convert to ppk on Windows)
-   - SSH into the Firewall Manager using the SSL certificate and execute the following commands:
+   - Wait approx. 25 min. after the managers "Launch time" and then SSH into the Firewall Manager using the SSL certificate and execute the following commands:
      - "set user admin password"
      - "set expert-password"
      - "set user admin shell /bin/bash"
      - "save config"
-   - The following commands are useful for troubleshooting:
-     - "autoprov_cfg -v" (check cme version)
+   - The following commands are useful for troubleshooting (in expert mode):
+     - "autoprov_cfg -v" (check cme at Take 155 or greater)
      - "autoprov_cfg show all" (check cme configuration)
-     - "cat /var/log/aws-user-data.log" (validate bootstrap and should end with "Finished Bootstrap script")
+     - "cat /var/log/aws-user-data.log" (validate bootstrap, file should end with `"Publish operation" succeeded  (100%)`)
      - "tail -f /var/log/CPcme/cme.log" (watch to ensure it finds the instances, establishes SIC and adds the nodes)
-   - Login to SmartConsole, and update the firewall policy
-     - update the default deny rule to Log
-     - Add a rule to above the deny rule to accept http and https, from 10.0.0.0/8 and 100.96.252.0/23, to 0.0.0.0/0, with logging
+   - Login to SmartConsole, and update the firewall policy per your organizations security requirements
+     - An outbound rule allowing http and https should exist
      - From the RDGW host in Operations, test to see if outbound web browsing is enabled
    - NOTES:
      - No best practice or security configuration has been configured on the Checkpoint firewalls. These firewalls have been configured to work with GWLB, but otherwise have the default/basic Checkpoint out-of-box configuration installed
-     - Do NOT reboot the Checkpoint appliances until bootstrap is complete (~30 minutes for the manager), or you will be required to redeploy the instance
+     - Do NOT reboot the Checkpoint appliances until bootstrap is complete (~25 minutes for the manager), or you will be required to redeploy the instance
 
 4. Recover root passwords for all sub-accounts and apply strong passwords
    - Process documented [here](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys_retrieve.html#reset-root-password)
