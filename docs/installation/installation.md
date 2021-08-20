@@ -170,6 +170,7 @@ Before installing, you must first:
    9. Type `Dev`, click `Add`, wait until the OU is finished provisioning (or it will error)
    10. Repeat step 9 for each OU (i.e. `Test`, `Prod`, `Central`, `Sandbox`)
    11. Select `Account factory`, Edit, Subnets: 0, Deselect all regions, click `Save`
+   12. In Organizations, move the Management account from the `root` OU into the `Security` OU
 4. For Standalone based installs ONLY:
    1. Enable AWS Organizations in `All features` mode
       - Navigate to AWS Organizations, click `Create Organization`, `Create Organization`
@@ -177,8 +178,7 @@ Before installing, you must first:
       - In Organizations, select `Policies`, `Service control policies`, `Enable service control policies`
 5. Verify the Organization Management (root) account email address
    - In AWS Organizations, Settings, ["Send Verification Request"](https://aws.amazon.com/blogs/security/aws-organizations-now-requires-email-address-verification/)
-6. Move the Management account from the `root` OU into the `Security` OU
-7. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
+6. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
    - AWS Key Management Service, Customer Managed Keys, Create Key, Symmetric, and then provide a key name (`ASEA-Source-Bucket-Key`), Next
    - Select a key administrator (Admin Role or Group for the Organization Management account), Next
    - Select key users (Admin Role or Group for the Organization Management account), Next
@@ -186,10 +186,10 @@ Before installing, you must first:
      - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_Organization Management_** account id.
    - Click Finish
    - Select the new key, Select `Key Rotation`, `Automatically rotate this CMK every year`, click Save.
-8. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
+7. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
    - With recent platform changes, Cost Explorer _may_ now be auto-enabled (unable to confirm)
-9. Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
-10. It is **_extremely important_** that **_all_** the account contact details be validated in the Organization Management (root) account before deploying any new sub-accounts.
+8. Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
+9. It is **_extremely important_** that **_all_** the account contact details be validated in the Organization Management (root) account before deploying any new sub-accounts.
 
 - This information is copied to every new sub-account on creation.
 - Subsequent changes to this information require manually updating it in **_each_** sub-account.
@@ -273,9 +273,10 @@ If deploying to an internal AWS employee account and installing the solution wit
    - For a test deployment, the remainder of the values can be used as-is;
    - While it is generally supported, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts to the config file and rerun the state machine.
 3. A successful deployment of the prescriptive architecture requires VPC access to 9 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 9 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms, logs, monitoring).
-4. When deploying to regions other than `ca-central-1`, you need to:
-   1. Update the firewall and firewall manager AMI id's to reflect your home regions regional AMI id's (see 2.3.3, item 13) Make sure you select the right version and region per the recommendation in see 2.3.3, item 13.
-   2. Validate all the Interface Endpoints defined in your config file are supported in your home region (i.e. Endpoint VPC). Remove unsupported entries from the config file, Add additional as desired.
+4. When deploying to regions other than `ca-central-1`, you need to modify your config file as follows:
+   1. Update the firewall and firewall manager AMI id's to reflect your home regions regional AMI id's (see 2.3.3, item 13), making sure you select the right version and region per the recommendations.
+   2. Validate all the Interface Endpoints defined in your config file are supported in your home region (i.e. Endpoint VPC). Remove unsupported endpoints from the config file, add additional endpoints as available.
+   3. If you are installing into a home region which is explicitly named in any of the replacements\addl_regions_x, remove it from the list. If deploying in us-east-1, remove ${GBL_REGION}.
 5. Create an S3 bucket in your Organization Management account with versioning enabled `your-bucket-name`
    - you must supply this bucket name in the CFN parameters _and_ in the config file (`global-options\central-bucket`)
    - the bucket name _must_ be the same in both spots
@@ -399,7 +400,7 @@ The Accelerator installation is complete, but several manual steps remain:
    - The following commands are useful for troubleshooting (in expert mode):
      - "autoprov_cfg -v" (check cme at Take 155 or greater)
      - "autoprov_cfg show all" (check cme configuration)
-     - "cat /var/log/aws-user-data.log" (validate bootstrap, file should end with `"Publish operation" succeeded  (100%)`)
+     - "cat /var/log/aws-user-data.log" (validate bootstrap, file should end with `"Publish operation" succeeded (100%)`)
      - "tail -f /var/log/CPcme/cme.log" (watch to ensure it finds the instances, establishes SIC and adds the nodes)
    - Login to SmartConsole, and update the firewall policy per your organizations security requirements
      - An outbound rule allowing http and https should exist

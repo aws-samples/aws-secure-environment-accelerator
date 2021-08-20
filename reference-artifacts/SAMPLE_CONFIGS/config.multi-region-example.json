@@ -89,9 +89,9 @@
       "ssm-to-cwl": true,
       "sns-excl-regions": [],
       "sns-subscription-emails": {
-        "High": ["notify+high@example.com"],
-        "Medium": ["notify+medium@example.com"],
-        "Low": ["notify+low@example.com"]
+        "High": ["myemail+notifyT-high@example.com"],
+        "Medium": ["myemail+notifyT-medium@example.com"],
+        "Low": ["myemail+notifyT-low@example.com"]
       }
     },
     "additional-cwl-regions": {

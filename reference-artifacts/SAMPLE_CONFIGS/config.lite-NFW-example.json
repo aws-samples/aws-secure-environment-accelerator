@@ -84,9 +84,9 @@
       "ssm-to-cwl": true,
       "sns-excl-regions": [],
       "sns-subscription-emails": {
-        "High": ["notify+high@example.com"],
-        "Medium": ["notify+medium@example.com"],
-        "Low": ["notify+low@example.com"]
+        "High": ["myemail+notifyT-high@example.com"],
+        "Medium": ["myemail+notifyT-medium@example.com"],
+        "Low": ["myemail+notifyT-low@example.com"]
       }
     },
     "additional-cwl-regions": {},
@@ -907,10 +907,9 @@
           "deploy": "local",
           "name": "Endpoint",
           "description": "This VPC is used to host AWS Service Endpoints, making AWS services available using private address space.",
-          "cidr-src": "provided",
+          "cidr-src": "dynamic",
           "cidr": [
             {
-              "value": "10.7.0.0/22",
               "pool": "main",
               "size": 22
             }
@@ -927,7 +926,6 @@
                   "az": "a",
                   "route-table": "EndpointVPC_Common",
                   "cidr": {
-                    "value": "10.7.0.0/24",
                     "pool": "main",
                     "size": 24
                   }
@@ -936,7 +934,6 @@
                   "az": "b",
                   "route-table": "EndpointVPC_Common",
                   "cidr": {
-                    "value": "10.7.1.0/24",
                     "pool": "main",
                     "size": 24
                   }
@@ -1360,15 +1357,13 @@
           "deploy": "local",
           "name": "Perimeter",
           "description": "This VPC is used to hold centralized ingress/egress (perimeter) security services.",
-          "cidr-src": "provided",
+          "cidr-src": "dynamic",
           "cidr": [
             {
-              "value": "10.7.4.0/22",
               "pool": "main",
               "size": 22
             },
             {
-              "value": "100.96.250.0/23",
               "pool": "RFC6598b",
               "size": 23
             }
@@ -1402,7 +1397,6 @@
                   "az": "a",
                   "route-table": "Public_azA",
                   "cidr": {
-                    "value": "100.96.250.0/26",
                     "pool": "RFC6598b",
                     "size": 26
                   }
@@ -1411,7 +1405,6 @@
                   "az": "b",
                   "route-table": "Public_azB",
                   "cidr": {
-                    "value": "100.96.250.128/26",
                     "pool": "RFC6598b",
                     "size": 26
                   }
@@ -1425,7 +1418,6 @@
                   "az": "a",
                   "route-table": "FWMgmt_azA",
                   "cidr": {
-                    "value": "100.96.251.32/27",
                     "pool": "RFC6598b",
                     "size": 27
                   }
@@ -1434,7 +1426,6 @@
                   "az": "b",
                   "route-table": "FWMgmt_azB",
                   "cidr": {
-                    "value": "100.96.251.160/27",
                     "pool": "RFC6598b",
                     "size": 27
                   }
@@ -1448,7 +1439,6 @@
                   "az": "a",
                   "route-table": "Proxy_azA",
                   "cidr": {
-                    "value": "100.96.251.64/26",
                     "pool": "RFC6598b",
                     "size": 26
                   }
@@ -1457,7 +1447,6 @@
                   "az": "b",
                   "route-table": "Proxy_azB",
                   "cidr": {
-                    "value": "100.96.251.192/26",
                     "pool": "RFC6598b",
                     "size": 26
                   }
@@ -1471,7 +1460,6 @@
                   "az": "a",
                   "route-table": "OnPremise_azA",
                   "cidr": {
-                    "value": "100.96.250.64/26",
                     "pool": "RFC6598b",
                     "size": 26
                   }
@@ -1480,7 +1468,6 @@
                   "az": "b",
                   "route-table": "OnPremise_azB",
                   "cidr": {
-                    "value": "100.96.250.192/26",
                     "pool": "RFC6598b",
                     "size": 26
                   }
@@ -1494,7 +1481,6 @@
                   "az": "a",
                   "route-table": "Detonation_Shared",
                   "cidr": {
-                    "value": "10.7.4.0/24",
                     "pool": "main",
                     "size": 24
                   }
@@ -1503,7 +1489,6 @@
                   "az": "b",
                   "route-table": "Detonation_Shared",
                   "cidr": {
-                    "value": "10.7.5.0/24",
                     "pool": "main",
                     "size": 24
                   }
@@ -1782,10 +1767,9 @@
           "deploy": "local",
           "name": "ForSSO",
           "description": "This VPC is deployed in the Organization Management/root account to enable the deployment of the Active Directory Connector, enabling the use of Active Directory as the Identity source for AWS SSO.",
-          "cidr-src": "provided",
+          "cidr-src": "dynamic",
           "cidr": [
             {
-              "value": "10.249.1.0/24",
               "pool": "ForSSO",
               "size": 24
             }
@@ -1802,7 +1786,6 @@
                   "az": "a",
                   "route-table": "ForSSO_Shared",
                   "cidr": {
-                    "value": "10.249.1.0/27",
                     "pool": "ForSSO",
                     "size": 27
                   }
@@ -1811,7 +1794,6 @@
                   "az": "b",
                   "route-table": "ForSSO_Shared",
                   "cidr": {
-                    "value": "10.249.1.32/27",
                     "pool": "ForSSO",
                     "size": 27
                   }
@@ -2027,15 +2009,13 @@
           "deploy": "shared-network",
           "name": "${CONFIG::OU_NAME}",
           "description": "This VPC is deployed in the shared network account and it's subnets are shared out to the Operations account and every account in the Central OU.",
-          "cidr-src": "provided",
+          "cidr-src": "dynamic",
           "cidr": [
             {
-              "value": "10.1.0.0/16",
               "pool": "main",
               "size": 16
             },
             {
-              "value": "100.96.252.0/23",
               "pool": "RFC6598a",
               "size": 23
             }
@@ -2060,7 +2040,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.88.0/27",
                     "pool": "main",
                     "size": 27
                   }
@@ -2069,7 +2048,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.88.32/27",
                     "pool": "main",
                     "size": 27
                   }
@@ -2078,7 +2056,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.88.64/27",
                     "pool": "main",
                     "size": 27
                   },
@@ -2095,7 +2072,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.32.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -2104,7 +2080,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.128.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -2113,7 +2088,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.192.0/20",
                     "pool": "main",
                     "size": 20
                   },
@@ -2130,7 +2104,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.0.0/19",
                     "pool": "main",
                     "size": 19
                   }
@@ -2139,7 +2112,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.96.0/19",
                     "pool": "main",
                     "size": 19
                   }
@@ -2148,7 +2120,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.160.0/19",
                     "pool": "main",
                     "size": 19
                   },
@@ -2165,7 +2136,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.48.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -2174,7 +2144,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.144.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -2183,7 +2152,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.208.0/20",
                     "pool": "main",
                     "size": 20
                   },
@@ -2244,7 +2212,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.64.0/21",
                     "pool": "main",
                     "size": 21
                   }
@@ -2253,7 +2220,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.72.0/21",
                     "pool": "main",
                     "size": 21
                   }
@@ -2262,7 +2228,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.1.80.0/21",
                     "pool": "main",
                     "size": 21
                   },
@@ -2279,7 +2244,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_GCWide",
                   "cidr": {
-                    "value": "100.96.252.0/25",
                     "pool": "RFC6598a",
                     "size": 25
                   }
@@ -2288,7 +2252,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_GCWide",
                   "cidr": {
-                    "value": "100.96.252.128/25",
                     "pool": "RFC6598a",
                     "size": 25
                   }
@@ -2297,7 +2260,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_GCWide",
                   "cidr": {
-                    "value": "100.96.253.0/25",
                     "pool": "RFC6598a",
                     "size": 25
                   },
@@ -2647,10 +2609,9 @@
           "deploy": "shared-network",
           "name": "${CONFIG::OU_NAME}",
           "description": "This VPC is deployed in the shared network account and it's subnets are shared out to every account in the Dev OU.",
-          "cidr-src": "provided",
+          "cidr-src": "dynamic",
           "cidr": [
             {
-              "value": "10.2.0.0/16",
               "pool": "main",
               "size": 16
             }
@@ -2669,7 +2630,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.88.0/27",
                     "pool": "main",
                     "size": 27
                   }
@@ -2678,7 +2638,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.88.32/27",
                     "pool": "main",
                     "size": 27
                   }
@@ -2687,7 +2646,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.88.64/27",
                     "pool": "main",
                     "size": 27
                   },
@@ -2704,7 +2662,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.32.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -2713,7 +2670,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.128.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -2722,7 +2678,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.192.0/20",
                     "pool": "main",
                     "size": 20
                   },
@@ -2739,7 +2694,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.0.0/19",
                     "pool": "main",
                     "size": 19
                   }
@@ -2748,7 +2702,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.96.0/19",
                     "pool": "main",
                     "size": 19
                   }
@@ -2757,7 +2710,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.160.0/19",
                     "pool": "main",
                     "size": 19
                   },
@@ -2774,7 +2726,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.48.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -2783,7 +2734,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.144.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -2792,7 +2742,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.208.0/20",
                     "pool": "main",
                     "size": 20
                   },
@@ -2861,7 +2810,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.64.0/21",
                     "pool": "main",
                     "size": 21
                   }
@@ -2870,7 +2818,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.72.0/21",
                     "pool": "main",
                     "size": 21
                   }
@@ -2879,7 +2826,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.2.80.0/21",
                     "pool": "main",
                     "size": 21
                   },
@@ -3244,10 +3190,9 @@
           "deploy": "shared-network",
           "name": "${CONFIG::OU_NAME}",
           "description": "This VPC is deployed in the shared network account and it's subnets are shared out to every account in the Test OU.",
-          "cidr-src": "provided",
+          "cidr-src": "dynamic",
           "cidr": [
             {
-              "value": "10.3.0.0/16",
               "pool": "main",
               "size": 16
             }
@@ -3266,7 +3211,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.88.0/27",
                     "pool": "main",
                     "size": 27
                   }
@@ -3275,7 +3219,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.88.32/27",
                     "pool": "main",
                     "size": 27
                   }
@@ -3284,7 +3227,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.88.64/27",
                     "pool": "main",
                     "size": 27
                   },
@@ -3301,7 +3243,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.32.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -3310,7 +3251,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.128.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -3319,7 +3259,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.192.0/20",
                     "pool": "main",
                     "size": 20
                   },
@@ -3336,7 +3275,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.0.0/19",
                     "pool": "main",
                     "size": 19
                   }
@@ -3345,7 +3283,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.96.0/19",
                     "pool": "main",
                     "size": 19
                   }
@@ -3354,7 +3291,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.160.0/19",
                     "pool": "main",
                     "size": 19
                   },
@@ -3371,7 +3307,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.48.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -3380,7 +3315,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.144.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -3389,7 +3323,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.208.0/20",
                     "pool": "main",
                     "size": 20
                   },
@@ -3458,7 +3391,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.64.0/21",
                     "pool": "main",
                     "size": 21
                   }
@@ -3467,7 +3399,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.72.0/21",
                     "pool": "main",
                     "size": 21
                   }
@@ -3476,7 +3407,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.3.80.0/21",
                     "pool": "main",
                     "size": 21
                   },
@@ -3841,10 +3771,9 @@
           "deploy": "shared-network",
           "name": "${CONFIG::OU_NAME}",
           "description": "This VPC is deployed in the shared network account and it's subnets are shared out to every account in the Prod OU.",
-          "cidr-src": "provided",
+          "cidr-src": "dynamic",
           "cidr": [
             {
-              "value": "10.4.0.0/16",
               "pool": "main",
               "size": 16
             }
@@ -3863,7 +3792,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.88.0/27",
                     "pool": "main",
                     "size": 27
                   }
@@ -3872,7 +3800,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.88.32/27",
                     "pool": "main",
                     "size": 27
                   }
@@ -3881,7 +3808,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.88.64/27",
                     "pool": "main",
                     "size": 27
                   },
@@ -3898,7 +3824,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.32.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -3907,7 +3832,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.128.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -3916,7 +3840,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.192.0/20",
                     "pool": "main",
                     "size": 20
                   },
@@ -3933,7 +3856,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.0.0/19",
                     "pool": "main",
                     "size": 19
                   }
@@ -3942,7 +3864,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.96.0/19",
                     "pool": "main",
                     "size": 19
                   }
@@ -3951,7 +3872,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.160.0/19",
                     "pool": "main",
                     "size": 19
                   },
@@ -3968,7 +3888,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.48.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -3977,7 +3896,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.144.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -3986,7 +3904,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.208.0/20",
                     "pool": "main",
                     "size": 20
                   },
@@ -4055,7 +3972,6 @@
                   "az": "a",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.64.0/21",
                     "pool": "main",
                     "size": 21
                   }
@@ -4064,7 +3980,6 @@
                   "az": "b",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.72.0/21",
                     "pool": "main",
                     "size": 21
                   }
@@ -4073,7 +3988,6 @@
                   "az": "d",
                   "route-table": "${CONFIG::VPC_NAME}VPC_Common",
                   "cidr": {
-                    "value": "10.4.80.0/21",
                     "pool": "main",
                     "size": 21
                   },
@@ -4405,10 +4319,9 @@
           "deploy": "local",
           "name": "${CONFIG::OU_NAME}",
           "description": "This VPC is deployed locally in each Sandbox account and each account/VPC is deployed with the same identical CIDR range.  This VPC has no access to the rest of the Organizations networking and has direct internet access and does not use the perimeter ingress/egress services.",
-          "cidr-src": "provided",
+          "cidr-src": "dynamic",
           "cidr": [
             {
-              "value": "10.6.0.0/16",
               "pool": "main",
               "size": 16
             }
@@ -4434,7 +4347,6 @@
                   "az": "a",
                   "route-table": "SandboxVPC_IGW",
                   "cidr": {
-                    "value": "10.6.32.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -4443,7 +4355,6 @@
                   "az": "b",
                   "route-table": "SandboxVPC_IGW",
                   "cidr": {
-                    "value": "10.6.128.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -4452,7 +4363,6 @@
                   "az": "d",
                   "route-table": "SandboxVPC_IGW",
                   "cidr": {
-                    "value": "10.6.192.0/20",
                     "pool": "main",
                     "size": 20
                   },
@@ -4469,7 +4379,6 @@
                   "az": "a",
                   "route-table": "SandboxVPC_Common",
                   "cidr": {
-                    "value": "10.6.0.0/19",
                     "pool": "main",
                     "size": 19
                   }
@@ -4478,7 +4387,6 @@
                   "az": "b",
                   "route-table": "SandboxVPC_Common",
                   "cidr": {
-                    "value": "10.6.96.0/19",
                     "pool": "main",
                     "size": 19
                   }
@@ -4487,7 +4395,6 @@
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
                   "cidr": {
-                    "value": "10.6.160.0/19",
                     "pool": "main",
                     "size": 19
                   },
@@ -4504,7 +4411,6 @@
                   "az": "a",
                   "route-table": "SandboxVPC_Common",
                   "cidr": {
-                    "value": "10.6.48.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -4513,7 +4419,6 @@
                   "az": "b",
                   "route-table": "SandboxVPC_Common",
                   "cidr": {
-                    "value": "10.6.144.0/20",
                     "pool": "main",
                     "size": 20
                   }
@@ -4522,7 +4427,6 @@
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
                   "cidr": {
-                    "value": "10.6.208.0/20",
                     "pool": "main",
                     "size": 20
                   },
@@ -4593,7 +4497,6 @@
                   "az": "a",
                   "route-table": "SandboxVPC_Common",
                   "cidr": {
-                    "value": "10.6.64.0/21",
                     "pool": "main",
                     "size": 21
                   }
@@ -4602,7 +4505,6 @@
                   "az": "b",
                   "route-table": "SandboxVPC_Common",
                   "cidr": {
-                    "value": "10.6.72.0/21",
                     "pool": "main",
                     "size": 21
                   }
@@ -4611,7 +4513,6 @@
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
                   "cidr": {
-                    "value": "10.6.80.0/21",
                     "pool": "main",
                     "size": 21
                   },
