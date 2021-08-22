@@ -337,6 +337,7 @@ Issues in Older Releases:
 
 - Upgrades to `v1.3.3 and above` from `v1.3.2 and below` requires mandatory config file schema changes as documented in the [release notes](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
   - These updates cause the config file change validation to fail and require running the state machine with the following input to override the validation checks on impacted fields: `{"scope": "FULL", "mode": "APPLY", "configOverrides": {"ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }}`
+  - `v1.3.3 and above` tightens VPC interface endpoint security group permissions and enable customization. If you use VPC interface endpoints that requires ports/protocols other than TCP/443 (such as email-smtp); you must customize you confifle as described [here](/reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md)
 - Upgrades to `v1.3.0 and above` from `v1.2.6 and below`:
   - **Please note MAJOR changes to state machine behavior, as documented [here](./customization-index.md#2-new-state-machine-behavior)**.
 - Upgrades to `v1.2.6 and above` from `v1.2.5 and below` - Ensure you apply the config file changes described in the release notes:
