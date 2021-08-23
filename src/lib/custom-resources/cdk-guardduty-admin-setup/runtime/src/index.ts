@@ -248,6 +248,7 @@ async function listMembers(detectorId: string): Promise<AWS.GuardDuty.Member[]> 
       guardduty
         .listMembers({
           DetectorId: detectorId,
+          NextToken: token,
         })
         .promise(),
     );
