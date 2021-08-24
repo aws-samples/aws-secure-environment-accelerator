@@ -87,10 +87,19 @@ export class DirectoryService {
    * @param DescribeSharedDirectoriesRequest
    */
   async findSharedAccounts(input: ds.DescribeSharedDirectoriesRequest): Promise<string[]> {
-    const result = await throttlingBackOff(() => this.client.describeSharedDirectories(input).promise());
-    const sharedDirectoriesResult = result.SharedDirectories;
-    const sharedAccounts = sharedDirectoriesResult!.map(o => o.SharedAccountId!);
-    return sharedAccounts;
+    let nextToken;
+    const allSharedDirectories: string[] = [];
+    do {
+      input.NextToken = nextToken;
+      const response = await throttlingBackOff(() => this.client.describeSharedDirectories(input).promise());
+      for (const directory of response.SharedDirectories!) {
+        if (directory.SharedAccountId && !allSharedDirectories.includes(directory.SharedAccountId)) {
+          allSharedDirectories.push(directory.SharedAccountId);
+        }
+      }
+      nextToken = response.NextToken;
+    } while (nextToken);
+    return allSharedDirectories;
   }
 
   /**
