@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "src/index.ts",
   "scripts": {
-    "build": "pnpx esbuild --minify --bundle --platform=node --target=node12 --external:aws-sdk --outfile=./dist/index.js src/index.ts",
+    "build": "pnpx esbuild --minify --bundle --platform=node --target=node14 --external:aws-sdk --outfile=./dist/index.js src/index.ts",
     "lint:typecheck": "pnpx tsc --noEmit",
     "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
   },

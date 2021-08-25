@@ -79,7 +79,7 @@ export class AlbIpForwarding extends Construct {
     );
 
     const lambdaDnsRecordMonitor = new lambda.Function(this, `${prefix}ddbDnsRecordMonitor`, {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_14_X,
       handler: 'index.albTargetRecordMonitor',
       code: lambdaCode,
       timeout: Duration.seconds(30),

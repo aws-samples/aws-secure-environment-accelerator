@@ -709,16 +709,16 @@ importers:
     specifiers:
       '@aws-accelerator/common-types': workspace:*
       '@aws-accelerator/config': workspace:*
-      '@types/node': 12.12.6
+      '@types/node': 14.14.31
       ts-node: 9.1.1
-      typescript: 4.2.3
+      typescript: 4.2.4
     dependencies:
       '@aws-accelerator/common-types': link:../common-types
       '@aws-accelerator/config': link:../config
     devDependencies:
-      '@types/node': 12.12.6
-      ts-node: 9.1.1_typescript@4.2.3
-      typescript: 4.2.3
+      '@types/node': 14.14.31
+      ts-node: 9.1.1_typescript@4.2.4
+      typescript: 4.2.4
 
   src/lib/custom-resources/cdk-acm-import-certificate:
     specifiers:
@@ -3578,6 +3578,7 @@ packages:
       '@aws-cdk/core': 1.113.0
       '@aws-cdk/region-info': 1.113.0
       constructs: 3.3.71
+      yaml: 1.10.2
     dev: false
     bundledDependencies:
       - yaml
@@ -3646,6 +3647,7 @@ packages:
       '@aws-cdk/aws-sns-subscriptions': 1.113.0
       '@aws-cdk/aws-stepfunctions': 1.113.0
       '@aws-cdk/core': 1.113.0
+      case: 1.6.3
       constructs: 3.3.71
     transitivePeerDependencies:
       - '@aws-cdk/assets'
@@ -3699,6 +3701,7 @@ packages:
       '@aws-cdk/core': 1.113.0
       '@aws-cdk/custom-resources': 1.113.0
       constructs: 3.3.71
+      punycode: 2.1.1
     dev: false
     bundledDependencies:
       - punycode
@@ -3859,6 +3862,7 @@ packages:
       '@aws-cdk/core': 1.113.0
       '@aws-cdk/cx-api': 1.113.0
       constructs: 3.3.71
+      minimatch: 3.0.4
     bundledDependencies:
       - minimatch
 
@@ -3929,6 +3933,7 @@ packages:
       '@aws-cdk/lambda-layer-awscli': 1.113.0
       '@aws-cdk/lambda-layer-kubectl': 1.113.0
       constructs: 3.3.71
+      yaml: 1.10.2
     dev: false
     bundledDependencies:
       - yaml
@@ -4969,6 +4974,9 @@ packages:
   /@aws-cdk/cloud-assembly-schema/1.113.0:
     resolution: {integrity: sha512-BE6YplMVhIc/M23pvGZpu8p97Rrn98TYVg5/qYBauglJYD5Y3EtxEgKsLOEgth1UOgw8TsgVV0VpalesUCq3Fg==}
     engines: {node: '>= 10.13.0 <13 || >=13.7.0'}
+    dependencies:
+      jsonschema: 1.4.0
+      semver: 7.3.5
     bundledDependencies:
       - jsonschema
       - semver
@@ -5153,6 +5161,7 @@ packages:
       '@aws-cdk/aws-xray': 1.113.0
       '@aws-cdk/core': 1.113.0
       constructs: 3.3.71
+      yaml: 1.10.2
     transitivePeerDependencies:
       - '@aws-cdk/assets'
     dev: false
@@ -5166,7 +5175,11 @@ packages:
       '@aws-cdk/cloud-assembly-schema': 1.113.0
       '@aws-cdk/cx-api': 1.113.0
       '@aws-cdk/region-info': 1.113.0
+      '@balena/dockerignore': 1.0.2
       constructs: 3.3.71
+      fs-extra: 9.1.0
+      ignore: 5.1.8
+      minimatch: 3.0.4
     bundledDependencies:
       - fs-extra
       - minimatch
@@ -5191,6 +5204,7 @@ packages:
     engines: {node: '>= 10.13.0 <13 || >=13.7.0'}
     dependencies:
       '@aws-cdk/cloud-assembly-schema': 1.113.0
+      semver: 7.3.5
     bundledDependencies:
       - semver
 
@@ -8650,6 +8664,9 @@ packages:
       to-fast-properties: 2.0.0
     dev: true
 
+  /@balena/dockerignore/1.0.2:
+    resolution: {integrity: sha512-wMue2Sy4GAVTk6Ic4tJVcnfdau+gx2EnG7S+uAEe+TWJFqE4YoWN4/H8MSLj4eYJKxGg26lZwboEniNiNwZQ6Q==}
+
   /@bcoe/v8-coverage/0.2.3:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
@@ -11527,6 +11544,11 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
+  /case/1.6.3:
+    resolution: {integrity: sha512-mzDSXIPaFwVDvZAHqZ9VlbyF4yyXRuX6IvB06WvPYkqJVO24kX1PPhv9bfpKNFZyxYFmmgo03HUiD8iklmJYRQ==}
+    engines: {node: '>= 0.8.0'}
+    dev: false
+
   /caseless/0.12.0:
     resolution: {integrity: sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=}
     dev: true
@@ -11887,6 +11909,7 @@ packages:
   /constructs/3.3.71:
     resolution: {integrity: sha512-3KFtTsA7OV27m/+pJhN4iJkKzHbPIPvyvEX5BQ/JCAWjfCHOQEVpIgxHLpT4i8L1OFta+pJrzcEVAHo6UitwqA==}
     engines: {node: '>= 10.17.0'}
+    bundledDependencies: []
 
   /contains-path/0.1.0:
     resolution: {integrity: sha1-/ozxhP9mcLa67wGp1IYaXL7EEgo=}
@@ -16288,6 +16311,9 @@ packages:
     optionalDependencies:
       graceful-fs: 4.2.6
 
+  /jsonschema/1.4.0:
+    resolution: {integrity: sha512-/YgW6pRMr6M7C+4o8kS+B/2myEpHCrxO4PEWnqJNBFMjn7EWXqlQ4tGwL6xTHeRplwuZmcAncdvfOad1nT2yMw==}
+
   /jsprim/1.4.1:
     resolution: {integrity: sha1-MT5mvB5cwG5Di8G3SZwuXFastqI=}
     engines: {'0': node >=0.6.0}
@@ -20528,22 +20554,6 @@ packages:
       micromatch: 4.0.2
       semver: 7.3.5
       typescript: 4.2.3
-    dev: true
-
-  /ts-node/9.1.1_typescript@4.2.3:
-    resolution: {integrity: sha512-hPlt7ZACERQGf03M253ytLY3dHbGNGrAq9qIHWUY9XHYl1z7wYngSr3OQ5xmui8o2AaxsONxIzjafLUiWBo1Fg==}
-    engines: {node: '>=10.0.0'}
-    hasBin: true
-    peerDependencies:
-      typescript: '>=2.7'
-    dependencies:
-      arg: 4.1.3
-      create-require: 1.1.1
-      diff: 4.0.2
-      make-error: 1.3.6
-      source-map-support: 0.5.19
-      typescript: 4.2.3
-      yn: 3.1.1
     dev: true
 
   /ts-node/9.1.1_typescript@4.2.4:

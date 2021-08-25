@@ -521,7 +521,7 @@
           "name": "EC2-INSTANCE-PROFILE",
           "type": "custom",
           "resource-types": ["AWS::EC2::Instance"],
-          "runtime": "nodejs12.x",
+          "runtime": "nodejs14.x",
           "remediation-action": "Attach-IAM-Instance-Profile",
           "remediation-params": {
             "IamInstanceProfile": "EC2-Default-SSM-AD-Role-ip",
@@ -532,7 +532,7 @@
           "name": "EC2-INSTANCE-PROFILE-PERMISSIONS",
           "type": "custom",
           "resource-types": ["AWS::IAM::Role"],
-          "runtime": "nodejs12.x",
+          "runtime": "nodejs14.x",
           "parameters": {
             "AWSManagedPolicies": "AmazonSSMManagedInstanceCore, AmazonSSMDirectoryServiceAccess, CloudWatchAgentServerPolicy",
             "CustomerManagedPolicies": "${SEA::EC2InstaceProfilePermissions}",
