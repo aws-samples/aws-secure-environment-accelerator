@@ -97,7 +97,7 @@ If deploying the prescriptive architecture, you must decide on:
 ### 2.2.5. License and Email Address Planning
 
 1. 2 Fortinet FortiGate firewall licenses (Evaluation licenses adequate) (can be added in future) (if firewalls are to be deployed)
-2. We also recommend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
+2. While you require a minimum of 6 **_unique_** email addresses (1 per sub-account being created), we recommend at least 20 **_unique_** email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account and they can all be monitored via a single mailbox. These email addresses can **_never_** have been used to previously open an AWS account.
 3. You additionally require email addresses for the following additionally purposes (these can be existing monitored mailboxes and do not need to be unique):
    - Accelerator execution (state machine) notification events (1 address)
    - High, Medium and Low security alerts (3 addresses if you wish to segregate alerts)
@@ -106,10 +106,11 @@ If deploying the prescriptive architecture, you must decide on:
 ### 2.2.6. Other
 
 1. As of v1.3.0 we have added the capability to deploy with a customer provided Accelerator Name (`PBMM`) and Prefix (`PBMMAccel-`). The Accelerator name and prefix **_CANNOT_** be changed after the initial installation.
-2. As of v1.2.5 we allow customers to use the `organization-admin-role` name of their choosing (previously we required `AWSCloudFormationStackSetExecutionRole`). Whatever role name is defined in the config file, it _MUST_ be utilized when creating all new accounts in the Organization.
-   - New installs simply need to specify their desired role name in the config file
-   - Existing installs wishing to change the role name are required to first deploy a new role with a trust to the root account, in all accounts in the organization
-   - If you don't specify a role name during account creation, AWS Organizations gives the role a default name of `OrganizationAccountAccessRole` and may be a good default.
+2. We recommend using `OrganizationAccountAccessRole` as the `organization-admin-role`, as this role is used by AWS Organizations if no role name is specified when creating AWS accounts through the AWS console.
+   - the Accelerator leverages this role name to create all new accounts in the organization;
+   - this role name, as defined in the config file, _MUST_ be utilized when manually creating all new sub-accounts in the Organization;
+   - existing installs wishing to change the role name are required to first deploy a new role with a trust to the root account, in all accounts in the organization
+   - Prior to v1.2.5 the role name was required to be `AWSCloudFormationStackSetExecutionRole`.
 
 ## 2.3. Accelerator Pre-Install Steps
 
@@ -132,6 +133,7 @@ Before installing, you must first:
    - Validate an entry exists to "Enable IAM User Permissions" (critical step if using an existing key)
      - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_Organization Management_** account id.
    - Click Finish
+   - Select the new key, Select `Key Rotation`, `Automatically rotate this CMK every year`.
 7. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
    - With recent platform changes, Cost Explorer _may_ now be auto-enabled (unable to confirm)
 8. Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
@@ -159,22 +161,26 @@ Before installing, you must first:
 If deploying to an internal AWS employee account, to successfully install the solution with the 3rd party firewalls, you need to enable Private Marketplace (PMP) before starting:
 
 1. In the Organization Management account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
-2. Click Create Marketplace, and wait for activation to complete
-3. Go to the "Account Groups" sub-menu and add the Management/root account number in `Associate AWS account`
-4. Use the default experience `New Private Marketplace`
-5. Go to "Experiences" sub-menu, "Settings" sub-tab, and click the `Not Live` slider to make it `Live`
-6. Ensure the `Software requests` slider is set to `Requests off`
-7. Change the name field (i.e. append `-PMP`) and change the color, so it is clear PMP is enabled for users
-8. Go to the "Products" sub-tab (in "Experiences"), then select the "All AWS Marketplace products" nested sub-tab
-9. Search Private Marketplace for Fortinet products and select
-   - `Fortinet FortiGate (BYOL) Next-Generation Firewall` and
-   - `Fortinet FortiManager (BYOL) Centralized Security Management`
-10. Select "Add" in the top right
+2. Click `Create a Private Marketplace`, and wait for activation to complete
+3. Go to the "Account Groups" sub-menu, click `Create account group`
+4. Enter an Account Group Title (i.e. `Default`) and `Add` the Management/root account number in `Associate AWS account`
+5. Associate the default experience `New Private Marketplace`, then click `Create account group` and wait for it to create
+6. Go to "Experiences" sub-menu, select `New Private Marketplace`
+7. Select the "Settings" sub-tab, and click the `Not Live` slider to make it `Live` and wait for it to complete
+8. Ensure the `Software requests` slider is set to `Requests off` and wait for it to complete
+9. Change the name field (i.e. append `-PMP`) and change the color, so it is clear PMP is enabled for users, click `Update`
+10. Go to the "Products" sub-tab, then select the `All AWS Marketplace products` nested sub-tab
+11. Search Private Marketplace for the Fortinet or CHeckpoint products and select
+
+- `Fortinet FortiGate (BYOL) Next-Generation Firewall` and
+- `Fortinet FortiManager (BYOL) Centralized Security Management`
+
+12. Select "Add" in the top right
 
 - Due to PMP provisioning delays, this sometimes fails when attempted immediately following enablement of PMP or if adding each product individually - retry after 20 minutes.
 
-11. While not used in this account, you must now subscribe to the two subscriptions and accept the EULA for each product (you will need to do the same in the perimeter account, once provisioned below)
-    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (v6.4.6 recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
+13. While not used in this account, you must now subscribe to the two subscriptions and accept the EULA for each product (you will need to do the same in the perimeter account, once provisioned below)
+    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (Fortinet v6.4.6 recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
 
 ![New AMI ID](img/new-ami-id.png)
 
@@ -192,10 +198,10 @@ If deploying to an internal AWS employee account, to successfully install the so
    - For new accounts, they must reflect the new account name/email you want created;
    - All new AWS accounts require a unique email address which has never before been used to create an AWS account;
    - When updating the budget or SNS notification email addresses within the sample config, a single email address for all is sufficient;
-   - Update the IP addresses in the SSOAuthUnapprovedIPMetric filter with your on-premise IP ranges;
+   - Update the IP address in the "alarm-not-ip" variable with your on-premise IP ranges (used for the AWS-SSO-Authentication-From-Unapproved-IP alarm);
    - For a test deployment, the remainder of the values can be used as-is;
    - While it is generally supported, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts to the config file and rerun the state machine.
-3. A successful deployment of the prescriptive architecture requires VPC access to 7 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 7 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms).
+3. A successful deployment of the prescriptive architecture requires VPC access to 9 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 7 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms, logs, monitoring).
 4. When deploying to regions other than `ca-central-1`, you need to:
    1. Update the firewall and firewall manager AMI id's to reflect your home regions regional AMI id's (see 1.1.3, item 10) Make sure you select the right version, v6.4.6 is recommended at this time.
    2. Validate all the Interface Endpoints defined in your config file are supported in your home region (i.e. Endpoint VPC). Remove unsupported entries from the config file.
@@ -221,7 +227,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 ## 2.5. Installation
 
 1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
-   - Due to some breaking dependency issues, customers can only install or upgrade to v1.3.5 or above (older releases continue to function, but cannot be installed)
+   - Due to some breaking dependency issues, customers can only install or upgrade to v1.3.6 or above (older releases continue to function, but cannot be installed)
 2. Download the CloudFormation (CFN) template `AcceleratorInstallerXXX.template.json` for the release you plan to install
 3. Use the provided CloudFormation template to deploy a new stack in your Management (root) AWS account
    - As previously stated we do not support installation in sub-accounts
@@ -232,7 +238,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 8. Add an `Email` address to be used for State Machine Status notification
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.3.5`, case sensitive
+   - the latest stable branch is currently `release/v1.3.7`, case sensitive
 10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
@@ -269,9 +275,12 @@ Current Issues:
 
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine.
 
+
 Issues in Older Releases:
 
-- New installs and upgrades to releases prior to v1.3.5 are no longer supported.
+- New installs and upgrades to releases prior to v1.3.6 are no longer supported.
+
+- In v1.3.6 the Macie issue from v1.3.5 has been resolved, but Guardduty continues to cause the state machine to fail. Simply rerun the state machine. We are working on a fix.
 
 ## 2.6. Post-Installation
 
@@ -312,7 +321,7 @@ Issues in Older Releases:
 
 ## 3.1. Considerations
 
-- Due to some breaking dependency issues, customers can only install or upgrade to v1.3.5 or above (older releases continue to function, but cannot be installed)
+- Due to some breaking dependency issues, customers can only install or upgrade to v1.3.6 or above (older releases continue to function, but cannot be installed)
 - Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.
   - do NOT update to the latest firewall AMI - see the the last bullet in section [5.1. Accelerator Design Constraints / Decisions](#51-accelerator-design-constraints--decisions)
   - do NOT update the `organization-admin-role` - see bullet 2 in section [2.2.6. Other](#226-other)
@@ -326,8 +335,10 @@ Issues in Older Releases:
 
 **Release Specific Upgrade Considerations:**
 
-- Upgrades to `v1.3.3 and above` from `v1.3.2 and below` requires mandatory config file schema changes as documented in the [release notes](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
-  - These updates cause the config file change validation to fail and require running the state machine with the following input to override the validation checks on impacted fields: `{"scope": "FULL", "mode": "APPLY", "configOverrides": {"ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }}`
+- Upgrades to `v1.3.3 and above` from `v1.3.2 and below`:
+  - Requires mandatory config file schema changes as documented in the [release notes](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
+    - These updates cause the config file change validation to fail and require running the state machine with the following input to override the validation checks on impacted fields: `{"scope": "FULL", "mode": "APPLY", "configOverrides": {"ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }}`
+    - Tightens VPC interface endpoint security group permissions and enables customization. If you use VPC interface endpoints that requires ports/protocols other than TCP/443 (such as email-smtp), you must customize your config file as described [here](/reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md)
 - Upgrades to `v1.3.0 and above` from `v1.2.6 and below`:
   - **Please note MAJOR changes to state machine behavior, as documented [here](./customization-index.md#2-new-state-machine-behavior)**.
 - Upgrades to `v1.2.6 and above` from `v1.2.5 and below` - Ensure you apply the config file changes described in the release notes:
@@ -371,7 +382,7 @@ Issues in Older Releases:
    - The pipeline will automatically run and trigger the upgraded state machine
 9. If you are using a pre-existing GitHub token:
 
-- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.3.5`)
+- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.3.7`)
   - Go to AWS CloudFormation and select the stack: `PBMMAccel-what-you-provided`
   - Select Update, select Replace current template, Select Upload a template file
   - Select Choose File and select the template you downloaded in step 5 (`AcceleratorInstallerXYZ.template.json`)
