@@ -1,0 +1,176 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CT",
+      "Effect": "Deny",
+      "Action": [
+        "cloudtrail:DeleteTrail",
+        "cloudtrail:PutEventSelectors",
+        "cloudtrail:StopLogging",
+        "cloudtrail:UpdateTrail"
+      ],
+      "Resource": ["arn:aws:cloudtrail:*:*:trail/${ACCELERATOR_PREFIX}*"],
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        }
+      }
+    },
+    {
+      "Sid": "CON",
+      "Effect": "Deny",
+      "Action": [
+        "config:DeleteConfigurationRecorder",
+        "config:DeleteDeliveryChannel",
+        "config:DeleteRetentionConfiguration",
+        "config:PutConfigurationRecorder",
+        "config:PutDeliveryChannel",
+        "config:PutRetentionConfiguration",
+        "config:StopConfigurationRecorder",
+        "config:DeleteAggregationAuthorization",
+        "config:DeleteConfigurationAggregator",
+        "config:PutAggregationAuthorization",
+        "config:PutConfigurationAggregator"
+      ],
+      "Resource": ["*"],
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}"]
+        }
+      }
+    },
+    {
+      "Sid": "CWE",
+      "Effect": "Deny",
+      "Action": [
+        "events:PutRule",
+        "events:PutTargets",
+        "events:RemoveTargets",
+        "events:DisableRule",
+        "events:DeleteRule"
+      ],
+      "Resource": ["arn:aws:events:*:*:rule/${ACCELERATOR_PREFIX}*"],
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        }
+      }
+    },
+    {
+      "Sid": "RUL",
+      "Effect": "Deny",
+      "Action": [
+        "config:PutConfigRule",
+        "config:DeleteConfigRule",
+        "config:DeleteEvaluationResults",
+        "config:DeleteConfigurationAggregator",
+        "config:PutConfigurationAggregator"
+      ],
+      "Resource": ["arn:aws:config:*:*:config-rule/${ACCELERATOR_PREFIX}*"],
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        }
+      }
+    },
+    {
+      "Effect": "Deny",
+      "Action": [
+        "kms:DeleteAlias",
+        "kms:UpdateAlias",
+        "kms:DisableKey",
+        "kms:ImportKeyMaterial",
+        "kms:PutKeyPolicy",
+        "kms:ScheduleKeyDeletion"
+      ],
+      "Resource": "arn:aws:kms:::alias/${ACCELERATOR_PREFIX_ND}*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        }
+      }
+    },
+    {
+      "Sid": "IAM",
+      "Effect": "Deny",
+      "Action": [
+        "iam:CreatePolicy",
+        "iam:DeletePolicy",
+        "iam:DeletePolicyVersion",
+        "iam:SetDefaultPolicyVersion",
+        "iam:CreatePolicyVersion"
+      ],
+      "Resource": "arn:aws:iam::*:policy/${ACCELERATOR_PREFIX}*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        }
+      }
+    },
+    {
+      "Sid": "SEC",
+      "Effect": "Deny",
+      "Action": [
+        "guardduty:AcceptInvitation",
+        "guardduty:DeclineInvitations",
+        "guardduty:Delete*",
+        "guardduty:Disassociate*",
+        "guardduty:StopMonitoringMembers",
+        "guardduty:UpdateDetector",
+        "guardduty:UpdateFindingsFeedback",
+        "guardduty:UpdatePublishingDestination",
+        "guardduty:UpdateOrganizationConfiguration",
+        "guardduty:DisableOrganizationAdminAccount",
+        "guardduty:CreateMembers",
+        "guardduty:InviteMembers",
+        "securityhub:AcceptInvitation",
+        "securityhub:DeclineInvitations",
+        "securityhub:DeleteInvitations",
+        "securityhub:DeleteMembers",
+        "securityhub:InviteMembers",
+        "securityhub:CreateMembers",
+        "securityhub:DisableSecurityHub",
+        "securityhub:DisassociateFromMasterAccount",
+        "securityhub:DeleteInsight",
+        "securityhub:DisassociateMembers",
+        "securityhub:DeleteActionTarget",
+        "securityhub:BatchDisableStandards",
+        "securityhub:UpdateSecurityHubConfiguration",
+        "securityhub:UpdateStandardsControl",
+        "macie2:AcceptInvitation",
+        "macie2:CreateInvitations",
+        "macie2:CreateMember",
+        "macie2:DeclineInvitations",
+        "macie2:DeleteInvitations",
+        "macie2:DeleteMember",
+        "macie2:DisableMacie",
+        "macie2:DisableOrganizationAdminAccount",
+        "macie2:DisassociateFromMasterAccount",
+        "macie2:DisassociateMember",
+        "macie2:EnableMacie",
+        "macie2:EnableOrganizationAdminAccount",
+        "macie2:UpdateMacieSession",
+        "macie2:UpdateMemberSession",
+        "macie2:UpdateOrganizationConfiguration",
+        "fms:DisassociateAdminAccount",
+        "access-analyzer:DeleteAnalyzer",
+        "account:EnableRegion",
+        "account:DisableRegion",
+        "iam:DeleteAccountPasswordPolicy",
+        "iam:UpdateAccountPasswordPolicy",
+        "ec2:CreateDefaultVpc",
+        "ec2:DisableEbsEncryptionByDefault",
+        "s3:PutAccountPublicAccessBlock",
+        "ds:UnshareDirectory",
+        "ram:DeleteResourceShare"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        }
+      }
+    }
+  ]
+}

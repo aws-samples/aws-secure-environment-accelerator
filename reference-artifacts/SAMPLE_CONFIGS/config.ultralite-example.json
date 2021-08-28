@@ -140,19 +140,19 @@
     },
     "scps": [
       {
+        "name": "Guardrails-Part-0-Core",
+        "description": "ASEA Guardrails Part 0 Core Accounts",
+        "policy": "ASEA-Guardrails-Part0-CoreOUs.json"
+      },
+      {
         "name": "Guardrails-Part-0",
-        "description": "ASEA Guardrails Part 0",
-        "policy": "ASEA-Guardrails-Part0.json"
+        "description": "ASEA Guardrails Part 0 Workload Accounts",
+        "policy": "ASEA-Guardrails-Part0-WkldOUs.json"
       },
       {
         "name": "Guardrails-Part-1",
         "description": "ASEA Guardrails Part 1",
         "policy": "ASEA-Guardrails-Part1.json"
-      },
-      {
-        "name": "Guardrails-Part-2",
-        "description": "ASEA Guardrails Part 2",
-        "policy": "ASEA-Guardrails-Part2.json"
       },
       {
         "name": "Guardrails-Sensitive",
@@ -651,7 +651,7 @@
   "organizational-units": {
     "core": {
       "type": "ignore",
-      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "scps": ["Guardrails-Part-0-Core", "Guardrails-Part-1", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Core Budget",
         "period": "Monthly",
@@ -699,7 +699,7 @@
     },
     "workloads": {
       "type": "workload",
-      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Workload Budget",
         "period": "Monthly",

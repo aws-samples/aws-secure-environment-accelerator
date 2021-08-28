@@ -2,40 +2,141 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "DenySBTag",
+      "Sid": "PMP",
       "Effect": "Deny",
       "Action": [
-        "ec2:DeleteNatGateway",
-        "ec2:DeleteTransitGatewayRoute",
-        "ec2:DeleteTransitGatewayRouteTable",
-        "ec2:DeleteTransitGatewayVpcAttachment",
-        "ec2:DeleteVpc",
-        "ec2:DeleteVpcEndpoints",
-        "ec2:DeleteVpcPeeringConnection",
-        "ec2:DeleteCustomerGateway",
-        "ec2:DeleteDhcpOptions",
-        "ec2:DeleteInternetGateway",
-        "ec2:DeleteRouteTable",
-        "ec2:DeleteSubnet",
-        "ec2:DeleteRoute",
-        "ec2:DetachInternetGateway",
-        "ec2:DisassociateRouteTable"
+        "aws-marketplace:CreatePrivateMarketplace",
+        "aws-marketplace:AssociateProductsWithPrivateMarketplace",
+        "aws-marketplace:CreatePrivateMarketplaceProfile",
+        "aws-marketplace:DescribePrivateMarketplaceProducts",
+        "aws-marketplace:DescribePrivateMarketplaceProfile",
+        "aws-marketplace:DescribePrivateMarketplaceStatus",
+        "aws-marketplace:DisassociateProducts*",
+        "aws-marketplace:ListPrivateMarketplaceProducts",
+        "aws-marketplace:StartPrivateMarketplace",
+        "aws-marketplace:StopPrivateMarketplace",
+        "aws-marketplace:UpdatePrivateMarketplaceProfile"
+      ],
+      "Resource": "*",
+      "Condition": {}
+    },
+    {
+      "Sid": "ROOT",
+      "Effect": "Deny",
+      "NotAction": [
+        "iam:CreateVirtualMFADevice",
+        "iam:EnableMFADevice",
+        "iam:GetUser",
+        "iam:ListMFADevices",
+        "iam:ListVirtualMFADevices",
+        "iam:ResyncMFADevice",
+        "aws-portal:*",
+        "sts:GetSessionToken",
+        "iam:DeleteVirtualMFADevice",
+        "trustedadvisor:*",
+        "support:*"
       ],
       "Resource": "*",
       "Condition": {
-        "StringEquals": {
-          "ec2:ResourceTag/Accelerator": "${ACCELERATOR_NAME}"
-        },
-        "ArnNotLike": {
-          "aws:PrincipalArn": [
-            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
-            "arn:aws:iam::*:role/${ACCELERATOR_NAME}Ops-*"
-          ]
+        "ArnLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:root"]
         }
       }
     },
     {
-      "Sid": "DenyAllOutsideCanadaUS",
+      "Sid": "EBS1",
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:*:*:volume/*",
+      "Condition": {
+        "Bool": {
+          "ec2:Encrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "EBS2",
+      "Effect": "Deny",
+      "Action": "ec2:CreateVolume",
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "ec2:Encrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "EFS",
+      "Effect": "Deny",
+      "Action": "elasticfilesystem:CreateFileSystem",
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "elasticfilesystem:Encrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "RDS",
+      "Effect": "Deny",
+      "Action": "rds:CreateDBInstance",
+      "Resource": "arn:aws:rds:*:*:db:*",
+      "Condition": {
+        "StringNotLike": {
+          "rds:DatabaseEngine": ["aurora*", "docdb*", "neptune"]
+        },
+        "Bool": {
+          "rds:StorageEncrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "AUR",
+      "Effect": "Deny",
+      "Action": "rds:CreateDBCluster",
+      "Resource": "*",
+      "Condition": {
+        "StringLike": {
+          "rds:DatabaseEngine": ["aurora*", "docdb*", "neptune"]
+        },
+        "Bool": {
+          "rds:StorageEncrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "OTHS",
+      "Effect": "Deny",
+      "Action": [
+        "organizations:LeaveOrganization",
+        "aws-portal:ModifyAccount",
+        "aws-portal:ViewAccount",
+        "aws-portal:ModifyBilling",
+        "aws-portal:ModifyPaymentMethods",
+        "aws-portal:ViewPaymentMethods",
+        "ds:AcceptSharedDirectory",
+        "ds:ShareDirectory",
+        "ds:EnableSso",
+        "ds:DisableSso",
+        "ram:AssociateResourceShare",
+        "ram:CreateResourceShare",
+        "ram:EnableSharingWithAwsOrganization",
+        "lightsail:*",
+        "sumerian:*",
+        "cloud9:*",
+        "gamelift:*",
+        "appflow:*",
+        "iq:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}"]
+        }
+      }
+    },
+    {
+      "Sid": "GBL1",
       "Effect": "Deny",
       "NotAction": [
         "a4b:*",
@@ -81,7 +182,7 @@
           "aws:RequestedRegion": "${ADDL_REGIONS_C}"
         },
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}"]
         }
       }
     }

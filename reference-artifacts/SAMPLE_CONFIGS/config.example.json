@@ -171,19 +171,19 @@
     },
     "scps": [
       {
+        "name": "Guardrails-Part-0-Core",
+        "description": "ASEA Guardrails Part 0 Core Accounts",
+        "policy": "ASEA-Guardrails-Part0-CoreOUs.json"
+      },
+      {
         "name": "Guardrails-Part-0",
-        "description": "ASEA Guardrails Part 0",
-        "policy": "ASEA-Guardrails-Part0.json"
+        "description": "ASEA Guardrails Part 0 Workload Accounts",
+        "policy": "ASEA-Guardrails-Part0-WkldOUs.json"
       },
       {
         "name": "Guardrails-Part-1",
         "description": "ASEA Guardrails Part 1",
         "policy": "ASEA-Guardrails-Part1.json"
-      },
-      {
-        "name": "Guardrails-Part-2",
-        "description": "ASEA Guardrails Part 2",
-        "policy": "ASEA-Guardrails-Part2.json"
       },
       {
         "name": "Guardrails-Sensitive",
@@ -2005,7 +2005,7 @@
     "core": {
       "type": "ignore",
       "description": "The core OU is used to hold AWS accounts containing AWS resources shared or utilized by the rest of the Organization.",
-      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "scps": ["Guardrails-Part-0-Core", "Guardrails-Part-1", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Core Budget",
         "period": "Monthly",
@@ -2107,7 +2107,7 @@
       "type": "mandatory",
       "description": "The Central OU is used to hold AWS accounts which contain group or team resources used across OU boundaries like code promotion tools.",
       "share-mad-from": "operations",
-      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Central Budget",
         "period": "Monthly",
@@ -2695,7 +2695,7 @@
       "type": "workload",
       "description": "The Dev OU is used to hold accounts at the Development or similiarly permissioned stage of the SDLC cycle containing sensitive unclassified data or workloads.",
       "share-mad-from": "operations",
-      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Dev Budget",
         "period": "Monthly",
@@ -3292,7 +3292,7 @@
       "type": "workload",
       "description": "The Test OU is used to hold accounts at the Test or similiarly permissioned (i.e. QA) stage of the SDLC cycle containing sensitive unclassified data or workloads.",
       "share-mad-from": "operations",
-      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Test Budget",
         "period": "Monthly",
@@ -3889,7 +3889,7 @@
       "type": "workload",
       "description": "The Prod OU is used to hold accounts at the Production or similiarly permissioned (i.e. Pre-Prod) stage of the SDLC cycle containing sensitive unclassified data or workloads.",
       "share-mad-from": "operations",
-      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Prod Budget",
         "period": "Monthly",
@@ -4486,7 +4486,7 @@
       "type": "workload",
       "description": "Non-sensitive workloads should be placed with sensitive worksloads (Dev/Test/Prod/Central OU's). Used for accounts with AWS Console users without appropriate security clearance or deploying AWS services not approved for use with sensitive data.",
       "share-mad-from": "operations",
-      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass"],
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Unclass"],
       "default-budgets": {
         "name": "Default Unclass Budget",
         "period": "Monthly",
@@ -5050,7 +5050,7 @@
     "Sandbox": {
       "type": "workload",
       "description": "The Sandbox OU offers the most cloud native, agile experience and is used for experimentation.  It is not to be used to hold production workloads or data as it offers the fewest security controls.",
-      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sandbox"],
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Sandbox"],
       "default-budgets": {
         "name": "Default Sandbox Budget",
         "period": "Monthly",
