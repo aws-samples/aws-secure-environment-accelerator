@@ -154,14 +154,24 @@ export class CdkToolkit {
       console.log(`There are no stacks to be deployed`);
       return [];
     }
-
-    let combinedOutputs: StackOutput[];
+    let combinedOutputs: StackOutput[] = [];
     if (parallel) {
-      // Deploy all stacks in parallel
-      const promises = stacks.map(stack => this.deployStack(stack));
-      // Wait for all promises to be fulfilled
-      const outputsList = await fulfillAll(promises);
-      combinedOutputs = outputsList.reduce((result, output) => [...result, ...output]);
+      const pageSize = 900;
+      let stackPromises: any[] = [];
+      for (let i = 0; i < stacks.length; i++) {
+        const stack = stacks[i];
+        console.log(`deploying stack ${i + 1} of ${stacks.length}`);
+        stackPromises.push(this.deployStack(stack));
+        if (stackPromises.length > pageSize - 1 || i === stacks.length - 1) {
+          const results = await Promise.all(stackPromises);
+          console.log(`Deployed stacks ${i + 1} of ${stacks.length}`);
+          stackPromises = [];
+          if (results) {
+            combinedOutputs.push(...results);
+          }
+        }
+      }
+      combinedOutputs = combinedOutputs.flat(2);
     } else {
       // Deploy all stacks sequentially
       combinedOutputs = [];
@@ -172,6 +182,7 @@ export class CdkToolkit {
     }
 
     // Merge all stack outputs
+    console.log(JSON.stringify(combinedOutputs, null, 4));
     return combinedOutputs;
   }
 

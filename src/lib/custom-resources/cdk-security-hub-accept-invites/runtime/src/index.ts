@@ -49,12 +49,20 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   }
 
   // Check for pending invitations from Master
-  const invitations = await throttlingBackOff(() => hub.listInvitations().promise());
-  if (!invitations.Invitations) {
+  let token: string | undefined;
+  let invitations: AWS.SecurityHub.InvitationList = [];
+  do {
+    const response = await throttlingBackOff(() => hub.listInvitations({ NextToken: token }).promise());
+    if (response.Invitations) {
+      invitations.push(...response.Invitations);
+    }
+    token = response.NextToken;
+  } while (token);
+  if (!invitations) {
     console.log(`No Security Hub invitations found`);
   } else {
     // Accepting Invitation from Master account
-    const ownerInvitation = invitations.Invitations.find(x => x.AccountId === masterAccountId);
+    const ownerInvitation = invitations.find(x => x.AccountId === masterAccountId);
     if (ownerInvitation) {
       const invitationId = ownerInvitation?.InvitationId!;
       await throttlingBackOff(() =>
