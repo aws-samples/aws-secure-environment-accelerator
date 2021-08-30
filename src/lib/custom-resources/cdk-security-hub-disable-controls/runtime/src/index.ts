@@ -30,26 +30,18 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const standards = event.ResourceProperties.standards;
-  const standardsResponse = await throttlingBackOff(() => hub.describeStandards().promise());
-  const enabledStandardsResponse = await throttlingBackOff(() => hub.getEnabledStandards().promise());
+  const standardsResponse = await describeStandards();
+  const enabledStandardsResponse = await getEnabledStandards();
 
   // Getting standards and disabling specific Controls for each standard
   for (const standard of standards) {
-    const standardArn = standardsResponse.Standards?.find(x => x.Name === standard.name)?.StandardsArn;
-    const standardSubscriptionArn = enabledStandardsResponse.StandardsSubscriptions?.find(
-      s => s.StandardsArn === standardArn,
-    )?.StandardsSubscriptionArn;
+    const standardArn = standardsResponse?.find(x => x.Name === standard.name)?.StandardsArn;
+    const standardSubscriptionArn = enabledStandardsResponse?.find(s => s.StandardsArn === standardArn)
+      ?.StandardsSubscriptionArn;
 
-    const standardControls = await throttlingBackOff(() =>
-      hub
-        .describeStandardsControls({
-          StandardsSubscriptionArn: standardSubscriptionArn!,
-          MaxResults: 100,
-        })
-        .promise(),
-    );
+    const standardControls = await describeStandardsControls(standardSubscriptionArn);
     for (const disableControl of standard['controls-to-disable']) {
-      const standardControl = standardControls.Controls?.find(x => x.ControlId === disableControl);
+      const standardControl = standardControls?.find(x => x.ControlId === disableControl);
       if (!standardControl) {
         console.log(`Control "${disableControl}" not found for Standard "${standard.name}"`);
         continue;
@@ -87,16 +79,9 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
       s => s.StandardsArn === standardArn,
     )?.StandardsSubscriptionArn;
 
-    const standardControls = await throttlingBackOff(() =>
-      hub
-        .describeStandardsControls({
-          StandardsSubscriptionArn: standardSubscriptionArn!,
-          MaxResults: 100,
-        })
-        .promise(),
-    );
+    const standardControls = await describeStandardsControls(standardSubscriptionArn);
     for (const disableControl of standard['controls-to-disable'] || []) {
-      const standardControl = standardControls.Controls?.find(x => x.ControlId === disableControl);
+      const standardControl = standardControls?.find(x => x.ControlId === disableControl);
       if (!standardControl) {
         console.log(`Control "${disableControl}" not found for Standard "${standard.name}"`);
         continue;
@@ -119,7 +104,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
         c => !standard['controls-to-disable']?.includes(c),
       );
       for (const enableControl of enableControls || []) {
-        const standardControl = standardControls.Controls?.find(x => x.ControlId === enableControl);
+        const standardControl = standardControls?.find(x => x.ControlId === enableControl);
         if (!standardControl) {
           console.log(`Control "${enableControl}" not found for Standard "${standard.name}"`);
           continue;
@@ -138,6 +123,52 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   return {
     physicalResourceId: `SecurityHubEnableControls`,
   };
+}
+
+async function describeStandards() {
+  const standards = [];
+  let token: string | undefined;
+  do {
+    const response = await throttlingBackOff(() => hub.describeStandards().promise());
+    if (response.Standards) {
+      standards.push(...response.Standards);
+    }
+    token = response.NextToken;
+  } while (token);
+
+  return standards;
+}
+
+async function getEnabledStandards() {
+  const enabledStandards = [];
+  let token: string | undefined;
+  do {
+    const response = await throttlingBackOff(() => hub.getEnabledStandards().promise());
+    if (response.StandardsSubscriptions) {
+      enabledStandards.push(...response.StandardsSubscriptions);
+    }
+    token = response.NextToken;
+  } while (token);
+
+  return enabledStandards;
+}
+
+async function describeStandardsControls(subscriptionArn: string | undefined) {
+  let token: string | undefined;
+  const standardControls: any[] = [];
+  if (!subscriptionArn) {
+    return standardControls;
+  }
+  do {
+    const response = await throttlingBackOff(() =>
+      hub.describeStandardsControls({ StandardsSubscriptionArn: subscriptionArn, NextToken: token }).promise(),
+    );
+    if (response.Controls) {
+      standardControls.push(...response.Controls);
+    }
+    token = response.NextToken;
+  } while (token);
+  return standardControls;
 }
 
 async function onDelete(_: CloudFormationCustomResourceEvent) {
