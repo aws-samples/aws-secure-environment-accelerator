@@ -24,6 +24,11 @@ interface CheckStepInput {
   assumeRoleName?: string;
 }
 const sts = new STS();
+
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export const handler = async (input: Partial<CheckStepInput>) => {
   console.log(`Verifying stack with parameters ${JSON.stringify(input, null, 2)}`);
 
@@ -37,7 +42,16 @@ export const handler = async (input: Partial<CheckStepInput>) => {
   } else {
     cfn = new CloudFormation();
   }
-  const stack = await cfn.describeStack(stackName!);
+  let stack;
+  let retries = 0;
+  do {
+    stack = await cfn.describeStack(stackName!);
+    if (!stack) {
+      console.log(`Could not describe stack, retrying ${retries + 1} of 12 times`);
+      retries = retries + 1;
+      await sleep(10000);
+    }
+  } while (!stack && retries < 12);
   if (!stack) {
     return {
       status: 'FAILURE',
