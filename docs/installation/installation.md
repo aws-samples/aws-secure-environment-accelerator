@@ -238,7 +238,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 8. Add an `Email` address to be used for State Machine Status notification
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.3.7`, case sensitive
+   - the latest stable branch is currently `release/v1.3.8`, case sensitive
 10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
@@ -279,8 +279,6 @@ Current Issues:
 Issues in Older Releases:
 
 - New installs and upgrades to releases prior to v1.3.6 are no longer supported.
-
-- In v1.3.6 the Macie issue from v1.3.5 has been resolved, but Guardduty continues to cause the state machine to fail. Simply rerun the state machine. We are working on a fix.
 
 ## 2.6. Post-Installation
 
@@ -382,7 +380,7 @@ Issues in Older Releases:
    - The pipeline will automatically run and trigger the upgraded state machine
 9. If you are using a pre-existing GitHub token:
 
-- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.3.7`)
+- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.3.8`)
   - Go to AWS CloudFormation and select the stack: `PBMMAccel-what-you-provided`
   - Select Update, select Replace current template, Select Upload a template file
   - Select Choose File and select the template you downloaded in step 5 (`AcceleratorInstallerXYZ.template.json`)
