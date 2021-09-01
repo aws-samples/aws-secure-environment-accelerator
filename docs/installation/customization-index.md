@@ -57,7 +57,7 @@ Samples with Descriptions:
      - reduced various log retention periods and the VPCFlow log interval
      - removes the two example workload accounts
      - The most expensive individual component of this sample is the perimeter 3rd party firewalls 
-       - this example will be updated in the near future, removing the 3rd party firewalls
+       - this example will be updated in the v1.5.0 release, removing the 3rd party firewalls
        - we will add a NATGW for egress.  For ingress, customers will need to manually target the perimeter ALB to point to each backend-ALB's IP's and manually update the IP's when they change (the next major SEA code release will include functionality to automate this capability)
 
 ## 1.2. **Deployment Customizations**
