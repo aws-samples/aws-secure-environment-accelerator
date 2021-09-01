@@ -52,17 +52,17 @@ Samples with Descriptions:
      - adds the 3rd AZ in ca-central-1 (MAD & ADC in AZ a & b)
 5. **Test PBMM configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.test-example.json) (`config.test-example.json`) **(Use for testing PBMM configuration)**
    - Further reduces solution costs, while demonstrating full solution functionality (NOT recommendend for production). This config file:
-     - uses the Light weight PBMM configuration as the starting point
+     - uses the Light weight PBMM configuration as the starting point (NFW variant)
      - consolidates Dev/Test/Prod OU to a single Workloads OU/VPC
      - only enables Security Hub, Config and Macie in ca-central-1 and us-east-1
-     - removes the Fortigate firewall cluster
+     - removes the Fortigate firewall cluster (per NFW variant)
      - removes the rsyslog cluster
      - reduces the RDGW instance sizes from t2.large to t2.medium
      - reduces the size of the MAD from Enterprise to Standard edition
      - removes the on-premise R53 resolvers (hybrid dns)
      - reduced various log retention periods and the VPCFlow log interval
      - removes the two example workload accounts
-     - adds AWS Network Firewall (NFW) and AWS NATGW for centralized ingress/egress
+     - adds AWS Network Firewall (NFW) and AWS NATGW for centralized ingress/egress (per NFW variant)
 
 ## 1.2. **Deployment Customizations**
 

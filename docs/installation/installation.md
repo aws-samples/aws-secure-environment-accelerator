@@ -297,12 +297,13 @@ If deploying to an internal AWS employee account and installing the solution wit
    - Should you wish, instructions are provided to aid in generating your own self-signed certificates (Self signed certificates are NOT secure and simply for demo purposes)
    - Use the examples to demonstrate Accelerator TLS functionality only
 9. Detach **_ALL_** SCPs (except `FullAWSAccess` which remains in place) from all OU's and accounts before proceeding
+   - For Control Tower based installs do NOT detach Control Tower SCPs (i.e. aws-guardrails-xxxxxx)
    - Installation **will fail** if this step is skipped
 
 ## 2.5. Installation
 
 1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
-   - Due to some breaking dependency issues, customers can only install or upgrade to v1.3.6 or above (older releases continue to function, but cannot be installed)
+   - We only support installation or upgrades to v1.5.0 or above (older releases continue to function)
 2. Download the CloudFormation (CFN) template for the release you plan to install (either `AcceleratorInstallerXXX.template.json` for GitHub or `AcceleratorInstallerXXX-CodeCommit.template.json` for CodeCommit)
 3. Use the provided CloudFormation template to deploy a new stack in your Management (root) AWS account
    - As previously stated we do not support installation in sub-accounts
@@ -352,9 +353,8 @@ Current Issues:
 
 Issues in Older Releases:
 
-- New installs and upgrades to releases prior to v1.3.6 are no longer supported.
+- New installs and upgrades to releases prior to v1.5.0 are no longer supported.
 
-- In v1.3.6 Guardduty and/or Macie causes the state machine to fail. Simply rerun the state machine. We are working on a fix.
 
 ## 2.6. Post-Installation
 
@@ -432,7 +432,7 @@ The Accelerator installation is complete, but several manual steps remain:
 
 ## 3.1. Considerations
 
-- Due to some breaking dependency issues, customers can only install or upgrade to v1.3.6 or above (older releases continue to function, but cannot be installed)
+- Due to some breaking dependency issues, customers can only install or upgrade to v1.5.0 or above (older releases continue to function, but cannot be installed)
 - Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.
   - do NOT update to the latest firewall AMI - see the the last bullet in section [5.1. Accelerator Design Constraints / Decisions](#51-accelerator-design-constraints--decisions)
   - do NOT update the `organization-admin-role` - see bullet 2 in section [2.2.7. Other](#226-other)
