@@ -414,7 +414,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         name: tgwName,
       });
       if (!tgw) {
-        console.warn(`Cannot find transit gateway with name "${tgwName}"`);
+        throw new Error(`Cannot find transit gateway with name "${tgwName}"`);
       } else {
         const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
         const associateConfig = tgwAttach['tgw-rt-associate'] || [];
