@@ -38,7 +38,7 @@ export const handler = async (input: Partial<CheckStepInput>) => {
   let cfn: CloudFormation;
   if (accountId && assumeRoleName) {
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
-    cfn = new CloudFormation(credentials);
+    cfn = new CloudFormation(credentials, region);
   } else {
     cfn = new CloudFormation();
   }

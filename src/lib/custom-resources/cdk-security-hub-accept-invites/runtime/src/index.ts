@@ -50,7 +50,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
 
   // Check for pending invitations from Master
   let token: string | undefined;
-  let invitations: AWS.SecurityHub.InvitationList = [];
+  const invitations: AWS.SecurityHub.InvitationList = [];
   do {
     const response = await throttlingBackOff(() => hub.listInvitations({ NextToken: token }).promise());
     if (response.Invitations) {

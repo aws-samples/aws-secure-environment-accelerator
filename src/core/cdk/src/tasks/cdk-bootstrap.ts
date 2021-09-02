@@ -157,7 +157,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
     const createBootstrapInRegion = new sfn.Map(this, `Bootstrap Account Region Map`, {
       itemsPath: `$.regions`,
       resultPath: 'DISCARD',
-      maxConcurrency: 16,
+      maxConcurrency: 17,
       parameters: {
         'accountId.$': '$.accountId',
         'region.$': '$$.Map.Item.Value',
