@@ -40,6 +40,7 @@
     - [1.6.7. Some sample configurations provide NACLs and Security Groups. Is that enough?](#167-some-sample-configurations-provide-nacls-and-security-groups-is-that-enough)
     - [1.6.8. Can I deploy the solution as the account root user?](#168-can-i-deploy-the-solution-as-the-account-root-user)
     - [1.6.9. Is the Organizational Management root account monitored similarly to the other accounts in the organization?](#169-is-the-organizational-management-root-account-monitored-similarly-to-the-other-accounts-in-the-organization)
+    - [1.6.10. Can the Fortinet Firewall deployments use static IP Address assignments?](#1610can-the-fortinet-firewall-deployments-use-static-ip-address-assignments)
 
 ## 1.1. Operational Activities
 
@@ -476,6 +477,85 @@ No, you cannot install as the root user. The root user has no ability to assume 
 ### 1.6.9. Is the Organizational Management root account monitored similarly to the other accounts in the organization?
 
 Yes, all accounts including the Organization Management or root account have the same monitoring and logging services enabled. When supported, AWS security services like GuardDuty, Macie, and Security Hub have their delegated administrator account configured as the "security" account. These tools can be used within each local account (including the Organization Management account) within the organization to gain account level visibility or within the Security account for Organization wide visibility. For more information about monitoring and logging refer to [architecture documentation](../architectures/pbmm/architecture.md#7-logging-and-monitoring).
+
+### 1.6.10. Can the Fortinet Firewall deployments use Static Private IP Address assignments?
+
+Yes, the `"port"` stanza in the configuration file can support a private static IP Address assignment from the subnet and az.
+
+Care must be exercised to assure the assigned IP Address is within the correct subnet and correct Availability zone.  Also consider the Amazon reserved IP Addresses (first three addresses, and the last) within subnets when choosing an IP Address to assign.
+
+Using the `config.example.json` as a reference, static IP Assignments would look like this in the `ports:` stanza of the firewall deployment.
+
+```json
+"ports": [
+  {
+    "name": "Public",
+    "subnet": "Public",
+    "create-eip": true,
+    "create-cgw": true,
+    "private-ips": [
+      {
+        "az": "a",
+        "ip": "100.96.250.4"
+      },
+      {
+        "az": "b",
+        "ip": "100.96.250.132"
+      }
+    ]
+  },
+  {
+    "name": "OnPremise",
+    "subnet": "OnPremise",
+    "create-eip": false,
+    "create-cgw": false,
+    "private-ips": [
+      {
+        "az": "a",
+        "ip": "100.96.250.68"
+      },
+      {
+        "az": "b",
+        "ip": "100.96.250.196"
+      }
+    ]
+  },
+  {
+    "name": "FWMgmt",
+    "subnet": "FWMgmt",
+    "create-eip": false,
+    "create-cgw": false,
+    "private-ips": [
+      {
+        "az": "a",
+        "ip": "100.96.251.36"
+      },
+      {
+        "az": "b",
+        "ip": "100.96.251.164"
+      }
+    ]
+  },
+  {
+    "name": "Proxy",
+    "subnet": "Proxy",
+    "create-eip": false,
+    "create-cgw": false,
+    "private-ips": [
+      {
+        "az": "a",
+        "ip": "100.96.251.68"
+      },
+      {
+        "az": "b",
+        "ip": "100.96.251.196"
+      }
+    ]
+  }
+],
+```
+
+Where `private-ips` are not present for the subnet or availability zone an address will be assigned automatically from available addresses when the firewall instance is created.
 
 ---
 

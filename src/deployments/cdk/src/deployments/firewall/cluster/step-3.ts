@@ -125,6 +125,18 @@ export async function step3(props: FirewallStep3Props) {
   }
 }
 
+function findFirewallPrivateIp(props: { firewallConfig: c.FirewallConfig; subnetName: string; az: string }) {
+  const { firewallConfig, subnetName, az } = props;
+  const subnetPort = firewallConfig.ports.filter(e => e.subnet === subnetName)[0];
+  if (subnetPort.hasOwnProperty('private-ips') && subnetPort['private-ips']) {
+    const azIp = subnetPort['private-ips'].filter(e => e.az === az)[0];
+    if (azIp.hasOwnProperty('ip')) {
+      return azIp.ip;
+    }
+  }
+  return undefined;
+}
+
 /**
  * Create firewall for the given VPC and config in the given scope.
  */
@@ -238,9 +250,11 @@ async function createFirewallCluster(props: {
       });
     }
 
+    const privateIp = findFirewallPrivateIp({ firewallConfig, subnetName: subnet.name, az: subnet.az });
     const networkInterface = instance.addNetworkInterface({
       name: vpnConnection.name,
       subnet,
+      privateStaticIp: privateIp,
       securityGroup,
       eipAllocationId: vpnConnection.eipAllocationId,
       vpnTunnelOptions: vpnConnection.vpnTunnelOptions,
