@@ -141,7 +141,7 @@ Note: While we only provide a single example for each 3rd party implementation t
 
 1. We recommend installing with the default Accelerator Name (`ASEA`) and Accelerator Prefix (`ASEA-`), but allow customization. Prior to v1.5.0 the defaults were (`PBMM`) and (`PBMMAccel-`) respectively.
    - The Accelerator name and prefix **_CANNOT_** be changed after the initial installation.
-2. If installing with Control Tower, the `organization-admin-role` must be set to `OrganizationAccountAccessRole`. For standalone installations customers can select a role name of their choosing, but, we recommend using `OrganizationAccountAccessRole` as the `organization-admin-role`, as this role is used by AWS Organizations by default if no role name is specified when creating AWS accounts through the AWS console.
+2. If installing with Control Tower, the `organization-admin-role` must be set to `AWSControlTowerExecution`. For standalone installations customers can select a role name of their choosing, but, we recommend using `OrganizationAccountAccessRole` as the `organization-admin-role`, as this role is used by AWS Organizations by default if no role name is specified when creating AWS accounts through the AWS console.
    - the Accelerator leverages this role name to create all new accounts in the organization;
    - this role name, as defined in the config file, _MUST_ be utilized when manually creating all new sub-accounts in the Organization;
    - existing installs wishing to change the role name are required to first deploy a new role with a trust to the root account, in all accounts in the organization

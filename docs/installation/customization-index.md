@@ -10,7 +10,7 @@
 ## 1.1. **Sample Accelerator Configuration Files**
 
 - Sample config files can be found in [this](../../reference-artifacts/SAMPLE_CONFIGS/) folder
-- Unsure where to start, use the [config.lite-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json) file
+- Unsure where to start, use the [config.lite-NFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json) file
 
 Samples with Descriptions:
 
