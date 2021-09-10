@@ -160,6 +160,10 @@ export async function compareAcceleratorConfig(props: {
     await validate.validateAccountOptInVpc(configChanges, errors);
   }
 
+  if (!overrideConfig['ov-nfw']) {
+    await validate.validateNfw(configChanges, errors);
+  }
+
   // Validate DDB Pool entries changes
   if (!overrideConfig['ov-cidr']) {
     console.log(`Validating Cidr Changes`);

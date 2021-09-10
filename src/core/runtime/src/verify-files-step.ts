@@ -177,7 +177,7 @@ async function verifyNfwFiles(
       if (!c.AWSNetworkFirewallConfig.is(vpc.nfw)) {
         continue;
       }
-      if (vpc.nfw.policy.path) {
+      if (vpc.nfw.policy?.path) {
         nfwFiles.push(vpc.nfw.policy.path);
       }
     }

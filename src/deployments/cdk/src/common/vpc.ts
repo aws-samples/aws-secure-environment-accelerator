@@ -32,6 +32,7 @@ import {
 } from '@aws-accelerator/common-outputs/src/transit-gateway';
 
 import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gateway/outputs';
+import * as defaults from '../deployments/defaults';
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
 import { VpcDefaultSecurityGroup } from '@aws-accelerator/custom-resource-vpc-default-security-group';
 import { VpcOutput } from '@aws-accelerator/common-outputs/src/vpc';
@@ -134,6 +135,7 @@ export interface VpcProps extends VpcCommonProps {
   subnetPools: AssignedSubnetCidrPool[];
   existingAttachments: TransitGatewayAttachmentOutput[];
   vpcOutput?: VpcOutput;
+  logBucket?: defaults.RegionalBucket;
 }
 
 export class VpcStack extends cdk.NestedStack {
@@ -592,14 +594,17 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       } else {
         nfwSubnets.push(...this.azSubnets.getAzSubnetsForSubnetName(subnetConfig.name));
       }
-      // enable aws-nfw
+
       this.nfw = new Nfw(this, `${nfwProps['firewall-name']}`, {
         nfwPolicy: nfwProps.policyString,
-        nfwPolicyConfig: nfwProps.policy,
+        nfwPolicyConfig: nfwProps.policy || { name: 'Sample-Firewall-Policy', path: 'nfw/nfw-example-policy.json' },
         subnets: nfwSubnets,
         vpcId: this.vpcId,
-        nfwName: nfwProps['firewall-name'] || 'awsnfw',
+        nfwName: nfwProps['firewall-name'] || `${vpcConfig.name}-nfw`,
         acceleratorPrefix: vpcProps.acceleratorPrefix || '',
+        nfwFlowLogging: nfwProps['flow-dest'] || 'None',
+        nfwAlertLogging: nfwProps['alert-dest'] || 'None',
+        logBucket: vpcProps.logBucket,
       });
     }
 

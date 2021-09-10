@@ -69,17 +69,23 @@ export const NatGatewayConfig = t.interface({
   }),
 });
 
+export const NfwLogType = t.enums('NfwLogType', ['None', 'S3', 'CloudWatch']);
+
 export const AWSNetworkFirewallConfig = t.interface({
   'firewall-name': t.optional(t.nonEmptyString),
   subnet: t.interface({
     name: t.nonEmptyString,
     az: t.optional(t.availabilityZone),
   }),
-  policy: t.interface({
-    name: t.nonEmptyString,
-    path: t.nonEmptyString,
-  }),
+  policy: t.optional(
+    t.interface({
+      name: t.nonEmptyString,
+      path: t.nonEmptyString,
+    }),
+  ),
   policyString: t.optional(t.nonEmptyString),
+  'alert-dest': t.defaulted(NfwLogType, 'None'),
+  'flow-dest': t.defaulted(NfwLogType, 'None'),
 });
 
 export const AlbIpForwardingConfig = t.optional(t.boolean);

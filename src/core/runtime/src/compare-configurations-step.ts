@@ -74,6 +74,7 @@ export const handler = async (input: StepInput) => {
     'ov-cidr': false,
     'ov-acct-vpc-optin': false,
     'ov-acct-warming': false,
+    'ov-nfw': false,
   };
 
   const {

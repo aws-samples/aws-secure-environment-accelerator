@@ -426,6 +426,14 @@ translate(c.AWSNetworkFirewallConfig, {
     },
     policy: {},
     policyString: {},
+    'flow-dest': {
+      title: '',
+      description: '',
+    },
+    'alert-dest': {
+      title: '',
+      description: '',
+    },
   },
 });
 
@@ -3138,7 +3146,8 @@ translate(c.GlobalOptionsConfigType, {
   fields: {
     'ct-baseline': {
       title: 'Control Tower Baseline',
-      description: 'Indicates the installation requires Control Tower to be installed before installing the Accelerator.',
+      description:
+        'Indicates the installation requires Control Tower to be installed before installing the Accelerator.',
     },
     'default-s3-retention': {
       title: 'Local accounts S3 logging bucket retention period',

@@ -40,7 +40,8 @@ Providing any one or more of the following flags will only override the specifie
      'ov-ou-subnet': true,
      'ov-share-to-ou': true,
      'ov-share-to-accounts': true,
-     'ov-nacl': true
+     'ov-nacl': true,
+     'ov-nfw': true
 	}
  }
 ```

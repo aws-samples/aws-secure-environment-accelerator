@@ -633,3 +633,30 @@ export async function validateDDBChanges(
     }
   }
 }
+
+export async function validateNfw(differences: Diff<LHS, RHS>[], errors: string[]) {
+  const nfwNameDiffs = differences.filter(diff => {
+    return (
+      diff.path?.includes('mandatory-account-configs') &&
+      diff.path.includes('vpc') &&
+      diff.path.includes('nfw') &&
+      diff.path.includes('firewall-name')
+    );
+  });
+  for (const diff of nfwNameDiffs) {
+    if (diff.kind === 'E') {
+      errors.push(
+        `Firewall name has changed from ${diff.lhs} to ${diff.rhs} in ${diff.path?.join(
+          '/',
+        )}. Changing the firewall name will cause the replacement of the firewall.`,
+      );
+    }
+    if (diff.kind === 'D') {
+      errors.push(
+        `Firewall name has been deleted. Previous value was ${diff.lhs} in ${diff.path?.join(
+          '/',
+        )}. Changing the firewall name or deleting the firewall is not allowed.`,
+      );
+    }
+  }
+}

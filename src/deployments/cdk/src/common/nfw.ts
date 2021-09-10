@@ -14,6 +14,8 @@
 import * as nfw from '@aws-cdk/aws-networkfirewall';
 import { Construct, Fn } from '@aws-cdk/core';
 import { AzSubnet } from './vpc';
+import * as defaults from '../deployments/defaults';
+import * as logs from '@aws-cdk/aws-logs';
 
 export interface NfwProps {
   subnets: AzSubnet[];
@@ -25,7 +27,12 @@ export interface NfwProps {
   nfwPolicy: any;
   nfwName: string;
   acceleratorPrefix: string;
+  nfwFlowLogging: 'S3' | 'CloudWatch' | 'None';
+  nfwAlertLogging: 'S3' | 'CloudWatch' | 'None';
+  nfwFlowCWLDestination?: string;
+  logBucket?: defaults.RegionalBucket;
 }
+
 export interface NfwOutput {
   az: string;
   vpcEndpoint: string;
@@ -51,11 +58,23 @@ export class Nfw extends Construct {
     this.nfwPolicy = JSON.parse(props.nfwPolicy);
     this.nfwPolicyConfig = props.nfwPolicyConfig;
     this.nfwName = props.nfwName;
+
     const policy: any = {};
     const prefix = props.acceleratorPrefix;
+    const acceleratorPrefixNoDash = props.acceleratorPrefix.slice(0, -1);
+    const logGroupName = `/${prefix}/Nfw`;
+
+    const cwFlowGroup = new logs.LogGroup(this, `${this.nfwName}NFWCWLFlowLogging`, {
+      logGroupName: `/${acceleratorPrefixNoDash}/Nfw/${this.nfwName}/Flow`,
+    });
+
+    const cwAlertGroup = new logs.LogGroup(this, `${this.nfwName}NFWCWLAlertLogging`, {
+      logGroupName: `/${acceleratorPrefixNoDash}/Nfw/${this.nfwName}/Alert`,
+    });
+
     if (this.nfwPolicy.statelessRuleGroup) {
       const statelessRuleGroup: any[] = this.nfwPolicy.statelessRuleGroup.map((ruleGroup: any) => {
-        ruleGroup.ruleGroupName = `${prefix}${ruleGroup.ruleGroupName}`;
+        ruleGroup.ruleGroupName = `${this.nfwName}-${prefix}${ruleGroup.ruleGroupName}`;
         return {
           group: new nfw.CfnRuleGroup(this, ruleGroup.ruleGroupName, ruleGroup),
           priority: ruleGroup.priority,
@@ -67,7 +86,7 @@ export class Nfw extends Construct {
     }
     if (this.nfwPolicy.statefulRuleGroup) {
       const statefulRuleGroup: nfw.CfnRuleGroup[] = this.nfwPolicy.statefulRuleGroup.map((ruleGroup: any) => {
-        ruleGroup.ruleGroupName = `${prefix}${ruleGroup.ruleGroupName}`;
+        ruleGroup.ruleGroupName = `${this.nfwName}-${prefix}${ruleGroup.ruleGroupName}`;
         return new nfw.CfnRuleGroup(this, ruleGroup.ruleGroupName, ruleGroup);
       });
       policy.statefulRuleGroupReferences = statefulRuleGroup.map(ruleGroup => {
@@ -81,11 +100,11 @@ export class Nfw extends Construct {
       return { subnetId: subnet.id };
     });
 
-    this.policy = new nfw.CfnFirewallPolicy(this, `${prefix}${this.nfwPolicyConfig.name}`, {
-      firewallPolicyName: `${prefix}${this.nfwPolicyConfig.name}`,
+    this.policy = new nfw.CfnFirewallPolicy(this, `${this.nfwName}${this.nfwPolicyConfig.name}`, {
+      firewallPolicyName: `${prefix}${this.nfwName}-${this.nfwPolicyConfig.name}`,
       firewallPolicy: policy,
     });
-    this.firewall = new nfw.CfnFirewall(this, `${prefix}${this.nfwName}`, {
+    this.firewall = new nfw.CfnFirewall(this, `${this.nfwName}NFW`, {
       firewallName: `${prefix}${this.nfwName}`,
       firewallPolicyArn: this.policy.ref,
       subnetMappings: subnetIds,
@@ -98,6 +117,57 @@ export class Nfw extends Construct {
       az: s.az,
       cidrBlock: s.cidrBlock,
     }));
+
+    const logDestinationConfigs = [];
+
+    if (props.nfwFlowLogging === 'S3') {
+      logDestinationConfigs.push({
+        logDestinationType: 'S3',
+        logType: 'FLOW',
+        logDestination: {
+          bucketName: props.logBucket?.bucketName || '',
+        },
+      });
+    }
+
+    if (props.nfwAlertLogging === 'S3') {
+      logDestinationConfigs.push({
+        logDestinationType: 'S3',
+        logType: 'ALERT',
+        logDestination: {
+          bucketName: props.logBucket?.bucketName || '',
+        },
+      });
+    }
+
+    if (props.nfwFlowLogging === 'CloudWatch') {
+      logDestinationConfigs.push({
+        logDestinationType: 'CloudWatchLogs',
+        logType: 'FLOW',
+        logDestination: {
+          logGroup: cwFlowGroup.logGroupName,
+        },
+      });
+    }
+
+    if (props.nfwAlertLogging === 'CloudWatch') {
+      logDestinationConfigs.push({
+        logDestinationType: 'CloudWatchLogs',
+        logType: 'ALERT',
+        logDestination: {
+          logGroup: cwAlertGroup.logGroupName,
+        },
+      });
+    }
+
+    if (logDestinationConfigs.length > 0) {
+      const nfwLogging = new nfw.CfnLoggingConfiguration(this, `${this.nfwName}LoggingGroup`, {
+        firewallArn: this.firewall.ref,
+        loggingConfiguration: {
+          logDestinationConfigs,
+        },
+      });
+    }
 
     this.nfwOutput = subnetsOutput.map((subnet, index) => {
       const endpointAttr = Fn.select(index, this.firewall.attrEndpointIds);

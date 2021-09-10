@@ -251,7 +251,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       const s3 = new S3(masterAcctCredentials);
       vpcConfig.nfw.policyString = await s3.getObjectBodyAsString({
         Bucket: centralBucket.bucketName,
-        Key: vpcConfig.nfw.policy.path || 'nfw/nfwPolicy.json',
+        Key: vpcConfig.nfw.policy?.path || 'nfw/nfw-example-policy.json',
       });
     } else {
       console.log('No NFW policy path found skipping');
@@ -275,6 +275,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       existingAttachments,
       ddbKmsKey: ebsKmsKey?.encryptionKeyArn,
       acceleratorPrefix: context.acceleratorPrefix,
+      logBucket,
     });
 
     const pcxConfig = vpcConfig.pcx;

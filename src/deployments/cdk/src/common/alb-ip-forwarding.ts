@@ -43,9 +43,11 @@ export class AlbIpForwarding extends Construct {
       tableName: `${prefix}Alb-Ip-Forwarding-${albIpProps.vpcId}`,
       encryption: ddb.TableEncryption.CUSTOMER_MANAGED,
       encryptionKey: kmsKey,
-      billingMode: ddb.BillingMode.PAY_PER_REQUEST,
+      billingMode: ddb.BillingMode.PROVISIONED,
+      pointInTimeRecovery: true,
     });
-
+    const ddbScaling = ddbTable.autoScaleReadCapacity({ minCapacity: 1, maxCapacity: 10 });
+    ddbScaling.scaleOnUtilization({ targetUtilizationPercent: 90 });
     const tableEventSource = new DynamoEventSource(ddbTable, {
       startingPosition: lambda.StartingPosition.TRIM_HORIZON,
       retryAttempts: 0,
