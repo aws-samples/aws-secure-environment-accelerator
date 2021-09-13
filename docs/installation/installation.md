@@ -230,7 +230,7 @@ If deploying to an internal AWS employee account and installing the solution wit
 1. In the Organization Management account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
 2. Click `Create a Private Marketplace`, and wait for activation to complete
 3. Go to the "Account Groups" sub-menu, click `Create account group`
-4. Enter an Account Group Title (i.e. `Default`) and `Add` the Management/root account number in `Associate AWS account`
+4. Enter an Account Group Title (i.e. `Default`) and `Add` the Management (root) account number in `Associate AWS account`
 5. Associate the default experience `New Private Marketplace`, then click `Create account group` and wait for it to create
 6. Go to "Experiences" sub-menu, select `New Private Marketplace`
 7. Select the "Settings" sub-tab, and click the `Not Live` slider to make it `Live` and wait for it to complete
@@ -249,7 +249,11 @@ If deploying to an internal AWS employee account and installing the solution wit
 - Due to PMP provisioning delays, this sometimes fails when attempted immediately following enablement of PMP or if adding each product individually - retry after 20 minutes.
 
 13. While not used in this account, you must now subscribe to the two subscriptions and accept the EULA for each product (you will need to do the same in the perimeter account, once provisioned below)
-    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (Fortinet v6.4.6, Checkpoint Mgmt R81.10-335.883 and CloudGuard R80.40-294.374 recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
+    - To subscribe, select the "Approved products" tab
+    - Click on the product you want to subscribe, in this case `Fortinet FortiGate (BYOL) Next-Generation Firewall` and  `Fortinet FortiManager (BYOL Centralized Security Management` **or** `CloudGuard Network Security for Gateway Load Balancer - BYOL` and `Check Point Security Management (BYOL)`
+    - Click on "Continue to Subscribe"
+    - Click on "Accept Terms" and wait for subscription to be completed
+    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (**Fortinet** `v6.4.6`, **Checkpoint Mgmt** `R81.10-335.883` and **CloudGuard** `R80.40-294.374` recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
 
 ![New AMI ID](img/new-ami-id.png)
 
@@ -272,14 +276,16 @@ If deploying to an internal AWS employee account and installing the solution wit
    - Update the IP address in the "alarm-not-ip" variable with your on-premise IP ranges (used for the AWS-SSO-Authentication-From-Unapproved-IP alarm);
    - For a test deployment, the remainder of the values can be used as-is;
    - While it is generally supported, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts to the config file and rerun the state machine.
+   - More information [here](./customization-index.md#15-config-file-minimum-changes) on the fields in the config file that need to be updated. 
 3. A successful deployment of the prescriptive architecture requires VPC access to 9 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 9 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms, logs, monitoring).
-4. When deploying to regions other than `ca-central-1`, you need to modify your config file as follows:
+4. When deploying to regions other than `ca-central-1`, you need to modify your config file as follows (for Canada Central 1, the AMI ids are pre-populated for you):
    1. Update the firewall and firewall manager AMI id's to reflect your home regions regional AMI id's (see 2.3.3, item 13), making sure you select the right version and region per the recommendations.
    2. Validate all the Interface Endpoints defined in your config file are supported in your home region (i.e. Endpoint VPC). Remove unsupported endpoints from the config file, add additional endpoints as available.
    3. If you are installing into a home region which is explicitly named in any of the replacements\addl_regions_x, remove it from the list. If deploying in us-east-1, remove ${GBL_REGION}.
-5. Create an S3 bucket in your Organization Management account with versioning enabled `your-bucket-name`
+5. Create an S3 bucket in your Organization Management account `your-bucket-name`
    - you must supply this bucket name in the CFN parameters _and_ in the config file (`global-options\central-bucket`)
    - the bucket name _must_ be the same in both spots
+   - the bucket must have versioning enabled
    - the bucket must be `S3-KMS` encrypted using the `ASEA-Source-Bucket-Key` created above
 6. Place your customized config file(s), named `config.json` (or `config.yaml`), in your new bucket
 7. If required, place the firewall configuration and license files in the folder and path defined in the config file
@@ -307,8 +313,14 @@ If deploying to an internal AWS employee account and installing the solution wit
 2. Download the CloudFormation (CFN) template for the release you plan to install (either `AcceleratorInstallerXXX.template.json` for GitHub or `AcceleratorInstallerXXX-CodeCommit.template.json` for CodeCommit)
 3. Use the provided CloudFormation template to deploy a new stack in your Management (root) AWS account
    - As previously stated we do not support installation in sub-accounts
-4. **_Make sure you are in your desired `home` region_** (i.e. `ca-central-1`) (your desired primary or control region)
-5. Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
+4. Login to your Organization Management account and **_make sure you are in your desired `home` region_** (i.e. `ca-central-1`) (your desired primary or control region)
+5. Navigate to **CloudFormation** in the AWS Console
+  - Create a new stack
+  - Select "Template is ready"
+  - For the "Specify template" select "Upload a template file"
+  - Select the `xx.template.json` file you downloaded in the above step (this will create a cf-template-xxx s3 bucket)
+  - Click Next
+  - Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
 6. Specify `Stack Name` STARTING with `ASEA-` (case sensitive) suggest a suffix of `orgname` or `username`
 7. Change `ConfigS3Bucket` to the name of the bucket you created above `your-bucket-name`
 8. Add an `Email` address to be used for State Machine Status notification
@@ -329,18 +341,25 @@ If deploying to an internal AWS employee account and installing the solution wit
 17. The state machine time is dependent on the quantity of resources being deployed. On an initial installation of a more complex sample configuration files, it takes approximately 1.5 hours to execute. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but often takes as little as 20 minutes.
 18. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
 19. You will receive an email from the State Machine SNS topic and the 3 SNS alerting topics. Please confirm all four (4) email subscriptions to enable receipt of state machine status and security alert messages. Until completed, you will not receive any email messages (must be completed within 7-days).
-20. If deploying a prescriptive architecture with 3rd party firewalls, after the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
+20. If the pipeline **fails**:
+  - Refer to the [Troubleshooting Guide](../operations/operations-troubleshooting-guide.md#4-troubleshooting) for instructions on how to inspect and retrieve the error.
+  - You can also refer to the [FAQ](../faq/faq.md) and [Known Installation Issues](#251-known-installation-issues).
+  - Once the error is resolved, re-run the step function `ASEA-MainStateMachine_sm` using `{"scope": "FULL","mode": "APPLY"}` as an input to it
+21. If deploying a prescriptive architecture with 3rd party firewalls, after the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
     1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the main state machine (`ASEA-MainStateMachine_sm`) to deploy the firewall products
     2. Login to the **perimeter** sub-account (Assume your `organization-admin-role`)
     3. Activate the 3rd party vendor firewall and firewall manager AMI's in the AWS Marketplace
-       - Note: Employees should see the private marketplace, including the custom color specified in prerequisite step 4 above.
-       - When complete, you should see the marketplace products as subscriptions **in the Perimeter account**:
+      - Navigate back to your private marketplace
+      - Note: Employees should see the private marketplace, including the custom color specified in prerequisite step 4 above.
+      - Select "Discover products" from the side bar, then in the "Refine Results" select "Private Marketplace => Approved Products"
+      - Subscribe and Accept the Terms for each product (firewall and firewall manager)
+      - When complete, you should see the marketplace products as subscriptions **in the Perimeter account**:
 
 ![marketplace](img/marketplace.png)
 
-21. If deploying the prescriptive architecture, once the main state machine (`ASEA-MainStateMachine_sm`) completes successfully, confirm the status of your perimeter firewall deployment.
+22. If deploying the prescriptive architecture, once the main state machine (`ASEA-MainStateMachine_sm`) completes successfully, confirm the status of your perimeter firewall deployment.
     - While you can watch the state machine in Step Functions, you will also be notified via email when the State Machine completes (or fails). Successful state machine executions include a list of all accounts which were successfully processed by the Accelerator.
-22. If your perimeter firewalls were defined but not deployed on first run, you will need to rerun the state machine. This happens when:
+23. If your perimeter firewalls were defined but not deployed on first run, you will need to rerun the state machine. This happens when:
     1. you were unable to activate the firewall AMI's before stage 2 (step 20)
     2. we were not able to fully activate your account before we were ready to deploy your firewalls. This case can be identified by a running EC2 micro instance in the account, or by looking for the following log entry 'Minimum 15 minutes of account warming required for account'.
     3. In these cases, simply select the `ASEA-MainStateMachine_sm` in Step Functions and select `Start Execution`
@@ -355,16 +374,41 @@ Issues in Older Releases:
 
 - New installs and upgrades to releases prior to v1.5.0 are no longer supported.
 
-
 ## 2.6. Post-Installation
 
 The Accelerator installation is complete, but several manual steps remain:
 
-1. In your `home` region (i.e. ca-central-1), Enable AWS SSO, Set the SSO directory to MAD, set the SSO email attrib to: \${dir:email}, configure MFA, create all default permission sets and any desired custom permission sets, map MAD groups to perm sets and accounts.
-   - For Control Tower based installations, remove the orphaned Permission Sets from each AWS accounts (select the account, expand Permission Sets, click Remove for each)
+1. Enable AWS SSO in your `home` region (i.e. ca-central-1)
+  - Login to the AWS Console using your Organization Management account
+  - Navigate to AWS Single Sign-On
+  - Enable SSO
+  - Set the SSO directory to MAD ("Settings" => Identity Source => Identity Source => Change) 
+  - Under "Identity Source" section, Click on "Edit" Attribute mappings and set the SSO email attrib to: \${dir:email}and Save Changes
+  - Configure MFA
+  - Create all default permission sets and any desired custom permission sets
+    - e.g. Select `AWS accounts` from the side bar, select "Permission sets" tab then `Create permission set`
+    - `Use an existing job function policy` => Next
+    - Select job function policy `AdministratorAccess`
+    - Add Tags, Review and Create
+  - Map MAD groups to perm sets and accounts
+    - Select `AWS accounts` from the side bar and select `AWS organization` tab
+    - Select the accounts you want to map to each MAD group and click `Assign users`
+    - Select your DNS domain e.g. `example.local`, and search for the group you would like to assign e.g. `Administrators` and click `Search connected directory`
+    - Select `Administrators`
+    - Repeat the same for any `Users` that are not under a group and click Next
+    - Select the permission set you would like to assign MAD group to e.g. `AdministratorAccess`
+    - Click "Finish" (Note: if it fails during provisioning, simply select the failed accounts and click on "Retry changes")
+  - Set your users password
+    - Assume role for the Operations account (Click the account # in the top right bar => `Switch Roles`, enter the `Operations account number` and the role name set in `organization-admin-role` )
+    - Navigate to "Directory Service" , select the directory => Actions => Reset user password
+  - Login to AWS Accounts from SSO
+    - Navigate to `AWS SSO` on the AWS Console
+    - Click on `Dashboard` on the sidebar and click on the `User portal URL` to login
+    - You should see all the accounts that the user have access to.
+  - For Control Tower based installations, remove the orphaned Permission Sets from each AWS accounts (select the account, expand Permission Sets, click Remove for each)
 2. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts, in each account:
 
-   - Go to CloudWatch, Settings, Under `Cross-account cross-region` select `Configure`, Under `View cross-account cross-region` select `Enable`, choose `AWS Organization account selector`, click `Enable`
+   - Go to CloudWatch, Settings, Under `Cross-account cross-region` select `Configure`, Under `View cross-account cross-region` select `Edit`, choose `AWS Organization account selector`, click `Save changes`
 
 3. Configure central Ingress/Egress firewalls, if deployed
 
@@ -390,18 +434,25 @@ The Accelerator installation is complete, but several manual steps remain:
 
    **Checkpoint**
 
-   - Download and install Checkpoint SmartConsole client on your PC
+   - Download and install Checkpoint SmartConsole client on your PC (only available for Windows, If you have a Mac, you can use Workspaces to install the client)
    - Retrieve the firewall and firewall manager SSL certificate from secrets manager and save to a pem file (convert to ppk on Windows)
-   - Wait approx. 25 min. after the managers "Launch time" and then SSH into the Firewall Manager using the SSL certificate and execute the following commands:
-     - "set user admin password"
-     - "set expert-password"
-     - "set user admin shell /bin/bash"
-     - "save config"
+    - Login to your `AWS Console` using the `Perimeter` account
+    - Navigate to `Secrets Manager` and select `Secrets`
+    - Look for Secret name `ASEA/keypair/ASEA-Appliances` and click on it
+    - Go to the `Secret value` section and click on `Retrieve secret value`
+    - Make sure you have the `Plaintext` tab selected and copy the content to a .pem file using your preferred text editor. (the file will need to be converted to ppk format on Windows)
+   - Wait approx. 25 min. after the managers "Launch time" and then SSH into the Firewall Manager using the SSL certificate (.pem file retrieved above) and login user `admin`
+    - The firewall manager EC2 instance name is `ASEA-Checkpoint-FirewallMgr`
+   - Once you SSH successfully, execute the following commands:
+    - `set user admin password`
+    - `set expert-password`
+    - `set user admin shell /bin/bash`
+    - `save config`
    - The following commands are useful for troubleshooting (in expert mode):
-     - "autoprov_cfg -v" (check cme at Take 155 or greater)
-     - "autoprov_cfg show all" (check cme configuration)
-     - "cat /var/log/aws-user-data.log" (validate bootstrap, file should end with `"Publish operation" succeeded (100%)`)
-     - "tail -f /var/log/CPcme/cme.log" (watch to ensure it finds the instances, establishes SIC and adds the nodes)
+     - `autoprov_cfg -v` (check cme at Take 155 or greater)
+     - `autoprov_cfg show all` (check cme configuration)
+     - `cat /var/log/aws-user-data.log` (validate bootstrap, file should end with `"Publish operation" succeeded (100%)`)
+     - `tail -f /var/log/CPcme/cme.log` (watch to ensure it finds the instances, establishes SIC and adds the nodes)
    - Login to SmartConsole, and update the firewall policy per your organizations security requirements
      - An outbound rule allowing http and https should exist
      - From the RDGW host in Operations, test to see if outbound web browsing is enabled

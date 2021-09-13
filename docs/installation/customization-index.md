@@ -121,6 +121,67 @@ Samples with Descriptions:
   - If a customer is purposefully making extensive changes across the config file and wants to simply override all checks with a single override flag, we also have this option, but discourage it use.
   - The various override flags and their format can be found in [here](./sm_inputs.md).
 
+## 1.5. Config File Minimum Changes
+
+At a minimum you should consider reviewing the following config file sections and make the required changes. 
+
+### 1.5.1 Global Options
+- S3 Central Bucket `global-options/central-bucket` : "AWSDOC-EXAMPLE-BUCKET", replace with the new bucket name as referenced in the Installation guide [S3 Creation - Step #5](./installation.md#24-basic-accelerator-configuration)
+- Central Log Services SNS Emails `global-options/central-log-services/sns-subscription-emails` : "myemail+notifyT-high@example.com", update the emails as required for high, medium and low.
+
+### 1.5.2 Mandatory Account Configs
+- All mandatory accounts specific to your config file, that are present under the `mandatory-account-config` section require you to assign a unique email address for each account listed below. Replace the email values in the JSON config file for these accounts with unique email addresses.
+  - `mandatory-account-configs/shared-network/email` : "myemail+aseaT-network@example.com---------------------REPLACE------------"
+  - `mandatory-account-configs/operations/email` : "myemail+aseaT-operations@example.com---------------------REPLACE------------"
+  - `mandatory-account-configs/perimeter/email` : "myemail+aseaT-perimeter@example.com---------------------REPLACE------------"
+  - `mandatory-account-configs/management/email` : "myemail+aseaT-management@example.com---------------------REPLACE------------" (Note: This is the email of your root account)
+  - `mandatory-account-configs/log-archive/email` : "myemail+aseaT-log@example.com---------------------REPLACE------------"
+  - `mandatory-account-configs/security/email` : "myemail+aseaT-sec@example.com---------------------REPLACE------------"
+- Budget Alerts email addresses need to be replaced with an email address in your organization. It can be the same email address for all budget alerts. Config located at the following path (Multiple exist for different thresholds, update all under each account):
+  - `mandatory-account-configs/shared-network/budget/alerts/emails` : "myemail+aseaT-budg@example.com"
+  - `mandatory-account-configs/perimeter/budget/alerts/emails` : "myemail+aseaT-budg@example.com"
+  - `mandatory-account-configs/management/budget/alerts/emails` : "myemail+aseaT-budg@example.com"
+- For the `shared-network` account, review and update the following:
+  - `mandatory-account-configs/shared-network/vpc/on-premise-rules/zone` : "on-premise-privatedomain1.example.ca"
+  - `mandatory-account-configs/shared-network/vpc/zones` : "on-premise-privatedomain2.example.ca"
+- For the `operations` account, review and update the following:
+  - `mandatory-account-configs/operations/deployments/mad/dns-domain` : "example.local"
+  - `mandatory-account-configs/operations/deployments/mad/netbios-domain` : "example"
+  - `mandatory-account-configs/operations/deployments/mad/ad-users` (update user, email and group of each user as required)
+- For `perimeter` account, review and update the following:
+  - `mandatory-account-configs/perimeter/certificates/priv-key` : "certs/example1-cert.key"
+  - `mandatory-account-configs/perimeter/certificates/cert` : "certs/example1-cert.crt"
+  - If you are using GWLB config:
+    - `mandatory-account-configs/perimeter/deployments/firewalls/Checkpoint-Firewall - image-id` : "ami-0217611bf09d5b4c1" (Update AMI with the AMI collected from the Marketplace for **CloudGuard Network Security for GWLB - BYOL**)
+    - `mandatory-account-configs/perimeter/deployments/firewall-manager/image-id` : "ami-0071a3b4ef9ac766a" (Update AMI with the AMI collected from the Marketplace for **Checkpoint Security Management**)
+    - `mandatory-account-configs/perimeter/deployments/firewall-manager/version` : "R8110BYOLMGMT" (Update version based on the selected ami-id version from the Private Marketplace)
+- For `management`, review and update the following:
+  - `mandatory-account-configs/management/account-name` : "ASEA-Main" (Check your Organization Management account name (root account name), if it is not set to ASEA-Main, then replace this property with your account name)
+  - `mandatory-account-configs/management/iam/users` (optional)
+- For `log-archive` and `security`, the values that need to be reviewed were mentioned in the above steps.
+
+
+### 1.5.3 Workload Account Configs
+As mentioned in the Installation Guide, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts to the config file and rerun the state machine.
+
+- Review the workload accounts in the config that you selected and change the name and email as desired
+  - Modify `mydevacct1` with the account name of your choosing
+  - Modify `mydevacct1/account-name` : "MyDev1" with the account name
+  - Modify `mydevacct1/email`: "myemail+aseaT-dev1@example.com---------------------REPLACE------------" with a unique email address for the account
+  - Modify `mydevacct1/description` : "This is an OPTIONAL SAMPLE workload account..." with a description relevant to your account
+  - Modify `mydevacct1/ou`: "Dev" with the OU that you would like the account to be attached to
+
+### 1.5.4 Organization Units
+- For all organization units, update the budget alerts email address:
+  - `organizational-units/core/default-budgets/alerts/emails` : "myemail+aseaT-budg@example.com"
+  - `organizational-units/Central/default-budgets/alerts/emails` : "myemail+aseaT-budg@example.com"
+  - `organizational-units/Dev/default-budgets/alerts/emails` : "myemail+aseaT-budg@example.com"
+  - `organizational-units/Test/default-budgets/alerts/emails` : "myemail+aseaT-budg@example.com"
+  - `organizational-units/Prod/default-budgets/alerts/emails` : "myemail+aseaT-budg@example.com"
+  - `organizational-units/Sandbox/default-budgets/alerts/emails` : "myemail+aseaT-budg@example.com"
+- For organization units, that have `certificates`, review the certificates and update as you see fit. These certificates are used in the `alb` section under `alb/cert-name` of each OU.
+
+
 # 2. **State Machine Behavior**
 
 Accelerator v1.3.0 makes a significant change to the manner in which the state machine operates. These changes include:
