@@ -74,7 +74,7 @@ export class Nfw extends Construct {
 
     if (this.nfwPolicy.statelessRuleGroup) {
       const statelessRuleGroup: any[] = this.nfwPolicy.statelessRuleGroup.map((ruleGroup: any) => {
-        ruleGroup.ruleGroupName = `${this.nfwName}-${prefix}${ruleGroup.ruleGroupName}`;
+        ruleGroup.ruleGroupName = `${prefix}${this.nfwName}-${ruleGroup.ruleGroupName}`;
         return {
           group: new nfw.CfnRuleGroup(this, ruleGroup.ruleGroupName, ruleGroup),
           priority: ruleGroup.priority,
@@ -86,7 +86,7 @@ export class Nfw extends Construct {
     }
     if (this.nfwPolicy.statefulRuleGroup) {
       const statefulRuleGroup: nfw.CfnRuleGroup[] = this.nfwPolicy.statefulRuleGroup.map((ruleGroup: any) => {
-        ruleGroup.ruleGroupName = `${this.nfwName}-${prefix}${ruleGroup.ruleGroupName}`;
+        ruleGroup.ruleGroupName = `${prefix}${this.nfwName}-${ruleGroup.ruleGroupName}`;
         return new nfw.CfnRuleGroup(this, ruleGroup.ruleGroupName, ruleGroup);
       });
       policy.statefulRuleGroupReferences = statefulRuleGroup.map(ruleGroup => {

@@ -635,6 +635,21 @@ export async function validateDDBChanges(
 }
 
 export async function validateNfw(differences: Diff<LHS, RHS>[], errors: string[]) {
+  const nfwDiffs = differences.filter(diff => {
+    return (
+      diff.path?.includes('mandatory-account-configs') &&
+      diff.path.includes('vpc') &&
+      diff.path.includes('nfw') &&
+      diff.path.length === 5
+    );
+  });
+
+  for (const diff of nfwDiffs) {
+    if ((diff.kind = 'D')) {
+      errors.push(`Firewall has been deleted from path ${diff.path?.join('/')}. This is not allowed.`);
+    }
+  }
+
   const nfwNameDiffs = differences.filter(diff => {
     return (
       diff.path?.includes('mandatory-account-configs') &&
