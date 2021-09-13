@@ -566,11 +566,17 @@ export const AdcConfigType = t.interface({
   'connect-dir-id': t.number,
 });
 
+export const FirewallPortConfigPrivateIpType = t.interface({
+  az: t.string,
+  ip: t.string,
+});
+
 export const FirewallPortConfigType = t.interface({
   name: t.nonEmptyString,
   subnet: t.nonEmptyString,
   'create-eip': t.boolean,
   'create-cgw': t.boolean,
+  'private-ips': t.optional(t.array(FirewallPortConfigPrivateIpType)),
 });
 
 export const FirewallEC2ConfigType = t.interface({

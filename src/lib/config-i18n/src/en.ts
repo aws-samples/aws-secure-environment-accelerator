@@ -1782,6 +1782,21 @@ translate(c.AdcConfigType, {
   },
 });
 
+translate(c.FirewallPortConfigPrivateIpType, {
+  title: 'Firewall Port Private IP Configuration',
+  description: 'Optionally choose a private static IP address.  Assure the IP is available and within the subnet.',
+  fields: {
+    ip: {
+      title: '',
+      description: 'IP Address x.x.x.x for this ports subnet',
+    },
+    az: {
+      title: '',
+      description: 'Availability zone for this IP Address',
+    },
+  },
+});
+
 translate(c.FirewallPortConfigType, {
   title: 'Firewall Port Config',
   description:
@@ -1802,6 +1817,10 @@ translate(c.FirewallPortConfigType, {
     'create-cgw': {
       title: '',
       description: 'Set to true to create a customer gateway on this port',
+    },
+    'private-ips': {
+      title: '',
+      description: 'Optionally define static private ip addresses for each subnet port and subnet',
     },
   },
 });

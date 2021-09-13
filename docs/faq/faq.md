@@ -41,6 +41,7 @@
     - [1.6.8. Can I deploy the solution as the account root user?](#168-can-i-deploy-the-solution-as-the-account-root-user)
     - [1.6.9. Is the Organizational Management root account monitored similarly to the other accounts in the organization?](#169-is-the-organizational-management-root-account-monitored-similarly-to-the-other-accounts-in-the-organization)
     - [1.7.0. How are the perimeter firewall configurations and licensing managed after deployment?](#170-how-are-the-perimeter-firewall-configurations-and-licensing-managed-after-deployment)
+    - [1.7.1. Can the Fortinet Firewall deployments use static IP Address assignments?](#171-can-the-fortinet-firewall-deployments-use-static-private-ip-address-assignments)
 
 ## 1.1. Operational Activities
 
@@ -63,12 +64,12 @@
 
     - \*\* **IMPORTANT:** When creating the new AWS account using AWS Organizations, you need to specify the role name provided in the Accelerator configuration file `global-options\organization-admin-role`, **_prior to v1.2.5, the ONLY supported value is `AWSCloudFormationStackSetExecutionRole`_**, otherwise we cannot bootstrap the account. After v1.2.5 we recommended using the role **_`OrganizationAccountAccessRole`_** for the Standalone Version as this role is used by AWS Organizations if no role name is specified when creating AWS accounts through the AWS console or cli. If installed with AWS Control Tower, the `organization-admin-role` must be set to **_`AWSControlTowerExecution`_**.
     - On account creation we will apply a quarantine SCP which prevents the account from being used by anyone until the Accelerator has applied the appropriate guardrails
-    - Moving the account into the appropriate OU triggers the state machine and the application of the guardrails to the account, once complete, we will remove the quarantine SCP. 
+    - Moving the account into the appropriate OU triggers the state machine and the application of the guardrails to the account, once complete, we will remove the quarantine SCP.
       - **NOTE:** Accounts CANNOT be moved between OU's to maintain compliance, so select the proper top-level OU with care
     - In AWS Organizations, select ALL the newly created AWS accounts and move them all (preferably at once) to the correct destination OU (assuming the same OU for all accounts)
       - In case you need to move accounts to multiple OU's we have added a 2 minute delay before triggering the State Machine
       - Any accounts moved after the 2 minute window will NOT be properly ingested, and will need to be ingested on a subsequent State Machine Execution
-    
+
 ### 1.1.2. Can I use AWS Organizations for all tasks I currently use AWS Organizations for? (Standalone Version Only)
 
 - In AWS Organizations you can continue to:
@@ -486,6 +487,84 @@ Yes, all accounts including the Organization Management or root account have the
 
 While you deploy the perimeter firewalls with the Accelerator you will continue to manage firewall updates, configuration changes, and license renewals from the respective firewall management interface and not from the Accelerator config file. As these changes are not managed by the Accelerator you do not need to rerun the state machine to implement or track any of these changes. You can update the AMI of the 3rd party firewalls using the Accelerator, you must first remove the existing firewalls and redeploy them (as the Elastic IP's (EIP's) will block a parallel deployment) or deploy a second parallel firewall cluster and de-provision the first cluster when ready.
 
+### 1.7.1. Can the Fortinet Firewall deployments use Static Private IP Address assignments?
+
+Yes, the `"port"` stanza in the configuration file can support a private static IP Address assignment from the subnet and az.
+
+Care must be exercised to assure the assigned IP Address is within the correct subnet and correct Availability zone.  Also consider the Amazon reserved IP Addresses (first three addresses, and the last) within subnets when choosing an IP Address to assign.
+
+Using the `config.example.json` as a reference, static IP Assignments would look like this in the `ports:` stanza of the firewall deployment.
+
+```json
+"ports": [
+  {
+    "name": "Public",
+    "subnet": "Public",
+    "create-eip": true,
+    "create-cgw": true,
+    "private-ips": [
+      {
+        "az": "a",
+        "ip": "100.96.250.4"
+      },
+      {
+        "az": "b",
+        "ip": "100.96.250.132"
+      }
+    ]
+  },
+  {
+    "name": "OnPremise",
+    "subnet": "OnPremise",
+    "create-eip": false,
+    "create-cgw": false,
+    "private-ips": [
+      {
+        "az": "a",
+        "ip": "100.96.250.68"
+      },
+      {
+        "az": "b",
+        "ip": "100.96.250.196"
+      }
+    ]
+  },
+  {
+    "name": "FWMgmt",
+    "subnet": "FWMgmt",
+    "create-eip": false,
+    "create-cgw": false,
+    "private-ips": [
+      {
+        "az": "a",
+        "ip": "100.96.251.36"
+      },
+      {
+        "az": "b",
+        "ip": "100.96.251.164"
+      }
+    ]
+  },
+  {
+    "name": "Proxy",
+    "subnet": "Proxy",
+    "create-eip": false,
+    "create-cgw": false,
+    "private-ips": [
+      {
+        "az": "a",
+        "ip": "100.96.251.68"
+      },
+      {
+        "az": "b",
+        "ip": "100.96.251.196"
+      }
+    ]
+  }
+],
+```
+
+Where `private-ips` are not present for the subnet or availability zone an address will be assigned automatically from available addresses when the firewall instance is created.
 
 ---
 

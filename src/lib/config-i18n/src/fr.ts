@@ -1664,6 +1664,21 @@ translate(c.AdcConfigType, {
   },
 });
 
+translate(c.FirewallPortConfigPrivateIpType, {
+  title: '',
+  description: '',
+  fields: {
+    ip: {
+      title: '',
+      description: '',
+    },
+    az: {
+      title: '',
+      description: '',
+    },
+  },
+});
+
 translate(c.FirewallPortConfigType, {
   title: '',
   description: '',
@@ -1681,6 +1696,10 @@ translate(c.FirewallPortConfigType, {
       description: '',
     },
     'create-cgw': {
+      title: '',
+      description: '',
+    },
+    'private-ips': {
       title: '',
       description: '',
     },
