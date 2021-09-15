@@ -36,21 +36,20 @@ export async function step2(props: CloudWatchStep2Props) {
   const managementRegion = config['global-options']['aws-org-management'].region;
   const alarmsConfig = globalOptions.cloudwatch.alarms;
   const alarmDefaultDefinition: c.CloudWatchDefaultAlarmDefinition = alarmsConfig;
+  if (alarmDefaultDefinition['default-accounts'].includes('ALL')) {
+    alarmDefaultDefinition['default-accounts'] = accounts.map(account => account.key);
+  }
   for (const alarmconfig of alarmsConfig.definitions) {
     const accountKeys: string[] = [];
     const regions: string[] = [];
-    if (alarmconfig.accounts && alarmconfig.accounts.includes('ALL')) {
-      // TODO Ignore for now implementation will come in phase 2
-    } else {
-      accountKeys.push(...(alarmconfig.accounts || alarmDefaultDefinition['default-accounts']));
+    if (alarmconfig.accounts?.includes('ALL')) {
+      alarmconfig.accounts = accounts.map(account => account.key);
     }
 
-    if (alarmconfig.regions && alarmconfig.regions.includes('ALL')) {
-      // TODO Ignore for now implementation will come in phase 2
-    } else {
-      regions.push(...(alarmconfig.regions || alarmDefaultDefinition['default-regions']));
-    }
+    accountKeys.push(...(alarmconfig.accounts || alarmDefaultDefinition['default-accounts']));
+    regions.push(...(alarmconfig.regions || alarmDefaultDefinition['default-regions']));
     for (const accountKey of accountKeys) {
+      console.log('REGIONS: ', JSON.stringify(regions, null, 4));
       for (const region of regions) {
         const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
         if (!accountStack) {

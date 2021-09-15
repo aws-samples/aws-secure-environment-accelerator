@@ -645,8 +645,9 @@ export async function validateNfw(differences: Diff<LHS, RHS>[], errors: string[
   });
 
   for (const diff of nfwDiffs) {
-    if ((diff.kind = 'D')) {
+    if (diff.kind === 'D') {
       errors.push(`Firewall has been deleted from path ${diff.path?.join('/')}. This is not allowed.`);
+      console.log(JSON.stringify(diff, null, 4));
     }
   }
 
