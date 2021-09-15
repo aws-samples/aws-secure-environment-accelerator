@@ -221,6 +221,26 @@
           ]
         }
       }
+    },
+    {
+      "Sid": "NFW",
+      "Effect": "Deny",
+      "Action": [
+        "network-firewall:AssociateSub*",
+        "network-firewall:DisassociateSub*",
+        "network-firewall:Create*",
+        "network-firewall:Delete*",
+        "network-firewall:Update*"
+      ],
+      "Resource": [
+        "arn:aws:network-firewall:*:*:firewal*/${ACCELERATOR_PREFIX_ND}*",
+        "arn:aws:network-firewall:*:*:state*/${ACCELERATOR_PREFIX_ND}*"
+      ],
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        }
+      }
     }
   ]
 }
