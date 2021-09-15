@@ -225,6 +225,7 @@
         "route53:*",
         "route53domains:*",
         "s3:GetAccountPublic*",
+        "s3:GetBucketLocation",
         "s3:ListAllMyBuckets",
         "s3:ListBuckets",
         "s3:PutAccountPublic*",

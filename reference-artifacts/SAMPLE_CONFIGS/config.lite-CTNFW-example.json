@@ -1405,7 +1405,9 @@
             "policy": {
               "name": "Sample-Firewall-Policy",
               "path": "nfw/nfw-example-policy.json"
-            }
+            },
+            "alert-dest": "CloudWatch",
+            "flow-dest": "CloudWatch"
           },
           "subnets": [
             {
@@ -1888,7 +1890,7 @@
       "description": "The Security OU is used to hold AWS accounts containing AWS security resources shared or utilized by the rest of the Organization.",
       "scps": ["Guardrails-Part-0-Core", "Guardrails-Part-1"],
       "default-budgets": {
-        "name": "Default Core Budget",
+        "name": "Default Security Budget",
         "period": "Monthly",
         "amount": 1000,
         "include": [
@@ -1989,7 +1991,7 @@
       "description": "The Infrastructure OU is used to hold AWS accounts containing AWS infrastructure resources shared or utilized by the rest of the Organization.",
       "scps": ["Guardrails-Part-0-Core", "Guardrails-Part-1", "Guardrails-Sensitive"],
       "default-budgets": {
-        "name": "Default Core Budget",
+        "name": "Default Infrastructure Budget",
         "period": "Monthly",
         "amount": 1000,
         "include": [

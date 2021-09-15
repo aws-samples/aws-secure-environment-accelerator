@@ -832,7 +832,7 @@
     "shared-network": {
       "account-name": "SharedNetwork",
       "email": "myemail+aseaT-network@example.com---------------------REPLACE------------",
-      "ou": "core",
+      "ou": "Infrastructure",
       "share-mad-from": "operations",
       "src-filename": "config.json",
       "description": "This Account is used for centralized or shared networking resources.",
@@ -1032,7 +1032,7 @@
     "operations": {
       "account-name": "Operations",
       "email": "myemail+aseaT-operations@example.com---------------------REPLACE------------",
-      "ou": "core",
+      "ou": "Infrastructure",
       "account-warming-required": true,
       "limits": {},
       "src-filename": "config.json",
@@ -1214,7 +1214,7 @@
     "perimeter": {
       "account-name": "Perimeter",
       "email": "myemail+aseaT-perimeter@example.com---------------------REPLACE------------",
-      "ou": "core",
+      "ou": "Infrastructure",
       "account-warming-required": true,
       "src-filename": "config.json",
       "description": "This Account is used for internet facing ingress/egress security services.",
@@ -1701,7 +1701,7 @@
     "management": {
       "account-name": "ASEA-Main",
       "email": "myemail+aseaT-management@example.com---------------------REPLACE------------",
-      "ou": "core",
+      "ou": "Security",
       "src-filename": "config.json",
       "description": "This is the Organization Management or root account.  Access must be highly restricted.  This account should not contain customer resources.",
       "budget": {
@@ -1834,15 +1834,15 @@
       }
     },
     "log-archive": {
-      "account-name": "log-archive",
-      "ou": "core",
+      "account-name": "Log Archive",
+      "ou": "Security",
       "email": "myemail+aseaT-log@example.com---------------------REPLACE------------",
       "description": "This Account is used to centralized and store immutable logs for the Organization.",
       "src-filename": "config.json"
     },
     "security": {
-      "account-name": "security",
-      "ou": "core",
+      "account-name": "Security",
+      "ou": "Security",
       "email": "myemail+aseaT-sec@example.com---------------------REPLACE------------",
       "description": "This Account is used to centralized access to AWS security tooling and consoles.",
       "src-filename": "config.json"
@@ -1865,12 +1865,113 @@
     }
   },
   "organizational-units": {
-    "core": {
+    "Security": {
       "type": "ignore",
-      "description": "The core OU is used to hold AWS accounts containing AWS resources shared or utilized by the rest of the Organization.",
+      "description": "The Security OU is used to hold AWS accounts containing AWS security resources shared or utilized by the rest of the Organization.",
       "scps": ["Guardrails-Part-0-Core", "Guardrails-Part-1", "Guardrails-Sensitive"],
       "default-budgets": {
-        "name": "Default Core Budget",
+        "name": "Default Security Budget",
+        "period": "Monthly",
+        "amount": 1000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          }
+        ]
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["${HOME_REGION}"],
+          "documents": [
+            "SSM-ELB-Enable-Logging",
+            "Put-S3-Encryption",
+            "Attach-IAM-Instance-Profile",
+            "Attach-IAM-Role-Policy"
+          ]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": ["ap-northeast-3"],
+          "rules": [
+            "EC2-INSTANCE-PROFILE",
+            "EC2-INSTANCE-PROFILE-PERMISSIONS",
+            "ELB_LOGGING_ENABLED",
+            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "ACM_CERTIFICATE_EXPIRATION_CHECK",
+            "ALB_WAF_ENABLED",
+            "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
+            "API_GW_EXECUTION_LOGGING_ENABLED",
+            "CLOUD_TRAIL_ENABLED",
+            "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
+            "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
+            "CLOUDWATCH_ALARM_ACTION_CHECK",
+            "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
+            "DB_INSTANCE_BACKUP_ENABLED",
+            "DYNAMODB_IN_BACKUP_PLAN",
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+            "EBS_IN_BACKUP_PLAN",
+            "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
+            "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
+            "EC2_VOLUME_INUSE_CHECK",
+            "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
+            "ELB_ACM_CERTIFICATE_REQUIRED",
+            "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
+            "EMR_KERBEROS_ENABLED",
+            "GUARDDUTY_NON_ARCHIVED_FINDINGS",
+            "IAM_GROUP_HAS_USERS_CHECK",
+            "IAM_PASSWORD_POLICY",
+            "IAM_USER_GROUP_MEMBERSHIP_CHECK",
+            "INCOMING_SSH_DISABLED",
+            "INSTANCES_IN_VPC",
+            "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
+            "RDS_IN_BACKUP_PLAN",
+            "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
+            "RESTRICTED_INCOMING_TRAFFIC",
+            "S3_BUCKET_POLICY_GRANTEE_CHECK",
+            "S3_BUCKET_VERSIONING_ENABLED",
+            "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
+            "SECURITYHUB_ENABLED",
+            "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
+            "WAFV2_LOGGING_ENABLED"
+          ],
+          "remediate-regions": ["${HOME_REGION}"]
+        }
+      ]
+    },
+    "Infrastructure": {
+      "type": "ignore",
+      "description": "The Infrastructure OU is used to hold AWS accounts containing AWS infrastructure resources shared or utilized by the rest of the Organization.",
+      "scps": ["Guardrails-Part-0-Core", "Guardrails-Part-1", "Guardrails-Sensitive"],
+      "default-budgets": {
+        "name": "Default Infrastructure Budget",
         "period": "Monthly",
         "amount": 1000,
         "include": [

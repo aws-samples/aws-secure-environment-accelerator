@@ -585,7 +585,7 @@
     "management": {
       "account-name": "ASEA-Main",
       "email": "myemail+aseaT-management@example.com---------------------REPLACE----------------------",
-      "ou": "core",
+      "ou": "Security",
       "src-filename": "config.json",
       "budget": {
         "name": "Organization Budget",
@@ -635,25 +635,25 @@
       }
     },
     "log-archive": {
-      "account-name": "Logs",
-      "ou": "core",
+      "account-name": "Log Archive",
+      "ou": "Security",
       "email": "myemail+aseaT-logs@example.com---------------------REPLACE----------------------",
       "src-filename": "config.json"
     },
     "security": {
-      "account-name": "Audit",
-      "ou": "core",
+      "account-name": "Security",
+      "ou": "Security",
       "email": "myemail+aseaT-audit@example.com---------------------REPLACE----------------------",
       "src-filename": "config.json"
     }
   },
   "workload-account-configs": {},
   "organizational-units": {
-    "core": {
+    "Security": {
       "type": "ignore",
       "scps": ["Guardrails-Part-0-Core", "Guardrails-Part-1", "Guardrails-Sensitive"],
       "default-budgets": {
-        "name": "Default Core Budget",
+        "name": "Default Security Budget",
         "period": "Monthly",
         "amount": 1000,
         "include": [
