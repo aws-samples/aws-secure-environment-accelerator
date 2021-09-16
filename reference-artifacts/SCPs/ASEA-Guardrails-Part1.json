@@ -63,7 +63,7 @@
       ],
       "Resource": [
         "arn:aws:s3:::${ACCELERATOR_PREFIX_LND}-*",
-        "arn:aws:s3:::cdktoolkit-*"
+        "arn:aws:s3:::cdk-${ACCELERATOR_PREFIX_LND}*"
       ],
       "Condition": {
         "ArnNotLike": {
