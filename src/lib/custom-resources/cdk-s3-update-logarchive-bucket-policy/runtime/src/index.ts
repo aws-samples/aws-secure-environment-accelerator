@@ -151,7 +151,7 @@ async function updateBucketPolicy(props: HandlerProperties, bucketPolicy: Policy
     Principal: {
       AWS: props.roles,
     },
-    Resource: [`${props.logBucketArn}`,`${props.logBucketArn}/*`],
+    Resource: [`${props.logBucketArn}`, `${props.logBucketArn}/*`],
   };
   const updatedBucketPolicy = await constructPolicy(bucketPolicy, readOnlyStatement, props);
   await putBucketPolicy(props.logBucketName, JSON.stringify(updatedBucketPolicy));
@@ -212,5 +212,5 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
 }
 
 function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
-  return (event.ResourceProperties as unknown) as HandlerProperties;
+  return event.ResourceProperties as unknown as HandlerProperties;
 }
