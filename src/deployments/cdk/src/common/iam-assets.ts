@@ -184,8 +184,8 @@ export class IamAssets extends cdk.Construct {
 
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
-          actions: ['s3:GetObject'],
-          resources: [logBucket.arnForObjects('*')],
+          actions: ['s3:GetObject', 's3:ListBucket'],
+          resources: [logBucket.bucketArn, logBucket.arnForObjects('*')],
         }),
       );
       new CfnIamPolicyOutput(this, `IamSsmReadOnlyPolicyOutput`, {
