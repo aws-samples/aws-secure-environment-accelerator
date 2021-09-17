@@ -61,7 +61,7 @@
         "s3:PutObjectRetention",
         "s3:PutObjectTagging"
       ],
-      "Resource": ["arn:aws:s3:::${ACCELERATOR_PREFIX_LND}-*", "arn:aws:s3:::cdktoolkit-*"],
+      "Resource": ["arn:aws:s3:::${ACCELERATOR_PREFIX_LND}-*", "arn:aws:s3:::cdk-${ACCELERATOR_PREFIX_LND}*"],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]

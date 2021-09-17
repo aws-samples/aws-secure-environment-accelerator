@@ -175,11 +175,6 @@
     },
     "scps": [
       {
-        "name": "Guardrails-Part-0-Core",
-        "description": "ASEA Guardrails Part 0 Core Accounts",
-        "policy": "ASEA-Guardrails-Part0-CoreOUs.json"
-      },
-      {
         "name": "Guardrails-Part-0",
         "description": "ASEA Guardrails Part 0 Workload Accounts",
         "policy": "ASEA-Guardrails-Part0-WkldOUs.json"
@@ -208,6 +203,11 @@
         "name": "Quarantine-New-Object",
         "description": "ASEA Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
         "policy": "Quarantine-New-Object.json"
+      },
+      {
+        "name": "Guardrails-Part-0-Core",
+        "description": "ASEA Guardrails Part 0 Core Accounts",
+        "policy": "ASEA-Guardrails-Part0-CoreOUs.json"
       }
     ],
     "cloudwatch": {
@@ -303,16 +303,6 @@
           "metric-value": "1"
         },
         {
-          "filter-name": "IgnoreAuthorizationFailureMetric",
-          "accounts": ["management"],
-          "regions": ["${HOME_REGION}"],
-          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
-          "filter-pattern": "{($.errorCode=\"*UnauthorizedOperation\") || ($.errorCode=\"AccessDenied*\")}",
-          "metric-namespace": "CloudTrailMetrics",
-          "metric-name": "IgnoreAuthorizationFailureCount",
-          "metric-value": "1"
-        },
-        {
           "filter-name": "IamPolicyChangesMetric",
           "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
@@ -330,16 +320,6 @@
           "filter-pattern": "{($.eventName=\"ConsoleLogin\") && ($.additionalEventData.MFAUsed !=\"Yes\") && ($.userIdentity.type != \"AssumedRole\")}",
           "metric-namespace": "CloudTrailMetrics",
           "metric-name": "ConsoleSignInWithoutMfaCount",
-          "metric-value": "1"
-        },
-        {
-          "filter-name": "IgnoreConsoleSignInWithoutMfaMetric",
-          "accounts": ["management"],
-          "regions": ["${HOME_REGION}"],
-          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
-          "filter-pattern": "{($.eventName=\"ConsoleLogin\") && ($.additionalEventData.MFAUsed !=\"Yes\")}",
-          "metric-namespace": "CloudTrailMetrics",
-          "metric-name": "IgnoreConsoleSignInWithoutMfaCount",
           "metric-value": "1"
         },
         {
@@ -421,6 +401,26 @@
           "metric-namespace": "CloudTrailMetrics",
           "metric-name": "UnencryptedFilesystemCreatedCount",
           "metric-value": "1"
+        },
+        {
+          "filter-name": "IgnoreAuthorizationFailureMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{($.errorCode=\"*UnauthorizedOperation\") || ($.errorCode=\"AccessDenied*\")}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "IgnoreAuthorizationFailureCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "IgnoreConsoleSignInWithoutMfaMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{($.eventName=\"ConsoleLogin\") && ($.additionalEventData.MFAUsed !=\"Yes\")}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "IgnoreConsoleSignInWithoutMfaCount",
+          "metric-value": "1"
         }
       ],
       "alarms": {
@@ -492,12 +492,6 @@
             "alarm-description": "Alarms when one or more unauthorized API calls are made (in any account, any region of your AWS Organization)."
           },
           {
-            "alarm-name": "IGNORE-AWS-Authorization-Failure",
-            "metric-name": "IgnoreAuthorizationFailureCount",
-            "sns-alert-level": "Ignore",
-            "alarm-description": "Alarms when one or more unauthorized API calls are made (in any account, any region of your AWS Organization)."
-          },
-          {
             "alarm-name": "AWS-IAM-Policy-Changed",
             "metric-name": "IAMPolicyEventCount",
             "sns-alert-level": "Medium",
@@ -507,12 +501,6 @@
             "alarm-name": "AWS-Console-SignIn-Without-MFA",
             "metric-name": "ConsoleSignInWithoutMfaCount",
             "sns-alert-level": "High",
-            "alarm-description": "Alarms when MFA is NOT used to sign into the console with IAM (in any account, any region of your AWS Organization)."
-          },
-          {
-            "alarm-name": "IGNORE-AWS-Console-SignIn-Without-MFA",
-            "metric-name": "IgnoreConsoleSignInWithoutMfaCount",
-            "sns-alert-level": "Ignore",
             "alarm-description": "Alarms when MFA is NOT used to sign into the console with IAM (in any account, any region of your AWS Organization)."
           },
           {
@@ -562,6 +550,18 @@
             "metric-name": "UnencryptedFilesystemCreatedCount",
             "sns-alert-level": "High",
             "alarm-description": "Alarms when one or more API calls are made to create an Unencrypted filesystem (i.e. EFS) (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "IGNORE-AWS-Authorization-Failure",
+            "metric-name": "IgnoreAuthorizationFailureCount",
+            "sns-alert-level": "Ignore",
+            "alarm-description": "Alarms when one or more unauthorized API calls are made (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "IGNORE-AWS-Console-SignIn-Without-MFA",
+            "metric-name": "IgnoreConsoleSignInWithoutMfaCount",
+            "sns-alert-level": "Ignore",
+            "alarm-description": "Alarms when MFA is NOT used to sign into the console with IAM (in any account, any region of your AWS Organization)."
           }
         ]
       }
@@ -925,8 +925,8 @@
           "cidr-src": "dynamic",
           "cidr": [
             {
-              "pool": "main",
-              "size": 22
+              "size": 22,
+              "pool": "main"
             }
           ],
           "region": "${HOME_REGION}",
@@ -1670,8 +1670,8 @@
           "cidr-src": "dynamic",
           "cidr": [
             {
-              "pool": "main",
-              "size": 22
+              "size": 22,
+              "pool": "main"
             },
             {
               "pool": "RFC6598b",
@@ -1683,6 +1683,7 @@
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
           "igw": true,
+          "alb-forwarding": true,
           "vgw": {
             "asn": 65522
           },
@@ -2125,8 +2126,8 @@
           "cidr-src": "dynamic",
           "cidr": [
             {
-              "pool": "ForSSO",
-              "size": 24
+              "size": 24,
+              "pool": "ForSSO"
             }
           ],
           "region": "${HOME_REGION}",
@@ -2199,15 +2200,15 @@
       "account-name": "log-archive",
       "ou": "Security",
       "email": "myemail+aseaT-log@example.com---------------------REPLACE------------",
-      "description": "This Account is used to centralized and store immutable logs for the Organization.",
-      "src-filename": "config.json"
+      "src-filename": "config.json",
+      "description": "This Account is used to centralized and store immutable logs for the Organization."
     },
     "security": {
       "account-name": "security",
       "ou": "Security",
       "email": "myemail+aseaT-sec@example.com---------------------REPLACE------------",
-      "description": "This Account is used to centralized access to AWS security tooling and consoles.",
-      "src-filename": "config.json"
+      "src-filename": "config.json",
+      "description": "This Account is used to centralized access to AWS security tooling and consoles."
     }
   },
   "workload-account-configs": {
@@ -2215,8 +2216,8 @@
       "account-name": "MyUnClass",
       "email": "myemail+aseaT-myunclass@example.com---------------------REPLACE------",
       "src-filename": "config.json",
-      "description": "This is an OPTIONAL SAMPLE workload account.  As this is a UnClass account, it is to be used for services and workloads hosted outside the home region.",
       "ou": "UnClass",
+      "description": "This is an OPTIONAL SAMPLE workload account.  As this is a UnClass account, it is to be used for services and workloads hosted outside the home region.",
       "vpc": [
         {
           "deploy": "local",
@@ -2769,8 +2770,8 @@
           "cidr-src": "dynamic",
           "cidr": [
             {
-              "pool": "main",
-              "size": 16
+              "size": 16,
+              "pool": "main"
             },
             {
               "pool": "RFC6598a",
@@ -3369,8 +3370,8 @@
           "cidr-src": "dynamic",
           "cidr": [
             {
-              "pool": "main",
-              "size": 16
+              "size": 16,
+              "pool": "main"
             }
           ],
           "region": "${HOME_REGION}",
@@ -3950,8 +3951,8 @@
           "cidr-src": "dynamic",
           "cidr": [
             {
-              "pool": "main",
-              "size": 16
+              "size": 16,
+              "pool": "main"
             }
           ],
           "region": "${HOME_REGION}",
@@ -4531,8 +4532,8 @@
           "cidr-src": "dynamic",
           "cidr": [
             {
-              "pool": "main",
-              "size": 16
+              "size": 16,
+              "pool": "main"
             }
           ],
           "region": "${HOME_REGION}",
@@ -5080,8 +5081,8 @@
           "cidr-src": "dynamic",
           "cidr": [
             {
-              "pool": "main",
-              "size": 16
+              "size": 16,
+              "pool": "main"
             }
           ],
           "region": "${HOME_REGION}",
@@ -5929,8 +5930,8 @@
           "cidr-src": "dynamic",
           "cidr": [
             {
-              "pool": "main",
-              "size": 16
+              "size": 16,
+              "pool": "main"
             }
           ],
           "region": "${HOME_REGION}",
