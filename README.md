@@ -4,7 +4,7 @@ The AWS Accelerator is a tool designed to help deploy and operate secure multi-a
 
 While flexible, the AWS Accelerator is delivered with a sample configuration file which deploys an opinionated and prescriptive architecture designed to help meet the security and operational requirements of many governments around the world. Tuning the parameters within the configuration file allows for the deployment of customized architectures and enables the solution to help meet the multitude of requirements of a broad range of governments and public sector organizations.
 
-The installation of the provided prescriptive architecture is reasonably simple, deploying a customized architecture does require extensive understanding of the AWS platform. The sample deployment specifically help customers meet NIST 800-53 and/or CCCS Medium Cloud Control Profile (formerly PBMM).
+The installation of the provided prescriptive architecture is reasonably simple, deploying a customized architecture does require extensive understanding of the AWS platform. The sample deployment specifically helps customers meet NIST 800-53 and/or CCCS Medium Cloud Control Profile (formerly PBMM).
 
 ![Diagram](./docs/operations/img/ASEA-high-level-architecture.png)
 
@@ -22,8 +22,8 @@ Specifically the accelerator deploys and manages the following functionality, bo
   - Shared Network
   - Operations
   - Perimeter
-  - Log-Archive
-  - Security-Audit
+  - Log Archive
+  - Security Tooling
 - Workload Accounts - automated concurrent mass account creation or use AWS organizations to scale one account at a time. These accounts are used to host a customer's workloads and applications.
 - Scalable to 1000's of AWS accounts
 - Supports AWS Organizations nested [ou's](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html) and importing existing AWS accounts
@@ -40,7 +40,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Route 53 Private and Public Zones, Resolver Rules and Endpoints, VPC Endpoint Overloaded Zones
 - All completely and individually customizable (per account, VPC, subnet, or OU)
 - Layout and customize your VPCs, subnets, CIDRs and connectivity the way you want
-- Static or Dynamic CIDR assignments
+- Static or Dynamic VPC and subnet CIDR assignments
 - Deletes default VPC's (worldwide)
 - AWS Network Firewall
 
@@ -167,7 +167,7 @@ This summarizes the installation process, the full installation document can be 
 
 ---
 
-Note: A ZIP file containing a PDF version of most documentation can be found [here](https://github.com/aws-samples/aws-secure-environment-accelerator/actions?query=workflow%3A%22Generate+Documentation%22).
+Note: A ZIP file containing a PDF version of the documentation is attached as an asset of each [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
 
 ---
 

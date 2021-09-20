@@ -27,6 +27,6 @@
 
 ---
 
-Note: A ZIP file containing a PDF version of all documentation can be found [here](https://github.com/aws-samples/aws-secure-environment-accelerator/actions?query=workflow%3A%22Generate+Documentation%22).
+Note: A ZIP file containing a PDF version of the documentation is attached as an asset of each [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
 
 ---

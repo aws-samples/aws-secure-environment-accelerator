@@ -2,11 +2,11 @@
 
 **_Deploying the AWS Accelerator requires the assistance of your local AWS Account team. Attempts to deploy the Accelerator without the support of your AWS SA, TAM, Proserve, or AM will fail as new AWS accounts do not have appropriate limits established to facilitate installation._**
 
-Installation of the provided prescriptive AWS architecture, as-is, requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization plus any additional required workload accounts.
+Installation of the provided prescriptive AWS architectures, as-is, requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization plus any additional required workload accounts.
 
-_Users are strongly encouraged to also read the Accelerator Operations/Troubleshooting Guide before installation. The Operations/Troubleshooting Guide provides details as to what is being performed at each stage of the installation process, including detailed troubleshooting guidance._
+_Users are strongly encouraged to also read the Accelerator Operations/Troubleshooting [Guide](../operations/operations-troubleshooting-guide.md) before installation. The Operations/Troubleshooting Guide provides details as to what is being performed at each stage of the installation process, including detailed troubleshooting guidance._
 
-These installation instructions assume the prescribed architecture is being deployed.
+These installation instructions assume one of the prescribed architectures is being deployed.
 
 <!-- TOC depthFrom:1 depthTo:4 -->
 
@@ -51,10 +51,10 @@ These installation instructions assume the prescribed architecture is being depl
 - Management or root AWS Organization account (the AWS Accelerator cannot be deployed in an AWS sub-account)
   - No additional AWS accounts need to be pre-created before Accelerator installation
 - Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
-- Valid configuration file, updated to reflect your requirements (see below)
+- Valid Accelerator configuration file, updated to reflect your requirements (see below)
 - Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
 - Decide if you are doing an AWS Control Tower based or a Standalone installation
-  - AWS generally recommends customers install on top of AWS Control Tower, unless customers have requirements not met by Control Tower
+  - AWS generally recommends customers install on top of AWS Control Tower, unless customers have specific requirements not met by Control Tower
   - Government of Canada customers are required to do a Standalone installation at this time
   - While an upgrade path is planned, at this time no upgrade path exists from a Standalone installation to a Control Tower based installation
 - The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in [section 4](#4-existing-organizations--accounts) below
@@ -68,9 +68,13 @@ These installation instructions assume the prescribed architecture is being depl
 
 ### 2.2.2. OU Structure Planning
 
-Plan your OU and core account structure carefully. By default, we suggest: `Security, Infrastructure, Central, Sandbox, Dev, Test, Prod`. The `Security` OU will contain the `Security` account and the `Log Archive` account. The `Infrastructure` OU will hold the remainder of the accounts shared or utilized by the rest of the organization (`Shared Network`, `Perimeter`, `Operations`). The remainder of the OUs correspond with major permission shifts in the SDLC cycle and NOT every stage an organization has in their SDLC cycle (i.e. QA or pre-prod would be included in one of the other OUs). The `Central` OU is used to hold accounts with workloads shared across Dev, Test, and Prod environments like centralized CI/CD tooling.
+Plan your OU and core account structure carefully. By default, we suggest: `Security, Infrastructure, Central, Sandbox, Dev, Test, Prod`.
 
-v1.5.0 better aligns the Accelerator OU and account structure with the latest AWS multi-account guidance, splitting the `core` OU into the `Security` and `Infrastructure` OUs.
+- The `Security` OU will contain the `Security` account, the `Log Archive` account, and the Organization Management account.
+- The `Infrastructure` OU will hold the remainder of the accounts shared or utilized by the rest of the organization (`Shared Network`, `Perimeter`, `Operations`).
+- The remainder of the OUs correspond with major permission shifts in the SDLC cycle and NOT every stage an organization has in their SDLC cycle (i.e. QA or pre-prod would be included in one of the other OUs).
+- The `Central` OU is used to hold accounts with workloads shared across Dev, Test, and Prod environments like centralized CI/CD tooling.
+- The v1.5.0 release aligns the Accelerator OU and account structure with AWS multi-account guidance, splitting the `core` OU into the `Security` and `Infrastructure` OUs.
 
 **Note:** While OUs can be renamed or additional OUs added at a later point in time, deployed AWS accounts CANNOT be moved between top-level OUs (guardrail violation), nor can top-level OUs easily be deleted (requires deleting all AWS accounts from within the OU first).
 
@@ -87,7 +91,7 @@ If deploying the prescriptive architecture, you will need the following network 
 2. Two (2) RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
 
 - Used for MAD deployment and perimeter underlay network
-- non-GC customers can a) drop the extra MAD subnets in the Central VPC (i.e. CIDR2) and b) replace the perimeter VPC address space with the extra unused addresses from the core CIDR range
+- non-GC customers can a) drop the extra GCWide subnets in the Central VPC and, b) replace the perimeter VPC address space with the extra unused addresses from the core CIDR range
 
 3. Two (2) BGP ASN's (For the Transit Gateway and Firewall Cluster - note: a third is required if you are deploying a VGW for DirectConnect connectivity.)
 
@@ -140,12 +144,12 @@ Note: While we only provide a single example for each 3rd party implementation t
 ### 2.2.7. Other
 
 1. We recommend installing with the default Accelerator Name (`ASEA`) and Accelerator Prefix (`ASEA-`), but allow customization. Prior to v1.5.0 the defaults were (`PBMM`) and (`PBMMAccel-`) respectively.
-   - The Accelerator name and prefix **_CANNOT_** be changed after the initial installation.
-2. If installing with Control Tower, the `organization-admin-role` must be set to `AWSControlTowerExecution`. For standalone installations customers can select a role name of their choosing, but, we recommend using `OrganizationAccountAccessRole` as the `organization-admin-role`, as this role is used by AWS Organizations by default if no role name is specified when creating AWS accounts through the AWS console.
+   - the Accelerator name and prefix **_CANNOT_** be changed after the initial installation;
+   - the Accelerator prefix including the mandatory dash cannot be longer than 10 characters.
+2. If installing with Control Tower, the `organization-admin-role` must be set to `AWSControlTowerExecution`. For standalone installations customers can select a role name of their choosing, but, we recommend using `OrganizationAccountAccessRole` as the `organization-admin-role`, as this role is used by AWS Organizations by default when no role name is specified while creating AWS accounts through the AWS console.
    - the Accelerator leverages this role name to create all new accounts in the organization;
    - this role name, as defined in the config file, _MUST_ be utilized when manually creating all new sub-accounts in the Organization;
-   - existing installs wishing to change the role name are required to first deploy a new role with a trust to the root account, in all accounts in the organization
-   - Prior to v1.2.5 the role name was required to be `AWSCloudFormationStackSetExecutionRole`.
+   - existing installs wishing to change the role name are required to first deploy a new role with a trust to the root account, in all accounts in the organization.
 
 ## 2.3. Accelerator Pre-Install Steps
 
@@ -153,7 +157,7 @@ Note: While we only provide a single example for each 3rd party implementation t
 
 Before installing, you must first:
 
-1. Login to the Organization **Management or root AWS account** with `AdministratorAccess`.
+1. Login to the Organization **Management (root) AWS account** with `AdministratorAccess`.
 2. **_Set the region to your desired `home` region_** (i.e. `ca-central-1`)
 3. For Control Tower based installs ONLY:
    - OU and account names can ONLY be customized during initial installation. These values MUST match with the values supplied in the Accelerator config file.
@@ -178,6 +182,7 @@ Before installing, you must first:
       - In Organizations, select `Policies`, `Service control policies`, `Enable service control policies`
 5. Verify the Organization Management (root) account email address
    - In AWS Organizations, Settings, ["Send Verification Request"](https://aws.amazon.com/blogs/security/aws-organizations-now-requires-email-address-verification/)
+   - Once it arrives, complete the validation by clicking the validation link in the email
 6. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
    - AWS Key Management Service, Customer Managed Keys, Create Key, Symmetric, and then provide a key name (`ASEA-Source-Bucket-Key`), Next
    - Select a key administrator (Admin Role or Group for the Organization Management account), Next
@@ -219,7 +224,7 @@ As of v1.5.0, the Accelerator offers deployment from either GitHub or CodeCommit
 
 1. In your AWS Organization Management account, open CodeCommit and create a new repository named `aws-secure-environment-accelerator`
 2. Go to GitHub and download the repository `Source code` zip or tarball for the [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) you wish to deploy
-3. Push the extracted codebase into the newly created CodeCommit repository
+3. Push the extracted codebase into the newly created CodeCommit repository, maintaining the file/folder hierarchy
 4. Set the default CodeCommit branch for the new repository to main
 5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.0`)
 
@@ -234,7 +239,7 @@ If deploying to an internal AWS employee account and installing the solution wit
 5. Associate the default experience `New Private Marketplace`, then click `Create account group` and wait for it to create
 6. Go to "Experiences" sub-menu, select `New Private Marketplace`
 7. Select the "Settings" sub-tab, and click the `Not Live` slider to make it `Live` and wait for it to complete
-8. Ensure the `Software requests` slider is set to `Requests off` and wait for it to complete
+8. Ensure the "Software requests" slider is set to `Requests off` and wait for it to complete
 9. Change the name field (i.e. append `-PMP`) and change the color, so it is clear PMP is enabled for users, click `Update`
 10. Go to the "Products" sub-tab, then select the `All AWS Marketplace products` nested sub-tab
 11. Search Private Marketplace for the Fortinet or Checkpoint products and select
@@ -274,6 +279,7 @@ If deploying to an internal AWS employee account and installing the solution wit
    - All new AWS accounts require a unique email address which has never before been used to create an AWS account;
    - When updating the budget or SNS notification email addresses within the sample config, a single email address for all is sufficient;
    - Update the IP address in the "alarm-not-ip" variable with your on-premise IP ranges (used for the AWS-SSO-Authentication-From-Unapproved-IP alarm);
+   - If deploying the Managed AD, update the dns-domain, netbios-domain, log-group-name, as well as the AD users and groups that will be created;
    - For a test deployment, the remainder of the values can be used as-is;
    - While it is generally supported, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts to the config file and rerun the state machine.
    - More information [here](./customization-index.md#15-config-file-minimum-changes) on the fields in the config file that need to be updated.
@@ -309,47 +315,48 @@ If deploying to an internal AWS employee account and installing the solution wit
 ## 2.5. Installation
 
 1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
-   - We only support installation or upgrades to v1.5.0 or above (older releases continue to function)
+   - We only support new installations of v1.5.0 or above (older releases continue to function)
 2. Download the CloudFormation (CFN) template for the release you plan to install (either `AcceleratorInstallerXXX.template.json` for GitHub or `AcceleratorInstallerXXX-CodeCommit.template.json` for CodeCommit)
 3. Use the provided CloudFormation template to deploy a new stack in your Management (root) AWS account
    - As previously stated we do not support installation in sub-accounts
 4. Login to your Organization Management account and **_make sure you are in your desired `home` region_** (i.e. `ca-central-1`) (your desired primary or control region)
-5. Navigate to **CloudFormation** in the AWS Console
-
-- Create a new stack
-- Select "Template is ready"
-- For the "Specify template" select "Upload a template file"
-- Select the `xx.template.json` file you downloaded in the above step (this will create a cf-template-xxx s3 bucket)
-- Click Next
-- Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
-
-6. Specify `Stack Name` STARTING with `ASEA-` (case sensitive) suggest a suffix of `orgname` or `username`
-7. Change `ConfigS3Bucket` to the name of the bucket you created above `your-bucket-name`
-8. Add an `Email` address to be used for State Machine Status notification
-9. The `GithubBranch` should point to the release you selected
-   - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.5.0`, case sensitive
-10. Apply a tag on the stack, Key=`Accelerator`, Value=`ASEA` (case sensitive).
-11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
-12. The stack typically takes under 5 minutes to deploy.
-13. Once deployed, you should see a CodePipeline project named `ASEA-InstallerPipeline` in your account. This pipeline connects to Github, pulls the code from the prescribed branch and deploys the Accelerator state machine.
-    - if the CloudFormation fails to deploy with an `Internal Failure`, or, if the pipeline fails connecting to GitHub, then:
-      - fix the issue with your GitHub secret created in section 2.3.2, then delete the Installer CloudFormation stack you just deployed, and restart at step 3 of this section.
-14. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
-15. **While the pipeline is running:**
+5. Navigate to **CloudFormation** in the AWS Console and click `Create stack`, then
+   - Select "Template is ready"
+   - For the "Specify template" select "Upload a template file"
+   - Select the `*.template.json` file you downloaded in step 2 above
+   - Click Next
+6. Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
+   - Specify `Stack Name` STARTING with `ASEA-` (case sensitive) suggest a suffix of `orgname` or `username`
+   - Change `ConfigS3Bucket` to the name of the bucket you created above `your-bucket-name`
+   - Add an `Email` address to be used for State Machine Status notification
+   - The `GithubBranch` should point to the release you selected
+     - if upgrading, change it to point to the desired release
+     - the latest stable branch is currently `release/v1.5.0`, case sensitive
+     - click `Next`
+7. Finish deploying the stack
+   - Apply a tag on the stack, Key=`Accelerator`, Value=`ASEA` (case sensitive).
+   - **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
+   - Click `Next`, Acknowledge resource creation, and click `Create stack`
+   - The stack typically takes under 5 minutes to deploy.
+8. Once deployed, you should see a CodePipeline project named `ASEA-InstallerPipeline` in your account. This pipeline connects to Github, pulls the code from the prescribed branch and deploys the Accelerator state machine.
+   - if the CloudFormation fails to deploy with an `Internal Failure`, or, if the pipeline fails connecting to GitHub, then:
+     - fix the issue with your GitHub secret created in section 2.3.2, then delete the Installer CloudFormation stack you just deployed, and restart at step 3 of this section.
+9. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
+10. **While the pipeline is running:**
     - review the list of [Known Installation Issues](#251-known-installation-issues) in section 2.5.1 below
     - review the Accelerator Basic Operation and Frequently Asked Questions (FAQ) [Document](../faq/faq.md)
-16. Once the pipeline completes (~10 mins), the main state machine, named `ASEA-MainStateMachine_sm`, will start in Step Functions
-17. The state machine time is dependent on the quantity of resources being deployed. On an initial installation of a more complex sample configuration files, it takes approximately 1.5 hours to execute. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but often takes as little as 20 minutes.
-18. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
-19. You will receive an email from the State Machine SNS topic and the 3 SNS alerting topics. Please confirm all four (4) email subscriptions to enable receipt of state machine status and security alert messages. Until completed, you will not receive any email messages (must be completed within 7-days).
-20. If the pipeline **fails**:
+11. Once the pipeline completes (~10 mins), the main state machine, named `ASEA-MainStateMachine_sm`, will start in Step Functions
+12. The state machine time is dependent on the quantity of resources being deployed. On an initial installation of a more complex sample configuration files, it takes approximately 1.5 hours to execute. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but often takes as little as 20 minutes.
+    - While you can watch the state machine in Step Functions, you will also be notified via email when the State Machine completes (or fails). Successful state machine executions include a list of all accounts which were successfully processed by the Accelerator.
+13. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
+14. You will receive an email from the State Machine SNS topic and the 3 SNS alerting topics. Please confirm all four (4) email subscriptions to enable receipt of state machine status and security alert messages. Until completed, you will not receive any email messages (must be completed within 7-days).
+15. If the state machine **fails**:
 
-- Refer to the [Troubleshooting Guide](../operations/operations-troubleshooting-guide.md#4-troubleshooting) for instructions on how to inspect and retrieve the error.
-- You can also refer to the [FAQ](../faq/faq.md) and [Known Installation Issues](#251-known-installation-issues).
-- Once the error is resolved, re-run the step function `ASEA-MainStateMachine_sm` using `{"scope": "FULL","mode": "APPLY"}` as an input to it
+    - Refer to the [Troubleshooting Guide](../operations/operations-troubleshooting-guide.md#4-troubleshooting) for instructions on how to inspect and retrieve the error.
+    - You can also refer to the [FAQ](../faq/faq.md) and [Known Installation Issues](#251-known-installation-issues).
+    - Once the error is resolved, re-run the step function `ASEA-MainStateMachine_sm` using `{"scope": "FULL","mode": "APPLY"}` as an input to it
 
-21. If deploying a prescriptive architecture with 3rd party firewalls, after the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
+16. If deploying a prescriptive architecture with 3rd party firewalls, after the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
     1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the main state machine (`ASEA-MainStateMachine_sm`) to deploy the firewall products
     2. Login to the **perimeter** sub-account (Assume your `organization-admin-role`)
     3. Activate the 3rd party vendor firewall and firewall manager AMI's in the AWS Marketplace
@@ -361,99 +368,147 @@ If deploying to an internal AWS employee account and installing the solution wit
 
 ![marketplace](img/marketplace.png)
 
-22. If deploying the prescriptive architecture, once the main state machine (`ASEA-MainStateMachine_sm`) completes successfully, confirm the status of your perimeter firewall deployment.
-    - While you can watch the state machine in Step Functions, you will also be notified via email when the State Machine completes (or fails). Successful state machine executions include a list of all accounts which were successfully processed by the Accelerator.
-23. If your perimeter firewalls were defined but not deployed on first run, you will need to rerun the state machine. This happens when:
-    1. you were unable to activate the firewall AMI's before stage 2 (step 20)
-    2. we were not able to fully activate your account before we were ready to deploy your firewalls. This case can be identified by a running EC2 micro instance in the account, or by looking for the following log entry 'Minimum 15 minutes of account warming required for account'.
-    3. In these cases, simply select the `ASEA-MainStateMachine_sm` in Step Functions and select `Start Execution`
+17. If deploying the prescriptive architecture, once the main state machine (`ASEA-MainStateMachine_sm`) completes successfully, confirm the status of your perimeter firewall deployment.
+    - If you have t2.micro ec2 instances running in any account which had the account-warming flag set to true, they will be removed on the next state machine execution;
+    - If your perimeter firewalls were defined but not deployed on first run, you will need to rerun the state machine. This happens when:
+      1. you were unable to activate the firewall AMI's before stage 2 (step 16)
+      2. we were not able to fully activate your account before we were ready to deploy your firewalls. This case can be identified by a running EC2 micro instance in the account, or by looking for the following log entry 'Minimum 15 minutes of account warming required for account'.
+      3. In these cases, simply select the `ASEA-MainStateMachine_sm` in Step Functions and select `Start Execution`.
 
 ### 2.5.1. Known Installation Issues
 
 Current Issues:
 
+- Control Tower option has several major bugs - Work in progress - see sprint board
+- New: alb deployments occasionally throw a permssions error failing the state machine. Simply rerun the state machine.
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine.
 
 Issues in Older Releases:
 
-- New installs and upgrades to releases prior to v1.5.0 are no longer supported.
+- New installs to releases prior to v1.5.0 are no longer supported.
+- Upgrades to releases prior to v1.3.8 are no longer supported.
 
 ## 2.6. Post-Installation
 
 The Accelerator installation is complete, but several manual steps remain:
 
-1. Enable AWS SSO in your `home` region (i.e. ca-central-1)
+1. Enable and configure AWS SSO in your `home` region (i.e. ca-central-1)
 
 - Login to the AWS Console using your Organization Management account
-- Navigate to AWS Single Sign-On
-- Enable SSO
-- Set the SSO directory to MAD ("Settings" => Identity Source => Identity Source => Change)
-- Under "Identity Source" section, Click on "Edit" Attribute mappings and set the SSO email attrib to: \${dir:email}and Save Changes
-- Configure MFA
-- Create all default permission sets and any desired custom permission sets
+- Navigate to AWS Single Sign-On, click `Enable SSO`
+- Set the SSO directory to AD ("Settings" => "Identity Source" => "Identity Source" => click `Change`, Select Active Directory, and select your domain from the list)
+- Under "Identity Source" section, Click `Edit` beside "Attribute mappings", then set the `email` attribute to: `${dir:email}` and click `Save Changes`
+- Configure Multi-factor authentication, we recommend the following minimum settings:
+  - Every time they sign in (always-on)
+  - Security key and built-in authenticators
+  - Authenticator apps
+  - Require them to provide a one-time password sent by email to sign in
+  - Users can add and manage their own MFA devices
+- Create all the default permission sets and any desired custom permission sets
   - e.g. Select `AWS accounts` from the side bar, select "Permission sets" tab then `Create permission set`
-  - `Use an existing job function policy` => Next
-  - Select job function policy `AdministratorAccess`
-  - Add Tags, Review and Create
-- Map MAD groups to perm sets and accounts
+    - `Use an existing job function policy` => Next
+    - Select job function policy `AdministratorAccess`
+    - Add Tags, Review and Create
+    - repeat for each default permission set and any required custom permission sets
+- For Control Tower based installations, remove the orphaned Permission Sets from each AWS accounts (select the account, expand Permission Sets, click Remove for each)
+- Map MAD groups to permission sets and accounts
   - Select `AWS accounts` from the side bar and select `AWS organization` tab
   - Select the accounts you want to map to each MAD group and click `Assign users`
-  - Select your DNS domain e.g. `example.local`, and search for the group you would like to assign e.g. `Administrators` and click `Search connected directory`
-  - Select `Administrators`
-  - Repeat the same for any `Users` that are not under a group and click Next
-  - Select the permission set you would like to assign MAD group to e.g. `AdministratorAccess`
-  - Click "Finish" (Note: if it fails during provisioning, simply select the failed accounts and click on "Retry changes")
-- Set your users password
-  - Assume role for the Operations account (Click the account # in the top right bar => `Switch Roles`, enter the `Operations account number` and the role name set in `organization-admin-role` )
+  - Select your DNS domain e.g. `example.local`, and search for the group you would like to assign (e.g. `aws-` for the pre-created groups) and click `Search connected directory`
+  - Select the desired group `aws-log-archive-View`
+  - Select the permission set you would like to assign to the MAD group to (e.g. `ViewOnlyAccess`)
+  - Click `Finish` (Note: if it fails during provisioning, simply select the failed accounts and click on "Retry changes")
+- AWS SSO should be the primary mechanism for all access to all AWS accounts in your Organization, to determine or update the login page for your organization:
+  - Click on `Dashboard` within the AWS SSO console and note the `User portal URL`
+  - Share this url with all your users
+  - NOTE: the url prefix can only be changed ONCE (ever) using the settings tab, so update with caution
+- Any pre-created AWS MAD users passwords are available in secrets manager in the AWS management account. To reset these passwords login to the Operations account through AWS SSO, then:
   - Navigate to "Directory Service" , select the directory => Actions => Reset user password
-- Login to AWS Accounts from SSO
-  - Navigate to `AWS SSO` on the AWS Console
-  - Click on `Dashboard` on the sidebar and click on the `User portal URL` to login
-  - You should see all the accounts that the user have access to.
-- For Control Tower based installations, remove the orphaned Permission Sets from each AWS accounts (select the account, expand Permission Sets, click Remove for each)
+  - Users can change their passwords from any MAD domain connected instance
 
-2. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts, in each account:
+2. Configure the new alb-forwarding feature (added in v1.5.0)
+
+   - AWS ALB's are published using DNS names which resolve to backing IP's which could silently change at any time due to a scaling event, maintenance, or a hardware failure. While published as a DNS name, ALB's can only target IP addresses. This presents a challenge as we need the ALB's in the perimeter account to target ALB's in the various back-end workload accounts;
+   - Alb-forwarding solves this problem by executing a small snippet of code every 60 seconds which updates managed alb listeners with any IP changes, ensuring any managed flows do not go offline. This removes the requirement to leverage a 3rd party appliance to perform NAT to a DNS name;
+   - Alb-forwarding is enabled on the perimeter vpc in the perimeter account in many of the sample configs and can be used with Accelerator created or customer created ALB's. This setting causes a new DynamoDB table named `ASEA-Alb-Ip-Forwarding-vpc-*` to be created in the perimeter account. Additionally the parameter store in the perimeter account contains the details of all Accelerator deployed alb's across the environment for easy reference;
+   - Stepts to configure:
+     - First you need to manually create a listener on the front-end alb (without a target group), multiple listeners are supported;
+     - Next, for each application that needs to be published, a record needs to be added to the DynamoDB table, see sample below;
+     - Records can be added to the table for any alb in the account running the alb-forwarding tool. Records can be added at any time. DDB change logs will trigger the initial creation of the appropriate target group(s) and IP addresses will be verified and updated every 60 seconds therafter.
+
+<details><summary>Sample DynamoDB JSON to add an entry to the table:</summary>
+
+```
+{
+    "id": "App1",
+    "targetAlbDnsName": "internal-Core-mydevacct1-alb-123456789.ca-central-1.elb.amazonaws.com",
+    "targetGroupDestinationPort": 443,
+    "targetGroupProtocol": "HTTPS",
+    "vpcId": "vpc-0a6f44a80514daaaf",
+    "rule": {
+      "sourceListenerArn": "arn:aws:elasticloadbalancing:ca-central-1:123456789012:listener/app/Public-DevTest-perimeter-alb/b1b12e7a0c412bf3/ef9b022a4fdd8bdf",
+      "condition": {
+        "paths": ["/img/*", "/myApp2"],
+        "hosts": ["aws.amazon.com"],
+        "priority": 30
+      }
+	}
+}
+```
+
+- where `id` is any unique text, `targetAlbDnsName` is the DNS address for the backend alb for this application (found in parameter store), `vpcId` is the vpc id containing the front-end alb (in this account), `sourceListenerArn` is the arn of the listener of the front-end alb, `paths` and `hosts` are both optional, but one of the two must be supplied. Finally, `priority` must be unique and is used to order the listener rules. Priorities should be spaced at least 40 apart to allow for easy insertion of new applications and forwarder rules.
+- the provided `targetAlbDnsName` must resolve to addresses within a [supported](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html) IP address space.
+
+</details>
+
+3. On a per role basis, you need to enable the CWL Account Selector in the Security and the Operations accounts, in each account:
 
    - Go to CloudWatch, Settings, Under `Cross-account cross-region` select `Configure`, Under `View cross-account cross-region` select `Edit`, choose `AWS Organization account selector`, click `Save changes`
 
-3. Configure central Ingress/Egress firewalls, if deployed
+4. Configure central Ingress/Egress firewalls, if deployed
 
-   - Login to the firewalls and firewall manager appliance and set default passwords, if deployed
-   - Update firewall configuration per your organizations security best practices
+   - Layer 3/4 `appliance` based inspection is an optional feature
+
+   **General**
+
+   - If deployed, login to any 3rd party firewalls and firewall manager appliances and update any default passwords;
+   - Tighten security groups on the 3rd party firewall instances (using the Accelerator configuration file), further limiting access to firewall management interfaces to a set of designated and controlled CIDR ranges;
+   - Update the firewall configuration per your organizations security requirements and best practices;
+   - Diagrams reflecting perimeter traffic flows when NFW and/or GWLB are used can be found [here](../architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md) on slides 6 through 9.
 
    **AWS Network Firewall**
 
-   - No vendor specific guidance at this time
+   - The AWS Network Firewall policies and rules deployed by the Accelerator, can only be updated using the Accelerator. Customers wishing to manage the AWS Network Firewall from the console GUI, must create a new policy with new rules created through the console and then manually associate this new policy to the Accelerator deployed Network Firewall. Customers can choose either option, but they cannot be mixed to ensures that Accelerator updates do not overwrite console based updates.
 
    **Fortinet**
 
    - Manually update firewall configuration to forward all logs to the Accelerator deployed NLB addresses fronting the rsyslog cluster
-     - login to each firewall, select `Log Settings`, check `Send logs to syslog`, put the NLB FQDN in the `IP Address/FQDN` field
+     - login to each firewall, select `Log Settings`, check `Send logs to syslog`, put the NLB FQDN in the `IP Address/FQDN` field (stored in parameter store of perimeter account)
    - Manually update the firewall configuration to connect perimeter ALB high port flows through to internal account ALB's
-     - A new mechanism is available in v1.5.0 which works with all the firewall solutions and replaces this approach for interested customers
+     - Note: while this option is still available, a new alb-forwarding mechanism is available in v1.5.0 (see section 2 above) which simplifies and eliminates this more complicated "NAT to DNS name" option;
      - login to each firewall, switch to `FG-traffic` vdom, select `Policies & Objects`, select `Addresses`, Expand `Addresses`
-     - Set `Prod1-ALB-FQDN` to point to a reliable sub-account ALB FQDN, this is used for full-path health checks on **_all_** ALB's
-     - Set additional `DevX-ALB-FQDN`, `TestX-ALB-FQDN` and `ProdX-ALB-FQDN` to point to workload account ALB FQDNs
-       - Two of each type of ALB FQDN records have been created, when you need more, you need to create BOTH an additional FQDN and a new VIP, per ALB
-       - Each new VIP will use a new high port (i.e. 7007, 7008, etc.), all of which map back to port 443
+       - Set `Prod1-ALB-FQDN` to point to a reliable sub-account ALB FQDN, this is used for full-path health checks on **_all_** ALB's
+       - Set additional `DevX-ALB-FQDN`, `TestX-ALB-FQDN` and `ProdX-ALB-FQDN` to point to workload account ALB FQDNs
+         - Two of each type of ALB FQDN records have been created, when you need more, you need to create BOTH an additional FQDN and a new VIP, per ALB
+         - Each new VIP will use a new high port (i.e. 7007, 7008, etc.), all of which map back to port 443
        - Detailed steps can be read [here](./guides/public-facing-workload-via-fortigate.md).
 
    **Checkpoint**
 
-   - Download and install Checkpoint SmartConsole client on your PC (only available for Windows, If you have a Mac, you can use Workspaces to install the client)
-   - Retrieve the firewall and firewall manager SSL certificate from secrets manager and save to a pem file (convert to ppk on Windows)
-   - Login to your `AWS Console` using the `Perimeter` account
-   - Navigate to `Secrets Manager` and select `Secrets`
-   - Look for Secret name `ASEA/keypair/ASEA-Appliances` and click on it
-   - Go to the `Secret value` section and click on `Retrieve secret value`
-   - Make sure you have the `Plaintext` tab selected and copy the content to a .pem file using your preferred text editor. (the file will need to be converted to ppk format on Windows)
+   - Download and install Checkpoint SmartConsole client on your PC (only available for Windows, if you have a Mac, you can use Workspaces to install the client)
+   - Retrieve the firewall and firewall manager SSL certificate from secrets manager in the perimeter account and save to a pem file (convert to ppk on Windows)
+     - Login to the `AWS Console` for the `Perimeter` account
+     - Navigate to `Secrets Manager` and select `Secrets`
+     - Look for Secret name `ASEA/keypair/ASEA-Appliances` and click on it
+     - Go to the `Secret value` section and click on `Retrieve secret value`
+     - Make sure you have the `Plaintext` tab selected and copy the content to a .pem file using your preferred text editor. (the file will need to be converted to ppk format on Windows)
    - Wait approx. 25 min. after the managers "Launch time" and then SSH into the Firewall Manager using the SSL certificate (.pem file retrieved above) and login user `admin`
-   - The firewall manager EC2 instance name is `ASEA-Checkpoint-FirewallMgr`
-   - Once you SSH successfully, execute the following commands:
-   - `set user admin password`
-   - `set expert-password`
-   - `set user admin shell /bin/bash`
-   - `save config`
+     - The firewall manager EC2 instance name is `ASEA-Checkpoint-FirewallMgr`
+     - Once you SSH successfully, execute the following commands:
+       - `set user admin password`
+       - `set expert-password`
+       - `set user admin shell /bin/bash`
+       - `save config`
    - The following commands are useful for troubleshooting (in expert mode):
      - `autoprov_cfg -v` (check cme at Take 155 or greater)
      - `autoprov_cfg show all` (check cme configuration)
@@ -466,9 +521,11 @@ The Accelerator installation is complete, but several manual steps remain:
      - No best practice or security configuration has been configured on the Checkpoint firewalls. These firewalls have been configured to work with GWLB, but otherwise have the default/basic Checkpoint out-of-box configuration installed
      - Do NOT reboot the Checkpoint appliances until bootstrap is complete (~25 minutes for the manager), or you will be required to redeploy the instance
 
-4. Recover root passwords for all sub-accounts and apply strong passwords
+5. Recover root passwords for all sub-accounts and apply strong passwords
+
    - Process documented [here](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys_retrieve.html#reset-root-password)
-5. Enable MFA for **all** IAM users and **all** root account users, recommendations:
+
+6. Enable MFA for **all** IAM users and **all** root account users, recommendations:
 
    - Yubikeys provide the strongest form of MFA protection and are strongly encouraged for all account root users and all IAM users in the Organization Management (root) account
    - the Organization Management (root) account requires a dedicated Yubikey (if access is required to a sub-account root user, we do not want to expose the Organization Management accounts Yubikey)
@@ -476,9 +533,9 @@ The Accelerator installation is complete, but several manual steps remain:
    - each IAM breakglass user requires a dedicated Yubikey, as do any additional IAM users in the Organization Management (root) account. While some CSPs do not recommend MFA on the breakglass users, it is strongly encouraged in AWS
    - all other AWS users (AWS SSO, IAM in sub-accounts, etc.) can leverage virtual MFA devices (like Google Authenticator on a mobile device)
 
-6. Customers are responsible for the ongoing management and rotation of all passwords on a regular basis per their organizational password policy. This includes the passwords of all IAM users, MAD users, firewall users, or other users, whether deployed by the Accelerator or not. We do NOT automatically rotate any passwords, but strongly encourage customers do so, on a regular basis.
+7. Customers are responsible for the ongoing management and rotation of all passwords on a regular basis per their organizational password policy. This includes the passwords of all IAM users, MAD users, firewall users, or other users, whether deployed by the Accelerator or not. We do NOT automatically rotate any passwords, but strongly encourage customers do so, on a regular basis.
 
-7. During the installation we request required limit increases, resources dependent on these limits will not be deployed
+8. During the installation we request required limit increases, resources dependent on these limits will not be deployed
    1. Limit increase requests are controlled through the Accelerator configuration file `"limits":{}` setting
    2. The sample configuration file requests increases to your EIP count in the perimeter account and to the VPC count and Interface Endpoint count in the shared-network account
    3. You should receive emails from support confirming the limit increases
@@ -489,7 +546,7 @@ The Accelerator installation is complete, but several manual steps remain:
 
 ## 3.1. Considerations
 
-- Due to some breaking dependency issues, customers can only install or upgrade to v1.5.0 or above (older releases continue to function, but cannot be installed)
+- Due to some breaking dependency issues, customers can only upgrade to v1.3.8 or above (older releases continue to function, but cannot be installed)
 - Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.
   - do NOT update to the latest firewall AMI - see the the last bullet in section [5.1. Accelerator Design Constraints / Decisions](#51-accelerator-design-constraints--decisions)
   - do NOT update the `organization-admin-role` - see bullet 2 in section [2.2.7. Other](#226-other)
@@ -503,6 +560,14 @@ The Accelerator installation is complete, but several manual steps remain:
 
 **Release Specific Upgrade Considerations:**
 
+- Upgrades to `v1.5.0`:
+  - Due to the size of this upgrade, we recommend all customers upgrade to `v1.3.8 or above` before beginning this upgrade
+  - While v1.5.0 supports Control Tower for _NEW_ installs, existing Accelerator customers _CANNOT_ add Control Tower to their existing installations at this time (planned enhancement for 22H1)
+    - Attempts to install Control Tower on top of the Accelerator are likely catastrophic (both Control Tower and the Accelerator need minor enhancements to enable)
+  - **add specific v1.5.0 steps here**
+    - config file upgrade script, CIDR migration to DDB (if desired), how implement new OU structure, SCP and part-2 issue,oldip.json
+  - Dynamic CIDRs, lookup, opt-in vpc, SNS/CWL/SH changes - release notes?
+  - **add specific v1.5.0 steps here**
 - Upgrades to `v1.3.3 and above` from `v1.3.2 and below`:
   - Requires mandatory config file schema changes as documented in the [release notes](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
     - These updates cause the config file change validation to fail and require running the state machine with the following input to override the validation checks on impacted fields: `{"scope": "FULL", "mode": "APPLY", "configOverrides": {"ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }}`
@@ -620,18 +685,18 @@ The Accelerator installation is complete, but several manual steps remain:
 ## 5.1. Accelerator Design Constraints / Decisions
 
 - The Organization Management (root) account does NOT have any preventative controls to protect the integrity of the Accelerator codebase, deployed objects or guardrails. Do not delete, modify, or change anything in the Organization Management (root) account unless you are certain as to what you are doing. More specifically, do NOT delete, or change _any_ buckets in the Organization Management (root) account.
-- While generally protected, do not delete/update/change s3 buckets with CDK, CFN, or ASEA- in _any_ sub-accounts.
+- While generally protected, do not delete/update/change s3 buckets with cdk-asea-, or asea- in _any_ sub-accounts.
 - ALB automated deployments only supports Forward and not redirect rules.
 - The Accelerator deploys SNS topics to send email alerts and notifications. Given email is not a secure transport mechanism, we have chosen not to enable SNS encryption on these topics at this time.
 - AWS generally discourages cross-account KMS key usage. As the Accelerator centralizes logs across an entire organization (security best practice), this is an exception/example of a unique situation where cross-account KMS key access is required.
 - The Accelerator aggregates all logs in the log-archive account using Kinesis Data and Kinesis Firehose as aggregation tools where the logs could persist for up to 24 hours. These logs are encrypted with Customer Managed KMS keys once stored in S3 (ELB logs only support AES256). These logs are also encrypted in transit using TLS encryption. At this time, we have not enabled Kinesis at-rest encryption, we will reconsider this decision based on customer feedback.
-- AWS Config Aggregator is deployed in the Organization Management (root) account as enablement through Organizations is simpler to implement. AWS Organizations only supports deploying the Aggregator in the Organization Management (root) account and not in a designated administrative account at this time. Once supported, we plan to update the code to move the Aggregator administrative account.
-- An Organization CloudTrail is deployed, which is created in the primary region in the Organization Management (root) AWS account. All AWS account CloudTrails are centralized into this single CloudWatch Log Group. Starting in v1.1.9 this is where we deploy the CloudWatch Alarms which trigger for ALL accounts in the organization. Security Hub will erroneously report that the only account and/or region that is compliant with certain rules is the primary region of the Organization Management (root) account. We are working with the Security Hub team to rectify this situation in future Security Hub/Accelerator releases.
-- Amazon Detective - we have chosen not to enable at this time.
+- AWS Config Aggregator is deployed in the Organization Management (root) account as enablement through Organizations is simpler to implement. AWS Organizations only supported deploying the Aggregator in the Organization Management (root) account and not in a designated administrative account when we implemented this feature. We have a backlog item to update the code to move the Aggregator to the security account.
+- An Organization CloudTrail is deployed, which is created in the primary region in the Organization Management (root) AWS account. All AWS account CloudTrails are centralized into this single CloudWatch Log Group. Starting in v1.1.9 this is where we deploy the CloudWatch Alarms which trigger for ALL accounts in the organization. Security Hub will erroneously report that the only account and/or region that is compliant with certain rules is the primary region of the Organization Management (root) account. We are working with the Security Hub team to rectify this situation in future Security Hub/Accelerator releases (resolved in Accelerator v1.5.0).
+- Amazon Detective is not enabled by the Accelerator at this time (new service).
 - Only 1 auto-deployed MAD in any mandatory-account is supported today.
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints.
 - If the Organization Management (root) account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
-- Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment), or deploy a second parallel FW cluster and de-provision the first cluster when ready.
+- 3rd party firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment), or deploy a second parallel FW cluster and de-provision the first cluster when ready.
 
 ---
 

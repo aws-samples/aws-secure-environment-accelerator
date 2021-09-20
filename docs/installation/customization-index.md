@@ -5,23 +5,26 @@
   - [1.2. **Deployment Customizations**](#12-deployment-customizations)
   - [1.3. Other Configuration File Hints and Tips](#13-other-configuration-file-hints-and-tips)
   - [1.4. Config file and Deployment Protections](#14-config-file-and-deployment-protections)
-  - [1.5. Config File Minimum Changes](#15-config-file-minimum-changes)
-    - [1.5.1 Global Options](#151-global-options)
-    - [1.5.2 Mandatory Account Configs](#152-mandatory-account-configs)
-    - [1.5.3 Workload Account Configs](#153-workload-account-configs)
-    - [1.5.4 Organization Units](#154-organization-units)
+  - [1.5. Summary of Example Config File Minimum Changes for New Installs](#15-summary-of-example-config-file-minimum-changes-for-new-installs)
+    - [1.5.1. 1.5.1 Global Options](#151-151-global-options)
+    - [1.5.2. 1.5.2 Mandatory Account Configs](#152-152-mandatory-account-configs)
+    - [1.5.3. 1.5.3 Workload Account Configs](#153-153-workload-account-configs)
+    - [1.5.4. 1.5.4 Organization Units](#154-154-organization-units)
 - [2. **State Machine Behavior**](#2-state-machine-behavior)
 
 ## 1.1. **Sample Accelerator Configuration Files**
 
-- Sample config files can be found in [this](../../reference-artifacts/SAMPLE_CONFIGS/) folder
-- Unsure where to start, use the [config.lite-NFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json) file
+**Summary**
 
-Samples with Descriptions:
+- Sample config files can be found in [this](../../reference-artifacts/SAMPLE_CONFIGS/) folder
+- Unsure where to start, use the [config.lite-NFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json) file (the NFW variant of option 2)
+- Frugal and want something comprehensive to experiment with, use the [config.test-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.test-example.json) file (option 5)
+
+**Samples with Descriptions**
 
 1. **Full PBMM configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.example.json) (`config.example.json`)
    - The full PBMM configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the deployed architecture solution.
-2. **Light weight PBMM configuration** files
+2. **Lite weight PBMM configuration** files
    - Three variants with differing central ingress/egress firewalls
      - AWS Network Firewall ([config.lite-NFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json)) **(Recommended starting point)**
      - IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP) ([config.lite-VPN-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json)) **(Recommended for new GC PBMM customers)**
@@ -34,7 +37,7 @@ Samples with Descriptions:
      - reduces the Fortigate instance sizes from c5n.2xl to c5n.xl (VM08 to VM04) in VPN option
      - removes the Unclass ou and VPC
    - The Accelerator allows customers to easily add or change this functionality in future, as and when required without any impact
-3. **Ultra-Light sample configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json) (`config.ultralite-example.json`)
+3. **Ultra-Lite sample configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json) (`config.ultralite-example.json`)
    - This configuration file was created to represent an extremely minimalistic Accelerator deployment, simply to demonstrate the art of the possible for an extremely simple config. This example is NOT recommended as it violates many AWS best practices. This This config has:
      - no `shared-network` or `perimeter` accounts
      - no networking (VPC, TGW, ELB, SG, NACL, endpoints) or route53 (zones, resolvers) objects
@@ -71,17 +74,17 @@ Samples with Descriptions:
 
 ## 1.2. **Deployment Customizations**
 
-- Multi-file config file and YAML formatting [option](./multi-file-config-capabilities.md):
+- [Multi-file config file and YAML formatting option](./multi-file-config-capabilities.md):
 
   - The sample configuration files are provided as single, all encompassing, json files. The Accelerator also supports both splitting the config file into multiple component files and configuration files built using YAML instead of json. Details can be found in the linked document.
 
-- Sample Snippets:
+- [Sample Snippets](../../reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md):
 
-  - The sample configuration files do not include the full range of supported configuration file parameters and values, additional configuration file parameters and values can be found [here](../../reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md)
+  - The sample configuration files do not include the full range of supported configuration file parameters and values, additional configuration file parameters and values can be found in the sample snippets document.
 
 - Third Party Firewall example configs:
   - The Accelerator is provided with a sample 3rd party configuration file to demonstrate automated deployment of 3rd party firewall technologies. Given the code is vendor agnostic, this process should be able to be leveraged to deploy other vendors firewall appliances. When and if other options become available, we will add them here as well.
-    - Automated firewall configuration [customization](../../reference-artifacts/SAMPLE_CONFIGS/firewall_file_available_variables.md) possibilities
+    - Automated [firewall configuration customization](../../reference-artifacts/SAMPLE_CONFIGS/firewall_file_available_variables.md) possibilities
     - Sample Fortinet Fortigate firewall config [file](../../reference-artifacts/Third-Party/firewall-example.txt)
 
 ## 1.3. Other Configuration File Hints and Tips
@@ -104,13 +107,14 @@ Samples with Descriptions:
 - Firewall names, CGW names, TGW names, MAD Directory ID, account keys, and OU's must all be unique throughout the entire configuration file (also true for VPC names given NACL and security group referencing design)
 - The configuration file _does_ have validation checks in place that prevent users from making certain major unsupported configuration changes
 - **The configuration file does _NOT_ have extensive error checking. It is expected you know what you are doing. We eventually hope to offer a config file, wizard based GUI editor and add the validation logic in this separate tool. In most cases the State Machine will fail with an error, and you will simply need to troubleshoot, rectify and rerun the state machine.**
-- You cannot move an account between top-level OU's. This would be a security violation and cause other issues. You can move accounts between sub-ou. Note: The CT version of the Accelerator does not support sub-ou.
+- You cannot move an account between top-level OU's. This would be a security violation and cause other issues. You can move accounts between sub-ou. Note: The Control Tower version of the Accelerator does NOT support sub-ou's.
 - When using YAML configuration files, we only support the subset of yaml that converts to JSON (we do not support anchors)
 - Security Group names were designed to be identical between environments, if you want the VPC name in the SG name, you need to do it manually in the config file
 - Adding more than approximately 50 _new_ VPC Interface Endpoints across _all_ regions in any one account in any single state machine execution will cause the state machine to fail due to Route 53 throttling errors. If adding endpoints at scale, only deploy 1 region at a time. In this scenario, the stack(s) will fail to properly delete, also based on the throttling, and will require manual removal.
 - We do not support Directory unsharing or ADC deletion, delete methods were not implemented. We only support ADC creation in mandatory accounts.
 - If `use-central-endpoints` is changed from true to false, you cannot add a local vpc endpoint on the same state machine execution (add the endpoint on a prior or subsequent execution)
-- If you update the firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the management port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
+- If you update the 3rd party firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the management port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
+- Removing the AWS NFW requires 2 state machine executions, in the first you must remove all routes that reference the NFW, and in the second you can remove or xx out the NFW (also true for the GWLB implementation ).
 
 ## 1.4. Config file and Deployment Protections
 
@@ -126,18 +130,18 @@ Samples with Descriptions:
   - If a customer is purposefully making extensive changes across the config file and wants to simply override all checks with a single override flag, we also have this option, but discourage it use.
   - The various override flags and their format can be found in [here](./sm_inputs.md).
 
-## 1.5. Config File Minimum Changes
+## 1.5. Summary of Example Config File Minimum Changes for New Installs
 
 At a minimum you should consider reviewing the following config file sections and make the required changes.
 
-### 1.5.1 Global Options
+### 1.5.1. 1.5.1 Global Options
 
 - S3 Central Bucket `global-options/central-bucket`: "AWSDOC-EXAMPLE-BUCKET"
   - replace with `your-bucket-name` as referenced in the Installation Guide [S3 Creation - Step #5](./installation.md#24-basic-accelerator-configuration)
 - Central Log Services SNS Emails `global-options/central-log-services/sns-subscription-emails`: "myemail+notifyT-xxx@example.com"
   - update the 3 email addresses (high, medium and low) as required. Each address will receives alerts or alarms of the specified level. The same email address can be used for all three.
 
-### 1.5.2 Mandatory Account Configs
+### 1.5.2. 1.5.2 Mandatory Account Configs
 
 - All mandatory accounts specific to your config file, that are present under the `mandatory-account-config` section require you to assign a unique email address for each account listed below. Replace the email values in the JSON config file for these accounts with unique email addresses.
   - `mandatory-account-configs/shared-network/email`: "myemail+aseaT-network@example.com---------------------REPLACE------------"
@@ -176,7 +180,7 @@ At a minimum you should consider reviewing the following config file sections an
   - `mandatory-account-configs/management/iam/users`
     - the names of your break-glass and ASEA operation users
 
-### 1.5.3 Workload Account Configs
+### 1.5.3. 1.5.3 Workload Account Configs
 
 As mentioned in the Installation Guide, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts back into the config file and rerun the state machine.
 
@@ -187,7 +191,7 @@ As mentioned in the Installation Guide, we recommend not adding more than 1 or 2
   - Modify `mydevacct1/description`: "This is an OPTIONAL SAMPLE workload account..." with a description relevant to your account
   - Modify `mydevacct1/ou`: "Dev" with the OU that you would like the account to be attached to
 
-### 1.5.4 Organization Units
+### 1.5.4. 1.5.4 Organization Units
 
 - For all organization units, update the budget alerts email addresses:
   - `organizational-units/core/default-budgets/alerts/emails`: "myemail+aseaT-budg@example.com"
