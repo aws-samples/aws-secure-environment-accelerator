@@ -12,6 +12,10 @@ import { PluginHost } from 'aws-cdk/lib/plugin';
 import { debugModeEnabled } from '@aws-cdk/core/lib/debug';
 import { AssumeProfilePlugin } from '@aws-accelerator/cdk-plugin-assume-role/src/assume-role-plugin';
 import { fulfillAll } from './promise';
+import { promises as fsp } from 'fs';
+
+//Set microstats emitters
+const microstatsOptions = { frequency: '5s' };
 
 // Set debug logging
 setLogLevel(1);
@@ -44,6 +48,7 @@ export class CdkToolkit {
   private readonly toolkitStackName: string | undefined;
   private readonly toolkitBucketName: string | undefined;
   private readonly toolkitKmsKey: string | undefined;
+  private readonly deploymentPageSize: number;
   private readonly tags: Tag[] | undefined;
 
   constructor(private readonly props: CdkToolkitProps) {
@@ -55,6 +60,7 @@ export class CdkToolkit {
     // TODO Remove configuration dependency
     const settings = this.props.configuration.settings;
     const env = process.env;
+    this.deploymentPageSize = parseInt(env.DEPLOY_STACK_PAGE_SIZE) || 850;
     this.toolkitStackName = env.BOOTSTRAP_STACK_NAME || ToolkitInfo.determineName(settings.get(['toolkitStackName']));
     this.toolkitBucketName = settings.get(['toolkitBucket', 'bucketName']);
     this.toolkitKmsKey = settings.get(['toolkitBucket', 'kmsKeyId']);
@@ -124,7 +130,9 @@ export class CdkToolkit {
     stacks.map(stack => {
       const _ = stack.template; // Force synthesizing the template
       const templatePath = path.join(stack.assembly.directory, stack.templateFile);
-      console.warn(`${stack.displayName}: synthesized to ${templatePath}`);
+      console.warn(
+        `${stack.displayName} in account ${stack.environment.account} and region ${stack.environment.region} synthesized to ${templatePath}`,
+      );
     });
   }
 
@@ -141,11 +149,13 @@ export class CdkToolkit {
     }
     let combinedOutputs: StackOutput[] = [];
     if (parallel) {
-      const pageSize = 900;
+      const pageSize = this.deploymentPageSize;
+      console.log(`Deploying ${pageSize} stacks at a time out of ${stacks.length} stacks.`);
       let stackPromises: any[] = [];
       for (let i = 0; i < stacks.length; i++) {
         const stack = stacks[i];
         console.log(`deploying stack ${i + 1} of ${stacks.length}`);
+
         stackPromises.push(this.deployStack(stack));
         if (stackPromises.length > pageSize - 1 || i === stacks.length - 1) {
           const results = await Promise.all(stackPromises);
@@ -165,17 +175,15 @@ export class CdkToolkit {
         combinedOutputs.push(...output);
       }
     }
-
     // Merge all stack outputs
     console.log(JSON.stringify(combinedOutputs, null, 4));
     return combinedOutputs;
   }
 
   async deployStack(stack: CloudFormationStackArtifact): Promise<StackOutput[]> {
-    console.log(`Deploying stack ${stack.displayName}`);
-    if (debugModeEnabled()) {
-      console.debug(JSON.stringify(stack.template, null, 2));
-    }
+    console.log(
+      `Deploying stack ${stack.displayName} in account ${stack.environment.account} in region ${stack.environment.region}`,
+    );
 
     const stackExists = await this.cloudFormation.stackExists({ stack });
     console.log(`Stack ${stack.displayName} exists`, stackExists);
@@ -195,7 +203,9 @@ export class CdkToolkit {
         cfn.config.logger = console;
       }
 
-      console.log(`Calling describeStacks API for ${stack.displayName} stack`);
+      console.log(
+        `Calling describeStacks API for ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
+      );
       const existingStack = await cfn
         .describeStacks({
           StackName: stack.id,
@@ -203,20 +213,29 @@ export class CdkToolkit {
         .promise();
       console.log(`Finding status of ${stack.displayName} stack`);
       const stackStatus = existingStack.Stacks[0].StackStatus;
-      console.log(`${stack.displayName} stack status`, stackStatus);
+      console.log(
+        `${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region} status`,
+        stackStatus,
+      );
       try {
         if (stackStatus === 'ROLLBACK_COMPLETE') {
-          console.log(`Calling updateTerminationProtection API on ${stack.displayName} stack`);
+          console.log(
+            `Calling updateTerminationProtection API on ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
+          );
           await cfn
             .updateTerminationProtection({
               StackName: stack.id,
               EnableTerminationProtection: false,
             })
             .promise();
-          console.log(`Successfully disabled termination protection on ${stack.displayName}`);
+          console.log(
+            `Successfully disabled termination protection on ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
+          );
         }
       } catch (e) {
-        console.warn(`Failed to disable termination protection for ${stack.displayName}: ${e}`);
+        console.warn(
+          `Failed to disable termination protection for ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}: ${e}`,
+        );
       }
     }
 
@@ -225,7 +244,9 @@ export class CdkToolkit {
       // const tags = this.tags || [];
       const tags = [...tagsForStack(stack)];
 
-      console.log(`Calling deployStack API on ${stack.displayName} stack`);
+      console.log(
+        `Calling deployStack API on ${stack.displayName} stack in account ${stack.environment.account} and region ${stack.environment.region}`,
+      );
       const result = await this.cloudFormation.deployStack({
         stack,
         deployName: stack.stackName,
@@ -240,10 +261,16 @@ export class CdkToolkit {
       });
 
       if (result.noOp) {
-        console.log(`${stack.displayName}: no changes`);
+        console.log(
+          `${stack.displayName} in account ${stack.environment.account} and region ${stack.environment.region} has no changes`,
+        );
       } else {
-        console.log(`${stack.displayName}: deploy successful`);
+        console.log(
+          ` in account ${stack.environment.account} and region ${stack.environment.region} deployment successful`,
+        );
       }
+
+      this.deleteAssemblyDir(stack.assembly.directory);
 
       return Object.entries(result.outputs).map(([name, value]) => ({
         stack: stack.stackName,
@@ -253,11 +280,17 @@ export class CdkToolkit {
         value,
       }));
     } catch (e) {
-      console.log(`${stack.displayName}: failed to deploy`);
+      console.log(
+        `${stack.displayName} stack in account ${stack.environment.account} and region ${stack.environment.region} failed to deploy`,
+      );
       if (!stackExists) {
-        console.warn(`${stack.displayName}: deleting newly created failed stack`);
+        console.warn(
+          `deleting newly created failed stack ${stack.displayName} stack in account ${stack.environment.account} and region ${stack.environment.region}`,
+        );
         await this.destroyStack(stack);
-        console.warn(`${stack.displayName}: deleted newly created failed stack`);
+        console.warn(
+          `${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}: deleted newly created failed stack`,
+        );
       }
       throw e;
     }
@@ -267,37 +300,60 @@ export class CdkToolkit {
    * Destroy the given stack. It skips deletion when stack termination is turned on.
    */
   private async destroyStack(stack: CloudFormationStackArtifact): Promise<void> {
-    console.log(`Destroying stack ${stack.displayName}`);
+    console.log(
+      `Destroying ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
+    );
     try {
       const sdk = await this.props.sdkProvider.forEnvironment(stack.environment, Mode.ForWriting);
       const cfn = sdk.cloudFormation();
-      console.log(`Trying to disable termination protection before destroying ${stack.displayName} stack`);
+      console.log(
+        `Trying to disable termination protection before destroying ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
+      );
       await cfn
         .updateTerminationProtection({
           StackName: stack.id,
           EnableTerminationProtection: false,
         })
         .promise();
-      console.log(`Successfully disabled termination protection on ${stack.displayName} stack`);
+      console.log(
+        `Successfully disabled termination protection on ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
+      );
     } catch (e) {
-      console.warn(`${stack.displayName}: cannot disable stack termination protection`);
+      console.warn(
+        `${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}: cannot disable stack termination protection`,
+      );
     }
     try {
-      console.log(`Calling destroyStack API on ${stack.displayName} stack`);
+      console.log(
+        `Calling destroyStack API on ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
+      );
       await this.cloudFormation.destroyStack({
         stack,
         deployName: stack.stackName,
         roleArn: undefined,
         force: true,
       });
-      console.log(`Successfully destroyed/deleted the ${stack.displayName} stack`);
+      console.log(
+        `Successfully destroyed/deleted the ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
+      );
     } catch (e) {
       const errorMessage = `${e}`;
       if (errorMessage.includes('it may need to be manually deleted')) {
-        console.warn(`${stack.displayName}: ${e}`);
+        console.warn(
+          `${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}: ${e}`,
+        );
         return;
       }
       throw e;
+    }
+  }
+  private async deleteAssemblyDir(assemblyPath: string) {
+    try {
+      await fsp.rmdir(assemblyPath, { recursive: true });
+      console.log('Removing AssemblyDir for succesfully deployed stack', assemblyPath);
+    } catch (err) {
+      console.warn(err);
+      console.log('Could not remove AssemblyDir for succesfully deployed stack', assemblyPath);
     }
   }
 }
