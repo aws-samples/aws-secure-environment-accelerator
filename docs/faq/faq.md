@@ -40,8 +40,8 @@
     - [1.6.7. Some sample configurations provide NACLs and Security Groups. Is that enough?](#167-some-sample-configurations-provide-nacls-and-security-groups-is-that-enough)
     - [1.6.8. Can I deploy the solution as the account root user?](#168-can-i-deploy-the-solution-as-the-account-root-user)
     - [1.6.9. Is the Organizational Management root account monitored similarly to the other accounts in the organization?](#169-is-the-organizational-management-root-account-monitored-similarly-to-the-other-accounts-in-the-organization)
-    - [1.7.0. How are the perimeter firewall configurations and licensing managed after deployment?](#170-how-are-the-perimeter-firewall-configurations-and-licensing-managed-after-deployment)
-    - [1.7.1. Can the Fortinet Firewall deployments use static IP Address assignments?](#171-can-the-fortinet-firewall-deployments-use-static-private-ip-address-assignments)
+    - [1.6.10. How are the perimeter firewall configurations and licensing managed after deployment?](#1610-how-are-the-perimeter-firewall-configurations-and-licensing-managed-after-deployment)
+    - [1.6.11. Can the Fortinet Firewall deployments use static private IP address assignments?](#1611-can-the-fortinet-firewall-deployments-use-static-private-ip-address-assignments)
 
 ## 1.1. Operational Activities
 
@@ -113,7 +113,7 @@ Yes. The state machine captures a consistent input state of the requested config
 
 The Accelerator is designed with checks to compare your current configuration file with the version of the config file from the previous successful execution of the state machine. If we believe you are making major or breaking changes to the config file, we will purposefully fail the state machine. See [1.4. Config file and Deployment Protections](../installation/customization-index.md#14-config-file-and-deployment-protections) for more details.
 
-With the release of v1.3.0 we introduced state machine scoping capabilities to further protect customers, detailed [here](../installation/customization-index.md#2-new-state-machine-behaviour)
+With the release of v1.3.0 we introduced state machine scoping capabilities to further protect customers, detailed [here](../installation/sm_inputs.md#11-state-machine-behavior)
 
 ### 1.1.6. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?
 
@@ -295,7 +295,7 @@ Yes, currently customers can upgrade from whatever version they have deployed to
 
 ### 1.4.2. After upgrading to v1.3.0, I get the error "There were errors while comparing the configuration changes:" when I update the config file?
 
-In v1.3.0 we added protections to allow customers to verify the scope of impact of their intended changes to the configuration file. In v1.3.0 and above, the state machine does not allow changes to the config file (other than new accounts) without providing the `scope` parameter. Please refer to section 2 of the `Accelerator Configuration File Customization` [Guide](../installation/customization-index.md#2-new-state-machine-behaviour) for more details.
+In v1.3.0 we added protections to allow customers to verify the scope of impact of their intended changes to the configuration file. In v1.3.0 and above, the state machine does not allow changes to the config file (other than new accounts) without providing the `scope` parameter. Please refer to section 1.1 of the `State Machine behavior and inputs` [Guide](../installation/sm_inputs.md#11-state-machine-behavior) for more details.
 
 ## 1.5. Support Concerns
 
@@ -483,15 +483,15 @@ No, you cannot install as the root user. The root user has no ability to assume 
 
 Yes, all accounts including the Organization Management or root account have the same monitoring and logging services enabled. When supported, AWS security services like GuardDuty, Macie, and Security Hub have their delegated administrator account configured as the "security" account. These tools can be used within each local account (including the Organization Management account) within the organization to gain account level visibility or within the Security account for Organization wide visibility. For more information about monitoring and logging refer to [architecture documentation](../architectures/pbmm/architecture.md#7-logging-and-monitoring).
 
-### 1.7.0. How are the perimeter firewall configurations and licensing managed after deployment?
+### 1.6.10. How are the perimeter firewall configurations and licensing managed after deployment?
 
 While you deploy the perimeter firewalls with the Accelerator you will continue to manage firewall updates, configuration changes, and license renewals from the respective firewall management interface and not from the Accelerator config file. As these changes are not managed by the Accelerator you do not need to rerun the state machine to implement or track any of these changes. You can update the AMI of the 3rd party firewalls using the Accelerator, you must first remove the existing firewalls and redeploy them (as the Elastic IP's (EIP's) will block a parallel deployment) or deploy a second parallel firewall cluster and de-provision the first cluster when ready.
 
-### 1.7.1. Can the Fortinet Firewall deployments use Static Private IP Address assignments?
+### 1.6.11. Can the Fortinet Firewall deployments use static private IP address assignments?
 
 Yes, the `"port"` stanza in the configuration file can support a private static IP Address assignment from the subnet and az.
 
-Care must be exercised to assure the assigned IP Address is within the correct subnet and correct Availability zone.  Also consider the Amazon reserved IP Addresses (first three addresses, and the last) within subnets when choosing an IP Address to assign.
+Care must be exercised to assure the assigned IP Address is within the correct subnet and correct Availability zone. Also consider the Amazon reserved IP Addresses (first three addresses, and the last) within subnets when choosing an IP Address to assign.
 
 Using the `config.example.json` as a reference, static IP Assignments would look like this in the `ports:` stanza of the firewall deployment.
 

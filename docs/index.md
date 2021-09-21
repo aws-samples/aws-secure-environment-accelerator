@@ -8,6 +8,7 @@
 
 - Link to Accelerator [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) and change history
 - Sample configuration files and customization [details](./installation/customization-index.md)
+- State Machine behavior and [inputs](./docs/installation/sm_inputs.md)
 - [Chart](./installation/what-we-do-where.md) containing details as to WHAT we do and WHERE we support it (regions, accounts, etc.)
 - Accelerator central logging [bucket structures](./architectures/pbmm/log-file-locations.md)
 

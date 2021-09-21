@@ -147,6 +147,7 @@ This summarizes the installation process, the full installation document can be 
 
 - Link to Accelerator [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) and change history
 - Sample configuration files and customization [details](./docs/installation/customization-index.md)
+- State Machine behavior and [inputs](./docs/installation/sm_inputs.md)
 - [Chart](./docs/installation/what-we-do-where.md) containing details as to WHAT we do and WHERE we support it (regions, accounts, etc.)
 - Accelerator central logging [bucket structures](./docs/architectures/pbmm/log-file-locations.md)
 - Unofficial Accelerator [Roadmap](https://github.com/aws-samples/aws-secure-environment-accelerator/projects) (GitHub projects) - _Please upvote desired features_

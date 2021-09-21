@@ -352,12 +352,12 @@ If deploying to an internal AWS employee account and installing the solution wit
 14. You will receive an email from the State Machine SNS topic and the 3 SNS alerting topics. Please confirm all four (4) email subscriptions to enable receipt of state machine status and security alert messages. Until completed, you will not receive any email messages (must be completed within 7-days).
 15. If the state machine **fails**:
 
-    - Refer to the [Troubleshooting Guide](../operations/operations-troubleshooting-guide.md#4-troubleshooting) for instructions on how to inspect and retrieve the error.
-    - You can also refer to the [FAQ](../faq/faq.md) and [Known Installation Issues](#251-known-installation-issues).
-    - Once the error is resolved, re-run the step function `ASEA-MainStateMachine_sm` using `{"scope": "FULL","mode": "APPLY"}` as an input to it
+    - Refer to the [Troubleshooting Guide](../operations/operations-troubleshooting-guide.md#4-troubleshooting) for instructions on how to inspect and retrieve the error
+    - You can also refer to the [FAQ](../faq/faq.md) and [Known Installation Issues](#251-known-installation-issues)
+    - Once the error is resolved, re-run the step function `ASEA-MainStateMachine_sm` using `{"scope": "FULL","mode": "APPLY"}` as input
 
 16. If deploying a prescriptive architecture with 3rd party firewalls, after the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
-    1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the main state machine (`ASEA-MainStateMachine_sm`) to deploy the firewall products
+    1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the main state machine (`ASEA-MainStateMachine_sm`) to deploy the firewall (no SM input parameters required)
     2. Login to the **perimeter** sub-account (Assume your `organization-admin-role`)
     3. Activate the 3rd party vendor firewall and firewall manager AMI's in the AWS Marketplace
     - Navigate back to your private marketplace
@@ -368,12 +368,12 @@ If deploying to an internal AWS employee account and installing the solution wit
 
 ![marketplace](img/marketplace.png)
 
-17. If deploying the prescriptive architecture, once the main state machine (`ASEA-MainStateMachine_sm`) completes successfully, confirm the status of your perimeter firewall deployment.
+17. If deploying the prescriptive architecture, once the main state machine (`ASEA-MainStateMachine_sm`) completes successfully, confirm the status of your perimeter firewall deployment
     - If you have t2.micro ec2 instances running in any account which had the account-warming flag set to true, they will be removed on the next state machine execution;
     - If your perimeter firewalls were defined but not deployed on first run, you will need to rerun the state machine. This happens when:
       1. you were unable to activate the firewall AMI's before stage 2 (step 16)
       2. we were not able to fully activate your account before we were ready to deploy your firewalls. This case can be identified by a running EC2 micro instance in the account, or by looking for the following log entry 'Minimum 15 minutes of account warming required for account'.
-      3. In these cases, simply select the `ASEA-MainStateMachine_sm` in Step Functions and select `Start Execution`.
+      3. In these cases, simply select the `ASEA-MainStateMachine_sm` in Step Functions and select `Start Execution` (no SM input parameters required)
 
 ### 2.5.1. Known Installation Issues
 
@@ -381,7 +381,7 @@ Current Issues:
 
 - Control Tower option has several major bugs - Work in progress - see sprint board
 - New: alb deployments occasionally throw a permssions error failing the state machine. Simply rerun the state machine.
-- Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine.
+- Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
 
 Issues in Older Releases:
 
@@ -573,7 +573,7 @@ The Accelerator installation is complete, but several manual steps remain:
     - These updates cause the config file change validation to fail and require running the state machine with the following input to override the validation checks on impacted fields: `{"scope": "FULL", "mode": "APPLY", "configOverrides": {"ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }}`
     - Tightens VPC interface endpoint security group permissions and enables customization. If you use VPC interface endpoints that requires ports/protocols other than TCP/443 (such as email-smtp), you must customize your config file as described [here](/reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md)
 - Upgrades to `v1.3.0 and above` from `v1.2.6 and below`:
-  - **Please note MAJOR changes to state machine behavior, as documented [here](./customization-index.md#2-new-state-machine-behavior)**.
+  - **Please note MAJOR changes to state machine behavior, as documented [here](./sm_inputs.md#11-state-machine-behavior)**.
 - Upgrades to `v1.2.6 and above` from `v1.2.5 and below` - Ensure you apply the config file changes described in the release notes:
   - Cut-paste the new `"replacements": {},` section at the top of the example config file into your config file, as-is
     - Enables customers to leverage the repo provided SCP's without customization, simplifying upgrades, while allowing SCP region customization
@@ -614,14 +614,14 @@ The Accelerator installation is complete, but several manual steps remain:
 8. If you are replacing your GitHub Token:
    - Take note of the `AcceleratorName`, `AcceleratorPrefix`, `ConfigS3Bucket` and `NotificationEmail` values from the Parameters tab of your deployed Installer CloudFormation stack (`ASEA-what-you-provided`)
    - Delete the Installer CloudFormation stack (`ASEA-what-you-provided`)
-   - Redeploy the Installer CloudFormation stack using the template downloaded in step 5, providing the values you just documented (changes to `AcceleratorName` or `AcceleratorPrefix` are not supported)
+   - Redeploy the Installer CloudFormation stack using the template downloaded in step 6, providing the values you just documented (changes to `AcceleratorName` or `AcceleratorPrefix` are not supported)
    - The pipeline will automatically run and trigger the upgraded state machine
 9. If you are using a pre-existing GitHub token, or installing from CodeCommit:
 
 - Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.3.5`)
   - Go to AWS CloudFormation and select the stack: `ASEA-what-you-provided`
   - Select Update, select Replace current template, Select Upload a template file
-  - Select Choose File and select the template you downloaded in step 5 (`AcceleratorInstallerXYZ.template.json` or `AcceleratorInstallerXXX-CodeCommit.template.json`)
+  - Select Choose File and select the template you downloaded in step 6 (`AcceleratorInstallerXYZ.template.json` or `AcceleratorInstallerXXX-CodeCommit.template.json`)
   - Select Next, Update `GithubBranch` parameter to `release/vX.Y.Z` where X.Y.Z represents the latest release
   - Click Next, Next, I acknowledge, Update
   - Wait for the CloudFormation stack to update (`Update_Complete` status) (Requires manual refresh)
