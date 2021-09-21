@@ -80,7 +80,21 @@ async function main() {
   const notificationEmail = new cdk.CfnParameter(stack, 'Notification Email', {
     description: 'The notification email that will get Accelerator State Machine execution notifications.',
   });
+  const codebuildComputeType = new cdk.CfnParameter(stack, 'CodeBuild Compute Type', {
+    description: 'The compute type of the build server for the Accelerator deployments.',
+    default: codebuild.ComputeType.MEDIUM,
+    allowedValues: [
+      codebuild.ComputeType.SMALL,
+      codebuild.ComputeType.MEDIUM,
+      codebuild.ComputeType.LARGE,
+      codebuild.ComputeType.X2_LARGE,
+    ],
+  });
 
+  const stackDeployPageSize = new cdk.CfnParameter(stack, 'Deployment Page Size', {
+    description: 'The number of stacks to deploy in parallel. This value SHOULD NOT normally be changed.',
+    default: 900,
+  });
   const stateMachineName = `${acceleratorPrefix}MainStateMachine_sm`;
 
   // The state machine name has to match the name of the state machine in initial setup
@@ -195,7 +209,7 @@ async function main() {
     environment: {
       buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
       privileged: true, // Allow access to the Docker daemon
-      computeType: codebuild.ComputeType.MEDIUM,
+      computeType: codebuildComputeType.valueAsString as codebuild.ComputeType,
       environmentVariables: {
         ACCELERATOR_NAME: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
@@ -224,6 +238,14 @@ async function main() {
         ENABLE_PREBUILT_PROJECT: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: 'true', // Enable Docker prebuilt project
+        },
+        BUILD_COMPUTE_TYPE: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: codebuildComputeType.valueAsString,
+        },
+        DEPLOY_STACK_PAGE_SIZE: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: stackDeployPageSize.valueAsString,
         },
         NOTIFICATION_EMAIL: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,

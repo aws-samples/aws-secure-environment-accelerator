@@ -35,6 +35,9 @@ export namespace InitialSetup {
     configS3Bucket: string;
     configBranchName: string;
     notificationEmail: string;
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+    codebuildComputeType: any;
+    pageSize: string;
     /**
      * Current Accelerator version
      */
@@ -136,6 +139,7 @@ export namespace InitialSetup {
         packageManager: 'pnpm',
         commands: ['cd src/deployments/cdk', 'sh codebuild-deploy.sh'],
         timeout: buildTimeout,
+        computeType: props.codebuildComputeType,
         environment: {
           ACCELERATOR_NAME: props.acceleratorName,
           ACCELERATOR_PREFIX: props.acceleratorPrefix,
@@ -146,6 +150,7 @@ export namespace InitialSetup {
           LIMITS_ITEM_ID: 'limits',
           ORGANIZATIONS_ITEM_ID: 'organizations',
           DYNAMODB_PARAMETERS_TABLE_NAME: parametersTable.tableName,
+          DEPLOY_STACK_PAGE_SIZE: props.pageSize,
         },
       });
 

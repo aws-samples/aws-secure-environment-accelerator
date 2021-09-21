@@ -15,7 +15,8 @@ export interface CdkDeployProjectProps {
   packageManager: PackageManager;
   projectRoot: string;
   commands: string[];
-  computeType?: codebuild.ComputeType;
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
+  computeType?: any;
   timeout?: cdk.Duration;
   environment?: { [key: string]: string };
 }
