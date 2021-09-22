@@ -6,10 +6,12 @@
   - [1.3. Other Configuration File Hints and Tips](#13-other-configuration-file-hints-and-tips)
   - [1.4. Config file and Deployment Protections](#14-config-file-and-deployment-protections)
   - [1.5. Summary of Example Config File Minimum Changes for New Installs](#15-summary-of-example-config-file-minimum-changes-for-new-installs)
-    - [1.5.1. 1.5.1 Global Options](#151-151-global-options)
-    - [1.5.2. 1.5.2 Mandatory Account Configs](#152-152-mandatory-account-configs)
-    - [1.5.3. 1.5.3 Workload Account Configs](#153-153-workload-account-configs)
-    - [1.5.4. 1.5.4 Organization Units](#154-154-organization-units)
+    - [1.5.1. Global Options](#151-global-options)
+    - [1.5.2. Mandatory Account Configs](#152-mandatory-account-configs)
+    - [1.5.3. Workload Account Configs](#153-workload-account-configs)
+    - [1.5.4. Organization Units](#154-organization-units)
+  - [1.6. Summary of Example Config File Optional Changes for New Installs](#16-summary-of-example-config-file-optional-changes-for-new-installs)
+    - [1.6.1. Global Options](#161-global-options)
 - [2. **State Machine Behavior**](#2-state-machine-behavior)
 
 ## 1.1. **Sample Accelerator Configuration Files**
@@ -134,14 +136,17 @@
 
 At a minimum you should consider reviewing the following config file sections and make the required changes.
 
-### 1.5.1. 1.5.1 Global Options
+### 1.5.1. Global Options
 
 - S3 Central Bucket `global-options/central-bucket`: "AWSDOC-EXAMPLE-BUCKET"
   - replace with `your-bucket-name` as referenced in the Installation Guide [S3 Creation - Step #5](./installation.md#24-basic-accelerator-configuration)
 - Central Log Services SNS Emails `global-options/central-log-services/sns-subscription-emails`: "myemail+notifyT-xxx@example.com"
   - update the 3 email addresses (high, medium and low) as required. Each address will receives alerts or alarms of the specified level. The same email address can be used for all three.
+- Dynamic CIDR Pool Ranges (ONLY modify if required to use other CIDR ranges)
+  - `global-options/cidr-pools/cidr`: "10.0.0.0/13"
+  - ["global-options"]["cidr-pools"][1].cidr
 
-### 1.5.2. 1.5.2 Mandatory Account Configs
+### 1.5.2. Mandatory Account Configs
 
 - All mandatory accounts specific to your config file, that are present under the `mandatory-account-config` section require you to assign a unique email address for each account listed below. Replace the email values in the JSON config file for these accounts with unique email addresses.
   - `mandatory-account-configs/shared-network/email`: "myemail+aseaT-network@example.com---------------------REPLACE------------"
@@ -167,6 +172,19 @@ At a minimum you should consider reviewing the following config file sections an
 - For `perimeter` account, review and update the following:
   - `mandatory-account-configs/perimeter/certificates/priv-key`: "certs/example1-cert.key"
   - `mandatory-account-configs/perimeter/certificates/cert`: "certs/example1-cert.crt"
+  - If you are using VPN config:
+    - `mandatory-account-configs/perimeter/deployments/firewalls/image-id`: "ami-0d8e2e78e928def11"
+      - Update AMI with the AMI collected from the Marketplace for **Fortinet FortiGate (BYOL) Next-Generation Firewall**
+    - `mandatory-account-configs/perimeter/deployments/xxfirewall-manager/image-id`: "ami-0e9f45c3ec34c3a9a"
+      - Update AMI with the AMI collected from the Marketplace for **Fortinet FortiManager (BYOL) Centralized Security Management**
+      - NOTE: Default config of "xxfirewall-manager" will prevent the firewall manager from being deployed. To deploy the firewall manager remove the "xx" to set the parameter to "firewall-manager"
+    - `mandatory-account-configs/perimeter/deployments/firewalls/license`: ["firewall/license1.lic", "firewall/license2.lic"]
+      - Two Fortinet FortiGate firewall licenses, if you don't have any license files, update the config file with an empty array ("license": []). Do NOT use the following: [""]
+      - Place files in a folder (eg. firewall) in the same S3 bucket in your Organization Management account as the deployment configuration file.
+    - `mandatory-account-configs/perimeter/deployments/firewalls/config`: "firewall/firewall-example.txt"
+      - The Fortinet configuration file to initially configure the firewalls. Sample configuration files can be found in the [reference-artifacts/Third-Party](../reference-artifacts/Third-Party/) folder
+      - Place file in a folder (eg. firewall) in the same S3 bucket in your Organization Management account as the deployment configuration file.
+
   - If you are using GWLB config:
     - `mandatory-account-configs/perimeter/deployments/firewalls/Checkpoint-Firewall - image-id`: "ami-0217611bf09d5b4c1"
       - Update AMI with the AMI collected from the Marketplace for **CloudGuard Network Security for GWLB - BYOL**
@@ -176,11 +194,11 @@ At a minimum you should consider reviewing the following config file sections an
       - Update version based on the selected ami-id version from the Private Marketplace
 - For `management`, review and update the following:
   - `mandatory-account-configs/management/account-name`: "ASEA-Main"
-    - Check your Organization Management (root) account name, if it is not set to ASEA-Main, then replace this property with your account name
+    - Update this field with your Organization Management (root) account name, if it is not set to ASEA-Main.
   - `mandatory-account-configs/management/iam/users`
     - the names of your break-glass and ASEA operation users
 
-### 1.5.3. 1.5.3 Workload Account Configs
+### 1.5.3. Workload Account Configs
 
 As mentioned in the Installation Guide, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts back into the config file and rerun the state machine.
 
@@ -191,7 +209,7 @@ As mentioned in the Installation Guide, we recommend not adding more than 1 or 2
   - Modify `mydevacct1/description`: "This is an OPTIONAL SAMPLE workload account..." with a description relevant to your account
   - Modify `mydevacct1/ou`: "Dev" with the OU that you would like the account to be attached to
 
-### 1.5.4. 1.5.4 Organization Units
+### 1.5.4. Organization Units
 
 - For all organization units, update the budget alerts email addresses:
   - `organizational-units/core/default-budgets/alerts/emails`: "myemail+aseaT-budg@example.com"
@@ -202,9 +220,24 @@ As mentioned in the Installation Guide, we recommend not adding more than 1 or 2
   - `organizational-units/Sandbox/default-budgets/alerts/emails`: "myemail+aseaT-budg@example.com"
 - For organization units with `certificates`, review the certificates and update as you see fit. These certificates are used in the `alb` section under `alb/cert-name` of each OU
 
+## 1.6. Summary of Example Config File Optional Changes for New Installs
+
+Changes to these parameters are not required for a deployment, but are provided as references for additional customization.
+
+### 1.6.1. Global Options
+- The default dynamic CIDR pools (`global-options/cidr-pools`) listed below are used to assign ranges based on the subnet mask set in each VPC and subnet throughout the configuration file.
+  - `global-options/cidr-pools/0/cidr`: "10.0.0.0/13"
+    - The main address pool used to dynamically assign CIDR ranges
+  - `global-options/cidr-pools/1/cidr`: "100.96.252.0/23"
+    - Address pool used to dynamically assign CIDR ranges for the Managed Active Directory subnets in the Ops account
+  - `global-options/cidr-pools/2/cidr`: "100.96.250.0/23"
+    - Address pool used to dynamically assign CIDR ranges for the Perimeter VPC
+  - `global-options/cidr-pools/3/cidr`: "10.249.1.0/24"
+    - A non-routable pool of addresses used to dynamically assign CIDR ranges for the Active Directory Connector subnets in the Organization Management/root account
+
 # 2. **State Machine Behavior**
 
-- Moved to State Machine behavior and [inputs](./sm_inputs.md)
+- Moved to [State Machine behavior and inputs](./sm_inputs.md)
 
 ---
 
