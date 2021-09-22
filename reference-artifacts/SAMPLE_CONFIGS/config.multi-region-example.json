@@ -5,7 +5,7 @@
       "b": ["${HOME_REGION}", "${GBL_REGION}"],
       "c": ["${HOME_REGION}", "${GBL_REGION}", "us-east-2", "us-west-1", "us-west-2"]
     },
-    "INFO": "Deploying in us-east-1 requires removing ${GBL_REGION} from the above variables and replacing us-east-1 with a 2nd region on lines 531,5249, and 5299",
+    "INFO": "Deploying in us-east-1 requires removing ${GBL_REGION} from the above variables and replacing us-east-1 with a new 2nd region throughout the config file",
     "INFO1": "If deploying the firewalls, both cidr values below MUST be supplied",
     "cloud-cidr1": "10.0.0.0",
     "cloud-mask1": "255.0.0.0",

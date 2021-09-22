@@ -5,6 +5,7 @@
       "b": ["${HOME_REGION}", "${GBL_REGION}"],
       "c": ["${HOME_REGION}", "${GBL_REGION}"]
     },
+	"INFO": "Deploying in us-east-1 requires removing ${GBL_REGION} throught the file",
     "alarm-not-ip": "10.10.10.*"
   },
   "global-options": {
@@ -18,7 +19,7 @@
     "workloadaccounts-param-filename": "config.json",
     "ignored-ous": ["UnManaged"],
     "additional-global-output-regions": [],
-    "supported-regions": ["${HOME_REGION}"],
+    "supported-regions": ["${HOME_REGION}", "${GBL_REGION}"],
     "keep-default-vpc-regions": [],
     "aws-org-management": {
       "account": "management",
@@ -28,7 +29,7 @@
     "central-security-services": {
       "account": "security",
       "region": "${HOME_REGION}",
-      "security-hub-excl-regions": [],
+      "security-hub-excl-regions": ["${GBL_REGION}"],
       "security-hub": true,
       "guardduty": true,
       "guardduty-excl-regions": [],
@@ -40,7 +41,7 @@
       "config-excl-regions": [],
       "config-aggr-excl-regions": [],
       "macie": true,
-      "macie-excl-regions": [],
+      "macie-excl-regions": ["${GBL_REGION}"],
       "macie-frequency": "FIFTEEN_MINUTES",
       "macie-sensitive-sh": true,
       "fw-mgr-alert-level": "Low",
@@ -691,7 +692,7 @@
       ],
       "aws-config": [
         {
-          "excl-regions": [],
+          "excl-regions": ["${GBL_REGION}"],
           "rules": ["ELB_LOGGING_ENABLED", "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"],
           "remediate-regions": ["${HOME_REGION}"]
         }
@@ -739,7 +740,7 @@
       ],
       "aws-config": [
         {
-          "excl-regions": [],
+          "excl-regions": ["${GBL_REGION}"],
           "rules": ["ELB_LOGGING_ENABLED", "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"],
           "remediate-regions": ["${HOME_REGION}"]
         }
