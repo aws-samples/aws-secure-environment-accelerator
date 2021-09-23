@@ -73,9 +73,10 @@ export class InterfaceEndpoint extends cdk.Construct {
 
     this._hostedZone.addDependsOn(endpoint);
 
+    const recordSetName = recordSetNameForRegionAndEndpointName(vpcRegion, serviceName);
     const recordSet = new route53.CfnRecordSet(this, 'RecordSet', {
       type: 'A',
-      name: hostedZoneName,
+      name: recordSetName,
       hostedZoneId: this._hostedZone.ref,
       aliasTarget: aliasTargetForServiceNameAndEndpoint(serviceName, endpoint),
     });
@@ -100,12 +101,20 @@ function interfaceVpcEndpointForRegionAndEndpointName(region: string, name: stri
   if (name === 'notebook') {
     return `aws.sagemaker.${region}.${name}`;
   }
+  if (name.indexOf(".") > 0) {
+    let tmp = name.split(".").reverse().join(".");
+    return `com.amazonaws.${region}.${tmp}`;
+  }
   return `com.amazonaws.${region}.${name}`;
 }
 
 function zoneNameForRegionAndEndpointName(region: string, name: string) {
   if (name === 'notebook') {
     return `notebook.${region}.sagemaker.aws.`;
+  }
+  if (name.indexOf(".") > 0) {
+    let tmp = name.split(".").reverse().join(".");
+    return `${tmp}.${region}.amazonaws.com.`;
   }
   return `${name}.${region}.amazonaws.com.`;
 }
@@ -117,4 +126,16 @@ function getZoneAliasTargetIndex(name: string): number {
     return 4;
   }
   return 0;
+}
+
+function recordSetNameForRegionAndEndpointName(region: string, name: string) {
+  
+  const hostedZoneName = zoneNameForRegionAndEndpointName(region, name);
+
+  if (name === 'ecr.dkr') {
+     return `*.${hostedZoneName}`;
+  }
+
+  return hostedZoneName;
+
 }
