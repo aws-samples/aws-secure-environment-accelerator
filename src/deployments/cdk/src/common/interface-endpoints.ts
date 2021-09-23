@@ -101,10 +101,7 @@ function interfaceVpcEndpointForRegionAndEndpointName(region: string, name: stri
   if (name === 'notebook') {
     return `aws.sagemaker.${region}.${name}`;
   }
-  if (name.indexOf(".") > 0) {
-    let tmp = name.split(".").reverse().join(".");
-    return `com.amazonaws.${region}.${tmp}`;
-  }
+ 
   return `com.amazonaws.${region}.${name}`;
 }
 
