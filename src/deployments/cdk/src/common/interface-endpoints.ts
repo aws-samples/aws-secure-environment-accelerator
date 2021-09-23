@@ -110,7 +110,7 @@ function zoneNameForRegionAndEndpointName(region: string, name: string) {
     return `notebook.${region}.sagemaker.aws.`;
   }
   if (name.indexOf(".") > 0) {
-    let tmp = name.split(".").reverse().join(".");
+    const tmp = name.split(".").reverse().join(".");
     return `${tmp}.${region}.amazonaws.com.`;
   }
   return `${name}.${region}.amazonaws.com.`;
