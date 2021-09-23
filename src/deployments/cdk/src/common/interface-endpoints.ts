@@ -101,7 +101,7 @@ function interfaceVpcEndpointForRegionAndEndpointName(region: string, name: stri
   if (name === 'notebook') {
     return `aws.sagemaker.${region}.${name}`;
   }
- 
+
   return `com.amazonaws.${region}.${name}`;
 }
 
@@ -109,8 +109,8 @@ function zoneNameForRegionAndEndpointName(region: string, name: string) {
   if (name === 'notebook') {
     return `notebook.${region}.sagemaker.aws.`;
   }
-  if (name.indexOf(".") > 0) {
-    const tmp = name.split(".").reverse().join(".");
+  if (name.indexOf('.') > 0) {
+    const tmp = name.split('.').reverse().join('.');
     return `${tmp}.${region}.amazonaws.com.`;
   }
   return `${name}.${region}.amazonaws.com.`;
@@ -126,13 +126,11 @@ function getZoneAliasTargetIndex(name: string): number {
 }
 
 function recordSetNameForRegionAndEndpointName(region: string, name: string) {
-  
   const hostedZoneName = zoneNameForRegionAndEndpointName(region, name);
 
   if (name === 'ecr.dkr') {
-     return `*.${hostedZoneName}`;
+    return `*.${hostedZoneName}`;
   }
 
   return hostedZoneName;
-
 }
