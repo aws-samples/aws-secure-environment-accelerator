@@ -13,11 +13,21 @@ This script is a work in-progress and was designed for use by our development an
 
 1. Paste AWS temporary credentials (or set AWS_PROFILE) in the command terminal which will be used to execute the script
 
-2. Set the AWS_DEFAULT_REGION
+2. Set the AWS_REGION. For example, `export AWS_REGION=ca-central-1`
 
-3. Execute the script `ts-node src/load-outputs.json`
+3. Install the packages manually. `npm install`
 
-4. On successful execution, this script generates the file: `accelerator/src/deployments/cdk/outputs.json`
+4. Ensure the necessary environment variables are set. Here are the defaults (change as needed):
+
+```
+export ACCELERATOR_NAME="PBMM"
+export ACCELERATOR_PREFIX="PBMMAccel-"
+export ACCELERATOR_STATE_MACHINE_NAME="PBMMAccel-MainStateMachine_sm"
+```
+
+4. Execute the script `ts-node src/load-outputs.json`
+
+5. On successful execution, this script generates the file: `accelerator/src/deployments/cdk/outputs.json`
 
 ## Use
 
