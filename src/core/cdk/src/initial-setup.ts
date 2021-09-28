@@ -151,6 +151,7 @@ export namespace InitialSetup {
           ORGANIZATIONS_ITEM_ID: 'organizations',
           DYNAMODB_PARAMETERS_TABLE_NAME: parametersTable.tableName,
           DEPLOY_STACK_PAGE_SIZE: props.pageSize,
+          COMPUTE_TYPE: props.codebuildComputeType,
         },
       });
 

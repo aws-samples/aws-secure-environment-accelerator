@@ -147,26 +147,14 @@ export class CdkToolkit {
       console.log(`There are no stacks to be deployed`);
       return [];
     }
-    let combinedOutputs: StackOutput[] = [];
-    if (parallel) {
-      const pageSize = this.deploymentPageSize;
-      console.log(`Deploying ${pageSize} stacks at a time out of ${stacks.length} stacks.`);
-      let stackPromises: any[] = [];
-      for (let i = 0; i < stacks.length; i++) {
-        const stack = stacks[i];
-        console.log(`deploying stack ${i + 1} of ${stacks.length}`);
 
-        stackPromises.push(this.deployStack(stack));
-        if (stackPromises.length > pageSize - 1 || i === stacks.length - 1) {
-          const results = await Promise.all(stackPromises);
-          console.log(`Deployed stacks ${i + 1} of ${stacks.length}`);
-          stackPromises = [];
-          if (results) {
-            combinedOutputs.push(...results);
-          }
-        }
-      }
-      combinedOutputs = combinedOutputs.flat(2);
+    let combinedOutputs: StackOutput[];
+    if (parallel) {
+      // Deploy all stacks in parallel
+      const promises = stacks.map(stack => this.deployStack(stack));
+      // Wait for all promises to be fulfilled
+      const outputsList = await fulfillAll(promises);
+      combinedOutputs = outputsList.reduce((result, output) => [...result, ...output]);
     } else {
       // Deploy all stacks sequentially
       combinedOutputs = [];
@@ -175,8 +163,8 @@ export class CdkToolkit {
         combinedOutputs.push(...output);
       }
     }
+
     // Merge all stack outputs
-    console.log(JSON.stringify(combinedOutputs, null, 4));
     return combinedOutputs;
   }
 
@@ -186,13 +174,20 @@ export class CdkToolkit {
     );
 
     const stackExists = await this.cloudFormation.stackExists({ stack });
-    console.log(`Stack ${stack.displayName} exists`, stackExists);
+    console.log(
+      `Stack ${stack.displayName} in account ${stack.environment.account} in region ${stack.environment.region} exists`,
+      stackExists,
+    );
 
     const resources = Object.keys(stack.template.Resources || {});
     if (resources.length === 0) {
-      console.warn(`${stack.displayName}: stack has no resources`);
+      console.warn(
+        `${stack.displayName} in account ${stack.environment.account} in region ${stack.environment.region}: stack has no resources`,
+      );
       if (stackExists) {
-        console.warn(`${stack.displayName}: deleting existing stack`);
+        console.warn(
+          `${stack.displayName} in account ${stack.environment.account} in region ${stack.environment.region}: deleting existing stack`,
+        );
         this.destroyStack(stack);
       }
       return [];
