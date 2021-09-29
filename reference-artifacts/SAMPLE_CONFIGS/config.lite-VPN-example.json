@@ -1095,7 +1095,7 @@
           "min-rdgw-hosts": 1,
           "max-rdgw-hosts": 2,
           "rdgw-max-instance-age": 7,
-          "rdgw-instance-type": "t2.large",
+          "rdgw-instance-type": "t3.large",
           "image-path": "/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base",
           "rdgw-instance-role": "${ACCELERATOR_PREFIX_ND}-RDGW-Role",
           "password-policies": {
@@ -1198,7 +1198,7 @@
           "desired-rsyslog-hosts": 2,
           "max-rsyslog-hosts": 2,
           "ssm-image-id": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2",
-          "rsyslog-instance-type": "t2.large",
+          "rsyslog-instance-type": "t3.large",
           "rsyslog-instance-role": "${ACCELERATOR_PREFIX_ND}-Rsyslog-Role",
           "rsyslog-root-volume-size": 100,
           "rsyslog-max-instance-age": 7
