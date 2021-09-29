@@ -83,12 +83,7 @@ async function main() {
   const codebuildComputeType = new cdk.CfnParameter(stack, 'CodeBuild Compute Type', {
     description: 'The compute type of the build server for the Accelerator deployments.',
     default: codebuild.ComputeType.MEDIUM,
-    allowedValues: [
-      codebuild.ComputeType.SMALL,
-      codebuild.ComputeType.MEDIUM,
-      codebuild.ComputeType.LARGE,
-      codebuild.ComputeType.X2_LARGE,
-    ],
+    allowedValues: [codebuild.ComputeType.MEDIUM, codebuild.ComputeType.LARGE, codebuild.ComputeType.X2_LARGE],
   });
 
   const stackDeployPageSize = new cdk.CfnParameter(stack, 'Deployment Page Size', {
