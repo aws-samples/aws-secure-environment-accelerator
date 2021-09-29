@@ -109,6 +109,26 @@
       }
     },
     {
+      "Sid": "ACM",
+      "Effect": "Deny",
+      "Action": [
+        "acm:DeleteCertificate",
+        "acm:ExportCertificate",
+        "acm:RemoveTagsFromCertificate"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Accelerator": "${ACCELERATOR_NAME}"
+        },
+        "ArnNotLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
+          ]
+        }
+      }
+    },
+    {
       "Sid": "SEC",
       "Effect": "Deny",
       "Action": [
