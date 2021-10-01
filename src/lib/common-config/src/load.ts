@@ -17,6 +17,6 @@ export async function loadAcceleratorConfig(props: {
     const source = file.fileContent.toString();
     return AcceleratorConfig.fromString(source);
   } catch (e) {
-    throw new Error(`Unable to load configuration file "${filePath}" in Repository ${repositoryName}\n${e.message}`);
+    throw new Error(`Unable to load configuration file "${filePath}" in Repository ${repositoryName}\n${e.message} code:${e.code}`);
   }
 }

@@ -25,4 +25,5 @@ export const isThrottlingError = (e: any) =>
   e.code === 'Throttling' ||
   e.code === 'ThrottlingException' ||
   e.code === 'InternalErrorException' ||
-  e.code === 'InternalException';
+  e.code === 'InternalException' ||
+  e.code === 'RateExceeded'; //CodeCommit
