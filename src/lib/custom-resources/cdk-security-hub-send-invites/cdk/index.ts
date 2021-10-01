@@ -30,6 +30,7 @@ export class SecurityHubSendInvites extends cdk.Construct {
       serviceToken: sendInvite.functionArn,
       properties: {
         memberAccounts: props.memberAccounts,
+        updateMessage: "update"
       },
     });
   }
