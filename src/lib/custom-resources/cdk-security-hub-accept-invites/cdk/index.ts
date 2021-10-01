@@ -25,7 +25,7 @@ export class SecurityHubAcceptInvites extends cdk.Construct {
       serviceToken: acceptInvites.functionArn,
       properties: {
         masterAccountId: props.masterAccountId,
-        updateMessage: "update"
+        updateMessage: 'update',
       },
     });
   }
