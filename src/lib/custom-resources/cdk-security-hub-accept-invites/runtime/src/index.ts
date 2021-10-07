@@ -64,6 +64,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     // Accepting Invitation from Master account
     const ownerInvitation = invitations.find(x => x.AccountId === masterAccountId);
     if (ownerInvitation) {
+      console.log(`Accepting Security Hub invitation`);
       const invitationId = ownerInvitation?.InvitationId!;
       await throttlingBackOff(() =>
         hub
