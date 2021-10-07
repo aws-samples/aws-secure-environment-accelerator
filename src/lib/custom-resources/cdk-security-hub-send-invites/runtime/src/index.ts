@@ -26,23 +26,37 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const memberAccounts = event.ResourceProperties.memberAccounts;
 
-  const memberParams = {
-    AccountDetails: memberAccounts,
-  };
   // Creating Members
-  console.log(`Creating Members for "${memberParams}"`);
+  console.log(`Creating Members for "${memberAccounts}"`);
   const accountIds: string[] = [];
-  await throttlingBackOff(() => hub.createMembers(memberParams).promise());
-  for (const account of memberAccounts) {
-    accountIds.push(account.AccountId);
+
+  //Security Hub will only process 50.
+  const pageSize = 50;
+  for (let i = 0; i < memberAccounts.length; i += pageSize) {
+    const currentPage = memberAccounts.slice().splice(i, pageSize);
+    const pagedMemberParams = {
+      AccountDetails: currentPage,
+    };
+    console.log(`Creating Members (paged) for "${pagedMemberParams}"`);
+    const createResponse = await throttlingBackOff(() => hub.createMembers(pagedMemberParams).promise());
+    console.log(`Create Sub Accounts Response "${JSON.stringify(createResponse)}""`);
+    for (const account of currentPage) {
+      accountIds.push(account.AccountId);
+    }
   }
 
-  const params = {
-    AccountIds: accountIds,
-  };
   console.log(`Inviting Members for "${accountIds}"`);
-  const inviteResponse = await throttlingBackOff(() => hub.inviteMembers(params).promise());
-  console.log(`Invite Sub Accounts Response "${inviteResponse}"`);
+
+  //Security Hub will only process 50.
+  for (let i = 0; i < accountIds.length; i += pageSize) {
+    const currentPage = accountIds.slice().splice(i, pageSize);
+    const pagedParams = {
+      AccountIds: currentPage,
+    };
+    console.log(`Inviting Members (paged) for "${pagedParams}"`);
+    const inviteResponse = await throttlingBackOff(() => hub.inviteMembers(pagedParams).promise());
+    console.log(`Invite Sub Accounts Response "${JSON.stringify(inviteResponse)}"`);
+  }
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {
