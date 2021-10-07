@@ -167,27 +167,28 @@ export class CdkToolkit {
     // Merge all stack outputs
     return combinedOutputs;
   }
+  async deploymentLog(stack: CloudFormationStackArtifact, message: string, messageType: string = 'INFO') {
+    const stackLoggingInfo = {
+      stackName: stack.displayName,
+      stackEnvironment: stack.environment,
+      assumeRoleArn: stack.assumeRoleArn || 'N/A',
+      message,
+      messageType,
+    };
 
-  async deployStack(stack: CloudFormationStackArtifact): Promise<StackOutput[]> {
-    console.log(
-      `Deploying stack ${stack.displayName} in account ${stack.environment.account} in region ${stack.environment.region}`,
-    );
-
+    console.log(JSON.stringify(stackLoggingInfo, null, 4));
+  }
+  async deployStack(stack: CloudFormationStackArtifact, retries: number = 0): Promise<StackOutput[]> {
+    this.deploymentLog(stack, 'Deploying Stack');
     const stackExists = await this.cloudFormation.stackExists({ stack });
-    console.log(
-      `Stack ${stack.displayName} in account ${stack.environment.account} in region ${stack.environment.region} exists`,
-      stackExists,
-    );
+    this.deploymentLog(stack, `Stack Exists: ${stackExists}`);
 
     const resources = Object.keys(stack.template.Resources || {});
+
     if (resources.length === 0) {
-      console.warn(
-        `${stack.displayName} in account ${stack.environment.account} in region ${stack.environment.region}: stack has no resources`,
-      );
+      this.deploymentLog(stack, 'Stack has no resources');
       if (stackExists) {
-        console.warn(
-          `${stack.displayName} in account ${stack.environment.account} in region ${stack.environment.region}: deleting existing stack`,
-        );
+        this.deploymentLog(stack, 'Deleting existing stack');
         this.destroyStack(stack);
       }
       return [];
@@ -197,40 +198,29 @@ export class CdkToolkit {
       if (debugModeEnabled()) {
         cfn.config.logger = console;
       }
-
-      console.log(
-        `Calling describeStacks API for ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
-      );
+      this.deploymentLog(stack, 'Describing Stack');
       const existingStack = await cfn
         .describeStacks({
           StackName: stack.id,
         })
         .promise();
-      console.log(`Finding status of ${stack.displayName} stack`);
       const stackStatus = existingStack.Stacks[0].StackStatus;
-      console.log(
-        `${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region} status`,
-        stackStatus,
-      );
+      this.deploymentLog(stack, `Stack Status: ${stackStatus}`);
+
       try {
         if (stackStatus === 'ROLLBACK_COMPLETE') {
-          console.log(
-            `Calling updateTerminationProtection API on ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
-          );
+          this.deploymentLog(stack, 'Disabling termination protection');
           await cfn
             .updateTerminationProtection({
               StackName: stack.id,
               EnableTerminationProtection: false,
             })
             .promise();
-          console.log(
-            `Successfully disabled termination protection on ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
-          );
+          this.deploymentLog(stack, 'Disabled termination protection');
         }
       } catch (e) {
-        console.warn(
-          `Failed to disable termination protection for ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}: ${e}`,
-        );
+        this.deploymentLog(stack, 'Could not disable termination protection');
+        console.log(e);
       }
     }
 
@@ -238,10 +228,7 @@ export class CdkToolkit {
       // Add stack tags to the tags list
       // const tags = this.tags || [];
       const tags = [...tagsForStack(stack)];
-
-      console.log(
-        `Calling deployStack API on ${stack.displayName} stack in account ${stack.environment.account} and region ${stack.environment.region}`,
-      );
+      this.deploymentLog(stack, 'Calling deployStack API');
       const result = await this.cloudFormation.deployStack({
         stack,
         deployName: stack.stackName,
@@ -256,16 +243,13 @@ export class CdkToolkit {
       });
 
       if (result.noOp) {
-        console.log(
-          `${stack.displayName} in account ${stack.environment.account} and region ${stack.environment.region} has no changes`,
-        );
+        this.deploymentLog(stack, 'No changes to deploy');
       } else {
-        console.log(
-          ` in account ${stack.environment.account} and region ${stack.environment.region} deployment successful`,
-        );
+        this.deploymentLog(stack, 'Deployment Successful');
       }
-
+      this.deploymentLog(stack, 'Deleting assembly directory');
       this.deleteAssemblyDir(stack.assembly.directory);
+      this.deploymentLog(stack, 'Deleted assembly directory');
 
       return Object.entries(result.outputs).map(([name, value]) => ({
         stack: stack.stackName,
@@ -275,17 +259,16 @@ export class CdkToolkit {
         value,
       }));
     } catch (e) {
-      console.log(
-        `${stack.displayName} stack in account ${stack.environment.account} and region ${stack.environment.region} failed to deploy`,
-      );
+      this.deploymentLog(stack, `Failed to deploy: ${e}`, 'ERROR');
       if (!stackExists) {
-        console.warn(
-          `deleting newly created failed stack ${stack.displayName} stack in account ${stack.environment.account} and region ${stack.environment.region}`,
-        );
+        this.deploymentLog(stack, 'Deleting failed stack');
         await this.destroyStack(stack);
-        console.warn(
-          `${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}: deleted newly created failed stack`,
-        );
+        this.deploymentLog(stack, 'Deleted failed stack');
+      }
+      if (retries < 1) {
+        console.log(e);
+        this.deploymentLog(stack, 'Deployment failed because of error. Retrying deployment');
+        return await this.deployStack(stack, retries + 1);
       }
       throw e;
     }
@@ -295,48 +278,37 @@ export class CdkToolkit {
    * Destroy the given stack. It skips deletion when stack termination is turned on.
    */
   private async destroyStack(stack: CloudFormationStackArtifact): Promise<void> {
+    this.deploymentLog(stack, 'Destroying stack');
     console.log(
       `Destroying ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
     );
     try {
       const sdk = await this.props.sdkProvider.forEnvironment(stack.environment, Mode.ForWriting);
       const cfn = sdk.cloudFormation();
-      console.log(
-        `Trying to disable termination protection before destroying ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
-      );
+      this.deploymentLog(stack, 'Disabling termination protection');
       await cfn
         .updateTerminationProtection({
           StackName: stack.id,
           EnableTerminationProtection: false,
         })
         .promise();
-      console.log(
-        `Successfully disabled termination protection on ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
-      );
+      this.deploymentLog(stack, 'Disabled termination protection');
     } catch (e) {
-      console.warn(
-        `${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}: cannot disable stack termination protection`,
-      );
+      this.deploymentLog(stack, 'Cloud not disable termination protection');
     }
     try {
-      console.log(
-        `Calling destroyStack API on ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
-      );
+      this.deploymentLog(stack, 'Destroying stack');
       await this.cloudFormation.destroyStack({
         stack,
         deployName: stack.stackName,
         roleArn: undefined,
         force: true,
       });
-      console.log(
-        `Successfully destroyed/deleted the ${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}`,
-      );
+      this.deploymentLog(stack, 'Successfully destroyed stack');
     } catch (e) {
-      const errorMessage = `${e}`;
-      if (errorMessage.includes('it may need to be manually deleted')) {
-        console.warn(
-          `${stack.displayName} stack in account ${stack.environment.account} in region ${stack.environment.region}: ${e}`,
-        );
+      this.deploymentLog(stack, 'Could not destroy stack');
+      console.log(e);
+      if (e.errorMessage.includes('it may need to be manually deleted')) {
         return;
       }
       throw e;
@@ -345,7 +317,6 @@ export class CdkToolkit {
   private async deleteAssemblyDir(assemblyPath: string) {
     try {
       await fsp.rmdir(assemblyPath, { recursive: true });
-      console.log('Removing AssemblyDir for succesfully deployed stack', assemblyPath);
     } catch (err) {
       console.warn(err);
       console.log('Could not remove AssemblyDir for succesfully deployed stack', assemblyPath);

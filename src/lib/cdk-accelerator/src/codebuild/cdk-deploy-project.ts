@@ -158,6 +158,12 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
           build: {
             commands: [`cd ${appDir}`, `sh ${entrypointFileName}`],
           },
+          post_build: {
+            commands: [
+              'buildComplete=`cat /tmp/buildStatus.txt`',
+              'if [ $buildComplete = "complete" ]; then echo "Build Finished"; else echo "Build did not finish. please review logs for errors!" && exit 1; fi',
+            ],
+          },
         },
       }),
       environment: {
