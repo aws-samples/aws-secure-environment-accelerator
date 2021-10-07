@@ -4,6 +4,7 @@ import * as app from './src/app';
 import microstats from 'microstats';
 import { debugModeEnabled } from '@aws-cdk/core/lib/debug';
 import * as v8 from 'v8';
+const fs = require('fs').promises;
 
 const PAGE_SIZE = parseInt(process.env.DEPLOY_STACK_PAGE_SIZE) || 850;
 
@@ -54,6 +55,7 @@ const getHeapStatistics = () => {
 };
 
 async function main() {
+  await fs.writeFile('/tmp/buildStatus.txt', 'started', 'utf8');
   if (debugModeEnabled()) {
     microstats.start(microstatsOptions, err => {
       console.log(err);
@@ -95,6 +97,9 @@ async function main() {
     console.log(`deploying stack ${i + 1} of ${apps.length}`);
     if (appsPage.length > PAGE_SIZE - 1 || i === apps.length - 1) {
       const toolkit = await CdkToolkit.create(appsPage);
+      if (debugModeEnabled()) {
+        console.log(getHeapStatistics());
+      }
       if (commands.includes('bootstrap')) {
         await toolkit.bootstrap();
       }
@@ -112,6 +117,7 @@ async function main() {
   if (debugModeEnabled()) {
     microstats.stop();
   }
+  await fs.writeFile('/tmp/buildStatus.txt', 'complete', 'utf8');
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises

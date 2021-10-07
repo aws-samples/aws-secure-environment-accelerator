@@ -1,6 +1,10 @@
 #!/bin/sh
 
-if [ "${COMPUTE_TYPE}" = "BUILD_GENERAL1_LARGE" ]; then
+
+if [ "${COMPUTE_TYPE}" = "BUILD_GENERAL1_MEDIUM" ]; then
+  echo "Increasing the max_old_space_size to 2048"
+  export NODE_OPTIONS=--max_old_space_size=2048
+elif [ "${COMPUTE_TYPE}" = "BUILD_GENERAL1_LARGE" ]; then
   echo "The codebuild build type has changed from default to ${COMPUTE_TYPE}, increasing the max_old_space_size to 8192"
   export NODE_OPTIONS=--max_old_space_size=8192
 elif [ "${COMPUTE_TYPE}" = "BUILD_GENERAL1_2XLARGE" ]; then
