@@ -23,6 +23,7 @@ This script is a work in-progress and was designed for use by our development an
 export ACCELERATOR_NAME="PBMM"
 export ACCELERATOR_PREFIX="PBMMAccel-"
 export ACCELERATOR_STATE_MACHINE_NAME="PBMMAccel-MainStateMachine_sm"
+export BOOTSTRAP_STACK_NAME=PBMMAccel-CDKToolkit
 ```
 
 4. Execute the script `ts-node src/load-outputs.json`
