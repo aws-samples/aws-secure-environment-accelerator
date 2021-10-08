@@ -82,6 +82,11 @@ export const handler = async (input: ScheduledEvent) => {
     console.warn(`Missing policyId, Ignoring`);
     return 'INVALID_REQUEST';
   }
+
+  if (await isControlTowerSCP(policyId)) {
+    console.log('Policy Changes Performed by Control Tower, No operation required');
+    return 'NO_OPERATION_REQUIRED';
+  }
   const eventName = requestDetail.eventName;
   if (!['DeletePolicy', 'AttachPolicy'].includes(eventName) && !(await isAcceleratorScp(policyId, scpNames))) {
     console.log(`SCP ${policyId} is not managed by Accelerator`);
@@ -236,10 +241,21 @@ async function isAcceleratorScp(policyId: string, scpNames: string[]): Promise<b
     return false;
   }
   if (policyName !== FULL_AWS_ACCESS_POLICY_NAME && !scpNames.includes(policy.PolicySummary?.Name!)) {
-    console.error(`Policy is not handled through Acclerator`);
+    console.error(`Policy is not handled through Accelerator`);
     return false;
   }
   return true;
+}
+
+async function isControlTowerSCP(policyId: string): Promise<boolean> {
+  const policyResponse = await organizations.describePolicy(policyId);
+  const policy = policyResponse.Policy;
+
+  const policyName = policy?.PolicySummary?.Name;
+  if (policyName?.startsWith('aws-guardrails-')) {
+    return true;
+  }
+  return false;
 }
 
 async function loadAccountsAndOrganizationsFromConfig(
