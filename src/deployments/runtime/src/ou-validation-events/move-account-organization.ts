@@ -429,7 +429,7 @@ async function startStateMachine(stateMachineArn: string): Promise<string> {
     await stepfunctions.startExecution({
       stateMachineArn,
       input: JSON.stringify({
-        scope: 'NEW_ACCOUNTS',
+        scope: 'NEW-ACCOUNTS',
         mode: 'APPLY',
         verbose: '0',
       }),
