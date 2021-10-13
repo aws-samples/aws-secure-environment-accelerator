@@ -122,20 +122,20 @@ AWS Control Tower is the successor to the ALZ, but offered as an AWS managed ser
 
 With the release of v1.5.0, the AWS Accelerator adds the capability to be deployed on top of AWS Control Tower. Customers get the benefits of the fully managed capabilities of AWS Control Tower combined with the power and flexibility of the Accelerators Networking and Security orchestration.
 
-## Accelerator Deployment Process (Summary)
+## Accelerator Installation Process (Summary)
 
 This summarizes the installation process, the full installation document can be found in the documentation section below.
 
-- Create a config.json (or config.yaml) file to represent your organizations requirements (several samples provided)
-- Create a Secrets Manager Secret which contains a GitHub token that provides access to the Accelerator code repo
-- Create a unique S3 input bucket and place your config.json and any additional custom config files in the bucket
-- Download and execute the latest installer CloudFormation template in your root accounts preferred 'primary' / 'home' region
+- Create a config.json (or config.yaml) file to represent your organizations requirements ([several samples provided](./docs/installation/customization-index.md))
+- Create a Secrets Manager Secret which contains a GitHub token that provides access to the Accelerator code repository
+- Create a unique S3 input bucket in the management account of the region you wish to deploy the solution and place your config.json and any additional custom config files in the bucket
+- Download and execute the latest [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) installer CloudFormation template in your management accounts preferred 'primary' / 'home' region
 - Wait for:
   - CloudFormation to deploy and start the Code Pipeline (~5 mins)
   - Code Pipeline to download the Accelerator codebase and install the Accelerator State Machine (~10 mins)
   - The Accelerator State Machine to finish execution (~1.25 hrs Standalone version, ~2.25 hrs Control Tower Version)
-- Perform required manual follow-up activities (configure AWS SSO, set firewall passwords, etc.)
-- When required:
+- Perform required one-time [post installation](./docs/installation/installation.md#26-post-installation) activities (configure AWS SSO, set firewall passwords, etc.)
+- On an ongoing basis:
   - Use AWS Organizations to create new AWS accounts, which will automatically be guardrailed by the Accelerator
   - Update the config file in CodeCommit and run the Accelerator State Machine to:
     - deploy, configure and guardrail multiple accounts at the same time (~25 min Standalone, ~50 min/account Control Tower)

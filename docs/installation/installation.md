@@ -54,9 +54,9 @@ These installation instructions assume one of the prescribed architectures is be
 - Valid Accelerator configuration file, updated to reflect your requirements (see below)
 - Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
 - Decide if you are doing an AWS Control Tower based or a Standalone installation
-  - AWS generally recommends customers install on top of AWS Control Tower, unless customers have specific requirements not met by Control Tower
+  - AWS generally recommends customers install on top of AWS Control Tower, unless customers have specific requirements
   - Government of Canada customers are required to do a Standalone installation at this time
-  - While an upgrade path is planned, at this time no upgrade path exists from a Standalone installation to a Control Tower based installation
+  - While an upgrade path is planned, customers with a Standalone installation need to continue with a Standalone installation until the Control Tower upgrade option becomes available
 - The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in [section 4](#4-existing-organizations--accounts) below
 - Existing AWS Landing Zone Solution (ALZ) customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
 
@@ -64,7 +64,7 @@ These installation instructions assume one of the prescribed architectures is be
 
 ### 2.2.1. General
 
-**For any deployment of the Accelerator which is intended to be used for real workloads, you must evaluate all these decisions carefully. Failure to understand these choices could cause challenges down the road. If this is a "test" or "internal" deployment of the Accelerator which will not be used for workloads, you can leave the default config values.**
+**For any deployment of the Accelerator which is intended to be used for production workloads, you must evaluate all these decisions carefully. Failure to understand these choices could cause challenges down the road. If this is a "test" or "internal" deployment of the Accelerator which will not be used for production workloads, you can leave the default config values.**
 
 ### 2.2.2. OU Structure Planning
 
@@ -80,7 +80,7 @@ Plan your OU and core account structure carefully. By default, we suggest: `Secu
 
 ### 2.2.3. Network Configuration Planning
 
-If deploying the prescriptive architecture, you will need the following network constructs:
+If deploying the prescriptive architecture using the Full or Lite sample config files, you will need the following network constructs:
 
 1. Six (6) RFC1918 Class B address blocks (CIDR's) which do not conflict with your on-premise networks
 
@@ -90,12 +90,12 @@ If deploying the prescriptive architecture, you will need the following network 
 
 2. Two (2) RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
 
-- Used for MAD deployment and perimeter underlay network
+- Used for AWS Managed Active Directory (MAD) deployment and perimeter underlay network
 - non-GC customers can a) drop the extra GCWide subnets in the Central VPC and, b) replace the perimeter VPC address space with the extra unused addresses from the core CIDR range
 
 3. Two (2) BGP ASN's (For the Transit Gateway and Firewall Cluster - note: a third is required if you are deploying a VGW for DirectConnect connectivity.)
 
-NOTE: Prior to v1.5.0 we assigned CIDR ranges to each VPC and subnet throughout the config file. This required customers to perform extensive updates across the config file when needing to move to specific IP ranges compatible with a customers existing network. While this is still supported for those wanting to control exactly what address is used on every subnet, we have added support for dynamic CIDR assignments, and the majority of the sample files have been updated to reflect. New installs will have CIDR's pulled from CIDR pools, defined in the global-options section of the config file with state maintained in DynamoDB. A script exists to enable existing customers to migrate to the scheme, if desired.
+NOTE: Prior to v1.5.0 CIDR ranges were assigned to each VPC and subnet throughout the config file. This required customers to perform extensive updates across the config file when needing to move to specific IP ranges compatible with a customer's existing network. While this is still supported for those wanting to control exactly what address is used on every subnet, the solution has added support for dynamic CIDR assignments and the sample config files have been updated to reflect. New installs will have CIDR's pulled from CIDR pools, defined in the global-options section of the config file with state maintained in DynamoDB. A [script](../reference-artifacts/Custom-Scripts/Update-Scripts/v1.3.4_to_v1.5.0) exists to enable existing customers to migrate to the new scheme, if desired.
 
 ### 2.2.4. DNS, Domain Name, TLS Certificate Planning
 
@@ -110,7 +110,7 @@ If deploying the prescriptive architecture, you must decide on:
 ### 2.2.5. Email Address Planning
 
 1. While you require a minimum of 6 **_unique_** email addresses (1 per sub-account being created), we recommend at least 20 **_unique_** email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account and they can all be monitored via a single mailbox. These email addresses can **_never_** have been used to previously open an AWS account.
-2. You additionally require email addresses for the following additionally purposes (these can be existing monitored mailboxes and do not need to be unique):
+2. You additionally require email addresses for the following additional purposes (these can be existing monitored mailboxes and do not need to be unique):
    - Accelerator execution (state machine) notification events (1 address)
    - High, Medium and Low security alerts (3 addresses if you wish to segregate alerts)
    - Budget notifications
@@ -139,6 +139,8 @@ d) Customer gateway (CGW) creation, to enable connectivity to on-premises firewa
 
 - Defined in the config file under deployments w/TGW VPN attachments (but without an AMI or VPC association)
 
+Examples of each of the firewall options have been included as variants of the Lite config file [example](./customization-index.md#11-sample-accelerator-configuration-files).
+
 Note: While we only provide a single example for each 3rd party implementation today, the implementations are generic and should be usable by any 3rd party firewall vendor, assuming they support the required features and protocols. The two examples were driven by customer demand and heavy lifting by the 3rd party vendor. We look forward to additional vendors developing and contributing additional sample configurations.
 
 ### 2.2.7. Other
@@ -148,7 +150,7 @@ Note: While we only provide a single example for each 3rd party implementation t
    - the Accelerator prefix including the mandatory dash cannot be longer than 10 characters.
 2. If installing with Control Tower, the `organization-admin-role` must be set to `AWSControlTowerExecution`. For standalone installations customers can select a role name of their choosing, but, we recommend using `OrganizationAccountAccessRole` as the `organization-admin-role`, as this role is used by AWS Organizations by default when no role name is specified while creating AWS accounts through the AWS console.
    - the Accelerator leverages this role name to create all new accounts in the organization;
-   - this role name, as defined in the config file, _MUST_ be utilized when manually creating all new sub-accounts in the Organization;
+   - this role name, as defined in the config file, **_MUST_** be utilized when manually creating all new sub-accounts in the Organization;
    - existing installs wishing to change the role name are required to first deploy a new role with a trust to the root account, in all accounts in the organization.
 
 ## 2.3. Accelerator Pre-Install Steps
@@ -205,7 +207,7 @@ Before installing, you must first:
 
 As of v1.5.0, the Accelerator offers deployment from either GitHub or CodeCommit:
 
-**GitHub** (preferred option)
+**GitHub** (recommended)
 
 1. You require a GitHub access token to access the code repository
 2. Instructions on how to create a personal access token are located [here](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token).
@@ -218,7 +220,7 @@ As of v1.5.0, the Accelerator offers deployment from either GitHub or CodeCommit
      - Set the secret name to `accelerator/github-token` (case sensitive)
      - Select `Disable rotation`
 
-**CodeCommit** (more complex option)
+**CodeCommit** (alternative option)
 
 - Multiple options exist for downloading the GitHub Accelerator codebase and pushing it into CodeCommit. As this option is only for advanced users, detailed instructions are not provided.
 
@@ -561,9 +563,9 @@ The Accelerator installation is complete, but several manual steps remain:
 **Release Specific Upgrade Considerations:**
 
 - Upgrades to `v1.5.0`:
-  - Due to the size of this upgrade, we recommend all customers upgrade to `v1.3.8 or above` before beginning this upgrade
+  - Due to the size of this upgrade, we require all customers upgrade to `v1.3.8 or above` before beginning this upgrade
   - While v1.5.0 supports Control Tower for _NEW_ installs, existing Accelerator customers _CANNOT_ add Control Tower to their existing installations at this time (planned enhancement for 22H1)
-    - Attempts to install Control Tower on top of the Accelerator are likely catastrophic (both Control Tower and the Accelerator need minor enhancements to enable)
+    - Attempts to install Control Tower on top of the Accelerator will corrupt your environment (both Control Tower and the Accelerator need minor enhancements to enable)
   - **add specific v1.5.0 steps here**
     - config file upgrade script, CIDR migration to DDB (if desired), how implement new OU structure, SCP and part-2 issue,oldip.json
   - Dynamic CIDRs, lookup, opt-in vpc, SNS/CWL/SH changes - release notes?
@@ -688,11 +690,10 @@ The Accelerator installation is complete, but several manual steps remain:
 - While generally protected, do not delete/update/change s3 buckets with cdk-asea-, or asea- in _any_ sub-accounts.
 - ALB automated deployments only supports Forward and not redirect rules.
 - The Accelerator deploys SNS topics to send email alerts and notifications. Given email is not a secure transport mechanism, we have chosen not to enable SNS encryption on these topics at this time.
-- AWS generally discourages cross-account KMS key usage. As the Accelerator centralizes logs across an entire organization (security best practice), this is an exception/example of a unique situation where cross-account KMS key access is required.
+- AWS generally discourages cross-account KMS key usage. As the Accelerator centralizes logs across an entire organization as a security best practice, this is an exception/example of a unique situation where cross-account KMS key access is required.
 - The Accelerator aggregates all logs in the log-archive account using Kinesis Data and Kinesis Firehose as aggregation tools where the logs could persist for up to 24 hours. These logs are encrypted with Customer Managed KMS keys once stored in S3 (ELB logs only support AES256). These logs are also encrypted in transit using TLS encryption. At this time, we have not enabled Kinesis at-rest encryption, we will reconsider this decision based on customer feedback.
 - AWS Config Aggregator is deployed in the Organization Management (root) account as enablement through Organizations is simpler to implement. AWS Organizations only supported deploying the Aggregator in the Organization Management (root) account and not in a designated administrative account when we implemented this feature. We have a backlog item to update the code to move the Aggregator to the security account.
 - An Organization CloudTrail is deployed, which is created in the primary region in the Organization Management (root) AWS account. All AWS account CloudTrails are centralized into this single CloudWatch Log Group. Starting in v1.1.9 this is where we deploy the CloudWatch Alarms which trigger for ALL accounts in the organization. Security Hub will erroneously report that the only account and/or region that is compliant with certain rules is the primary region of the Organization Management (root) account. We are working with the Security Hub team to rectify this situation in future Security Hub/Accelerator releases (resolved in Accelerator v1.5.0).
-- Amazon Detective is not enabled by the Accelerator at this time (new service).
 - Only 1 auto-deployed MAD in any mandatory-account is supported today.
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints.
 - If the Organization Management (root) account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).

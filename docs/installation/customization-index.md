@@ -19,20 +19,24 @@
 **Summary**
 
 - Sample config files can be found in [this](../../reference-artifacts/SAMPLE_CONFIGS/) folder
+  - Most of the examples reflect a Medium Security profile (NIST, ITSG, FEDRAMP)
 - Unsure where to start, use the [config.lite-NFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json) file (the NFW variant of option 2)
 - Frugal and want something comprehensive to experiment with, use the [config.test-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.test-example.json) file (option 5)
 
 **Samples with Descriptions**
 
-1. **Full PBMM configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.example.json) (`config.example.json`)
-   - The full PBMM configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the deployed architecture solution.
-2. **Lite weight PBMM configuration** files
+1. **Full configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.example.json) (`config.example.json`)
+   - The full configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the deployed architecture solution.
+2. **Lite weight configuration** files
    - Three variants with differing central ingress/egress firewalls
-     - AWS Network Firewall ([config.lite-NFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json)) **(Recommended starting point)**
-     - IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP) ([config.lite-VPN-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json)) **(Recommended for new GC PBMM customers)**
-       - requires 3rd party licensing (BYOL or PAYGO)
-     - Gateway Load Balancer with Checkpoint firewalls in an autoscaling group ([config.lite-GWLB-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-GWLB-example.json))
-       - requires 3rd party licensing (BYOL or PAYGO)
+     - _Recommended starting point_
+       - AWS Network Firewall ([config.lite-NFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json))
+     - _Recommended for new GC PBMM customers_
+       - IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP) ([config.lite-VPN-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json))
+         - requires 3rd party licensing (BYOL or PAYGO)
+     - _Variant 3_
+       - Gateway Load Balancer with Checkpoint firewalls in an autoscaling group ([config.lite-GWLB-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-GWLB-example.json))
+         - requires 3rd party licensing (BYOL or PAYGO)
    - To reduce solution costs and allow customers to grow into more advanced AWS capabilities, we created this lighter weight configuration that does not sacrifice functionality, but could limit performance. This config file:
      - only deploys the 9 required centralized Interface Endpoints (removes 50). All services remain accessible using the AWS public endpoints, but require traversing the perimeter firewalls
      - removes the perimeter VPC Interface Endpoints
@@ -48,7 +52,7 @@
      - only deploys 2 AWS config rules w/SSM remediation
      - renamed log-archive (Logs), security (Audit) and operations (Ops) account names
 4. **Multi-Region sample configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.multi-region-example.json) (`config.multi-region-example.json`)
-   - This configuration file was created to represent a more advanced multi-region version of the Full PBMM configuration file from bullet 1 above. This config:
+   - This configuration file was created to represent a more advanced multi-region version of the Full configuration file from bullet 1 above. This config:
      - adds a TGW in us-east-1, peered to the TGW in ca-central-1
      - adds TGW static routes, including several dummy sample static routes
      - adds a central Endpoint VPC in us-east-1 with us-east-1 endpoints configured
@@ -60,9 +64,9 @@
        - local account VPC set to use central endpoints, associates appropriate centralized hosted zones to VPC (also creates 5 local endpoints)
      - adds a VGW for DirectConnect to the perimeter VPC
      - adds the 3rd AZ in ca-central-1 (MAD & ADC in AZ a & b)
-5. **Test PBMM configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.test-example.json) (`config.test-example.json`) **(Use for testing PBMM configuration)**
+5. **Test configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.test-example.json) (`config.test-example.json`) **(Use for testing Full/Lite configurations or Low Security Profiles)**
    - Further reduces solution costs, while demonstrating full solution functionality (NOT recommendend for production). This config file:
-     - uses the Light weight PBMM configuration as the starting point (NFW variant)
+     - uses the Lite weight configuration as the starting point (NFW variant)
      - consolidates Dev/Test/Prod OU to a single Workloads OU/VPC
      - only enables Security Hub, Config and Macie in ca-central-1 and us-east-1
      - removes the Fortigate firewall cluster (per NFW variant)
@@ -170,9 +174,11 @@ At a minimum you should consider reviewing the following config file sections an
   - `mandatory-account-configs/operations/deployments/mad/ad-users` (update user, email and group of each user as required)
     - do not remove or change permissions on the `adconnector-usr`
 - For `perimeter` account, review and update the following:
+
   - `mandatory-account-configs/perimeter/certificates/priv-key`: "certs/example1-cert.key"
   - `mandatory-account-configs/perimeter/certificates/cert`: "certs/example1-cert.crt"
   - If you are using VPN config:
+
     - `mandatory-account-configs/perimeter/deployments/firewalls/image-id`: "ami-0d8e2e78e928def11"
       - Update AMI with the AMI collected from the Marketplace for **Fortinet FortiGate (BYOL) Next-Generation Firewall**
     - `mandatory-account-configs/perimeter/deployments/xxfirewall-manager/image-id`: "ami-0e9f45c3ec34c3a9a"
@@ -192,6 +198,7 @@ At a minimum you should consider reviewing the following config file sections an
       - Update AMI with the AMI collected from the Marketplace for **Checkpoint Security Management**
     - `mandatory-account-configs/perimeter/deployments/firewall-manager/version`: "R8110BYOLMGMT"
       - Update version based on the selected ami-id version from the Private Marketplace
+
 - For `management`, review and update the following:
   - `mandatory-account-configs/management/account-name`: "ASEA-Main"
     - Update this field with your Organization Management (root) account name, if it is not set to ASEA-Main.
@@ -225,6 +232,7 @@ As mentioned in the Installation Guide, we recommend not adding more than 1 or 2
 Changes to these parameters are not required for a deployment, but are provided as references for additional customization.
 
 ### 1.6.1. Global Options
+
 - The default dynamic CIDR pools (`global-options/cidr-pools`) listed below are used to assign ranges based on the subnet mask set in each VPC and subnet throughout the configuration file.
   - `global-options/cidr-pools/0/cidr`: "10.0.0.0/13"
     - The main address pool used to dynamically assign CIDR ranges
