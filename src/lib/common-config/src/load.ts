@@ -40,7 +40,7 @@ export async function loadAcceleratorConfigWithS3Attempt(props: {
     try {
       console.log(`Loading configuration from S3 working bucket.`);
       const s3GetResponseString = await s3.getObjectBodyAsString({
-        Bucket: s3BucketName!,
+        Bucket: s3BucketName,
         Key: s3KeyName,
       });
 
@@ -52,8 +52,8 @@ export async function loadAcceleratorConfigWithS3Attempt(props: {
 
   console.log(`Loading configuration from CodeCommit.`);
   return loadAcceleratorConfig({
-    repositoryName: repositoryName,
-    filePath: filePath,
-    commitId: commitId,
+    repositoryName,
+    filePath,
+    commitId,
   });
 }
