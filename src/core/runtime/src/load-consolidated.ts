@@ -51,7 +51,7 @@ export const handler = async (input: LoadConsolidatedInput) => {
 
     if (accountsTableName) {
       try {
-        const accounts = await loadAccounts(accountsTableName!, dynamodb);
+        const accounts = await loadAccounts(accountsTableName, dynamodb);
 
         const key = `${path}/accounts.json`;
         const fileUploadResult = await s3.putObject({

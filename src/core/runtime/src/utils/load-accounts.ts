@@ -32,7 +32,7 @@ export async function loadAccountsWithS3Attempt(
     try {
       console.log(`Loading account details from S3 working bucket.`);
       const s3GetResponseString = await s3.getObjectBodyAsString({
-        Bucket: s3BucketName!,
+        Bucket: s3BucketName,
         Key: s3KeyName,
       });
 
@@ -43,5 +43,5 @@ export async function loadAccountsWithS3Attempt(
   }
 
   console.log(`Loading account details from dynamodb.`);
-  return await loadAccounts(tableName!, client);
+  return loadAccounts(tableName, client);
 }
