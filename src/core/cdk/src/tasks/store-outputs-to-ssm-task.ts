@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
+import * as s3 from '@aws-cdk/aws-s3';
 import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-tasks';
 
 export namespace StoreOutputsToSSMTask {
@@ -10,6 +11,7 @@ export namespace StoreOutputsToSSMTask {
     lambdaCode: lambda.Code;
     functionPayload?: { [key: string]: unknown };
     waitSeconds?: number;
+    workingBucket: s3.Bucket;
   }
 }
 
@@ -30,6 +32,19 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
       }),
     );
 
+    props.workingBucket.grantReadWrite(role);
+
+    const fetchConfigData = new CodeTask(scope, `Load All Config`, {
+      comment: 'Load All Config',
+      resultPath: '$.configDetails',
+      functionPayload,
+      functionProps: {
+        role,
+        code: lambdaCode,
+        handler: 'index.loadAllConfig',
+      },
+    });
+
     const storeAccountOutputs = new sfn.Map(this, `Store Account Outputs To SSM`, {
       itemsPath: `$.accounts`,
       resultPath: 'DISCARD',
@@ -45,6 +60,7 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
         'configCommitId.$': '$.configCommitId',
         'outputUtilsTableName.$': '$.outputUtilsTableName',
         'accountsTableName.$': '$.accountsTableName',
+        'configDetails.$': '$.configDetails',
       },
     });
 
@@ -74,9 +90,11 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
         'configCommitId.$': '$.configCommitId',
         'outputUtilsTableName.$': '$.outputUtilsTableName',
         'accountsTableName.$': '$.accountsTableName',
+        'configDetails.$': '$.configDetails',
       },
     });
 
+    fetchConfigData.next(storeAccountOutputs);
     getAccountInfoTask.next(storeAccountRegionOutputs);
     const storeOutputsTask = new CodeTask(scope, `Store Outputs To SSM`, {
       resultPath: '$.storeOutputsOutput',
@@ -93,7 +111,7 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
     storeAccountRegionOutputs.iterator(storeOutputsTask);
     const chain = sfn.Chain.start(storeAccountOutputs).next(pass);
 
-    this.startState = chain.startState;
+    this.startState = fetchConfigData.startState;
     this.endStates = chain.endStates;
   }
 }

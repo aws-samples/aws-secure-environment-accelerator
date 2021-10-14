@@ -7,6 +7,7 @@ import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
+import * as s3 from '@aws-cdk/aws-s3';
 import { CdkDeployProject, PrebuiltCdkDeployProject } from '@aws-accelerator/cdk-accelerator/src/codebuild';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-stack';
 import { createRoleName, createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
@@ -106,6 +107,18 @@ export namespace InitialSetup {
           type: dynamodb.AttributeType.STRING,
         },
         billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      });
+
+      // S3 working bucket
+      const s3WorkingBucket = new s3.Bucket(this, 'WorkingBucket', {
+        encryption: s3.BucketEncryption.S3_MANAGED,
+        lifecycleRules: [
+          {
+            id: '7DaysDelete',
+            enabled: true,
+            expiration: cdk.Duration.days(7),
+          },
+        ],
       });
 
       // This is the maximum time before a build times out
@@ -593,6 +606,7 @@ export namespace InitialSetup {
           definition: new StoreOutputsToSSMTask(this, 'StoreOutputsToSSM', {
             lambdaCode,
             role: pipelineRole,
+            workingBucket: s3WorkingBucket,
           }),
         },
       );
@@ -611,6 +625,7 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configCommitId',
           outputUtilsTableName: outputUtilsTable.tableName,
           accountsTableName: parametersTable.tableName,
+          s3WorkingBucket: s3WorkingBucket.bucketName,
         }),
         resultPath: 'DISCARD',
       });

@@ -1,5 +1,5 @@
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
-import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+import { loadAcceleratorConfigWithS3Attempt } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from '../load-configuration-step';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { saveNetworkOutputs } from './network-outputs';
@@ -8,7 +8,8 @@ import { saveElbOutputs } from './elb-outputs';
 import { saveEventOutputs } from './event-outputs';
 import { saveEncryptsOutputs } from './encrypt-outputs';
 import { saveFirewallReplacementOutputs } from './firewall-outputs';
-import { loadAccounts } from './../utils/load-accounts';
+import { loadAccountsWithS3Attempt } from './../utils/load-accounts';
+import { LoadConsolidatedResult } from './../load-consolidated';
 
 export interface SaveOutputsToSsmInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
@@ -18,6 +19,7 @@ export interface SaveOutputsToSsmInput extends LoadConfigurationInput {
   assumeRoleName: string;
   outputUtilsTableName: string;
   accountsTableName: string;
+  configDetails?: LoadConsolidatedResult;
 }
 
 const dynamodb = new DynamoDB();
@@ -36,6 +38,7 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
     region,
     outputUtilsTableName,
     accountsTableName,
+    configDetails,
   } = input;
   // Remove - if prefix ends with -
   const acceleratorPrefix = input.acceleratorPrefix.endsWith('-')
@@ -43,14 +46,21 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
     : input.acceleratorPrefix;
 
   // Retrieve Configuration from Code Commit with specific commitId
-  const config = await loadAcceleratorConfig({
+  const config = await loadAcceleratorConfigWithS3Attempt({
     repositoryName: configRepositoryName,
     filePath: configFilePath,
     commitId: configCommitId,
+    s3BucketName: configDetails?.bucket,
+    s3KeyName: configDetails?.configKey,
   });
 
   // Retrive Accounts from DynamoDB
-  const accounts = await loadAccounts(accountsTableName, dynamodb);
+  const accounts = await loadAccountsWithS3Attempt(
+    accountsTableName,
+    dynamodb,
+    configDetails?.bucket,
+    configDetails?.accountsKey,
+  );
 
   const globalRegions = config['global-options']['additional-global-output-regions'];
   const smRegion = config['global-options']['aws-org-master'].region;
