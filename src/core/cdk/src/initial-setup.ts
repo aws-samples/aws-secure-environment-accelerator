@@ -53,6 +53,9 @@ export namespace InitialSetup {
     configBranchName: string;
     notificationEmail: string;
     installerCmk: string;
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+    codebuildComputeType: any;
+    pageSize: string;
     /**
      * Current Accelerator version
      */
@@ -209,6 +212,7 @@ export namespace InitialSetup {
         packageManager: 'pnpm',
         commands: ['cd src/deployments/cdk', 'sh codebuild-deploy.sh'],
         timeout: buildTimeout,
+        computeType: props.codebuildComputeType,
         environment: {
           ACCELERATOR_NAME: props.acceleratorName,
           ACCELERATOR_PREFIX: props.acceleratorPrefix,
@@ -222,6 +226,8 @@ export namespace InitialSetup {
           VPC_CIDR_ASSIGNED_POOL: vpcCidrPoolTable.tableName,
           SUBNET_CIDR_ASSIGNED_POOL: subnetCidrPoolTable.tableName,
           CIDR_POOL: cidrPoolTable.tableName,
+          DEPLOY_STACK_PAGE_SIZE: props.pageSize,
+          COMPUTE_TYPE: props.codebuildComputeType,
         },
       });
 

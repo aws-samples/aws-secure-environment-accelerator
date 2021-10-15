@@ -108,6 +108,7 @@
     "io-ts": "2.2.16",
     "io-ts-types": "0.5.16",
     "js-yaml": "4.1.0",
+    "microstats": "^0.1.2",
     "pascal-case": "3.1.2",
     "semver": "7.3.5",
     "tempy": "1.0.1"

@@ -103,6 +103,17 @@ class Installer extends cdk.Stack {
       description: 'The notification email that will get Accelerator State Machine execution notifications.',
     });
 
+    const codebuildComputeType = new cdk.CfnParameter(this, 'CodeBuild Compute Type', {
+      description: 'The compute type of the build server for the Accelerator deployments.',
+      default: codebuild.ComputeType.LARGE,
+      allowedValues: [codebuild.ComputeType.MEDIUM, codebuild.ComputeType.LARGE, codebuild.ComputeType.X2_LARGE],
+    });
+
+    const stackDeployPageSize = new cdk.CfnParameter(this, 'Deployment Page Size', {
+      description: 'The number of stacks to deploy in parallel. This value SHOULD NOT normally be changed.',
+      default: 680,
+    });
+
     const stateMachineName = `${acceleratorPrefix}MainStateMachine_sm`;
 
     // The state machine name has to match the name of the state machine in initial setup
@@ -295,6 +306,14 @@ class Installer extends cdk.Stack {
           INSTALLER_CMK: {
             type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
             value: `alias/${acceleratorPrefix}Installer-Key`,
+          },
+          BUILD_COMPUTE_TYPE: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: codebuildComputeType.valueAsString,
+          },
+          DEPLOY_STACK_PAGE_SIZE: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: stackDeployPageSize.valueAsString,
           },
         },
       },

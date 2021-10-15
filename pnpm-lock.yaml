@@ -222,6 +222,7 @@ importers:
       io-ts-types: 0.5.16
       jest: 25.2.4
       js-yaml: 4.1.0
+      microstats: ^0.1.2
       mri: 1.1.6
       pascal-case: 3.1.2
       semver: 7.3.5
@@ -322,6 +323,7 @@ importers:
       io-ts: 2.2.16
       io-ts-types: 0.5.16_io-ts@2.2.16
       js-yaml: 4.1.0
+      microstats: 0.1.2
       pascal-case: 3.1.2
       semver: 7.3.5
       tempy: 1.0.1
@@ -16725,6 +16727,10 @@ packages:
     dependencies:
       braces: 3.0.2
       picomatch: 2.2.3
+
+  /microstats/0.1.2:
+    resolution: {integrity: sha1-kxRT+9kLLHd3/tR9KonDqLaQ7Vw=}
+    dev: false
 
   /miller-rabin/4.0.1:
     resolution: {integrity: sha512-115fLhvZVqWwHPbClyntxEVfVDfl9DLLTuJvq3g2O/Oxi8AiNouAHvDSzHS0viUJc+V5vm3eq91Xwqn9dp4jRA==}
