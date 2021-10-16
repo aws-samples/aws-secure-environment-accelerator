@@ -87,7 +87,7 @@ function blockS3PublicAccess(props: DefaultsStep1Props) {
  * Creates a bucket that contains copies of the files in the central bucket.
  */
 function createCentralBucketCopy(props: DefaultsStep1Props) {
-  const { accountStacks, config } = props;
+  const { accountStacks, config, acceleratorPrefix } = props;
 
   const masterAccountConfig = config['global-options']['aws-org-management'];
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountConfig.account);
@@ -124,6 +124,9 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
         StringEquals: {
           'aws:PrincipalOrgID': organizations.organizationId,
         },
+        ArnLike: {
+          'aws:PrincipalARN': `arn:aws:iam::*:role/${acceleratorPrefix}*`,
+        },
       },
     }),
   );
@@ -137,6 +140,9 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
       conditions: {
         StringEquals: {
           'aws:PrincipalOrgID': organizations.organizationId,
+        },
+        ArnLike: {
+          'aws:PrincipalARN': `arn:aws:iam::*:role/${acceleratorPrefix}*`,
         },
       },
     }),
