@@ -109,18 +109,6 @@ export namespace InitialSetup {
         billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       });
 
-      // S3 working bucket
-      const s3WorkingBucket = new s3.Bucket(this, 'WorkingBucket', {
-        encryption: s3.BucketEncryption.S3_MANAGED,
-        lifecycleRules: [
-          {
-            id: '7DaysDelete',
-            enabled: true,
-            expiration: cdk.Duration.days(7),
-          },
-        ],
-      });
-
       // This is the maximum time before a build times out
       // The role used by the build should allow this session duration
       const buildTimeout = cdk.Duration.hours(4);
@@ -137,6 +125,27 @@ export namespace InitialSetup {
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
         maxSessionDuration: buildTimeout,
       });
+
+      // S3 working bucket
+      const s3WorkingBucket = new s3.Bucket(this, 'WorkingBucket', {
+        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+        encryption: s3.BucketEncryption.S3_MANAGED,
+        lifecycleRules: [
+          {
+            id: '7DaysDelete',
+            enabled: true,
+            expiration: cdk.Duration.days(7),
+          },
+        ],
+      });
+      s3WorkingBucket.addToResourcePolicy(
+        new iam.PolicyStatement({
+          actions: ['s3:GetObject*', 's3:PutObject*', 's3:DeleteObject*', 's3:GetBucket*', 's3:List*'],
+          resources: [s3WorkingBucket.arnForObjects('*'), s3WorkingBucket.bucketArn],
+          principals: [pipelineRole],
+        }),
+      );
+      //
 
       // Add a suffix to the CodeBuild project so it creates a new project as it's not able to update the `baseImage`
       const projectNameSuffix = enablePrebuiltProject ? 'Prebuilt' : '';
@@ -606,7 +615,6 @@ export namespace InitialSetup {
           definition: new StoreOutputsToSSMTask(this, 'StoreOutputsToSSM', {
             lambdaCode,
             role: pipelineRole,
-            workingBucket: s3WorkingBucket,
           }),
         },
       );

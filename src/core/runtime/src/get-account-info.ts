@@ -5,9 +5,8 @@ import { LoadConfigurationInput } from './load-configuration-step';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import { MandatoryAccountType } from '@aws-accelerator/common-config';
-import { loadAccountsWithS3Attempt } from './utils/load-accounts';
+import { loadAccounts } from './utils/load-accounts';
 import { LoadConsolidatedResult } from './load-consolidated';
-import { AcceleratorConfig } from '@aws-accelerator/common-config/src/index';
 
 export interface GetAccountInfoInput extends LoadConfigurationInput {
   accountId?: string;
@@ -43,12 +42,7 @@ export const handler = async (input: GetAccountInfoInput) => {
   });
   if (accountType) {
     const mandatoryAccountKey = acceleratorConfig.getMandatoryAccountKey(accountType);
-    const accounts = await loadAccountsWithS3Attempt(
-      accountsTableName!,
-      dynamodb,
-      configDetails?.bucket,
-      configDetails?.accountsKey,
-    );
+    const accounts = await loadAccounts(accountsTableName!, dynamodb);
     const mandatoryAccount = accounts.find(acc => acc.key === mandatoryAccountKey);
     const rootOrg = await organizations.describeOrganization();
     if (!mandatoryAccount) {

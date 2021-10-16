@@ -8,7 +8,7 @@ import { saveElbOutputs } from './elb-outputs';
 import { saveEventOutputs } from './event-outputs';
 import { saveEncryptsOutputs } from './encrypt-outputs';
 import { saveFirewallReplacementOutputs } from './firewall-outputs';
-import { loadAccountsWithS3Attempt } from './../utils/load-accounts';
+import { loadAccounts } from './../utils/load-accounts';
 import { LoadConsolidatedResult } from './../load-consolidated';
 
 export interface SaveOutputsToSsmInput extends LoadConfigurationInput {
@@ -55,12 +55,7 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
   });
 
   // Retrive Accounts from DynamoDB
-  const accounts = await loadAccountsWithS3Attempt(
-    accountsTableName,
-    dynamodb,
-    configDetails?.bucket,
-    configDetails?.accountsKey,
-  );
+  const accounts = await loadAccounts(accountsTableName, dynamodb);
 
   const globalRegions = config['global-options']['additional-global-output-regions'];
   const smRegion = config['global-options']['aws-org-master'].region;

@@ -2,7 +2,6 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
-import * as s3 from '@aws-cdk/aws-s3';
 import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-tasks';
 
 export namespace StoreOutputsToSSMTask {
@@ -11,7 +10,6 @@ export namespace StoreOutputsToSSMTask {
     lambdaCode: lambda.Code;
     functionPayload?: { [key: string]: unknown };
     waitSeconds?: number;
-    workingBucket: s3.Bucket;
   }
 }
 
@@ -31,8 +29,6 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
         actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
       }),
     );
-
-    props.workingBucket.grantReadWrite(role);
 
     const fetchConfigData = new CodeTask(scope, `Load All Config`, {
       comment: 'Load All Config',
