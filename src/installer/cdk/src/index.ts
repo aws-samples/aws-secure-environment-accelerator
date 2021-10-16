@@ -82,13 +82,13 @@ async function main() {
   });
   const codebuildComputeType = new cdk.CfnParameter(stack, 'CodeBuild Compute Type', {
     description: 'The compute type of the build server for the Accelerator deployments.',
-    default: codebuild.ComputeType.MEDIUM,
+    default: codebuild.ComputeType.LARGE,
     allowedValues: [codebuild.ComputeType.MEDIUM, codebuild.ComputeType.LARGE, codebuild.ComputeType.X2_LARGE],
   });
 
   const stackDeployPageSize = new cdk.CfnParameter(stack, 'Deployment Page Size', {
     description: 'The number of stacks to deploy in parallel. This value SHOULD NOT normally be changed.',
-    default: 900,
+    default: 680,
   });
   const stateMachineName = `${acceleratorPrefix}MainStateMachine_sm`;
 

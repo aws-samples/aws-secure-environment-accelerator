@@ -176,8 +176,13 @@ export class CdkToolkit {
       messageType,
     };
 
-    console.log(JSON.stringify(stackLoggingInfo, null, 4));
+    console.log(JSON.stringify(stackLoggingInfo));
   }
+
+  async sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   async deployStack(stack: CloudFormationStackArtifact, retries: number = 0): Promise<StackOutput[]> {
     this.deploymentLog(stack, 'Deploying Stack');
     const stackExists = await this.cloudFormation.stackExists({ stack });
@@ -265,9 +270,10 @@ export class CdkToolkit {
         await this.destroyStack(stack);
         this.deploymentLog(stack, 'Deleted failed stack');
       }
-      if (retries < 1) {
+      if (retries < 2) {
         console.log(e);
-        this.deploymentLog(stack, 'Deployment failed because of error. Retrying deployment');
+        this.deploymentLog(stack, `Deployment failed because of error. Retrying deployment ${retries}`);
+        await this.sleep(10000);
         return await this.deployStack(stack, retries + 1);
       }
       throw e;
