@@ -130,6 +130,7 @@ export namespace InitialSetup {
       const s3WorkingBucket = new s3.Bucket(this, 'WorkingBucket', {
         blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
         encryption: s3.BucketEncryption.S3_MANAGED,
+        removalPolicy: cdk.RemovalPolicy.RETAIN,
         lifecycleRules: [
           {
             id: '7DaysDelete',
@@ -143,6 +144,20 @@ export namespace InitialSetup {
           actions: ['s3:GetObject*', 's3:PutObject*', 's3:DeleteObject*', 's3:GetBucket*', 's3:List*'],
           resources: [s3WorkingBucket.arnForObjects('*'), s3WorkingBucket.bucketArn],
           principals: [pipelineRole],
+        }),
+      );
+      // Allow only https requests
+      s3WorkingBucket.addToResourcePolicy(
+        new iam.PolicyStatement({
+          actions: ['s3:*'],
+          resources: [s3WorkingBucket.bucketArn, s3WorkingBucket.arnForObjects('*')],
+          principals: [new iam.AnyPrincipal()],
+          conditions: {
+            Bool: {
+              'aws:SecureTransport': 'false',
+            },
+          },
+          effect: iam.Effect.DENY,
         }),
       );
       //
