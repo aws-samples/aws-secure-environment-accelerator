@@ -238,7 +238,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 8. Add an `Email` address to be used for State Machine Status notification
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.3.8`, case sensitive
+   - the latest stable branch is currently `release/v1.3.9`, case sensitive
 10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
@@ -274,7 +274,6 @@ If deploying to an internal AWS employee account, to successfully install the so
 Current Issues:
 
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine.
-
 
 Issues in Older Releases:
 
@@ -333,6 +332,8 @@ Issues in Older Releases:
 
 **Release Specific Upgrade Considerations:**
 
+- Upgrades to `v1.3.9 and above` from `v1.3.8-b and below`:
+  - Requires the removal of any interface endpoints containing a period (sub-domain) either before or during the upgrade process (ecr.dkr, ecr.api, transfer.server, sagemaker.api, sagemaker.runtime in the full config.json example)
 - Upgrades to `v1.3.3 and above` from `v1.3.2 and below`:
   - Requires mandatory config file schema changes as documented in the [release notes](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
     - These updates cause the config file change validation to fail and require running the state machine with the following input to override the validation checks on impacted fields: `{"scope": "FULL", "mode": "APPLY", "configOverrides": {"ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }}`
@@ -380,7 +381,7 @@ Issues in Older Releases:
    - The pipeline will automatically run and trigger the upgraded state machine
 9. If you are using a pre-existing GitHub token:
 
-- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.3.8`)
+- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.3.9`)
   - Go to AWS CloudFormation and select the stack: `PBMMAccel-what-you-provided`
   - Select Update, select Replace current template, Select Upload a template file
   - Select Choose File and select the template you downloaded in step 5 (`AcceleratorInstallerXYZ.template.json`)
