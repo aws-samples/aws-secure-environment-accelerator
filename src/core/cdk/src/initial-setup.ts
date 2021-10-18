@@ -7,6 +7,7 @@ import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
+import * as s3 from '@aws-cdk/aws-s3';
 import { CdkDeployProject, PrebuiltCdkDeployProject } from '@aws-accelerator/cdk-accelerator/src/codebuild';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-stack';
 import { createRoleName, createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
@@ -124,6 +125,42 @@ export namespace InitialSetup {
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
         maxSessionDuration: buildTimeout,
       });
+
+      // S3 working bucket
+      const s3WorkingBucket = new s3.Bucket(this, 'WorkingBucket', {
+        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+        encryption: s3.BucketEncryption.S3_MANAGED,
+        removalPolicy: cdk.RemovalPolicy.RETAIN,
+        lifecycleRules: [
+          {
+            id: '7DaysDelete',
+            enabled: true,
+            expiration: cdk.Duration.days(7),
+          },
+        ],
+      });
+      s3WorkingBucket.addToResourcePolicy(
+        new iam.PolicyStatement({
+          actions: ['s3:GetObject*', 's3:PutObject*', 's3:DeleteObject*', 's3:GetBucket*', 's3:List*'],
+          resources: [s3WorkingBucket.arnForObjects('*'), s3WorkingBucket.bucketArn],
+          principals: [pipelineRole],
+        }),
+      );
+      // Allow only https requests
+      s3WorkingBucket.addToResourcePolicy(
+        new iam.PolicyStatement({
+          actions: ['s3:*'],
+          resources: [s3WorkingBucket.bucketArn, s3WorkingBucket.arnForObjects('*')],
+          principals: [new iam.AnyPrincipal()],
+          conditions: {
+            Bool: {
+              'aws:SecureTransport': 'false',
+            },
+          },
+          effect: iam.Effect.DENY,
+        }),
+      );
+      //
 
       // Add a suffix to the CodeBuild project so it creates a new project as it's not able to update the `baseImage`
       const projectNameSuffix = enablePrebuiltProject ? 'Prebuilt' : '';
@@ -611,6 +648,7 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configCommitId',
           outputUtilsTableName: outputUtilsTable.tableName,
           accountsTableName: parametersTable.tableName,
+          s3WorkingBucket: s3WorkingBucket.bucketName,
         }),
         resultPath: 'DISCARD',
       });

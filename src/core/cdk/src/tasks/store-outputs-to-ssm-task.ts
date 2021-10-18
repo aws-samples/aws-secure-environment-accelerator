@@ -30,6 +30,17 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
       }),
     );
 
+    const fetchConfigData = new CodeTask(scope, `Load All Config`, {
+      comment: 'Load All Config',
+      resultPath: '$.configDetails',
+      functionPayload,
+      functionProps: {
+        role,
+        code: lambdaCode,
+        handler: 'index.loadAllConfig',
+      },
+    });
+
     const storeAccountOutputs = new sfn.Map(this, `Store Account Outputs To SSM`, {
       itemsPath: `$.accounts`,
       resultPath: 'DISCARD',
@@ -45,6 +56,7 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
         'configCommitId.$': '$.configCommitId',
         'outputUtilsTableName.$': '$.outputUtilsTableName',
         'accountsTableName.$': '$.accountsTableName',
+        'configDetails.$': '$.configDetails',
       },
     });
 
@@ -74,9 +86,11 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
         'configCommitId.$': '$.configCommitId',
         'outputUtilsTableName.$': '$.outputUtilsTableName',
         'accountsTableName.$': '$.accountsTableName',
+        'configDetails.$': '$.configDetails',
       },
     });
 
+    fetchConfigData.next(storeAccountOutputs);
     getAccountInfoTask.next(storeAccountRegionOutputs);
     const storeOutputsTask = new CodeTask(scope, `Store Outputs To SSM`, {
       resultPath: '$.storeOutputsOutput',
@@ -93,7 +107,7 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
     storeAccountRegionOutputs.iterator(storeOutputsTask);
     const chain = sfn.Chain.start(storeAccountOutputs).next(pass);
 
-    this.startState = chain.startState;
+    this.startState = fetchConfigData.startState;
     this.endStates = chain.endStates;
   }
 }

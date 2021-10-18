@@ -1,31 +1,44 @@
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
-import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+import { loadAcceleratorConfigWithS3Attempt } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import { MandatoryAccountType } from '@aws-accelerator/common-config';
 import { loadAccounts } from './utils/load-accounts';
+import { LoadConsolidatedResult } from './load-consolidated';
 
 export interface GetAccountInfoInput extends LoadConfigurationInput {
   accountId?: string;
   accountType?: MandatoryAccountType;
   accountsTableName?: string;
+  configDetails?: LoadConsolidatedResult;
 }
 
 const organizations = new Organizations();
 const dynamodb = new DynamoDB();
+
 export const handler = async (input: GetAccountInfoInput) => {
   console.log(`Get Account Info...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accountId, configCommitId, configFilePath, configRepositoryName, accountType, accountsTableName } = input;
+  const {
+    accountId,
+    configCommitId,
+    configFilePath,
+    configRepositoryName,
+    accountType,
+    accountsTableName,
+    configDetails,
+  } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
-  const acceleratorConfig = await loadAcceleratorConfig({
+  const acceleratorConfig = await loadAcceleratorConfigWithS3Attempt({
     repositoryName: configRepositoryName,
     filePath: configFilePath,
     commitId: configCommitId,
+    s3BucketName: configDetails?.bucket,
+    s3KeyName: configDetails?.configKey,
   });
   if (accountType) {
     const mandatoryAccountKey = acceleratorConfig.getMandatoryAccountKey(accountType);
