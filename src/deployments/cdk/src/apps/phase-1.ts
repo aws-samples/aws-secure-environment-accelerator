@@ -400,6 +400,53 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     return iamPoliciesDef;
   };
 
+  const getIamTrustPoliciesDefinition = async (): Promise<{ [policyName: string]: string } | undefined> => {
+    const iamPoliciesDef: { [policyName: string]: string } = {};
+
+    const sts = new STS();
+    const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(
+      masterAccountId,
+      context.acceleratorExecutionRoleName,
+    );
+
+    // TODO Remove call to S3 here somehow
+    const iamPolicyS3 = new S3(masterAcctCredentials);
+
+    const iamPolicyArtifactOutput: IamPolicyArtifactsOutput[] = getStackJsonOutput(outputs, {
+      accountKey: masterAccountKey,
+      outputType: 'IamPolicyArtifactsOutput',
+    });
+
+    if (iamPolicyArtifactOutput.length === 0) {
+      console.warn(`Cannot find output with Iam Policy reference artifacts`);
+      return;
+    }
+
+    const iamPoliciesBucketName = iamPolicyArtifactOutput[0].bucketName;
+    const iamPoliciesBucketPrefix = iamPolicyArtifactOutput[0].keyPrefix + '/';
+
+    for (const { iam: iamConfig } of iamConfigs) {
+      if (IamConfigType.is(iamConfig)) {
+        for (const role of iamConfig.roles || []) {
+          if (role['trust-policy']) {
+            const iamPolicyKey = `${iamPoliciesBucketPrefix}${role['trust-policy']}`;
+            try {
+              console.log(iamPoliciesBucketName, iamPolicyKey);
+              const policyContent = await iamPolicyS3.getObjectBodyAsString({
+                Bucket: iamPoliciesBucketName,
+                Key: iamPolicyKey,
+              });
+              role['trust-policy'] = JSON.parse(JSON.stringify(policyContent));
+            } catch (e) {
+              console.warn(`Cannot load IAM policy s3://${iamPoliciesBucketName}/${iamPolicyKey}`);
+              throw e;
+            }
+          }
+        }
+      }
+    }
+  };
+  await getIamTrustPoliciesDefinition();
   const iamPoliciesDefinition = await getIamPoliciesDefinition();
 
   const createIamAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {

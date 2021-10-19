@@ -108,10 +108,11 @@ export class IamAssets extends cdk.Construct {
       sourceAccountRole?: string,
       trustPolicy?: string,
     ): iam.Role => {
-      if (sourceAccount && sourceAccountRole && trustPolicy) {
+      let newRole: iam.Role | undefined;
+      if (sourceAccount && sourceAccountRole) {
         const sourceAccountId = getAccountId(accounts, sourceAccount);
 
-        return new iam.Role(this, `IAM-Role-${role}-${accountKey}`, {
+        newRole = new iam.Role(this, `IAM-Role-${role}-${accountKey}`, {
           roleName: role,
           description: `PBMM - ${role}`,
           assumedBy: new iam.ArnPrincipal(`arn:aws:iam::${sourceAccountId}:role/${sourceAccountRole}`),
@@ -120,8 +121,31 @@ export class IamAssets extends cdk.Construct {
           ),
           permissionsBoundary: customerManagedPolicies[boundaryPolicy],
         });
+
+        if (trustPolicy) {
+          const newRoleTrustPolicy = newRole.assumeRolePolicy;
+          const statements = JSON.parse(trustPolicy).Statement as any[];
+          statements.map(statement => {
+            if (!Array.isArray(statement.Principal.AWS)) {
+              statement.Principal.AWS = [statement.Principal.AWS as string];
+            }
+            const principalAccount: string[] = statement.Principal.AWS;
+            const newPrincipals = principalAccount.map(principal => {
+              return new iam.ArnPrincipal(principal);
+            });
+            newRoleTrustPolicy?.addStatements(
+              new iam.PolicyStatement({
+                principals: newPrincipals,
+                actions: ['sts:AssumeRole'],
+                conditions: statement.Condition,
+                notActions: statement.NotAction,
+                effect: iam.Effect.ALLOW,
+              }),
+            );
+          });
+        }
       } else {
-        return new iam.Role(this, `IAM-Role-${role}`, {
+        newRole = new iam.Role(this, `IAM-Role-${role}`, {
           roleName: role,
           description: `PBMM - ${role}`,
           assumedBy: new iam.ServicePrincipal(`${type}.amazonaws.com`),
@@ -131,6 +155,8 @@ export class IamAssets extends cdk.Construct {
           permissionsBoundary: customerManagedPolicies[boundaryPolicy],
         });
       }
+
+      return newRole;
     };
 
     const createIamSSMLogArchiveWritePolicy = (): iam.ManagedPolicy => {
