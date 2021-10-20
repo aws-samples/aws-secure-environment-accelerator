@@ -27,7 +27,17 @@ optional arguments:
   --ConfigFile CONFIGFILE
                         ConfigFile location
 
+Examples:
+- Only update the config.json to new file format:
 ```
-    python update.py --ConfigFile=config.json
+	python update.py --Region ca-central-1 --LoadConfig --ConfigFile config.json
 ```
 
+- Update the config.json to new file format and load DDB tables with CIDR ranges
+```
+	python update.py --Region ca-central-1 --LoadConfig --LoadDB --ConfigFile config.json --AcceleratorPrefix PBMMAccel-
+```
+- Only load DDB tables with CIDR ranges
+```
+	python update.py --Region ca-central-1 --LoadDB --ConfigFile config.json --AcceleratorPrefix PBMMAccel-
+```
