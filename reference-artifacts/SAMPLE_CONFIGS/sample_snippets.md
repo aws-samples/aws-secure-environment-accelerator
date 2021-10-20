@@ -33,19 +33,26 @@ In vpc section, under interface endpoints:
 
 ---
 
-## - Create a role with trust policies
+## - Cross Account Role Example with trust policies (trust policies not supported until v1.5.0+)
 
 ```
 {
             "role": "Demo-Role",
-            "type": "other",
+            "type": "account",
             "policies": ["AdministratorAccess"],
             "boundary-policy": "Default-Boundary-Policy",
             "source-account": "operations",
-            "source-account-role": "TempAdmin",
-            "trust-policy": "none"
+            "source-account-role": "Admin",
+            "trust-policy": "role-trust-policy.txt"
 }
 ```
+Notes:
+- if "source-account" and "source-account-role" are specified, a cross-account role will be created
+- "type" can be any value if "source-account" and "acource-account-role" are specified (not used, but required)
+- "type" is the AWS service name if creating a service role (i.e. ec2)
+- "trust-policy" is only applied to cross-account roles and not service roles
+- the trust policy is interpreted, not all custom trust policy values may be implemented
+  - for example, we always use the action sts:AssumeRole
 
 ---
 
@@ -344,20 +351,7 @@ This is typically only deployed in the perimeter account, but could be used else
 
 ---
 
-## - Cross Account Role Example
-
-```
-          {
-            "role": "Test-Role",
-            "type": "account",
-            "policies": ["AdministratorAccess"],
-            "boundary-policy": "Default-Boundary-Policy",
-            "source-account": "security",
-            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
-            "trust-policy": "role-trust-policy.txt"
-          }
-```
-
+xx
 ---
 
 ## - Very basic workload account example and "per account" exceptions example
