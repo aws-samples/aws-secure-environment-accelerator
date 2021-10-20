@@ -118,6 +118,7 @@
         "ds:ShareDirectory",
         "ds:EnableSso",
         "ds:DisableSso",
+        "ram:AcceptResourceShareInvitation",
         "ram:AssociateResourceShare",
         "ram:CreateResourceShare",
         "ram:EnableSharingWithAwsOrganization",
@@ -141,6 +142,7 @@
       "NotAction": [
         "a4b:*",
         "access-analyzer:ValidatePolicy",
+        "access-analyzer:ListPolicyGenerations",
         "aws-marketplace-management:*",
         "aws-marketplace:*",
         "aws-portal:*",
@@ -168,7 +170,6 @@
         "s3:GetBucketLocation",
         "s3:ListAllMyBuckets",
         "s3:ListBuckets",
-        "s3:PutAccountPublic*",
         "shield:*",
         "sts:*",
         "support:*",

@@ -60,14 +60,8 @@
     {
       "Sid": "RUL",
       "Effect": "Deny",
-      "Action": [
-        "config:PutConfigRule",
-        "config:DeleteConfigRule",
-        "config:DeleteEvaluationResults",
-        "config:DeleteConfigurationAggregator",
-        "config:PutConfigurationAggregator"
-      ],
-      "Resource": ["arn:aws:config:*:*:config-rule/${ACCELERATOR_PREFIX}*"],
+      "Action": ["config:PutConfigRule", "config:DeleteConfigRule", "config:DeleteEvaluationResults"],
+      "Resource": ["arn:aws:config:*:*:config-rule/*"],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
@@ -111,20 +105,14 @@
     {
       "Sid": "ACM",
       "Effect": "Deny",
-      "Action": [
-        "acm:DeleteCertificate",
-        "acm:ExportCertificate",
-        "acm:RemoveTagsFromCertificate"
-      ],
+      "Action": ["acm:DeleteCertificate", "acm:ExportCertificate", "acm:RemoveTagsFromCertificate"],
       "Resource": "*",
       "Condition": {
         "StringEquals": {
           "aws:ResourceTag/Accelerator": "${ACCELERATOR_NAME}"
         },
         "ArnNotLike": {
-          "aws:PrincipalArn": [
-            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
-          ]
+          "aws:PrincipalArn": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
         }
       }
     },
@@ -166,8 +154,7 @@
         "macie2:DeleteMember",
         "macie2:DisableMacie",
         "macie2:DisableOrganizationAdminAccount",
-        "macie2:DisassociateFromMasterAccount",
-        "macie2:DisassociateMember",
+        "macie2:Disassociate*",
         "macie2:EnableMacie",
         "macie2:EnableOrganizationAdminAccount",
         "macie2:UpdateMacieSession",
@@ -183,7 +170,9 @@
         "ec2:DisableEbsEncryptionByDefault",
         "s3:PutAccountPublicAccessBlock",
         "ds:UnshareDirectory",
-        "ram:DeleteResourceShare"
+        "ram:Delete*",
+        "ram:Disassociate*",
+        "ram:Update*"
       ],
       "Resource": "*",
       "Condition": {
