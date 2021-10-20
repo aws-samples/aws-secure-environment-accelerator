@@ -15,11 +15,14 @@ import * as aws from 'aws-sdk';
 import { Account, OrganizationalUnit } from 'aws-sdk/clients/organizations';
 import { AcceleratorConfig } from '@aws-accelerator/common-config';
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
+import { ServiceCatalog } from '@aws-accelerator/common/src/aws/service-catalog';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import * as path from 'path';
 import * as fs from 'fs';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+//import { ServiceCatalog } from 'aws-sdk';
+import { ProvisionedProductAttributes, SearchProvisionedProductsOutput } from 'aws-sdk/clients/servicecatalog';
 jest.mock('@aws-accelerator/common-config/src/load');
 aws.config.logger = console;
 
@@ -38,6 +41,7 @@ interface MockValues {
   organizationalUnitAccounts: { [ouId: string]: Account[] };
   accounts: Account[];
   masterAccount: Account;
+  provisionedProducts: ProvisionedProductAttributes[];
 }
 
 export const values: MockValues = {
@@ -79,6 +83,10 @@ export function install() {
   jest
     .spyOn(DynamoDB.prototype, 'getItem')
     .mockImplementation(async (tableName: string, client: DynamoDB) => Promise.resolve([]));
+  
+  jest
+    .spyOn(ServiceCatalog.prototype, 'searchProvisionedProductsForAllAccounts')
+    .mockImplementation(async() => []);
 
   // Mock "loadAcceleratorConfig" directly with content from test/config.example.json
   const configFilePath = path.join(__dirname, '..', '..', '..', '..', 'test', 'config.example.json');
