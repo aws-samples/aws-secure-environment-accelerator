@@ -317,7 +317,7 @@ If deploying to an internal AWS employee account and installing the solution wit
 ## 2.5. Installation
 
 1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
-   - We only support new installations of v1.5.0 or above (older releases continue to function)
+   - We only support new installations of v1.3.8 or above (older releases continue to function)
 2. Download the CloudFormation (CFN) template for the release you plan to install (either `AcceleratorInstallerXXX.template.json` for GitHub or `AcceleratorInstallerXXX-CodeCommit.template.json` for CodeCommit)
 3. Use the provided CloudFormation template to deploy a new stack in your Management (root) AWS account
    - As previously stated we do not support installation in sub-accounts
@@ -387,7 +387,7 @@ Current Issues:
 
 Issues in Older Releases:
 
-- New installs to releases prior to v1.5.0 are no longer supported.
+- New installs to releases prior to v1.3.8 are no longer supported.
 - Upgrades to releases prior to v1.3.8 are no longer supported.
 
 ## 2.6. Post-Installation
@@ -570,6 +570,10 @@ The Accelerator installation is complete, but several manual steps remain:
     - config file upgrade script, CIDR migration to DDB (if desired), how implement new OU structure, SCP and part-2 issue,oldip.json
   - Dynamic CIDRs, lookup, opt-in vpc, SNS/CWL/SH changes - release notes?
   - **add specific v1.5.0 steps here**
+- Upgrades to `v1.3.9 and above` from `v1.3.8-b and below`:
+  - All interface endpoints containing a period must be removed from the config.json file either before or during the upgrade process 
+    - i.e. ecr.dkr, ecr.api, transfer.server, sagemaker.api, sagemaker.runtime in the full config.json example
+    - If you remove them on a pre-upgrade State Machine execution, you can put them back during the upgrade, if you remove them during the upgrade, you can put them back post upgrade.
 - Upgrades to `v1.3.3 and above` from `v1.3.2 and below`:
   - Requires mandatory config file schema changes as documented in the [release notes](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
     - These updates cause the config file change validation to fail and require running the state machine with the following input to override the validation checks on impacted fields: `{"scope": "FULL", "mode": "APPLY", "configOverrides": {"ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }}`
@@ -620,7 +624,7 @@ The Accelerator installation is complete, but several manual steps remain:
    - The pipeline will automatically run and trigger the upgraded state machine
 9. If you are using a pre-existing GitHub token, or installing from CodeCommit:
 
-- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.3.5`)
+- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.5.0`)
   - Go to AWS CloudFormation and select the stack: `ASEA-what-you-provided`
   - Select Update, select Replace current template, Select Upload a template file
   - Select Choose File and select the template you downloaded in step 6 (`AcceleratorInstallerXYZ.template.json` or `AcceleratorInstallerXXX-CodeCommit.template.json`)
@@ -698,6 +702,8 @@ The Accelerator installation is complete, but several manual steps remain:
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints.
 - If the Organization Management (root) account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
 - 3rd party firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment), or deploy a second parallel FW cluster and de-provision the first cluster when ready.
+- When adding more than 100 accounts to an OU which uses shared VPC's, you must _first_ increase the Quota `Participant accounts per VPC` in the shared VPC owner account (i.e. shared-network). Trapping this quota before the SM fails has been added to the backlog.
+- The default limit for Directory Sharing is 125 accounts for an Enterprise Managed Active Directory (MAD), a quota increase needs to be manually requested through support from the account containing the MAD before this limit is reached. Standard MAD has a sharing limit of 5 accounts (and only supports a small quota increase). The MAD sharing limit is not available in the Service Quota's tools.
 
 ---
 
