@@ -13,7 +13,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { action, toJS } from 'mobx';
-import { observer, useLocalStore } from 'mobx-react-lite';
+import { Observer, observer, useLocalStore } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
 import {
   Button,
@@ -22,6 +22,7 @@ import {
   Header,
   Input,
   Modal,
+  Select,
   SpaceBetween,
   StatusIndicator,
   Table,
@@ -33,10 +34,14 @@ import { AcceleratorConfigurationNode } from '../configuration';
 import { WizardField } from './fields';
 import { isDisabled, setDisabled } from '../util';
 import { LabelWithDescription } from './label-with-description';
+import { valueAsArray } from '@/utils';
+import { OptionDefinition } from '../../../../node_modules/@awsui/components-react/internal/components/option/interfaces';
+
 
 const ouConfigNode = AcceleratorConfigurationNode.nested('organizational-units');
 const mandatoryAccountConfigNode = AcceleratorConfigurationNode.nested('mandatory-account-configs');
 const workloadAccountConfigNode = AcceleratorConfigurationNode.nested('workload-account-configs');
+
 
 interface TableItem {
   path: string;
@@ -116,7 +121,7 @@ export const VpcTable: React.VFC<VpcTableProps> = observer(({ state }) => {
           },
           {
             header: 'CIDR pool',
-            cell: ({ value }) => value.cidr?.[0]?.pool,
+            cell: ({ value }) => <Observer>{() => value.cidr?.[0]?.pool}</Observer>,
           },
           {
             header: 'CIDR size',
@@ -161,9 +166,12 @@ const EditVpcModal = observer(function EditVpcModal({ visible, node, state, onDi
   const staging = useLocalStore(() => ({}));
   const [tgwAttachEnabled, setEnabled] = useState(false);
 
+  const [selectedOption, setSelectedOption] = useState<OptionDefinition>({label: "Option 1", value: "Value 1"});
+
   const cidrNode = node.nested('cidr').nested(0);
   const tgwAttachNode = node.nested('tgw-attach');
   const tgwAttach = tgwAttachNode.get(state);
+
 
   const handleSubmit = () => {
     // Get the VPC from the staging state
@@ -181,12 +189,12 @@ const EditVpcModal = observer(function EditVpcModal({ visible, node, state, onDi
   }, [visible]);
 
   return (
-    <Modal
+      <Modal
       visible={visible}
       header={<Header variant="h3">{tr('wizard.headers.edit_vpc')}</Header>}
       footer={
-        <Button variant="primary" onClick={handleSubmit}>
-          {tr('buttons.edit')}
+        <Button variant="primary" className="float-button" onClick={handleSubmit}>
+          {tr('buttons.save_changes')}
         </Button>
       }
       onDismiss={onDismiss}
@@ -198,6 +206,7 @@ const EditVpcModal = observer(function EditVpcModal({ visible, node, state, onDi
           handleSubmit();
         }}
       >
+        {console.log(staging)}
         <SpaceBetween size="s">
           <WizardField state={staging} node={node.nested('name')} disabled={true} />
           <FormField label="Defined in" stretch>
@@ -225,8 +234,9 @@ const EditVpcModal = observer(function EditVpcModal({ visible, node, state, onDi
   );
 });
 
+
 export function getVpcNodes(state: any) {
-  return [
+    return [
     ...getAccountOrOuVpcNodes(ouConfigNode, state),
     ...getAccountOrOuVpcNodes(mandatoryAccountConfigNode, state),
     ...getAccountOrOuVpcNodes(workloadAccountConfigNode, state),
@@ -236,9 +246,7 @@ export function getVpcNodes(state: any) {
 function getAccountOrOuVpcNodes(node: TypeTreeNode, state: any): TypeTreeNode<typeof c.VpcConfigType>[] {
   return Object.keys(node.get(state) ?? {}).flatMap(accountKey => {
     // prettier-ignore
-    const vpcArrayNode = node
-        .nested(accountKey)
-        .nested<typeof c.VpcConfigType>('vpc');
+    const vpcArrayNode = node.nested(accountKey).nested<typeof c.VpcConfigType>('vpc');
     const vpcArray = vpcArrayNode.get(state) ?? [];
     return Object.keys(vpcArray).map(key => vpcArrayNode.nested(key));
   });

@@ -152,8 +152,8 @@ const EditVpcZoneModal = observer(function EditVpcZoneModal({
       visible={visible}
       header={<Header variant="h3">{tr('wizard.headers.edit_zone')}</Header>}
       footer={
-        <Button variant="primary" onClick={handleSubmit}>
-          {tr('buttons.edit')}
+        <Button variant="primary" className="float-button" onClick={handleSubmit}>
+          {tr('buttons.save_changes')}
         </Button>
       }
       onDismiss={onDismiss}

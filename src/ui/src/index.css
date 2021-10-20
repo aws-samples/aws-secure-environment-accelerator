@@ -21,3 +21,11 @@
 .nowrap * {
   white-space: nowrap !important;
 }
+
+._content_lm6vo_1fybi_136{
+  max-width: none !important;
+}
+
+.float-button {
+  float: right;
+}

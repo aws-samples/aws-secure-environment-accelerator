@@ -120,6 +120,7 @@ export interface I18nTranslations {
     import: string;
     next: string;
     previous: string;
+    save_changes: string;
   };
   wizard: {
     steps: {
@@ -177,6 +178,7 @@ export interface I18nTranslations {
       edit_zone: string;
     };
     labels: {
+      alert_success_file: string;
       credentials_not_set: string;
       credentials_valid: string;
       credentials_not_valid: string;
@@ -251,6 +253,7 @@ export interface I18nTranslations {
     buttons: {
       configure_aws_credentials: string;
       select_configuration_file: string;
+      export_configure_credentials: string;
     };
   };
   splash: {

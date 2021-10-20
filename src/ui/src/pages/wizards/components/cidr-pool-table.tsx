@@ -15,7 +15,7 @@
 import { action, toJS } from 'mobx';
 import { observer, useLocalStore } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
-import { Button, Header, Modal, SpaceBetween, StatusIndicator, Table } from '@awsui/components-react';
+import { Alert, Button, Header, Modal, SpaceBetween, StatusIndicator, Table } from '@awsui/components-react';
 import { useI18n } from '@/components/i18n-context';
 import { valueAsArray } from '@/utils';
 import { AcceleratorConfigurationNode } from '../configuration';
@@ -35,6 +35,9 @@ export const CidrPoolTable: React.VFC<CidrPoolTableProps> = observer(({ state })
   const [modalType, setModalType] = useState<'add' | 'edit'>('add');
   const [modalInitialValue, setModalInitialValue] = useState<any>({});
   const [selectedItem, setSelectedItem] = useState<any>();
+  const [dependencyAlertVisible, setDependencyAlertVisible] = useState(false);
+  const [editNameAlert, setEditNameAlert] = useState(false);
+  const [addNameAlert, setAddNameAlert] = useState(false);
 
   // Fetch translations to be used as table headers
   const { title: nameTitle } = tr(dummyCidrPoolNode.nested('pool'));
@@ -43,31 +46,67 @@ export const CidrPoolTable: React.VFC<CidrPoolTableProps> = observer(({ state })
 
   const pools = valueAsArray(cidrPoolsNode.get(state));
 
-  const handleAdd = () => {
+  const handleAdd = action(() => {
     setModalType('add');
     setModalInitialValue({});
     setModalVisible(true);
-  };
+  });
 
-  const handleEdit = () => {
+  const handleEdit = action(() => {
     setModalType('edit');
     setModalInitialValue(selectedItem ? toJS(selectedItem) : {});
     setModalVisible(true);
-  };
-
-  const handleSubmitAdd = action((value: any) => {
-    cidrPoolsNode.set(state, [...pools, value]);
   });
 
-  const handleSubmitEdit = action((value: any) => {
-    if (selectedItem) {
-      // TODO Rename CIDR pools throughout configuration file
-      // selectedItem.name = value.name;
-      selectedItem.cidr = value.cidr;
-      selectedItem.region = value.region;
+  const handleSubmitAdd = action((value: any) => {
+    if (nameExists(value['pool'])) {
+      setAddNameAlert(true);
+    } else {
+      cidrPoolsNode.set(state, [...pools, value]);
     }
   });
 
+  const nameExists = (pool: string | undefined) => {
+    for (let each in pools) {
+      if (pools[each]['pool'] == pool) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  const handleSubmitEdit = action((value: any) => {
+    if (nameExists(value['pool'])) {
+      setEditNameAlert(true);
+    } else {
+        cidrRecurs(selectedItem.pool, value.pool, state) 
+        if (selectedItem) {
+          selectedItem.pool = value.pool;
+          selectedItem.cidr = value.cidr;
+          selectedItem.region = value.region;
+        }
+    }
+  });
+
+  const cidrRecurs = action((oldValue: string, newValue: string, node: any) => {
+    Object.entries(node).forEach(([key, value]) => {
+      if (typeof(value) != 'object') {
+        if (Array.isArray(value)) {
+          for (const each of value) {
+            if (typeof(each == 'object'))
+              cidrRecurs(oldValue, newValue, each)
+            } 
+        } else {
+          if (key == 'pool' && node[key] == oldValue) {
+           node[key] = newValue
+          }
+          return
+        }
+      }
+      cidrRecurs(oldValue, newValue, value)
+    })
+  });
+  
   const handleSubmit = action((value: any) => {
     if (modalType === 'add') {
       handleSubmitAdd(value);
@@ -79,10 +118,39 @@ export const CidrPoolTable: React.VFC<CidrPoolTableProps> = observer(({ state })
   });
 
   const handleRemove = action(() => {
-    const newPools = pools.filter(pool => selectedItem?.pool !== pool.pool);
-    cidrPoolsNode.set(state, newPools);
+    if (checkDependency(selectedItem?.pool, state)) {
+      setDependencyAlertVisible(true);
+    } else {
+      const newPools = pools.filter(pool => selectedItem?.pool !== pool.pool);
+      cidrPoolsNode.set(state, newPools); 
+    }
     setSelectedItem(undefined);
   });
+
+  const checkDependency = (cidrName: string, node: any) => {
+    var dependencyExists = false;
+    Object.entries(node).forEach(([key, value]) => {
+      if (key == 'global-options') {
+        return;
+      } 
+      if (typeof(value) != 'object') {
+        if (Array.isArray(value)) {
+          for (const each of value) {
+            if (typeof(each == 'object'))
+            dependencyExists = dependencyExists || checkDependency(cidrName, each)
+            } 
+        } else {
+          if (key == 'pool' && node[key] == cidrName) {
+            dependencyExists = true; 
+            return true
+          } 
+          return dependencyExists
+        }
+      }
+      dependencyExists = dependencyExists || checkDependency(cidrName, value)
+    })
+    return dependencyExists
+  };
 
   return (
     <>
@@ -114,6 +182,7 @@ export const CidrPoolTable: React.VFC<CidrPoolTableProps> = observer(({ state })
           },
         ]}
         header={
+          <>
           <Header
             variant="h2"
             counter={`(${pools.length})`}
@@ -134,6 +203,47 @@ export const CidrPoolTable: React.VFC<CidrPoolTableProps> = observer(({ state })
           >
             {tr('wizard.headers.cidr_pools')}
           </Header>
+          { 
+            dependencyAlertVisible === true && 
+              <Alert
+                onDismiss={() => setDependencyAlertVisible(false)}
+                visible={dependencyAlertVisible}
+                dismissible
+                type="error"
+                dismissAriaLabel="Close alert"
+                header="Cannot remove this CIDR pool due to dependency"
+              >
+              There are other sections of your configuration that depend on this CIDR pool. Remove those dependencies first
+              and try again. 
+              </Alert>
+          }
+          { 
+            editNameAlert === true && 
+              <Alert
+                onDismiss={() => setEditNameAlert(false)}
+                visible={editNameAlert}
+                dismissible
+                type="error"
+                dismissAriaLabel="Close alert"
+                header="Unsuccessful name change for CIDR pool"
+              >
+              You cannot rename a CIDR pool to an already existing CIDR pool. 
+              </Alert>
+          }
+          { 
+            addNameAlert === true && 
+              <Alert
+                onDismiss={() => setAddNameAlert(false)}
+                visible={addNameAlert}
+                dismissible
+                type="error"
+                dismissAriaLabel="Close alert"
+                header="Unable to add CIDR pool"
+              >
+              You cannot add a CIDR pool with the same name of an already existing CIDR pool. 
+              </Alert>
+          }
+          </>
         }
         footer={<StatusIndicator type="info">{tr('wizard.labels.cidr_pools_use_graphical_editor')}</StatusIndicator>}
       />
@@ -169,7 +279,7 @@ const AddCidrPoolModal = observer(function AddCidrPoolModal({
   // prettier-ignore
   const buttonText = type === 'add'
     ? tr('buttons.add')
-    : tr('buttons.edit');
+    : tr('buttons.save_changes');
 
   const handleSubmit = () => {
     // Get the pool from the staging state
@@ -183,7 +293,7 @@ const AddCidrPoolModal = observer(function AddCidrPoolModal({
       visible={visible}
       header={<Header variant="h3">{headerText}</Header>}
       footer={
-        <Button variant="primary" onClick={handleSubmit}>
+        <Button variant="primary" className="float-button" onClick={handleSubmit}>
           {buttonText}
         </Button>
       }

@@ -106,7 +106,7 @@ export default observer(function Content(): React.ReactElement {
         activeStepIndex={activeStepIndex}
         onSubmit={handleSubmit}
         onNavigate={handleNavigate}
-      />
+      />      
       <ExportModal
         state={exportValue}
         visible={exportVisible}

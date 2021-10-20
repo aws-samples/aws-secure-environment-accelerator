@@ -16,6 +16,7 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   FormField,
@@ -44,12 +45,19 @@ export interface OrganizationalUnitTableProps {
   state: any;
 }
 
+
 export const OrganizationalUnitTable = observer(({ state }: OrganizationalUnitTableProps) => {
   const { tr, currency } = useI18n();
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<'add' | 'edit'>('add');
   const [modalInitialValue, setModalInitialValue] = useState<Partial<SimpleOrganizationalUnitValue>>({});
   const [selectedItem, setSelectedItem] = useState<SimpleOrganizationalUnitValue | undefined>();
+  const [permAlertVisible, setPermAlertVisible] = useState(false);
+  const [dependencyAlertVisible, setDependencyAlertVisible] = useState(false);
+  const [editNameAlert, setEditNameAlert] = useState(false);
+  const [addNameAlert, setAddNameAlert] = useState(false);
+
+
 
   const nameTitle = tr('wizard.labels.ou_name');
   const budgetAmountTitle = tr('wizard.labels.ou_default_per_account_budget');
@@ -84,13 +92,20 @@ export const OrganizationalUnitTable = observer(({ state }: OrganizationalUnitTa
 
   const handleSubmitAdd = action((value: SubmitValue) => {
     const { key, amount, email } = value;
-    organizationalUnits[key] = { 'default-budgets': createInitialBudget(amount, email) };
+    if (nameExists(key)) {
+      setAddNameAlert(true);
+    } else {
+      organizationalUnits[key] = { 'default-budgets': createInitialBudget(amount, email) };
+    }
   });
 
   const handleSubmitEdit = action((value: SubmitValue) => {
-    // TODO Rename OU
-    const { key, amount, email } = value;
-
+    const { key, amount, email, origKey } = value;
+    if (key != origKey && nameExists(key)) {
+      setEditNameAlert(true);
+    } else if (key != origKey) {
+      ouRecurs(key, origKey, state) 
+    } 
     const budget = organizationalUnits[key]['default-budgets'];
     if (budget) {
       const alerts = budget?.alerts;
@@ -103,19 +118,81 @@ export const OrganizationalUnitTable = observer(({ state }: OrganizationalUnitTa
     }
   });
 
+  const nameExists = (editKey: string | undefined) => {
+    for (let each in items) {
+      if (items[each]['key'] == editKey) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  const ouRecurs = action((newValue: string, oldValue: string | undefined, node: any) => {
+    Object.entries(node).forEach(([key, value]) => {
+      if (key == oldValue) {
+        node[newValue] = node[key]
+        delete node[key]
+      }
+      if (typeof(value) != 'object') {
+        if (Array.isArray(value)) {
+          for (const each of value) {
+            if (typeof(each == 'object'))
+             ouRecurs(newValue, oldValue, each)
+            } 
+        } else {
+          if ((key == 'ou' && node[key] == oldValue) || 
+          (key == 'name' && node[key] == oldValue)) {
+            node[key] = newValue
+          } 
+          return
+        }
+      }
+      ouRecurs(newValue, oldValue, value)
+    })
+  });
+
   const handleSubmit = action((value: SubmitValue) => {
     if (modalType === 'add') {
       handleSubmitAdd(value);
     } else {
       handleSubmitEdit(value);
-    }
+    } 
     setModalVisible(false);
   });
 
+  const checkDependency = (ouName: string, node: any) => {
+    var dependencyExists = false;
+   
+    Object.entries(node).forEach(([key, value]) => {
+      if (typeof(value) != 'object') {
+        if (Array.isArray(value)) {
+          for (const each of value) {
+            if (typeof(each == 'object'))
+            dependencyExists = dependencyExists || checkDependency(ouName, each)
+            } 
+        } else {
+          if ((key == 'ou' && node[key] == ouName) || 
+          (key == 'name' && node[key] == ouName)) {
+            dependencyExists = true; 
+            return true
+          } 
+          return dependencyExists
+        }
+      }
+      dependencyExists = dependencyExists || checkDependency(ouName, value)
+    })
+    return dependencyExists
+  };
+
   const handleRemove = action(() => {
     const { key } = selectedItem ?? {};
-    if (key) {
-      delete organizationalUnits[key];
+    if (organizationalUnits[String(key)]['gui-perm'] == true) {
+      setPermAlertVisible(true);
+    } else if (checkDependency(String(key), state) == true) {
+      setDependencyAlertVisible(true);
+    } else {
+      delete organizationalUnits[String(key)];
+
     }
     setSelectedItem(undefined);
   });
@@ -150,6 +227,7 @@ export const OrganizationalUnitTable = observer(({ state }: OrganizationalUnitTa
           },
         ]}
         header={
+          <>
           <Header
             variant="h2"
             counter={`(${items.length})`}
@@ -170,6 +248,60 @@ export const OrganizationalUnitTable = observer(({ state }: OrganizationalUnitTa
           >
             {tr('wizard.headers.organizational_units')}
           </Header>
+          { 
+            permAlertVisible === true && 
+              <Alert
+                onDismiss={() => setPermAlertVisible(false)}
+                visible={permAlertVisible}
+                dismissible
+                type="error"
+                dismissAriaLabel="Close alert"
+                header="This has been marked as a non-removable organizational unit in the configuration file."
+              >
+              Review the configuration file and remove the "gui-perm" field under the organizational unit if you would like to change this. 
+              </Alert>
+          }
+          { 
+            dependencyAlertVisible === true && 
+              <Alert
+                onDismiss={() => setDependencyAlertVisible(false)}
+                visible={dependencyAlertVisible}
+                dismissible
+                type="error"
+                dismissAriaLabel="Close alert"
+                header="Cannot remove this organizational unit due to dependency"
+              >
+              There are other sections of your configuration that depend on this organizational unit. Remove those dependencies first
+              and try again. 
+              </Alert>
+          }
+          { 
+            editNameAlert === true && 
+              <Alert
+                onDismiss={() => setEditNameAlert(false)}
+                visible={editNameAlert}
+                dismissible
+                type="error"
+                dismissAriaLabel="Close alert"
+                header="Unsuccessful name change for Organizational Unit"
+              >
+              You cannot rename an OU to an already existing OU name. 
+              </Alert>
+          }
+          { 
+            addNameAlert === true && 
+              <Alert
+                onDismiss={() => setAddNameAlert(false)}
+                visible={addNameAlert}
+                dismissible
+                type="error"
+                dismissAriaLabel="Close alert"
+                header="Unable to add Organizational Unit"
+              >
+              You cannot add an OU with the same name of an already existing OU. 
+              </Alert>
+          }
+          </>
         }
         footer={
           <SpaceBetween size="m">
@@ -186,6 +318,7 @@ interface SubmitValue {
   key: string;
   amount: number;
   email: string;
+  origKey: string | undefined;
 }
 
 interface AddModifyOrganizationalUnitModalProps {
@@ -194,6 +327,7 @@ interface AddModifyOrganizationalUnitModalProps {
   initialValue: Partial<SimpleOrganizationalUnitValue>;
   onDismiss: () => void;
   onSubmit: (value: SubmitValue) => void;
+
 }
 
 /**
@@ -218,18 +352,19 @@ const AddModifyOrganizationalUnitModal = ({
   // prettier-ignore
   const buttonText = type === 'add'
     ? tr('buttons.add')
-    : tr('buttons.edit');
+    : tr('buttons.save_changes');
 
   const keyTitle = tr('wizard.labels.ou_key');
   const budgetAmountTitle = tr('wizard.labels.ou_default_per_account_budget');
   const budgetEmailTitle = tr('wizard.labels.ou_default_per_account_email');
 
-  const handleSubmit = () => {
-    onSubmit({
-      key: ouKeyInputProps.value,
-      amount: Number(budgetAmountInputProps.value),
-      email: budgetEmailInputProps.value,
-    });
+  const handleSubmit = () => {  
+      onSubmit({
+        key: ouKeyInputProps.value,
+        amount: Number(budgetAmountInputProps.value),
+        email: budgetEmailInputProps.value,
+        origKey: initialValue.key,
+      });
   };
 
   useEffect(() => {
@@ -244,7 +379,7 @@ const AddModifyOrganizationalUnitModal = ({
       onDismiss={onDismiss}
       header={<Header variant="h3">{headerText}</Header>}
       footer={
-        <Button variant="primary" onClick={handleSubmit}>
+        <Button variant="primary" className="float-button" onClick={handleSubmit}>
           {buttonText}
         </Button>
       }
@@ -258,7 +393,7 @@ const AddModifyOrganizationalUnitModal = ({
       >
         <SpaceBetween size="m">
           <FormField label={keyTitle} stretch>
-            <Input {...ouKeyInputProps} disabled={type === 'edit'} />
+            <Input {...ouKeyInputProps}/>
           </FormField>
           <FormField label={budgetAmountTitle} stretch>
             <Input {...budgetAmountInputProps} type="number" />
@@ -309,3 +444,7 @@ export function createInitialBudget(amount: number, email: string) {
     ],
   };
 }
+function organizationalUnits(organizationalUnits: any) {
+  throw new Error('Function not implemented.');
+}
+

@@ -53,7 +53,7 @@ export const SelectGuardrailsStep = observer(function SelectGuardrailsStep({
           <Box>{tr('wizard.labels.security_guardrails_always_on_text')}</Box>
           <SpaceBetween size="xxs" direction="vertical">
             {alwaysEnabledRegions.map(region => (
-              <SecurityGuardRailRegion key={region} state={configuration} regionsNode={regionsNode} region={region} />
+              <SecurityGuardRailRegion key={region} state={configuration} regionsNode={regionsNode} region={region} disable={false} />
             ))}
           </SpaceBetween>
         </SpaceBetween>
@@ -69,7 +69,7 @@ export const SelectGuardrailsStep = observer(function SelectGuardrailsStep({
           <Box>{tr('wizard.labels.security_guardrails_opt_in_text')}</Box>
           <SpaceBetween size="xxs" direction="vertical">
             {optInRegions.map(region => (
-              <SecurityGuardRailRegion key={region} state={configuration} regionsNode={regionsNode} region={region} />
+              <SecurityGuardRailRegion key={region} state={configuration} regionsNode={regionsNode} region={region} disable={true} />
             ))}
           </SpaceBetween>
         </SpaceBetween>
@@ -78,9 +78,10 @@ export const SelectGuardrailsStep = observer(function SelectGuardrailsStep({
   );
 });
 
-const SecurityGuardRailRegion = observer((props: { regionsNode: TypeTreeNode; state: any; region: string }) => {
-  const { region, regionsNode, state } = props;
+const SecurityGuardRailRegion = observer((props: { regionsNode: TypeTreeNode; state: any; region: string, disable: boolean }) => {
+  const { region, regionsNode, state, disable} = props;
   const regions: any[] = regionsNode.get(state) ?? [];
+
 
   const handleChange: CheckboxProps['onChange'] = action(event => {
     let newRegions;
@@ -93,9 +94,20 @@ const SecurityGuardRailRegion = observer((props: { regionsNode: TypeTreeNode; st
   });
 
   return (
-    <SpaceBetween size="s" direction="horizontal">
+    <>
+    { 
+      disable !== true ? 
+      <SpaceBetween size="s" direction="horizontal">
       <Checkbox checked={regions.includes(region)} onChange={handleChange} />
       <label>{region}</label>
     </SpaceBetween>
+      : 
+    <SpaceBetween size="s" direction="horizontal">
+      <Checkbox checked={regions.includes(region)} onChange={handleChange} disabled />
+      <label>{region}</label>
+    </SpaceBetween>
+    }   
+    </>
+ 
   );
 });

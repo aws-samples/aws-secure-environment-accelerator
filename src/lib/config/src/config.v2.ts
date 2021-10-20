@@ -749,6 +749,7 @@ export const SecretConfig = t.interface({
 });
 
 export const MandatoryAccountConfigType = t.interface({
+  'gui-perm': t.optional(t.boolean),
   'account-name': t.nonEmptyString,
   description: t.optional(t.nonEmptyString),
   email: t.nonEmptyString,
@@ -788,6 +789,7 @@ export const AccountsConfigType = t.record(t.nonEmptyString, MandatoryAccountCon
 export type AccountsConfig = t.TypeOf<typeof AccountsConfigType>;
 
 export const OrganizationalUnitConfigType = t.interface({
+  'gui-perm': t.optional(t.boolean),
   description: t.optional(t.nonEmptyString),
   type: t.nonEmptyString,
   scps: t.array(t.nonEmptyString),

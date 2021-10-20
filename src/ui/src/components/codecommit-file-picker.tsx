@@ -62,7 +62,7 @@ export const CodeCommitFilePicker = function CodeCommitFilePicker(props: CodeCom
 
   return (
     <>
-      <Button onClick={handleAwsConfiguration}>Configure AWS</Button>
+      <Button onClick={handleAwsConfiguration}>{tr('wizard.buttons.export_configure_credentials')}</Button>
       <FormField label={tr('labels.codecommit_repository')} description={repositoryLabelDescription}>
         <Input {...props.repositoryNameInputProps} />
       </FormField>

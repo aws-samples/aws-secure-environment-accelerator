@@ -46,6 +46,7 @@ const translations = translation(
       import: 'Import',
       next: 'Next',
       previous: 'Previous',
+      save_changes: "Save Changes"
     },
     labels: {
       empty: '<empty>',
@@ -116,7 +117,7 @@ const translations = translation(
           'OUs are used to group accounts by major changes in permissions. While they often resemble the SDLC cycle, they should only reflect MAJOR shifts (QA often fits with Test, Pre-Prod within Prod, etc.)',
         mandatory_accounts: 'Shared Accounts',
         mandatory_accounts_desc:
-          'These are AWS accounts (private cloud environments) which are used to provide centralized functionality across the entire organization.  These typically do not change over the course of a customers AWS journey.',
+          'These are AWS accounts (private cloud environments) which are used to provide centralized functionality across the entire organization. These typically do not change over the course of a customers AWS journey.',
         workload_accounts: 'Workload Accounts',
         workload_accounts_desc:
           'These are AWS accounts (private cloud environments) containing business workloads.  As customers grow and evolve, new workload  accounts are typically created.',
@@ -136,6 +137,7 @@ const translations = translation(
         edit_zone: 'Edit Route53 zone',
       },
       labels: {
+        alert_success_file: 'Successfully uploaded configuration file: {{filename}}',
         credentials_not_set: 'Please enter credentials.',
         credentials_valid: 'The provided credentials appear valid.',
         credentials_not_valid: 'The provided credentials are NOT valid.',
@@ -229,6 +231,7 @@ const translations = translation(
       buttons: {
         configure_aws_credentials: 'Configure credentials',
         select_configuration_file: 'Select configuration file',
+        export_configure_credentials: 'Configure AWS Credentials',
       },
     },
     splash: {
@@ -2301,6 +2304,10 @@ translate(c.AwsConfigAccountConfig, {
 translate(c.MandatoryAccountConfigType, {
   title: 'Shared Account Config',
   fields: {
+    "gui-perm": {
+      title: '',
+      description: '',
+    },
     'account-name': {
       title: '',
       description: 'The name to be used to create the AWS account and displays in the AWS console.',
@@ -2434,6 +2441,10 @@ translate(c.OrganizationalUnitConfigType, {
   description:
     'Configure services and features that will be shared or common to the accounts inside the Organizational Unit',
   fields: {
+    "gui-perm": {
+      title: '',
+      description: '',
+    },
     type: {
       title: '',
       description:

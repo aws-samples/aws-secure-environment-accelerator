@@ -45,7 +45,8 @@ const translations = translation(
       edit: 'Modifier',
       import: 'Importer',
       next: 'Next', // TODO
-      previous: 'Previous', // TODO
+      previous: 'Previous', // TODO,
+      save_changes: "Save Changes" // TODO
     },
     labels: {
       empty: '<empty>',
@@ -130,6 +131,7 @@ const translations = translation(
         edit_zone: 'Edit Route53 zone',
       },
       labels: {
+        alert_success_file: 'Successfully uploaded configuration file: {{filename}}',
         credentials_not_set: 'Please enter credentials.',
         credentials_valid: 'The provided credentials appear valid.',
         credentials_not_valid: 'The provided credentials are NOT valid.',
@@ -221,6 +223,7 @@ const translations = translation(
       buttons: {
         configure_aws_credentials: 'Configure credentials',
         select_configuration_file: 'Select configuration file',
+        export_configure_credentials: 'Configure AWS Credentials',
       },
     },
     splash: {
@@ -2176,6 +2179,10 @@ translate(c.MandatoryAccountConfigType, {
   title: 'Configuration des Accounts',
   description: '',
   fields: {
+    "gui-perm": {
+      title: '',
+      description: '',
+    },
     description: {
       title: 'Description',
       description: '',
@@ -2301,6 +2308,10 @@ translate(c.OrganizationalUnitConfigType, {
   title: '',
   description: '',
   fields: {
+    "gui-perm": {
+      title: '',
+      description: '',
+    },
     description: {
       title: 'Description',
       description: '',

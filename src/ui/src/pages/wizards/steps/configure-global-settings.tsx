@@ -18,6 +18,7 @@ import { action, runInAction, set } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { useCallback, useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   Container,
@@ -52,6 +53,35 @@ const securityEmailsNode = globalOptionsNode
   .nested('central-log-services')
   .nested('sns-subscription-emails');
 
+  /* TODO: Debug backend common.ts code vpcReplacements line 267 */
+ const vpcReplacements = (props: string) => {
+    const rawConfigStr  = props;
+    /* eslint-disable no-template-curly-in-string */
+    const ouOrAccountReplacementRegex = '\\${CONFIG::OU_NAME}';
+    const vpcConfigSections = ['workload-account-configs', 'mandatory-account-configs', 'organizational-units'];
+    const rawConfig = JSON.parse(rawConfigStr);
+    for (const vpcConfigSection of vpcConfigSections) {
+      Object.entries(rawConfig[vpcConfigSection]).map(([key, _]) => {
+        const replacements = {
+          '\\${CONFIG::VPC_NAME}': key,
+          '\\${CONFIG::VPC_NAME_L}': key.toLowerCase(),
+          '\\${CONFIG::OU_NAME}': key,
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        for (const [index, vpcConfig] of Object.entries(rawConfig[vpcConfigSection][key].vpc || []) as [string, any]) {
+          vpcConfig.name = vpcConfig.name.replace(new RegExp(ouOrAccountReplacementRegex, 'g'), key);
+          let vpcConfigStr = JSON.stringify(vpcConfig);
+          for (const [key, value] of Object.entries(replacements)) {
+            vpcConfigStr = vpcConfigStr.replace(new RegExp(key, 'g'), value);
+          }
+          rawConfig[vpcConfigSection][key].vpc[index] = JSON.parse(vpcConfigStr);
+        }
+      });
+    }
+    /* eslint-enable */
+    return rawConfig;
+  }
+
 export const ConfigureGlobalSettingsStep = observer(function ConfigureGlobalSettingsStep({
   state,
   configuration,
@@ -59,7 +89,8 @@ export const ConfigureGlobalSettingsStep = observer(function ConfigureGlobalSett
   const { tr } = useI18n();
   const { configuration: awsConfiguration, setModalVisible: setAwsConfigurationModalVisible } = useAwsConfiguration();
   const [importVisible, setImportDialogVisible] = useState(false);
-
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [filename, setFileName] = useState("")
   const controlTowerEnabled = controlTowerNode.get(configuration);
 
   const handleAwsConfiguration = useCallback(() => {
@@ -71,9 +102,13 @@ export const ConfigureGlobalSettingsStep = observer(function ConfigureGlobalSett
   };
 
   const handleImportSubmit: ImportModalProps['onSubmit'] = action(value => {
-    set(configuration, value); // Set configuration to the imported value
+    const value2 = vpcReplacements(JSON.stringify(value));
+    set(configuration, value2); // Set configuration to the imported value
     set(state, {}); // Reset wizard state
     setImportDialogVisible(false);
+    setFileName(value['global-options']['workloadaccounts-param-filename'])
+    setAlertVisible(true);
+    
   });
 
   const handleImportDismiss: ImportModalProps['onDismiss'] = () => {
@@ -169,7 +204,14 @@ export const ConfigureGlobalSettingsStep = observer(function ConfigureGlobalSett
               description={tr('wizard.fields.architecture_template_desc')}
               stretch
             >
+               <SpaceBetween size="xl" direction="vertical">
               <Button onClick={handleSelectConfiguration}>{tr('wizard.buttons.select_configuration_file')}</Button>
+              <Alert 
+                onDismiss={() => setAlertVisible(false)} 
+                visible={alertVisible} 
+                dismissAriaLabel="Close alert" 
+                dismissible type="success"> Successfully uploaded configuration file: {filename} </Alert>
+                </SpaceBetween>
             </FormField>
           </SpaceBetween>
         </Container>
@@ -311,3 +353,11 @@ function hasCredentials(awsConfiguration: AwsConfiguration | undefined) {
     credentials.secretAccessKey === ''
   );
 }
+function getStringFromObject(rawConfig: any, JSON_FORMAT: any): string | PromiseLike<string> {
+  throw new Error('Function not implemented.');
+}
+
+function JSON_FORMAT(rawConfig: any, JSON_FORMAT: any): string | PromiseLike<string> {
+  throw new Error('Function not implemented.');
+}
+

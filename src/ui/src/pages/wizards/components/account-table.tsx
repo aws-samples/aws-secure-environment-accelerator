@@ -16,6 +16,7 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
 import {
+  Alert,
   Badge,
   Box,
   Button,
@@ -63,6 +64,10 @@ export const AccountTable = observer(({ state, accountType }: AccountTableProps)
   const [modalType, setModalType] = useState<'add' | 'edit'>('add');
   const [modalInitialValue, setModalInitialValue] = useState<Partial<SimpleAccountValue>>({});
   const [selectedItem, setSelectedItem] = useState<SimpleAccountValue | undefined>(undefined);
+  const [permAlertVisible, setPermAlertVisible] = useState(false);
+  const [dependencyAlertVisible, setDependencyAlertVisible] = useState(false);
+  const [editNameAlert, setEditNameAlert] = useState(false);
+  const [addNameAlert, setAddNameAlert] = useState(false);
 
   // TODO Get translations directly from a type instead of getting a dummy node
   const { title: nameTitle } = tr(dummyAccountNode.nested('account-name'));
@@ -101,15 +106,20 @@ export const AccountTable = observer(({ state, accountType }: AccountTableProps)
     setModalType('edit');
     setModalInitialValue(selectedItem ?? {});
     setModalVisible(true);
+    console.log(items)
   };
 
   const handleSubmitAdd = action((value: SimpleAccountValue) => {
     const { key, ou, name, budgetAmount: amount, budgetEmail: email, useOuSettings } = value;
-    accounts[key] = {
-      'account-name': name,
-      ou,
-      budget: createInitialBudget(amount, email),
-    };
+    if (keyExists(key) || nameExists(name)) {
+      setAddNameAlert(true);
+    } else {
+      accounts[key] = {
+        'account-name': name,
+        ou,
+        budget: createInitialBudget(amount, email),
+    }
+  };
 
     // Disable the budget if the "use OU settings" field is checked
     setDisabled(state, [...node.path, key], useOuSettings ?? false);
@@ -117,9 +127,14 @@ export const AccountTable = observer(({ state, accountType }: AccountTableProps)
 
   const handleSubmitEdit = action((value: SimpleAccountValue) => {
     const { key, ou, name, budgetAmount: amount, budgetEmail: email, useOuSettings } = value;
-
+    console.log(name)
     accounts[key]['ou'] = ou;
-    accounts[key]['account-name'] = name;
+
+    if (nameExists(name)) {
+      setEditNameAlert(true);
+    } else {
+      accounts[key]['account-name'] = name;
+    }
 
     let budget = accounts[key]['budget'];
     if (budget) {
@@ -134,6 +149,24 @@ export const AccountTable = observer(({ state, accountType }: AccountTableProps)
     setDisabled(state, [...node.path, key], useOuSettings ?? false);
   });
 
+  const keyExists = (addKey: string | undefined) => {
+    for (let each in items) {
+      if (items[each]['key'] == addKey) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  const nameExists = (editKey: string | undefined) => {
+    for (let each in items) {
+      if (items[each]['name'] == editKey) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   const handleSubmit = action((value: SimpleAccountValue) => {
     if (modalType === 'add') {
       handleSubmitAdd(value);
@@ -143,10 +176,38 @@ export const AccountTable = observer(({ state, accountType }: AccountTableProps)
     setModalVisible(false);
   });
 
+  const checkDependency = (accountName: string, node: any) => {
+    var dependencyExists = false;
+   
+    Object.entries(node).forEach(([key, value]) => {
+      if (typeof(value) != 'object') {
+        if (Array.isArray(value)) {
+          for (const each of value) {
+            if (typeof(each == 'object'))
+            dependencyExists = dependencyExists || checkDependency(accountName, each)
+            } 
+        } else {
+          if ((key == 'target-account' && node[key] == accountName)) {
+            dependencyExists = true; 
+            return true
+          } 
+          return dependencyExists
+        }
+      }
+      dependencyExists = dependencyExists || checkDependency(accountName, value)
+    })
+    return dependencyExists
+  };
+
   const handleRemove = action(() => {
     const { key } = selectedItem ?? {};
-    if (key) {
-      delete accounts[key];
+
+    if (accounts[String(key)]['gui-perm'] == true) {
+      setPermAlertVisible(true);
+    } else if (checkDependency(String(key), state) == true) {
+      setDependencyAlertVisible(true);
+    } else {
+      delete accounts[String(key)];
     }
     setSelectedItem(undefined);
   });
@@ -198,6 +259,7 @@ export const AccountTable = observer(({ state, accountType }: AccountTableProps)
           },
         ]}
         header={
+          <>
           <Header
             variant="h2"
             counter={`(${items.length})`}
@@ -217,14 +279,68 @@ export const AccountTable = observer(({ state, accountType }: AccountTableProps)
                 <Button iconName="add-plus" variant="primary" onClick={handleAdd}>
                   {tr('buttons.add')}
                 </Button>
-              </SpaceBetween>
+                </SpaceBetween>
             }
           >
             {accountType === 'mandatory'
               ? tr('wizard.headers.mandatory_accounts')
               : tr('wizard.headers.workload_accounts')}
           </Header>
-        }
+          { 
+            permAlertVisible === true && 
+             <Alert
+               onDismiss={() => setPermAlertVisible(false)}
+               visible={permAlertVisible}
+               dismissible
+               type="error"
+               dismissAriaLabel="Close alert"
+               header="This has been marked as a non-removable account in the configuration file."
+             >
+             Review the configuration file and remove the "gui-perm" field under the account if you would like to change this. 
+             </Alert>
+          }
+          { 
+            dependencyAlertVisible === true && 
+              <Alert
+                onDismiss={() => setDependencyAlertVisible(false)}
+                visible={dependencyAlertVisible}
+                dismissible
+                type="error"
+                dismissAriaLabel="Close alert"
+                header="Cannot remove this account due to dependency"
+              >
+              There are other sections of your configuration that depend on this account. Remove those dependencies first
+              and try again. 
+              </Alert>
+          }
+          { 
+            editNameAlert === true && 
+              <Alert
+                onDismiss={() => setEditNameAlert(false)}
+                visible={editNameAlert}
+                dismissible
+                type="error"
+                dismissAriaLabel="Close alert"
+                header="Unsuccessful name change for Account"
+              >
+              You cannot rename an account to an already existing account name. 
+              </Alert>
+          }
+          { 
+            addNameAlert === true && 
+              <Alert
+                onDismiss={() => setAddNameAlert(false)}
+                visible={addNameAlert}
+                dismissible
+                type="error"
+                dismissAriaLabel="Close alert"
+                header="Unable to add Account"
+              >
+              You cannot add an account with the same key or name as an already existing account.
+              </Alert>
+          }
+         </>
+          }
         footer={
           <SpaceBetween size="m">
             <StatusIndicator type="info">{tr('wizard.labels.account_name_email_change_text')}</StatusIndicator>
@@ -273,7 +389,7 @@ const AddModifyAccountModal = ({
   // prettier-ignore
   const buttonText = type === 'add'
     ? tr('buttons.add')
-    : tr('buttons.edit');
+    : tr('buttons.save_changes');
 
   const { title: nameTitle, description: nameDesc } = tr(dummyAccountNode.nested('account-name'));
   const { title: emailTitle, description: emailDesc } = tr(dummyAccountNode.nested('email'));
@@ -312,7 +428,7 @@ const AddModifyAccountModal = ({
       onDismiss={onDismiss}
       header={<Header variant="h3">{headerText}</Header>}
       footer={
-        <Button variant="primary" onClick={handleSubmit}>
+        <Button variant="primary" className="float-button" onClick={handleSubmit}>
           {buttonText}
         </Button>
       }
@@ -324,6 +440,7 @@ const AddModifyAccountModal = ({
           handleSubmit();
         }}
       >
+        {console.log(ouInputProps)}
         <SpaceBetween size="m">
           <FormField label={keyTitle} stretch>
             <Input {...accountKeyInputProps} disabled={type === 'edit'} />
