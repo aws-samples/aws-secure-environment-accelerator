@@ -333,7 +333,9 @@ Issues in Older Releases:
 **Release Specific Upgrade Considerations:**
 
 - Upgrades to `v1.3.9 and above` from `v1.3.8-b and below`:
-  - Requires the removal of any interface endpoints containing a period (sub-domain) either before or during the upgrade process (ecr.dkr, ecr.api, transfer.server, sagemaker.api, sagemaker.runtime in the full config.json example)
+  - All interface endpoints containing a period must be removed from the config.json file either before or during the upgrade process 
+    - i.e. ecr.dkr, ecr.api, transfer.server, sagemaker.api, sagemaker.runtime in the full config.json example
+    - If you remove them on a pre-upgrade State Machine execution, you can put them back during the upgrade, if you remove them during the upgrade, you can put them back post upgrade.
 - Upgrades to `v1.3.3 and above` from `v1.3.2 and below`:
   - Requires mandatory config file schema changes as documented in the [release notes](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
     - These updates cause the config file change validation to fail and require running the state machine with the following input to override the validation checks on impacted fields: `{"scope": "FULL", "mode": "APPLY", "configOverrides": {"ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }}`
