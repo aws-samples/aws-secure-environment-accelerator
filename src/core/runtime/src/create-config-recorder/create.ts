@@ -81,6 +81,10 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
   console.log(`${accountId}: Excluding Config Recorder for regions from account "${accountId}"...`);
   console.log(`${accountId}: ${JSON.stringify(excludeRegions, null, 2)}`);
 
+  const globalOptions = acceleratorConfig['global-options'];
+  const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
+  const centralOperationsKey = acceleratorConfig.getMandatoryAccountKey('central-operations');
+
   const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
   const logBucketOutputs: LogBucketOutputType[] = getStackJsonOutput(outputs, {
     accountKey: logAccountKey,
@@ -103,6 +107,11 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     errors.push(`${accountId}:: No ConfigRecorderRole created in Account "${accountKey}"`);
     return errors;
   }
+
+  const masterAccountConfig = acceleratorConfig.getAccountByKey(masterAccountKey);
+  const masterAccount = await organizations.getAccountByEmail(masterAccountConfig.email);
+
+  console.log(`Got Master AccountId: ${masterAccount?.Id}`);
 
   const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
   for (const region of regions) {
@@ -166,15 +175,33 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     }
   }
 
-  if (accountKey === masterAccountKey) {
+  if (
+    accountKey === masterAccountKey || // Default implementation
+    (accountKey === securityAccountKey && globalOptions['central-security-services']['config-aggr']) ||
+    (accountKey === centralOperationsKey && globalOptions['central-operations-services']['config-aggr']) ||
+    (accountKey === logAccountKey && globalOptions['central-log-services']['config-aggr'])
+  ) {
     const configAggregatorRole = IamRoleOutputFinder.tryFindOneByName({
       outputs,
       accountKey,
       roleKey: 'ConfigAggregatorRole',
     });
     if (!configAggregatorRole) {
-      errors.push(`${accountId}:: No Aggregaror Role created in Master Account ${accountKey}`);
+      errors.push(`${accountId}:: No Aggregator Role created in Master Account ${accountKey}`);
     } else {
+      if (accountKey !== masterAccountKey) {
+        // Register Delegated Admin
+
+        try {
+          await organizations.registerDelegatedAdministrator(accountId, 'config.amazonaws.com');
+          console.log(
+            `${accountKey} account registered as delegated administrator for AWS Config in the organization.`,
+          );
+        } catch (error) {
+          console.log(`Error registering delgated administrator ${error}`);
+        }
+      }
+
       const configService = new ConfigService(credentials, centralSecurityRegion);
       const enableAggregator = await createAggregator(
         configService,

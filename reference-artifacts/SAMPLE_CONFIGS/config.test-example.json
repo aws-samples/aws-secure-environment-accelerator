@@ -132,7 +132,8 @@
         "us-west-1",
         "us-west-2"
       ],
-      "macie-frequency": "FIFTEEN_MINUTES"
+      "macie-frequency": "FIFTEEN_MINUTES",
+      "config-aggr": true,
     },
     "central-operations-services": {
       "account": "operations",

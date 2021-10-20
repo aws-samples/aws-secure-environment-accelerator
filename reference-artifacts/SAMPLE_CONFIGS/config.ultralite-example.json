@@ -42,7 +42,8 @@
       "config-aggr-excl-regions": [],
       "macie": true,
       "macie-excl-regions": ["${GBL_REGION}"],
-      "macie-frequency": "FIFTEEN_MINUTES"
+      "macie-frequency": "FIFTEEN_MINUTES",
+      "config-aggr": true,
     },
     "central-operations-services": {
       "account": "security",

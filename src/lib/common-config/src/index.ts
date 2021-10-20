@@ -707,6 +707,7 @@ export const CentralServicesConfigType = t.interface({
   'sns-excl-regions': optional(t.array(t.string)),
   'sns-subscription-emails': fromNullable(t.record(t.string, t.array(t.string)), {}),
   's3-retention': optional(t.number),
+  'config-aggr': fromNullable(t.boolean, false),
 });
 
 export const ScpsConfigType = t.interface({

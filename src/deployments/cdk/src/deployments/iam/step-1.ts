@@ -14,11 +14,36 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
   const { accountStacks, config, acceleratorPrefix } = props;
   const accountKeys = config.getAccountConfigs().map(([accountKey, _]) => accountKey);
 
+  const globalOptions = config['global-options'];
+  const securityAccountKey = config.getMandatoryAccountKey('central-security');
+  const centralOperationsKey = config.getMandatoryAccountKey('central-operations');
+  const centralLogKey = config.getMandatoryAccountKey('central-log');
+
   for (const accountKey of accountKeys) {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
     if (!accountStack) {
       console.error(`Not able to create stack for "${accountKey}"`);
       continue;
+    }
+
+    if (
+      (accountKey === securityAccountKey && globalOptions['central-security-services']['config-aggr']) ||
+      (accountKey === centralOperationsKey && globalOptions['central-operations-services']['config-aggr']) ||
+      (accountKey === centralLogKey && globalOptions['central-log-services']['config-aggr'])
+    ) {
+      // Creating role for Config Organization Aggregator
+      const configAggregatorRole = new iam.Role(accountStack, `IAM-ConfigAggregatorRole-${accountKey}`, {
+        roleName: createRoleName(`ConfigAggregatorRole`),
+        description: `${acceleratorPrefix} Config Aggregator Role`,
+        assumedBy: new iam.ServicePrincipal('config.amazonaws.com'),
+        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSConfigRoleForOrganizations')],
+      });
+
+      new CfnIamRoleOutput(accountStack, `ConfigAggregatorRoleOutput-${accountKey}`, {
+        roleName: configAggregatorRole.roleName,
+        roleArn: configAggregatorRole.roleArn,
+        roleKey: 'ConfigAggregatorRole',
+      });
     }
 
     // Creating role for Config Recorder

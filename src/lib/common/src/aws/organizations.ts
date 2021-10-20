@@ -2,6 +2,7 @@ import aws from './aws-client';
 import * as org from 'aws-sdk/clients/organizations';
 import { throttlingBackOff } from './backoff';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
+import { equalIgnoreCase } from './../util/common';
 
 export interface OrganizationalUnit extends org.OrganizationalUnit {
   Path: string;
@@ -347,6 +348,12 @@ export class Organizations {
         .promise(),
     );
     return response.Account;
+  }
+
+  async getAccountByEmail(email: string): Promise<org.Account | undefined> {
+    const accounts = await this.listAccounts();
+
+    return accounts.find(a => equalIgnoreCase(a.Email!, email));
   }
 
   async getOrganizationalUnitWithPath(ouId: string): Promise<OrganizationalUnit> {
