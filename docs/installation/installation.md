@@ -563,15 +563,12 @@ The Accelerator installation is complete, but several manual steps remain:
 **Release Specific Upgrade Considerations:**
 
 - Upgrades to `v1.5.0`:
-  - Due to the size of this upgrade, we require all customers upgrade to `v1.3.8 or above` before beginning this upgrade
+  - Due to the size and complexity of this upgrade, we require all customers to upgrade to `v1.3.8 or above` before beginning this upgrade
   - While v1.5.0 supports Control Tower for _NEW_ installs, existing Accelerator customers _CANNOT_ add Control Tower to their existing installations at this time (planned enhancement for 22H1)
     - Attempts to install Control Tower on top of the Accelerator will corrupt your environment (both Control Tower and the Accelerator need minor enhancements to enable)
-  - **add specific v1.5.0 steps here**
-    - config file upgrade script, CIDR migration to DDB (if desired), how implement new OU structure, SCP and part-2 issue,oldip.json
-  - Dynamic CIDRs, lookup, opt-in vpc, SNS/CWL/SH changes - release notes?
-  - **add specific v1.5.0 steps here**
+  - **The v1.5.0 custom upgrade guide can be found [here](./v150-Upgrade.md)**
 - Upgrades to `v1.3.9 and above` from `v1.3.8-b and below`:
-  - All interface endpoints containing a period must be removed from the config.json file either before or during the upgrade process 
+  - All interface endpoints containing a period must be removed from the config.json file either before or during the upgrade process
     - i.e. ecr.dkr, ecr.api, transfer.server, sagemaker.api, sagemaker.runtime in the full config.json example
     - If you remove them on a pre-upgrade State Machine execution, you can put them back during the upgrade, if you remove them during the upgrade, you can put them back post upgrade.
 - Upgrades to `v1.3.3 and above` from `v1.3.2 and below`:

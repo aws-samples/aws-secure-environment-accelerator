@@ -4,7 +4,7 @@ usage: update.py [-h] [--AcceleratorPrefix ACCELERATORPREFIX] --ConfigFile
                  CONFIGFILE --Region REGION [--LoadDB] [--LoadConfig]
 
 A Script to load existing cidrs to DDB Cidr Pool table and generate new config
-based for upgrade
+based for upgrade.  This script only supports single file json files.
 
 optional arguments:
   -h, --help            show this help message and exit
