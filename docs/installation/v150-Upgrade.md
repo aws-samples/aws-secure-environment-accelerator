@@ -47,6 +47,8 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
 - After conversion, we recommend running the updated config file back prettier to simplify file comparisons
 - While the conversion script often does much of the heavy lifting, we still require customers to manually verify the changes and make manual adjustments as appropriate:
   - If you use a relatively standard config file you MAY not need to make any changes manually
+  - Ensure the value of `account-name` for the Organization Management account matches the actual account name of the Organization management account (the account key is generally either `management` or `master`).
+  
   - we recommend you change your `rdgw-instance-type` and `rsyslog-instance-type` from t2._ to t3._ (they will auto-replace on the next instance refresh) (Optional)
   - while DDB has been populated with your EXISTING utilized CIDR ranges, if you want to dynamically assign CIDR ranges for any new VPC's, you need to add a new `cidr-pools` section to your config file. This new section of the config file should not be added during an upgrade (TODO-confirm).
     - this would have created a new third DDB table named `ASEA-cidr-pool` which stores CIDR ranges to select from for new CIDR assignments. This table works together with the other two DDB tables to track, assign and maintain non-overlapping CIDR ranges based on a pool name and region.
@@ -90,7 +92,8 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
 
 ### TEMPORARY: UNTIL WE PUBLISH YOU MUST USE THE CODECOMMIT PROCESS and a CODECOMMIT installer template. GitHub and GitHub secret references are irrelevant.
 
-### TEMPORARY: THE CFN TEMPLATE CAN BE FOUND [HERE](https://gitlab.aws.dev/tsd/accelerator/-/tree/main/reference-artifacts/InstallerTemplate) (AcceleratorInstaller-CodeCommit.template-v149-beta.json)
+### TEMPORARY: THE CFN TEMPLATE CAN BE FOUND [HERE](https://gitlab.aws.dev/tsd/accelerator/-/tree/main/reference-artifacts/Custom-Scripts/InstallerTemplate)
+ (AcceleratorInstaller-CodeCommit.template-v149-beta.json)
 
 ### NEXT:
 
