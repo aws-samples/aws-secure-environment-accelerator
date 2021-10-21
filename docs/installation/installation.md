@@ -381,8 +381,6 @@ If deploying to an internal AWS employee account and installing the solution wit
 
 Current Issues:
 
-- Control Tower option has several major bugs - Work in progress - see sprint board
-- New: alb deployments occasionally throw a permssions error failing the state machine. Simply rerun the state machine.
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
 
 Issues in Older Releases:
