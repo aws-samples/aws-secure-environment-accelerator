@@ -29,7 +29,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Supports AWS Organizations nested [ou's](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html) and importing existing AWS accounts
 - Performs 'account warming' to establish initial limits, when required
 - Automatically submits limit increases, when required (complies with initial limits until increased)
-- AWS Control Tower support
+- Leverages AWS Control Tower **(NEW)**
 
 ### Creates Networking
 
@@ -40,9 +40,9 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Route 53 Private and Public Zones, Resolver Rules and Endpoints, VPC Endpoint Overloaded Zones
 - All completely and individually customizable (per account, VPC, subnet, or OU)
 - Layout and customize your VPCs, subnets, CIDRs and connectivity the way you want
-- Static or Dynamic VPC and subnet CIDR assignments
+- Static or Dynamic VPC **(NEW)** and subnet CIDR assignments
 - Deletes default VPC's (worldwide)
-- AWS Network Firewall
+- AWS Network Firewall **(NEW)**
 
 ### Cross-Account Object Sharing
 
@@ -88,7 +88,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Imports or requests certificates into AWS Certificate Manager
 - Deploys both perimeter and account level ALB's w/Lambda health checks, certificates and TLS policies
 - Deploys & configures 3rd party firewall clusters and management instances (leverages marketplace)
-  - Gateway Load Balancer w/auto-scaling and VPN IPSec BGP ECMP deployment options
+  - Gateway Load Balancer w/auto-scaling **(NEW)** and VPN IPSec BGP ECMP deployment options
 - Protects Accelerator deployed and managed objects
 - Sets Up SNS Alerting topics (High, Medium, Low, Blackhole priorities)
 - Deploys CloudWatch Log Metrics and Alarms
@@ -110,7 +110,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
   - ALB Logs
   - SSM Session Logs (also sent to CWL)
   - Resolver Query Logs (also sent to CWL)
-- Email alerting for CloudTrail Metric Alarms, Firewall Manager Events, Security Hub Findings incl. Guardduty Findings
+- Email alerting for CloudTrail Metric Alarms, Firewall Manager Events **(NEW)**, Security Hub Findings incl. Guardduty Findings **(NEW)**
 
 ## Relationship with AWS Landing Zone Solution (ALZ)
 
@@ -118,7 +118,7 @@ The ALZ is an AWS Solution designed to deploy a multi-account AWS architecture f
 
 ## Relationship with AWS Control Tower
 
-AWS Control Tower is the successor to the ALZ, but offered as an AWS managed service.
+The AWS Secure Environment Accelerator now leverages AWS Control Tower! **(NEW)**
 
 With the release of v1.5.0, the AWS Accelerator adds the capability to be deployed on top of AWS Control Tower. Customers get the benefits of the fully managed capabilities of AWS Control Tower combined with the power and flexibility of the Accelerators Networking and Security orchestration.
 
@@ -164,7 +164,7 @@ This summarizes the installation process, the full installation document can be 
 
 ### - Prescriptive PBMM Architecture Design [Document](./docs/architectures/pbmm/architecture.md) (Early Draft)
 
-- AWS PBMM architecture sample [diagrams](./docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md)
+- Accelerator Prescriptive Architecture Sample [diagrams](./docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md)
 
 ---
 

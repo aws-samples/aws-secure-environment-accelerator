@@ -28,15 +28,15 @@
 1. **Full configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.example.json) (`config.example.json`)
    - The full configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the deployed architecture solution.
 2. **Lite weight configuration** files
-   - Three variants with differing central ingress/egress firewalls
+   - Four variants with differing central ingress/egress firewalls
      - _Recommended starting point_
-       - AWS Network Firewall ([config.lite-NFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json))
-     - _Recommended for new GC PBMM customers_
+       - AWS Control Tower with AWS Network Firewall ([config.lite-CTNFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-CTNFW-example.json))
+     - _Recommended for new GC PBMM customers_ - requires 3rd party licensing (BYOL or PAYGO)
        - IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP) ([config.lite-VPN-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json))
-         - requires 3rd party licensing (BYOL or PAYGO)
      - _Variant 3_
+       - AWS Network Firewall ([config.lite-NFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json))
+     - _Variant 4_ - requires 3rd party licensing (BYOL or PAYGO)
        - Gateway Load Balancer with Checkpoint firewalls in an autoscaling group ([config.lite-GWLB-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-GWLB-example.json))
-         - requires 3rd party licensing (BYOL or PAYGO)
    - To reduce solution costs and allow customers to grow into more advanced AWS capabilities, we created this lighter weight configuration that does not sacrifice functionality, but could limit performance. This config file:
      - only deploys the 9 required centralized Interface Endpoints (removes 50). All services remain accessible using the AWS public endpoints, but require traversing the perimeter firewalls
      - removes the perimeter VPC Interface Endpoints
