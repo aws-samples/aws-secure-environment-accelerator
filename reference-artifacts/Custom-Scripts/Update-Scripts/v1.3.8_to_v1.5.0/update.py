@@ -14,7 +14,6 @@ parser.add_argument('--AcceleratorPrefix', default='ASEA-',
 parser.add_argument('--ConfigFile', required=True, help='ConfigFile location')
 parser.add_argument('--Region', required=True,
                     help='Region in which SEA is deployed')
-
 parser.add_argument('--LoadDB', action='store_const', const=True, default=False, help="Flag to enable load existing cidrs to DynamoDB Tables")
 parser.add_argument('--LoadConfig', action='store_const', const=True, default=False, help="Flag to enable Conversion of config file from pervious version")
 
@@ -23,6 +22,11 @@ config_sections = {
     'organizational-units': 'organizational-units',
     'mandatory-account-configs': 'account',
     'workload-account-configs': 'account',
+}
+load_db_sections = {
+    'mandatory-account-configs': 'account',
+    'workload-account-configs': 'account',
+    'organizational-units': 'organizational-units',
 }
 pools = {
     "main": "main",
@@ -39,7 +43,7 @@ def load_to_ddb(accel_prefix, region, config):
     j = 1
     account_configs = copy.deepcopy(config['mandatory-account-configs'])
     account_configs.update(config.get('workload-account-configs', {}))
-    for config_section in config_sections.keys():
+    for config_section in load_db_sections.keys():
         for key_name, section_config in config[config_section].items():
             if not section_config.get('vpc'):
                 continue
@@ -54,8 +58,12 @@ def load_to_ddb(accel_prefix, region, config):
                     account_ou_key = "%s/%s" % (config_sections[config_section], key_name)
                 if vpc_config['deploy'] == 'local' and config_section == 'organizational-units':
                     account_keys = [key for key, value in account_configs.items() if value['ou'] == key_name]
+                if vpc_config['name'] == '${CONFIG::OU_NAME}':
+                    vpc_name = key_name
+                else:
+                    vpc_name = vpc_config['name']
                 print("Adding CIDR for VPC %s in table %s" %
-                      (vpc_config['name'], vpc_table_name))
+                      (vpc_name, vpc_table_name))
                 cidrs = [cidr for cidr in vpc_config['cidr']] if type(vpc_config['cidr']) == list else [
                     {"value": vpc_config['cidr'], "pool": "main"}]
                 if vpc_config['deploy'] == 'local' and config_section == 'organizational-units':
@@ -69,7 +77,7 @@ def load_to_ddb(accel_prefix, region, config):
                                 "region": vpc_region,
                                 "requester": "Manual",
                                 "status": "assigned",
-                                "vpc-name": vpc_config['name'],
+                                "vpc-name": vpc_name,
                                 "vpc-assigned-id": cidr_index,
                             }
                         )
@@ -85,7 +93,7 @@ def load_to_ddb(accel_prefix, region, config):
                                     "region": vpc_region,
                                     "requester": "Manual",
                                     "status": "assigned",
-                                    "vpc-name": vpc_config['name'],
+                                    "vpc-name": vpc_name,
                                     "vpc-assigned-id": cidr_index,
                                 }
                             )
@@ -101,7 +109,7 @@ def load_to_ddb(accel_prefix, region, config):
                                 "region": vpc_region,
                                 "requester": "Manual",
                                 "status": "assigned",
-                                "vpc-name": vpc_config['name'],
+                                "vpc-name": vpc_name,
                                 "vpc-assigned-id": cidr_index,
                             }
                         )
@@ -237,7 +245,7 @@ def load_to_ddb(accel_prefix, region, config):
                                     "status": "assigned",
                                     "sub-pool": cidr_obj['pool'],
                                     "subnet-name": subnet_name,
-                                    "vpc-name": vpc_config['name']
+                                    "vpc-name": vpc_name
                                 }
                             )
                             j = j + 1
@@ -253,7 +261,7 @@ def load_to_ddb(accel_prefix, region, config):
                                         "status": "assigned",
                                         "sub-pool": cidr_obj['pool'],
                                         "subnet-name": subnet_name,
-                                        "vpc-name": vpc_config['name']
+                                        "vpc-name": vpc_name
                                     }
                                 )
                                 j = j + 1
@@ -269,7 +277,7 @@ def load_to_ddb(accel_prefix, region, config):
                                     "status": "assigned",
                                     "sub-pool": cidr_obj["pool"],
                                     "subnet-name": subnet_name,
-                                    "vpc-name": vpc_config['name']
+                                    "vpc-name": vpc_name
                                 }
                             )
                             j = j + 1
@@ -278,6 +286,9 @@ def load_to_ddb(accel_prefix, region, config):
 def impl(accel_prefix, config_file, region, load_db, load_config):
     with open(config_file) as f:
         config = json.load(f)
+
+    with open('prettier-config.json', 'w') as f:
+        json.dump(config, f, indent=2)
 
     if load_db:
         load_to_ddb(accel_prefix, region, config)
@@ -394,11 +405,12 @@ def impl(accel_prefix, config_file, region, load_db, load_config):
                             
                 if key_name == 'operations':
                     config[config_section][key_name]['description'] = 'This Account is used for centralized IT Operational resources (MAD, rsyslog, ITSM, etc.).'
-                    config[config_section][key_name]['deployments']['mad']['description'] = 'This directory is a) shared to most accounts in the organization to provide centralized Windows and Linux authentication for cloud workloads, b) used as an identity source for AWS SSO, c) used to inter-connect with on-premises directory services, and d) provides a single identities source for instance and AWS console access.'
-                    config[config_section][key_name]['deployments']['mad']['image-path'] = '/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base'
-                    config[config_section][key_name]['ou'] = 'Infrastructure'
-                    if config[config_section][key_name]['deployments']['mad'].get('share-to-account') == "":
-                        del config[config_section][key_name]['deployments']['mad']['share-to-account']
+                    if 'mad' in config[config_section][key_name]['deployments']:
+                        config[config_section][key_name]['deployments']['mad']['description'] = 'This directory is a) shared to most accounts in the organization to provide centralized Windows and Linux authentication for cloud workloads, b) used as an identity source for AWS SSO, c) used to inter-connect with on-premises directory services, and d) provides a single identities source for instance and AWS console access.'
+                        config[config_section][key_name]['deployments']['mad']['image-path'] = '/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base'
+                        config[config_section][key_name]['ou'] = 'Infrastructure'
+                        if config[config_section][key_name]['deployments']['mad'].get('share-to-account') == "":
+                            del config[config_section][key_name]['deployments']['mad']['share-to-account']
                 
                 if key_name == 'perimeter':
                     config[config_section][key_name]['description'] = 'This Account is used for internet facing ingress/egress security services.'
@@ -466,8 +478,9 @@ def impl(accel_prefix, config_file, region, load_db, load_config):
                     del config[config_section][key_name]['share-mad-from']
 
                 scps = config[config_section][key_name].get('scps')
-                if scps:
-                    config[config_section][key_name]['scps'].remove('Guardrails-Part-2')
+                if 'Guardrails-Part-2' in config[config_section][key_name]['scps']:
+                    if scps:
+                        config[config_section][key_name]['scps'].remove('Guardrails-Part-2')
 
                 if key_name == 'core':
                     print('Updating Core OU')
@@ -489,19 +502,20 @@ def impl(accel_prefix, config_file, region, load_db, load_config):
                             vpc['description'] = f'The {vpc["name"]} vpc in the {key_name} OU.'
 
             #create new infrastructure ou as a copy of core
-            infra_ou = config[config_section]['core']
-            infra_ou['default-budgets']['name'] = 'Default Infrastructure Budget'
-            infra_ou['description'] = 'The Infrastructure OU'
-            infra_ou['description'] = 'The infrastructure OU is used to hold AWS accounts containing AWS infrastructure resources shared or utilized by the rest of the Organization.'
-            config[config_section]['Infrastructure'] = infra_ou
+            if 'core' in config[config_section]:
+                infra_ou = config[config_section]['core']
+                infra_ou['default-budgets']['name'] = 'Default Infrastructure Budget'
+                infra_ou['description'] = 'The Infrastructure OU'
+                infra_ou['description'] = 'The infrastructure OU is used to hold AWS accounts containing AWS infrastructure resources shared or utilized by the rest of the Organization.'
+                config[config_section]['Infrastructure'] = infra_ou
 
         ## Update vpc's and subnet's
         if (config_section == 'mandatory-account-configs' or 
             config_section == 'workload-account-configs' or
             config_section == 'organizational-units'):
-            forsso_cidr = "1.1.1.1/32"
-            perimeter_rfc_cidr = "1.1.1.1/32"
-            central_rfc_cidr = "1.1.1.1/32"
+            forsso_cidr = "10.24.34.0/24"
+            perimeter_rfc_cidr = "10.24.34.0/24"
+            central_rfc_cidr = "10.24.34.0/24"
             key_configs = config[config_section]
             for key_name in key_configs:
                 for vindex, vpcConfig in enumerate(key_configs[key_name].get('vpc', [])):
@@ -564,10 +578,12 @@ def impl(accel_prefix, config_file, region, load_db, load_config):
                         del config[config_section][key_name]['vpc'][vindex]['pcx']
                     if not config[config_section][key_name]['vpc'][vindex]['natgw']:
                         del config[config_section][key_name]['vpc'][vindex]['natgw']
-                    if not config[config_section][key_name]['vpc'][vindex]['tgw-attach']:
-                        del config[config_section][key_name]['vpc'][vindex]['tgw-attach']
-                    if not config[config_section][key_name]['vpc'][vindex]['interface-endpoints']:
-                        del config[config_section][key_name]['vpc'][vindex]['interface-endpoints']
+                    if 'tgw-attach' in config[config_section][key_name]['vpc'][vindex]:
+                        if not config[config_section][key_name]['vpc'][vindex]['tgw-attach']:
+                            del config[config_section][key_name]['vpc'][vindex]['tgw-attach']
+                    if 'interface-endpoints' in config[config_section][key_name]['vpc'][vindex]:
+                        if not config[config_section][key_name]['vpc'][vindex]['interface-endpoints']:
+                            del config[config_section][key_name]['vpc'][vindex]['interface-endpoints']
                     
                     ## update subnets in vpc
                     for sindex, subnetConfig in enumerate(vpcConfig['subnets']):
@@ -604,6 +620,9 @@ def impl(accel_prefix, config_file, region, load_db, load_config):
 
 if __name__ == '__main__':
     args = parser.parse_args()
+    if args.LoadDB and args.LoadConfig:
+        print('Both LoadDB and LoadConfig cannot be used at the sae time. Please run with only one of the options set.')
+        exit(1)
     if (not args.LoadDB and not args.LoadConfig):
         print ("Both --LoadDB and --LoadConfig can't be null. Need any operation")
         exit(0)
