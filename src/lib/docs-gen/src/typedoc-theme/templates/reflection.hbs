@@ -51,29 +51,31 @@
     </section>
 {{/if}}
 
-{{!-- {{#if model.indexSignature}}
-    <section class="tsd-panel {{model.cssClasses}}">
-        <h3 class="tsd-before-signature">Indexable</h3>
-        <div class="tsd-signature tsd-kind-icon">{{#compact}}
-            <span class="tsd-signature-symbol">[</span>
-            {{#each model.indexSignature.parameters}}
-                {{name}}:&nbsp;{{#with type}}{{>type}}{{/with}}
-            {{/each}}
-            <span class="tsd-signature-symbol">]:&nbsp;</span>
-            {{#with model.indexSignature.type}}{{>type}}{{/with}}
-        {{/compact}}</div>
+{{#ifNotEquals model.indexSignature.type.name "unknown"}}
+    {{#if model.indexSignature}}
+        <section class="tsd-panel {{model.cssClasses}}">
+            <h3 class="tsd-before-signature">Indexable</h3>
+            <div class="tsd-signature tsd-kind-icon">{{#compact}}
+                <span class="tsd-signature-symbol">[</span>
+                {{#each model.indexSignature.parameters}}
+                    {{name}}:&nbsp;{{#with type}}{{>type}}{{/with}}
+                {{/each}}
+                <span class="tsd-signature-symbol">]:&nbsp;</span>
+                {{#with model.indexSignature.type}}{{>type}}{{/with}}
+            {{/compact}}</div>
 
-        {{#with model.indexSignature}}
-            {{> comment}}
-        {{/with}}
-
-        {{#if model.indexSignature.type.declaration}}
-            {{#with model.indexSignature.type.declaration}}
-                {{> parameter}}
+            {{#with model.indexSignature}}
+                {{> comment}}
             {{/with}}
-        {{/if}}
-    </section>
-{{/if}} --}}
+
+            {{#if model.indexSignature.type.declaration}}
+                {{#with model.indexSignature.type.declaration}}
+                    {{> parameter}}
+                {{/with}}
+            {{/if}}
+        </section>
+    {{/if}}
+{{/ifNotEquals}}
 
 {{#with model}}
     {{> index}}

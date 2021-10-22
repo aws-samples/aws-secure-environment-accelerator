@@ -13,6 +13,8 @@ const outputFile = process.argv[3];
 const outputFolder = path.dirname(outputFile);
 fs.mkdirSync(outputFolder, { recursive: true });
 
-compileFromFile(`${inputFile}`).then(ts => {
+compileFromFile(`${inputFile}`, {
+    bannerComment: ""
+}).then(ts => {
     fs.writeFileSync(`${outputFile}`, ts)
 });

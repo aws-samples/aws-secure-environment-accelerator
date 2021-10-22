@@ -4,6 +4,8 @@
         "language-code": "en",
         "app-title": "Accelerator config file documentation",
         "Hierarchy": "Hierarchy",
-        "Inherited": "Inherited"
+        "Inherited": "Inherited",
+        "Title":"Title",
+        "Description":"Description"
     }
 }

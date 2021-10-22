@@ -4,6 +4,8 @@
         "language-code": "fr",
         "app-title": "Documentation du fichier de configuration de l'Accelerateur",
         "Hierarchy": "Hiérarchie",
-        "Inherited": "Hérité"
+        "Inherited": "Hérité",
+        "Title": "Titre",
+        "Description": "Description"
     }
 }

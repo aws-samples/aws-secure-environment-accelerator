@@ -1,5 +1,5 @@
 ## (FR) AWS Secure Environment Accelerator
-### (FR) Configuration file schema docuementation
+### (FR) Configuration file schema documentation
 [![Build](https://github.com/aws-samples/aws-secure-environment-accelerator/actions/workflows/build.yml/badge.svg)](https://github.com/aws-samples/aws-secure-environment-accelerator/actions/workflows/build.yml) 
 
 The AWS Accelerator is a tool designed to help deploy and operate secure multi-account, multi-region AWS environments on an ongoing basis. The power of the solution is the configuration file that drives the architecture deployed by the tool. This enables extensive flexibility and for the completely automated deployment of a customized architecture within AWS without changing a single line of code.

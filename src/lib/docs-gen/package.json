@@ -15,8 +15,8 @@
     "gen-i18n-from-json-schema-en": "pnpx ts-node scripts/generate-translation-file.ts en ./output-schema/schema-en.json ./output-translations/translation-en.json",
     "gen-i18n-from-json-schema-fr": "pnpx ts-node scripts/generate-translation-file.ts fr ./output-schema/schema-fr.json ./output-translations/translation-fr.json",
     "gen-typedoc-all": "pnpm run gen-typedoc-en && pnpm run gen-typedoc-fr",
-    "gen-typedoc-en": "rm -r ./output-docs/en; typedoc ./output-ts/en --name 'AWS SEA Config Docs' --excludePrivate --localize en --templateStrings ./output-translations/translation-en.json --theme ./src/typedoc-theme --out ./output-docs/en --readme ./src/README-en.md",
-    "gen-typedoc-fr": "rm -r ./output-docs/fr; typedoc ./output-ts/fr --name 'Documents Config AWS SEA' --excludePrivate --localize fr --templateStrings ./output-translations/translation-fr.json --theme ./src/typedoc-theme --out ./output-docs/fr --readme ./src/README-fr.md",
+    "gen-typedoc-en": "rm -r ./output-docs/en; typedoc ./output-ts/en --name 'AWS SEA Config Docs' --hideGenerator --excludePrivate --localize en --templateStrings ./output-translations/translation-en.json --theme ./src/typedoc-theme --out ./output-docs/en --readme ./src/README-en.md",
+    "gen-typedoc-fr": "rm -r ./output-docs/fr; typedoc ./output-ts/fr --name 'Documents Config AWS SEA' --hideGenerator --excludePrivate --localize fr --templateStrings ./output-translations/translation-fr.json --theme ./src/typedoc-theme --out ./output-docs/fr --readme ./src/README-fr.md",
     "gen-docs": "pnpm run gen-json-schema-all && pnpm run gen-ts-from-json-schema-all && pnpm run gen-i18n-from-json-schema-all && pnpm run gen-typedoc-all",
     "build": "pnpm run gen-docs"
   },
