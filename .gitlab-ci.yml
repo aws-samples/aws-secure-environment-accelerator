@@ -43,3 +43,13 @@ ui:
     expire_in: 30 days
     paths:
       - src/ui/build
+
+docs-gen:
+  stage: build
+  script:
+    - cd src/lib/docs-gen
+    - pnpm build
+  artifacts:
+    expire_in: 30 days
+    paths:
+      - src/lib/docs-gen/output-docs

@@ -1,0 +1,48 @@
+{
+  "name": "asea-documentation",
+  "productName": "ASEA Documentation",
+  "version": "1.0.0",
+  "description": "ASEA Documentation auto generated using typedoc",
+  "main": ".webpack/main",
+  "scripts": {
+    "gen-json-schema-all": "pnpm run gen-json-schema-en && pnpm run gen-json-schema-fr",
+    "gen-json-schema-en": "pnpx ts-node scripts/generate-json-schema.ts en ./output-schema/schema-en.json",
+    "gen-json-schema-fr": "pnpx ts-node scripts/generate-json-schema.ts fr ./output-schema/schema-fr.json",
+    "gen-ts-from-json-schema-all": "pnpm run gen-ts-from-json-schema-en && pnpm run gen-ts-from-json-schema-fr",
+    "gen-ts-from-json-schema-en": "pnpx ts-node scripts/generate-typescript-from-schema.ts ./output-schema/schema-en.json ./output-ts/en/ts-en.ts",
+    "gen-ts-from-json-schema-fr": "pnpx ts-node scripts/generate-typescript-from-schema.ts ./output-schema/schema-fr.json ./output-ts/fr/ts-fr.ts",
+    "gen-i18n-from-json-schema-all": "pnpm run gen-i18n-from-json-schema-en && pnpm run gen-i18n-from-json-schema-fr",
+    "gen-i18n-from-json-schema-en": "pnpx ts-node scripts/generate-translation-file.ts en ./output-schema/schema-en.json ./output-translations/translation-en.json",
+    "gen-i18n-from-json-schema-fr": "pnpx ts-node scripts/generate-translation-file.ts fr ./output-schema/schema-fr.json ./output-translations/translation-fr.json",
+    "gen-typedoc-all": "pnpm run gen-typedoc-en && pnpm run gen-typedoc-fr",
+    "gen-typedoc-en": "rm -r ./output-docs/en; typedoc ./output-ts/en --name 'ASEA Docs' --excludePrivate --localize en --templateStrings ./output-translations/translation-en.json --theme ./src/typedoc-theme --out ./output-docs/en --readme ./src/README-en.md",
+    "gen-typedoc-fr": "rm -r ./output-docs/fr; typedoc ./output-ts/fr --name 'Docs ASEA' --excludePrivate --localize fr --templateStrings ./output-translations/translation-fr.json --theme ./src/typedoc-theme --out ./output-docs/fr --readme ./src/README-fr.md",
+    "gen-docs": "pnpm run gen-json-schema-all && pnpm run gen-ts-from-json-schema-all && pnpm run gen-i18n-from-json-schema-all && pnpm run gen-typedoc-all",
+    "build": "pnpm run gen-docs"
+  },
+  "keywords": [],
+  "license": "MIT",
+  "dependencies": {
+    "@aws-accelerator/common-types": "workspace:*",
+    "@aws-accelerator/config": "workspace:*",
+    "@aws-accelerator/config-i18n": "workspace:*",
+    "esbuild": "0.11.18",
+    "fp-ts": "^2.11.4",
+    "io-ts": "^2.2.16",
+    "ip-num": "^1.3.3"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.15.7",
+    "@babel/core": "^7.15.8",
+    "@babel/node": "^7.15.8",
+    "@babel/preset-env": "^7.15.8",
+    "@babel/preset-typescript": "^7.15.0",
+    "@types/node": "^16.10.3",
+    "json-schema": "0.3.0",
+    "json-schema-to-typescript": "^10.1.5",
+    "typedoc": "^0.21.9",
+    "ts-node": "^10.2.1",
+    "typedoc-plugin-localization": "^2.2.4",
+    "typescript": "^4.4.3"
+  }
+}
