@@ -30,10 +30,18 @@ function addEventListenerToLanguages() {
 function languageSelected(event, itemClicked) {
     const selectedLanguage = itemClicked.dataset.value; //'en', 'fr', 'es', '..'
     if (currentLanguage === selectedLanguage) return;
-    document.location = document.location.href.replace(`/${currentLanguage}/`,`/${selectedLanguage}/`);
+    document.location = document.location.href.replace(`/${currentLanguage}/`, `/${selectedLanguage}/`);
+}
+function replaceMainBreadcrumbLink() {
+    const mainBreadcrumb = document.querySelector('.main-breadcrumb');
+    console.log(mainBreadcrumb);
+    console.log(mainBreadcrumb.href);
+    if (!mainBreadcrumb.href.indexOf("modules.html")) return;
+    mainBreadcrumb.href = mainBreadcrumb.href.replace(`/modules.html`,`/index.html`);
 }
 
-function initializePage(){
+function initializePage() {
     addEventListenerToLanguages();
+    replaceMainBreadcrumbLink();
 }
 initializePage();
