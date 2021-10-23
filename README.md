@@ -40,7 +40,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Route 53 Private and Public Zones, Resolver Rules and Endpoints, VPC Endpoint Overloaded Zones
 - All completely and individually customizable (per account, VPC, subnet, or OU)
 - Layout and customize your VPCs, subnets, CIDRs and connectivity the way you want
-- Static or Dynamic VPC **(NEW)** and subnet CIDR assignments
+- Static or Dynamic **(NEW)** VPC and subnet CIDR assignments
 - Deletes default VPC's (worldwide)
 - AWS Network Firewall **(NEW)**
 
@@ -81,7 +81,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 ### Other Security Capabilities
 
 - Creates, deploys and applies Service Control Policies
-- Creates Customer Managed KMS Keys (SSM, EBS, S3)
+- Creates Customer Managed KMS Keys (SSM, EBS, S3), EC2 key pairs, and secrets
 - Enables account level default EBS encryption and S3 Block Public Access
 - Configures Systems Manager Session Manager w/KMS encryption and centralized logging
 - Creates and configures AWS budgets (customizable per ou and per account)
@@ -114,7 +114,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 
 ## Relationship with AWS Landing Zone Solution (ALZ)
 
-The ALZ is an AWS Solution designed to deploy a multi-account AWS architecture for customers based on best practices and lessons learned from some of AWS' largest customers. The AWS Accelerator draws on design patterns from the Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it, nor does it leverage any code from the ALZ. The Accelerator is a standalone solution with no dependence on ALZ.
+The ALZ was an AWS Solution designed to deploy a multi-account AWS architecture for customers based on best practices and lessons learned from some of AWS' largest customers. The AWS Accelerator draws on design patterns from the Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it, nor does it leverage any code from the ALZ. The Accelerator is a standalone solution with no dependence on ALZ.
 
 ## Relationship with AWS Control Tower
 
@@ -168,7 +168,11 @@ This summarizes the installation process, the full installation document can be 
 
 ---
 
-Note: A ZIP file containing a PDF version of the documentation is attached as an asset of each [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
+Note: Two ZIP files are attached as assets of each [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases):
+
+- one contains a PDF version of the above documentation
+- the second contains the _DRAFT_ of the config file schema documentation, auto generated from a combination of the typescript schema and the field definitions used in the future GUI
+  - Extract and open src\lib\docs-gen\output-docs\en\index.html in your browser
 
 ---
 

@@ -1,12 +1,18 @@
-## SEA Custom Script to prepare for upgrade from v1.3.3
+## ASEA Custom Script to prepare for upgrade from v1.3.8 to v1.5.0
 
-usage: update.py [-h] [--AcceleratorPrefix ACCELERATORPREFIX] --ConfigFile
+Usage:
+
+```
+update.py [-h] [--AcceleratorPrefix ACCELERATORPREFIX] --ConfigFile
                  CONFIGFILE --Region REGION [--LoadDB] [--LoadConfig]
+```
 
-A Script to load existing cidrs to DDB Cidr Pool table and generate new config
-based for upgrade.  This script only supports single file json files.
+A Script to load existing cidrs to DDB Cidr Pool table and generate a new v1.5.0 config
+file for an Accelerator upgrade. This script only supports single file json files.
 
-optional arguments:
+Optional arguments:
+
+```
   -h, --help            show this help message and exit
   --AcceleratorPrefix ACCELERATORPREFIX
                         The value set in AcceleratorPrefix
@@ -16,28 +22,19 @@ optional arguments:
   --LoadDB              Flag to enable load existing cidrs to DynamoDB Tables
   --LoadConfig          Flag to enable Conversion of config file from pervious
                         version
-
-A Script to load existing cidrs to DDB Cidr Pool table and generate new config
-based for upgrade
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --AcceleratorPrefix ACCELERATORPREFIX
-                        The value set in AcceleratorPrefix
-  --ConfigFile CONFIGFILE
-                        ConfigFile location
+```
 
 Examples:
-- Only update the config.json to new file format:
+
+- Update the config.json to the new v1.5.0 file format:
+
 ```
 	python update.py --Region ca-central-1 --LoadConfig --ConfigFile config.json
 ```
 
-- Update the config.json to new file format and load DDB tables with CIDR ranges
+- Load DynamoDB tables with currently utilized CIDR ranges:
+  - Note: To properly set the pool values, execute against the updated (v1.5.0) config file
+
 ```
-	python update.py --Region ca-central-1 --LoadConfig --LoadDB --ConfigFile config.json --AcceleratorPrefix PBMMAccel-
-```
-- Only load DDB tables with CIDR ranges
-```
-	python update.py --Region ca-central-1 --LoadDB --ConfigFile config.json --AcceleratorPrefix PBMMAccel-
+	python update.py --Region ca-central-1 --LoadDB --ConfigFile update-config.json --AcceleratorPrefix ASEA-
 ```

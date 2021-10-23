@@ -10,8 +10,6 @@
     - [1.5.2. Mandatory Account Configs](#152-mandatory-account-configs)
     - [1.5.3. Workload Account Configs](#153-workload-account-configs)
     - [1.5.4. Organization Units](#154-organization-units)
-  - [1.6. Summary of Example Config File Optional Changes for New Installs](#16-summary-of-example-config-file-optional-changes-for-new-installs)
-    - [1.6.1. Global Options](#161-global-options)
 - [2. **State Machine Behavior**](#2-state-machine-behavior)
 
 ## 1.1. **Sample Accelerator Configuration Files**
@@ -20,7 +18,7 @@
 
 - Sample config files can be found in [this](../../reference-artifacts/SAMPLE_CONFIGS/) folder
   - Most of the examples reflect a Medium Security profile (NIST, ITSG, FEDRAMP)
-- Unsure where to start, use the [config.lite-NFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json) file (the NFW variant of option 2)
+- Unsure where to start, use the [config.lite-CTNFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-CTNFW-example.json) file (the CT w/NFW variant of option 2)
 - Frugal and want something comprehensive to experiment with, use the [config.test-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.test-example.json) file (option 5)
 
 **Samples with Descriptions**
@@ -80,11 +78,11 @@
 
 ## 1.2. **Deployment Customizations**
 
-- [Multi-file config file and YAML formatting option](./multi-file-config-capabilities.md):
+- [Multi-file config file and YAML formatting option](./multi-file-config-capabilities.md)
 
   - The sample configuration files are provided as single, all encompassing, json files. The Accelerator also supports both splitting the config file into multiple component files and configuration files built using YAML instead of json. Details can be found in the linked document.
 
-- [Sample Snippets](../../reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md):
+- [Sample Snippets](../../reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md)
 
   - The sample configuration files do not include the full range of supported configuration file parameters and values, additional configuration file parameters and values can be found in the sample snippets document.
 
@@ -142,13 +140,21 @@ At a minimum you should consider reviewing the following config file sections an
 
 ### 1.5.1. Global Options
 
-- S3 Central Bucket `global-options/central-bucket`: "AWSDOC-EXAMPLE-BUCKET"
+- S3 Central Bucket
+  - `global-options/central-bucket`: "AWSDOC-EXAMPLE-BUCKET"
   - replace with `your-bucket-name` as referenced in the Installation Guide [S3 Creation - Step #5](./installation.md#24-basic-accelerator-configuration)
-- Central Log Services SNS Emails `global-options/central-log-services/sns-subscription-emails`: "myemail+notifyT-xxx@example.com"
+- Central Log Services SNS Emails
+  - `global-options/central-log-services/sns-subscription-emails`: "myemail+notifyT-xxx@example.com"
   - update the 3 email addresses (high, medium and low) as required. Each address will receives alerts or alarms of the specified level. The same email address can be used for all three.
-- Dynamic CIDR Pool Ranges (ONLY modify if required to use other CIDR ranges)
-  - `global-options/cidr-pools/cidr`: "10.0.0.0/13"
-  - ["global-options"]["cidr-pools"][1].cidr
+- The default dynamic CIDR pools (`global-options/cidr-pools`) listed below are used to assign ranges based on the subnet mask set in each VPC and subnet throughout the configuration file.
+  - `global-options/cidr-pools/0/cidr`: "10.0.0.0/13"
+    - The main address pool used to dynamically assign CIDR ranges for most VPCs
+  - `global-options/cidr-pools/1/cidr`: "100.96.252.0/23"
+    - Address pool used to dynamically assign CIDR ranges for the Managed Active Directory subnets in the Ops account
+  - `global-options/cidr-pools/2/cidr`: "100.96.250.0/23"
+    - Address pool used to dynamically assign CIDR ranges for the Perimeter VPC
+  - `global-options/cidr-pools/3/cidr`: "10.249.1.0/24"
+    - A non-routable pool of addresses used to dynamically assign CIDR ranges for the Active Directory Connector subnets in the Organization Management/root account
 
 ### 1.5.2. Mandatory Account Configs
 
@@ -226,22 +232,6 @@ As mentioned in the Installation Guide, we recommend not adding more than 1 or 2
   - `organizational-units/Prod/default-budgets/alerts/emails`: "myemail+aseaT-budg@example.com"
   - `organizational-units/Sandbox/default-budgets/alerts/emails`: "myemail+aseaT-budg@example.com"
 - For organization units with `certificates`, review the certificates and update as you see fit. These certificates are used in the `alb` section under `alb/cert-name` of each OU
-
-## 1.6. Summary of Example Config File Optional Changes for New Installs
-
-Changes to these parameters are not required for a deployment, but are provided as references for additional customization.
-
-### 1.6.1. Global Options
-
-- The default dynamic CIDR pools (`global-options/cidr-pools`) listed below are used to assign ranges based on the subnet mask set in each VPC and subnet throughout the configuration file.
-  - `global-options/cidr-pools/0/cidr`: "10.0.0.0/13"
-    - The main address pool used to dynamically assign CIDR ranges
-  - `global-options/cidr-pools/1/cidr`: "100.96.252.0/23"
-    - Address pool used to dynamically assign CIDR ranges for the Managed Active Directory subnets in the Ops account
-  - `global-options/cidr-pools/2/cidr`: "100.96.250.0/23"
-    - Address pool used to dynamically assign CIDR ranges for the Perimeter VPC
-  - `global-options/cidr-pools/3/cidr`: "10.249.1.0/24"
-    - A non-routable pool of addresses used to dynamically assign CIDR ranges for the Active Directory Connector subnets in the Organization Management/root account
 
 # 2. **State Machine Behavior**
 

@@ -86,6 +86,7 @@ Providing any one or more of the following flags will only override the specifie
      'ov-acct-ou': true,
      'ov-acct-vpc': true,
      'ov-acct-subnet': true,
+	 'ov-acct-vpc-optin': true,
      'ov-tgw': true,
      'ov-mad': true,
      'ov-ou-vpc': true,
@@ -112,15 +113,31 @@ Providing any one or more of the following flags will only override the specifie
 
 Summary of inputs, per section 1.1 above:
 
-- {"scope":"FULL", "mode":"APPLY"}
-- {"scope":"NEW-ACCOUNTS", "mode":"APPLY"}
-- {"scope":"GLOBAL-OPTIONS", "mode":"APPLY"}
-- {"scope":"OU", "targetOUs":["ou-name", "ou-name"], "mode":"APPLY"}
-- {"scope":"ACCOUNT", "targetAccounts":["123456789012","234567890123"], "mode":"APPLY"}
+```
+{"scope":"FULL", "mode":"APPLY"}
+```
+
+```
+{"scope":"NEW-ACCOUNTS", "mode":"APPLY"}
+```
+
+```
+{"scope":"GLOBAL-OPTIONS", "mode":"APPLY"}
+```
+
+```
+{"scope":"OU", "targetOUs":["ou-name", "ou-name"], "mode":"APPLY"}
+```
+
+```
+{"scope":"ACCOUNT", "targetAccounts":["123456789012","234567890123"], "mode":"APPLY"}
+```
 
 ## 2.6. Example of combined inputs
 
-- {"scope": "FULL", "mode": "APPLY", "configOverrides": {"ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }}
+```
+{"scope": "FULL", "mode": "APPLY", "configOverrides": {"ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }}
+```
 
 ---
 

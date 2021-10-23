@@ -621,9 +621,9 @@ def impl(accel_prefix, config_file, region, load_db, load_config):
 if __name__ == '__main__':
     args = parser.parse_args()
     if args.LoadDB and args.LoadConfig:
-        print('Both LoadDB and LoadConfig cannot be used at the sae time. Please run with only one of the options set.')
+        print('Both LoadDB and LoadConfig cannot be used at the same time. Please run with only one options set.')
         exit(1)
     if (not args.LoadDB and not args.LoadConfig):
-        print ("Both --LoadDB and --LoadConfig can't be null. Need any operation")
+        print ("Both --LoadDB and --LoadConfig can't be null. Need an operation")
         exit(0)
     impl(args.AcceleratorPrefix, args.ConfigFile, args.Region, args.LoadDB, args.LoadConfig)
