@@ -15,15 +15,27 @@
 import { action, toJS } from 'mobx';
 import { observer, useLocalStore } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
-import { Alert, Button, Header, Modal, SpaceBetween, StatusIndicator, Table } from '@awsui/components-react';
+import { Alert, Button, FormField, Header, Input, Modal, Select, SpaceBetween, StatusIndicator, Table } from '@awsui/components-react';
 import { useI18n } from '@/components/i18n-context';
 import { valueAsArray } from '@/utils';
 import { AcceleratorConfigurationNode } from '../configuration';
 import { WizardField } from './fields';
 import { LabelWithDescription } from './label-with-description';
+import { useInput } from '@/utils/hooks';
+import { OptionDefinition } from '../../../../node_modules/@awsui/components-react/internal/components/option/interfaces';
 
 const cidrPoolsNode = AcceleratorConfigurationNode.nested('global-options').nested('cidr-pools');
+
+
 const dummyCidrPoolNode = cidrPoolsNode.nested(0);
+
+interface SimpleCidrPoolUnitValue {
+  cidr: string;
+  pool: string;
+  description: string;
+  region: string;
+  origPoolName: string;
+}
 
 export interface CidrPoolTableProps {
   state: any;
@@ -38,11 +50,26 @@ export const CidrPoolTable: React.VFC<CidrPoolTableProps> = observer(({ state })
   const [dependencyAlertVisible, setDependencyAlertVisible] = useState(false);
   const [editNameAlert, setEditNameAlert] = useState(false);
   const [addNameAlert, setAddNameAlert] = useState(false);
+  const [cannotAddCIDR, setCannotAddCIDR] = useState(false);
 
   // Fetch translations to be used as table headers
   const { title: nameTitle } = tr(dummyCidrPoolNode.nested('pool'));
   const { title: cidrTitle } = tr(dummyCidrPoolNode.nested('cidr'));
   const { title: regionTitle } = tr(dummyCidrPoolNode.nested('region'));
+
+  const cidrPoolsNodeState = cidrPoolsNode.get(state) ?? {}
+
+  const cidrPoolList: SimpleCidrPoolUnitValue[] = Object.entries(cidrPoolsNodeState).map(
+    ([key, cidrConfig]: [string, any]) => {
+      return {
+        cidr: cidrConfig?.cidr,
+        pool: cidrConfig?.pool,
+        description: cidrConfig?.description,
+        region: cidrConfig?.region,
+        origPoolName: cidrConfig?.pool
+      };
+    },
+  );
 
   const pools = valueAsArray(cidrPoolsNode.get(state));
 
@@ -58,14 +85,6 @@ export const CidrPoolTable: React.VFC<CidrPoolTableProps> = observer(({ state })
     setModalVisible(true);
   });
 
-  const handleSubmitAdd = action((value: any) => {
-    if (nameExists(value['pool'])) {
-      setAddNameAlert(true);
-    } else {
-      cidrPoolsNode.set(state, [...pools, value]);
-    }
-  });
-
   const nameExists = (pool: string | undefined) => {
     for (let each in pools) {
       if (pools[each]['pool'] == pool) {
@@ -75,17 +94,66 @@ export const CidrPoolTable: React.VFC<CidrPoolTableProps> = observer(({ state })
     return false;
   }
 
-  const handleSubmitEdit = action((value: any) => {
-    if (nameExists(value['pool'])) {
-      setEditNameAlert(true);
+  const validateForm = (cidr: string, pool: string, description: string, region: String) => {
+    if (cidr == "" || pool == "" || description == "" || region == "") {
+      return false
     } else {
-        cidrRecurs(selectedItem.pool, value.pool, state) 
-        if (selectedItem) {
-          selectedItem.pool = value.pool;
-          selectedItem.cidr = value.cidr;
-          selectedItem.region = value.region;
-        }
+      return true
     }
+  }
+
+  const handleSubmitAdd = action((value: SimpleCidrPoolUnitValue) => {
+    const {cidr, pool, description, region, origPoolName} = value; 
+
+    if (nameExists(pool)) {
+      setAddNameAlert(true);
+    } else if (validateForm(cidr, pool, description, region)) {
+      cidrPoolsNodeState.push(
+          {
+            cidr: cidr, 
+            pool: pool,
+            region: region, 
+            description: description,
+            origPoolName: pool,
+          }
+      )
+    } else {
+      setCannotAddCIDR(true);
+    }
+
+
+    /*if (nameExists(value['pool'])) {
+  
+    } else {
+      cidrPoolsNode.set(state, [...pools, value]);
+    }*/
+  });
+
+
+  const handleSubmitEdit = action((value: SimpleCidrPoolUnitValue) => {
+    const {cidr, pool, description, region, origPoolName} = value; 
+
+    if(pool !== origPoolName) {
+      if (nameExists(pool)) {
+        setEditNameAlert(true);
+        return;
+      } else {
+        cidrRecurs(selectedItem.pool, value.pool, state) 
+      }
+    }
+    let index = 0; 
+    for (let each in cidrPoolList) {
+      if (cidrPoolList[each].pool == selectedItem.pool) {
+        index = parseInt(each)
+      }
+    }
+    cidrPoolsNodeState[index] = 
+      {
+        cidr: cidr, 
+        pool: pool,
+        region: region, 
+        description: description,
+      }
   });
 
   const cidrRecurs = action((oldValue: string, newValue: string, node: any) => {
@@ -160,9 +228,10 @@ export const CidrPoolTable: React.VFC<CidrPoolTableProps> = observer(({ state })
         initialValue={modalInitialValue}
         onDismiss={() => setModalVisible(false)}
         onSubmit={handleSubmit}
+        state={state}
       />
       <Table
-        items={pools}
+        items={cidrPoolList}
         trackBy="pool"
         selectionType="single"
         selectedItems={selectedItem ? [selectedItem] : []}
@@ -204,6 +273,19 @@ export const CidrPoolTable: React.VFC<CidrPoolTableProps> = observer(({ state })
             {tr('wizard.headers.cidr_pools')}
           </Header>
           { 
+           cannotAddCIDR === true && 
+             <Alert
+               onDismiss={() => setCannotAddCIDR(false)}
+               visible={cannotAddCIDR}
+               dismissible
+               type="error"
+               dismissAriaLabel="Close alert"
+               header="Can't add new CIDR Pool"
+             >
+             Fields cannot be left empty when adding a new CIDR Pool. 
+             </Alert>
+          }
+          { 
             dependencyAlertVisible === true && 
               <Alert
                 onDismiss={() => setDependencyAlertVisible(false)}
@@ -227,7 +309,8 @@ export const CidrPoolTable: React.VFC<CidrPoolTableProps> = observer(({ state })
                 dismissAriaLabel="Close alert"
                 header="Unsuccessful name change for CIDR pool"
               >
-              You cannot rename a CIDR pool to an already existing CIDR pool. 
+              You cannot rename a CIDR pool to an already existing CIDR pool.
+              . 
               </Alert>
           }
           { 
@@ -257,6 +340,7 @@ interface AddCidrPoolModalProps {
   initialValue: any;
   onDismiss: () => void;
   onSubmit: (value: any) => void;
+  state: any;
 }
 
 /**
@@ -268,9 +352,13 @@ const AddCidrPoolModal = observer(function AddCidrPoolModal({
   initialValue,
   onDismiss,
   onSubmit,
+  state
 }: AddCidrPoolModalProps) {
   const { tr } = useI18n();
-  const staging = useLocalStore(() => ({}));
+  //const staging = useLocalStore(() => ({}));
+  const cidrPoolNameInputProps = useInput();
+  const cidrPoolSizeInputProps = useInput();
+  const cidrPoolDescInputProps = useInput();
 
   // prettier-ignore
   const headerText = type === 'add' 
@@ -281,12 +369,39 @@ const AddCidrPoolModal = observer(function AddCidrPoolModal({
     ? tr('buttons.add')
     : tr('buttons.save_changes');
 
+  const { title: nameTitle, description: nameDesc } = tr(dummyCidrPoolNode.nested('pool'));
+  const { title: cidrTitle, description: cidrDesc } = tr(dummyCidrPoolNode.nested('cidr'));
+  const { title: regionTitle, description: regionDesc } = tr(dummyCidrPoolNode.nested('region'));
+  const { title: descTitle, description: descDesc } = tr(dummyCidrPoolNode.nested('description'));
+  const [selectedOption, setSelectedOption] = useState<OptionDefinition>({ label: "", value: "" });
+
+  const regionsNode = AcceleratorConfigurationNode.nested('global-options').nested('supported-regions');
+  const regionsNodeState = regionsNode.get(state) ?? {}
+
+  var options: { label: string; value: string; }[] = []
+  const populateSelect = () => {
+    for (const each in regionsNodeState) {
+      options.push({label: regionsNodeState[each], value: regionsNodeState[each]})
+    }
+  }
+
   const handleSubmit = () => {
-    // Get the pool from the staging state
-    onSubmit(dummyCidrPoolNode.get(staging));
+    onSubmit({
+      cidr: cidrPoolSizeInputProps.value ?? '',
+      pool: cidrPoolNameInputProps.value ?? '', 
+      description: cidrPoolDescInputProps.value ?? '',
+      region: String(selectedOption.value) ?? '',
+      origPoolName: initialValue.pool
+    });
   };
 
-  useEffect(() => dummyCidrPoolNode.set(staging, initialValue), [visible]);
+  /*useEffect(() => dummyCidrPoolNode.set(staging, initialValue), [visible]);*/
+  useEffect(() => {
+    cidrPoolNameInputProps.setValue(initialValue.pool ?? '');
+    cidrPoolSizeInputProps.setValue(initialValue.cidr ?? '');
+    cidrPoolDescInputProps.setValue(initialValue.description ?? '');
+    setSelectedOption({ label: initialValue.region ?? '', value: initialValue.region ?? ''});
+  }, [visible]);
 
   return (
     <Modal
@@ -306,9 +421,36 @@ const AddCidrPoolModal = observer(function AddCidrPoolModal({
           handleSubmit();
         }}
       >
-        {/* Use staging state to create the new pool in */}
-        <WizardField state={staging} node={dummyCidrPoolNode} />
+        {populateSelect()}
+        <SpaceBetween size="m">
+          <FormField label={nameTitle} description={nameDesc} stretch>
+            <Input {...cidrPoolNameInputProps}/>
+          </FormField>
+          <FormField label={cidrTitle} description={cidrDesc} stretch>
+            <Input {...cidrPoolSizeInputProps} />
+          </FormField>
+          <FormField label={regionTitle} description={regionDesc} stretch>
+            <Select
+              selectedOption={selectedOption}
+              onChange={({ detail }) =>
+                setSelectedOption(detail.selectedOption)
+              }
+              options={options}
+              selectedAriaLabel="Selected"
+            />
+          </FormField>
+
+          <FormField label={descTitle} description={descDesc} stretch>
+            <Input {...cidrPoolDescInputProps} />
+          </FormField>
+          </SpaceBetween>
       </form>
+
+        {/* Use staging state to create the new pool in 
+        <WizardField state={staging} node={dummyCidrPoolNode.nested('pool')} />
+        <WizardField state={staging} node={dummyCidrPoolNode.nested('cidr')} />
+        <WizardField state={staging} node={dummyCidrPoolNode.nested('region')} />
+        <WizardField state={staging} node={dummyCidrPoolNode.nested('description')} />*/}
     </Modal>
   );
 });

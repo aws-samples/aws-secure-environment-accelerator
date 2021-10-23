@@ -20,17 +20,21 @@ import {
   Box,
   Button,
   FormField,
+  Grid,
   Header,
   Input,
   Modal,
+  Select,
   SpaceBetween,
   StatusIndicator,
   Table,
+  TokenGroup,
 } from '@awsui/components-react';
 import { useI18n } from '@/components/i18n-context';
 import { useInput } from '@/utils/hooks';
 import { AcceleratorConfigurationNode } from '../configuration';
 import { LabelWithDescription } from './label-with-description';
+import { OptionDefinition } from '../../../../node_modules/@awsui/components-react/internal/components/option/interfaces';
 
 const organizationalUnitsNode = AcceleratorConfigurationNode.nested('organizational-units');
 
@@ -39,12 +43,13 @@ interface SimpleOrganizationalUnitValue {
   description: string;
   amount: number;
   email: string;
+  type: string;
+  scps: String[]; 
 }
 
 export interface OrganizationalUnitTableProps {
   state: any;
 }
-
 
 export const OrganizationalUnitTable = observer(({ state }: OrganizationalUnitTableProps) => {
   const { tr, currency } = useI18n();
@@ -56,8 +61,7 @@ export const OrganizationalUnitTable = observer(({ state }: OrganizationalUnitTa
   const [dependencyAlertVisible, setDependencyAlertVisible] = useState(false);
   const [editNameAlert, setEditNameAlert] = useState(false);
   const [addNameAlert, setAddNameAlert] = useState(false);
-
-
+  const [cannotAddOU, setCannotAddOU] = useState(false);
 
   const nameTitle = tr('wizard.labels.ou_name');
   const budgetAmountTitle = tr('wizard.labels.ou_default_per_account_budget');
@@ -74,9 +78,21 @@ export const OrganizationalUnitTable = observer(({ state }: OrganizationalUnitTa
         description: ouConfig?.description,
         amount: budgets?.amount ?? 1000,
         email: budgets?.alerts?.[0]?.['emails']?.[0] ?? 'you@example.com',
+        type: ouConfig?.type ?? "", 
+        scps: ouConfig?.['scps'], 
       };
     },
   );
+
+  const validateForm = (key: string, amount: number, email: string, type: string, scps: String[] ) => {
+    console.log(amount)
+    if (key == '' || key == null || Number.isNaN(amount) ||
+        email == '' || type == '' || scps.length == 0) {
+      return false
+    } else {
+      return true
+    }
+  }
 
   const handleAdd = () => {
     setModalType('add');
@@ -91,16 +107,23 @@ export const OrganizationalUnitTable = observer(({ state }: OrganizationalUnitTa
   };
 
   const handleSubmitAdd = action((value: SubmitValue) => {
-    const { key, amount, email } = value;
+    const { key, amount, email, type, scps } = value;
     if (nameExists(key)) {
       setAddNameAlert(true);
+    } else if (validateForm(key, amount, email, type, scps)) {
+      organizationalUnits[key] = { 
+        'default-budgets': createInitialBudget(amount, email),
+        'type': type,
+        'scps': scps,
+      };
     } else {
-      organizationalUnits[key] = { 'default-budgets': createInitialBudget(amount, email) };
+      setCannotAddOU(true);
     }
   });
 
   const handleSubmitEdit = action((value: SubmitValue) => {
-    const { key, amount, email, origKey } = value;
+    const { key, amount, email, origKey, type, scps } = value;
+
     if (key != origKey && nameExists(key)) {
       setEditNameAlert(true);
     } else if (key != origKey) {
@@ -115,7 +138,9 @@ export const OrganizationalUnitTable = observer(({ state }: OrganizationalUnitTa
       }
     } else {
       organizationalUnits[key]['default-budgets'] = createInitialBudget(amount, email);
+      
     }
+    organizationalUnits[key]['scps'] = scps   
   });
 
   const nameExists = (editKey: string | undefined) => {
@@ -225,6 +250,14 @@ export const OrganizationalUnitTable = observer(({ state }: OrganizationalUnitTa
             header: budgetAmountTitle,
             cell: ({ amount }) => <Box textAlign="right">{currency(amount)}</Box>,
           },
+          {
+            header: "Type of Organization",
+            cell: ({ type }) => type,
+          },
+          {
+            header: "Service Control Policies",
+            cell: ({ scps }) => scps.join(", "),
+          }
         ]}
         header={
           <>
@@ -248,6 +281,19 @@ export const OrganizationalUnitTable = observer(({ state }: OrganizationalUnitTa
           >
             {tr('wizard.headers.organizational_units')}
           </Header>
+          { 
+           cannotAddOU === true && 
+             <Alert
+               onDismiss={() => setCannotAddOU(false)}
+               visible={cannotAddOU}
+               dismissible
+               type="error"
+               dismissAriaLabel="Close alert"
+               header="Can't add new Organizational Unit"
+             >
+             Fields cannot be left empty when adding a new Organizational Unit. 
+             </Alert>
+          }
           { 
             permAlertVisible === true && 
               <Alert
@@ -319,6 +365,8 @@ interface SubmitValue {
   amount: number;
   email: string;
   origKey: string | undefined;
+  type: string;
+  scps: String[];
 }
 
 interface AddModifyOrganizationalUnitModalProps {
@@ -327,7 +375,6 @@ interface AddModifyOrganizationalUnitModalProps {
   initialValue: Partial<SimpleOrganizationalUnitValue>;
   onDismiss: () => void;
   onSubmit: (value: SubmitValue) => void;
-
 }
 
 /**
@@ -358,12 +405,42 @@ const AddModifyOrganizationalUnitModal = ({
   const budgetAmountTitle = tr('wizard.labels.ou_default_per_account_budget');
   const budgetEmailTitle = tr('wizard.labels.ou_default_per_account_email');
 
+  const orgType = { title: 'Type of Organization', description: '\
+  Mandatory for core accounts, Workload for workload accounts, or Ignore for Organizational Management account'}
+  const scpsTitle = { title: 'Service control policies (SCPs)', description: '' }
+
+  var populatedScpList: any[]= []
+
+  const populateScpList = () => {
+    for (const each in initialValue.scps) {
+      populatedScpList.push(
+        { 
+          label: initialValue.scps[parseInt(each)], 
+          dismissLabel:  initialValue.scps[parseInt(each)]
+        }
+      )
+    }
+  }
+
+  const [selectedOption, setSelectedOption] = useState<OptionDefinition>({ label: "Mandatory", value: "mandatory" });
+  const [scpList, setScpList] = useState<any[]>([]);
+  const [newScp, setNewScp] = useState("");
+
+  const configScpList = (scps: any[]) => {
+    var configScpList = []
+    for (let each in scps) {
+      configScpList.push(scps[each].label)
+    }
+    return configScpList
+  }
   const handleSubmit = () => {  
       onSubmit({
         key: ouKeyInputProps.value,
         amount: Number(budgetAmountInputProps.value),
         email: budgetEmailInputProps.value,
         origKey: initialValue.key,
+        type: String(selectedOption.value) ?? '',
+        scps: configScpList(scpList)
       });
   };
 
@@ -371,6 +448,9 @@ const AddModifyOrganizationalUnitModal = ({
     ouKeyInputProps.setValue(initialValue.key ?? '');
     budgetAmountInputProps.setValue(`${initialValue.amount}`);
     budgetEmailInputProps.setValue(initialValue.email ?? '');
+    populateScpList()
+    setScpList([...populatedScpList])
+   
   }, [visible]);
 
   return (
@@ -391,6 +471,7 @@ const AddModifyOrganizationalUnitModal = ({
           handleSubmit();
         }}
       >
+        
         <SpaceBetween size="m">
           <FormField label={keyTitle} stretch>
             <Input {...ouKeyInputProps}/>
@@ -400,6 +481,53 @@ const AddModifyOrganizationalUnitModal = ({
           </FormField>
           <FormField label={budgetEmailTitle} stretch>
             <Input {...budgetEmailInputProps} />
+          </FormField>
+          <FormField label={orgType.title} description={orgType.description} stretch>
+          <Select
+              selectedOption={selectedOption}
+              onChange={({ detail }) =>
+                setSelectedOption(detail.selectedOption)
+              }
+              options={[
+              { label: "Mandatory", value: "mandatory" },
+              { label: "Workload", value: "workload" },
+              { label: "Ignore", value: "ignore" },]}
+              selectedAriaLabel="Selected"
+            />
+          </FormField>
+          <FormField label={scpsTitle.title} description={scpsTitle.description} stretch>
+          <SpaceBetween size="xs">
+            <TokenGroup
+              onDismiss={({ detail: { itemIndex } }) => {
+                setScpList([
+                  ...scpList.slice(0, itemIndex),
+                  ...scpList.slice(itemIndex + 1)
+                ]);
+              }}
+              items={scpList}
+            />
+            <Grid
+              gridDefinition={[{ colspan: 9 }, { colspan: 3 }]}
+            >
+              <div> 
+                <Input
+                  onChange={({ detail }) => setNewScp(detail.value)}
+                  value={newScp}
+                />
+              </div>
+              <div>
+                <Button 
+                  variant="normal" 
+                  formAction="none"
+                  onClick={
+                    () => {
+                      scpList.push({label: newScp, dismissLabel: "Remove item"})
+                      setScpList([...scpList])
+                  }}
+                  >Add SCP</Button>
+              </div>
+            </Grid>
+          </SpaceBetween>
           </FormField>
         </SpaceBetween>
       </form>

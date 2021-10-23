@@ -12,13 +12,14 @@
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { action, toJS } from 'mobx';
-import { Observer, observer, useLocalStore } from 'mobx-react-lite';
+import { action } from 'mobx';
+import { observer } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
 import {
   Button,
   Checkbox,
   FormField,
+  Grid,
   Header,
   Input,
   Modal,
@@ -26,27 +27,29 @@ import {
   SpaceBetween,
   StatusIndicator,
   Table,
+  TokenGroup,
 } from '@awsui/components-react';
 import * as c from '@aws-accelerator/config';
 import { useI18n } from '@/components/i18n-context';
 import { TypeTreeNode } from '@/types';
 import { AcceleratorConfigurationNode } from '../configuration';
-import { WizardField } from './fields';
-import { isDisabled, setDisabled } from '../util';
 import { LabelWithDescription } from './label-with-description';
-import { valueAsArray } from '@/utils';
 import { OptionDefinition } from '../../../../node_modules/@awsui/components-react/internal/components/option/interfaces';
-
+import { useCheckboxInput, useInput } from '@/utils/hooks';
 
 const ouConfigNode = AcceleratorConfigurationNode.nested('organizational-units');
 const mandatoryAccountConfigNode = AcceleratorConfigurationNode.nested('mandatory-account-configs');
 const workloadAccountConfigNode = AcceleratorConfigurationNode.nested('workload-account-configs');
 
-
-interface TableItem {
-  path: string;
-  node: TypeTreeNode;
-  value: any;
+interface SimpleVpcUnitValue {
+  name: string; 
+  description: string;
+  deploy: string; 
+  region: string;
+  cidr: any[];
+  'tgw-attach': any,
+  subnets: any,
+  guiCidr: any,
 }
 
 export interface VpcTableProps {
@@ -56,76 +59,142 @@ export interface VpcTableProps {
 export const VpcTable: React.VFC<VpcTableProps> = observer(({ state }) => {
   const { tr } = useI18n();
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalNode, setModalNode] = useState<TypeTreeNode | undefined>();
-  const [selectedItem, setSelectedItem] = useState<TableItem | undefined>();
-
+  const [selectedItem, setSelectedItem] = useState<SimpleVpcUnitValue | undefined>();
+  const [modalInitialValue, setModalInitialValue] = useState<Partial<SimpleVpcUnitValue>>({});
+  
   const nodes = getVpcNodes(state);
-  const items: TableItem[] = nodes.map(node => ({
-    path: node.path.join('/'),
-    node,
-    value: node.get(state),
-  }));
+
+  const nodesList: any[] = []
+  const populateNodesList = () => {
+    for (let each in nodes) {
+      nodesList.push(nodes[each].get(state) ?? {})
+    }
+  }
+
+  populateNodesList() 
+
+  const makeCidrList = (cidrPool: any) => {
+    let cidrList = []
+    for (let each in cidrPool) {
+      cidrList.push(["(" + cidrPool[each].pool + ", " + cidrPool[each].size] + ")")
+    }
+    return cidrList
+  }
+
+  const organizationalUnitsNode = AcceleratorConfigurationNode.nested('organizational-units').get(state);
+  const mandatoryAccountConfigNodeState = AcceleratorConfigurationNode.nested('mandatory-account-configs').get(state);
+
+  const getDefinedIn = (vpcName: string) => {
+    return vpcName in organizationalUnitsNode ? 'Organizational Unit' : 'Account';
+  }
+
+  const isSubnetShared = (vpcName: string) => {
+    if (vpcName in organizationalUnitsNode) {
+      return organizationalUnitsNode[vpcName]['vpc'][0].subnets?.find((s: any) => s['share-to-ou-accounts'] || s['share-to-specific-accounts']) != null;
+    } else if ((vpcName.toLowerCase()) in mandatoryAccountConfigNodeState) {
+      return mandatoryAccountConfigNodeState[vpcName.toLowerCase()]['vpc'][0].subnets?.find((s: any) => s['share-to-ou-accounts'] || s['share-to-specific-accounts']) != null;
+    } else {
+      for (let each in mandatoryAccountConfigNodeState) {
+        if(mandatoryAccountConfigNodeState.hasOwnProperty('vpc') && mandatoryAccountConfigNodeState[each]['vpc'][0]['name'] === vpcName) {
+          return mandatoryAccountConfigNodeState[each]['vpc'][0].subnets?.find((s: any) => s['share-to-ou-accounts'] || s['share-to-specific-accounts']) != null;
+        }
+      }
+    }
+  }
+
+  const isTgwAttached = (vpcName: string) => {
+    if (vpcName in organizationalUnitsNode) {
+      return organizationalUnitsNode[vpcName]['vpc'][0].hasOwnProperty('tgw-attach')
+    } else if ((vpcName.toLowerCase()) in mandatoryAccountConfigNodeState) {
+      return mandatoryAccountConfigNodeState[vpcName.toLowerCase()]['vpc'][0].hasOwnProperty('tgw-attach');
+    } else {
+      for (let each in mandatoryAccountConfigNodeState) {
+        if(mandatoryAccountConfigNodeState.hasOwnProperty('vpc') && mandatoryAccountConfigNodeState[each]['vpc'][0]['name'] === vpcName) {
+          return mandatoryAccountConfigNodeState[each]['vpc'][0].hasOwnProperty('tgw-attach');
+        }
+      }
+    }
+  }
+
+  const vpcItems: SimpleVpcUnitValue[] = Object.entries(nodesList).map(
+    ([key, vpcConfig]: [string, any]) => {
+      return {
+        name: vpcConfig?.name,
+        description: vpcConfig?.description ?? '',
+        deploy: vpcConfig?.deploy ?? '',
+        region: vpcConfig?.region,
+        cidr: vpcConfig?.cidr,
+        "tgw-attach": vpcConfig?.['tgw-attach'],
+        subnets: vpcConfig?.subnets,
+        guiCidr: makeCidrList(vpcConfig?.cidr)
+      };
+    },
+  );
 
   const handleEdit = () => {
-    setModalNode(selectedItem?.node);
+    setModalInitialValue(selectedItem ?? {});
     setModalVisible(true);
   };
 
-  const handleSubmit = action(({ value, tgwAttachEnabled }: { value: any; tgwAttachEnabled: boolean }) => {
-    modalNode?.set(state, value);
-    modalNode && setDisabled(state, [...modalNode.path, 'tgw-attach'], !tgwAttachEnabled);
+  const handleSubmit = action((value: SimpleVpcUnitValue) => {
+    const {name, deploy, region, cidr} = value; 
+    for (let each in nodesList) {
+      if (nodesList[each].name === name) {
+        nodesList[each].deploy = deploy; 
+        nodesList[each].region = region;
+        nodesList[each].cidr = cidr;  
+      }
+    }
     setModalVisible(false);
-  });
+  })
 
   return (
     <>
-      {modalNode && (
+      {
         <EditVpcModal
           visible={modalVisible}
-          node={modalNode}
+          initialValue={modalInitialValue}
           state={state}
           onDismiss={() => setModalVisible(false)}
           onSubmit={handleSubmit}
         />
-      )}
+      }
       <Table
-        items={items}
-        trackBy="path"
+        items={vpcItems}
+        trackBy="name"
         selectionType="single"
         selectedItems={selectedItem ? [selectedItem] : []}
         onSelectionChange={e => setSelectedItem(e.detail.selectedItems?.[0])}
         columnDefinitions={[
           {
             header: 'Name',
-            cell: ({ value }) => <LabelWithDescription label={value.name} description={value.description} />,
+            cell: ({ name, description }) => <LabelWithDescription label={name} description={description} />,
           },
-          {
+         {
             header: 'Defined in',
-            cell: ({ node }) => getDefinedIn({ node }),
+            cell: ({ name }) => getDefinedIn(name),
           },
           {
             header: 'Deploy',
-            cell: ({ value }) => value.deploy,
+            cell: ({ deploy }) => deploy,
           },
+          
           {
             header: 'Shared',
-            cell: ({ node }) => (isSubnetShared({ state, node }) ? 'Yes' : 'No'),
+            cell: ({ name }) => (isSubnetShared( name ) ? 'Yes' : 'No'),
           },
+          
           {
             header: 'TGW Attached',
-            cell: ({ node }) => (isTgwAttached({ state, node }) ? 'Yes' : 'No'),
+            cell: ({ name }) => (isTgwAttached(name) ? 'Yes' : 'No'),
           },
           {
             header: 'Region',
-            cell: ({ value }) => value.region,
+            cell: ({ region }) => region,
           },
           {
-            header: 'CIDR pool',
-            cell: ({ value }) => <Observer>{() => value.cidr?.[0]?.pool}</Observer>,
-          },
-          {
-            header: 'CIDR size',
-            cell: ({ value }) => value.cidr?.[0]?.size,
+            header: 'CIDR Pool(s) and Size',
+            cell: ({ guiCidr }) => guiCidr.join(" || ")
           },
         ]}
         header={
@@ -152,88 +221,217 @@ export const VpcTable: React.VFC<VpcTableProps> = observer(({ state }) => {
 
 interface EditVpcModalProps {
   visible: boolean;
-  node: TypeTreeNode;
+  initialValue: Partial<SimpleVpcUnitValue>;
   state: any;
   onDismiss: () => void;
-  onSubmit: (props: { value: any; tgwAttachEnabled: boolean }) => void;
+  onSubmit: (value: SimpleVpcUnitValue) => void;
 }
 
-/**
- * This component renders the add modal to add a new CIDR pool.
- */
-const EditVpcModal = observer(function EditVpcModal({ visible, node, state, onDismiss, onSubmit }: EditVpcModalProps) {
+const EditVpcModal = ({
+  visible,
+  initialValue, 
+  state,
+  onDismiss, 
+  onSubmit
+}: EditVpcModalProps) => {
   const { tr } = useI18n();
-  const staging = useLocalStore(() => ({}));
-  const [tgwAttachEnabled, setEnabled] = useState(false);
+  const nameInputProps = useInput();
+  const useSharedInputProps = useCheckboxInput();
+  const useTGWProps = useCheckboxInput();
 
-  const [selectedOption, setSelectedOption] = useState<OptionDefinition>({label: "Option 1", value: "Value 1"});
+  const organizationalUnitsNode = AcceleratorConfigurationNode.nested('organizational-units').get(state);
+  const mandatoryAccountConfigNodeState = AcceleratorConfigurationNode.nested('mandatory-account-configs').get(state);
+  const regionsNode = AcceleratorConfigurationNode.nested('global-options').nested('supported-regions');
+  const regionsNodeState = regionsNode.get(state) ?? {}
 
-  const cidrNode = node.nested('cidr').nested(0);
-  const tgwAttachNode = node.nested('tgw-attach');
-  const tgwAttach = tgwAttachNode.get(state);
+  var modalCidrList: any[] = []
 
+  const makeCidrList = () => {
+    for (const each in initialValue.cidr) {
+      let entry = [initialValue.cidr[parseInt(each)].pool, initialValue.cidr[parseInt(each)].size].join(", ")
+      modalCidrList.push({label: entry, dismissLabel: entry})
+    }
+  }
+  console.log(modalCidrList)
+
+  const [deployOption, setDeployOption] = useState<OptionDefinition>({ label: initialValue.deploy, value: initialValue.deploy });
+  const [regionOption, setRegionOption] = useState<OptionDefinition>({ label: initialValue.region, value: initialValue.region });
+  const [cidrList, setCidrList] = useState<any[]>([]);
+  const [newCidr, setNewCidr] = useState("");
+  const [newCidrSize, setNewCidrSize] = useState<OptionDefinition>({ label: '16', value: '16' });
+
+  const configCidrList = (cidrs: any[]) => {
+    var configCidrList: any[] = []
+    for (let each in cidrs) {
+      var cidrSplit = cidrs[each].label.split(", ")
+      configCidrList.push(
+        { 
+          pool: cidrSplit[0],
+          size: parseInt(cidrSplit[1]),
+        }
+      )
+    }
+    return configCidrList
+  }
 
   const handleSubmit = () => {
-    // Get the VPC from the staging state
     onSubmit({
-      value: node.get(staging),
-      tgwAttachEnabled,
-    });
-  };
+      name: initialValue.name ?? '',
+      description: initialValue.description ?? '',
+      deploy: deployOption.value ?? '',
+      region: regionOption.value ?? '',
+      cidr: configCidrList(cidrList),
+      "tgw-attach": initialValue['tgw-attach'],
+      subnets: initialValue['subnets'],
+      guiCidr: initialValue.guiCidr
+    })
+  }
 
-  // Write the state value to the staging value
   useEffect(() => {
-    const value = node.get(state);
-    node.set(staging, toJS(value));
-    setEnabled(tgwAttach && !isDisabled(state, tgwAttachNode.path));
+    makeCidrList()
+    setCidrList([...modalCidrList])
+    setDeployOption({ label: initialValue.deploy, value: initialValue.deploy })
+    setRegionOption({ label: initialValue.region, value: initialValue.region })
   }, [visible]);
 
+var options: { label: string; value: string; }[] = []
+const populateSelect = () => {
+  for (const each in regionsNodeState) {
+    options.push({label: regionsNodeState[each], value: regionsNodeState[each]})
+  }
+}
+
+
+var cidrSizeOptions: {label: string; value: string; }[] = []
+const populateSize = () => {
+  for (let i=16; i <= 24; i++) {
+    cidrSizeOptions.push({label: String(i), value: String(i)})
+  }
+}
+
+
+const vpcTitle = {title: "VPC Name", desc: "The name of the VPC that will be deployed"}
+const definedIn = {title: "Defined in", desc: "The location in which this VPC is defined in"}
+const deployTitle = {title: "Deploy", desc: "Local if being configured inside an account or shared-network if being configured inside an OU"}
+const regionTitle = {title: "Region", desc: "Region for the VPC"}
+const cidrPoolTitle = {title: "CIDR Pool Name & Size", desc: "The name of the CIDR pool to assign IP addresses from and the size of the CIDR pool to assign to the VPC. Size must be between 16-28."}
+
+const getDefinedIn = (vpcName: string) => {
+  return vpcName in organizationalUnitsNode ? 'Organizational Unit' : 'Account';
+}
+
   return (
-      <Modal
-      visible={visible}
-      header={<Header variant="h3">{tr('wizard.headers.edit_vpc')}</Header>}
-      footer={
-        <Button variant="primary" className="float-button" onClick={handleSubmit}>
-          {tr('buttons.save_changes')}
-        </Button>
-      }
-      onDismiss={onDismiss}
+    <Modal
+    visible={visible}
+    header={<Header variant="h3">{tr('wizard.headers.edit_vpc')}</Header>}
+    footer={
+      <Button variant="primary" className="float-button" onClick={handleSubmit}>
+        {tr('buttons.save_changes')}
+      </Button>
+    }
+    onDismiss={onDismiss}
+  >
+    <form
+      onSubmit={event => {
+        event.stopPropagation();
+        event.preventDefault();
+        handleSubmit();
+      }}
     >
-      <form
-        onSubmit={event => {
-          event.stopPropagation();
-          event.preventDefault();
-          handleSubmit();
-        }}
-      >
-        {console.log(staging)}
-        <SpaceBetween size="s">
-          <WizardField state={staging} node={node.nested('name')} disabled={true} />
-          <FormField label="Defined in" stretch>
-            <Input value={getDefinedIn({ node })} disabled />
+      {populateSize()}
+      {populateSelect()}
+      <SpaceBetween size="s">
+        <FormField label={vpcTitle.title} description={vpcTitle.desc}>
+          <Input value={String(initialValue.name)} disabled />
+        </FormField>
+        <FormField label={definedIn.title} description={definedIn.desc} stretch>
+          <Input value={getDefinedIn(String(initialValue.name))} disabled />
+        </FormField>
+        <FormField label={deployTitle.title} description={deployTitle.desc} stretch>
+          <Select
+              selectedOption={deployOption}
+              onChange={({ detail }) =>
+                setDeployOption(detail.selectedOption)
+              }
+              options={[
+              { label: "shared-network", value: "shared-network" },
+              { label: "local", value: "local" },]}
+              selectedAriaLabel="Selected"
+            />
           </FormField>
-          <WizardField state={staging} node={node.nested('deploy')} />
-          <WizardField state={staging} node={node.nested('region')} />
-          <WizardField state={staging} node={cidrNode.nested('pool')} />
-          <WizardField state={staging} node={cidrNode.nested('size')} />
+          <FormField label={regionTitle.title} description={regionTitle.desc} stretch>
+          <Select
+              selectedOption={regionOption}
+              onChange={({ detail }) =>
+                setRegionOption(detail.selectedOption)
+              }
+              options={options}
+              selectedAriaLabel="Selected"
+            />
+          </FormField>
+          <FormField label={cidrPoolTitle.title} description={cidrPoolTitle.desc} stretch>
+          <SpaceBetween size="xs">
+            <TokenGroup
+              onDismiss={({ detail: { itemIndex } }) => {
+                setCidrList([
+                  ...cidrList.slice(0, itemIndex),
+                  ...cidrList.slice(itemIndex + 1)
+                ]);
+              }}
+              items={cidrList}
+            />
+            <Grid
+              gridDefinition={[{ colspan: 5}, { colspan: 5 }, {colspan: 2}]}
+            >
+              <div> 
+                <Input
+                  placeholder="Enter CIDR Name"
+                  onChange={({ detail }) => setNewCidr(detail.value)}
+                  value={newCidr}
+                />
+              </div>
+              <div> 
+              <Select
+                placeholder="Enter CIDR Size"
+                selectedOption={newCidrSize}
+                onChange={({ detail }) =>
+                  setNewCidrSize(detail.selectedOption)
+                }
+                options={cidrSizeOptions}
+                selectedAriaLabel="Selected"
+              />
+               
+              </div>
+              <div>
+                <Button 
+                  variant="normal" 
+                  formAction="none"
+                  onClick={
+                    () => {
+                      cidrList.push({label: newCidr + ", " + newCidrSize.value, dismissLabel: "Remove item"})
+                      setCidrList([...cidrList])
+                  }}
+                  >Add</Button>
+              </div>
+            </Grid>
+          </SpaceBetween>
+          </FormField>
           <SpaceBetween size="s" direction="horizontal">
-            <Checkbox checked={isSubnetShared({ state, node })} disabled />
-            <span>Subnet shared</span>
+            <Checkbox checked disabled />
+            <span>Subnet shared <i>(Edit temporarily disabled)</i></span>
           </SpaceBetween>
           <SpaceBetween size="s" direction="horizontal">
             <Checkbox
-              checked={tgwAttachEnabled}
-              onChange={event => setEnabled(event.detail.checked)}
-              disabled={tgwAttach == null}
+              checked
+              disabled
             />
-            <span>Transit gateway attached</span>
-          </SpaceBetween>
-        </SpaceBetween>
-      </form>
-    </Modal>
-  );
-});
-
+            <span>Transit gateway attached <i>(Edit temporarily disabled)</i></span>
+            </SpaceBetween>
+      </SpaceBetween>
+    </form>
+  </Modal>
+);
+};
 
 export function getVpcNodes(state: any) {
     return [
@@ -250,19 +448,4 @@ function getAccountOrOuVpcNodes(node: TypeTreeNode, state: any): TypeTreeNode<ty
     const vpcArray = vpcArrayNode.get(state) ?? [];
     return Object.keys(vpcArray).map(key => vpcArrayNode.nested(key));
   });
-}
-
-function isSubnetShared({ state, node }: { state: any; node: TypeTreeNode }) {
-  const value = node.get(state);
-  return value?.subnets?.find((s: any) => s['share-to-ou-accounts'] || s['share-to-specific-accounts']) != null;
-}
-
-function isTgwAttached({ state, node }: { state: any; node: TypeTreeNode }) {
-  const tgwNode = node.nested('tgw-attach');
-  const tgw = tgwNode.get(state);
-  return tgw && !isDisabled(state, tgwNode.path);
-}
-
-function getDefinedIn({ node }: { node: TypeTreeNode }) {
-  return node.path[0] === 'organizational-units' ? 'Organizational Unit' : 'Account';
 }

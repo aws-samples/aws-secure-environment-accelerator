@@ -25,6 +25,7 @@ import {
   Header,
   Input,
   Modal,
+  Select,
   SpaceBetween,
   StatusIndicator,
   Table,
@@ -35,6 +36,7 @@ import { valueAsArray } from '@/utils';
 import { AcceleratorConfigurationNode } from '../configuration';
 import { isDisabled, setDisabled } from '../util';
 import { LabelWithDescription } from './label-with-description';
+import { OptionDefinition } from '../../../../node_modules/@awsui/components-react/internal/components/option/interfaces';
 
 interface SimpleAccountValue {
   key: string;
@@ -45,6 +47,7 @@ interface SimpleAccountValue {
   budgetAmount: number;
   budgetEmail: string;
   useOuSettings: boolean;
+  srcFile: string;
 }
 
 export interface AccountTableProps {
@@ -64,6 +67,7 @@ export const AccountTable = observer(({ state, accountType }: AccountTableProps)
   const [modalType, setModalType] = useState<'add' | 'edit'>('add');
   const [modalInitialValue, setModalInitialValue] = useState<Partial<SimpleAccountValue>>({});
   const [selectedItem, setSelectedItem] = useState<SimpleAccountValue | undefined>(undefined);
+  const [cannotAddAccount, setCannotAddAccount] = useState(false);
   const [permAlertVisible, setPermAlertVisible] = useState(false);
   const [dependencyAlertVisible, setDependencyAlertVisible] = useState(false);
   const [editNameAlert, setEditNameAlert] = useState(false);
@@ -93,6 +97,7 @@ export const AccountTable = observer(({ state, accountType }: AccountTableProps)
       budgetAmount: budget?.amount ?? 1000,
       budgetEmail: budget?.alerts?.[0]?.emails?.[0] ?? 'you@example.com',
       useOuSettings: budget === undefined || isDisabled(state, [...node.path, key]),
+      srcFile: accountConfig?.['src-file'] ?? '',
     };
   });
 
@@ -106,31 +111,35 @@ export const AccountTable = observer(({ state, accountType }: AccountTableProps)
     setModalType('edit');
     setModalInitialValue(selectedItem ?? {});
     setModalVisible(true);
-    console.log(items)
   };
 
   const handleSubmitAdd = action((value: SimpleAccountValue) => {
-    const { key, ou, name, budgetAmount: amount, budgetEmail: email, useOuSettings } = value;
+    const { key, ou, name, budgetAmount: amount, budgetEmail: email, useOuSettings, srcFile } = value;
+    console.log(key, ou, name, amount, email, useOuSettings, srcFile)
     if (keyExists(key) || nameExists(name)) {
       setAddNameAlert(true);
-    } else {
-      accounts[key] = {
+      return
+    } else if (validateForm(key, ou, name, amount, email, srcFile)) {
+      accounts[String(key)] = {
         'account-name': name,
         ou,
-        budget: createInitialBudget(amount, email),
-    }
-  };
-
+        email,
+        "src-filename": srcFile, 
+        budget: createInitialBudget(amount, email)
+    } 
+    return
+  } else {
+    setCannotAddAccount(true);
+  }
     // Disable the budget if the "use OU settings" field is checked
     setDisabled(state, [...node.path, key], useOuSettings ?? false);
   });
 
   const handleSubmitEdit = action((value: SimpleAccountValue) => {
     const { key, ou, name, budgetAmount: amount, budgetEmail: email, useOuSettings } = value;
-    console.log(name)
     accounts[key]['ou'] = ou;
 
-    if (nameExists(name)) {
+    if (value.name != name && nameExists(name)) {
       setEditNameAlert(true);
     } else {
       accounts[key]['account-name'] = name;
@@ -148,6 +157,16 @@ export const AccountTable = observer(({ state, accountType }: AccountTableProps)
     // Disable the budget if the "use OU settings" field is checked
     setDisabled(state, [...node.path, key], useOuSettings ?? false);
   });
+
+  const validateForm = (key: string, ou: string, name: string, amount: number, email: string, srcFile: string ) => {
+      if (key == '' || key == null|| ou == '' || 
+          name == '' || name == null || Number.isNaN(amount) || email == '' || 
+          srcFile == '') {
+        return false
+      } else {
+        return true
+      }
+    }
 
   const keyExists = (addKey: string | undefined) => {
     for (let each in items) {
@@ -221,6 +240,7 @@ export const AccountTable = observer(({ state, accountType }: AccountTableProps)
         initialValue={modalInitialValue}
         onDismiss={() => setModalVisible(false)}
         onSubmit={handleSubmit}
+        state={state}
       />
       <Table
         items={items}
@@ -257,6 +277,10 @@ export const AccountTable = observer(({ state, accountType }: AccountTableProps)
                 <Box textAlign="right">{currency(amount)}</Box>
               ),
           },
+          {
+            header: "Source File Name",
+            cell: ({ srcFile }) => srcFile,
+          },
         ]}
         header={
           <>
@@ -286,6 +310,19 @@ export const AccountTable = observer(({ state, accountType }: AccountTableProps)
               ? tr('wizard.headers.mandatory_accounts')
               : tr('wizard.headers.workload_accounts')}
           </Header>
+          { 
+           cannotAddAccount === true && 
+             <Alert
+               onDismiss={() => setCannotAddAccount(false)}
+               visible={cannotAddAccount}
+               dismissible
+               type="error"
+               dismissAriaLabel="Close alert"
+               header="Can't add new account"
+             >
+             Account fields cannot be left empty when adding a new account. 
+             </Alert>
+          }
           { 
             permAlertVisible === true && 
              <Alert
@@ -360,6 +397,7 @@ interface AddModifyAccountModalProps {
   initialValue: Partial<SimpleAccountValue>;
   onDismiss: () => void;
   onSubmit: (value: SimpleAccountValue) => void;
+  state: any;
 }
 
 /**
@@ -372,15 +410,16 @@ const AddModifyAccountModal = ({
   initialValue,
   onDismiss,
   onSubmit,
+  state,
 }: AddModifyAccountModalProps) => {
   const { tr } = useI18n();
   const accountKeyInputProps = useInput();
   const accountNameInputProps = useInput();
   const emailInputProps = useInput();
-  const ouInputProps = useInput();
   const useOuInputProps = useCheckboxInput();
   const budgetAmountInputProps = useInput();
   const budgetEmailInputProps = useInput();
+  const srcFileInputProps = useInput();
 
   // prettier-ignore
   const headerText = type === 'add' 
@@ -395,20 +434,32 @@ const AddModifyAccountModal = ({
   const { title: emailTitle, description: emailDesc } = tr(dummyAccountNode.nested('email'));
   const { title: ouTitle, description: ouDesc } = tr(dummyAccountNode.nested('ou'));
 
+  const organizationalUnitsNode = AcceleratorConfigurationNode.nested('organizational-units');
+  const organizationalUnits = organizationalUnitsNode.get(state) ?? {};
+
+  var options: { label: string; value: string; }[] = []
+  const populateSelect = () => {
+    for (const each in organizationalUnits) {
+      options.push({label: each, value: each})
+    }
+  }
+
   const keyTitle = tr('wizard.labels.account_key');
   const useOuSettingTitle = tr('wizard.labels.account_budget_use_ou');
   const budgetAmountTitle = tr('wizard.labels.account_budget_amount');
   const budgetEmailTitle = tr('wizard.labels.account_budget_email');
-
+  const [selectedOption, setSelectedOption] = useState<OptionDefinition>({ label: "", value: "" });
+  
   const handleSubmit = () => {
     onSubmit({
-      key: accountKeyInputProps.value,
-      ou: ouInputProps.value,
-      name: accountNameInputProps.value,
-      email: budgetEmailInputProps.value,
+      key: accountKeyInputProps.value ?? '',
+      ou: String(selectedOption.value) ?? '',
+      name: accountNameInputProps.value ?? '',
+      email: emailInputProps.value ?? '',
       useOuSettings: useOuInputProps.checked,
-      budgetAmount: Number(budgetAmountInputProps.value),
-      budgetEmail: budgetEmailInputProps.value,
+      budgetAmount: Number(budgetAmountInputProps.value) ?? NaN,
+      budgetEmail: budgetEmailInputProps.value ?? '', 
+      srcFile: srcFileInputProps.value ?? '',
     });
   };
 
@@ -416,10 +467,11 @@ const AddModifyAccountModal = ({
     accountKeyInputProps.setValue(initialValue.key ?? '');
     accountNameInputProps.setValue(initialValue.name ?? '');
     emailInputProps.setValue(initialValue.email ?? '');
-    ouInputProps.setValue(initialValue.ou ?? '');
+    setSelectedOption({ label: initialValue.ou ?? '', value: initialValue.ou ?? ''});
     useOuInputProps.setChecked(initialValue.useOuSettings ?? false);
     budgetAmountInputProps.setValue(`${initialValue.budgetAmount}`);
     budgetEmailInputProps.setValue(initialValue.budgetEmail ?? '');
+    srcFileInputProps.setValue(initialValue.srcFile ?? '');
   }, [visible]);
 
   return (
@@ -440,7 +492,7 @@ const AddModifyAccountModal = ({
           handleSubmit();
         }}
       >
-        {console.log(ouInputProps)}
+        {populateSelect()}
         <SpaceBetween size="m">
           <FormField label={keyTitle} stretch>
             <Input {...accountKeyInputProps} disabled={type === 'edit'} />
@@ -452,16 +504,26 @@ const AddModifyAccountModal = ({
             <Input {...emailInputProps} />
           </FormField>
           <FormField label={ouTitle} description={ouDesc} stretch>
-            <Input {...ouInputProps} />
+            <Select
+              selectedOption={selectedOption}
+              onChange={({ detail }) =>
+                setSelectedOption(detail.selectedOption)
+              }
+              options={options}
+              selectedAriaLabel="Selected"
+            />
           </FormField>
           <FormField label={useOuSettingTitle} stretch>
-            <Checkbox {...useOuInputProps} />
+            <Checkbox {...useOuInputProps} disabled />
           </FormField>
           <FormField label={budgetAmountTitle} stretch>
             <Input {...budgetAmountInputProps} disabled={useOuInputProps.checked} type="number" />
           </FormField>
           <FormField label={budgetEmailTitle} stretch>
             <Input {...budgetEmailInputProps} disabled={useOuInputProps.checked} />
+          </FormField>
+          <FormField label={"Source File Path"} description={"Add the Src File path for this account"} stretch>
+            <Input {...srcFileInputProps} />
           </FormField>
         </SpaceBetween>
       </form>
