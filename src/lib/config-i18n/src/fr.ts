@@ -2626,6 +2626,10 @@ translate(c.CentralServicesConfigType, {
       title: '',
       description: '',
     },
+    'config-aggr': {
+      title: '',
+      description: ''
+    }
   },
 });
 

@@ -2779,6 +2779,10 @@ translate(c.CentralServicesConfigType, {
       description:
         'Send all Security Hub findings ABOVE this severity level to the appropriate security notification topic.  Values: Low, Medium, High, Critical, None.',
     },
+    'config-aggr': {
+      title: 'AWS Config Aggregator',
+      description: 'Configures the AWS Account with an AWS Config Aggregator.'
+    }
   },
 });
 

@@ -66,7 +66,8 @@
       "macie-sensitive-sh": true,
       "fw-mgr-alert-level": "Low",
       "security-hub-findings-sns": "Low",
-      "add-sns-topics": true
+      "add-sns-topics": true,
+      "config-aggr": true
     },
     "central-operations-services": {
       "account": "operations",

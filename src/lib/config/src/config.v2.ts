@@ -893,6 +893,7 @@ export const CentralServicesConfigType = t.interface({
   'macie-sensitive-sh': t.defaulted(t.boolean, false),
   'fw-mgr-alert-level': t.defaulted(FirewallManagerAlertLevelType, 'Medium'),
   'security-hub-findings-sns': t.defaulted(SecurityHubFindingsSnsType, 'None'),
+  'config-aggr': t.defaulted(t.boolean, false),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
