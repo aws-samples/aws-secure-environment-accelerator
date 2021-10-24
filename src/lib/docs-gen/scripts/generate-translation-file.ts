@@ -24,7 +24,7 @@ let baseTranslationParsed = JSON.parse(baseTranslationRaw);
 
 // Extract translations
 const translationHelper = new TranslationExtractHelper(languageCode);
-translationHelper.iterate(schemaParsed);
+translationHelper.iterate(schemaParsed, schemaParsed.title);
 
 // Merge base and extracted translations
 for(const prop in baseTranslationParsed[languageCode]){

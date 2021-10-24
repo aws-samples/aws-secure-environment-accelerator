@@ -9,29 +9,30 @@ export class TranslationExtractHelper {
         this.typeDocTranslation[`${selectedLanguage}`] = {};
     }
 
-    public iterate(obj: any) {
+    public iterate(obj: any, parentProperty: string) {
         for (const property in obj.fields) {
             const propertyObject = obj.fields[property];
 
             const titleTranslated = this.translate('Title', this.selectedLanguage);
             const titleField = this.generateTitle(propertyObject.title, property);
             const descriptionTranslated = this.translate('Description', this.selectedLanguage);
-            this.typeDocTranslation[`${this.selectedLanguage}`]["i18n-" + property] =
+            const computedProperty = this.generateProperty(property, parentProperty);
+            this.typeDocTranslation[`${this.selectedLanguage}`][`${computedProperty}`] =
                 `<b>${titleTranslated}:</b> ${titleField}<br/><b>${descriptionTranslated}:</b> ${propertyObject.description}`;
         }
         if (obj.properties) {
             for (const property in obj.properties) {
-                this.iterate(obj.properties[property]);
+                this.iterate(obj.properties[property], obj.properties[property].title);
             }
         }
         if (obj.additionalProperties) {
-            this.iterate(obj.additionalProperties);
+            this.iterate(obj.additionalProperties, obj.additionalProperties.title);
         }
 
     }
     private generateTitle(title: string, propertyName: string) {
         if (title && title.trim().length > 0) return title;
-        
+
         const newTitle = `${propertyName}`
             .replace(new RegExp(/[^\w]/, 'g'), ' ') //Remove non-word characters such as '-'
             .replace(
@@ -46,5 +47,15 @@ export class TranslationExtractHelper {
     private translate(key: string, selectedLanguage: string) {
         if (selectedLanguage === 'fr') return frenchDict.fr[key];
         else return englishDict.en[key];
+    }
+    private generateProperty(property: string, parentProperty: string) {
+        let i18nProperty = "";
+        if (!parentProperty) i18nProperty = `i18n-${property}`;
+        else {
+            const parentPropertyLowerCased =
+                parentProperty.replace(/[\W_]+/g, "").toLowerCase(); // Replace non-alphanumeric
+            i18nProperty = `i18n-${parentPropertyLowerCased}-${property}`;
+        }
+        return i18nProperty;
     }
 }

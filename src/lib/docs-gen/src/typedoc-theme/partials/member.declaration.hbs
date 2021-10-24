@@ -20,10 +20,9 @@
 
 {{> member.sources}}
 
-{{!-- <p>{{name}}</p> --}}
-{{#localize}}i18n-{{name}}{{/localize}}
+{{#customLocalize parent.name name}}{{/customLocalize}}
+{{!-- {{#localize}}i18n-{{name}}{{/localize}}--}}
 {{> comment}}
-{{!-- {{parent.name}} --}}
 
 {{#if typeParameters}}
 <h4 class="tsd-type-parameters-title">{{#localize}}Type parameters{{/localize}}</h4>
