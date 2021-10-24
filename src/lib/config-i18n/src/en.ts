@@ -321,7 +321,7 @@ translate(c.CidrPoolConfigType, {
   fields: {
     pool: {
       title: 'CIDR Pool Name',
-      description: 'The name of the CIDR pool to assign to this CIDR. Value can contain any string.',
+      description: 'The name of the CIDR pool associated with this CIDR range. Value can contain any alpha-numeric string.',
     },
     cidr: {
       title: 'CIDR Value',
@@ -333,14 +333,14 @@ translate(c.CidrPoolConfigType, {
     },
     description: {
       title: 'Description',
-      description: '',
+      description: 'Description field used in the future GUI, and allows customers to provide a purpose for this CIDR pool.',
     },
   },
 });
 
 translate(c.MandatoryAccountType, {
-  title: 'NOT USED TO BE REMOVED',
-  description: 'NOT USED TO BE REMOVED',
+  title: 'Deprecated',
+  description: 'Deprecated',
   enumLabels: {
     master: 'Master',
     'central-security': 'Central Security',
@@ -406,36 +406,36 @@ translate(c.NatGatewayConfig, {
 });
 
 translate(c.AlbIpForwardingConfig, {
-  title: '',
-  description: '',
+  title: 'Deploy ALB IP Forwarder',
+  description: 'Values: true/false. When present deploys the custom ALB IP forwarding Solution which ensures front-end ALBs are always configuraed with the IP addresses of backend ALBs',
 });
 
 translate(c.AlbIpForwardingConfig, {
-  title: '',
-  description: '',
+  title: 'Deploy ALB IP Forwarder',
+  description: 'Values: true/false. When present deploys the custom ALB IP forwarding Solution which ensures front-end ALBs are always configuraed with the IP addresses of backend ALBs',
 });
 
 translate(c.AWSNetworkFirewallConfig, {
-  title: '',
-  description: '',
+  title: 'AWS Network Firewall Configuration',
+  description: 'Deploys an AWS Network Firewall on the associated VPC and subnets.',
   fields: {
     'firewall-name': {
       title: '',
-      description: '',
+      description: 'Friendly name for the AWS Network Firwall instance.',
     },
     subnet: {
       title: '',
-      description: '',
+      description: 'Network Firewall Subnets',
     },
     policy: {},
     policyString: {},
     'flow-dest': {
       title: '',
-      description: '',
+      description: 'Valid values: None, or CloudWatch.',
     },
     'alert-dest': {
       title: '',
-      description: '',
+      description: 'Valid values: None, or CloudWatch.',
     },
   },
 });
@@ -676,15 +676,15 @@ translate(c.TransitGatewayRouteConfigType, {
     },
     'target-tgw': {
       title: 'Target TGW',
-      description: 'The target Transit Gateway for this route',
+      description: 'The target of this route is a Transit Gateway.',
     },
     'target-vpc': {
       title: 'Target VPC',
-      description: 'The target VPC for this route',
+      description: 'The target of this route is a VPC.',
     },
     'target-vpn': {
       title: 'Target VPN',
-      description: 'The target VPN attachment for this route',
+      description: 'The target of this route is a VPN attachment.',
     },
     'blackhole-route': {
       title: '',
@@ -693,7 +693,7 @@ translate(c.TransitGatewayRouteConfigType, {
     },
     'target-account': {
       title: '',
-      description: '',
+      description: 'When the route targets a VPC, indicates the name of the account which owns the VPC.',
     },
   },
 });
@@ -715,27 +715,27 @@ translate(c.TransitGatewayRouteTablesConfigType, {
 
 translate(c.TransitGatewayAttachDeploymentConfigType, {
   title: 'Transit Gateway Attach Deployment Config',
-  description: '',
+  description: 'Configuration used to enabled cross-region TGW peering.',
   fields: {
     'associate-to-tgw': {
-      title: '',
-      description: 'The value to enter here should correspond to the tgw name attribute',
+      title: 'Remote TGW Name',
+      description: 'The name of an Accelerator defined TGW in another AWS region to peer this TGW with.',
     },
     account: {
       title: '',
-      description: '',
+      description: 'The AWS account name containing the remote TGW to peer with.',
     },
     region: {
       title: '',
-      description: '',
+      description: 'The region containing the remote TGW to peer with.',
     },
     'tgw-rt-associate-local': {
-      title: 'TGW route association local',
-      description: '',
+      title: 'Local TGW route table',
+      description: 'The route table on the local TGW to attach the peering connection.',
     },
     'tgw-rt-associate-remote': {
-      title: 'TGW route association remote',
-      description: '',
+      title: 'Remote TGW route table',
+      description: 'The route table on the remote TGW to attach the peering connection.',
     },
   },
 });
@@ -911,7 +911,7 @@ translate(c.VpcConfigType, {
     },
     description: {
       title: 'Description',
-      description: '',
+      description: 'Description field used in the future GUI, and allows customers to provide a purpose for this VPC.',
     },
     region: {
       title: '',
@@ -949,8 +949,8 @@ translate(c.VpcConfigType, {
       description: 'Enables VPC flow logging on the VPC.  Values: Accept, Reject, or BOTH',
     },
     'log-retention': {
-      title: 'TODO: NOT USED',
-      description: 'TODO: THIS FIELD NOT USED AND TO BE DELETED FROM CODEBASE',
+      title: 'Deprecated',
+      description: 'Deprecated.',
     },
     igw: {
       title: 'Internet Gateway',
@@ -1170,23 +1170,23 @@ translate(c.RequestCertificateConfigType, {
   fields: {
     name: {
       title: '',
-      description: 'Certificate name',
+      description: 'Certificate name.',
     },
     type: {
       title: '',
-      description: 'Set to request for certificates requested from ACM',
+      description: 'Set to request certificates from ACM.  Valid values include: import or request.',
     },
     domain: {
       title: '',
-      description: 'Domain for the certificate',
+      description: 'Certificates DNS domain.',
     },
     validation: {
       title: '',
-      description: 'Define validation method: DNS or Email',
+      description: 'Certificates validation method, either: DNS or Email.',
     },
     san: {
-      title: 'Certificate Subject Alternative Name (SAN)',
-      description: 'VERIFY',
+      title: 'SAN',
+      description: 'Certificates Subject Alternative Names (SAN).',
     },
   },
 });
@@ -1307,7 +1307,7 @@ translate(c.MadConfigType, {
   fields: {
     description: {
       title: 'Description',
-      description: '',
+      description: 'Description field used in the future GUI, and allows customers to provide a purpose for this MAD.',
     },
     'dir-id': {
       title: '',
@@ -1477,11 +1477,11 @@ translate(c.RsyslogConfig, {
     },
     'app-subnets': {
       title: 'Application subnets',
-      description: 'CLARIFY',
+      description: 'Subnet used to deploy the rsyslog instances.',
     },
     'web-subnets': {
       title: 'Web subnets',
-      description: 'CLARIFY',
+      description: 'Subnet used to deploy the NLB.',
     },
     'min-rsyslog-hosts': {
       title: 'Minimum number of rsyslog hosts',
@@ -1492,28 +1492,28 @@ translate(c.RsyslogConfig, {
       description: 'Rsyslog is defined in an Auto-scaling group this defines the desired number of hosts',
     },
     'max-rsyslog-hosts': {
-      title: '',
+      title: 'Maximum number of rsyslog hosts',
       description: 'Rsyslog is defined in an Auto-scaling group this defines the maximum number of hosts',
     },
     'ssm-image-id': {
       title: 'SSM image id',
-      description: 'VERIFY',
+      description: 'The SSM image name used to retreive the latest Amazon Linux 2 AMI ID.',
     },
     'rsyslog-instance-type': {
-      title: 'Rsyslog Instance type',
-      description: 'The EC2 instance type for Rsyslog',
+      title: 'rsyslog Instance type',
+      description: 'The EC2 instance type for the rsyslog instances (i.e. t3.large)',
     },
     'rsyslog-instance-role': {
       title: 'Instance role',
-      description: 'The EC2 instance role assumed by Rsyslog instances',
+      description: 'The EC2 instance role assumed by the rsyslog instances',
     },
     'rsyslog-root-volume-size': {
       title: 'Root volume size',
-      description: 'Root volume size for the Rsyslog instance',
+      description: 'Root volume size for the rsyslog instances',
     },
     'rsyslog-max-instance-age': {
-      title: 'Rsyslog max instance age',
-      description: 'VERIFY',
+      title: 'rsyslog max instance age',
+      description: 'The number of days before the auto-scaling group replaces any instance. This ensures a clean image is always deployed and if the state machine has been executed, will deploy the most recent patch release of the AMI.',
     },
   },
 });
@@ -1595,7 +1595,7 @@ translate(c.AlbConfigType, {
   fields: {
     type: {
       title: '',
-      description: '',
+      description: 'Defaults to ALB, valid values: ALB, GWLB',
     },
     name: {
       title: '',
@@ -1604,16 +1604,16 @@ translate(c.AlbConfigType, {
     scheme: {
       title: '',
       description:
-        'An internet-facing load balancer routes requests from clients over the internet to targets. An internal load balancer routes requests to targets using private IP addresses. ',
+        'Either internet-facing or internal.  An internet-facing load balancer routes requests from clients over the internet to targets. An internal load balancer routes requests to targets using private IP addresses. ',
     },
     'action-type': {
       title: '',
-      description: 'Possible values are: redirect, forward, fixed-response, authenticate-oidc or authenticate-cognito',
+      description: 'The only supported action type is forward.',
     },
     'ip-type': {
       title: 'IP Type',
       description:
-        'You can configure your Application Load Balancer so that clients can communicate with the load balancer using IPv4 addresses only, or using both IPv4 and IPv6 addresses',
+        'The only supported IP type is ipv4.',
     },
     listeners: {
       title: '',
@@ -1622,15 +1622,15 @@ translate(c.AlbConfigType, {
     },
     ports: {
       title: '',
-      description: 'Ports that the ALB listens to',
+      description: 'Ports that the ALB listens on.',
     },
     vpc: {
       title: 'VPC',
-      description: 'VPC that the ALB is attached to',
+      description: 'VPC that the ALB is attached',
     },
     subnets: {
       title: '',
-      description: 'Name of the subnet groups defined in the VPC',
+      description: 'Name of the subnets the ALB is attached.',
     },
     'cert-name': {
       title: 'Certificate Name',
@@ -1693,7 +1693,7 @@ translate(c.AlbConfigType, {
     },
     'apply-tags': {
       title: '',
-      description: '',
+      description: 'Enables customers to apply customer specified tags to the ALB (Only tested on GWLBs).',
     },
   },
 });
@@ -1740,7 +1740,7 @@ translate(c.GwlbConfigType, {
     },
     'apply-tags': {
       title: '',
-      description: '',
+      description: 'Enables customers to apply customer specified tags to the GWLB.',
     },
   },
 });
@@ -1879,15 +1879,15 @@ translate(c.FirewallEC2ConfigType, {
     },
     'fw-cgw-name': {
       title: 'Firewall CGW Name',
-      description: '',
+      description: 'Friendly name to call the CGW.',
     },
     'fw-cgw-asn': {
       title: 'Firewall CGW BGP ASN',
-      description: '',
+      description: 'Customer supplied BGP ASN value .',
     },
     'fw-cgw-routing': {
       title: 'Firewall CGW Routing Type',
-      description: ' Dynamic or Static',
+      description: 'Dynamic or Static',
     },
     'tgw-attach': {
       title: 'Transit Gateway Attachment',
@@ -1907,7 +1907,7 @@ translate(c.FirewallEC2ConfigType, {
     },
     'apply-tags': {
       title: '',
-      description: '',
+      description: 'Enables customers to apply customer specified tags to the deployed Firewalls (only tested with autoscale).',
     },
     bootstrap: {
       title: '',
@@ -1958,7 +1958,7 @@ translate(c.FirewallCGWConfigType, {
     },
     'apply-tags': {
       title: '',
-      description: '',
+      description: 'Enables customers to apply customer specified tags to the deployed Firewalls(only tested with autoscale).',
     },
   },
 });
@@ -1969,7 +1969,7 @@ translate(c.FirewallAutoScaleConfigType, {
   fields: {
     type: {
       title: '',
-      description: '',
+      description: 'Can be EC2, CGW, or autoscale',
     },
     name: {
       title: '',
@@ -1985,10 +1985,10 @@ translate(c.FirewallAutoScaleConfigType, {
     },
     'desired-hosts': {
       title: '',
-      description: '',
+      description: 'The prefered number of instances.',
     },
     'fw-instance-role': {
-      title: '',
+      title: 'Role',
       description: '',
     },
     'image-id': {
@@ -2005,7 +2005,7 @@ translate(c.FirewallAutoScaleConfigType, {
     },
     'load-balancer': {
       title: '',
-      description: '',
+      description: 'Used with auto-scale',
     },
     'max-hosts': {
       title: '',
@@ -2052,12 +2052,12 @@ translate(c.FirewallAutoScaleConfigType, {
       description: '',
     },
     'create-eip': {
-      title: '',
+      title: 'Create EIP',
       description: '',
     },
     'apply-tags': {
       title: '',
-      description: '',
+      description: 'Enables customers to apply customer specified tags to the deployed Firewalls.',
     },
     bootstrap: {
       title: '',
@@ -2067,7 +2067,7 @@ translate(c.FirewallAutoScaleConfigType, {
 });
 
 translate(c.FirewallManagerConfigType, {
-  title: 'Firewall Manager Config',
+  title: 'Firewall Manager Configuration',
   description: '',
   fields: {
     name: {
@@ -2079,7 +2079,7 @@ translate(c.FirewallManagerConfigType, {
       description: '',
     },
     'image-id': {
-      title: '',
+      title: 'Image ID',
       description: '',
     },
     region: {
@@ -2099,7 +2099,7 @@ translate(c.FirewallManagerConfigType, {
       description: '',
     },
     'create-eip': {
-      title: '',
+      title: 'Create EIP',
       description: '',
     },
     'key-pair': {
@@ -2123,7 +2123,7 @@ translate(c.FirewallManagerConfigType, {
       description: '',
     },
     'fw-instance-role': {
-      title: '',
+      title: 'Role',
       description: '',
     },
   },
@@ -2131,7 +2131,7 @@ translate(c.FirewallManagerConfigType, {
 
 translate(c.LandingZoneAccountType, {
   title: '',
-  description: 'TODO: THIS FIELD NOT USED AND TO BE DELETED FROM CODEBASE',
+  description: 'Deprecated',
   enumLabels: {
     primary: 'primary',
     security: 'security',
@@ -2141,7 +2141,7 @@ translate(c.LandingZoneAccountType, {
 });
 
 translate(c.BaseLineConfigType, {
-  title: '',
+  title: 'INTERNAL FIELD',
   description: 'Config type not exposed to the end user',
   enumLabels: {
     LANDING_ZONE: 'Landing Zone',
@@ -2157,7 +2157,7 @@ translate(c.DeploymentConfigType, {
   fields: {
     tgw: {
       title: 'TGW',
-      description: 'Deploy a Transit Gateway',
+      description: 'Deploys Transit Gateways',
     },
     mad: {
       title: 'MAD',
@@ -2165,7 +2165,7 @@ translate(c.DeploymentConfigType, {
     },
     rsyslog: {
       title: '',
-      description: 'Deploy an Rsyslog cluster',
+      description: 'Deploy an rsyslog cluster',
     },
     adc: {
       title: 'ADC',
@@ -2173,7 +2173,7 @@ translate(c.DeploymentConfigType, {
     },
     firewalls: {
       title: '',
-      description: 'Deploy a 3rd party firewall(s)',
+      description: 'Deploys 3rd party firewalls',
     },
     'firewall-manager': {
       title: '',
@@ -2236,13 +2236,13 @@ translate(c.LimitConfig, {
   description: 'Automatically request limit increases for the account',
   fields: {
     value: {
-      title: '',
+      title: 'Limit Value',
       description: 'The limit increase that is being requested, for example Amazon VPC/VPCs per Region',
     },
     'customer-confirm-inplace': {
       title: '',
       description:
-        'If true, the quota value for the limit increase comparison is the value specified. Else, the current quota value is looked up using the ServiceQuotas API',
+        'Some quotas once increased when queries do not return the new quota value.  This setting allows the customer to manually tell the Accelerator the quota has been increased.',
     },
   },
 });
@@ -2260,7 +2260,7 @@ translate(c.SsmShareAutomation, {
       description: 'Regions for SSM',
     },
     documents: {
-      title: '',
+      title: 'SSM Documents',
       description: 'Documents to share',
     },
   },
@@ -2305,7 +2305,7 @@ translate(c.MandatoryAccountConfigType, {
   title: 'Shared Account Config',
   fields: {
     "gui-perm": {
-      title: '',
+      title: 'GUI Permission',
       description: '',
     },
     'account-name': {
@@ -2314,7 +2314,7 @@ translate(c.MandatoryAccountConfigType, {
     },
     description: {
       title: 'Description',
-      description: '',
+      description: 'Description field used in the future GUI, and allows customers to provide a purpose for this account.',
     },
     email: {
       title: '',
@@ -2364,7 +2364,7 @@ translate(c.MandatoryAccountConfigType, {
       description: 'Deploy application load balancers and their configuration in this section',
     },
     's3-retention': {
-      title: 'Override local accounts S3 logging bucket retention period',
+      title: 'Account S3 logging bucket retention period',
       description:
         'In certain cases, logs must be delivered to the local account before being centralized to the central logging bucket (i.e. VPC FLow logs).  This setting determines the retention for the local account copy of the logs.',
     },
@@ -2387,7 +2387,7 @@ translate(c.MandatoryAccountConfigType, {
       description: 'Marks the account as Suspended or Deleted.  Internal Use only.',
     },
     'src-filename': {
-      title: '',
+      title: 'Source Filename',
       description:
         'Source filename with the config for this account. This allows you to split the config into several files',
     },
@@ -2397,20 +2397,20 @@ translate(c.MandatoryAccountConfigType, {
     },
     'keep-default-vpc-regions': {
       title: 'Keep Default VPC regions',
-      description: 'Regions where the default VPCs will NOT be deleted',
+      description: 'Regions where the default VPCs will NOT be deleted in this account.',
     },
     'populate-all-elbs-in-param-store': {
-      title: '',
+      title: 'Populate all Organization ELBs in local Parameter store',
       description:
         'Populates Parameter Store for the specified account with ALB information from all accounts in the organization. This feature is typically used in a central ingress/egress account.',
     },
     'ssm-automation': {
       title: 'SSM Automation Documents',
-      description: 'SSM automation for the account',
+      description: 'Indicates which SSM automation documents defined in global-options should be shared to this specific account.',
     },
     'aws-config': {
       title: 'AWS Config Rules',
-      description: 'AWS Config rules specific to the account',
+      description: 'Indicates which config rules defined in global-options should be deployed in this specific account.',
     },
     scps: {
       title: 'SCPs',
@@ -2422,27 +2422,27 @@ translate(c.MandatoryAccountConfigType, {
     },
     'key-pairs': {
       title: '',
-      description: '',
+      description: 'Creates an EC2 keypair of the specified name.',
     },
     secrets: {
       title: '',
-      description: '',
+      description: 'Creates a secret of the specified name and length in Secrets Manager',
     },
   },
 });
 
 translate(c.AccountsConfigType, {
   title: 'Account Configuration',
-  description: '',
+  description: 'Configure services and features specific to the account.',
 });
 
 translate(c.OrganizationalUnitConfigType, {
-  title: 'Organizational Unit',
+  title: 'Organizational Unit Configuration',
   description:
-    'Configure services and features that will be shared or common to the accounts inside the Organizational Unit',
+    'Configure services and features that will be shared or common to the accounts inside the Organizational Unit.',
   fields: {
     "gui-perm": {
-      title: '',
+      title: 'GUI Permissions',
       description: '',
     },
     type: {
@@ -2451,8 +2451,8 @@ translate(c.OrganizationalUnitConfigType, {
         'Mandatory for core accounts, workload for workload accounts or ignore for Organizational Management account',
     },
     description: {
-      title: 'Description',
-      description: '',
+      title: '',
+      description: 'Description field used in the future GUI, and allows customers to provide a purpose for this OU.',
     },
     scps: {
       title: 'SCPs',
@@ -2489,7 +2489,7 @@ translate(c.OrganizationalUnitConfigType, {
     },
     'aws-config': {
       title: 'AWS Config Rules',
-      description: 'AWS Config rules for every account in the OU',
+      description: 'Indicates which config rules defined in global-options should be deployed in every account in this OU.',
     },
   },
 });
@@ -2501,31 +2501,31 @@ translate(c.OrganizationalUnitsConfigType, {
 });
 
 translate(c.GlobalOptionsZonesConfigType, {
-  title: 'Global Options Zones Config',
-  description: 'NOT USED TO BE DELETED FROM CODE',
+  title: 'Deprecated',
+  description: 'Deprecated',
   fields: {
     account: {
-      title: '',
-      description: '',
+      title: 'Deprecated',
+      description: 'Deprecated',
     },
     'resolver-vpc': {
-      title: '',
-      description: '',
+      title: 'Deprecated',
+      description: 'Deprecated',
     },
     names: {
-      title: '',
-      description: '',
+      title: 'Deprecated',
+      description: 'Deprecated',
     },
     region: {
-      title: '',
-      description: '',
+      title: 'Deprecated',
+      description: 'Deprecated',
     },
   },
 });
 
 translate(c.CostAndUsageReportConfigType, {
   title: 'Cost And Usage Report Config',
-  description: 'VERIFY',
+  description: '',
   fields: {
     'additional-schema-elements': {
       title: '',
@@ -2637,15 +2637,15 @@ translate(c.IamAccountPasswordPolicyType, {
 
 translate(c.CwlExclusions, {
   title: 'CloudWatch Log Exclusions',
-  description: 'VERIFY',
+  description: 'Excludes log groups matching the specified patterns, in the specified account, from being forwarded to the central-log-services bucket.  Multiple account/Log group combinations can be provided.',
   fields: {
     account: {
       title: '',
-      description: '',
+      description: 'Account name.',
     },
     exclusions: {
       title: '',
-      description: '',
+      description: 'Log group patterns to exclude (i.e. def/*).',
     },
   },
 });
@@ -2709,7 +2709,7 @@ translate(c.CentralServicesConfigType, {
         'Excludes log groups matching the pattern in any account from being forwarded to the central-log-services bucket. Wildcards supported. For example /xxx/yyy/*',
     },
     'ssm-to-s3': {
-      title: 'Session Manager logging to S3 central logging bucket',
+      title: 'Session Manager logging to S3 central bucket',
       description:
         'Values are true or false. True to send Session Manager session logs to the central-log-services bucket.',
     },
@@ -2725,7 +2725,7 @@ translate(c.CentralServicesConfigType, {
     'kinesis-stream-shard-count': {
       title: '',
       description:
-        'The Kinesis Data Stream shard count used for CloudWatch Log centralization.  Needs to be manually scaled in large environments.',
+        'The Kinesis Data Stream shard count used for CloudWatch Log centralization.  This needs to be manually scaled as a customers environment grows to ensure all logs are centralized.',
     },
     macie: {
       title: '',
@@ -2745,8 +2745,8 @@ translate(c.CentralServicesConfigType, {
       description: 'A list of regions to exclude from enabling a Config Recorder.',
     },
     'config-aggr-excl-regions': {
-      title: 'TODO: THIS FIELD NOT USED AND TO BE DELETED FROM CODEBASE',
-      description: 'TODO: THIS FIELD NOT USED AND TO BE DELETED FROM CODEBASE',
+      title: 'Deprecated',
+      description: 'Deprecated',
     },
     'sns-excl-regions': {
       title: 'SNS Exclusion Regions',
@@ -2771,11 +2771,11 @@ translate(c.CentralServicesConfigType, {
         'Determines which of the three security notification email priority levels to subscribe all Firewall Manager alerts.',
     },
     'macie-sensitive-sh': {
-      title: 'Macie sensitive data findings to Security Hub',
+      title: 'Send Macie sensitive findings to Security Hub',
       description: 'Publish Macie sensitive data findings to Security Hub',
     },
     'security-hub-findings-sns': {
-      title: 'Security Hub Findings to SNS',
+      title: 'Send Security Hub Findings to SNS',
       description:
         'Send all Security Hub findings ABOVE this severity level to the appropriate security notification topic.  Values: Low, Medium, High, Critical, None.',
     },
@@ -2792,15 +2792,15 @@ translate(c.ScpsConfigType, {
     'Name of the different SCPs that will be used. This list maps each SPCs JSON with a name that can be referenced fro the rest of the configuration file',
   fields: {
     name: {
-      title: '',
+      title: 'Policy Name',
       description: 'Name of Service Control Policy (SCP)',
     },
     description: {
-      title: '',
+      title: 'Policy Description',
       description: 'Description of SCP',
     },
     policy: {
-      title: '',
+      title: 'Policy filename',
       description: 'JSON file containing the SCP configuration',
     },
   },
@@ -2818,7 +2818,7 @@ translate(c.FlowLogsFilterTypes, {
 });
 
 translate(c.FlowLogsIntervalTypes, {
-  title: 'Flow Log Interval',
+  title: 'VPC Flow Log Interval',
   description: 'Must be either: 60 or 600 (i.e. 1 or 10 minutes)',
 });
 
@@ -2850,18 +2850,18 @@ translate(c.VpcFlowLogsConfigType, {
 });
 
 translate(c.AdditionalCwlRegionType, {
-  title: 'Additional CloudWatch Log Regions',
+  title: 'By default, only CloudWatch Logs from the Accelerator Home region are centralized into the central S3 logging bucket, this allows centralizing CloudWatch Logs for additional regions.  Each region requires an entry in the format: "us-east-1": { "kinesis-stream-shard-count": 1 }.',
   description: 'VERIFY',
   fields: {
     'kinesis-stream-shard-count': {
       title: '',
-      description: '',
+      description: 'An integer representing the number of Kinesis shards.  You can only increase/reduce by half the current limit (i.e. you can change from 1-2, 2-3, 4-6). ',
     },
   },
 });
 
 translate(c.CloudWatchMetricFiltersConfigType, {
-  title: 'CloudWatch Metrics ',
+  title: 'CloudWatch Metric Definitions',
   description:
     'Metrics are data about the performance of your systems. By default, many services provide free metrics for resources (such as Amazon EC2 instances, Amazon EBS volumes, and Amazon RDS DB instances). You can also enable detailed monitoring for some resources, such as your Amazon EC2 instances, or publish your own application metrics. Amazon CloudWatch can load all the metrics in your account (both AWS resource metrics and application metrics that you provide) for search, graphing, and alarms',
   fields: {
@@ -2876,7 +2876,7 @@ translate(c.CloudWatchMetricFiltersConfigType, {
     },
     regions: {
       title: '',
-      description: 'Region to activate the CW metric',
+      description: 'Currently only the Accelerator home region is supported.',
     },
     'loggroup-name': {
       title: '',
@@ -2907,16 +2907,16 @@ translate(c.CloudWatchMetricFiltersConfigType, {
 
 translate(c.CloudWatchAlarmDefinitionConfigType, {
   title: 'CloudWatch Alarm Definitions',
-  description: 'Define Cloudwatch alarms here',
+  description: 'This section is used to set the values for a specific CloudWatch Alarm and only need to be provided when overriding the defaults or defining unique values.',
   fields: {
     accounts: {
       title: '',
-      description: 'The AWS account which the metric corresponds.',
+      description: 'Account(s) where the CloudWatch Alarms is to be deployed.  Specify ALL to target all accounts in the Organization.',
     },
     regions: {
       title: '',
       description:
-        'Metrics are stored separately in Regions, but you can use CloudWatch cross-Region functionality to aggregate statistics from different Regions.',
+        'Currently only the Accelerator home region is supported.',
     },
     namespace: {
       title: '',
@@ -2977,16 +2977,16 @@ translate(c.CloudWatchAlarmDefinitionConfigType, {
 });
 
 translate(c.CloudWatchAlarmsConfigType, {
-  title: 'CloudWatch Metric Definitions',
-  description: 'Use this section to define CloudWatch alarms',
+  title: 'CloudWatch Alarm Definition Defaults',
+  description: 'This section is used to set the default values for all defined CloudWatch Alarms, unless overidden on a specific alarm.',
   fields: {
     'default-accounts': {
       title: '',
-      description: 'Account(s) where the CW alarms are defined',
+      description: 'Account(s) where all CloudWatch Alarms are to be deployed, unless a different account list is specified on the rule.  Specify ALL to target all accounts in the Organization.',
     },
     'default-regions': {
       title: '',
-      description: 'Regions(s) to create the CW alarm',
+      description: 'Currently only the Accelerator home region is supported.',
     },
     'default-namespace': {
       title: '',
@@ -3026,12 +3026,12 @@ translate(c.CloudWatchAlarmsConfigType, {
         'Similar to how each alarm is always in one of three states, each specific data point reported to CloudWatch falls under one of three categories: Not breaching (within the threshold), Breaching (violating the threshold), Missing',
     },
     'default-in-org-mgmt-use-lcl-sns': {
-      title: '',
-      description: '',
+      title: 'Default in Org Mgmt account use local SNS',
+      description: 'By default, cross-account SNS topics in the central-log-services account are leveraged, this overides this setting in the Org Management account to use local topics as the default for all rules.',
     },
     definitions: {
       title: '',
-      description: 'This section defines a list of CloudWatch alarms',
+      description: 'This section defines the list of CloudWatch alarms to be deployed.',
     },
   },
 });
@@ -3068,7 +3068,7 @@ translate(c.SsmAutomation, {
       description: 'Region for SSM',
     },
     documents: {
-      title: '',
+      title: 'SSM Documents',
       description: 'Documents to apply to the account',
     },
   },
@@ -3168,7 +3168,7 @@ translate(c.AwsConfig, {
       description: 'Default parameters that apply to every Config rule',
     },
     rules: {
-      title: '',
+      title: 'Config Rules',
       description: 'List of Config rules',
     },
   },
@@ -3179,12 +3179,12 @@ translate(c.GlobalOptionsConfigType, {
   description: 'This section defines parameters that apply to the entire accelerator installation',
   fields: {
     'ct-baseline': {
-      title: 'Control Tower Baseline',
+      title: 'ControlTower Baseline',
       description:
         'Indicates the installation requires Control Tower to be installed before installing the Accelerator.',
     },
     'default-s3-retention': {
-      title: 'Local accounts S3 logging bucket retention period',
+      title: 'Default account S3 logging bucket retention period',
       description:
         'In certain cases, logs must be delivered to the local account before being centralized to the central logging bucket (i.e. VPC Flow logs).  This setting determines the retention for the local account copy of the logs.',
     },
@@ -3235,7 +3235,7 @@ translate(c.GlobalOptionsConfigType, {
     'keep-default-vpc-regions': {
       title: 'Keep Default VPC Regions',
       description:
-        "Accelerator deletes default VPCs in every region, this specifies regions where Accelerator won't delete the default VPCs.",
+        "The Accelerator deletes default VPCs in every region, this specifies regions where the Accelerator will not delete default VPCs.",
     },
     'iam-password-policies': {
       title: 'IAM Password Policies',
@@ -3252,8 +3252,8 @@ translate(c.GlobalOptionsConfigType, {
         'Accounts placed within any OU defined here fall outside the governance structure of the Accelerator and do not need to be listed in the config file.  The Accelerator does not apply guardrails to accounts within this OU.',
     },
     'install-cloudformation-master-role': {
-      title: '',
-      description: 'Whether to create the CloudFormation role in the root account.',
+      title: 'Install Cloudformation Management Role',
+      description: 'Whether to create the CloudFormation role in the Organization Management account.',
     },
     'workloadaccounts-prefix': {
       title: 'Workload Accounts Config Filename Prefix',
@@ -3278,12 +3278,12 @@ translate(c.GlobalOptionsConfigType, {
     'additional-cwl-regions': {
       title: 'Additional CloudWatch Log Regions',
       description:
-        'By default, only CloudWatch Logs from the Accelerator Home or Installation regions are centralized into the central S3 logging bucket, this allows for centralizing CloudWatch Logs from additional regions.',
+        'By default, only CloudWatch Logs from the Accelerator Home region are centralized into the central S3 logging bucket, this allows centralizing CloudWatch Logs for additional regions.  Each region requires an entry in the format: "us-east-1": { "kinesis-stream-shard-count": 1 }.',
     },
     'additional-global-output-regions': {
       title: '',
       description:
-        'By default, parameter store is only populated in the Accelerator Home or Installation region with parameters for Accelerator deployed objects, this allows for populating parameter Store in additional regions.',
+        'By default, Parameter Store is only populated with parameters for Accelerator deployed objects in the Accelerator Home region, this allows for populating Parameter Store in additional regions.',
     },
     cloudwatch: {
       title: 'CloudWatch',
@@ -3292,16 +3292,16 @@ translate(c.GlobalOptionsConfigType, {
     'ssm-automation': {
       title: 'SSM Automation',
       description:
-        'In Global Options, this is where SSM automation documents are defined.  In any OU configuration, this specifies if the SSM automation documents are shared to the accounts in this OU. SSM Automation documents can be invoked from AWS Config rules to remediate non-compliant rules.',
+        'In global-options, this is where SSM automation documents are defined.  In any OU configuration, this specifies if the SSM automation documents are shared to the accounts in this OU. SSM Automation documents can be invoked from AWS Config rules to remediate non-compliant rules.',
     },
     'aws-config': {
       title: 'AWS Config',
       description:
-        'In Global Options, this is where both AWS Managed and Custom Config rules are defined.  In any OU configuration, this specifies if the Config rules are deployed to the accounts in this OU. These rules can be defined to trigger SSM automation documents for remediation.',
+        'In global-options, this is where both AWS Managed and Custom Config rules are defined.  In any OU configuration, this specifies if the Config rules are deployed to the accounts in this OU. These rules can be defined to trigger SSM automation documents for remediation.',
     },
     'default-ssm-documents': {
-      title: 'NOT USED??',
-      description: 'NOT USED??',
+      title: 'Not Implemented',
+      description: 'Not Implemented',
     },
     'cidr-pools': {
       title: 'CIDR Pools',
@@ -3310,7 +3310,7 @@ translate(c.GlobalOptionsConfigType, {
     },
     'control-tower-supported-regions': {
       title: '',
-      description: '',
+      description: 'This field needs to be populated with the list of regions supported by Control Tower.  It needs to be updated when Control Tower launches new regions.',
     },
     'endpoint-port-overrides': {
       title: '',
@@ -3326,21 +3326,21 @@ translate(c.GlobalOptionsConfigType, {
 
 translate(c.AcceleratorConfigType, {
   title: 'Accelerator Configuration',
-  description: 'Configurations for the AWS Secure Environment Accelerator',
+  description: 'Root object of the Accelerator Config file.',
   fields: {
     replacements: {
       title: '',
       description:
-        'This section allows for the definition of variables with assigned values, which can then be referenced throughout the main config file, SCPs, or Firewall configs. Variables can be updates to reflect a customers requirements in a single spot, instead of requiring multiple updates throughout the customers configuration file(s).',
+        'This section allows for the definition of variables with assigned values, which can then be referenced throughout the main config file, SCPs, or Firewall configs. Variables can be updated to reflect a customers requirements in a single spot, instead of requiring multiple updates throughout the customers configuration file(s).',
     },
     'global-options': {
       title: '',
-      description: 'This section defines parameters that apply across the entire Accelerator installation',
+      description: 'This section defines parameters that apply across the entire Accelerator installation.',
     },
     'mandatory-account-configs': {
       title: 'Shared Accounts',
       description:
-        'All accounts which contain components leveraged or utilized by other AWS accounts within the organization must be defined here.  Landing zones have a concept of core accounts that provide functions that span across many AWS accounts. For example: Logs, Audit, Core Networking, etc. While workload accounts typically have a minimum amount of account level customization, the Shared accounts typically contain a high level of customization.',
+        'All accounts which contain components leveraged or utilized by other AWS accounts within the organization must be defined here.  Landing zones have a concept of core accounts that provide functions that span across many AWS accounts. For example: Logs, Security Tooling, Core Networking, etc. While workload accounts typically have a minimum amount of account level customization, the shared accounts typically contain a high level of customization.',
     },
     'workload-account-configs': {
       title: 'Workload Accounts',
@@ -3350,7 +3350,7 @@ translate(c.AcceleratorConfigType, {
     'organizational-units': {
       title: '',
       description:
-        'Organizational units allows for the grouping of AWS accounts and provisioning unique personas or configurations to each account group.  In most cases, the majority of a workload accounts persona or configuration will be defined here based on its OU. A common set of OUs could include: Infrastructure, Security, Sandbox, Dev, Test, Prod, Central).',
+        'Organizational units allows for the grouping of AWS accounts and provisioning unique personas or configurations to each account group.  In most cases, the majority of a workload accounts persona or configuration will be defined here based on its OU. A common set of OUs could include: Infrastructure, Security, Sandbox, Dev, Test, Prod, Central.',
     },
   },
 });
