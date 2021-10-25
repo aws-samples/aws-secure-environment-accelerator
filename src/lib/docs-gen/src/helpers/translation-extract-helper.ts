@@ -28,6 +28,14 @@ export class TranslationExtractHelper {
         if (obj.additionalProperties) {
             this.iterate(obj.additionalProperties, obj.additionalProperties.title);
         }
+        if (obj.items) {
+            this.iterate(obj.items, obj.items.title);
+        }
+        if (obj.oneOf) {
+            for (const oneOfObj of obj.oneOf) {
+                this.iterate(oneOfObj, oneOfObj.title);
+            }
+        }
 
     }
     private generateTitle(title: string, propertyName: string) {

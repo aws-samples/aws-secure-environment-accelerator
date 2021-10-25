@@ -14,7 +14,7 @@ You can find detailed description on each field of the configuration file by acc
 - [Accelerator Configuration](./interfaces/AcceleratorConfiguration.html)
     - [Global Options](./interfaces/GlobalOptions.html)
     - [Mandatory Account Configs](./interfaces/SharedAccountConfig.html)
-    - [Organizational Units](./interfaces/OrganizationalUnit.html)
+    - [Organizational Units](./interfaces/OrganizationalUnitConfiguration.html)
     - [Workload Account Configs](./interfaces/SharedAccountConfig.html)
 
-- [All Config file "Interfaces"](./Modules.html)
+- [All Config file "Interfaces"](./modules.html)

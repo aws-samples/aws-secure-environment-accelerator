@@ -5,7 +5,8 @@
         "app-title": "Accelerator config file documentation",
         "Hierarchy": "Hierarchy",
         "Inherited": "Inherited",
-        "Title":"Title",
-        "Description":"Description"
+        "Title": "Title",
+        "Description": "Description",
+        "Disclaimer": "The configuration file schema documentation is a work in progress. Please use this <b>draft</b> document with caution."
     }
 }

@@ -6,6 +6,7 @@
         "Hierarchy": "Hiérarchie",
         "Inherited": "Hérité",
         "Title": "Titre",
-        "Description": "Description"
+        "Description": "Description",
+        "Disclaimer": "(FR) The configuration file schema documentation is a work in progress. Please use this <b>draft</b> document with caution."
     }
 }
