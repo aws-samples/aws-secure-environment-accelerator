@@ -2439,10 +2439,10 @@ translate(c.AccountsConfigType, {
 translate(c.OrganizationalUnitConfigType, {
   title: 'Organizational Unit Configuration',
   description:
-    'Configure services and features that will be shared or common to the accounts inside the Organizational Unit.',
+    'Organizational units allows for the grouping of AWS accounts and provisioning unique personas or configurations to groups of AWS accounts.  In most cases, the majority of a workload accounts persona or configuration will be defined in this section based on the accounts Organizational Unit (OU). A common set of OUs could include: Security, Infrastructure, Sandbox, Dev, Test, Prod, Central. This is where you configure services and features that will be shared or common to the accounts inside the Organizational Unit.',
   fields: {
     "gui-perm": {
-      title: 'GUI Permissions',
+      title: 'GUI Permission',
       description: '',
     },
     type: {
@@ -3176,7 +3176,7 @@ translate(c.AwsConfig, {
 
 translate(c.GlobalOptionsConfigType, {
   title: 'Global Options',
-  description: 'This section defines parameters that apply to the entire accelerator installation',
+  description: 'This section defines parameters or configurations that apply across the entire Accelerator installation.',
   fields: {
     'ct-baseline': {
       title: 'ControlTower Baseline',
@@ -3326,7 +3326,7 @@ translate(c.GlobalOptionsConfigType, {
 
 translate(c.AcceleratorConfigType, {
   title: 'Accelerator Configuration',
-  description: 'Root object of the Accelerator Config file.',
+  description: 'This is the top level object of the Accelerator Config file, which defines and breaks the configuration up into four major sections. Organization wide settings (global-options), a section to enable providing a unique persona to groups or collections of AWS accounts (organizational-units), and two sections to define configurations that need to be unique to a particular AWS account, one for common or shared infrastructure accounts (mandatory-account-configs) and another for tenant or workload accounts (workload-account-configs).  One more section exists to ease working with these other sections (replacements).',
   fields: {
     replacements: {
       title: '',
@@ -3335,22 +3335,22 @@ translate(c.AcceleratorConfigType, {
     },
     'global-options': {
       title: '',
-      description: 'This section defines parameters that apply across the entire Accelerator installation.',
+      description: 'This section defines parameters or configurations that apply across the entire Accelerator installation.',
     },
     'mandatory-account-configs': {
       title: 'Shared Accounts',
       description:
-        'All accounts which contain components leveraged or utilized by other AWS accounts within the organization must be defined here.  Landing zones have a concept of core accounts that provide functions that span across many AWS accounts. For example: Logs, Security Tooling, Core Networking, etc. While workload accounts typically have a minimum amount of account level customization, the shared accounts typically contain a high level of customization.',
+        'AWS accounts which contain components leveraged or utilized by other AWS accounts within the organization must be defined here.  LThese are AWS accounts (private cloud environments) which are used to provide centralized functionality across the entire organization. For example: Log Archive, Security Tooling, Core Networking, etc. While workload accounts typically have a minimum amount of account level customization, the shared accounts typically contain a high level of customization.',
     },
     'workload-account-configs': {
       title: 'Workload Accounts',
       description:
-        'All AWS accounts which contain a customers workloads and applications are defined within this section.  While it is recommended that accounts primarily receive their configuation based on the persona or OU defined configuration, each accounts persona can be customized within this section.',
+        'AWS accounts which contain a customers workloads and applications are defined within this section.  While it is recommended that accounts primarily receive their configuation based on the persona or OU defined configuration, each accounts persona can be customized within this section.',
     },
     'organizational-units': {
       title: '',
       description:
-        'Organizational units allows for the grouping of AWS accounts and provisioning unique personas or configurations to each account group.  In most cases, the majority of a workload accounts persona or configuration will be defined here based on its OU. A common set of OUs could include: Infrastructure, Security, Sandbox, Dev, Test, Prod, Central.',
+        'Organizational units allows for the grouping of AWS accounts and provisioning unique personas or configurations to groups of AWS accounts.  In most cases, the majority of a workload accounts persona or configuration will be defined in this section based on the accounts Organizational Unit (OU). A common set of OUs could include: Security, Infrastructure, Sandbox, Dev, Test, Prod, Central. This is where you configure services and features that will be shared or common to the accounts inside the Organizational Unit.',
     },
   },
 });

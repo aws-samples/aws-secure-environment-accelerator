@@ -2,7 +2,7 @@
 
 - [1. Accelerator v1.5.0 Custom Upgrade Instructions](#1-accelerator-v150-custom-upgrade-instructions)
   - [1.1. Overview](#11-overview)
-  - [1.2. Upgrade Caveat](#12-upgrade-caveat)
+  - [1.2. Upgrade Caveats](#12-upgrade-caveats)
   - [1.3. Config File Conversion](#13-config-file-conversion)
   - [1.4. Upgrade process](#14-upgrade-process)
       - [1.4.0.1. - TEMPORARY: UNTIL WE PUBLISH YOU MUST USE THE CODECOMMIT PROCESS and a CODECOMMIT installer template. GitHub and GitHub Secret references are irrelevant.](#1401---temporary-until-we-publish-you-must-use-the-codecommit-process-and-a-codecommit-installer-template-github-and-github-secret-references-are-irrelevant)
@@ -26,18 +26,20 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
   - you can change your IP address mechanism for any vpc at any time
   - customers can mix and match IP address management mechanisms as they choose
 
-## 1.2. Upgrade Caveat
+## 1.2. Upgrade Caveats
 
-- the script to assist with config file conversion and DynamoDB population only supports single file json based config files
-- customers that leverage YAML and/or multi-part config files, have several options:
-  a) manually update your yaml or multi-part json config file to reflect the config file format for the latest release (similiar to all previous upgrades)
-  b) use the config.json file found in the `raw` folder of your codecommit repo to run the conversion script
-  - this version of the config file has resolved all variables with their final values, all variables will be removed from config.json in this scenario
-  - the new config file can be converted back to json/multi-part format before being placed back into your CodeComit repository
-  - or it could be used to simply validate the changes you made using option a
-  - NOTE: do not manually update the config file in the `raw` folder, as it will be overwritten based on the json or yaml file in the root of your repository
-    c) use a 3rd party tool to manually convert your yaml / multi-part config files to a single file json file to run the conversion script
-  - the new config file can be converted back to json/multi-part format before being placed back into your CodeComit repository
+1. **While an upgrade path is planned, customers with a Standalone Accelerator installation can upgrade to v1.5.0 but need to continue with a Standalone installation until the Control Tower upgrade option becomes available.**
+
+2. The script to assist with config file conversion and DynamoDB population only supports single file json based config files, customers that leverage YAML and/or multi-part config files, have several options:
+   a) manually update your yaml or multi-part json config file to reflect the config file format for the latest release (similiar to all previous upgrades)
+   b) use the config.json file found in the `raw` folder of your codecommit repo to run the conversion script
+
+- this version of the config file has resolved all variables with their final values, all variables will be removed from config.json in this scenario
+- the new config file can be converted back to json/multi-part format before being placed back into your CodeComit repository
+- or it could be used to simply validate the changes you made using option a
+- NOTE: do not manually update the config file in the `raw` folder, as it will be overwritten based on the json or yaml file in the root of your repository
+  c) use a 3rd party tool to manually convert your yaml / multi-part config files to a single file json file to run the conversion script
+- the new config file can be converted back to json/multi-part format before being placed back into your CodeComit repository
 
 ## 1.3. Config File Conversion
 

@@ -4,7 +4,7 @@
 
 Installation of the provided prescriptive AWS architectures, as-is, requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization plus any additional required workload accounts.
 
-_Users are strongly encouraged to also read the Accelerator Operations/Troubleshooting [Guide](../operations/operations-troubleshooting-guide.md) before installation. The Operations/Troubleshooting Guide provides details as to what is being performed at each stage of the installation process, including detailed troubleshooting guidance._
+_Users are strongly encouraged to also read the [Accelerator Operations/Troubleshooting Guide](../operations/operations-troubleshooting-guide.md) before installation. The Operations/Troubleshooting Guide provides details as to what is being performed at each stage of the installation process, including detailed troubleshooting guidance._
 
 These installation instructions assume one of the prescribed architectures is being deployed.
 
@@ -53,10 +53,7 @@ These installation instructions assume one of the prescribed architectures is be
 - Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
 - Valid Accelerator configuration file, updated to reflect your requirements (see below)
 - Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
-- Decide if you are doing an AWS Control Tower based or a Standalone installation
-  - AWS generally recommends customers install on top of AWS Control Tower, unless customers have specific requirements
-  - Government of Canada customers are required to do a Standalone installation at this time
-  - While an upgrade path is planned, customers with a Standalone installation need to continue with a Standalone installation until the Control Tower upgrade option becomes available
+- Government of Canada customers are still required to do a standalone installation at this time, please request standalone installation instructions from your Account SA or TAM.
 - The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in [section 4](#4-existing-organizations--accounts) below
 - Existing AWS Landing Zone Solution (ALZ) customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
 
@@ -70,8 +67,8 @@ These installation instructions assume one of the prescribed architectures is be
 
 Plan your OU and core account structure carefully. By default, we suggest: `Security, Infrastructure, Central, Sandbox, Dev, Test, Prod`.
 
-- The `Security` OU will contain the `Security` account, the `Log Archive` account, and the Organization Management account.
-- The `Infrastructure` OU will hold the remainder of the accounts shared or utilized by the rest of the organization (`Shared Network`, `Perimeter`, `Operations`).
+- The `Security` OU will contain the `Security` account, the `Log Archive` account, and the Organization `Management` account.
+- The `Infrastructure` OU will hold the remainder of the accounts shared or utilized by the rest of the organization (`Shared Network`, `Perimeter`, and `Operations`).
 - The remainder of the OUs correspond with major permission shifts in the SDLC cycle and NOT every stage an organization has in their SDLC cycle (i.e. QA or pre-prod would be included in one of the other OUs).
 - The `Central` OU is used to hold accounts with workloads shared across Dev, Test, and Prod environments like centralized CI/CD tooling.
 - The v1.5.0 release aligns the Accelerator OU and account structure with AWS multi-account guidance, splitting the `core` OU into the `Security` and `Infrastructure` OUs.
@@ -82,7 +79,7 @@ Plan your OU and core account structure carefully. By default, we suggest: `Secu
 
 If deploying the prescriptive architecture using the Full or Lite sample config files, you will need the following network constructs:
 
-1. Six (6) RFC1918 Class B address blocks (CIDR's) which do not conflict with your on-premise networks
+1. Six (6) RFC1918 Class B address blocks (CIDR's) which do not conflict with your on-premise networks (a single /13 block works well)
 
 - VPC CIDR blocks cannot be changed after installation, this is simply the way the AWS platform works, given everything is built on top of them. Carefully consider your address block selection.
 - one block for each OU, except Sandbox which is not routable (Sandbox OU will use a 7th non-routed address block)
@@ -95,7 +92,7 @@ If deploying the prescriptive architecture using the Full or Lite sample config 
 
 3. Two (2) BGP ASN's (For the Transit Gateway and Firewall Cluster - note: a third is required if you are deploying a VGW for DirectConnect connectivity.)
 
-NOTE: Prior to v1.5.0 CIDR ranges were assigned to each VPC and subnet throughout the config file. This required customers to perform extensive updates across the config file when needing to move to specific IP ranges compatible with a customer's existing network. While this is still supported for those wanting to control exactly what address is used on every subnet, the solution has added support for dynamic CIDR assignments and the sample config files have been updated to reflect. New installs will have CIDR's pulled from CIDR pools, defined in the global-options section of the config file with state maintained in DynamoDB. A [script](../reference-artifacts/Custom-Scripts/Update-Scripts/v1.3.8_to_v1.5.0) exists to enable existing customers to migrate to the new scheme, if desired.
+NOTE: Prior to v1.5.0 CIDR ranges were assigned to each VPC and subnet throughout the config file. This required customers to perform extensive updates across the config file when needing to move to specific IP ranges compatible with a customer's existing on-premise networks. While this is still supported for those wanting to control exactly what address is used on every subnet, the solution has added support for dynamic CIDR assignments and the sample config files have been updated to reflect. New installs will have CIDR's pulled from CIDR pools, defined in the global-options section of the config file with state maintained in DynamoDB. The v1.5.0 [custom upgrade guide](./v150-Upgrade.md) will provides details on the upgrade process and requirements to migrate to the new CIDR assignment system, if desired. A [script](../reference-artifacts/Custom-Scripts/Update-Scripts/v1.3.8_to_v1.5.0) was created to assist with this migration.
 
 ### 2.2.4. DNS, Domain Name, TLS Certificate Planning
 
@@ -148,7 +145,7 @@ Note: While we only provide a single example for each 3rd party implementation t
 1. We recommend installing with the default Accelerator Name (`ASEA`) and Accelerator Prefix (`ASEA-`), but allow customization. Prior to v1.5.0 the defaults were (`PBMM`) and (`PBMMAccel-`) respectively.
    - the Accelerator name and prefix **_CANNOT_** be changed after the initial installation;
    - the Accelerator prefix including the mandatory dash cannot be longer than 10 characters.
-2. If installing with Control Tower, the `organization-admin-role` must be set to `AWSControlTowerExecution`. For standalone installations customers can select a role name of their choosing, but, we recommend using `OrganizationAccountAccessRole` as the `organization-admin-role`, as this role is used by AWS Organizations by default when no role name is specified while creating AWS accounts through the AWS console.
+2. New installations, which now leverage Control Tower, require the `organization-admin-role` be set to `AWSControlTowerExecution`. Existing standalone installations will continue to utilize their existing role name for the `organization-admin-role`, typically `OrganizationAccountAccessRole`, as this role is used by AWS Organizations by default when no role name is specified while creating AWS accounts through the AWS console.
    - the Accelerator leverages this role name to create all new accounts in the organization;
    - this role name, as defined in the config file, **_MUST_** be utilized when manually creating all new sub-accounts in the Organization;
    - existing installs wishing to change the role name are required to first deploy a new role with a trust to the root account, in all accounts in the organization.
@@ -161,7 +158,8 @@ Before installing, you must first:
 
 1. Login to the Organization **Management (root) AWS account** with `AdministratorAccess`.
 2. **_Set the region to your desired `home` region_** (i.e. `ca-central-1`)
-3. For Control Tower based installs ONLY:
+3. Install AWS Control Tower:
+   - Government of Canada customers are _required_ to skip this step
    - OU and account names can ONLY be customized during initial installation. These values MUST match with the values supplied in the Accelerator config file.
    1. Go to the AWS Control Tower console and click `Set up landing zone`
    2. Select your `home` region (i.e. `ca-central-1`)
@@ -177,11 +175,11 @@ Before installing, you must first:
    10. Repeat step 9 for each OU (i.e. `Test`, `Prod`, `Central`, `Sandbox`)
    11. Select `Account factory`, Edit, Subnets: 0, Deselect all regions, click `Save`
    12. In Organizations, move the Management account from the `root` OU into the `Security` OU
-4. For Standalone based installs ONLY:
-   1. Enable AWS Organizations in `All features` mode
-      - Navigate to AWS Organizations, click `Create Organization`, `Create Organization`
-   2. Enable Service Control Policies
-      - In Organizations, select `Policies`, `Service control policies`, `Enable service control policies`
+4. Verify:
+   1. AWS Organizations is enabled in `All features` mode
+      - if required, navigate to AWS Organizations, click `Create Organization`, `Create Organization`
+   2. Service Control Policies are enabled
+      - if required, in Organizations, select `Policies`, `Service control policies`, `Enable service control policies`
 5. Verify the Organization Management (root) account email address
    - In AWS Organizations, Settings, ["Send Verification Request"](https://aws.amazon.com/blogs/security/aws-organizations-now-requires-email-address-verification/)
    - Once it arrives, complete the validation by clicking the validation link in the email
@@ -270,10 +268,8 @@ If deploying to an internal AWS employee account and installing the solution wit
    - **IMPORTANT: Use a config file from the Github code branch you are deploying from, as valid parameters change over time. The `main` branch is NOT the current release and often will not work with the GA releases.**
    - sample config files can be found in [this](../../reference-artifacts/SAMPLE_CONFIGS/) folder;
    - descriptions of the sample config files and customization guidance can be found [here](./customization-index.md);
-   - unsure where to start, use the `config.lite-XXX-example.json`, where XXX is VPN for Fortinet, GWLB for Checkpoint, NFW for AWS, and CTNFW for Control Tower w/NFW;
+   - unsure where to start, use the `config.lite-CTNFW-example.json`, where CTNFW is for Control Tower w/NFW;
    - These configuration files can be used, as-is, with only minor modification to successfully deploy the sample architectures;
-   - A _Beta_ GUI based config file editor is available for download with the v1.5.0 release
-     - it is NOT production ready, please compare the before and after config files and ensure only desired changes were made to your config before proceeding;
    - On upgrades, compare your deployed configuration file with the latest branch configuration file for any new or changed parameters;
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
    - For existing accounts, they _must_ match identically to both the account names and email addresses defined in AWS Organizations;
@@ -317,7 +313,7 @@ If deploying to an internal AWS employee account and installing the solution wit
 ## 2.5. Installation
 
 1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
-   - We only support new installations of v1.3.8 or above (older releases continue to function)
+   - We only support new installations of v1.3.9 or above (older releases continue to function)
 2. Download the CloudFormation (CFN) template for the release you plan to install (either `AcceleratorInstallerXXX.template.json` for GitHub or `AcceleratorInstallerXXX-CodeCommit.template.json` for CodeCommit)
 3. Use the provided CloudFormation template to deploy a new stack in your Management (root) AWS account
    - As previously stated we do not support installation in sub-accounts
@@ -346,7 +342,7 @@ If deploying to an internal AWS employee account and installing the solution wit
 9. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
 10. **While the pipeline is running:**
     - review the list of [Known Installation Issues](#251-known-installation-issues) in section 2.5.1 below
-    - review the Accelerator Basic Operation and Frequently Asked Questions (FAQ) [Document](../faq/faq.md)
+    - review the Accelerator Basic Operation and Frequently Asked Questions [(FAQ) Document](../faq/faq.md)
 11. Once the pipeline completes (~10 mins), the main state machine, named `ASEA-MainStateMachine_sm`, will start in Step Functions
 12. The state machine time is dependent on the quantity of resources being deployed. On an initial installation of a more complex sample configuration files, it takes approximately 1.5 hours to execute. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but often takes as little as 20 minutes.
     - While you can watch the state machine in Step Functions, you will also be notified via email when the State Machine completes (or fails). Successful state machine executions include a list of all accounts which were successfully processed by the Accelerator.
@@ -381,11 +377,12 @@ If deploying to an internal AWS employee account and installing the solution wit
 
 Current Issues:
 
+- On larger deployments we are occassionally seeing state machine failures when `Creating Config Recorders`.
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
 
 Issues in Older Releases:
 
-- New installs to releases prior to v1.3.8 are no longer supported.
+- New installs to releases prior to v1.3.9 are no longer supported.
 - Upgrades to releases prior to v1.3.8 are no longer supported.
 
 ## 2.6. Post-Installation
@@ -546,7 +543,8 @@ The Accelerator installation is complete, but several manual steps remain:
 
 ## 3.1. Considerations
 
-- Due to some breaking dependency issues, customers can only upgrade to v1.3.8 or above (older releases continue to function, but cannot be installed)
+- Due to some breaking dependency issues, customers can only upgrade to v1.3.8 or above (older releases continue to function, but cannot be installed).
+- While an upgrade path is planned, customers with a standalone Accelerator installation can upgrade to v1.5.0 but need to continue with a standalone installation until the Control Tower upgrade option becomes available.
 - Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.
   - do NOT update to the latest firewall AMI - see the the last bullet in section [5.1. Accelerator Design Constraints / Decisions](#51-accelerator-design-constraints--decisions)
   - do NOT update the `organization-admin-role` - see bullet 2 in section [2.2.7. Other](#226-other)
