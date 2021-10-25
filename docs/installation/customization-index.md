@@ -89,7 +89,7 @@
 - Third Party Firewall example configs:
   - The Accelerator is provided with a sample 3rd party configuration file to demonstrate automated deployment of 3rd party firewall technologies. Given the code is vendor agnostic, this process should be able to be leveraged to deploy other vendors firewall appliances. When and if other options become available, we will add them here as well.
     - Automated [firewall configuration customization](../../reference-artifacts/SAMPLE_CONFIGS/firewall_file_available_variables.md) possibilities
-    - Sample Fortinet Fortigate firewall config [file](../../reference-artifacts/Third-Party/firewall-example.txt)
+    - Sample Fortinet Fortigate firewall config [file](../../reference-artifacts/Third-Party)
 
 ## 1.3. Other Configuration File Hints and Tips
 

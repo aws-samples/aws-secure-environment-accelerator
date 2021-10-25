@@ -174,7 +174,7 @@ Before installing, you must first:
    9. Type `Dev`, click `Add`, wait until the OU is finished provisioning (or it will error)
    10. Repeat step 9 for each OU (i.e. `Test`, `Prod`, `Central`, `Sandbox`)
    11. Select `Account factory`, Edit, Subnets: 0, Deselect all regions, click `Save`
-   12. In Organizations, move the Management account from the `root` OU into the `Security` OU
+   12. In AWS Organizations, move the Management account from the `root` OU into the `Security` OU
 4. Verify:
    1. AWS Organizations is enabled in `All features` mode
       - if required, navigate to AWS Organizations, click `Create Organization`, `Create Organization`
@@ -280,7 +280,7 @@ If deploying to an internal AWS employee account and installing the solution wit
    - If deploying the Managed AD, update the dns-domain, netbios-domain, log-group-name, as well as the AD users and groups that will be created;
    - For a test deployment, the remainder of the values can be used as-is;
    - While it is generally supported, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts to the config file and rerun the state machine.
-   - More information [here](./customization-index.md#15-config-file-minimum-changes) on the fields in the config file that need to be updated.
+   - More information [here](./customization-index.md#15-summary-of-example-config-file-minimum-changes-for-new-installs) on the fields in the config file that need to be updated.
 3. A successful deployment of the prescriptive architecture requires VPC access to 9 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 9 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms, logs, monitoring).
 4. When deploying to regions other than `ca-central-1`, you need to modify your config file as follows (for Canada Central 1, the AMI ids are pre-populated for you):
    1. Update the firewall and firewall manager AMI id's to reflect your home regions regional AMI id's (see 2.3.3, item 13), making sure you select the right version and region per the recommendations.
@@ -293,7 +293,7 @@ If deploying to an internal AWS employee account and installing the solution wit
    - the bucket must be `S3-KMS` encrypted using the `ASEA-Source-Bucket-Key` created above
 6. Place your customized config file(s), named `config.json` (or `config.yaml`), in your new bucket
 7. If required, place the firewall configuration and license files in the folder and path defined in the config file
-   - For AWS Network Firewall: `nfw/nfw-example‎-policy.json`
+   - For AWS Network Firewall: `nfw/nfw-example-policy.json`
    - For Fortinet: `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
      - We have made several samples available [here](../../reference-artifacts/Third-Party): `./reference-artifacts/Third-Party/`
      - Both samples comprise an active / active firewall pair. Until recently we only brought up one tunnel per firewall, you now also have an example which brings up both tunnels per firewall
@@ -318,7 +318,7 @@ If deploying to an internal AWS employee account and installing the solution wit
 3. Use the provided CloudFormation template to deploy a new stack in your Management (root) AWS account
    - As previously stated we do not support installation in sub-accounts
 4. Login to your Organization Management account and **_make sure you are in your desired `home` region_** (i.e. `ca-central-1`) (your desired primary or control region)
-5. Navigate to **CloudFormation** in the AWS Console and click `Create stack`, then
+5. Navigate to **CloudFormation** in the AWS Console and click `Create stack with new resources (standard)`, then
    - Select "Template is ready"
    - For the "Specify template" select "Upload a template file"
    - Select the `*.template.json` file you downloaded in step 2 above
