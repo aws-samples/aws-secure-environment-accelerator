@@ -317,7 +317,7 @@ const regionTitle = {title: "Region", desc: "Region for the VPC"}
 const cidrPoolTitle = {title: "CIDR Pool Name & Size", desc: "The name of the CIDR pool to assign IP addresses from and the size of the CIDR pool to assign to the VPC. Size must be between 16-28."}
 
 const getDefinedIn = (vpcName: string) => {
-  return vpcName in organizationalUnitsNode ? 'Organizational Unit' : 'Account';
+  return organizationalUnitsNode && (vpcName in organizationalUnitsNode) ? 'Organizational Unit' : 'Account';
 }
 
   return (
