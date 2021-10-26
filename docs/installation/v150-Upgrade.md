@@ -5,8 +5,6 @@
   - [1.2. Upgrade Caveats](#12-upgrade-caveats)
   - [1.3. Config File Conversion](#13-config-file-conversion)
   - [1.4. Upgrade process](#14-upgrade-process)
-      - [1.4.0.1. - TEMPORARY: UNTIL WE PUBLISH YOU MUST USE THE CODECOMMIT PROCESS and a CODECOMMIT installer template. GitHub and GitHub Secret references are irrelevant.](#1401---temporary-until-we-publish-you-must-use-the-codecommit-process-and-a-codecommit-installer-template-github-and-github-secret-references-are-irrelevant)
-      - [1.4.0.2. - TEMPORARY: THE CFN TEMPLATE CAN BE FOUND HERE(AcceleratorInstaller-CodeCommit.template-v149-beta.json)](#1402---temporary-the-cfn-template-can-be-found-hereacceleratorinstaller-codecommittemplate-v149-betajson)
   - [1.5. "3.2. Summary of Upgrade Steps (all versions)" **_(Copied from installation guide)_**](#15-32-summary-of-upgrade-steps-all-versions-copied-from-installation-guide)
   - [1.6. Post Upgrade Follow-up Tasks for v1.5.0 Upgrade](#16-post-upgrade-follow-up-tasks-for-v150-upgrade)
 
@@ -19,12 +17,13 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
 - we are re-aligning the OU structure with AWS guidance and that of AWS Control Tower (optional, but highly recommended)
   - the core OU is being split into a "Security" OU and an "Infrastructure" OU
 - we've added the capability to manage your IP addresses in DynamoDB, rather than with the config file
-  - more info on this features design can be found on this [ticket](https://github.com/aws-samples/aws-secure-environment-accelerator/issues/494)
+  - this includes the ability to dynamically allocate CIDR ranges to VPCs and subnets
+  - more information on this features design can be found on this [ticket](https://github.com/aws-samples/aws-secure-environment-accelerator/issues/494)
   - the config file conversion script will:
-    - update your config file in a manner that supports both IP address management schemes
+    - update your config file in a manner that supports both CIDR management schemes (but continues to leverage the previous mechanism)
     - copy your currently configured CIDR ranges into the appropriate DynamoDB tables (optional, but recommended)
   - you can change your IP address mechanism for any vpc at any time
-  - customers can mix and match IP address management mechanisms as they choose
+  - customers can mix and match IP address management mechanisms as they choose (`provided`, `lookup`, and `dynamic`)
 
 ## 1.2. Upgrade Caveats
 
@@ -104,10 +103,6 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
   - Select the `PBMMAccel-MoveAccount_rule`, select `actions`, select `Enable`
   - Select the `PBMMAccel-PolicyChanges_rule`, select `actions`, select `Enable`
 - Follow the Standard Upgrade instructions in [Section 3.2](https://gitlab.aws.dev/tsd/accelerator/-/blob/main/docs/installation/installation.md#32-summary-of-upgrade-steps-all-versions) of the Installation and Upgrade guide, repeated verbatim below for ease of reference
-
-#### 1.4.0.1. - TEMPORARY: UNTIL WE PUBLISH YOU MUST USE THE CODECOMMIT PROCESS and a CODECOMMIT installer template. GitHub and GitHub Secret references are irrelevant.
-
-#### 1.4.0.2. - TEMPORARY: THE CFN TEMPLATE CAN BE FOUND [HERE](https://gitlab.aws.dev/tsd/accelerator/-/tree/main/reference-artifacts/Custom-Scripts/InstallerTemplate)(AcceleratorInstaller-CodeCommit.template-v149-beta.json)
 
 ## 1.5. "3.2. Summary of Upgrade Steps (all versions)" **_(Copied from installation guide)_**
 
