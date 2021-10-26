@@ -61,6 +61,21 @@ jobs:
             --pdf-engine=xelatex
             docs/installation/installation.md
 
+      - name: PDF output 1a
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/1a-${{ steps.setup.outputs.prefix }}-v150-Upgrade-Guide.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/v150-Upgrade.md
+
       - name: PDF output 2
         uses: docker://pandoc/latex:2.10
         with:
@@ -110,6 +125,30 @@ jobs:
       - name: Copy file output 4b3
         run: |
           cp reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.ultralite-example.json
+
+      - name: Copy file output 4b4
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.example-oldIP.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.example-oldIP.json
+
+      - name: Copy file output 4b5
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.lite-CTNFW-example.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.lite-CTNFW-example.json
+
+      - name: Copy file output 4b6
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.lite-GWLB-example.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.lite-GWLB-example.json
+
+      - name: Copy file output 4b7
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.lite-NFW-example.json
+
+      - name: Copy file output 4b8
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example-oldIP.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.lite-VPN-example-oldIP.json
+
+      - name: Copy file output 4b9
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.test-example.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.test-example.json
 
       - name: PDF output 4c
         uses: docker://pandoc/latex:2.10
@@ -208,6 +247,51 @@ jobs:
             -V documentclass=report
             --pdf-engine=xelatex
             docs/installation/guides/public-facing-workload-via-fortigate.md
+
+      - name: PDF output 4j
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/4j-${{ steps.setup.outputs.prefix }}-State-Machine-Inputs.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/sm_inputs.md
+
+      - name: PDF output 4k
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/4k-${{ steps.setup.outputs.prefix }}-Object-Naming.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/object-naming.md
+
+      - name: PDF output 4l
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/4l-${{ steps.setup.outputs.prefix }}-ALZ-Import-Account.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/operations/operations-import-ALZAccount.md
 
       - name: PDF output 5
         uses: docker://pandoc/latex:2.10
