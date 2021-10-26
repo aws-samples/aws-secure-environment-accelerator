@@ -24,7 +24,7 @@
 
 ### - Prescriptive PBMM Architecture Design [Document](./architectures/pbmm/architecture.md) (Early Draft)
 
-- Accelerator Prescriptive Architecture Sample [diagrams](./docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md)
+- Accelerator Prescriptive Architecture Sample [diagrams](./docs/architectures/AWS_Diagrams_Account_Network_VPC.md)
 
 ---
 
