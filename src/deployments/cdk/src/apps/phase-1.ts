@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
@@ -45,10 +32,9 @@ import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-
 import * as vpcDeployment from '../deployments/vpc';
 import * as transitGateway from '../deployments/transit-gateway';
 import * as centralEndpoints from '../deployments/central-endpoints';
-import { NfwOutput, VpcOutputFinder, VpcSubnetOutput } from '@aws-accelerator/common-outputs/src/vpc';
-import { loadAssignedVpcCidrPool, loadAssignedSubnetCidrPool } from '@aws-accelerator/common/src/util/common';
+import { CfnResourceStackCleanupOutput } from '../deployments/cleanup/outputs';
+import { VpcOutputFinder, VpcSubnetOutput } from '@aws-accelerator/common-outputs/src/vpc';
 import { TransitGatewayAttachmentOutputFinder } from '@aws-accelerator/common-outputs/src/transit-gateway';
-import { EbsKmsOutputFinder } from '@aws-accelerator/common-outputs/src/ebs';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
 export interface IamPolicyArtifactsOutput {
@@ -86,14 +72,17 @@ export interface IamPolicyArtifactsOutput {
  * - Create LogGroup required for DNS Logging
  */
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, limiter, outputs }: PhaseInput) {
-  const assignedVpcCidrPools = await loadAssignedVpcCidrPool(context.vpcCidrPoolAssignedTable);
-  const assignedSubnetCidrPools = await loadAssignedSubnetCidrPool(context.subnetCidrPoolAssignedTable);
+  const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
+  const orgUnits = acceleratorConfig.getOrganizationalUnits();
+  const workLoadAccountConfig = acceleratorConfig.getWorkloadAccountConfigs();
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
+  const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
   const iamConfigs = acceleratorConfig.getIamConfigs();
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   if (!masterAccountId) {
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
   }
+
   const { acceleratorName, installerVersion, defaultRegion, acceleratorExecutionRoleName } = context;
   // Find the central bucket in the outputs
   const centralBucket = CentralBucketOutput.getBucket({
@@ -101,7 +90,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     outputs,
   });
-  console.log(centralBucket.bucketName);
+
   const logBucket = LogBucketOutput.getBucket({
     accountStacks,
     config: acceleratorConfig,
@@ -167,6 +156,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       console.warn(`Cannot find account stack ${accountKey}`);
       return;
     }
+
     const vpcStackPrettyName = pascalCase(props.vpcConfig.name);
 
     const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, props);
@@ -186,7 +176,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     } else {
       initialSubnets.push(...subnets);
     }
-    const nfwOutputs = vpc.nfw?.nfwOutput;
 
     // Store the VPC output so that subsequent phases can access the output
     new vpcDeployment.CfnVpcOutput(vpc, `VpcOutput`, {
@@ -194,7 +183,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       region: props.vpcConfig.region,
       vpcId: vpc.vpcId,
       vpcName: props.vpcConfig.name,
-      cidrBlock: vpc.cidrBlock,
+      cidrBlock: props.vpcConfig.cidr.toCidrString(),
       additionalCidrBlocks: vpc.additionalCidrBlocks,
       subnets,
       routeTables: vpc.routeTableNameToIdMap,
@@ -206,7 +195,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       ),
       tgwAttachments: vpc.tgwAVpcAttachments,
       initialSubnets,
-      nfw: nfwOutputs || [],
     });
 
     return vpcStack.vpc;
@@ -240,23 +228,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       vpcName: vpcConfig.name,
     });
 
-    if (vpcConfig.nfw) {
-      // Try to get policy document for nfw
-      const sts = new STS();
-      const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(
-        masterAccountId,
-        context.acceleratorExecutionRoleName,
-      );
-
-      const s3 = new S3(masterAcctCredentials);
-      vpcConfig.nfw.policyString = await s3.getObjectBodyAsString({
-        Bucket: centralBucket.bucketName,
-        Key: vpcConfig.nfw.policy?.path || 'nfw/nfw-example-policy.json',
-      });
-    } else {
-      console.log('No NFW policy path found skipping');
-    }
-    const ebsKmsKey = EbsKmsOutputFinder.findOneByName({ accountKey, region: vpcConfig.region, outputs });
     const vpc = createVpc(accountKey, {
       accountKey,
       accountStacks,
@@ -270,12 +241,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       acceleratorName,
       installerVersion,
       vpcOutput,
-      vpcPools: assignedVpcCidrPools,
-      subnetPools: assignedSubnetCidrPools,
       existingAttachments,
-      ddbKmsKey: ebsKmsKey?.encryptionKeyArn,
-      acceleratorPrefix: context.acceleratorPrefix,
-      logBucket,
     });
 
     const pcxConfig = vpcConfig.pcx;
@@ -303,7 +269,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     // Validate subscription for Firewall images only once per account
     // TODO Add region to check
     // TODO Check if VPC or deployments exists
-    if (!subscriptionCheckDone.includes(`${accountKey}-region-${vpcConfig.region}`)) {
+    if (!subscriptionCheckDone.includes(accountKey)) {
       console.log(`Checking Subscription for ${accountKey}`);
       await firewallSubscription.validate({
         accountKey,
@@ -311,20 +277,19 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         vpc: vpc!,
         accountStacks,
       });
-      subscriptionCheckDone.push(`${accountKey}-region-${vpcConfig.region}`);
+      subscriptionCheckDone.push(accountKey);
     }
 
-    if (vpc) {
-      // Creates resolver query logging and associate to the VPC
-      await vpcDeployment.step4({
-        accountKey,
-        accountStacks,
-        acceleratorPrefix: context.acceleratorPrefix,
-        outputs,
-        vpcConfig,
-        vpcId: vpc.id,
-      });
-    }
+    // Creates resolver query logging and associate to the VPC
+    await vpcDeployment.step4({
+      accountKey,
+      accountStacks,
+      acceleratorPrefix: context.acceleratorPrefix,
+      outputs,
+      vpcConfig,
+      vpcId: vpc!.id,
+    });
+
     // Create DNS Query Logging Log Group
     if (vpcConfig.zones && vpcConfig.zones.public.length > 0) {
       if (!dnsLogGroupsAccountAndRegion[accountKey]) {
@@ -400,53 +365,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     return iamPoliciesDef;
   };
 
-  const getIamTrustPoliciesDefinition = async (): Promise<{ [policyName: string]: string } | undefined> => {
-    const iamPoliciesDef: { [policyName: string]: string } = {};
-
-    const sts = new STS();
-    const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(
-      masterAccountId,
-      context.acceleratorExecutionRoleName,
-    );
-
-    // TODO Remove call to S3 here somehow
-    const iamPolicyS3 = new S3(masterAcctCredentials);
-
-    const iamPolicyArtifactOutput: IamPolicyArtifactsOutput[] = getStackJsonOutput(outputs, {
-      accountKey: masterAccountKey,
-      outputType: 'IamPolicyArtifactsOutput',
-    });
-
-    if (iamPolicyArtifactOutput.length === 0) {
-      console.warn(`Cannot find output with Iam Policy reference artifacts`);
-      return;
-    }
-
-    const iamPoliciesBucketName = iamPolicyArtifactOutput[0].bucketName;
-    const iamPoliciesBucketPrefix = iamPolicyArtifactOutput[0].keyPrefix + '/';
-
-    for (const { iam: iamConfig } of iamConfigs) {
-      if (IamConfigType.is(iamConfig)) {
-        for (const role of iamConfig.roles || []) {
-          if (role['trust-policy']) {
-            const iamPolicyKey = `${iamPoliciesBucketPrefix}${role['trust-policy']}`;
-            try {
-              console.log(iamPoliciesBucketName, iamPolicyKey);
-              const policyContent = await iamPolicyS3.getObjectBodyAsString({
-                Bucket: iamPoliciesBucketName,
-                Key: iamPolicyKey,
-              });
-              role['trust-policy'] = JSON.parse(JSON.stringify(policyContent));
-            } catch (e) {
-              console.warn(`Cannot load IAM policy s3://${iamPoliciesBucketName}/${iamPolicyKey}`);
-              throw e;
-            }
-          }
-        }
-      }
-    }
-  };
-  await getIamTrustPoliciesDefinition();
   const iamPoliciesDefinition = await getIamPoliciesDefinition();
 
   const createIamAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
@@ -556,14 +474,16 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
-  // GuardDuty step 1
-  // to use step1 need this to be fixed: https://t.corp.amazon.com/P36821200/overview
-  await guardDutyDeployment.step1({
-    accountStacks,
-    config: acceleratorConfig,
-    accounts,
-    outputs,
-  });
+  if (!acceleratorConfig['global-options']['alz-baseline']) {
+    // GuardDuty step 1
+    // to use step1 need this to be fixed: https://t.corp.amazon.com/P36821200/overview
+    await guardDutyDeployment.step1({
+      accountStacks,
+      config: acceleratorConfig,
+      accounts,
+      outputs,
+    });
+  }
 
   // Central Services step 1
   await cwlCentralLoggingToS3.step1({
@@ -590,7 +510,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   /**
    * DisAssociate HostedZone to VPC
-   * - On Adding of InterfaceEndpoint in local VPC whose use-central-endpoint: true and Endpoint also exists in Central VPC
+   * - On Adding of InterfaceEndpoint in local VPC whose use-central-endpoint: true and Endpoint also esists in Central VPC
    */
 
   await centralEndpoints.step5({

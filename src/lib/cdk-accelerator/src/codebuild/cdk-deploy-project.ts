@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as glob from 'glob';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -80,7 +67,7 @@ export class CdkDeployProjectBase extends cdk.Construct {
 }
 
 export class CdkDeployProject extends CdkDeployProjectBase {
-  public readonly resource: codebuild.PipelineProject;
+  private readonly resource: codebuild.PipelineProject;
 
   constructor(scope: cdk.Construct, id: string, props: CdkDeployProjectProps) {
     super(scope, id, props);
@@ -102,7 +89,7 @@ export class CdkDeployProject extends CdkDeployProjectBase {
         phases: {
           install: {
             'runtime-versions': {
-              nodejs: 14,
+              nodejs: 12,
             },
             commands: installPackageManagerCommands(props.packageManager),
           },
@@ -117,7 +104,7 @@ export class CdkDeployProject extends CdkDeployProjectBase {
       }),
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
-        computeType: computeType ?? codebuild.ComputeType.LARGE,
+        computeType: computeType ?? codebuild.ComputeType.MEDIUM,
         environmentVariables: this.environmentVariables,
       },
     });
@@ -129,7 +116,7 @@ export class CdkDeployProject extends CdkDeployProjectBase {
  * project, the dependencies will not have to be installed anymore.
  */
 export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
-  public readonly resource: codebuild.PipelineProject;
+  private readonly resource: codebuild.PipelineProject;
 
   constructor(scope: cdk.Construct, id: string, props: CdkDeployProjectProps) {
     super(scope, id, props);
@@ -145,7 +132,7 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
     fs.writeFileSync(
       path.join(this.projectTmpDir, 'Dockerfile'),
       [
-        'FROM public.ecr.aws/bitnami/node:14',
+        'FROM public.ecr.aws/bitnami/node:12',
         // Install the package manager
         ...installPackageManagerCommands(props.packageManager).map(cmd => `RUN ${cmd}`),
         `WORKDIR ${appDir}`,
@@ -193,9 +180,9 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
  */
 function installPackageManagerCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
-    return ['npm install --global pnpm@6.2.3'];
+    return ['npm install --global pnpm@5.18.9'];
   }
-  throw new Error(`Unsupported package manager ${packageManager}`);
+  throw new Error(`Unknown package manager ${packageManager}`);
 }
 
 /**
@@ -204,7 +191,7 @@ function installPackageManagerCommands(packageManager: PackageManager) {
 function installDependenciesCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
     // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-    return ['pnpm install --unsafe-perm --frozen-lockfile', 'pnpm recursive run build --unsafe-perm'];
+    return ['pnpm install --unsafe-perm --frozen-lockfile'];
   }
-  throw new Error(`Unsupported package manager ${packageManager}`);
+  throw new Error(`Unknown package manager ${packageManager}`);
 }

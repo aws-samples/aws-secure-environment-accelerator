@@ -16,7 +16,7 @@ mainSteps:
   - name: attachPolicy
     action: 'aws:executeScript'
     inputs:
-      Runtime: python3.7
+      Runtime: python3.6
       Handler: script_handler
       Script: |-
         import boto3

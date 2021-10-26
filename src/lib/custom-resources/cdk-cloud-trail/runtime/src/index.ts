@@ -1,40 +1,11 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
-import { CloudFormationCustomResourceDeleteEvent, CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
-import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
-
-export interface HandlerProperties {
-  cloudTrailName: string;
-  bucketName: string;
-  logGroupArn: string;
-  roleArn: string;
-  kmsKeyId: string;
-  s3KeyPrefix: string;
-  tagName: string;
-  tagValue: string;
-  managementEvents: boolean;
-  s3Events: boolean;
-}
 
 const cloudTrail = new AWS.CloudTrail();
 
-export const handler = errorHandler(onEvent);
-
-async function onEvent(event: CloudFormationCustomResourceEvent) {
+export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
   console.log(`Creating CloudTrail ...`);
   console.log(JSON.stringify(event, null, 2));
 
@@ -47,26 +18,13 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
     case 'Delete':
       return onDelete(event);
   }
-}
+};
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
-  const properties = getPropertiesFromEvent(event);
-  const {
-    managementEvents,
-    bucketName,
-    cloudTrailName,
-    kmsKeyId,
-    logGroupArn,
-    roleArn,
-    s3Events,
-    s3KeyPrefix,
-    tagName,
-    tagValue,
-  } = properties;
   const response = await throttlingBackOff(() =>
     cloudTrail
       .describeTrails({
-        trailNameList: [cloudTrailName],
+        trailNameList: [event.ResourceProperties.cloudTrailName],
       })
       .promise(),
   );
@@ -77,14 +35,14 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         cloudTrail
           .createTrail(
             buildCloudTrailCreateRequest({
-              name: cloudTrailName,
-              bucketName,
-              logGroupArn,
-              roleArn,
-              kmsKeyId,
-              s3KeyPrefix,
-              tagName,
-              tagValue,
+              name: event.ResourceProperties.cloudTrailName,
+              bucketName: event.ResourceProperties.bucketName,
+              logGroupArn: event.ResourceProperties.logGroupArn,
+              roleArn: event.ResourceProperties.roleArn,
+              kmsKeyId: event.ResourceProperties.kmsKeyId,
+              s3KeyPrefix: event.ResourceProperties.s3KeyPrefix,
+              tagName: event.ResourceProperties.tagName,
+              tagValue: event.ResourceProperties.tagValue,
             }),
           )
           .promise(),
@@ -98,12 +56,12 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       await cloudTrail
         .updateTrail(
           buildCloudTrailUpdateRequest({
-            name: cloudTrailName,
-            bucketName,
-            logGroupArn,
-            roleArn,
-            kmsKeyId,
-            s3KeyPrefix,
+            name: event.ResourceProperties.cloudTrailName,
+            bucketName: event.ResourceProperties.bucketName,
+            logGroupArn: event.ResourceProperties.logGroupArn,
+            roleArn: event.ResourceProperties.roleArn,
+            kmsKeyId: event.ResourceProperties.kmsKeyId,
+            s3KeyPrefix: event.ResourceProperties.s3KeyPrefix,
           }),
         )
         .promise();
@@ -113,48 +71,31 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   }
 
   // Log Insight events
-  await throttlingBackOff(() => cloudTrail.putInsightSelectors(buildInsightSelectorsRequest(cloudTrailName)).promise());
+  await throttlingBackOff(() =>
+    cloudTrail.putInsightSelectors(buildInsightSelectorsRequest(event.ResourceProperties.cloudTrailName)).promise(),
+  );
 
   // S3 Data events
   await throttlingBackOff(() =>
-    cloudTrail.putEventSelectors(buildEventSelectorsRequest(cloudTrailName, !!managementEvents, !!s3Events)).promise(),
+    cloudTrail.putEventSelectors(buildEventSelectorsRequest(event.ResourceProperties.cloudTrailName)).promise(),
   );
 
   // Enable CloudTrail Trail logging
   await throttlingBackOff(() =>
     cloudTrail
       .startLogging({
-        Name: cloudTrailName,
+        Name: event.ResourceProperties.cloudTrailName,
       })
       .promise(),
   );
-
-  return {
-    physicalResourceId: `OrgCloudTrail-${cloudTrailName}`,
-  };
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {
   return onCreate(event);
 }
 
-async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-  console.log(`Deleting CloudTrail ...`);
-  console.log(JSON.stringify(event, null, 2));
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const { cloudTrailName } = properties;
-  if (event.PhysicalResourceId !== `OrgCloudTrail-${cloudTrailName}`) {
-    return;
-  }
-
-  // Delete CloudTrail Trail
-  await throttlingBackOff(() =>
-    cloudTrail
-      .deleteTrail({
-        Name: cloudTrailName,
-      })
-      .promise(),
-  );
+async function onDelete(event: CloudFormationCustomResourceEvent) {
+  console.log(`Nothing to do for delete...`);
 }
 
 function buildInsightSelectorsRequest(trailName: string) {
@@ -168,20 +109,18 @@ function buildInsightSelectorsRequest(trailName: string) {
   };
 }
 
-function buildEventSelectorsRequest(trailName: string, managementEvents: boolean, s3DataSource: boolean) {
-  const dataSources: AWS.CloudTrail.DataResource[] = [];
-  if (s3DataSource) {
-    dataSources.push({
-      Type: 'AWS::S3::Object',
-      Values: ['arn:aws:s3:::'],
-    });
-  }
+function buildEventSelectorsRequest(trailName: string) {
   return {
     EventSelectors: [
       {
-        DataResources: dataSources,
+        DataResources: [
+          {
+            Type: 'AWS::S3::Object',
+            Values: ['arn:aws:s3:::'],
+          },
+        ],
         ExcludeManagementEventSources: [],
-        IncludeManagementEvents: managementEvents,
+        IncludeManagementEvents: true,
         ReadWriteType: 'All',
       },
     ],
@@ -241,15 +180,4 @@ function buildCloudTrailUpdateRequest(props: {
     KmsKeyId: kmsKeyId,
     S3KeyPrefix: s3KeyPrefix,
   };
-}
-
-function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  if (typeof properties.managementEvents === 'string') {
-    properties.managementEvents = properties.managementEvents === 'true';
-  }
-  if (typeof properties.s3Events === 'string') {
-    properties.s3Events = properties.s3Events === 'true';
-  }
-  return properties;
 }

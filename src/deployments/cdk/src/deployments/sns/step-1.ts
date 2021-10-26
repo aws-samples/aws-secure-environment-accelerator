@@ -1,18 +1,5 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as c from '@aws-accelerator/common-config';
-import { AccountStack, AccountStacks } from '../../common/account-stacks';
+import { AccountStacks } from '../../common/account-stacks';
 import * as sns from '@aws-cdk/aws-sns';
 import { createSnsTopicName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { SNS_NOTIFICATION_TYPES } from '@aws-accelerator/common/src/util/constants';
@@ -23,13 +10,11 @@ import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-rol
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import * as iam from '@aws-cdk/aws-iam';
 import { CfnSnsTopicOutput } from './outputs';
-import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
 
 export interface SnsStep1Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
   outputs: StackOutput[];
-  accounts: Account[];
 }
 
 /**
@@ -38,13 +23,11 @@ export interface SnsStep1Props {
  *  in Central-Log-Services Account
  */
 export async function step1(props: SnsStep1Props) {
-  const { accountStacks, config, outputs, accounts } = props;
+  const { accountStacks, config, outputs } = props;
   const globalOptions = config['global-options'];
   const centralLogServices = globalOptions['central-log-services'];
-  const centralSecurityServices = globalOptions['central-security-services'];
   const supportedRegions = globalOptions['supported-regions'];
   const excludeRegions = centralLogServices['sns-excl-regions'];
-  const managementAccountConfig = globalOptions['aws-org-management'];
   const regions = supportedRegions.filter(r => !excludeRegions?.includes(r));
   if (!regions.includes(centralLogServices.region)) {
     regions.push(centralLogServices.region);
@@ -59,222 +42,92 @@ export async function step1(props: SnsStep1Props) {
     console.error(`Role required for SNS Subscription Lambda is not created in ${centralLogServices.account}`);
     return;
   }
-  const centralLogServicesAccount = getAccountId(accounts, centralLogServices.account)!;
   for (const region of regions) {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(centralLogServices.account, region);
     if (!accountStack) {
       console.error(`Cannot find account stack ${centralLogServices.account}: ${region}, while deploying SNS`);
       continue;
     }
-    createSnsTopics({
-      accountStack,
-      subscriberRoleArn: snsSubscriberLambdaRoleOutput.roleArn,
-      region,
-      centralServicesRegion: centralLogServices.region,
-      subscribeEmails,
-      centralAccount: centralLogServicesAccount,
-      orgManagementAccount: managementAccountConfig['add-sns-topics']
-        ? getAccountId(accounts, managementAccountConfig.account)
-        : undefined,
-      orgSecurityAccount:
-        centralSecurityServices['fw-mgr-alert-level'] !== 'None' || centralSecurityServices['add-sns-topics']
-          ? getAccountId(accounts, centralSecurityServices.account)
-          : undefined,
-    });
-  }
+    const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
+    const lambdaDir = path.dirname(lambdaPath);
+    const lambdaCode = lambda.Code.fromAsset(lambdaDir);
+    const role = iam.Role.fromRoleArn(accountStack, `SnsSubscriberLambdaRole`, snsSubscriberLambdaRoleOutput.roleArn);
+    let snsSubscriberFunc: lambda.Function | undefined;
+    if (region !== centralLogServices.region) {
+      snsSubscriberFunc = new lambda.Function(accountStack, `SnsSubscriberLambda`, {
+        runtime: lambda.Runtime.NODEJS_12_X,
+        handler: 'index.createSnsPublishToCentralRegion',
+        code: lambdaCode,
+        role,
+        environment: {
+          CENTRAL_LOG_SERVICES_REGION: centralLogServices.region,
+        },
+        timeout: cdk.Duration.minutes(15),
+      });
 
-  if (managementAccountConfig['add-sns-topics']) {
-    const snsSubscriberLambdaRoleMgmtOutput = IamRoleOutputFinder.tryFindOneByName({
-      outputs,
-      accountKey: managementAccountConfig.account,
-      roleKey: 'SnsSubscriberLambda',
-    });
-    if (!snsSubscriberLambdaRoleMgmtOutput) {
-      console.error(`Role required for SNS Subscription Lambda is not created in ${centralLogServices.account}`);
-      return;
-    }
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(
-      managementAccountConfig.account,
-      centralLogServices.region,
-    );
-    if (!accountStack) {
-      console.error(
-        `Cannot find account stack ${managementAccountConfig.account}: ${centralLogServices.region}, while deploying SNS`,
-      );
-      return;
-    }
-    createSnsTopics({
-      accountStack,
-      subscriberRoleArn: snsSubscriberLambdaRoleMgmtOutput.roleArn,
-      region: centralLogServices.region,
-      centralServicesRegion: centralLogServices.region,
-      subscribeEmails,
-      centralAccount: centralLogServicesAccount,
-      orgManagementSns: true,
-    });
-  }
-
-  if (centralSecurityServices['add-sns-topics']) {
-    const snsSubscriberLambdaRoleMgmtOutput = IamRoleOutputFinder.tryFindOneByName({
-      outputs,
-      accountKey: centralSecurityServices.account,
-      roleKey: 'SnsSubscriberLambda',
-    });
-    if (!snsSubscriberLambdaRoleMgmtOutput) {
-      console.error(`Role required for SNS Subscription Lambda is not created in ${centralLogServices.account}`);
-      return;
-    }
-    for (const region of regions) {
-      const accountStack = accountStacks.tryGetOrCreateAccountStack(centralSecurityServices.account, region);
-      if (!accountStack) {
-        console.error(`Cannot find account stack ${centralLogServices.account}: ${region}, while deploying SNS`);
-        continue;
-      }
-      createSnsTopics({
-        accountStack,
-        subscriberRoleArn: snsSubscriberLambdaRoleMgmtOutput.roleArn,
-        region: centralLogServices.region,
-        centralServicesRegion: centralLogServices.region,
-        subscribeEmails,
-        centralAccount: centralLogServicesAccount,
-        orgManagementSns: true,
+      snsSubscriberFunc.addPermission(`InvokePermission-SnsSubscriberLambda`, {
+        action: 'lambda:InvokeFunction',
+        principal: new iam.ServicePrincipal('sns.amazonaws.com'),
       });
     }
-  }
-}
 
-/**
- * Function to create SNS topics in provided accountStack and subscription lambdas and subscriptions based on region
- * @param props
- */
-function createSnsTopics(props: {
-  accountStack: AccountStack;
-  subscriberRoleArn: string;
-  region: string;
-  centralServicesRegion: string;
-  subscribeEmails: {
-    [x: string]: string[];
-  };
-  centralAccount: string;
-  /**
-   * Used to create separate SNS topics in org management account default region
-   */
-  orgManagementSns?: boolean;
-  /**
-   * Org management account for adding publish permissions
-   */
-  orgManagementAccount?: string;
-  /**
-   * Org Security account for adding publish permissions
-   */
-  orgSecurityAccount?: string;
-}) {
-  const {
-    accountStack,
-    centralAccount,
-    centralServicesRegion,
-    region,
-    subscribeEmails,
-    subscriberRoleArn,
-    orgManagementSns,
-    orgManagementAccount,
-    orgSecurityAccount,
-  } = props;
-  const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
-  const lambdaDir = path.dirname(lambdaPath);
-  const lambdaCode = lambda.Code.fromAsset(lambdaDir);
-  const role = iam.Role.fromRoleArn(accountStack, `SnsSubscriberLambdaRole`, subscriberRoleArn);
-  let snsSubscriberFunc: lambda.Function | undefined;
-  if (region !== centralServicesRegion || (region === centralServicesRegion && orgManagementSns)) {
-    snsSubscriberFunc = new lambda.Function(accountStack, `SnsSubscriberLambda`, {
-      runtime: lambda.Runtime.NODEJS_14_X,
-      handler: 'index.createSnsPublishToCentralRegion',
+    const ignoreActionFunc = new lambda.Function(accountStack, `IgnoreActionLambda`, {
+      runtime: lambda.Runtime.NODEJS_12_X,
+      handler: 'index.createIgnoreAction',
       code: lambdaCode,
       role,
-      environment: {
-        CENTRAL_LOG_SERVICES_REGION: centralServicesRegion,
-        CENTRAL_LOG_ACCOUNT: centralAccount,
-      },
       timeout: cdk.Duration.minutes(15),
     });
 
-    snsSubscriberFunc.addPermission(`InvokePermission-SnsSubscriberLambda`, {
+    ignoreActionFunc.addPermission(`InvokePermission-IgnoreActionLambda`, {
       action: 'lambda:InvokeFunction',
       principal: new iam.ServicePrincipal('sns.amazonaws.com'),
     });
-  }
 
-  const ignoreActionFunc = new lambda.Function(accountStack, `IgnoreActionLambda`, {
-    runtime: lambda.Runtime.NODEJS_14_X,
-    handler: 'index.createIgnoreAction',
-    code: lambdaCode,
-    role,
-    timeout: cdk.Duration.minutes(15),
-  });
-
-  ignoreActionFunc.addPermission(`InvokePermission-IgnoreActionLambda`, {
-    action: 'lambda:InvokeFunction',
-    principal: new iam.ServicePrincipal('sns.amazonaws.com'),
-  });
-
-  for (const notificationType of SNS_NOTIFICATION_TYPES) {
-    const topicName = createSnsTopicName(notificationType);
-    const topic = new sns.Topic(accountStack, `SnsNotificationTopic${notificationType}`, {
-      displayName: topicName,
-      topicName,
-    });
-
-    // Allowing Publish from CloudWatch Service form any account
-    topic.grantPublish({
-      grantPrincipal: new iam.ServicePrincipal('cloudwatch.amazonaws.com'),
-    });
-
-    // Allowing Publish from Lambda Service form any account
-    topic.grantPublish({
-      grantPrincipal: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    });
-
-    if (orgManagementAccount) {
-      topic.grantPublish({
-        grantPrincipal: new iam.AccountPrincipal(orgManagementAccount),
+    for (const notificationType of SNS_NOTIFICATION_TYPES) {
+      const topicName = createSnsTopicName(notificationType);
+      const topic = new sns.Topic(accountStack, `SnsNotificationTopic${notificationType}`, {
+        displayName: topicName,
+        topicName,
       });
-    }
 
-    if (orgSecurityAccount) {
+      // Allowing Publish from CloudWatch Service form any account
       topic.grantPublish({
-        grantPrincipal: new iam.AccountPrincipal(orgSecurityAccount),
+        grantPrincipal: new iam.ServicePrincipal('cloudwatch.amazonaws.com'),
       });
-    }
 
-    if (region === centralServicesRegion && subscribeEmails && subscribeEmails[notificationType] && !orgManagementSns) {
-      subscribeEmails[notificationType].forEach((email, index) => {
-        new sns.CfnSubscription(accountStack, `SNSTopicSubscriptionFor${notificationType}-${index + 1}`, {
-          topicArn: topic.topicArn,
-          protocol: sns.SubscriptionProtocol.EMAIL,
-          endpoint: email,
+      // Allowing Publish from Lambda Service form any account
+      topic.grantPublish({
+        grantPrincipal: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      });
+
+      if (region === centralLogServices.region && subscribeEmails && subscribeEmails[notificationType]) {
+        subscribeEmails[notificationType].forEach((email, index) => {
+          new sns.CfnSubscription(accountStack, `SNSTopicSubscriptionFor${notificationType}-${index + 1}`, {
+            topicArn: topic.topicArn,
+            protocol: sns.SubscriptionProtocol.EMAIL,
+            endpoint: email,
+          });
         });
-      });
-    } else if (region === centralServicesRegion && notificationType.toLowerCase() === 'ignore') {
-      new sns.CfnSubscription(accountStack, `SNSTopicSubscriptionFor${notificationType}`, {
+      } else if (region === centralLogServices.region && notificationType.toLowerCase() === 'ignore') {
+        new sns.CfnSubscription(accountStack, `SNSTopicSubscriptionFor${notificationType}`, {
+          topicArn: topic.topicArn,
+          protocol: sns.SubscriptionProtocol.LAMBDA,
+          endpoint: ignoreActionFunc.functionArn,
+        });
+      } else if (region !== centralLogServices.region && snsSubscriberFunc) {
+        new sns.CfnSubscription(accountStack, `SNSTopicSubscriptionFor${notificationType}`, {
+          topicArn: topic.topicArn,
+          protocol: sns.SubscriptionProtocol.LAMBDA,
+          endpoint: snsSubscriberFunc.functionArn,
+        });
+      }
+
+      new CfnSnsTopicOutput(accountStack, `SnsNotificationTopic${notificationType}-Otuput`, {
         topicArn: topic.topicArn,
-        protocol: sns.SubscriptionProtocol.LAMBDA,
-        endpoint: ignoreActionFunc.functionArn,
-      });
-    } else if (
-      (region !== centralServicesRegion || (region === centralServicesRegion && orgManagementSns)) &&
-      snsSubscriberFunc
-    ) {
-      new sns.CfnSubscription(accountStack, `SNSTopicSubscriptionFor${notificationType}`, {
-        topicArn: topic.topicArn,
-        protocol: sns.SubscriptionProtocol.LAMBDA,
-        endpoint: snsSubscriberFunc.functionArn,
+        topicKey: notificationType,
+        topicName: topic.topicName,
       });
     }
-
-    new CfnSnsTopicOutput(accountStack, `SnsNotificationTopic${notificationType}-Otuput`, {
-      topicArn: topic.topicArn,
-      topicKey: notificationType,
-      topicName: topic.topicName,
-    });
   }
 }

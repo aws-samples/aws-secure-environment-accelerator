@@ -1,22 +1,9 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import { pascalCase } from 'pascal-case';
-import * as cdk from '@aws-cdk/core';
+import * as cfn from '@aws-cdk/aws-cloudformation';
 import { getAccountId } from '../utils/accounts';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
-import { VpcOutputFinder, SharedSecurityGroupIndexOutput, NfwOutput } from '@aws-accelerator/common-outputs/src/vpc';
+import { VpcOutputFinder, SharedSecurityGroupIndexOutput } from '@aws-accelerator/common-outputs/src/vpc';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { PeeringConnectionConfig, VpcConfigType } from '@aws-accelerator/common-config/src';
 import { getVpcSharedAccountKeys } from '../common/vpc-subnet-sharing';
@@ -26,7 +13,7 @@ import * as firewallManagement from '../deployments/firewall/manager';
 import * as firewallCluster from '../deployments/firewall/cluster';
 import * as securityHub from '../deployments/security-hub';
 import { createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import { CentralBucketOutput, AccountBucketOutput, AesBucketOutput } from '../deployments/defaults';
+import { CentralBucketOutput, AccountBucketOutput } from '../deployments/defaults';
 import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
 import { StructuredOutput } from '../common/structured-output';
 import { PhaseInput } from './shared';
@@ -42,7 +29,6 @@ import * as ssmDeployment from '../deployments/ssm';
 import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { logArchiveReadOnlyAccess } from '../deployments/s3/log-archive-read-access';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
-import * as alb from '../deployments/alb';
 
 /**
  * This is the main entry point to deploy phase 2
@@ -63,17 +49,9 @@ import * as alb from '../deployments/alb';
  * - TGW Peering Attachments
  */
 
-export async function deploy({
-  acceleratorConfig,
-  accountStacks,
-  accounts,
-  context,
-  outputs,
-  limiter,
-  organizations,
-}: PhaseInput) {
-  const { defaultRegion } = context;
-  const rootOuId = organizations[0].rootOrgId!;
+export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs, limiter }: PhaseInput) {
+  const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
+
   // Find the account buckets in the outputs
   const accountBuckets = AccountBucketOutput.getAccountBuckets({
     accounts,
@@ -82,80 +60,21 @@ export async function deploy({
     outputs,
   });
 
-  const aesLogArchiveBucket = AesBucketOutput.getBucket({
-    accountStacks,
-    config: acceleratorConfig,
-    outputs,
-  });
-
-  await createTrail.step1({
-    accountBuckets,
-    accountStacks,
-    config: acceleratorConfig,
-    outputs,
-    context,
-  });
-
-  const vpcConfigs = acceleratorConfig.getVpcConfigs();
-  /**
-   * Add NFW Routes if they exist
-   *
-   */
-
-  for (const { accountKey, vpcConfig } of vpcConfigs) {
-    const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+  if (!acceleratorConfig['global-options']['alz-baseline']) {
+    await createTrail.step1({
+      accountBuckets,
+      accountStacks,
+      config: acceleratorConfig,
       outputs,
-      vpcName: vpcConfig.name,
-      region: vpcConfig.region,
-      accountKey,
+      context,
     });
-    if (!vpcOutput) {
-      console.warn(`Cannot find output with vpc name ${vpcConfig.name}`);
-      continue;
-    }
-
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountKey}`);
-      continue;
-    }
-    const nfwNameToIdMap = vpcOutput.nfw?.reduce((acc: any, nfwConfig) => {
-      const vpcEndpointAz = nfwConfig.az.substr(-1);
-      const vpcEndpointId = nfwConfig.vpcEndpoint;
-      const mapSubnet = nfwConfig.subnets.filter(subnet => {
-        return vpcEndpointAz === subnet.az;
-      });
-      acc[`NFW_${mapSubnet[0].subnetName}_az${vpcEndpointAz.toUpperCase()}`.toLowerCase()] = vpcEndpointId;
-      return acc;
-    }, {});
-    console.log(nfwNameToIdMap);
-    const routeTables = vpcConfig['route-tables'] || [];
-    for (const routeTable of routeTables) {
-      for (const route of routeTable.routes || []) {
-        if (route.target.startsWith('NFW_')) {
-          if (typeof route.destination !== 'string') {
-            console.warn(`Route for NFW only supports cidr as destination`);
-            continue;
-          }
-          let constructName = `${routeTable.name}_nfw_route`;
-          if (route.destination !== '0.0.0.0/0') {
-            constructName = `${routeTable.name}_nfw_${route.destination}_route`;
-          }
-          const routeParams: ec2.CfnRouteProps = {
-            routeTableId: vpcOutput.routeTables[routeTable.name],
-            destinationCidrBlock: route.destination,
-            vpcEndpointId: nfwNameToIdMap[route.target.toLowerCase()],
-          };
-          new ec2.CfnRoute(accountStack, constructName, routeParams);
-        }
-      }
-    }
   }
 
   /**
    * Code to create Peering Connection in all accounts
    */
 
+  const vpcConfigs = acceleratorConfig.getVpcConfigs();
   for (const { accountKey, vpcConfig } of vpcConfigs) {
     const pcxConfig = vpcConfig.pcx;
     if (!PeeringConnectionConfig.is(pcxConfig)) {
@@ -277,7 +196,7 @@ export async function deploy({
       if (vpcSgIndex) {
         sgIndex = vpcSgIndex.index;
       }
-      const securityGroupStack = new cdk.NestedStack(accountStack, `SecurityGroups${vpcConfig.name}-Shared-${sgIndex}`);
+      const securityGroupStack = new cfn.NestedStack(accountStack, `SecurityGroups${vpcConfig.name}-Shared-${sgIndex}`);
       const securityGroups = new SecurityGroup(securityGroupStack, `SecurityGroups-SharedAccount-${sgIndex}`, {
         securityGroups: vpcConfig['security-groups']!,
         vpcName: vpcConfig.name,
@@ -347,7 +266,6 @@ export async function deploy({
     accounts,
     context,
     outputs,
-    rootOuId,
   });
 
   // Import all VPCs from all outputs
@@ -383,8 +301,6 @@ export async function deploy({
     config: acceleratorConfig,
     outputs,
     vpcs: allVpcs,
-    accounts,
-    defaultRegion,
   });
 
   await firewallManagement.step1({
@@ -392,8 +308,6 @@ export async function deploy({
     config: acceleratorConfig,
     vpcs: allVpcs,
     outputs,
-    accounts,
-    defaultRegion,
   });
 
   await tgwDeployment.step2({
@@ -430,7 +344,6 @@ export async function deploy({
     accountStacks,
     config: acceleratorConfig,
     outputs,
-    accounts,
   });
 
   const logBucket = accountBuckets[acceleratorConfig['global-options']['central-log-services'].account];
@@ -457,7 +370,7 @@ export async function deploy({
     outputs,
   });
 
-  const masterAccountKey = acceleratorConfig['global-options']['aws-org-management'].account;
+  const masterAccountKey = acceleratorConfig['global-options']['aws-org-master'].account;
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   await vpcDeployment.step3({
     accountStacks,
@@ -475,15 +388,5 @@ export async function deploy({
     accountStacks,
     accounts,
     outputs,
-  });
-
-  await alb.step1({
-    accountStacks,
-    config: acceleratorConfig,
-    outputs,
-    aesLogArchiveBucket,
-    acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
-    accounts,
-    deployGlb: true,
   });
 }

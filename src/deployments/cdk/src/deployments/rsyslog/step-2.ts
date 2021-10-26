@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as ssm from '@aws-cdk/aws-ssm';
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
@@ -51,7 +38,7 @@ export async function step2(props: RSysLogStep1Props) {
       continue;
     }
 
-    if (accountConfig['account-warming-required'] && !checkAccountWarming(accountKey, outputs).accountWarmed) {
+    if (accountConfig['account-warming-required'] && !checkAccountWarming(accountKey, outputs)) {
       console.log(`Skipping rsyslog deployment: account "${accountKey}" is not warmed`);
       continue;
     }
@@ -128,15 +115,12 @@ export function createNlb(
   });
 
   new CfnLoadBalancerOutput(accountStack, `NlbRsyslog${accountKey}-Output`, {
-    accountKey,
-    region: vpc.region,
     displayName: balancer.name,
     dnsName: balancer.dns,
     hostedZoneId: balancer.hostedZoneId,
     name: 'RsyslogNLB',
     type: 'NETWORK',
     arn: balancer.arn,
-    targets: {},
   });
 }
 

@@ -1,27 +1,9 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-accelerator/common-config/src';
-import * as t from '@aws-accelerator/common-types';
 import * as constructs from '@aws-accelerator/cdk-constructs/src/vpc';
+import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 import * as sv from 'semver';
-import {
-  AssignedSubnetCidrPool,
-  AssignedVpcCidrPool,
-  getSubnetCidrPools,
-} from '@aws-accelerator/common-outputs/src/cidr-pools';
 
 export interface NameToSecurityGroupMap {
   [key: string]: ec2.CfnSecurityGroup;
@@ -70,10 +52,6 @@ export interface SecurityGroupProps {
 
   installerVersion: string;
 
-  vpcPools?: AssignedVpcCidrPool[];
-
-  subnetPools?: AssignedSubnetCidrPool[];
-
   vpcConfigs?: config.ResolvedVpcConfig[];
 
   sharedAccountKey?: string;
@@ -82,24 +60,11 @@ export interface SecurityGroupProps {
 export class SecurityGroup extends cdk.Construct {
   readonly securityGroupNameMapping: NameToSecurityGroupMap = {};
   readonly securityGroups: constructs.SecurityGroup[] = [];
-  readonly subnetPools: AssignedSubnetCidrPool[] = [];
-  readonly vpcPools: AssignedVpcCidrPool[] = [];
 
   constructor(parent: cdk.Construct, name: string, props: SecurityGroupProps) {
     super(parent, name);
-    const {
-      securityGroups,
-      accountKey,
-      vpcId,
-      vpcConfigs,
-      vpcName,
-      installerVersion,
-      sharedAccountKey,
-      subnetPools,
-      vpcPools,
-    } = props;
-    this.vpcPools = vpcPools || [];
-    this.subnetPools = subnetPools || [];
+    const { securityGroups, accountKey, vpcId, vpcConfigs, vpcName, installerVersion, sharedAccountKey } = props;
+
     const cleanVersion = sv.clean(installerVersion, { loose: true });
     let isUpdateDescription = false;
     const newSgDescriptionVersion = '1.2.2';
@@ -176,7 +141,7 @@ export class SecurityGroup extends cdk.Construct {
     const ruleSources = rule.source;
     const ruleDescription = rule.description;
     for (const ruleSource of ruleSources) {
-      if (t.nonEmptyString.is(ruleSource)) {
+      if (NonEmptyString.is(ruleSource)) {
         let ruleProp;
         if (ruleSource.includes('::')) {
           ruleProp = {
@@ -198,11 +163,8 @@ export class SecurityGroup extends cdk.Construct {
           };
         }
         ruleProps.push(ruleProp);
-      } else if (config.SubnetSourceConfig.is(ruleSource)) {
+      } else if (config.SecurityGroupRuleSubnetSourceConfig.is(ruleSource)) {
         const vpcAccountKey = ruleSource.account ? ruleSource.account : accountKey;
-        const ruleResolvedVpcConfig = accountVpcConfigs?.find(
-          x => x.vpcConfig.name === ruleSource.vpc && x.accountKey === vpcAccountKey,
-        );
         const ruleVpcConfig = accountVpcConfigs?.find(
           x => x.vpcConfig.name === ruleSource.vpc && x.accountKey === vpcAccountKey,
         )?.vpcConfig;
@@ -217,38 +179,21 @@ export class SecurityGroup extends cdk.Construct {
             console.warn(`Invalid Subnet provided in Security Group config "${ruleSubnet}"`);
             continue;
           }
-          const ruleVpcSubnets: AssignedSubnetCidrPool[] = [];
-          ruleVpcSubnets.push(
-            ...getSubnetCidrPools({
-              subnetPools: this.subnetPools,
-              accountKey: vpcAccountKey,
-              region: ruleVpcConfig.region,
-              vpcName: ruleSource.vpc,
-              organizationalUnitName: ruleResolvedVpcConfig?.ouKey,
-              subnetName: ruleSubnet,
-            }),
-          );
-          for (const subnetDefinition of vpcConfigSubnets.definitions) {
-            let cidrBlock: string = '';
-            if (subnetDefinition.disabled) {
+          for (const [index, subnet] of Object.entries(vpcConfigSubnets.definitions)) {
+            if (subnet.disabled || !subnet.cidr) {
               continue;
-            }
-            if (['lookup', 'dynamic'].includes(ruleVpcConfig['cidr-src'])) {
-              cidrBlock = ruleVpcSubnets.find(s => s.az === subnetDefinition.az)?.cidr!;
-            } else {
-              cidrBlock = subnetDefinition.cidr?.value?.toCidrString()!;
             }
             ruleProps.push({
               ipProtocol,
               groupId: this.securityGroupNameMapping[groupName].ref,
-              description: `${ruleDescription} from ${ruleSubnet}-${subnetDefinition.az}`,
-              cidrIp: cidrBlock,
+              description: `${ruleDescription} from ${ruleSubnet}-${subnet.az}`,
+              cidrIp: subnet.cidr.toCidrString(),
               toPort,
               fromPort,
             });
           } // Looping Through Subnet Definitions
         } // Looging Through subnets
-      } else if (config.SecurityGroupSourceConfig.is(ruleSource)) {
+      } else if (config.SecurityGroupRuleSecurityGroupSourceConfig.is(ruleSource)) {
         // Check for Security Group reference to Security Group
         for (const ruleSg of ruleSource['security-group']) {
           ruleProps.push({

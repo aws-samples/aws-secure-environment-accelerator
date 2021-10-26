@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import { PutFileEntry } from 'aws-sdk/clients/codecommit';
 import * as yaml from 'js-yaml';
 import { S3 } from '../aws/s3';
@@ -19,8 +6,7 @@ import { pretty, FormatType } from './prettier';
 import { RAW_CONFIG_FILE, JSON_FORMAT } from './constants';
 import { DynamoDB } from '../aws/dynamodb';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
-import { AssignedVpcCidrPool, AssignedSubnetCidrPool, CidrPool } from '@aws-accelerator/common-outputs/src/cidr-pools';
-import { ReplacementObject, ReplacementsConfig } from '@aws-accelerator/common-config';
+import { ReplacementConfigValueType, ReplacementsConfig } from '@aws-accelerator/common-config';
 import { string as StringType } from 'io-ts';
 
 const GLOBAL_REGION = 'us-east-1';
@@ -81,22 +67,19 @@ export class RawConfig {
       fileContent: pretty(configString, format),
     });
 
-    let updatedRawconfig = replaceDefaults({
-      config: getStringFromObject(loadConfigResponse.config, JSON_FORMAT),
-      acceleratorName: this.props.acceleratorName,
-      acceleratorPrefix: this.props.acceleratorPrefix,
-      region: this.props.region,
-      additionalReplacements: additionalReplacements(loadConfigResponse.config.replacements || {}),
-    });
-
-    updatedRawconfig = await vpcReplacements({
-      rawConfigStr: updatedRawconfig,
-    });
-
     // Sending Raw Config back
     loadConfigResponse.loadFiles.push({
       filePath: RAW_CONFIG_FILE,
-      fileContent: pretty(updatedRawconfig, JSON_FORMAT),
+      fileContent: pretty(
+        replaceDefaults({
+          config: getStringFromObject(loadConfigResponse.config, JSON_FORMAT),
+          acceleratorName: this.props.acceleratorName,
+          acceleratorPrefix: this.props.acceleratorPrefix,
+          region: this.props.region,
+          additionalReplacements: additionalReplacements(loadConfigResponse.config.replacements || {}),
+        }),
+        JSON_FORMAT,
+      ),
     });
 
     return {
@@ -205,7 +188,7 @@ export async function loadAccounts(tableName: string, client: DynamoDB): Promise
 export function additionalReplacements(configReplacements: ReplacementsConfig): { [key: string]: string | string[] } {
   const replacements: { [key: string]: string | string[] } = {};
   for (const [key, value] of Object.entries(configReplacements)) {
-    if (!ReplacementObject.is(value)) {
+    if (!ReplacementConfigValueType.is(value)) {
       if (StringType.is(value)) {
         replacements['\\${' + key.toUpperCase() + '}'] = value;
       } else {
@@ -255,83 +238,4 @@ export function replaceDefaults(props: {
     config = config.replace(new RegExp(key, 'g'), value);
   });
   return config;
-}
-
-/**
- * Dynamic VPC Replacements
- * @param rawConfigStr
- * @returns
- */
-export async function vpcReplacements(props: { rawConfigStr: string }): Promise<string> {
-  const { rawConfigStr } = props;
-  /* eslint-disable no-template-curly-in-string */
-  const ouOrAccountReplacementRegex = '\\${CONFIG::OU_NAME}';
-  const vpcConfigSections = ['workload-account-configs', 'mandatory-account-configs', 'organizational-units'];
-  const rawConfig = JSON.parse(rawConfigStr);
-  for (const vpcConfigSection of vpcConfigSections) {
-    Object.entries(rawConfig[vpcConfigSection]).map(([key, _]) => {
-      const replacements = {
-        '\\${CONFIG::VPC_NAME}': key,
-        '\\${CONFIG::VPC_NAME_L}': key.toLowerCase(),
-        '\\${CONFIG::OU_NAME}': key,
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      for (const [index, vpcConfig] of Object.entries(rawConfig[vpcConfigSection][key].vpc || []) as [string, any]) {
-        vpcConfig.name = vpcConfig.name.replace(new RegExp(ouOrAccountReplacementRegex, 'g'), key);
-        let vpcConfigStr = JSON.stringify(vpcConfig);
-        for (const [key, value] of Object.entries(replacements)) {
-          vpcConfigStr = vpcConfigStr.replace(new RegExp(key, 'g'), value);
-        }
-        rawConfig[vpcConfigSection][key].vpc[index] = JSON.parse(vpcConfigStr);
-      }
-    });
-  }
-  /* eslint-enable */
-
-  return getStringFromObject(rawConfig, JSON_FORMAT);
-}
-
-export async function loadAssignedVpcCidrPool(tableName: string, client?: DynamoDB) {
-  if (!client) {
-    client = new DynamoDB();
-  }
-  const assignedVpcCidrPools = await client.scan({
-    TableName: tableName,
-  });
-  return (assignedVpcCidrPools as unknown) as AssignedVpcCidrPool[];
-}
-
-export async function loadAssignedSubnetCidrPool(tableName: string, client?: DynamoDB) {
-  if (!client) {
-    client = new DynamoDB();
-  }
-  const assignedSubnetCidrPools = await client.scan({
-    TableName: tableName,
-  });
-  return (assignedSubnetCidrPools as unknown) as AssignedSubnetCidrPool[];
-}
-
-export async function loadCidrPools(tableName: string, client?: DynamoDB): Promise<CidrPool[]> {
-  if (!client) {
-    client = new DynamoDB();
-  }
-  const cidrPools = await client.scan({
-    TableName: tableName,
-  });
-  return (cidrPools as unknown) as CidrPool[];
-}
-
-export function randomAlphanumericString(length: number) {
-  const numbers = Math.random().toString(11).slice(2);
-  const chars = randomString(length - 2);
-  return numbers.slice(0, 2) + chars;
-}
-
-function randomString(length: number, charSet?: string) {
-  charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-  let randomString = '';
-  for (let i = 0; i < length; i++) {
-    randomString += charSet.charAt(Math.floor(Math.random() * charSet.length));
-  }
-  return randomString;
 }

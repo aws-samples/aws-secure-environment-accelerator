@@ -1,23 +1,10 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as aws from 'aws-sdk';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import {
   getStackOutput,
-  AWS_CONTROL_TOWER_CLOUD_TRAIL_NAME,
+  AWS_LANDING_ZONE_CLOUD_TRAIL_NAME,
   OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
 } from '@aws-accelerator/common-outputs/src/stack-output';
 import { CloudTrail } from '@aws-accelerator/common/src/aws/cloud-trail';
@@ -46,7 +33,6 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     configCommitId,
     outputTableName,
     parametersTableName,
-    baseline,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -66,7 +52,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   const updateCloudTrailSettings = async (accountId: string, accountKey: string): Promise<void> => {
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
 
-    const cloudTrailName = AWS_CONTROL_TOWER_CLOUD_TRAIL_NAME;
+    const cloudTrailName = AWS_LANDING_ZONE_CLOUD_TRAIL_NAME;
     console.log('AWS LZ CloudTrail Name: ' + cloudTrailName);
 
     const logArchiveAccount = accounts.find(a => a.key === logAccountKey);
@@ -111,7 +97,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
           ReadWriteType: 'All',
         },
       ],
-      TrailName: AWS_CONTROL_TOWER_CLOUD_TRAIL_NAME,
+      TrailName: AWS_LANDING_ZONE_CLOUD_TRAIL_NAME,
     };
     const putEventSelectorsResponse = await cloudTrail.putEventSelectors(putEventSelectorsRequest);
     console.log('putEventSelectorsResponse: ', putEventSelectorsResponse);
@@ -142,15 +128,15 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       continue;
     }
 
-    // if (baseline === 'CONTROL_TOWER') {
-    //   try {
-    //     // update AWS LZ cloud trail settings
-    //     await updateCloudTrailSettings(account.id, account.key);
-    //   } catch (e) {
-    //     console.error(`Error while updating CloudTrail settings`);
-    //     console.error(e);
-    //   }
-    // }
+    if (acceleratorConfig['global-options']['alz-baseline']) {
+      try {
+        // update AWS LZ cloud trail settings
+        await updateCloudTrailSettings(account.id, account.key);
+      } catch (e) {
+        console.error(`Error while updating CloudTrail settings`);
+        console.error(e);
+      }
+    }
   }
 
   return {

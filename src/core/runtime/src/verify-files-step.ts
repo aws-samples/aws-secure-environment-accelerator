@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import { S3 } from '@aws-accelerator/common/src/aws/s3';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { StackOutput, getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
@@ -63,7 +50,6 @@ export const handler = async (input: VerifyFilesInput) => {
   await verifyRsyslogFiles(outputs, errors);
   await verifySsmDocumentFiles(outputs, acceleratorConfig, errors);
   await verifyConfigRuleFiles(outputs, acceleratorConfig, errors);
-  await verifyNfwFiles(masterAccountKey, outputs, acceleratorConfig, errors);
 
   if (errors.length > 0) {
     throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
@@ -139,50 +125,14 @@ async function verifyFirewallFiles(
     if (!firewallConfigs || firewallConfigs.length === 0) {
       continue;
     }
-    for (const firewallConfig of firewallConfigs.filter(firewall => c.FirewallEC2ConfigType.is(firewall))) {
-      if (!firewallConfig.deploy) {
-        continue;
-      }
-      if (!c.FirewallEC2ConfigType.is(firewallConfig)) {
-        continue;
-      }
+    for (const firewallConfig of firewallConfigs) {
       if (firewallConfig.license) {
         firewallFiles.push(...firewallConfig.license);
       }
-      if (firewallConfig.config) {
-        firewallFiles.push(firewallConfig.config);
-      }
+      firewallFiles.push(firewallConfig.config);
     }
   }
   await verifyFiles(centralBucketOutput.bucketName, firewallFiles, errors);
-}
-
-async function verifyNfwFiles(
-  masterAccountKey: string,
-  outputs: StackOutput[],
-  config: c.AcceleratorConfig,
-  errors: string[],
-): Promise<void> {
-  const centralBucketOutput = CentralBucketOutputFinder.findOneByName({
-    outputs,
-    accountKey: masterAccountKey,
-  });
-
-  const nfwFiles: string[] = [];
-  for (const [_, accountConfig] of config.getAccountConfigs()) {
-    for (const vpc of accountConfig?.vpc || []) {
-      if (!vpc.nfw) {
-        continue;
-      }
-      if (!c.AWSNetworkFirewallConfig.is(vpc.nfw)) {
-        continue;
-      }
-      if (vpc.nfw.policy?.path) {
-        nfwFiles.push(vpc.nfw.policy.path);
-      }
-    }
-  }
-  await verifyFiles(centralBucketOutput.bucketName, nfwFiles, errors);
 }
 
 async function verifyCertificates(

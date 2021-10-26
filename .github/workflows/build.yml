@@ -17,7 +17,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: 12
       - name: Cache Node.js modules
         uses: actions/cache@v1
         with:
@@ -28,7 +28,7 @@ jobs:
             ${{ runner.OS }}-
       - name: Install Node.js modules
         run: |
-          npm install -g pnpm@6.2.3
+          npm install -g pnpm@5.18.9
           pnpm install --unsafe-perm --frozen-lockfile
       - name: Fix nasty bug in CDK
         run: |
@@ -37,7 +37,7 @@ jobs:
           find node_modules -name runtime-info.js -exec sed -i 's/mod.paths/(mod.paths || [])/g' {} \;
       - name: Build all workspaces
         run: |
-          pnpm recursive run build
+          pnpm recursive run build -- --noEmit
       - name: Run tests in all workspaces
         run: |
           pnpm recursive run test -- --pass-with-no-tests --silent

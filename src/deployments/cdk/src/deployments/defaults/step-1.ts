@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
@@ -87,9 +74,9 @@ function blockS3PublicAccess(props: DefaultsStep1Props) {
  * Creates a bucket that contains copies of the files in the central bucket.
  */
 function createCentralBucketCopy(props: DefaultsStep1Props) {
-  const { accountStacks, config, acceleratorPrefix } = props;
+  const { accountStacks, config } = props;
 
-  const masterAccountConfig = config['global-options']['aws-org-management'];
+  const masterAccountConfig = config['global-options']['aws-org-master'];
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountConfig.account);
 
   const organizations = new Organizations(masterAccountStack, 'Organizations');
@@ -124,9 +111,6 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
         StringEquals: {
           'aws:PrincipalOrgID': organizations.organizationId,
         },
-        ArnLike: {
-          'aws:PrincipalARN': `arn:aws:iam::*:role/${acceleratorPrefix}*`,
-        },
       },
     }),
   );
@@ -140,9 +124,6 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
       conditions: {
         StringEquals: {
           'aws:PrincipalOrgID': organizations.organizationId,
-        },
-        ArnLike: {
-          'aws:PrincipalARN': `arn:aws:iam::*:role/${acceleratorPrefix}*`,
         },
       },
     }),
@@ -447,21 +428,6 @@ function createDefaultEbsEncryptionKey(props: DefaultsStep1Props): AccountRegion
           principals: [new iam.AccountPrincipal(cdk.Aws.ACCOUNT_ID)],
           actions: ['kms:*'],
           resources: ['*'],
-        }),
-      );
-
-      key.addToResourcePolicy(
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          principals: [new iam.AnyPrincipal()],
-          actions: ['kms:*'],
-          resources: ['*'],
-          conditions: {
-            StringEquals: {
-              'kms:CallerAccount': cdk.Aws.ACCOUNT_ID,
-              'kms:ViaService': `ec2.${cdk.Aws.REGION}.${cdk.Aws.URL_SUFFIX}`,
-            },
-          },
         }),
       );
 

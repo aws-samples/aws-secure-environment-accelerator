@@ -1,24 +1,20 @@
 {
   "name": "@aws-accelerator/custom-resource-s3-public-access-block",
-  "version": "0.0.1",
-  "private": true,
-  "main": "cdk/index.ts",
-  "scripts": {
-    "lint:typecheck": "pnpx tsc --noEmit",
-    "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
-  },
-  "dependencies": {
-    "@aws-cdk/aws-iam": "1.113.0",
-    "@aws-cdk/core": "1.113.0",
-    "@aws-cdk/custom-resources": "1.113.0"
-  },
-  "devDependencies": {
-    "@types/node": "14.14.31",
-    "typescript": "4.2.4"
-  },
   "peerDependencies": {
-    "@aws-cdk/aws-iam": "1.101.0",
-    "@aws-cdk/core": "1.101.0",
-    "@aws-cdk/custom-resources": "1.101.0"
+    "@aws-cdk/aws-iam": "1.85.0", 
+    "@aws-cdk/core": "1.85.0", 
+    "@aws-cdk/custom-resources": "1.85.0"
+  }, 
+  "main": "cdk/index.ts",
+  "private": true, 
+  "version": "0.0.1", 
+  "dependencies": {
+    "@aws-cdk/aws-iam": "1.85.0", 
+    "@aws-cdk/core": "1.85.0", 
+    "@aws-cdk/custom-resources": "1.85.0"
+  }, 
+  "devDependencies": {
+    "@types/node": "12.12.6", 
+    "typescript": "3.8.3"
   }
 }

@@ -1,29 +1,12 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as validateConfig from './common';
 import { Diff } from 'deep-diff';
 import { LHS, RHS } from './config-diff';
-import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
-import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
-import { loadAssignedVpcCidrPool, loadAssignedSubnetCidrPool } from '@aws-accelerator/common/src/util/common';
-import { AcceleratorConfig } from '..';
 
 /**
  * config path(s) for global options
  */
-const GLOBAL_OPTIONS_AOM_ACCOUNT = ['global-options', 'aws-org-management', 'account'];
-const GLOBAL_OPTIONS_AOM_REGION = ['global-options', 'aws-org-management', 'region'];
+const GLOBAL_OPTIONS_AOM_ACCOUNT = ['global-options', 'aws-org-master', 'account'];
+const GLOBAL_OPTIONS_AOM_REGION = ['global-options', 'aws-org-master', 'region'];
 const GLOBAL_OPTIONS_CLS_ACCOUNT = ['global-options', 'central-log-services', 'account'];
 const GLOBAL_OPTIONS_CLS_REGION = ['global-options', 'central-log-services', 'region'];
 
@@ -34,8 +17,8 @@ const ACCOUNT_VPC = ['mandatory-account-configs', 'vpc'];
 const ACCOUNT_VPC_NAME = ['mandatory-account-configs', 'vpc', 'name'];
 const ACCOUNT_VPC_REGION = ['mandatory-account-configs', 'vpc', 'region'];
 const ACCOUNT_VPC_DEPLOY = ['mandatory-account-configs', 'vpc', 'deploy'];
-const ACCOUNT_VPC_CIDR = ['mandatory-account-configs', 'vpc', 'cidr', 'value'];
-const ACCOUNT_VPC_TENANCY = ['mandatory-account-configs', 'vpc', 'dedicated-tenancy'];
+const ACCOUNT_VPC_CIDR = ['mandatory-account-configs', 'vpc', 'cidr'];
+const ACCOUNT_VPC_CIDR2 = ['mandatory-account-configs', 'vpc', 'cidr2'];
 
 /**
  * config path(s) for mandatory accounts vpc subnets
@@ -43,7 +26,8 @@ const ACCOUNT_VPC_TENANCY = ['mandatory-account-configs', 'vpc', 'dedicated-tena
 const ACCOUNT_SUBNETS = ['mandatory-account-configs', 'vpc', 'subnets'];
 const ACCOUNT_SUBNET_NAME = ['mandatory-account-configs', 'vpc', 'subnets', 'name'];
 const ACCOUNT_SUBNET_AZ = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'az'];
-const ACCOUNT_SUBNET_CIDR = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'cidr', 'value'];
+const ACCOUNT_SUBNET_CIDR = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'cidr'];
+const ACCOUNT_SUBNET_CIDR2 = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'cidr2'];
 const ACCOUNT_SUBNET_DISABLED = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'disabled'];
 
 /**
@@ -78,9 +62,8 @@ const OU_VPC = ['organizational-units', 'vpc'];
 const OU_VPC_NAME = ['organizational-units', 'vpc', 'name'];
 const OU_VPC_REGION = ['organizational-units', 'vpc', 'region'];
 const OU_VPC_DEPLOY = ['organizational-units', 'vpc', 'deploy'];
-const OU_VPC_CIDR = ['organizational-units', 'vpc', 'cidr', 'value'];
-const OU_VPC_TENANCY = ['organizational-units', 'vpc', 'dedicated-tenancy'];
-const OU_VPC_OPT_IN = ['organizational-units', 'vpc', 'opt-in'];
+const OU_VPC_CIDR = ['organizational-units', 'vpc', 'cidr'];
+const OU_VPC_CIDR2 = ['organizational-units', 'vpc', 'cidr2'];
 
 /**
  * config path(s) for organizational units vpc subnets
@@ -88,7 +71,8 @@ const OU_VPC_OPT_IN = ['organizational-units', 'vpc', 'opt-in'];
 const OU_SUBNETS = ['organizational-units', 'vpc', 'subnets'];
 const OU_SUBNET_NAME = ['organizational-units', 'vpc', 'subnets', 'name'];
 const OU_SUBNET_AZ = ['organizational-units', 'vpc', 'subnets', 'definitions', 'az'];
-const OU_SUBNET_CIDR = ['organizational-units', 'vpc', 'subnets', 'definitions', 'cidr', 'value'];
+const OU_SUBNET_CIDR = ['organizational-units', 'vpc', 'subnets', 'definitions', 'cidr'];
+const OU_SUBNET_CIDR2 = ['organizational-units', 'vpc', 'subnets', 'definitions', 'cidr2'];
 const OU_SUBNET_DISABLED = ['organizational-units', 'vpc', 'subnets', 'definitions', 'disabled'];
 
 /**
@@ -97,8 +81,6 @@ const OU_SUBNET_DISABLED = ['organizational-units', 'vpc', 'subnets', 'definitio
 const OU_NACLS = ['organizational-units', 'vpc', 'subnets', 'nacls'];
 const OU_NACLS_SUBNET = ['organizational-units', 'vpc', 'subnets', 'nacls', 'cidr-blocks', 'subnet'];
 
-const WORKLOAD_ACCOUNT_OPT_IN_VPC = ['workload-account-configs', 'MyProdAccount', 'opt-in-vpcs'];
-const ACCOUNT_OPT_IN_VPC = ['mandatory-account-configs', 'MyProdAccount', 'opt-in-vpcs'];
 /**
  *
  * function to validate Global Options changes
@@ -239,21 +221,21 @@ export async function validateAccountVpc(differences: Diff<LHS, RHS>[], errors: 
   }
 
   // the below function checks vpc cidr of the account
-  const accountVpcCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR, 7);
+  const accountVpcCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR, 5);
   if (accountVpcCidr) {
     errors.push(...accountVpcCidr);
+  }
+
+  // the below function checks vpc cidr2 of the account
+  const accountVpcCidr2 = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR2, 5);
+  if (accountVpcCidr2) {
+    errors.push(...accountVpcCidr2);
   }
 
   // the below function checks vpc region of the account
   const accountVpcRegion = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_REGION, 5);
   if (accountVpcRegion) {
     errors.push(...accountVpcRegion);
-  }
-
-  // the below function checks vpc tenancy of the account
-  const vpcTenancy = validateConfig.matchBooleanConfigDependency(differences, ACCOUNT_VPC_TENANCY, 5);
-  if (vpcTenancy) {
-    errors.push(...vpcTenancy);
   }
 }
 
@@ -281,9 +263,15 @@ export async function validateAccountSubnets(differences: Diff<LHS, RHS>[], erro
   }
 
   // the below function checks subnet cidr of the account
-  const accountSubnetCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_CIDR, 10);
+  const accountSubnetCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_CIDR, 9);
   if (accountSubnetCidr) {
     errors.push(...accountSubnetCidr);
+  }
+
+  // the below function checks subnet cidr of the account
+  const accountSubnetCidr2 = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_CIDR2, 9);
+  if (accountSubnetCidr2) {
+    errors.push(...accountSubnetCidr2);
   }
 
   const accountSubnetDisabled = validateConfig.matchEditedConfigPathDisabled(differences, ACCOUNT_SUBNET_DISABLED, 9);
@@ -407,27 +395,21 @@ export async function validateOuVpc(differences: Diff<LHS, RHS>[], errors: strin
   }
 
   // the below function checks vpc cidr of the account
-  const ouVpcCidr = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR, 7);
+  const ouVpcCidr = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR, 5);
   if (ouVpcCidr) {
     errors.push(...ouVpcCidr);
+  }
+
+  // the below function checks vpc cidr2 of the account
+  const ouVpcCidr2 = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR2, 5);
+  if (ouVpcCidr2) {
+    errors.push(...ouVpcCidr2);
   }
 
   // the below function checks vpc region of the account
   const ouVpcRegion = validateConfig.matchEditedConfigDependency(differences, OU_VPC_REGION, 5);
   if (ouVpcRegion) {
     errors.push(...ouVpcRegion);
-  }
-
-  // the below function checks vpc tenancy of the OU
-  const vpcTenancy = validateConfig.matchBooleanConfigDependency(differences, OU_VPC_TENANCY, 5);
-  if (vpcTenancy) {
-    errors.push(...vpcTenancy);
-  }
-
-  // the below function checks vpc tenancy of the OU
-  const vpcOptIn = validateConfig.matchBooleanConfigDependency(differences, OU_VPC_OPT_IN, 5);
-  if (vpcOptIn) {
-    errors.push(...vpcOptIn);
   }
 }
 
@@ -455,9 +437,15 @@ export async function validateOuSubnets(differences: Diff<LHS, RHS>[], errors: s
   }
 
   // the below function checks subnet cidr of the account
-  const ouSubnetCidr = validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_CIDR, 10);
+  const ouSubnetCidr = validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_CIDR, 9);
   if (ouSubnetCidr) {
     errors.push(...ouSubnetCidr);
+  }
+
+  // the below function checks subnet cidr of the account
+  const ouSubnetCidr2 = validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_CIDR2, 9);
+  if (ouSubnetCidr2) {
+    errors.push(...ouSubnetCidr2);
   }
 
   const ouSubnetDisabled = validateConfig.matchEditedConfigPathDisabled(differences, OU_SUBNET_DISABLED, 9);
@@ -515,164 +503,5 @@ export async function validateNacls(differences: Diff<LHS, RHS>[], errors: strin
   const naclsSubnet = validateConfig.editedConfigArray(differences, OU_NACLS_SUBNET);
   if (naclsSubnet) {
     errors.push(...naclsSubnet);
-  }
-}
-
-/**
- *
- * function to validate account opt-in-vpcs configuration
- *
- * @param differences
- * @param errors
- */
-export async function validateAccountOptInVpc(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
-  errors.push(...validateConfig.editedConfigDependency(differences, WORKLOAD_ACCOUNT_OPT_IN_VPC));
-  errors.push(...validateConfig.deletedConfigEntry(differences, WORKLOAD_ACCOUNT_OPT_IN_VPC, 'opt-in-vpcs'));
-
-  errors.push(...validateConfig.editedConfigDependency(differences, ACCOUNT_OPT_IN_VPC));
-  errors.push(...validateConfig.deletedConfigEntry(differences, ACCOUNT_OPT_IN_VPC, 'opt-in-vpcs'));
-}
-
-/**
- *
- * function to validate account warming change
- *
- * @param differences
- * @param errors
- */
-export async function validateAccountWarming(
-  differences: Diff<LHS, RHS>[],
-  errors: string[],
-): Promise<void | undefined> {
-  // the below function checks renaming of the sub accounts
-  const accountWarming = validateConfig.matchEditedConfigPath(differences, 'account-warming-required', true);
-  if (accountWarming) {
-    errors.push(...accountWarming);
-  }
-}
-
-/**
- *
- * function to validate VPC Outputs of previous executions with DDB Cidr values
- *
- * @param differences
- * @param errors
- */
-export async function validateDDBChanges(
-  acceleratorConfig: AcceleratorConfig,
-  vpcCidrPoolAssignedTable: string,
-  subnetCidrPoolAssignedTable: string,
-  outputs: StackOutput[],
-  errors: string[],
-): Promise<void> {
-  const assignedVpcCidrPools = await loadAssignedVpcCidrPool(vpcCidrPoolAssignedTable);
-  const assignedSubnetCidrPools = await loadAssignedSubnetCidrPool(subnetCidrPoolAssignedTable);
-  for (const { accountKey, vpcConfig, ouKey } of acceleratorConfig.getVpcConfigs()) {
-    if (vpcConfig['cidr-src'] === 'provided') {
-      continue; // Validations is already performed as part of compare configurations
-    }
-    const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
-      outputs,
-      accountKey,
-      vpcName: vpcConfig.name,
-      region: vpcConfig.region,
-    });
-    if (!vpcOutput) {
-      console.log(`VPC: ${accountKey}/${vpcConfig.region}/${vpcConfig.name} is not yet created`);
-      continue;
-    }
-
-    const vpcAssignedCidrs = validateConfig.getAssigndVpcCidrs(
-      assignedVpcCidrPools,
-      accountKey,
-      vpcConfig.name,
-      vpcConfig.region,
-      ouKey,
-    );
-
-    // Validate VPC Cidrs
-    let primaryCidr: string = '';
-    let additionalCidr: string[] = [];
-    if (vpcConfig['cidr-src'] === 'lookup') {
-      vpcAssignedCidrs.sort((a, b) => (a['vpc-assigned-id']! > b['vpc-assigned-id']! ? 1 : -1));
-      primaryCidr = vpcAssignedCidrs[0].cidr;
-      if (vpcAssignedCidrs.length > 1) {
-        additionalCidr = vpcAssignedCidrs.slice(1, vpcAssignedCidrs.length).map(c => c.cidr);
-      }
-    } else {
-      primaryCidr = vpcAssignedCidrs.find(vpcPool => vpcPool.pool === vpcConfig.cidr[0].pool)?.cidr!;
-      additionalCidr = vpcAssignedCidrs.filter(vpcPool => vpcPool.pool !== vpcConfig.cidr[0].pool).map(c => c.cidr);
-    }
-    if (primaryCidr !== vpcOutput.cidrBlock) {
-      errors.push(`CIDR for VPC: ${accountKey}/${vpcConfig.region}/${vpcConfig.name} has been changed`);
-    }
-    if (
-      vpcOutput.additionalCidrBlocks.length > 0 &&
-      vpcOutput.additionalCidrBlocks.filter(v => additionalCidr.indexOf(v) < 0).length > 0
-    ) {
-      errors.push(`CIDR2 for VPC: ${accountKey}/${vpcConfig.region}/${vpcConfig.name} has been changed`);
-    }
-
-    const subnetAssignedCidrs = validateConfig.getAssigndVpcSubnetCidrs(
-      assignedSubnetCidrPools,
-      accountKey,
-      vpcConfig.name,
-      vpcConfig.region,
-      ouKey,
-    );
-
-    for (const subnetDefinition of vpcOutput.subnets) {
-      const subnetCidr = subnetAssignedCidrs.find(
-        s => s['subnet-name'] === subnetDefinition.subnetName && s.az === subnetDefinition.az,
-      )?.cidr;
-      if (subnetDefinition.cidrBlock !== subnetCidr) {
-        errors.push(
-          `CIDR for Subnet: ${accountKey}/${vpcConfig.region}/${vpcConfig.name}/${subnetDefinition.subnetName}/${subnetDefinition.az} has been changed`,
-        );
-      }
-    }
-  }
-}
-
-export async function validateNfw(differences: Diff<LHS, RHS>[], errors: string[]) {
-  const nfwDiffs = differences.filter(diff => {
-    return (
-      diff.path?.includes('mandatory-account-configs') &&
-      diff.path.includes('vpc') &&
-      diff.path.includes('nfw') &&
-      diff.path.length === 5
-    );
-  });
-
-  for (const diff of nfwDiffs) {
-    if (diff.kind === 'D') {
-      errors.push(`Firewall has been deleted from path ${diff.path?.join('/')}. This is not allowed.`);
-      console.log(JSON.stringify(diff, null, 4));
-    }
-  }
-
-  const nfwNameDiffs = differences.filter(diff => {
-    return (
-      diff.path?.includes('mandatory-account-configs') &&
-      diff.path.includes('vpc') &&
-      diff.path.includes('nfw') &&
-      diff.path.includes('firewall-name')
-    );
-  });
-  for (const diff of nfwNameDiffs) {
-    if (diff.kind === 'E') {
-      errors.push(
-        `Firewall name has changed from ${diff.lhs} to ${diff.rhs} in ${diff.path?.join(
-          '/',
-        )}. Changing the firewall name will cause the replacement of the firewall.`,
-      );
-    }
-    if (diff.kind === 'D') {
-      errors.push(
-        `Firewall name has been deleted. Previous value was ${diff.lhs} in ${diff.path?.join(
-          '/',
-        )}. Changing the firewall name or deleting the firewall is not allowed.`,
-      );
-    }
   }
 }

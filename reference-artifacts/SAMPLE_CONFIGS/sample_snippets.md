@@ -46,9 +46,7 @@ In vpc section, under interface endpoints:
             "trust-policy": "role-trust-policy.txt"
 }
 ```
-
 Notes:
-
 - if "source-account" and "source-account-role" are specified, a cross-account role will be created
 - "type" can be any value if "source-account" and "acource-account-role" are specified (not used, but required)
 - "type" is the AWS service name if creating a service role (i.e. ec2)
@@ -353,7 +351,8 @@ This is typically only deployed in the perimeter account, but could be used else
 
 ---
 
-## xx
+xx
+---
 
 ## - Very basic workload account example and "per account" exceptions example
 
@@ -791,10 +790,10 @@ This is typically only deployed in the perimeter account, but could be used else
 
 ---
 
-## - Default Fortinet userdata content when not specified
+## - Future description
 
 ```
-"user-data": "{\"bucket\":\"${SEA::AccountBucketName}\",\"region\":\"${HOME_REGION}\",\"config\":\"${SEA::FirewallConfig}\",\"license\":\"${SEA::FirewallLicense}\"}"
+{future sample}
 ```
 
 ---

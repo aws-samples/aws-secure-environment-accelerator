@@ -3,12 +3,15 @@
     "strict": true,
     "outDir": "dist",
     "target": "es2019",
-    "lib": ["es2019"],
+    "lib": [
+      "es2019"
+    ],
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "noImplicitAny": true,
-    "typeRoots": ["node_modules/@types"]
+    "noImplicitAny": true
   },
-  "include": ["src"]
+  "include": [
+    "src/**/*"
+  ]
 }

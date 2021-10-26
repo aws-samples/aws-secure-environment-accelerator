@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as fs from 'fs';
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
@@ -18,52 +5,36 @@ import * as alb from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
-import { ApplicationLoadBalancer, GatewayLoadBalancer } from '@aws-accelerator/cdk-constructs/src/vpc';
+import { ApplicationLoadBalancer } from '@aws-accelerator/cdk-constructs/src/vpc';
 import { CfnLoadBalancerOutput } from './outputs';
 import {
   AcceleratorConfig,
-  AlbConfigType,
-  GwlbConfigType,
-  ElbTargetConfig,
-  ElbTargetInstanceConfig,
-  ElbTargetInstanceFirewallConfigType,
+  AlbConfig,
+  AlbTargetConfig,
+  AlbTargetInstanceConfig,
+  AlbTargetInstanceFirewallConfigType,
 } from '@aws-accelerator/common-config/src';
 import { SecurityGroupsOutput, VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { StackOutput, getStackJsonOutput, ALB_NAME_REGEXP } from '@aws-accelerator/common-outputs/src/stack-output';
 import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorStack } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-stack';
-import { createName, createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import { createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { createCertificateSecretName } from '../certificates';
+import { AesBucketOutput } from '../defaults';
 import { FirewallInstanceOutputFinder } from '../firewall/cluster/outputs';
-import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
-import { ModifyVpcEndpointServicePermissions } from '@aws-accelerator/custom-resource-modify-vpc-endpoint-service-permissions';
-import { getAccountId, Account } from '@aws-accelerator/common-outputs/src/accounts';
 
-export interface ElbStep1Props {
+export interface AlbStep1Props {
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
   outputs: StackOutput[];
   aesLogArchiveBucket: s3.IBucket;
-  acceleratorExecutionRoleName?: string;
-  accounts?: Account[];
-  deployAlb?: boolean;
-  deployGlb?: boolean;
 }
 
-export async function step1(props: ElbStep1Props) {
-  const {
-    accountStacks,
-    config,
-    outputs,
-    aesLogArchiveBucket,
-    acceleratorExecutionRoleName,
-    accounts,
-    deployAlb,
-    deployGlb,
-  } = props;
+export async function step1(props: AlbStep1Props) {
+  const { accountStacks, config, outputs, aesLogArchiveBucket } = props;
 
   const vpcConfigs = config.getVpcConfigs();
-  for (const { ouKey, accountKey, albs: albConfigs } of config.getElbConfigs()) {
+  for (const { ouKey, accountKey, albs: albConfigs } of config.getAlbConfigs()) {
     if (albConfigs.length === 0) {
       continue;
     }
@@ -88,87 +59,24 @@ export async function step1(props: ElbStep1Props) {
         console.warn(`Cannot find account stack ${accountKey}`);
         continue;
       }
-      const accountConfig = config.getAccountConfigs().find(([accKey, _]) => accKey === accountKey)?.[1];
-      const tags = albConfig['apply-tags'] || {};
-      /* eslint-disable no-template-curly-in-string */
-      for (const [key, value] of Object.entries(tags)) {
-        let tagValue = value;
-        let replacementValue = tagValue.match('\\${SEA::([a-zA-Z0-9-]*)}');
-        while (replacementValue) {
-          const replaceKey = replacementValue[1];
-          let replaceValue = replaceKey;
-          if (replaceKey === 'FirewallLaunchConfig') {
-            if (
-              accountConfig &&
-              accountConfig.deployments &&
-              accountConfig.deployments.firewalls &&
-              accountConfig.deployments.firewalls.length > 0
-            ) {
-              const fwConfig = accountConfig.deployments.firewalls.find(
-                fw => fw.type === 'autoscale' && fw.deploy && fw['load-balancer'] === albConfig.name,
-              );
-              if (fwConfig) {
-                replaceValue = createName({
-                  name: fwConfig.name,
-                  suffixLength: 0,
-                });
-              }
-            }
-          } else if (
-            replaceKey === 'FirewallManager' &&
-            accountConfig &&
-            accountConfig.deployments &&
-            accountConfig.deployments['firewall-manager']
-          ) {
-            replaceValue = createName({
-              name: accountConfig.deployments['firewall-manager'].name,
-              suffixLength: 0,
-            });
-          }
-          tagValue = tagValue.replace(new RegExp('\\${SEA::' + replaceKey + '}', 'g'), replaceValue);
-          replacementValue = tagValue.match('\\${SEA::([a-zA-Z0-9-]*)}');
-        }
-        /* eslint-enable */
-        tags[key] = tagValue;
-      }
-      if (albConfig.type === 'ALB' && deployAlb) {
-        createAlb({
-          accountKey,
-          albConfig,
-          accountStack,
-          outputs,
-          aesLogArchiveBucket,
-          deploy: vpcConfig.deploy,
-          tags,
-        });
-      } else if (albConfig.type === 'GWLB' && deployGlb) {
-        createGlb({
-          accountKey,
-          lbConfig: albConfig,
-          accountStack,
-          outputs,
-          acceleratorExecutionRoleName: acceleratorExecutionRoleName!,
-          accounts: accounts!,
-          tags,
-        });
-      }
+
+      createAlb(accountKey, albConfig, accountStack, outputs, aesLogArchiveBucket, vpcConfig.deploy);
     }
   }
 }
 
-export function createAlb(props: {
-  accountKey: string;
-  albConfig: AlbConfigType;
-  accountStack: AcceleratorStack;
-  outputs: StackOutput[];
-  aesLogArchiveBucket: s3.IBucket;
-  deploy: string;
-  tags?: { [key: string]: string };
-}) {
-  const { accountKey, accountStack, aesLogArchiveBucket, albConfig, deploy, outputs, tags } = props;
-  const certificateSecretName = createCertificateSecretName(albConfig['cert-name']!);
+export function createAlb(
+  accountKey: string,
+  albConfig: AlbConfig,
+  accountStack: AcceleratorStack,
+  outputs: StackOutput[],
+  aesLogArchiveBucket: s3.IBucket,
+  deploy: string,
+) {
+  const certificateSecretName = createCertificateSecretName(albConfig['cert-name']);
   const certificateSecret = cdk.SecretValue.secretsManager(certificateSecretName);
 
+  // Import all VPCs from all outputs
   const vpc = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
     outputs,
     vpcName: albConfig.vpc,
@@ -216,7 +124,7 @@ export function createAlb(props: {
     securityGroupId = securityGroup.securityGroupId;
   }
 
-  const targetGroups: { [name: string]: string } = {};
+  const targetGroupIds = [];
   for (const targetConfig of albConfig.targets) {
     const targetGroup = getTargetGroupArn({
       accountStack,
@@ -227,21 +135,19 @@ export function createAlb(props: {
       vpcId: vpc.vpcId,
     });
     if (targetGroup) {
-      targetGroups[targetConfig['target-name']] = targetGroup.ref;
+      targetGroupIds.push(targetGroup.ref);
     }
   }
 
   const balancer = new ApplicationLoadBalancer(accountStack, `Alb${albConfig.name}`, {
-    albName: createLbName({
-      name: albConfig.name,
+    albName: createAlbName({
+      albName: albConfig.name,
       accountKey: validateOrGetAccountId(accountKey),
-      type: 'alb',
     }),
     scheme: albConfig.scheme,
     subnetIds: subnets.map(s => s.subnetId),
     securityGroupIds: [securityGroupId],
     ipType: albConfig['ip-type'],
-    tags,
   });
 
   // Enable logging to the default AES bucket
@@ -249,164 +155,58 @@ export function createAlb(props: {
     balancer.logToBucket(aesLogArchiveBucket);
   }
 
-  if (Object.values(targetGroups).length > 0) {
-    // Add default listener
-    balancer.addListener({
-      ports: albConfig.ports,
-      protocol: albConfig.listeners,
-      sslPolicy: albConfig['security-policy']!,
-      certificateArn: certificateSecret.toString(),
-      actionType: albConfig['action-type'],
-      targetGroupArns: Object.values(targetGroups),
-    });
+  if (targetGroupIds.length === 0) {
+    console.warn(`cannot find output for target group instances of account ${accountKey} and Alb ${albConfig.name}`);
+    return;
   }
 
+  // Add default listener
+  balancer.addListener({
+    ports: albConfig.ports,
+    protocol: albConfig.listeners,
+    sslPolicy: albConfig['security-policy'],
+    certificateArn: certificateSecret.toString(),
+    actionType: albConfig['action-type'],
+    targetGroupArns: targetGroupIds,
+  });
+
   new CfnLoadBalancerOutput(accountStack, `Alb${albConfig.name}-Output`, {
-    accountKey,
-    region: vpc.region,
     displayName: balancer.name,
     dnsName: balancer.dns,
     hostedZoneId: balancer.hostedZoneId,
     name: albConfig.name,
     type: 'APPLICATION',
     arn: balancer.arn,
-    targets: targetGroups,
-  });
-}
-
-export function createGlb(props: {
-  accountKey: string;
-  lbConfig: GwlbConfigType;
-  accountStack: AcceleratorStack;
-  outputs: StackOutput[];
-  acceleratorExecutionRoleName: string;
-  accounts: Account[];
-  tags?: { [key: string]: string };
-}) {
-  const { acceleratorExecutionRoleName, accountKey, accountStack, accounts, lbConfig, outputs, tags } = props;
-  // Import all VPCs from all outputs
-  const vpc = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
-    outputs,
-    vpcName: lbConfig.vpc,
-    accountKey,
-  });
-  if (!vpc) {
-    console.warn(`Cannot find output with vpc name ${lbConfig.vpc}`);
-    return;
-  }
-
-  const subnets = vpc.subnets.filter(s => s.subnetName === lbConfig.subnets);
-  if (subnets.length === 0) {
-    console.warn(`Cannot find output with subnet name ${lbConfig.subnets}`);
-    return;
-  }
-
-  const targetGroups: { [name: string]: string } = {};
-  for (const targetConfig of lbConfig.targets) {
-    const targetGroup = getTargetGroupArn({
-      accountStack,
-      accountKey,
-      albConfig: lbConfig,
-      targetConfig,
-      outputs,
-      vpcId: vpc.vpcId,
-    });
-    if (targetGroup) {
-      targetGroups[targetConfig['target-name']] = targetGroup.ref;
-    }
-  }
-
-  const balancer = new GatewayLoadBalancer(accountStack, `Gwlb${lbConfig.name}`, {
-    name: createLbName({
-      name: lbConfig.name,
-      accountKey: validateOrGetAccountId(accountKey),
-      type: 'glb',
-    }),
-    subnetIds: subnets.map(s => s.subnetId),
-    vpcId: vpc.vpcId,
-    ipType: lbConfig['ip-type'],
-    crossZone: lbConfig['cross-zone'],
-    tags,
-  });
-
-  // Add default listener
-  for (const [name, arn] of Object.entries(targetGroups)) {
-    balancer.addListener({
-      targetGroup: {
-        arn,
-        name,
-      },
-      actionType: lbConfig['action-type'],
-    });
-  }
-  const endpointSubnets = lbConfig['endpoint-subnets'];
-  const allowEndpointServiceAccounts = Array.from(
-    new Set(endpointSubnets.filter(es => es.account !== 'local' && es.account !== accountKey).map(es => es.account)),
-  );
-  if (allowEndpointServiceAccounts.length > 0) {
-    const ec2OpsRole = IamRoleOutputFinder.tryFindOneByName({
-      outputs,
-      accountKey,
-      roleKey: 'Ec2Operations',
-    });
-    if (!ec2OpsRole) {
-      console.warn(`No Ec2Operations found in account ${accountKey}`);
-    } else {
-      const allowedPrincipals = allowEndpointServiceAccounts.map(
-        accKey => `arn:aws:iam::${getAccountId(accounts, accKey)}:role/${acceleratorExecutionRoleName}`,
-      );
-      new ModifyVpcEndpointServicePermissions(accountStack, `EndpointServicePermissions-${lbConfig.name}`, {
-        allowedPrincipals,
-        roleArn: ec2OpsRole.roleArn,
-        serviceId: balancer.service,
-      });
-    }
-  }
-
-  new CfnLoadBalancerOutput(accountStack, `Gwlb${lbConfig.name}-Output`, {
-    accountKey,
-    region: vpc.region,
-    displayName: balancer.name,
-    dnsName: balancer.dns,
-    name: lbConfig.name,
-    type: 'GATEWAY',
-    arn: balancer.arn,
-    hostedZoneId: balancer.service,
-    targets: targetGroups,
   });
 }
 
 export function getTargetGroupArn(props: {
   accountStack: AcceleratorStack;
   accountKey: string;
-  albConfig: AlbConfigType | GwlbConfigType;
-  targetConfig: ElbTargetConfig;
+  albConfig: AlbConfig;
+  targetConfig: AlbTargetConfig;
   outputs: StackOutput[];
   vpcId: string;
 }): alb.CfnTargetGroup | undefined {
   const { accountStack, accountKey, albConfig, targetConfig, outputs, vpcId } = props;
+  const role = createLambdaRole(accountStack);
+
   const targetGroupName = createTargetGroupName({
-    lbName: albConfig.name,
+    albName: albConfig.name,
     targetGroupName: targetConfig['target-name'],
   });
   if (targetConfig['lambda-filename']) {
-    const role = createLambdaRole(accountStack);
     const fileName = targetConfig['lambda-filename'];
     const lambdaArn = getLambdaFunctionArn(accountStack, fileName, role, albConfig.name, targetConfig['target-name']);
 
     return createTargetGroupForLambda(accountStack, targetConfig, targetGroupName, lambdaArn);
-  } else if (targetConfig['target-instances'] && targetConfig['target-instances'].length > 0) {
+  } else if (targetConfig['target-instances']) {
     const instanceIds = getEc2InstanceIds(accountKey, outputs, targetConfig['target-instances']);
     if (instanceIds.length === 0) {
       console.log('Could not find any target instance IDs');
       return;
     }
     return createTargetGroupForInstance(accountStack, targetConfig, targetGroupName, vpcId, instanceIds);
-  } else if (
-    targetConfig['target-type'] === 'instance' &&
-    (!targetConfig['target-instances'] || targetConfig['target-instances'].length === 0)
-  ) {
-    return createTargetGroupForInstance(accountStack, targetConfig, targetGroupName, vpcId, []);
   }
 }
 
@@ -455,7 +255,6 @@ export function getLambdaFunctionArn(
 ) {
   const artifactsFilePath = fs.readFileSync(path.join(__dirname, 'artifacts', fileName));
   const elbLambdaFunction = new lambda.Function(scope, `ElbLambdaFunction${albName}${targetName}`, {
-    // Inline code is only allowed for Node.js version 12
     runtime: lambda.Runtime.NODEJS_12_X,
     code: lambda.Code.fromInline(artifactsFilePath.toString()),
     handler: 'index.handler',
@@ -470,7 +269,7 @@ export function getLambdaFunctionArn(
 
 export function createTargetGroupForInstance(
   scope: cdk.Construct,
-  target: ElbTargetConfig,
+  target: AlbTargetConfig,
   targetGroupName: string,
   vpcId: string,
   instanceIds: string[],
@@ -484,19 +283,16 @@ export function createTargetGroupForInstance(
     healthCheckProtocol: target['health-check-protocol'],
     healthCheckPath: target['health-check-path'],
     healthCheckPort: String(target['health-check-port']),
-    targets:
-      instanceIds.length > 0
-        ? instanceIds.map(instanceId => ({
-            id: instanceId,
-            port: target.port,
-          }))
-        : undefined,
+    targets: instanceIds.map(instanceId => ({
+      id: instanceId,
+      port: target.port,
+    })),
   });
 }
 
 export function createTargetGroupForLambda(
   scope: cdk.Construct,
-  target: ElbTargetConfig,
+  target: AlbTargetConfig,
   targetGroupName: string,
   lambdaFunctionArn: string,
 ) {
@@ -512,7 +308,7 @@ export function createTargetGroupForLambda(
 export function getEc2InstanceIds(
   accountKey: string,
   outputs: StackOutput[],
-  targetInstances: ElbTargetInstanceConfig[],
+  targetInstances: AlbTargetInstanceConfig[],
 ): string[] {
   const firewallInstances = FirewallInstanceOutputFinder.findAll({
     outputs,
@@ -520,7 +316,7 @@ export function getEc2InstanceIds(
   });
   const instanceIds = [];
   for (const target of targetInstances) {
-    if (ElbTargetInstanceFirewallConfigType.is(target)) {
+    if (AlbTargetInstanceFirewallConfigType.is(target)) {
       const instance = firewallInstances.find(i => i.name === target.name && i.az === target.az);
       if (!instance) {
         console.warn(`Cannot find output with ALB instance name ${target.name} and AZ ${target.az}`);
@@ -536,24 +332,20 @@ export function getEc2InstanceIds(
 }
 
 const ALB_NAME_SUFFIX = '-alb';
-const GLB_NAME_SUFFIX = '-glb';
-const LB_MAX_LENGTH = 32;
+const ALB_MAX_LENGTH = 32;
 const ACCOUNT_ID_LENGTH = 12;
 
 /**
- * Creates an LB name based on the LB name and the given account key. The returned name will not exceed 32 characters.
+ * Creates an ALB name based on the ALB name and the given account key. The returned name will not exceed 32 characters.
  */
-export function createLbName(props: { name: string; accountKey: string; type: 'alb' | 'glb' }): string {
-  const { name, accountKey, type } = props;
-  const result = name + '-' + accountKey + (type === 'glb' ? GLB_NAME_SUFFIX : ALB_NAME_SUFFIX);
-  if (result.length > LB_MAX_LENGTH) {
+export function createAlbName(props: { albName: string; accountKey: string }): string {
+  const { albName, accountKey } = props;
+  const result = albName + '-' + accountKey + ALB_NAME_SUFFIX;
+  if (result.length > ALB_MAX_LENGTH) {
     // Use account ID instead of account key and trim the ALB name
     // -1 for the additional dash
-    const lbNameLength =
-      LB_MAX_LENGTH - (1 + ACCOUNT_ID_LENGTH + type === 'glb' ? GLB_NAME_SUFFIX.length : ALB_NAME_SUFFIX.length);
-    return (
-      name.substring(0, lbNameLength) + '-' + cdk.Aws.ACCOUNT_ID + (type === 'glb' ? GLB_NAME_SUFFIX : ALB_NAME_SUFFIX)
-    );
+    const albNameLength = ALB_MAX_LENGTH - (1 + ACCOUNT_ID_LENGTH + ALB_NAME_SUFFIX.length);
+    return albName.substring(0, albNameLength) + '-' + cdk.Aws.ACCOUNT_ID + ALB_NAME_SUFFIX;
   }
   return result;
 }
@@ -562,13 +354,13 @@ export function createLbName(props: { name: string; accountKey: string; type: 'a
  * Creates a target group name based on the ALB name and the given target group name. The returned name will not exceed
  * 32 characters.
  */
-export function createTargetGroupName(props: { lbName: string; targetGroupName: string }): string {
-  const { lbName, targetGroupName } = props;
-  const result = lbName + '-' + targetGroupName;
-  if (result.length > LB_MAX_LENGTH) {
-    const partLength = LB_MAX_LENGTH / 2;
+export function createTargetGroupName(props: { albName: string; targetGroupName: string }): string {
+  const { albName, targetGroupName } = props;
+  const result = albName + '-' + targetGroupName;
+  if (result.length > ALB_MAX_LENGTH) {
+    const partLength = ALB_MAX_LENGTH / 2;
     // -1 for the additional dash
-    return lbName.substring(0, partLength - 1) + '-' + targetGroupName.substring(0, partLength);
+    return albName.substring(0, partLength - 1) + '-' + targetGroupName.substring(0, partLength);
   }
   return result;
 }
