@@ -4,7 +4,7 @@ Parameters:
     Description: An identifier to distinguish multiple bootstrap stacks in the same environment
     Default: hnb659fds
     Type: String
-    AllowedPattern: "[A-Za-z0-9_-]{1,10}"
+    AllowedPattern: '[A-Za-z0-9_-]{1,10}'
     ConstraintDescription: Qualifier must be an alphanumeric identifier of at most 10 characters
 Resources:
   CdkBootstrapVersion:
@@ -13,7 +13,7 @@ Resources:
       Type: String
       Name:
         Fn::Sub: /cdk-bootstrap/${Qualifier}/version
-      Value: 4
+      Value: 6
 Outputs:
   BootstrapVersion:
     Description: The version of the bootstrap resources that are currently mastered in this stack

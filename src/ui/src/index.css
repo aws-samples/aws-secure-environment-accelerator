@@ -1,0 +1,31 @@
+.divider {
+  border-bottom: 1px solid #eaeded;
+}
+
+.space-container-items {
+  margin-left: -0.5em;
+  margin-right: -0.5em;
+}
+
+.space-container-items > * {
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}
+
+.break-word,
+.break-word * {
+  word-break: break-word !important;
+}
+
+.nowrap,
+.nowrap * {
+  white-space: nowrap !important;
+}
+
+._content_lm6vo_1fybi_136{
+  max-width: none !important;
+}
+
+.float-button {
+  float: right;
+}

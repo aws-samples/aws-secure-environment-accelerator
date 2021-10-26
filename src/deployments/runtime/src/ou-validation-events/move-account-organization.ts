@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import { Organizations, OrganizationalUnit } from '@aws-accelerator/common/src/aws/organizations';
 import { StepFunctions } from '@aws-accelerator/common/src/aws/stepfunctions';
 import * as org from 'aws-sdk/clients/organizations';
@@ -17,10 +30,6 @@ import { AcceleratorUpdateConfig } from '@aws-accelerator/common-config';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
 import { PutFileEntry } from 'aws-sdk/clients/codecommit';
 import { getInvoker } from './utils';
-
-interface MoveAccountOrganization extends ScheduledEvent {
-  version?: string;
-}
 
 interface AccountInfo {
   name?: string;
@@ -45,7 +54,7 @@ const organizations = new Organizations();
 const codecommit = new CodeCommit(undefined, defaultRegion);
 const stepfunctions = new StepFunctions(undefined, defaultRegion);
 
-export const handler = async (input: MoveAccountOrganization) => {
+export const handler = async (input: ScheduledEvent) => {
   console.log(`Account moved to Organization, adding account config to configuration...`);
   console.log(JSON.stringify(input, null, 2));
   const requestDetail = input.detail;
@@ -420,7 +429,7 @@ async function startStateMachine(stateMachineArn: string): Promise<string> {
     await stepfunctions.startExecution({
       stateMachineArn,
       input: JSON.stringify({
-        scope: 'NEW_ACCOUNTS',
+        scope: 'NEW-ACCOUNTS',
         mode: 'APPLY',
         verbose: '0',
       }),

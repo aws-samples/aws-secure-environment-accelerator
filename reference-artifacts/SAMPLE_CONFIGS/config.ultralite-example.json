@@ -5,11 +5,10 @@
       "b": ["${HOME_REGION}", "${GBL_REGION}"],
       "c": ["${HOME_REGION}", "${GBL_REGION}"]
     },
-	"INFO": "Deploying in us-east-1 requires removing ${GBL_REGION} throught the file",
+    "INFO": "Deploying in us-east-1 requires removing ${GBL_REGION} throught the file",
     "alarm-not-ip": "10.10.10.*"
   },
   "global-options": {
-    "alz-baseline": false,
     "ct-baseline": false,
     "default-s3-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
@@ -18,13 +17,14 @@
     "workloadaccounts-suffix": 1,
     "workloadaccounts-prefix": "config",
     "workloadaccounts-param-filename": "config.json",
-    "ignored-ous": [],
+    "ignored-ous": ["UnManaged"],
     "additional-global-output-regions": [],
     "supported-regions": ["${HOME_REGION}", "${GBL_REGION}"],
     "keep-default-vpc-regions": [],
-    "aws-org-master": {
+    "aws-org-management": {
       "account": "management",
-      "region": "${HOME_REGION}"
+      "region": "${HOME_REGION}",
+      "add-sns-topics": true
     },
     "central-security-services": {
       "account": "security",
@@ -42,7 +42,12 @@
       "config-aggr-excl-regions": [],
       "macie": true,
       "macie-excl-regions": ["${GBL_REGION}"],
-      "macie-frequency": "FIFTEEN_MINUTES"
+      "macie-frequency": "FIFTEEN_MINUTES",
+      "macie-sensitive-sh": true,
+      "fw-mgr-alert-level": "Low",
+      "security-hub-findings-sns": "Low",
+      "add-sns-topics": true,
+      "config-aggr": true
     },
     "central-operations-services": {
       "account": "security",
@@ -116,11 +121,11 @@
       "standards": [
         {
           "name": "AWS Foundational Security Best Practices v1.0.0",
-          "controls-to-disable": ["IAM.1"]
+          "controls-to-disable": ["IAM.1", "EC2.10", "Lambda.4"]
         },
         {
           "name": "CIS AWS Foundations Benchmark v1.2.0",
-          "controls-to-disable": ["CIS.1.20", "CIS.1.22"]
+          "controls-to-disable": ["CIS.1.20", "CIS.1.22", "CIS.2.6"]
         }
       ]
     },
@@ -138,18 +143,13 @@
     "scps": [
       {
         "name": "Guardrails-Part-0",
-        "description": "ASEA Guardrails Part 0",
-        "policy": "ASEA-Guardrails-Part0.json"
+        "description": "ASEA Guardrails Part 0 Workload Accounts",
+        "policy": "ASEA-Guardrails-Part0-WkldOUs.json"
       },
       {
         "name": "Guardrails-Part-1",
         "description": "ASEA Guardrails Part 1",
         "policy": "ASEA-Guardrails-Part1.json"
-      },
-      {
-        "name": "Guardrails-Part-2",
-        "description": "ASEA Guardrails Part 2",
-        "policy": "ASEA-Guardrails-Part2.json"
       },
       {
         "name": "Guardrails-Sensitive",
@@ -170,6 +170,11 @@
         "name": "Quarantine-New-Object",
         "description": "ASEA Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
         "policy": "Quarantine-New-Object.json"
+      },
+      {
+        "name": "Guardrails-Part-0-Core",
+        "description": "ASEA Guardrails Part 0 Core Accounts",
+        "policy": "ASEA-Guardrails-Part0-CoreOUs.json"
       }
     ],
     "cloudwatch": {
@@ -363,6 +368,26 @@
           "metric-namespace": "CloudTrailMetrics",
           "metric-name": "UnencryptedFilesystemCreatedCount",
           "metric-value": "1"
+        },
+        {
+          "filter-name": "IgnoreAuthorizationFailureMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{($.errorCode=\"*UnauthorizedOperation\") || ($.errorCode=\"AccessDenied*\")}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "IgnoreAuthorizationFailureCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "IgnoreConsoleSignInWithoutMfaMetric",
+          "accounts": ["management"],
+          "regions": ["${HOME_REGION}"],
+          "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
+          "filter-pattern": "{($.eventName=\"ConsoleLogin\") && ($.additionalEventData.MFAUsed !=\"Yes\")}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "IgnoreConsoleSignInWithoutMfaCount",
+          "metric-value": "1"
         }
       ],
       "alarms": {
@@ -376,6 +401,7 @@
         "default-threshold": 1,
         "default-evaluation-periods": 1,
         "default-treat-missing-data": "notBreaching",
+        "default-in-org-mgmt-use-lcl-sns": true,
         "definitions": [
           {
             "alarm-name": "AWS-Security-Group-Changed",
@@ -491,6 +517,18 @@
             "metric-name": "UnencryptedFilesystemCreatedCount",
             "sns-alert-level": "High",
             "alarm-description": "Alarms when one or more API calls are made to create an Unencrypted filesystem (i.e. EFS) (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "IGNORE-AWS-Authorization-Failure",
+            "metric-name": "IgnoreAuthorizationFailureCount",
+            "sns-alert-level": "Ignore",
+            "alarm-description": "Alarms when one or more unauthorized API calls are made (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "IGNORE-AWS-Console-SignIn-Without-MFA",
+            "metric-name": "IgnoreConsoleSignInWithoutMfaCount",
+            "sns-alert-level": "Ignore",
+            "alarm-description": "Alarms when MFA is NOT used to sign into the console with IAM (in any account, any region of your AWS Organization)."
           }
         ]
       }
@@ -547,10 +585,11 @@
   },
   "mandatory-account-configs": {
     "management": {
-      "account-name": "Org-Root",
+      "account-name": "ASEA-Main",
       "email": "myemail+aseaT-management@example.com---------------------REPLACE----------------------",
-      "ou": "core",
+      "ou": "Security",
       "src-filename": "config.json",
+      "gui-perm": true,
       "budget": {
         "name": "Organization Budget",
         "period": "Monthly",
@@ -599,25 +638,28 @@
       }
     },
     "log-archive": {
-      "account-name": "Logs",
-      "ou": "core",
+      "account-name": "Log Archive",
+      "ou": "Security",
       "email": "myemail+aseaT-logs@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json"
+      "src-filename": "config.json",
+      "gui-perm": true
     },
     "security": {
-      "account-name": "Audit",
-      "ou": "core",
+      "account-name": "Security",
+      "ou": "Security",
       "email": "myemail+aseaT-audit@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json"
+      "src-filename": "config.json",
+      "gui-perm": true
     }
   },
   "workload-account-configs": {},
   "organizational-units": {
-    "core": {
+    "Security": {
       "type": "ignore",
-      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "scps": ["Guardrails-Part-0-Core", "Guardrails-Part-1", "Guardrails-Sensitive"],
+      "gui-perm": true,
       "default-budgets": {
-        "name": "Default Core Budget",
+        "name": "Default Security Budget",
         "period": "Monthly",
         "amount": 1000,
         "include": [
@@ -663,7 +705,7 @@
     },
     "workloads": {
       "type": "workload",
-      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Workload Budget",
         "period": "Monthly",

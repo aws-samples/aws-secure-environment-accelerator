@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import * as ssm from '@aws-cdk/aws-ssm';
@@ -8,8 +21,6 @@ import { AccountStacks } from '../../common/account-stacks';
 import { StructuredOutput } from '../../common/structured-output';
 import { MadAutoScalingRoleOutput, MadAutoScalingRoleOutputType, CfnMadImageIdOutputTypeOutput } from './outputs';
 import { AccountRegionEbsEncryptionKeys } from '../defaults';
-
-const imageIdPath = '/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base';
 
 export interface MadStep1Props {
   acceleratorName: string;
@@ -93,13 +104,13 @@ export async function step1(props: MadStep1Props) {
 
     const imageId = ssm.StringParameter.valueForTypedStringParameter(
       accountStack,
-      imageIdPath,
+      madConfig['image-path'],
       ssm.ParameterType.AWS_EC2_IMAGE_ID,
     );
 
     new CfnMadImageIdOutputTypeOutput(accountStack, 'MadImageIdOutput', {
       imageId,
-      imagePath: imageIdPath,
+      imagePath: madConfig['image-path'],
       imageKey: 'MadAutoScalingImageId',
     });
   }

@@ -1,9 +1,23 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import 'jest';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as cfnspec from '@aws-cdk/cfnspec';
 import { S3 } from '@aws-accelerator/common/src/aws/s3';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { resourcesToList, ResourceWithLogicalId, ResourceProperties } from '../jest';
 import { deployPhases } from './unsupported-changes.mocks';
@@ -65,6 +79,8 @@ beforeAll(async () => {
       }),
     ),
   );
+  // Mock DynamoDB as the VPC and Subnet CIDR retrival using dynamodb.scan using the SDK
+  jest.spyOn(DynamoDB.prototype, 'scan').mockImplementation(() => Promise.resolve([]));
 
   // Deploy all phases that are defined in src/app.ts
   for await (const app of deployPhases(phases)) {

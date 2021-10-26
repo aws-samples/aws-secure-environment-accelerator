@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
 import { CloudFormationCustomResourceDeleteEvent, CloudFormationCustomResourceEvent } from 'aws-lambda';
@@ -24,6 +37,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
+  const rootOuId = event.ResourceProperties.rootOuId;
   try {
     await throttlingBackOff(() =>
       iam
@@ -36,7 +50,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       iam
         .updateAssumeRolePolicy({
           RoleName: event.ResourceProperties.roleName,
-          PolicyDocument: buildPolicyDocument(event.ResourceProperties.accountIds),
+          PolicyDocument: buildPolicyDocument(event.ResourceProperties.accountIds, rootOuId),
         })
         .promise(),
     );
@@ -51,6 +65,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
               event.ResourceProperties.accountIds,
               event.ResourceProperties.tagName,
               event.ResourceProperties.tagValue,
+              rootOuId,
             ),
           )
           .promise(),
@@ -74,7 +89,7 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Nothing to do for delete...`);
-  if (event.PhysicalResourceId != `IAM-Role-${event.ResourceProperties.roleName}`) {
+  if (event.PhysicalResourceId !== `IAM-Role-${event.ResourceProperties.roleName}`) {
     return;
   }
   try {
@@ -114,10 +129,11 @@ function buildCreateRoleRequest(
   accountIds: string[],
   tagName: string,
   tagValue: string,
+  rootOuId: string,
 ): AWS.IAM.CreateRoleRequest {
   return {
     RoleName: roleName,
-    AssumeRolePolicyDocument: buildPolicyDocument(accountIds),
+    AssumeRolePolicyDocument: buildPolicyDocument(accountIds, rootOuId),
     Tags: [
       {
         Key: tagName,
@@ -134,7 +150,7 @@ function buildAttachPolicyRequest(roleName: string, managedPolicy: string): AWS.
   };
 }
 
-function buildPolicyDocument(accountIds: string[]): string {
+function buildPolicyDocument(accountIds: string[], rootOuId: string): string {
   const policyDocument = {
     Version: '2012-10-17',
     Statement: [
@@ -144,6 +160,11 @@ function buildPolicyDocument(accountIds: string[]): string {
           AWS: accountIds.map(accountId => `arn:aws:iam::${accountId}:root`),
         },
         Action: 'sts:AssumeRole',
+        Condition: {
+          StringEquals: {
+            'aws:PrincipalOrgID': rootOuId,
+          },
+        },
       },
     ],
   };

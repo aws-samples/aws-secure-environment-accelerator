@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import hashSum from 'hash-sum';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
@@ -9,7 +22,6 @@ import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Nacl } from './nacl';
 import { Limiter } from '../utils/limits';
 import { TransitGatewayAttachment, TransitGatewayRoute } from '../common/transit-gateway-attachment';
-import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import { SecurityGroup } from './security-group';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { AccountStacks } from '../common/account-stacks';
@@ -19,12 +31,20 @@ import {
   TransitGatewayAttachmentOutput,
 } from '@aws-accelerator/common-outputs/src/transit-gateway';
 import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gateway/outputs';
+import * as defaults from '../deployments/defaults';
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
 import { VpcDefaultSecurityGroup } from '@aws-accelerator/custom-resource-vpc-default-security-group';
 import { VpcOutput } from '@aws-accelerator/common-outputs/src/vpc';
 import { ModifyTransitGatewayAttachment } from '@aws-accelerator/custom-resource-ec2-modify-transit-gateway-vpc-attachment';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
-import { IPv4CidrRange } from 'ip-num';
+import {
+  AssignedSubnetCidrPool,
+  AssignedVpcCidrPool,
+  getSubnetCidrPools,
+  getVpcCidrPools,
+} from '@aws-accelerator/common-outputs/src/cidr-pools';
+import { Nfw } from './nfw';
+import { AlbIpForwarding } from './alb-ip-forwarding';
 
 export interface VpcCommonProps {
   /**
@@ -56,6 +76,10 @@ export interface VpcCommonProps {
    * List of account stacks in the organization.
    */
   accountStacks: AccountStacks;
+
+  ddbKmsKey?: string;
+
+  acceleratorPrefix?: string;
 }
 
 export interface AzSubnet extends constructs.Subnet {
@@ -106,11 +130,14 @@ export interface VpcProps extends VpcCommonProps {
   outputs: StackOutput[];
   acceleratorName: string;
   installerVersion: string;
+  vpcPools: AssignedVpcCidrPool[];
+  subnetPools: AssignedSubnetCidrPool[];
   existingAttachments: TransitGatewayAttachmentOutput[];
   vpcOutput?: VpcOutput;
+  logBucket?: defaults.RegionalBucket;
 }
 
-export class VpcStack extends NestedStack {
+export class VpcStack extends cdk.NestedStack {
   readonly vpc: Vpc;
 
   constructor(scope: cdk.Construct, name: string, props: VpcProps) {
@@ -137,13 +164,15 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
   readonly azSubnets = new AzSubnets();
 
   readonly cidrBlock: string;
+  readonly cidr2Block: string[] = [];
   readonly additionalCidrBlocks: string[] = [];
 
   readonly securityGroup?: SecurityGroup;
   readonly routeTableNameToIdMap: NameToIdMap = {};
   readonly natgwNameToIdMap: NameToIdMap = {};
-
   readonly tgwAttachments: TgwAttachment[] = [];
+  readonly nfw?: Nfw;
+  readonly ddbKmsKey: string;
 
   constructor(scope: cdk.Construct, name: string, vpcProps: VpcProps) {
     super(scope, name);
@@ -161,34 +190,83 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       acceleratorName,
       installerVersion,
       vpcOutput,
+      vpcPools,
+      subnetPools,
       existingAttachments,
     } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
-
+    const currentVpcPools: AssignedVpcCidrPool[] = [];
+    const currentSubnetPools: AssignedSubnetCidrPool[] = [];
+    if (['lookup', 'dynamic'].includes(vpcConfig['cidr-src'])) {
+      currentVpcPools.push(
+        ...getVpcCidrPools(vpcPools, accountKey, vpcConfig.region, vpcConfig.name, organizationalUnitName),
+      );
+      currentSubnetPools.push(
+        ...getSubnetCidrPools({
+          subnetPools,
+          accountKey,
+          region: vpcConfig.region,
+          vpcName: vpcConfig.name,
+          organizationalUnitName,
+        }),
+      );
+    }
+    this.ddbKmsKey = props.vpcProps.ddbKmsKey || '';
     this.name = props.vpcProps.vpcConfig.name;
+    const vpcCidrs = props.vpcProps.vpcConfig.cidr;
     this.region = vpcConfig.region;
-    this.cidrBlock = vpcConfig.cidr.toCidrString();
+    // Retrive CIDR
+    if (props.vpcProps.vpcConfig['cidr-src'] === 'dynamic') {
+      this.cidrBlock = currentVpcPools.find(vpcPool => vpcPool.pool === vpcCidrs[0].pool)?.cidr!;
+      if (!this.cidrBlock) {
+        throw new Error(`No CIDR found for VPC : ${vpcConfig.name} in DynamoDB "cidr-vpc-assign"`);
+      }
+      if (vpcCidrs.length > 1) {
+        this.cidr2Block.push(...currentVpcPools.filter(vpcPool => vpcPool.pool !== vpcCidrs[0].pool).map(c => c.cidr));
+      }
+    } else if (props.vpcProps.vpcConfig['cidr-src'] === 'lookup') {
+      if (currentVpcPools.length === 0) {
+        throw new Error(`No CIDR found for VPC : ${vpcConfig.name} in DDB`);
+      }
+      currentVpcPools.sort((a, b) => (a['vpc-assigned-id']! > b['vpc-assigned-id']! ? 1 : -1));
+      this.cidrBlock = currentVpcPools[0].cidr;
+      if (currentVpcPools.length > 1) {
+        this.cidr2Block.push(...currentVpcPools.slice(1, currentVpcPools.length).map(c => c.cidr));
+      }
+    } else {
+      if (!vpcCidrs) {
+        throw new Error(`No CIDR found for VPC : ${vpcConfig.name} in Configuration`);
+      }
+
+      this.cidrBlock = vpcCidrs[0].value?.toCidrString()!;
+      if (vpcCidrs.length > 1) {
+        this.cidr2Block.push(...vpcCidrs.slice(1, vpcCidrs.length).map(c => c.value?.toCidrString()!));
+      }
+    }
 
     // Create Custom VPC using CFN construct as tags override option not available in default construct
     const vpcObj = new ec2.CfnVPC(this, vpcName, {
-      cidrBlock: props.vpcProps.vpcConfig.cidr.toCidrString(),
+      cidrBlock: this.cidrBlock,
       enableDnsHostnames: true,
       enableDnsSupport: true,
+      instanceTenancy: props.vpcProps.vpcConfig['dedicated-tenancy']
+        ? ec2.DefaultInstanceTenancy.DEDICATED
+        : ec2.DefaultInstanceTenancy.DEFAULT,
     });
     this.vpcId = vpcObj.ref;
 
     const extendVpc: ec2.CfnVPCCidrBlock[] = [];
-    props.vpcProps.vpcConfig.cidr2.forEach((additionalCidr, index) => {
+    this.cidr2Block.forEach((additionalCidr, index) => {
       let id = `ExtendVPC-${index}`;
       if (index === 0) {
         id = 'ExtendVPC';
       }
       const extendVpcCidr = new ec2.CfnVPCCidrBlock(this, id, {
-        cidrBlock: additionalCidr.toCidrString(),
+        cidrBlock: additionalCidr,
         vpcId: vpcObj.ref,
       });
       extendVpc.push(extendVpcCidr);
-      this.additionalCidrBlocks.push(additionalCidr.toCidrString());
+      this.additionalCidrBlocks.push(additionalCidr);
     });
 
     let igw;
@@ -251,8 +329,21 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         if (subnetDefinition.disabled) {
           continue;
         }
-
-        const subnetCidr = subnetDefinition.cidr?.toCidrString();
+        let subnetCidr: string = '';
+        if (['lookup', 'dynamic'].includes(vpcConfig['cidr-src'])) {
+          const subnetCidrPool = currentSubnetPools.find(
+            s =>
+              s.az === subnetDefinition.az &&
+              s['subnet-name'] === subnetConfig.name &&
+              s['vpc-name'] === vpcConfig.name &&
+              s.region === vpcConfig.region,
+          );
+          if (subnetCidrPool) {
+            subnetCidr = subnetCidrPool.cidr;
+          }
+        } else {
+          subnetCidr = subnetDefinition.cidr?.value?.toCidrString()!;
+        }
         if (!subnetCidr) {
           console.warn(`Subnet with name "${subnetName}" and AZ "${subnetDefinition.az}" does not have a CIDR block`);
           continue;
@@ -264,14 +355,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           vpcId: vpcObj.ref,
           availabilityZone: `${this.region}${subnetDefinition.az}`,
         });
-        const subnetInCidr = IPv4CidrRange.fromCidr(subnetCidr);
         for (const extensions of extendVpc) {
-          if (extensions.cidrBlock) {
-            const vpcCidr = IPv4CidrRange.fromCidr(extensions.cidrBlock);
-            if (vpcCidr.contains(subnetInCidr)) {
-              subnet.addDependsOn(extensions);
-            }
-          }
+          subnet.addDependsOn(extensions);
         }
         this.azSubnets.push({
           subnet,
@@ -312,6 +397,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           vpcId: this.vpcId,
           subnets: this.azSubnets,
           vpcConfigs: vpcConfigs!,
+          vpcPools,
+          subnetPools,
         });
       }
     }
@@ -328,7 +415,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         name: tgwName,
       });
       if (!tgw) {
-        console.warn(`Cannot find transit gateway with name "${tgwName}"`);
+        throw new Error(`Cannot find transit gateway with name "${tgwName}"`);
       } else {
         const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
         const associateConfig = tgwAttach['tgw-rt-associate'] || [];
@@ -497,6 +584,40 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       }
     }
 
+    const nfwProps = vpcConfig.nfw;
+    if (config.AWSNetworkFirewallConfig.is(nfwProps)) {
+      const subnetConfig = nfwProps.subnet;
+      const nfwSubnets: AzSubnet[] = [];
+      if (subnetConfig.az) {
+        nfwSubnets.push(this.azSubnets.getAzSubnetForNameAndAz(subnetConfig.name, subnetConfig.az)!);
+      } else {
+        nfwSubnets.push(...this.azSubnets.getAzSubnetsForSubnetName(subnetConfig.name));
+      }
+
+      this.nfw = new Nfw(this, `${nfwProps['firewall-name']}`, {
+        nfwPolicy: nfwProps.policyString,
+        nfwPolicyConfig: nfwProps.policy || { name: 'Sample-Firewall-Policy', path: 'nfw/nfw-example-policy.json' },
+        subnets: nfwSubnets,
+        vpcId: this.vpcId,
+        nfwName: nfwProps['firewall-name'] || `${vpcConfig.name}-nfw`,
+        acceleratorPrefix: vpcProps.acceleratorPrefix || '',
+        nfwFlowLogging: nfwProps['flow-dest'] || 'None',
+        nfwAlertLogging: nfwProps['alert-dest'] || 'None',
+        logBucket: vpcProps.logBucket,
+      });
+    }
+
+    if (vpcConfig?.['alb-forwarding']) {
+      console.log('Deploying ALB forwarding');
+      const albipforward = new AlbIpForwarding(this, 'albIpForwarding', {
+        vpcId: this.vpcId,
+        ddbKmsKey: this.ddbKmsKey,
+        acceleratorPrefix: vpcProps.acceleratorPrefix || '',
+      });
+      console.log('ALB forwarding enabled');
+    } else {
+      console.log('alb ip forwarding not enabled. Skipping.');
+    }
     // Add Routes to Route Tables
     if (routeTablesProps) {
       for (const routeTableProp of routeTablesProps) {
@@ -595,6 +716,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         accountKey,
         vpcConfigs: vpcConfigs!,
         installerVersion,
+        vpcPools,
+        subnetPools,
       });
     }
 
