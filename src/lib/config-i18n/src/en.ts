@@ -142,7 +142,7 @@ const translations = translation(
         credentials_valid: 'The provided credentials appear valid.',
         credentials_not_valid: 'The provided credentials are NOT valid.',
         ct_enabled_not_authenticated:
-          'Credentials NOT provided, validation bypassed. When installing with Control Tower, the Accelerator Home region MUST match the Control Tower home region.  Additionally, Control Tower must be pre-installed before starting the Accelerator installation. At this time, it is not possible to switch between installation types after installation.',
+          'Credentials NOT provided, validation bypassed. When installing with Control Tower, the Accelerator home region MUST match the Control Tower home region.  Additionally, Control Tower must be pre-installed before starting the Accelerator installation. At this time, it is not possible to switch between installation types after installation.',
         ct_disabled_not_authenticated:
           'Credentials NOT provided, validation bypassed. If Control Tower is installed, this option MUST be set to Control Tower. While a standalone installation is supported, AWS generally recommends installing the Accelerator on top of AWS Control Tower. At this time, it is not possible to switch between installation types after installation.',
         ct_detected_and_enabled: 'AWS Control Tower installation detected. Installing using Control Tower as the base.',
@@ -197,7 +197,7 @@ const translations = translation(
         architecture_template_desc:
           'Accelerator JSON config file (YAML NOT supported).  While any valid Accelerator config file can be used, the template limits and controls the wizards capabilities.',
         installation_region:
-          'Installation or Home region. Defaults to the region provided when suplying security credentials.',
+          'Installation or home region. Defaults to the region provided when suplying security credentials.',
         installation_region_desc: 'The primary or main region used to host your AWS workloads.',
         installation_type: 'Installation type',
         installation_type_desc:
@@ -1855,7 +1855,7 @@ translate(c.FirewallEC2ConfigType, {
     },
     vpc: {
       title: 'VPC',
-      description: 'VPC to deploy the firewall',
+      description: 'The VPC name to deploy the firewall instances into.',
     },
     'security-group': {
       title: '',
@@ -2033,7 +2033,7 @@ translate(c.FirewallAutoScaleConfigType, {
     },
     subnet: {
       title: '',
-      description: '',
+      description: 'The VPC name to deploy the firewall instances into.',
     },
     vpc: {
       title: '',
@@ -2088,7 +2088,7 @@ translate(c.FirewallManagerConfigType, {
     },
     vpc: {
       title: '',
-      description: '',
+      description: 'The VPC name to deploy the firewall instances into.',
     },
     'security-group': {
       title: '',
@@ -2302,15 +2302,16 @@ translate(c.AwsConfigAccountConfig, {
 });
 
 translate(c.MandatoryAccountConfigType, {
-  title: 'Shared Account Config',
+  title: 'Account Config',
+  description: 'The Account Config object is used to define both workload and manadatory (shared) accounts, and enables customizing each individual account to have its own unique persona.  It is recommended that accounts primarily receive their persona or configuation based on their OU, each accounts persona can be customized within this section. Typically workload accounts have minimum amount of account level customization, wheras shared accounts typically contain high levels of customization based on their unique nature.',
   fields: {
     "gui-perm": {
       title: 'GUI Permission',
-      description: '',
+      description: 'Set to true to block this field from being edited in the GUI.',
     },
     'account-name': {
       title: '',
-      description: 'The name to be used to create the AWS account and displays in the AWS console.',
+      description: 'The name to be used to create the AWS account.  The name appears in the AWS console, the SSO login screen and other locations end-user will see it.',
     },
     description: {
       title: 'Description',
@@ -2318,64 +2319,64 @@ translate(c.MandatoryAccountConfigType, {
     },
     email: {
       title: '',
-      description: 'Email address associated to this account.',
+      description: 'The email address associated with this account, it must be unique across all AWS accounts and never before used to open an AWS account.',
     },
     ou: {
       title: 'OU',
       description:
-        'Organizational Unit the account belongs to. Mandatory accounts typically belong to the ‘core’ organization unit.',
+        'The Organizational Unit (OU) this account belongs to, which defines the persona the account assumes. The OU must be defined in the OU section of the config file. Core or shared accounts typically belong to the ‘Security’ or ‘Infrastructure’ OU.  The Accelerator does not support OUs with a / in thier name.',
     },
     'ou-path': {
       title: 'OU Path',
-      description: 'A path is a text representation of the structure of an AWS Organizations entity',
+      description: 'This field is used when an account is located in a nested OU, formatted as follows: `Dev/subou1/subou2`.  OUs can be up to 5 levels deep.',
     },
     'share-mad-from': {
       title: 'Share MAD From',
       description:
-        'Accelerator architecture gives the ability to share a MAD into this account from the account name specified in this parameter',
+        'Shares the Managed Microsoft Active Directory (MAD) from the account specified in this parameter to this account.',
     },
     'enable-s3-public-access': {
       title: '',
-      description: 'Allow S3 public access in this account',
+      description: 'By default, the Accelerator blocks S3 Public Access in all accounts. Setting this flag enables S3 public access for this account.',
     },
     iam: {
       title: 'IAM',
-      description: 'IAM configuration for this account like users, roles and policies.',
+      description: 'Creates the defined IAM users, roles, and policies in this account in addition to the OU defined IAM objects.',
     },
     limits: {
       title: '',
-      description: 'Limit increase requests for the account.',
+      description: 'Defines limits the Accelerator is likely to encounter during deployments, enables automatically requesting limit increases if required and validating the limit meets or exceeds the desired thresold when an API exists.',
     },
     certificates: {
       title: '',
-      description: 'Certificates to use inside the ALB',
+      description: 'Defines certificates to be created or imported into this account, in addition to OU defined certificates.',
     },
     vpc: {
       title: 'VPC',
       description:
-        'VPCs to be created inside this account. VPCs defined inside accounts are local to that account. For shared VPCs define them inside OUs instead',
+        'Defines VPC(s) to be created inside this account. VPCs defined inside accounts are local to that account. For shared VPCs define them inside OUs.',
     },
     deployments: {
       title: '',
-      description: 'Deploy objects like 3rd party firewalls, TGW and MAD',
+      description: 'This section is used define the deployment configuration for higher level objects like like rsyslog clusters, 3rd party firewalls and management appliances, Transit Gateways, and directory services like MAD and ADCs within an account.  Directory service deployments only supported in mandatory-accounts.',
     },
     alb: {
       title: 'ELB',
-      description: 'Deploy application load balancers and their configuration in this section',
+      description: 'Deploys an ELB (ALB and/or GWLB), per the defined configuration, in this account (in addition to any OU defined ELBs).',
     },
     's3-retention': {
       title: 'Account S3 logging bucket retention period',
       description:
-        'In certain cases, logs must be delivered to the local account before being centralized to the central logging bucket (i.e. VPC FLow logs).  This setting determines the retention for the local account copy of the logs.',
+        'In certain cases logs are delivered to the local account before being centralized to the central logging bucket (i.e. VPC Flow logs).  This setting determines the retention for the local account copy of the logs in S3.  If not specified the global-options\default-s3-retention value is utilized.',
     },
     budget: {
       title: '',
-      description: 'Define budgets for this account. Use this to generate alerts after',
+      description: 'Defines the AWS Budget configuration which will be created in this account, including budget alerts (overrides OU budgets).',
     },
     'account-warming-required': {
       title: '',
       description:
-        'Usually set to true this allows for resources to be created in accounts created programmatically as part of the execution of the Accelerator',
+        'This flag is set to true to force a new AWS account to be initialized, such that future programmatic deployments within the account succeed.  Warming is performed by spinning up a small temporary VPC and EC2 instance in the account and letting it run for ~15 minutes before attempting to programmatically deploy resources.',
     },
     'cwl-retention': {
       title: 'Override CloudWatch Log Retention',
@@ -2389,15 +2390,15 @@ translate(c.MandatoryAccountConfigType, {
     'src-filename': {
       title: 'Source Filename',
       description:
-        'Source filename with the config for this account. This allows you to split the config into several files',
+        'Source filename with the top-level config for this account. This allows the config file to be split into several files, and enable finding the accounts config file.',
     },
     'exclude-ou-albs': {
       title: 'Exclude OU ALBs',
-      description: 'Prevent deployment of the OU defined ALBs in this account.',
+      description: 'Setting this flag prevents the deployment of the OU defined ALBs in this account.',
     },
     'keep-default-vpc-regions': {
       title: 'Keep Default VPC regions',
-      description: 'Regions where the default VPCs will NOT be deleted in this account.',
+      description: 'The Accelerator deletes default VPCs in every region, this specifies regions where the Accelerator will not delete default VPCs for this specific account.',
     },
     'populate-all-elbs-in-param-store': {
       title: 'Populate all Organization ELBs in local Parameter store',
@@ -2406,15 +2407,15 @@ translate(c.MandatoryAccountConfigType, {
     },
     'ssm-automation': {
       title: 'SSM Automation Documents',
-      description: 'Indicates which SSM automation documents defined in global-options should be shared to this specific account.',
+      description: 'A list of the SSM automation documents defined and created within global-options to be *shared* into this account, in addition to any OU level documents shared into this account.',
     },
     'aws-config': {
       title: 'AWS Config Rules',
-      description: 'Indicates which config rules defined in global-options should be deployed in this specific account.',
+      description: 'A list of config rules defined in global-options to be deployed in this account in addition to OU defined rules.',
     },
     scps: {
       title: 'SCPs',
-      description: 'Service Control Policies that apply to this account',
+      description: 'A list of SCPs which were defined in global-options and are to be attached to this account.',
     },
     'opt-in-vpcs': {
       title: 'Opt-In VPCs',
@@ -2422,11 +2423,11 @@ translate(c.MandatoryAccountConfigType, {
     },
     'key-pairs': {
       title: '',
-      description: 'Creates an EC2 keypair of the specified name.',
+      description: 'Creates an EC2 keypair of the specified name in this account.',
     },
     secrets: {
       title: '',
-      description: 'Creates a secret of the specified name and length in Secrets Manager',
+      description: 'Creates a secret of the specified name and length in Secrets Manager in this account.',
     },
   },
 });
@@ -2443,12 +2444,12 @@ translate(c.OrganizationalUnitConfigType, {
   fields: {
     "gui-perm": {
       title: 'GUI Permission',
-      description: '',
+      description: 'Set to true to block this field from being edited in the GUI.',
     },
     type: {
       title: '',
       description:
-        'Mandatory for core accounts, workload for workload accounts or ignore for Organizational Management account',
+        'This field is on path to be deprecated.  Set to "mandatory" for the core, Security and Infrastructure OUs, all other OUs set to "ignore".',
     },
     description: {
       title: '',
@@ -2456,40 +2457,40 @@ translate(c.OrganizationalUnitConfigType, {
     },
     scps: {
       title: 'SCPs',
-      description: 'SCPs to be applied to all the accounts inside this OU',
+      description: 'A list of SCPs which were defined in global-options and are to be attached to this OU.',
     },
     'share-mad-from': {
       title: 'Share MAD From',
-      description: 'Share the MAD from the account specified in this paramter to the other accounts in this OU',
+      description: 'Shares the Managed Microsoft Active Directory (MAD) from the account specified in this parameter to each account in this OU.',
     },
     certificates: {
       title: '',
-      description: 'Define (create in ACM or import) certificates in every account in the OU',
+      description: 'Defines certificates to be created or imported into every account in the OU.',
     },
     iam: {
       title: 'IAM',
-      description: 'Create IAM constructs (users, groups, policies) in every account in the OU',
+      description: 'Creates the defined IAM users, roles, and policies in every account in the OU.',
     },
     alb: {
       title: 'ELB',
-      description: 'Create an ELB like the one defined here in every account in the OU',
+      description: 'Deploys an ELB (ALB and/or GWLB), per the defined configuration, in every account in the OU.',
     },
     vpc: {
       title: 'VPC',
       description:
-        'Either a) creates a VPC that will be shared with every account in the OU, or b) creates the VPCs in every account in the OU',
+        'Either: a) defines and creates the VPC(s) that will be shared with every account in the OU, or b) defines and creates the VPC(s) in every account in the OU.',
     },
     'default-budgets': {
       title: '',
-      description: 'Budget to be assigned to every account in the OU',
+      description: 'Defines the AWS Budget configuration which will be created in every account in the OU (including budget alerts).',
     },
     'ssm-automation': {
       title: 'SSM Automation Documents',
-      description: 'SSM automation documents for every account in the OU',
+      description: 'A list of the SSM automation documents defined and created within global-options to be *shared* into every account within this OU.',
     },
     'aws-config': {
       title: 'AWS Config Rules',
-      description: 'Indicates which config rules defined in global-options should be deployed in every account in this OU.',
+      description: 'A list of config rules defined in global-options to be deployed in every account in this OU.',
     },
   },
 });
@@ -2850,8 +2851,8 @@ translate(c.VpcFlowLogsConfigType, {
 });
 
 translate(c.AdditionalCwlRegionType, {
-  title: 'By default, only CloudWatch Logs from the Accelerator Home region are centralized into the central S3 logging bucket, this allows centralizing CloudWatch Logs for additional regions.  Each region requires an entry in the format: "us-east-1": { "kinesis-stream-shard-count": 1 }.',
-  description: 'VERIFY',
+  title: 'Additional CloudWatch Log Regions',
+  description: 'By default, Parameter Store is only populated with parameters for Accelerator deployed objects in the Accelerator home region, this allows for populating Parameter Store in additional regions.',
   fields: {
     'kinesis-stream-shard-count': {
       title: '',
@@ -3181,65 +3182,65 @@ translate(c.GlobalOptionsConfigType, {
     'ct-baseline': {
       title: 'ControlTower Baseline',
       description:
-        'Indicates the installation requires Control Tower to be installed before installing the Accelerator.',
+        'Indicates this installation depends on Control Tower and Control Tower deployed functionality. Control Tower must be installed before beginning an Accelerator installation.  Upgrades from a standalone install to a Control Tower based install are not currently possible.  This flag cannot be changed after initial installation.',
     },
     'default-s3-retention': {
       title: 'Default account S3 logging bucket retention period',
       description:
-        'In certain cases, logs must be delivered to the local account before being centralized to the central logging bucket (i.e. VPC Flow logs).  This setting determines the retention for the local account copy of the logs.',
+        'In certain cases logs are delivered to the local account before being centralized to the central logging bucket (i.e. VPC Flow logs).  This setting determines the default retention for the local account copy of the logs in S3.',
     },
     'central-bucket': {
       title: 'Customer S3 Input Bucket',
       description:
-        'Bucket to store this configuration file in you account as well as licenses, certificates and other artifacts needed for installations and upgrades.  At deployment, the configuration file is copied to CodeCommit.  You need to make any configuration changes in the file in CodeCommit after the initial install.',
+        'The S3 bucket used by customers to provide a customers customized configuration files, including the config.json file.  These files are used by the Accelerator to defined the deployed architecture and configuration or override default. During deployment, the core configuration file is copied to CodeCommit and customers must make configuration changes in CodeCommit after the initial install.',
     },
     reports: {
       title: 'Cost and Usage Reports',
-      description: 'Cost and usage reports',
+      description: 'This section enables customers to deploy and configure Cost and Usage Reports for the organization.',
     },
     'security-hub-frameworks': {
       title: '',
-      description: 'Security Hub provides controls for the frameworks defined in this parameter.',
+      description: 'Defines the Security Hub frameworks to be deployed to all accounts in the organization and any individual controls within the frameworks to be disabled.',
     },
     'central-security-services': {
       title: '',
-      description: 'Security services that will be deployed and the sub-account were they are configured.',
+      description: 'The Accelerator has the concept of grouping certain sets of functionality (security, logs, ITOps, Management) together and centralizing their respective capabilities into a single account.  This section identifies the Security Tooling account and provides the ability to enable/disable services associated with it which are applicable across the organization.  The Security Tooling account will be defined in the mandatory-account-configs section of the config file.  Organization wide Security Services will be defined here.',
     },
     'central-operations-services': {
       title: '',
-      description: 'Operations services that will be deployed and the sub-account were they are configured.',
+      description: 'The Accelerator has the concept of grouping certain sets of functionality (security, logs, ITOps, Management) together and centralizing their respective capabilities into a single account.  This section identifies the Operations account and provides the ability to enable/disable services associated with it which are applicable across the organization.  The Operations account will be defined in the mandatory-account-configs section of the config file.  Organization wide Operations Services will be defined here.',
     },
     'central-log-services': {
       title: '',
-      description: 'Logging services that will be deployed and the sub-account were they are configured.',
+      description: 'The Accelerator has the concept of grouping certain sets of functionality (security, logs, ITOps, Management) together and centralizing their respective capabilities into a single account.  This section identifies the Logging account and provides the ability to enable/disable services associated with it which are applicable across the organization.  The Logging account will be defined in the mandatory-account-configs section of the config file.  Organization wide Logging Services will be defined here.',
     },
     'aws-org-management': {
       title: 'AWS Organizational Management Account',
       description:
-        'The name of the Organizational Management account were the solution will be installed. This accounts parameters are defined in another section of the file.',
+        'The Accelerator has the concept of grouping certain sets of functionality (security, logs, ITOps, Management) together and centralizing their respective capabilities into a single account.  This section identifies the Organization management account and provides the ability to enable/disable services associated with it which are applicable across the organization.  The Organization management account will be defined in the mandatory-account-configs section of the config file.',
     },
     scps: {
       title: 'SCPs',
-      description: 'Section to define service control policies which can be applied on accounts and OUs.',
+      description: 'This section within global-options is used to *define* AWS Service Control Policies (SCPs).  Defined SCPs are referenced in the organizational-units or account-configs sections, which  assigns these SCPs for application.',
     },
     'organization-admin-role': {
       title: 'Organization Admin Role',
       description:
-        'Initial default role that exists in every new AWS account.  Will be used by Accelerator when creating new accounts.  Must be specified by customers when creating new AWS accounts through AWS Organizations (OrganizationAccountAccessRole if not specified during account creation).',
+        'The initial default role that exists in every new AWS account and will be used by Accelerator and Control Tower when creating new accounts.  Must be specified by customers when creating new AWS accounts through AWS Organizations.  This must be set to AWSControlTowerExecution when ct-baseline is set to true.',
     },
     'supported-regions': {
       title: 'Accelerator Managed Regions',
       description:
-        'This is the list of regions where security and governance controls will be deployed by default. This list MUST include all regions in which the Accelerator will deploy VPCs, TGWs, Zones or Automation documents',
+        'This is the list of regions where security and governance controls will be deployed by default. It is recommended this list include all enabled by default regions, but, this list MUST include the Accelerator home region, us-east-1 and any regions where the Accelerator deploys functionality like VPCs, TGWs, Zones or Automation documents.',
     },
     'keep-default-vpc-regions': {
       title: 'Keep Default VPC Regions',
       description:
-        "The Accelerator deletes default VPCs in every region, this specifies regions where the Accelerator will not delete default VPCs.",
+        'The Accelerator deletes default VPCs in every region, this specifies regions where the Accelerator will not delete default VPCs across all accounts in the Organization.  This can also be specified at the account level.',
     },
     'iam-password-policies': {
       title: 'IAM Password Policies',
-      description: 'Policies for IAM user passwords.',
+      description: 'This group of settings enabling setting the AWS IAM password policies for all accounts in the organization.',
     },
     'default-cwl-retention': {
       title: 'CloudWatch Logs Retention Period',
@@ -3253,7 +3254,7 @@ translate(c.GlobalOptionsConfigType, {
     },
     'install-cloudformation-master-role': {
       title: 'Install Cloudformation Management Role',
-      description: 'Whether to create the CloudFormation role in the Organization Management account.',
+      description: 'This flag enables disabling the creation of the CloudFormation role in the Organization management account. Only required when repurposing an old sub-account as a new Organization management account.',
     },
     'workloadaccounts-prefix': {
       title: 'Workload Accounts Config Filename Prefix',
@@ -3273,53 +3274,53 @@ translate(c.GlobalOptionsConfigType, {
     'vpc-flow-logs': {
       title: 'VPC Flow Logs',
       description:
-        "VPC Flow Logs is a feature that enables you to capture information about the IP traffic going to and from network interfaces in your VPC. Flow log data can be published to Amazon CloudWatch Logs or Amazon S3. After you've created a flow log, you can retrieve and view its data in the chosen destination.",
+        "This section within global-options is used to define a consistent set of VPC Flog Log settings, which will be utilized when VPC Flow logging is enabled on a VPC within either an organizational units or a specific account.",
     },
     'additional-cwl-regions': {
       title: 'Additional CloudWatch Log Regions',
       description:
-        'By default, only CloudWatch Logs from the Accelerator Home region are centralized into the central S3 logging bucket, this allows centralizing CloudWatch Logs for additional regions.  Each region requires an entry in the format: "us-east-1": { "kinesis-stream-shard-count": 1 }.',
+        'By default, only CloudWatch Logs from the Accelerator home region are centralized into the central S3 logging bucket, this allows centralizing CloudWatch Logs for additional regions.  Each region requires an entry in the format: "us-east-1": { "kinesis-stream-shard-count": 1 }.',
     },
     'additional-global-output-regions': {
       title: '',
       description:
-        'By default, Parameter Store is only populated with parameters for Accelerator deployed objects in the Accelerator Home region, this allows for populating Parameter Store in additional regions.',
+        'By default, Parameter Store is only populated with parameters for Accelerator deployed objects in the Accelerator home region, this allows for populating Parameter Store in additional regions.',
     },
     cloudwatch: {
       title: 'CloudWatch',
-      description: 'Section to define CloudWatch metrics and alarms.',
+      description: 'This section is used to *define* and *deploy* CloudWatch metrics and alarms.  These metrics and alarms can be installed in a list of named accounts, or to all accounts in the organization within this ssection.  CloudWatch metrics and alarms are currently only supported in the Accelerator home region.',
     },
     'ssm-automation': {
       title: 'SSM Automation',
       description:
-        'In global-options, this is where SSM automation documents are defined.  In any OU configuration, this specifies if the SSM automation documents are shared to the accounts in this OU. SSM Automation documents can be invoked from AWS Config rules to remediate non-compliant rules.',
+        'This section within global-options is used to *defined* and *deploy* SSM automation documents into a limited number of central accounts.  These Automation documents are then shared into accounts within designated organizational units or to specific accounts based on settings at the organizational-unit or account level. SSM Automation documents can be invoked from AWS Config rules to remediate non-compliant rules.',
     },
     'aws-config': {
       title: 'AWS Config',
       description:
-        'In global-options, this is where both AWS Managed and Custom Config rules are defined.  In any OU configuration, this specifies if the Config rules are deployed to the accounts in this OU. These rules can be defined to trigger SSM automation documents for remediation.',
+        'This section within global-options is used to *define* AWS Config rules.  These rules are deployed into accounts within designated organizational units or to specific accounts based on settings at the organizational-unit or account level. AWS Config rules continuously evaluate the configuration settings of your AWS resources and when AWS Config detects that a resource violates the conditions in your rule(s), it flags the resource as noncompliant.',
     },
     'default-ssm-documents': {
-      title: 'Not Implemented',
-      description: 'Not Implemented',
+      title: 'Deprecated',
+      description: 'Deprecated',
     },
     'cidr-pools': {
       title: 'CIDR Pools',
       description:
-        'CIDR Pools are used to enable the automatic allocation of IP addresses to VPCs and Subnets during initial creation.  Multiple named pools can be created which can each contain multiple CIDR blocks, each assigned to a specific region.',
+        'CIDR Pools are used to enable the automatic allocation of IP addresses to VPCs and Subnets.  Multiple named pools can be created which can each contain multiple CIDR blocks, each assigned to a specific region.',
     },
     'control-tower-supported-regions': {
       title: '',
-      description: 'This field needs to be populated with the list of regions supported by Control Tower.  It needs to be updated when Control Tower launches new regions.',
+      description: 'This field needs to be populated with the list of regions both supported and enabled by Control Tower. As customers enable new regions, including when new regions are supported by Control Tower, they need to be added to this list.',
     },
     'endpoint-port-overrides': {
       title: '',
-      description: 'Mapping of Endpoint inbound port overrides. See sample_snippets.md for example values.',
+      description: 'The Accelerator locked down all interface endpoint security groups to 0.0.0.0/0:443 inbound, no outbound-rules.  As certain endpoints a different set of ports, this setting enables customers to overide the defaults for a specific endpoint.  If a customer needs to lockdown an endpoint to a specific CIDR range, that is set at the VPC level.  Example: "endpoint-port-overrides": {"logs": ["TCP:443", "UDP:9418"], "ssmmessages": ["TCP:443", "TCP:8080"] }',
     },
     'separate-s3-dp-org-trail': {
       title: 'Seperate S3 DataPlane Organization Tail',
       description:
-        'Added to enable Control Tower support.  As the Control Tower Trails do NOT have Data Plane Logging enabled, this allows for the creation of a second trail only containing Data Plane events.',
+        'Added to enable Control Tower support, as the Control Tower CloudTrails do not include data plane logging. This allows for the creation of a second trail only containing Data Plane events.',
     },
   },
 });
@@ -3340,7 +3341,7 @@ translate(c.AcceleratorConfigType, {
     'mandatory-account-configs': {
       title: 'Shared Accounts',
       description:
-        'AWS accounts which contain components leveraged or utilized by other AWS accounts within the organization must be defined here.  LThese are AWS accounts (private cloud environments) which are used to provide centralized functionality across the entire organization. For example: Log Archive, Security Tooling, Core Networking, etc. While workload accounts typically have a minimum amount of account level customization, the shared accounts typically contain a high level of customization.',
+        'AWS accounts which contain components leveraged or utilized by other AWS accounts within the organization must be defined here.  These are AWS accounts which are used to provide centralized functionality across the entire organization. For example: Log Archive, Security Tooling, Core Networking, etc. While workload accounts typically have a minimum amount of account level customization, the shared accounts typically contain a high level of customization.',
     },
     'workload-account-configs': {
       title: 'Workload Accounts',

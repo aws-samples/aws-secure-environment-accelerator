@@ -15,6 +15,7 @@
     - [1.1.11. I need a new VPC, where shall I define it?](#1111-i-need-a-new-vpc-where-shall-i-define-it)
     - [1.1.12. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?](#1112-how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes)
     - [1.1.13. How can I easily access my virtual machines or EC2 instances?](#1113-how-can-i-easily-access-my-virtual-machines-or-ec2-instances)
+    - [1.1.14. I ran the state machine but it failed when it tried to delete the default VPC? The state machine cannot delete the default VPC (Error: VPC has dependencies and cannot be deleted)](#1114-i-ran-the-state-machine-but-it-failed-when-it-tried-to-delete-the-default-vpc-the-state-machine-cannot-delete-the-default-vpc-error-vpc-has-dependencies-and-cannot-be-deleted)
   - [1.2. Existing Accounts/Organizations](#12-existing-accountsorganizations)
     - [1.2.1. How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?](#121-how-do-i-import-an-existing-aws-account-into-my-accelerator-managed-aws-organization-or-what-if-i-created-a-new-aws-account-with-a-different-organization-trust-role)
     - [1.2.2. Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?](#122-is-it-possible-to-deploy-the-accelerator-on-top-of-an-aws-organization-that-i-have-already-installed-the-aws-landing-zone-alz-solution-into)
@@ -285,8 +286,9 @@ The preferred and recommended method to connect to instances within the Accelera
 - If you want to remove the region from your command line, you can:
   - Type: “aws configure” from command prompt, hit {enter} (key), {enter} (secret), enter: ca-central-1, {enter}
 
-### 1.1.14. I ran the state machine but it failed when it tried to delete the default VPC? The state machine cannot delete the default VPC (Error : VPC has dependencies and cannot be deleted) ? 
-- You need to ensure that resources don’t exist in the default VPC or else the state machine won't be able to delete it. If you encounter this error, you can either delete the resources within the VPC or delete the default VPC manually and run the state machine again.  
+### 1.1.14. I ran the state machine but it failed when it tried to delete the default VPC? The state machine cannot delete the default VPC (Error: VPC has dependencies and cannot be deleted)
+
+- You need to ensure that resources don’t exist in the default VPC or else the state machine won't be able to delete it. If you encounter this error, you can either delete the resources within the VPC or delete the default VPC manually and run the state machine again.
 
 ## 1.2. Existing Accounts/Organizations
 
