@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
@@ -12,7 +25,8 @@ export interface S3PutBucketReplicationProps {
   roleArn: string;
 }
 
-export interface S3PutBucketReplicationRuntimeProps extends Omit<S3PutBucketReplicationProps, 'roleArn'> {}
+export type S3PutBucketReplicationRuntimeProps = Omit<S3PutBucketReplicationProps, 'roleArn'>;
+
 /**
  * Custom resource that will create SSM Document.
  */
@@ -46,7 +60,7 @@ export class S3PutBucketReplication extends cdk.Construct {
     const lambdaDir = path.dirname(lambdaPath);
 
     return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role: this.role,

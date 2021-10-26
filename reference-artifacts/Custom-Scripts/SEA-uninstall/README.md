@@ -8,7 +8,7 @@ This uninstall script is a work in-progress and was designed for use by our deve
 
 The logic of the script is the following:
 
-1. Downloads the **config.json** from CodeCommit (assumes PBMM as a repository prefix)
+1. Downloads the **config.json** from CodeCommit (assumes ASEA as a repository prefix)
 
 2. Checks for **stacks.json** in the executing directory.
 
@@ -46,11 +46,11 @@ The logic of the script is the following:
 
 7. Cleans up the Organization Management Account
 
-   a. DELETES Stack instances from StackSets beginning with "PBMMAccel". When all stack instances deleted, the StackSet is deleted.
+   a. DELETES Stack instances from StackSets beginning with "ASEA". When all stack instances deleted, the StackSet is deleted.
 
    b. DELETES the Organization CloudTrail
 
-   c. DELETES the Service Control Policies with a name starting with "PBMMAccel"
+   c. DELETES the Service Control Policies with a name starting with "ASEA"
 
 8. Cleans up GuardDuty
 
@@ -62,7 +62,7 @@ The logic of the script is the following:
 
 10. Cleans up Cloud Watch Logs. For all Accounts in all supported regions (multi-threaded):
 
-    a. DELETES Log Group beginning with "PBMMAccel-"
+    a. DELETES Log Group beginning with "ASEA-"
 
 ## Instructions
 
@@ -89,9 +89,9 @@ The logic of the script is the following:
 
 8. Manual steps (in the Organization Management account):
    - In Secrets Manager, set the Secret `accelerator/config/last-successful-commit` to an empty string;
-   - In DynamoDB, delete the 3 `PBMMAccel-*` tables;
+   - In DynamoDB, delete the 3 `ASEA-*` tables;
    - In Systems Manager Parameter Store, delete the `/accelerator/version` and `/accelerator/first-version` parameters;
-   - In CodeCommit, delete the repository `PBMMAccel-Config-Repo`.
+   - In CodeCommit, delete the repository `ASEA-Config-Repo`.
 
 ## Considerations
 
@@ -99,7 +99,7 @@ The logic of the script is the following:
 
    a. Certificates in ACM
 
-   b. The initial CDK bootstrap CloudFormation Stack (`PBMMAccel-CDKToolkit`) and `ASEA-CloudFormationStackSetExecutionRole` stack
+   b. The initial CDK bootstrap CloudFormation Stack (`ASEA-CDKToolkit`) and `ASEA-CloudFormationStackSetExecutionRole` stack
 
    c. CDK S3 buckets (`cdktoolkit-stagingbucket-*`)
 

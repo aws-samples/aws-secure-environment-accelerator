@@ -1,0 +1,55 @@
+image: public.ecr.aws/bitnami/node:14
+
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+    - if: $CI_COMMIT_BRANCH == 'main'
+
+stages:
+  - build
+
+default:
+  before_script:
+    - export NODE_OPTIONS=--max_old_space_size=4096
+    - npm install -g pnpm@6.2.3
+    - pnpm recursive install
+    - pnpm -w build
+
+test:
+  stage: build
+  script:
+    - pnpm -w test
+  timeout: 3h
+
+eslint:
+  stage: build
+  script:
+    - pnpm -w lint:eslint
+  timeout: 3h
+
+typecheck:
+  stage: build
+  script:
+    - pnpm -w lint:typecheck
+  timeout: 3h
+
+ui:
+  stage: build
+  script:
+    - apt-get update
+    - cd src/ui
+    - pnpm build:ui
+  artifacts:
+    expire_in: 30 days
+    paths:
+      - src/ui/build
+
+docs-gen:
+  stage: build
+  script:
+    - cd src/lib/docs-gen
+    - pnpm build
+  artifacts:
+    expire_in: 30 days
+    paths:
+      - src/lib/docs-gen/output-docs

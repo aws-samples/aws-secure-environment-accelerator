@@ -3,22 +3,24 @@
 - [1. Accelerator Basic Operation and Frequently asked Questions](#1-accelerator-basic-operation-and-frequently-asked-questions)
   - [1.1. Operational Activities](#11-operational-activities)
     - [1.1.1. How do I add new AWS accounts to my AWS Organization?](#111-how-do-i-add-new-aws-accounts-to-my-aws-organization)
-    - [1.1.2. Can I use AWS Organizations for all tasks I currently use AWS Organizations for? (Standalone Version Only)](#112-can-i-use-aws-organizations-for-all-tasks-i-currently-use-aws-organizations-for-standalone-version-only)
-    - [1.1.3. How do I make changes to items I defined in the Accelerator configuration file during installation?](#113-how-do-i-make-changes-to-items-i-defined-in-the-accelerator-configuration-file-during-installation)
-    - [1.1.4. Can I update the config file while the State Machine is running? When will those changes be applied?](#114-can-i-update-the-config-file-while-the-state-machine-is-running-when-will-those-changes-be-applied)
-    - [1.1.5. What if I really mess up the configuration file?](#115-what-if-i-really-mess-up-the-configuration-file)
-    - [1.1.6. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?](#116-what-if-my-state-machine-fails-why-previous-solutions-had-complex-recovery-processes-whats-involved)
-    - [1.1.7. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?](#117-how-do-i-update-some-of-the-supplied-sample-configuration-items-found-in-reference-artifact-like-scps-and-iam-policies)
-    - [1.1.8. I deployed AWS Managed Active Directory (MAD) as part of my deployment, how do I manage Active Directory domain users, groups, and domain policies after deployment?](#118-i-deployed-aws-managed-active-directory-mad-as-part-of-my-deployment-how-do-i-manage-active-directory-domain-users-groups-and-domain-policies-after-deployment)
-    - [1.1.9. How do I suspend an AWS account?](#119-how-do-i-suspend-an-aws-account)
-    - [1.1.10. I need a new VPC, where shall I define it?](#1110-i-need-a-new-vpc-where-shall-i-define-it)
-    - [1.1.11. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?](#1111-how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes)
-    - [1.1.12. How can I easily access my virtual machines or EC2 instances?](#1112-how-can-i-easily-access-my-virtual-machines-or-ec2-instances)
+    - [1.1.2. I tried to enroll a new account via Control Tower but it failed? The state machine failed during the `Load Organization Configuration` step with the error `The Control Tower account: ACCOUNT_NAME is in a failed state ERROR`?](#112-i-tried-to-enroll-a-new-account-via-control-tower-but-it-failed-the-state-machine-failed-during-the-load-organization-configuration-step-with-the-error-the-control-tower-account-account_name-is-in-a-failed-state-error)
+    - [1.1.3. Can I use AWS Organizations for all tasks I currently use AWS Organizations for? (Standalone Version Only)](#113-can-i-use-aws-organizations-for-all-tasks-i-currently-use-aws-organizations-for-standalone-version-only)
+    - [1.1.4. How do I make changes to items I defined in the Accelerator configuration file during installation?](#114-how-do-i-make-changes-to-items-i-defined-in-the-accelerator-configuration-file-during-installation)
+    - [1.1.5. Can I update the config file while the State Machine is running? When will those changes be applied?](#115-can-i-update-the-config-file-while-the-state-machine-is-running-when-will-those-changes-be-applied)
+    - [1.1.6. What if I really mess up the configuration file?](#116-what-if-i-really-mess-up-the-configuration-file)
+    - [1.1.7. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?](#117-what-if-my-state-machine-fails-why-previous-solutions-had-complex-recovery-processes-whats-involved)
+    - [1.1.8. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?](#118-how-do-i-update-some-of-the-supplied-sample-configuration-items-found-in-reference-artifact-like-scps-and-iam-policies)
+    - [1.1.9. I deployed AWS Managed Active Directory (MAD) as part of my deployment, how do I manage Active Directory domain users, groups, and domain policies after deployment?](#119-i-deployed-aws-managed-active-directory-mad-as-part-of-my-deployment-how-do-i-manage-active-directory-domain-users-groups-and-domain-policies-after-deployment)
+    - [1.1.10. How do I suspend an AWS account?](#1110-how-do-i-suspend-an-aws-account)
+    - [1.1.11. I need a new VPC, where shall I define it?](#1111-i-need-a-new-vpc-where-shall-i-define-it)
+    - [1.1.12. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?](#1112-how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes)
+    - [1.1.13. How can I easily access my virtual machines or EC2 instances?](#1113-how-can-i-easily-access-my-virtual-machines-or-ec2-instances)
+    - [1.1.14. I ran the state machine but it failed when it tried to delete the default VPC? The state machine cannot delete the default VPC (Error: VPC has dependencies and cannot be deleted)](#1114-i-ran-the-state-machine-but-it-failed-when-it-tried-to-delete-the-default-vpc-the-state-machine-cannot-delete-the-default-vpc-error-vpc-has-dependencies-and-cannot-be-deleted)
   - [1.2. Existing Accounts/Organizations](#12-existing-accountsorganizations)
     - [1.2.1. How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?](#121-how-do-i-import-an-existing-aws-account-into-my-accelerator-managed-aws-organization-or-what-if-i-created-a-new-aws-account-with-a-different-organization-trust-role)
     - [1.2.2. Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?](#122-is-it-possible-to-deploy-the-accelerator-on-top-of-an-aws-organization-that-i-have-already-installed-the-aws-landing-zone-alz-solution-into)
     - [1.2.3. What if I want to move an account from an AWS Organization that has the ALZ deployed into an AWS Organization running the Accelerator?](#123-what-if-i-want-to-move-an-account-from-an-aws-organization-that-has-the-alz-deployed-into-an-aws-organization-running-the-accelerator)
-  - [1.3. End User Enviroment](#13-end-user-enviroment)
+  - [1.3. End User Environment](#13-end-user-environment)
     - [1.3.1. Is there anything my end users need to be aware of?](#131-is-there-anything-my-end-users-need-to-be-aware-of)
     - [1.3.2. How can I leverage Accelerator deployed objects in my IaC? Do I need to manually determine the arn's and object id's of Accelerator deployed objects to leverage them in my IaC?](#132-how-can-i-leverage-accelerator-deployed-objects-in-my-iac-do-i-need-to-manually-determine-the-arns-and-object-ids-of-accelerator-deployed-objects-to-leverage-them-in-my-iac)
   - [1.4. Upgrades](#14-upgrades)
@@ -31,7 +33,7 @@
     - [1.5.4. What does it take to support the Accelerator?](#154-what-does-it-take-to-support-the-accelerator)
     - [1.5.5. Is the Accelerator only designed and suitable for Government of Canada or PBMM customers?](#155-is-the-accelerator-only-designed-and-suitable-for-government-of-canada-or-pbmm-customers)
   - [1.6. Deployed Functionality](#16-deployed-functionality)
-    - [1.6.1. I wish to be in compliance with the 12 TBS Guardrails, what don't you cover with the provided sample architecture?](#161-i-wish-to-be-in-compliance-with-the-12-tbs-guardrails-what-dont-you-cover-with-the-provided-sample-architecture)
+    - [1.6.1. I wish to be in compliance with the 12 GC TBS Guardrails, what don't you cover with the provided sample architecture?](#161-i-wish-to-be-in-compliance-with-the-12-gc-tbs-guardrails-what-dont-you-cover-with-the-provided-sample-architecture)
     - [1.6.2. Does the ALB perform SSL offloading?](#162-does-the-alb-perform-ssl-offloading)
     - [1.6.3. What is the recommended approach to manage the ALB certificates deployed by the Accelerator?](#163-what-is-the-recommended-approach-to-manage-the-alb-certificates-deployed-by-the-accelerator)
     - [1.6.4. Why do we have rsyslog servers? I thought everything was sent to CloudWatch?](#164-why-do-we-have-rsyslog-servers-i-thought-everything-was-sent-to-cloudwatch)
@@ -40,15 +42,16 @@
     - [1.6.7. Some sample configurations provide NACLs and Security Groups. Is that enough?](#167-some-sample-configurations-provide-nacls-and-security-groups-is-that-enough)
     - [1.6.8. Can I deploy the solution as the account root user?](#168-can-i-deploy-the-solution-as-the-account-root-user)
     - [1.6.9. Is the Organizational Management root account monitored similarly to the other accounts in the organization?](#169-is-the-organizational-management-root-account-monitored-similarly-to-the-other-accounts-in-the-organization)
-    - [1.6.10. Can the Fortinet Firewall deployments use static IP Address assignments?](#1610can-the-fortinet-firewall-deployments-use-static-ip-address-assignments)
+    - [1.6.10. How are the perimeter firewall configurations and licensing managed after deployment?](#1610-how-are-the-perimeter-firewall-configurations-and-licensing-managed-after-deployment)
+    - [1.6.11. Can the Fortinet Firewall deployments use static private IP address assignments?](#1611-can-the-fortinet-firewall-deployments-use-static-private-ip-address-assignments)
 
 ## 1.1. Operational Activities
 
 ### 1.1.1. How do I add new AWS accounts to my AWS Organization?
 
-- We offer two options and both can be used in the same deployment:
+- We offer four options and all can be used in the same Accelerator deployment. All options work with AWS Control Tower, ensuring the account is both ingested into Control Tower and all Accelerator guardrails are automatically applied:
 
-  - Users can simply add the following five lines to the configuration file `workload-account-configs` section and rerun the state machine. The majority of the account configuration will be picked up from the ou the AWS account has been assigned. You can also add additional account specific configuration, or override items like the default ou budget with an account specific budget. This mechanism is often used by customers that wish to programmatically create AWS accounts using the Accelerator and allows for adding many new accounts at one time.
+  1. Users can simply add the following five lines to the configuration file `workload-account-configs` section and rerun the state machine. The majority of the account configuration will be picked up from the ou the AWS account has been assigned. You can also add additional account specific configuration, or override items like the default ou budget with an account specific budget. This mechanism is often used by customers that wish to programmatically create AWS accounts using the Accelerator and allows for adding many new accounts at one time.
 
   ```
   "fun-acct": {
@@ -59,13 +62,33 @@
   }
   ```
 
-  - We've heard consistent feedback that our customers wish to use native AWS services and do not want to do things differently once security controls, guardrails, or accelerators are applied to their environment. In this regard, simply create your new AWS account in AWS Organizations as you did before\*\*.
+  2. We've heard consistent feedback that our customers wish to use native AWS services and do not want to do things differently once security controls, guardrails, or accelerators are applied to their environment. In this regard, simply create your new AWS account in AWS Organizations as you did before\*\*.
 
-    - \*\* **IMPORTANT:** When creating the new AWS account using AWS Organizations, you need to specify the role name provided in the Accelerator configuration file `global-options\organization-admin-role`, **_prior to v1.2.5, the ONLY supported value is `AWSCloudFormationStackSetExecutionRole`_**, otherwise we cannot bootstrap the account.
-    - On account creation we will apply a quarantine SCP which prevents the account from being used by anyone until the Accelerator has applied the appropriate guardrails
-    - Moving the account into the appropriate OU triggers the state machine and the application of the guardrails to the account, once complete, we will remove the quarantine SCP
+     - \*\* **IMPORTANT:** When creating the new AWS account using AWS Organizations, you need to specify the role name provided in the Accelerator configuration file `global-options\organization-admin-role`, otherwise we cannot bootstrap the account. In Control Tower installations, this **MUST** be set to **_`AWSControlTowerExecution`_**, for customers who installed prior to v1.2.5 this value is **_`AWSCloudFormationStackSetExecutionRole`_** and after v1.2.5 we were recommending using the role **_`OrganizationAccountAccessRole`_** as this role is used by default by AWS Organizations if no role name is specified when creating AWS accounts through the AWS console or cli.
+     - On account creation we will apply a quarantine SCP which prevents the account from being used by anyone until the Accelerator has applied the appropriate guardrails
+     - Moving the account into the appropriate OU triggers the state machine and the application of the guardrails to the account, once complete, we will remove the quarantine SCP.
+       - **NOTE:** Accounts CANNOT be moved between OU's to maintain compliance, so select the proper top-level OU with care
+       - In AWS Organizations, select ALL the newly created AWS accounts and move them all (preferably at once) to the correct destination OU (assuming the same OU for all accounts)
+       - In case you need to move accounts to multiple OU's we have added a 2 minute delay before triggering the State Machine
+       - Any accounts moved after the 2 minute window will NOT be properly ingested, and will need to be ingested on a subsequent State Machine Execution.
 
-### 1.1.2. Can I use AWS Organizations for all tasks I currently use AWS Organizations for? (Standalone Version Only)
+  3. Create your account using Account Factory in the AWS Control Tower console.
+
+  4. Create your account using standard AWS account creation API's, CLI or 3rd party tools like Terraform.
+
+  No matter the mechanism you choose, new accounts will automatically be blocked from use until fully guardrailed, the Accelerator will automatically execute, and accounts will automatically be ingested into AWS Control Tower.
+
+### 1.1.2. I tried to enroll a new account via Control Tower but it failed? The state machine failed during the `Load Organization Configuration` step with the error `The Control Tower account: ACCOUNT_NAME is in a failed state ERROR`?
+
+If account enrollment fails within Control Tower, you will need to follow the troubleshooting steps [here](https://docs.aws.amazon.com/controltower/latest/userguide/troubleshooting.html). A common reason for this is not having the `ControlTowerExectution` role created in the account you are trying to enroll. Even after you successfully enroll the account, it is possible the state machine will fail at `Load Organization Configuration`. If you look at the cloudwatch logs you will see the error message:
+
+```
+There were errors while loading the configuration: The Control Tower account: ACCOUNT_NAME is in a failed state ERROR.
+```
+
+This is because the Accelerator checks that there are no errors with Control Tower before continuing. In some cases Control Tower can leave an orphaned Service Catalog product in an **Error** state. You need to cleanup Control Towers Service Catalogs Provisioned Products so there are no products remaining in an error or tainted state before you can successfully re-run the state machine.
+
+### 1.1.3. Can I use AWS Organizations for all tasks I currently use AWS Organizations for? (Standalone Version Only)
 
 - In AWS Organizations you can continue to:
   - create and rename AWS accounts
@@ -73,9 +96,10 @@
   - create, delete and rename ou's, including support for nested ou's
   - create, rename, modify, apply and remove SCP's
 - What can't I do:
-  - modify Accelerator controlled SCP's
-  - add/remove SCP's on top-level OU's (these are Accelerator controlled) or specific accounts that have Accelerator controlled SCPs
+  - modify Accelerator or Control Tower controlled SCP's
+  - add/remove SCP's on top-level OU's (these are Accelerator and/or Control Tower controlled)
     - users can change SCP's on non-top-level ou's and non-Accelerator controlled accounts as they please
+  - add/remove SCP's on specific accounts that have Accelerator controlled SCPs
   - move an AWS account between top-level ou's (i.e. `Sandbox` to `Prod` is a security violation)
     - moving between `Prod/sub-ou-1` to `Prod/sub-ou2` or `Prod/sub-ou2/sub-ou2a/sub-ou2ab` is fully supported
   - create a top-level ou (need to validate, as they require config file entries)
@@ -90,7 +114,7 @@
   - Except for the Quarantine SCP applied to specific accounts, we do not 'control' SCP's below the top level, customers can add/create/customize SCP's
     - as of v1.3.3 customers can optionally control account level SCP's through the configuration file
 
-### 1.1.3. How do I make changes to items I defined in the Accelerator configuration file during installation?
+### 1.1.4. How do I make changes to items I defined in the Accelerator configuration file during installation?
 
 Simply update your configuration file in CodeCommit and rerun the state machine! In most cases, it is that simple.
 
@@ -100,17 +124,17 @@ Below we have also documented additional considerations when creating or updatin
 
 It should be noted that we have added code to the Accelerator to block customers from making many 'breaking' or impactful changes to their configuration files. If someone is positive they want to make these changes, we also provide override switches to allow these changes to be attempted forcefully.
 
-### 1.1.4. Can I update the config file while the State Machine is running? When will those changes be applied?
+### 1.1.5. Can I update the config file while the State Machine is running? When will those changes be applied?
 
 Yes. The state machine captures a consistent input state of the requested configuration when it starts. The running Accelerator instance does not see or consider any configuration changes that occur after it has started. All configuration changes occurring after the state machine is running will only be leveraged on the _next_ state machine execution.
 
-### 1.1.5. What if I really mess up the configuration file?
+### 1.1.6. What if I really mess up the configuration file?
 
 The Accelerator is designed with checks to compare your current configuration file with the version of the config file from the previous successful execution of the state machine. If we believe you are making major or breaking changes to the config file, we will purposefully fail the state machine. See [1.4. Config file and Deployment Protections](../installation/customization-index.md#14-config-file-and-deployment-protections) for more details.
 
-With the release of v1.3.0 we introduced state machine scoping capabilities to further protect customers, detailed [here](../installation/customization-index.md#2-new-state-machine-behaviour)
+With the release of v1.3.0 we introduced state machine scoping capabilities to further protect customers, detailed [here](../installation/sm_inputs.md#11-state-machine-behavior)
 
-### 1.1.6. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?
+### 1.1.7. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?
 
 If your main state machine fails, review the error(s), resolve the problem and simply re-run the state machine. We've put a huge focus on ensuring the solution is idempotent and to ensure recovery is a smooth and easy process.
 
@@ -122,7 +146,7 @@ We've spent a lot of time over the course of the Accelerator development process
 
 Will your state machine fail at some point in time, likely. Will you be able to easily recover and move forward without extensive time and effort, YES!
 
-### 1.1.7. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?
+### 1.1.8. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?
 
 To override items like SCP's or IAM policies, customers simply need to provide the identically named file in there input bucket. As long as the file exists in the correct folder in the customers input bucket, the Accelerator will use the customers supplied version of the configuration item, rather than the Accelerator version. Customer SCP's need to be placed into a folder named `scp` and iam policies in a folder named `iam-policy` (case sensitive).
 
@@ -132,9 +156,15 @@ Customers can also define additional SCPs (or modify existing SCPs) using the na
 
 Prior to v1.2.5, if we updated the default files, we overwrote customers customizations during upgrade. Simply updating the timestamp _after_ upgrade on the customized versions and then rerunning the state machine re-instates customer customizations. In v1.2.5 we always use the customer customized version from the S3 bucket. It's important customers assess newly provided defaults during an upgrade process to ensure they are incorporating all the latest fixes and improvements. If a customer wants to revert to Accelerator provided default files, they will need to manually copy it from the repo into their input bucket.
 
-NOTE: Most of the provided SCPs are designed to protect the Accelerator deployed resources from modification and ensure the integrity of the Accelerator. Extreme caution must be exercised if the provided SCPs are modified. We will be improving documentation as to which SCPs deliver security functionality versus those protecting the Accelerator itself in a future release.
+NOTE: Most of the provided SCPs are designed to protect the Accelerator deployed resources from modification and ensure the integrity of the Accelerator. Extreme caution must be exercised if the provided SCPs are modified. In v1.5.0 we restructured the SCPs based on a) customer requests, and b) the addition of Control Tower support for new installs.
 
-### 1.1.8. I deployed AWS Managed Active Directory (MAD) as part of my deployment, how do I manage Active Directory domain users, groups, and domain policies after deployment?
+- we reorganized and optimized our SCP's from 4 SCP files down to 3 SCP files, without removing any protections or guardrails;
+- these optimizations have resulted in minor enhancements to the SCP protections and in some cases better scoping;
+- the first two SCP files (Part-0 and Part-1) contain the controls which protect the integrity of the Accelerator itself;
+- the third file (Sensitive, Unclass, Sandbox) contains customer data protection specific guardrails, which may change based on workload data classification or customer profiles and requirements;
+- this freed the fourth SCP for use by Control Tower. As Control Tower leverages 2 SCP files on the Security OU, we have moved some of our SCP's to the account level.
+
+### 1.1.9. I deployed AWS Managed Active Directory (MAD) as part of my deployment, how do I manage Active Directory domain users, groups, and domain policies after deployment?
 
 Customers have clearly indicated they do NOT want to use the Accelerator to manage their Active Directory domain or change the way they manage Active Directory on an ongoing basis. Customer have also indicated, they need help getting up and running quickly. For these reasons, the Accelerator only sets the domain password policy, and creates AD users and groups on the initial installation of MAD. After the initial installation, customers must manage Windows users and groups using their traditional tools. A bastion Windows host is deployed as a mechanism to support these capabilities. Passwords for all newly created MAD users have been stored, encrypted, in AWS Secrets Manager in the Management (root) Organization AWS account.
 
@@ -147,37 +177,53 @@ To create new users and groups:
 
 The Accelerator will not create/update/delete new AD users or groups, nor will it update the domain password policy after the initial installation of Managed Active Directory. It is your responsibility to rotate these passwords on a regular basis per your organizations password policy. (NOTE: After updating the admin password it needs to be stored back in secrets manager).
 
-### 1.1.9. How do I suspend an AWS account?
+### 1.1.10. How do I suspend an AWS account?
 
-- Prior to v1.2.4, suspending accounts were blocked via SCP:
-  - a defect exists in prior releases which could cause SM failures after an account was suspended
-  - this required modifications to both the Part1 and Part2 SCPs
-- To suspend an account in v1.2.4 and above, follow this process:
-  - the AWS account must remain in the source OU
-  - login to account to be suspended as the account root user
-  - suspend the account through `My Account`
-  - Run state machine (from the Organization management account), the account will:
-    - have a deleted=true value added to the config file
-    - be moved to the suspended OU (OU value and path stays the same in the config file)
-    - deleted=true causes OU validation to be skipped on this account on subsequent SM executions
-  - If the AWS account was listed in the mandatory-accounts section of the config file the SM will fail (expected)
-    - after the above tasks have been completed, remove all references to the suspended mandatory account from the config file
-    - rerun the state machine, specifying: `{ "overrideComparison": true } `
-  - Deleted accounts will continue to appear under the `Suspended` OU
+Suspending accounts is blocked via SCP and purposely difficult, two options exist:
 
-### 1.1.10. I need a new VPC, where shall I define it?
+1. Modify SCP method (not desired)
+2. Leverage the UnManaged OU
+   - validate your config file contains the value: `"ignored-ous": ["UnManaged"]`
+     - the state machine must be executed at least once after this value is added to the config file
+   - In AWS Organizations create an OU named `UnManaged` in the root of the OU tree, if it does not exist
+   - Change to the `us-east-1` region and open CloudWatch and navigate to Rules
+     - Select the `PBMMAccel-MoveAccount_rule`, select actions, select `Disable`
+   - In Organizations move the account to be suspended to the `UnManaged` OU
+   - Change to the `us-east-1` region and open CloudWatch and navigate to Rules
+     - Select the `PBMMAccel-MoveAccount_rule`, select actions, select `Enable`
+   - login to the account to be suspended as the account root user
+   - suspend the account through `My Account`
+   - Run the state machine (from the Organization management account), the account will:
+     - have a deleted=true value added to the config file
+     - be moved to the suspended OU (OU value and path stays the same in the config file)
+     - deleted=true causes OU validation to be skipped on this account on subsequent SM executions
+   - If the AWS account was listed in the mandatory-accounts section of the config file the SM will fail (expected)
+     - after the above tasks have been completed, remove all references to the suspended mandatory account from the config file
+     - rerun the state machine, specifying: `{ "overrideComparison": true } `
+   - Deleted accounts will continue to appear under the `Suspended` OU for 90-days
 
-You can define a VPC in one of three major sections of the Accelerator configuration file:
+### 1.1.11. I need a new VPC, where shall I define it?
+
+You can define a VPC in one of four major sections of the Accelerator configuration file:
 
 - within an organization unit (this is the recommended and preferred method);
 - within an account in mandatory-account-configs;
-- within an account in workload-account-configs.
+- within an account in workload-account-configs;
+- defined within an organization unit, but opted-in within the account config.
 
-We generally recommend most items be defined within organizational units, such that all workload accounts pickup their persona from the OU they are associated and minimize per account configuration. Both a local account based VPC (as deployed in the Sandbox OU accounts), or a central VPC (as deployed in the Dev.Test/Prod OU accounts) can be defined in an OU. It should be noted that local VPC's will each be deployed with the same CIDR ranges (at this time) and therefor should not be connected to a TGW.
+We generally recommend most items be defined within organizational units, such that all workload accounts pickup their persona from the OU they are associated and minimize per account configuration. Both a local account based VPC (as deployed in the Sandbox OU accounts), or a central shared VPC (as deployed in the Dev/Test/Prod OU accounts in many of the example configs) can be defined at the OU level.
 
-As mandatory accounts often have unique configuration requirements, VPC's like the Endpoint VPC, are configured within the mandatory account configuration. Customers can also define VPC's within each workload account configuration, but this requires editing the configuration file for each account configuration.
+As mandatory accounts often have unique configuration requirements, for example the centralized Endpoint VPC, they must be configured within the accounts configuration. Customers can define VPC's or other account specific settings within any accounts configuration, but this requires editing the configuration file for each account configuration.
 
-### 1.1.11. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?
+Prior to v1.5.0, local VPC's defined at the OU level were each deployed with the same CIDR ranges and therefor could not be connected to a TGW. Local VPC's requiring centralized networking (i.e. TGW connectivity) were required to be defined in each account config, adding manual effort and bloating the configuration file.
+
+The addition of `dynamic` and `lookup` CIDR sources in v1.5.0 resolves this problem. Local VPCs can be defined in an OU, and each VPC will be dynamically assigned a unique CIDR range from the assigned CIDR pool, or looked up from the DynamoDB database. Customers can now ensure connected, templated VPCs are consistently deployed to every account in an OU, each with unique IP addresses.
+
+v1.5.0 also added a new opt-in VPC capability. A VPC is defined in an OU and a new config file variable is added to this VPC `opt-in: true`. When opt-in is set to true, the state machine does NOT create the VPC for the accounts in the OU, essentially ignoring the VPC definition. Select accounts in the OU can then be opted-in to the VPC(s) definition, by adding the value `accountname\opt-in-vpcs: [“opt-in-vpc-name1”, “opt-in-vpc-name2”, “opt-in-vpc-nameN”]` to the specific accounts which need the VPC(s). A vpc definition with the specified name (i.e. `opt-in-vpc-name1`) and the value `opt-in: true`, must exist in the ou config for the specified account. When these conditions apply, the VPC will be created in the account per the OU definition. Additional opt-in VPCs can be added to an account, but VPC's cannot be removed from the opt-in-vpcs array. VPC's can be TGW attached, assuming `dynamic` cidr-src is utilized, or DynamoDB is prepopulated with the required CIDR ranges using `lookup` mode. `cidr-src` provided is suitable for disconnected Sandbox type accounts.
+
+The Future: While Opt-In VPCs are powerful, we want to take this further. Why not deploy an AWS Service Catalog template which contains the names of all the available opt-in VPCs for the accounts OU, inside each account. An account end user could then request a new VPC for their account from the list of available opt-in patterns. A users selection would be sent to a centralized queue for approval (w/auto-approval options), which would result in the opt-in-vpc entry in that account being updated with the end users requested vpc pattern and the personalized VPC being created in the account and attached to the centralized TGW (if part of the pattern). This would ensure all VPC's conformed to a set of desirable design patterns, but also allow the end-user community choices based on their desired development and app patterns. If you like this idea, please +1 [this](https://github.com/aws-samples/aws-secure-environment-accelerator/issues/738) feature request.
+
+### 1.1.12. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?
 
 Flexibility:
 
@@ -187,20 +233,21 @@ Flexibility:
 - As SCP's and IAM policies are defined in the main config file, you can simply define new policies, pointing to new policy files, and provide these new files in your bucket, and they will be used.
 - While a sample firewall config file is provided in the \reference-artifacts folder, it must be manually placed in your s3 bucket/folder on new Accelerator deployments
 - Any/all of these files can be updated at any time and will be used on the next execution of the state machine
-- Over time, we predict we will provide several sample or reference architectures and not just the current single PBMM architecture (all located in the \reference-artifacts folder).
+- Over time, we predict we will provide several sample or reference architectures and not just the current single PBMM architecture (all located in the \reference-artifacts\SAMPLE_CONFIGS folder).
 
 Extensibility:
 
 - Every execution of the state machine sends a state machine status event to a state machine SNS topic
 - These status events include the Success/Failure status of the state machine, and on success, a list of all successfully processed AWS accounts
 - While this SNS topic is automatically subscribed to a user provided email address for user notification, users can also create additional SNS subscriptions to enable triggering their own subsequent workflows, state machines, or custom code using any supported SNS subscription type (Lambda, SQS, Email, HTTPS, HTTPS)
+- Additionally, objects deployed within an account have been populated in Parameter Store, see answer 1.3.2 for details
 
 Example:
 
 - One of our early adopter customers has developed a custom user interface which allows their clients to request new AWS environments. Clients provide items like cost center, budget, and select their environment requirements (i.e. Sandbox, Unclass or full sensitive SDLC account set). On appropriate approval, this pushes the changes to the Accelerator configuration file and triggers the state machine.
 - Once the state machine completes, the SNS topic triggers their follow-up workflow, validates the requested accounts were provisioned, updates the customer's account database, and then executes a collection of customer specific follow-up workflow actions on any newly provisioned accounts.
 
-### 1.1.12. How can I easily access my virtual machines or EC2 instances?
+### 1.1.13. How can I easily access my virtual machines or EC2 instances?
 
 The preferred and recommended method to connect to instances within the Accelerator is by using AWS Systems Manager Session Manager. Session Manager allows access to instances without the need to have any open firewall ports. Session Manager allows for Command line access to instances (both Windows and Linux) directly through the AWS console, with all activity logged to CloudWatch Logs. Session Manager enables customers to connect to Windows instances with a native RDP client and Linux instances with a native SSH client, if desired. Customers can gain quick access to instances through the AWS consolve, or using their preferred clients.
 
@@ -239,6 +286,10 @@ The preferred and recommended method to connect to instances within the Accelera
 - If you want to remove the region from your command line, you can:
   - Type: “aws configure” from command prompt, hit {enter} (key), {enter} (secret), enter: ca-central-1, {enter}
 
+### 1.1.14. I ran the state machine but it failed when it tried to delete the default VPC? The state machine cannot delete the default VPC (Error: VPC has dependencies and cannot be deleted)
+
+- You need to ensure that resources don’t exist in the default VPC or else the state machine won't be able to delete it. If you encounter this error, you can either delete the resources within the VPC or delete the default VPC manually and run the state machine again.
+
 ## 1.2. Existing Accounts/Organizations
 
 ### 1.2.1. How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?
@@ -268,11 +319,11 @@ Before removing the AWS account from the source organization, terminate the AWS 
 
 For a detailed procedure, please review this [document](../operations/operations-import-ALZAccount.md).
 
-## 1.3. End User Enviroment
+## 1.3. End User Environment
 
 ### 1.3.1. Is there anything my end users need to be aware of?
 
-CloudWatch Log group deletion is prevented for security purposes. Users of the Accelerator environment will need to ensure they set CFN stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack and your users will complain.
+CloudWatch Log group deletion is prevented for security purposes. Users of the Accelerator environment will need to ensure they set CFN stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack and your users will complain. The Accelerator also sets Log group retention for all log groups to value(s) specified by customers in the config file. End users are blocked from setting or changing Log group retention. End users must either not configure a retention period, or set it to the default `NEVER expire` or they will be blocked from creating objects.
 
 ### 1.3.2. How can I leverage Accelerator deployed objects in my IaC? Do I need to manually determine the arn's and object id's of Accelerator deployed objects to leverage them in my IaC?
 
@@ -288,9 +339,11 @@ Additionally, setting "populate-all-elbs-in-param-store": true for an account wi
 
 Yes, currently customers can upgrade from whatever version they have deployed to the latest Accelerator version. There is no requirement to perform sequential upgrades. In fact, we strongly discourage sequential upgrades.
 
+Given the magnitude of the v1.5.0 release, we have added a one-time requirement that all customers upgrade to a minimum of v1.3.8 before attempting to upgrade to v1.5.0.
+
 ### 1.4.2. After upgrading to v1.3.0, I get the error "There were errors while comparing the configuration changes:" when I update the config file?
 
-In v1.3.0 we added protections to allow customers to verify the scope of impact of their intended changes to the configuration file. In v1.3.0 and above, the state machine does not allow changes to the config file (other than new accounts) without providing the `scope` parameter. Please refer to section 2 of the `Accelerator Configuration File Customization` [Guide](../installation/customization-index.md#2-new-state-machine-behaviour) for more details.
+In v1.3.0 we added protections to allow customers to verify the scope of impact of their intended changes to the configuration file. In v1.3.0 and above, the state machine does not allow changes to the config file (other than new accounts) without providing the `scope` parameter. Please refer to section 1.1 of the `State Machine behavior and inputs` [Guide](../installation/sm_inputs.md#11-state-machine-behavior) for more details.
 
 ## 1.5. Support Concerns
 
@@ -335,7 +388,7 @@ While the prescriptive sample configuration files were originally developed base
 
 ## 1.6. Deployed Functionality
 
-### 1.6.1. I wish to be in compliance with the 12 TBS Guardrails, what don't you cover with the provided sample architecture?
+### 1.6.1. I wish to be in compliance with the 12 GC TBS Guardrails, what don't you cover with the provided sample architecture?
 
 The AWS SEA allows for a lot of flexibility in deployed architectures. If used, the provided PBMM sample architecture was designed to help deliver on the technical portion of _all_ 12 of the GC guardrails, when automation was possible.
 
@@ -357,7 +410,7 @@ The Accelerator provides 3 mechanisms to enable utilizing certificates with ALB'
 
 - **Method 1** - IMPORT a certificate into AWS Certificate Manager from a 3rd party product
 
-  - When using a certificate that does not have a certificate chain (usally this is the case with Self-Signed)
+  - When using a certificate that does not have a certificate chain (usually this is the case with Self-Signed)
 
   ```json
     "certificates": [
@@ -446,7 +499,7 @@ We suggest the most effective mechanism for leveraging ACM is by adding CNAME au
 
 ### 1.6.4. Why do we have rsyslog servers? I thought everything was sent to CloudWatch?
 
-The rsyslog servers are included to accept logs for appliances and third party applications that do not natively support the CloudWwatch Agent from any account within a customers Organization. These logs are then immediatly forwarded to CloudWatch Logs within the account the rsyslog servers are deployed (Operations) and are also copied to the S3 immutable bucket in the log-archive account. Logs are only persisted on the rsyslog hosts for 24 hours. The rsyslog servers are required to centralize the 3rd party firewall logs (Fortinet Fortigate).
+The rsyslog servers are included to accept logs for appliances and third party applications that do not natively support the CloudWatch Agent from any account within a customers Organization. These logs are then immediately forwarded to CloudWatch Logs within the account the rsyslog servers are deployed (Operations) and are also copied to the S3 immutable bucket in the log-archive account. Logs are only persisted on the rsyslog hosts for 24 hours. The rsyslog servers are required to centralize the 3rd party firewall logs (Fortinet Fortigate).
 
 ### 1.6.5. Can you deploy the solution without Fortinet Firewall Licenses?
 
@@ -464,7 +517,7 @@ At any time, customers can terminate the RDGW or rsyslog hosts and they will aut
 
 ### 1.6.7. Some sample configurations provide NACLs and Security Groups. Is that enough?
 
-Security group egress rules are often used in 'allow all' mode (`0.0.0.0/0`), with the focus primarily being on consistently whitelisting required ingress traffic (centralized ingress/egress controls are in-place using the perimeter firewalls). This ensures day to day activities like patching, access to DNS, or to directory services access can function on instances without friction.
+Security group egress rules are often used in 'allow all' mode (`0.0.0.0/0`), with the focus primarily being on consistently allow listing required ingress traffic (centralized ingress/egress controls are in-place using the perimeter firewalls). This ensures day to day activities like patching, access to DNS, or to directory services access can function on instances without friction.
 
 The Accelerator provided sample security groups in the workload accounts offer a good balance that considers both security, ease of operations, and frictionless development. They allow developers to focus on developing, enabling them to simply use the pre-created security constructs for their workloads, and avoid the creation of wide-open security groups. Developers can equally choose to create more appropriate least-privilege security groups more suitable for their application, if they are skilled in this area. It is expected as an application is promoted through the SDLC cycle from Dev through Test to Prod, these security groups will be further refined by the extended customers teams to further reduce privilege, as appropriate. It is expected that each customer will review and tailor their Security Groups based on their own security requirements. The provided security groups ensures day to day activities like patching, access to DNS, or to directory services access can function on instances without friction, with the understanding further protections are providing by the central ingress/egress firewalls.
 
@@ -478,11 +531,13 @@ No, you cannot install as the root user. The root user has no ability to assume 
 
 Yes, all accounts including the Organization Management or root account have the same monitoring and logging services enabled. When supported, AWS security services like GuardDuty, Macie, and Security Hub have their delegated administrator account configured as the "security" account. These tools can be used within each local account (including the Organization Management account) within the organization to gain account level visibility or within the Security account for Organization wide visibility. For more information about monitoring and logging refer to [architecture documentation](../architectures/pbmm/architecture.md#7-logging-and-monitoring).
 
-### 1.6.10. Can the Fortinet Firewall deployments use Static Private IP Address assignments?
+### 1.6.10. How are the perimeter firewall configurations and licensing managed after deployment?
 
-Yes, the `"port"` stanza in the configuration file can support a private static IP Address assignment from the subnet and az.
+While you deploy the perimeter firewalls with the Accelerator you will continue to manage firewall updates, configuration changes, and license renewals from the respective firewall management interface and not from the Accelerator config file. As these changes are not managed by the Accelerator you do not need to rerun the state machine to implement or track any of these changes. You can update the AMI of the 3rd party firewalls using the Accelerator, you must first remove the existing firewalls and redeploy them (as the Elastic IP's (EIP's) will block a parallel deployment) or deploy a second parallel firewall cluster and de-provision the first cluster when ready.
 
-Care must be exercised to assure the assigned IP Address is within the correct subnet and correct Availability zone.  Also consider the Amazon reserved IP Addresses (first three addresses, and the last) within subnets when choosing an IP Address to assign.
+### 1.6.11. Can the Fortinet Firewall deployments use static private IP address assignments?
+
+Yes, the `"port"` stanza in the configuration file can support a private static IP address assignment from the az and subnet. Care must be exercised to assure the assigned IP address is within the correct subnet and availability zone. Consideration must also be given to the Amazon reserved IP addresses (first three addresses, and the last) within subnets when choosing an IP Address to assign.
 
 Using the `config.example.json` as a reference, static IP Assignments would look like this in the `ports:` stanza of the firewall deployment.
 
@@ -519,39 +574,8 @@ Using the `config.example.json` as a reference, static IP Assignments would look
         "ip": "100.96.250.196"
       }
     ]
-  },
-  {
-    "name": "FWMgmt",
-    "subnet": "FWMgmt",
-    "create-eip": false,
-    "create-cgw": false,
-    "private-ips": [
-      {
-        "az": "a",
-        "ip": "100.96.251.36"
-      },
-      {
-        "az": "b",
-        "ip": "100.96.251.164"
-      }
-    ]
-  },
-  {
-    "name": "Proxy",
-    "subnet": "Proxy",
-    "create-eip": false,
-    "create-cgw": false,
-    "private-ips": [
-      {
-        "az": "a",
-        "ip": "100.96.251.68"
-      },
-      {
-        "az": "b",
-        "ip": "100.96.251.196"
-      }
-    ]
   }
+  ...
 ],
 ```
 

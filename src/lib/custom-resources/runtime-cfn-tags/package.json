@@ -3,19 +3,20 @@
   "version": "0.0.1",
   "private": true,
   "main": "src/index.ts",
-  "devDependencies": {
-    "@types/aws-lambda": "8.10.46",
-    "@types/node": "12.12.6",
-    "typescript": "3.8.3"
+  "scripts": {
+    "lint:typecheck": "pnpx tsc --noEmit",
+    "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
   },
   "dependencies": {
-    "aws-lambda": "1.0.6",
-    "aws-sdk": "2.787.0",
-    "exponential-backoff": "3.1.0"
+    "aws-sdk": "2.944.0"
+  },
+  "devDependencies": {
+    "@types/node": "14.14.31",
+    "typescript": "4.2.4"
   },
   "peerDependencies": {
     "aws-lambda": "1.0.6",
-    "aws-sdk": "2.787.0",
+    "aws-sdk": "2.920.0",
     "exponential-backoff": "3.1.0"
   }
 }

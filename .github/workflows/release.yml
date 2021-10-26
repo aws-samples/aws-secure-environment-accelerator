@@ -28,10 +28,10 @@ jobs:
         env:
           RUNNER_TEMP: /tmp/runner
         with:
-          node-version: 12
+          node-version: 14
       - name: Install pnpm
         run: |
-          npm install -g pnpm@5.18.9
+          npm install -g pnpm@6.2.3
       - name: Generate Changelog
         id: changelog
         env:

@@ -1,7 +1,19 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as cdk from '@aws-cdk/core';
 import { Keypair } from '@aws-accelerator/custom-resource-ec2-keypair';
-import { AcceleratorStack } from './accelerator-stack';
-import { trimSpecialCharacters } from './utils';
+import { createName, createSecretPrefix } from './accelerator-name-generator';
 
 export interface AcceleratorKeypairProps {
   name: string;
@@ -16,11 +28,14 @@ export class AcceleratorKeypair extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: AcceleratorKeypairProps) {
     super(scope, id);
 
-    const stack = AcceleratorStack.of(this);
-    const prefix = trimSpecialCharacters(stack.acceleratorPrefix);
+    const keyName = createName({
+      name: props.name,
+      suffixLength: 0,
+    });
+    const secretPrefix = createSecretPrefix('keypair/', 0);
     this.resource = new Keypair(this, 'Resource', {
-      name: `${prefix}-${props.name}`,
-      secretPrefix: `${prefix}/keypair/`,
+      name: keyName,
+      secretPrefix,
     });
   }
 

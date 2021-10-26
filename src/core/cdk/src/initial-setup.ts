@@ -1,5 +1,19 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
+import * as codebuild from '@aws-cdk/aws-codebuild';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
@@ -12,11 +26,9 @@ import { CdkDeployProject, PrebuiltCdkDeployProject } from '@aws-accelerator/cdk
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-stack';
 import { createRoleName, createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-tasks';
-import { CreateLandingZoneAccountTask } from './tasks/create-landing-zone-account-task';
+import { CreateControlTowerAccountTask } from './tasks/create-control-tower-account-task';
 import { CreateOrganizationAccountTask } from './tasks/create-organization-account-task';
-import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
-import { BuildTask } from './tasks/build-task';
 import { CreateStackTask } from './tasks/create-stack-task';
 import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
 import * as fs from 'fs';
@@ -24,6 +36,11 @@ import * as sns from '@aws-cdk/aws-sns';
 import { StoreOutputsTask } from './tasks/store-outputs-task';
 import { StoreOutputsToSSMTask } from './tasks/store-outputs-to-ssm-task';
 import { CDKBootstrapTask } from './tasks/cdk-bootstrap';
+import * as kms from '@aws-cdk/aws-kms';
+
+const VPC_CIDR_POOL_TABLE = 'cidr-vpc-assign';
+const SUBNET_CIDR_POOL_TABLE = 'cidr-subnet-assign';
+const CIDR_POOL_TABLE = 'cidr-pool';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -36,6 +53,7 @@ export namespace InitialSetup {
     configS3Bucket: string;
     configBranchName: string;
     notificationEmail: string;
+    installerCmk: string;
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     codebuildComputeType: any;
     pageSize: string;
@@ -75,13 +93,16 @@ export namespace InitialSetup {
       const lambdaCode = lambda.Code.fromAsset(lambdaDir);
 
       const stack = cdk.Stack.of(this);
-
+      const installerCmk = kms.Alias.fromAliasName(this, 'InstallerCmk', props.installerCmk);
       const parametersTable = new dynamodb.Table(this, 'ParametersTable', {
         tableName: createName({
           name: 'Parameters',
           suffixLength: 0,
         }),
         partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+        encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
+        encryptionKey: installerCmk,
+        pointInTimeRecovery: true,
         billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       });
 
@@ -94,6 +115,9 @@ export namespace InitialSetup {
           name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
+        encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
+        encryptionKey: installerCmk,
+        pointInTimeRecovery: true,
         billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       });
 
@@ -106,6 +130,55 @@ export namespace InitialSetup {
           name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
+        encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
+        encryptionKey: installerCmk,
+        pointInTimeRecovery: true,
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      });
+
+      // Tables required for VPC Cidr mappings for VPC, Account and OU
+      const vpcCidrPoolTable = new dynamodb.Table(this, 'CidrVpcAssign', {
+        tableName: createName({
+          name: VPC_CIDR_POOL_TABLE,
+          suffixLength: 0,
+        }),
+        partitionKey: {
+          name: 'id',
+          type: dynamodb.AttributeType.STRING,
+        },
+        encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
+        encryptionKey: installerCmk,
+        pointInTimeRecovery: true,
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      });
+
+      const subnetCidrPoolTable = new dynamodb.Table(this, 'CidrSubnetAssign', {
+        tableName: createName({
+          name: SUBNET_CIDR_POOL_TABLE,
+          suffixLength: 0,
+        }),
+        partitionKey: {
+          name: 'id',
+          type: dynamodb.AttributeType.STRING,
+        },
+        encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
+        encryptionKey: installerCmk,
+        pointInTimeRecovery: true,
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      });
+
+      const cidrPoolTable = new dynamodb.Table(this, 'CidrPoolTable', {
+        tableName: createName({
+          name: CIDR_POOL_TABLE,
+          suffixLength: 0,
+        }),
+        partitionKey: {
+          name: 'id',
+          type: dynamodb.AttributeType.STRING,
+        },
+        encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
+        encryptionKey: installerCmk,
+        pointInTimeRecovery: true,
         billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       });
 
@@ -187,6 +260,9 @@ export namespace InitialSetup {
           LIMITS_ITEM_ID: 'limits',
           ORGANIZATIONS_ITEM_ID: 'organizations',
           DYNAMODB_PARAMETERS_TABLE_NAME: parametersTable.tableName,
+          VPC_CIDR_ASSIGNED_POOL: vpcCidrPoolTable.tableName,
+          SUBNET_CIDR_ASSIGNED_POOL: subnetCidrPoolTable.tableName,
+          CIDR_POOL: cidrPoolTable.tableName,
           DEPLOY_STACK_PAGE_SIZE: props.pageSize,
           COMPUTE_TYPE: props.codebuildComputeType,
         },
@@ -228,6 +304,9 @@ export namespace InitialSetup {
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           'baseline.$': '$.configuration.baselineOutput.baseline',
           parametersTableName: parametersTable.tableName,
+          vpcCidrPoolAssignedTable: vpcCidrPoolTable.tableName,
+          subnetCidrPoolAssignedTable: subnetCidrPoolTable.tableName,
+          outputTableName: outputsTable.tableName,
         },
         resultPath: 'DISCARD',
       });
@@ -245,28 +324,11 @@ export namespace InitialSetup {
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           outputTableName: outputsTable.tableName,
           'storeAllOutputs.$': '$.configuration.storeAllOutputs',
+          vpcCidrPoolAssignedTable: vpcCidrPoolTable.tableName,
+          subnetCidrPoolAssignedTable: subnetCidrPoolTable.tableName,
+          cidrPoolsTable: cidrPoolTable.tableName,
         },
         resultPath: '$.configuration.baselineOutput',
-      });
-
-      const loadLandingZoneConfigurationTask = new CodeTask(this, 'Load Landing Zone Configuration', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.loadLandingZoneConfigurationStep',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          configRepositoryName: props.configRepositoryName,
-          'configFilePath.$': '$.configuration.configFilePath',
-          'configCommitId.$': '$.configuration.configCommitId',
-          'baseline.$': '$.configuration.baselineOutput.baseline',
-          'storeAllOutputs.$': '$.configuration.baselineOutput.storeAllOutputs',
-          'phases.$': '$.configuration.baselineOutput.phases',
-          'acceleratorVersion.$': '$.configuration.acceleratorVersion',
-          'configRootFilePath.$': '$.configuration.configRootFilePath',
-          'organizationAdminRole.$': '$.configuration.baselineOutput.organizationAdminRole',
-        },
-        resultPath: '$.configuration',
       });
 
       const loadOrgConfigurationTask = new CodeTask(this, 'Load Organization Configuration', {
@@ -286,13 +348,15 @@ export namespace InitialSetup {
           'configRootFilePath.$': '$.configuration.configRootFilePath',
           'organizationAdminRole.$': '$.configuration.baselineOutput.organizationAdminRole',
           'smInput.$': '$.configuration.smInput',
+          acceleratorPrefix: props.acceleratorPrefix,
+          parametersTableName: parametersTable.tableName,
         },
         resultPath: '$.configuration',
       });
 
-      // TODO We might want to load this from the Landing Zone configuration
-      const avmProductName = 'AWS-Landing-Zone-Account-Vending-Machine';
-      const avmPortfolioName = 'AWS Landing Zone - Baseline';
+      // TODO We might want to load this from the Control Tower api
+      const avmProductName = 'AWS Control Tower Account Factory';
+      const avmPortfolioName = 'AWS Control Tower Account Factory Portfolio';
 
       const addRoleToServiceCatalog = new CodeTask(this, 'Add Execution Role to Service Catalog', {
         functionProps: {
@@ -308,20 +372,20 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const createLandingZoneAccountStateMachine = new sfn.StateMachine(
+      const createControlTowerAccountStateMachine = new sfn.StateMachine(
         scope,
-        `${props.acceleratorPrefix}ALZCreateAccount_sm`,
+        `${props.acceleratorPrefix}CTCreateAccount_sm`,
         {
-          stateMachineName: `${props.acceleratorPrefix}ALZCreateAccount_sm`,
-          definition: new CreateLandingZoneAccountTask(scope, 'Create ALZ Account', {
+          stateMachineName: `${props.acceleratorPrefix}CTCreateAccount_sm`,
+          definition: new CreateControlTowerAccountTask(scope, 'Create CT Account', {
             lambdaCode,
             role: pipelineRole,
           }),
         },
       );
 
-      const createLandingZoneAccountTask = new tasks.StepFunctionsStartExecution(this, 'Create Landing Zone Account', {
-        stateMachine: createLandingZoneAccountStateMachine,
+      const createControlTowerAccountTask = new tasks.StepFunctionsStartExecution(this, 'Create Account', {
+        stateMachine: createControlTowerAccountStateMachine,
         integrationPattern: sfn.IntegrationPattern.RUN_JOB,
         input: sfn.TaskInput.fromObject({
           avmProductName,
@@ -330,13 +394,13 @@ export namespace InitialSetup {
         }),
       });
 
-      const createLandingZoneAccountsTask = new sfn.Map(this, 'Create Landing Zone Accounts', {
+      const createControlTowerAccountsTask = new sfn.Map(this, 'Create Accounts', {
         itemsPath: '$.configuration.accounts',
         resultPath: 'DISCARD',
         maxConcurrency: 1,
       });
 
-      createLandingZoneAccountsTask.iterator(createLandingZoneAccountTask);
+      createControlTowerAccountsTask.iterator(createControlTowerAccountTask);
 
       const createOrganizationAccountStateMachine = new sfn.StateMachine(
         scope,
@@ -545,7 +609,6 @@ export namespace InitialSetup {
         definition: new RunAcrossAccountsTask(this, 'DeleteDefaultVPCs', {
           lambdaCode,
           role: pipelineRole,
-          assumeRoleName: props.stateMachineExecutionRole,
           lambdaPath: 'index.deleteDefaultVpcs',
           name: 'Delete Default VPC',
         }),
@@ -561,6 +624,7 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configCommitId',
           'baseline.$': '$.baseline',
           acceleratorPrefix: props.acceleratorPrefix,
+          assumeRoleName: props.stateMachineExecutionRole,
         }),
         resultPath: 'DISCARD',
       });
@@ -598,6 +662,7 @@ export namespace InitialSetup {
           accountsItemId: 'accounts',
           configBranch: props.configBranchName,
           'configRootFilePath.$': '$.configuration.configRootFilePath',
+          'baseline.$': '$.configuration.baselineOutput.baseline',
         },
         resultPath: '$.configuration.configCommitId',
       });
@@ -618,6 +683,7 @@ export namespace InitialSetup {
           parametersTableName: parametersTable.tableName,
           outputTableName: outputsTable.tableName,
           'organizationAdminRole.$': '$.organizationAdminRole',
+          'baseline.$': '$.baseline',
         },
         resultPath: 'DISCARD',
       });
@@ -665,7 +731,7 @@ export namespace InitialSetup {
         },
         resultPath: 'DISCARD',
       });
-      detachQuarantineScpTask.next(storeAllOutputsToSsmTask);
+      // detachQuarantineScpTask.next(storeAllOutputsToSsmTask);
 
       const enableTrustedAccessForServicesTask = new CodeTask(this, 'Enable Trusted Access For Services', {
         functionProps: {
@@ -682,43 +748,65 @@ export namespace InitialSetup {
         resultPath: '$.installerVersion',
       });
 
-      const codeBuildStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}CodeBuild_sm`, {
-        stateMachineName: `${props.acceleratorPrefix}CodeBuild_sm`,
-        definition: new BuildTask(this, 'CodeBuild', {
-          lambdaCode,
-          role: pipelineRole,
-        }),
-      });
-
-      // TODO Move this to a separate state machine, including store output task
       const createDeploymentTask = (phase: number, loadOutputs: boolean = true) => {
-        const environment: { [name: string]: string } = {
-          ACCELERATOR_PHASE: `${phase}`,
-          'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
-          'CONFIG_FILE_PATH.$': '$.configFilePath',
-          'CONFIG_COMMIT_ID.$': '$.configCommitId',
-          'ACCELERATOR_BASELINE.$': '$.baseline',
-          'CONFIG_ROOT_FILE_PATH.$': '$.configRootFilePath',
-          'INSTALLER_VERSION.$': '$.installerVersion',
-          ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
-          ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
-          CONFIG_BRANCH_NAME: props.configBranchName,
-          STACK_OUTPUT_TABLE_NAME: outputsTable.tableName,
-          BOOTSTRAP_STACK_NAME: bootStrapStackName,
-          'SCOPE.$': '$.scope',
-          'MODE.$': '$.mode',
-          'CDK_DEBUG.$': '$.verbose',
+        const environment = {
+          ACCELERATOR_PHASE: { type: codebuild.BuildEnvironmentVariableType.PLAINTEXT, value: `${phase}` },
+          CONFIG_REPOSITORY_NAME: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.configRepositoryName'),
+          },
+          CONFIG_FILE_PATH: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.configFilePath'),
+          },
+          CONFIG_COMMIT_ID: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.configCommitId'),
+          },
+          ACCELERATOR_BASELINE: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.baseline'),
+          },
+          CONFIG_ROOT_FILE_PATH: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.configRootFilePath'),
+          },
+          INSTALLER_VERSION: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.installerVersion'),
+          },
+          ACCELERATOR_PIPELINE_ROLE_NAME: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: pipelineRole.roleName,
+          },
+          ACCELERATOR_STATE_MACHINE_NAME: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: props.stateMachineName,
+          },
+          CONFIG_BRANCH_NAME: { type: codebuild.BuildEnvironmentVariableType.PLAINTEXT, value: props.configBranchName },
+          STACK_OUTPUT_TABLE_NAME: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: outputsTable.tableName,
+          },
+          BOOTSTRAP_STACK_NAME: { type: codebuild.BuildEnvironmentVariableType.PLAINTEXT, value: bootStrapStackName },
+          SCOPE: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.scope'),
+          },
+          MODE: { type: codebuild.BuildEnvironmentVariableType.PLAINTEXT, value: sfn.JsonPath.stringAt('$.mode') },
+          CDK_DEBUG: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.verbose'),
+          },
         };
 
-        const deployTask = new tasks.StepFunctionsStartExecution(this, `Deploy Phase ${phase}`, {
-          stateMachine: codeBuildStateMachine,
+        const deployTask = new tasks.CodeBuildStartBuild(this, `Deploy Phase ${phase}`, {
+          project: project.resource,
           integrationPattern: sfn.IntegrationPattern.RUN_JOB,
-          input: sfn.TaskInput.fromObject({
-            codeBuildProjectName: project.projectName,
-            environment,
-          }),
+          environmentVariablesOverride: environment,
           resultPath: 'DISCARD',
         });
+
         return deployTask;
       };
 
@@ -799,13 +887,13 @@ export namespace InitialSetup {
       const deployPhase4Task = createDeploymentTask(4);
       const storePhase4Output = createStoreOutputTask(4);
       const deployPhase5Task = createDeploymentTask(5);
+      const storePhase5Output = createStoreOutputTask(5);
 
       const createConfigRecorderSfn = new sfn.StateMachine(this, 'Create Config Recorder Sfn', {
         stateMachineName: `${props.acceleratorPrefix}CreateConfigRecorder_sfn`,
         definition: new RunAcrossAccountsTask(this, 'CreateConfigRecorder', {
           lambdaCode,
           role: pipelineRole,
-          assumeRoleName: props.stateMachineExecutionRole,
           lambdaPath: 'index.createConfigRecorder',
           name: 'Create Config Recorder',
           functionPayload: {
@@ -825,6 +913,7 @@ export namespace InitialSetup {
           'baseline.$': '$.baseline',
           outputTableName: outputsTable.tableName,
           acceleratorPrefix: props.acceleratorPrefix,
+          assumeRoleName: props.stateMachineExecutionRole,
         }),
         resultPath: 'DISCARD',
       });
@@ -842,6 +931,7 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
+          'baseline.$': '$.baseline',
           outputTableName: outputsTable.tableName,
         },
         resultPath: 'DISCARD',
@@ -932,13 +1022,13 @@ export namespace InitialSetup {
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
           acceleratorVersion: props.acceleratorVersion,
+          vpcCidrPoolAssignedTable: vpcCidrPoolTable.tableName,
+          subnetCidrPoolAssignedTable: subnetCidrPoolTable.tableName,
+          outputTableName: outputsTable.tableName,
+          parametersTableName: parametersTable.tableName,
         },
         resultPath: 'DISCARD',
       });
-
-      const baseLineCleanupChoice = new sfn.Choice(this, 'Baseline Clean Up?')
-        .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), detachQuarantineScpTask)
-        .otherwise(storeAllOutputsToSsmTask);
 
       const commonStep1 = addScpTask.startState
         .next(deployPhase1Task)
@@ -953,21 +1043,19 @@ export namespace InitialSetup {
         .next(addTagsToSharedResourcesTask)
         .next(enableDirectorySharingTask)
         .next(deployPhase5Task)
+        .next(storePhase5Output)
         .next(createAdConnectorTask)
         .next(storeCommitIdTask)
-        .next(baseLineCleanupChoice);
-
-      const enableConfigChoice = new sfn.Choice(this, 'Create Config Recorders?')
-        .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), createConfigRecordersTask.next(commonStep1))
-        .otherwise(commonStep1)
-        .afterwards();
+        .next(detachQuarantineScpTask)
+        .next(storeAllOutputsToSsmTask);
 
       const commonStep2 = deployPhaseRolesTask
         .next(storePreviousOutput)
         .next(deployPhase0Task)
         .next(storePhase0Output)
         .next(verifyFilesTask)
-        .next(enableConfigChoice);
+        .next(createConfigRecordersTask)
+        .next(commonStep1);
 
       const storeAllOutputsChoice = new sfn.Choice(this, 'Store All Phase Outputs?')
         .when(sfn.Condition.booleanEquals('$.storeAllOutputs', true), storeAllPhaseOutputs.next(commonStep2))
@@ -983,42 +1071,26 @@ export namespace InitialSetup {
         .next(enableTrustedAccessForServicesTask)
         .next(storeAllOutputsChoice);
 
-      // Landing Zone Config Setup
-      const alzConfigDefinition = loadLandingZoneConfigurationTask.startState
-        .next(addRoleToServiceCatalog)
-        .next(createLandingZoneAccountsTask)
-        .next(commonDefinition);
-
-      const cloudFormationMasterRoleChoice = new sfn.Choice(this, 'Install CloudFormation Role in Master?')
+      const cloudFormationExecRoleManagementChoice = new sfn.Choice(
+        this,
+        'Install CloudFormation Role in Management Account?',
+      )
         .when(
           sfn.Condition.booleanEquals('$.configuration.installCloudFormationMasterRole', true),
           installCfnRoleMasterTask,
         )
-        .otherwise(createOrganizationAccountsTask)
+        .otherwise(commonDefinition)
         .afterwards();
-
-      installCfnRoleMasterTask.next(createOrganizationAccountsTask).next(commonDefinition);
-
-      // // Organizations Config Setup
-      const orgConfigDefinition = validateOuConfiguration.startState
-        .next(loadOrgConfigurationTask)
-        .next(cloudFormationMasterRoleChoice);
+      installCfnRoleMasterTask.next(commonDefinition);
+      // Control Tower Setup
+      const ctDefinition = addRoleToServiceCatalog.startState;
+      addRoleToServiceCatalog.next(createControlTowerAccountsTask);
 
       const baseLineChoice = new sfn.Choice(this, 'Baseline?')
-        .when(
-          sfn.Condition.stringEquals('$.configuration.baselineOutput.baseline', 'LANDING_ZONE'),
-          alzConfigDefinition,
-        )
-        .when(
-          sfn.Condition.stringEquals('$.configuration.baselineOutput.baseline', 'ORGANIZATIONS'),
-          orgConfigDefinition,
-        )
-        .otherwise(
-          new sfn.Fail(this, 'Fail', {
-            cause: 'Invalid Baseline supplied',
-          }),
-        )
-        .afterwards();
+        .when(sfn.Condition.stringEquals('$.configuration.baseline', 'CONTROL_TOWER'), ctDefinition)
+        .otherwise(createOrganizationAccountsTask)
+        .afterwards()
+        .next(cloudFormationExecRoleManagementChoice);
 
       const notificationTopic = new sns.Topic(this, 'MainStateMachineStatusTopic', {
         displayName: `${props.acceleratorPrefix}-MainStateMachine-Status_topic`,
@@ -1065,7 +1137,12 @@ export namespace InitialSetup {
       });
 
       // Full StateMachine Execution starts from getOrCreateConfigurationTask and wrapped in parallel task for try/catch
-      getOrCreateConfigurationTask.next(getBaseLineTask).next(compareConfigurationsTask).next(baseLineChoice);
+      getOrCreateConfigurationTask
+        .next(getBaseLineTask)
+        .next(compareConfigurationsTask)
+        .next(validateOuConfiguration)
+        .next(loadOrgConfigurationTask)
+        .next(baseLineChoice);
 
       const mainTryCatch = new sfn.Parallel(this, 'Main Try Catch block to Notify users');
       mainTryCatch.branch(getOrCreateConfigurationTask);

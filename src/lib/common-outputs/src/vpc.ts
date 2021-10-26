@@ -1,7 +1,20 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as t from 'io-ts';
+import { defaulted, optional } from '@aws-accelerator/common-types';
 import { createStructuredOutputFinder } from './structured-output';
 import { StackOutput } from './stack-output';
-import { fromNullable } from 'io-ts-types/lib/fromNullable';
 
 export interface VpcSecurityGroupOutput {
   securityGroupId: string;
@@ -41,6 +54,12 @@ export const VpcSecurityGroupOutput = t.interface({
   securityGroupName: t.string,
 });
 
+export const NfwOutput = t.interface({
+  az: t.string,
+  vpcEndpoint: t.string,
+  subnets: t.array(VpcSubnetOutput),
+});
+
 export const VpcOutput = t.interface(
   {
     accountKey: t.string,
@@ -54,7 +73,8 @@ export const VpcOutput = t.interface(
     routeTables: t.record(t.string, t.string),
     securityGroups: t.array(VpcSecurityGroupOutput),
     tgwAttachments: t.array(TgwAttachmentOutput),
-    initialSubnets: fromNullable(t.array(VpcSubnetOutput), []),
+    initialSubnets: defaulted(t.array(VpcSubnetOutput), []),
+    nfw: optional(t.array(NfwOutput)),
   },
   'VpcOutput',
 );

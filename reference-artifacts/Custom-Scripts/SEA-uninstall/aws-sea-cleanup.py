@@ -17,7 +17,7 @@ from os import path
 parser = argparse.ArgumentParser(
         description="A development script that cleans up resources deployed by the accelerator. Use Administrator AWS credentials in the master account when running this script."
 )
-parser.add_argument('--AcceleratorPrefix', default='PBMMAccel', help='The value set in AcceleratorPrefix')
+parser.add_argument('--AcceleratorPrefix', default='ASEA', help='The value set in AcceleratorPrefix')
 
 organizations = boto3.client("organizations")
 sts = boto3.client("sts")
@@ -345,8 +345,8 @@ def cleanup():
         config = json.load(json_file)
         supported_regions = config["global-options"]["supported-regions"]
         admin_role = config["global-options"]["organization-admin-role"]
-        config_master_account_name = config["global-options"]["aws-org-master"]["account"]
-        master_region = config["global-options"]["aws-org-master"]["region"]
+        config_master_account_name = config["global-options"]["aws-org-management"]["account"]
+        master_region = config["global-options"]["aws-org-management"]["region"]
 
         config_security_account_name = config["global-options"]["central-security-services"]["account"]
         
@@ -816,11 +816,11 @@ def cleanup_directory_sharing_load_config():
         config = json.load(json_file)       
 
         admin_role = config["global-options"]["organization-admin-role"]        
-        master_region = config["global-options"]["aws-org-master"]["region"]
+        master_region = config["global-options"]["aws-org-management"]["region"]
 
         mad_account_name = config["global-options"]["central-operations-services"]["account"]
         mad_account =  config["mandatory-account-configs"][mad_account_name]["account-name"]
-        if "mad" not in config["mandatory-account-configs"][mad_account_name]:
+        if "mad" not in config["mandatory-account-configs"][mad_account_name]["deployments"]:
             return "mad not configured"
         elif config["mandatory-account-configs"][mad_account_name]["deployments"]["mad"] == False:
             return "mad not configured"
@@ -875,17 +875,17 @@ def cleanup_route53_resolver_load_config():
         config = json.load(json_file)
         
         admin_role = config["global-options"]["organization-admin-role"]        
-        master_region = config["global-options"]["aws-org-master"]["region"]
+        master_region = config["global-options"]["aws-org-management"]["region"]
 
         central_account_name = config["global-options"]["central-operations-services"]["account"]
-        if "mad" not in config["mandatory-account-configs"][central_account_name]:
+        if "mad" not in config["mandatory-account-configs"][central_account_name]["deployments"]:
             return "mad not configured"
         elif config["mandatory-account-configs"][central_account_name]["deployments"]["mad"] == False:
             return "mad not configured"
 
         central_resolver_rule_account =  config["mandatory-account-configs"][central_account_name]["deployments"]["mad"]["central-resolver-rule-account"]
         
-        config_master_account_name = config["global-options"]["aws-org-master"]["account"]
+        config_master_account_name = config["global-options"]["aws-org-management"]["account"]
         master_account_name = config["mandatory-account-configs"][config_master_account_name]["account-name"]
 
     accounts = get_accounts()
@@ -926,10 +926,10 @@ def backup_config():
         print("Backing up config.json from CodeCommit...")
         try:
             for repo in repos["repositories"]:
-                if AcceleratorPrefix != 'PBMMAccel':
+                if AcceleratorPrefix != 'ASEA':
                     CodeCommitPrefix = AcceleratorPrefix
                 else:
-                    CodeCommitPrefix = 'PBMM'
+                    CodeCommitPrefix = 'ASEA'
                 if repo["repositoryName"].startswith(CodeCommitPrefix):
                     file = cc.get_file(
                         repositoryName=repo["repositoryName"],

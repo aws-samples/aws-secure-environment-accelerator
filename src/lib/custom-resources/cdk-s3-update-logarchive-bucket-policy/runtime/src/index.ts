@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
 import {
@@ -122,7 +135,7 @@ async function putKmsKeyPolicy(keyArn: string | undefined, policy: string) {
 }
 
 function removeExistingReadOnlyStatement(policy: Policy) {
-  policy.Statement = policy.Statement.filter(statement => statement['Sid'] !== logArchiveReadOnlySid);
+  policy.Statement = policy.Statement.filter(statement => statement.Sid !== logArchiveReadOnlySid);
   return policy;
 }
 
@@ -172,12 +185,12 @@ async function updateKeyPolicy(props: HandlerProperties, keyPolicy: Policy) {
 }
 
 async function createOrUpdateBucketPolicy(props: HandlerProperties) {
-  let bucketPolicy = await getBucketPolicy(props.logBucketName);
+  const bucketPolicy = await getBucketPolicy(props.logBucketName);
   if (Object.keys(bucketPolicy).length > 0 || props.roles.length > 0) {
     await updateBucketPolicy(props, bucketPolicy);
   }
 
-  let keyPolicy = await getKmsKeyPolicy(props.logBucketKmsKeyArn);
+  const keyPolicy = await getKmsKeyPolicy(props.logBucketKmsKeyArn);
   if (Object.keys(keyPolicy).length > 0 || props.roles.length > 0) {
     await updateKeyPolicy(props, keyPolicy);
   }
@@ -212,5 +225,5 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
 }
 
 function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
-  return (event.ResourceProperties as unknown) as HandlerProperties;
+  return event.ResourceProperties as unknown as HandlerProperties;
 }

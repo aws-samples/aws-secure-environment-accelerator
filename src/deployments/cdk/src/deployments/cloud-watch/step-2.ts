@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as c from '@aws-accelerator/common-config';
 import { AccountStacks } from '../../common/account-stacks';
 import * as cdk from '@aws-cdk/core';
@@ -19,23 +32,24 @@ export async function step2(props: CloudWatchStep2Props) {
     console.log(`No Configuration defined for CloudWatch Deployment`);
     return;
   }
+  const managementAccount = config['global-options']['aws-org-management'].account;
+  const managementRegion = config['global-options']['aws-org-management'].region;
   const alarmsConfig = globalOptions.cloudwatch.alarms;
   const alarmDefaultDefinition: c.CloudWatchDefaultAlarmDefinition = alarmsConfig;
+  if (alarmDefaultDefinition['default-accounts'].includes('ALL')) {
+    alarmDefaultDefinition['default-accounts'] = accounts.map(account => account.key);
+  }
   for (const alarmconfig of alarmsConfig.definitions) {
     const accountKeys: string[] = [];
     const regions: string[] = [];
-    if (alarmconfig.accounts && alarmconfig.accounts.includes('ALL')) {
-      // TODO Ignore for now implementation will come in phase 2
-    } else {
-      accountKeys.push(...(alarmconfig.accounts || alarmDefaultDefinition['default-accounts']));
+    if (alarmconfig.accounts?.includes('ALL')) {
+      alarmconfig.accounts = accounts.map(account => account.key);
     }
 
-    if (alarmconfig.regions && alarmconfig.regions.includes('ALL')) {
-      // TODO Ignore for now implementation will come in phase 2
-    } else {
-      regions.push(...(alarmconfig.regions || alarmDefaultDefinition['default-regions']));
-    }
+    accountKeys.push(...(alarmconfig.accounts || alarmDefaultDefinition['default-accounts']));
+    regions.push(...(alarmconfig.regions || alarmDefaultDefinition['default-regions']));
     for (const accountKey of accountKeys) {
+      console.log('REGIONS: ', JSON.stringify(regions, null, 4));
       for (const region of regions) {
         const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
         if (!accountStack) {
@@ -58,9 +72,17 @@ export async function step2(props: CloudWatchStep2Props) {
           treatMissingData: alarmconfig['treat-missing-data'] || alarmDefaultDefinition['default-treat-missing-data'],
           threshold: alarmconfig.threshold || alarmDefaultDefinition['default-threshold'],
           alarmActions: [
-            `arn:aws:sns:${cdk.Aws.REGION}:${getAccountId(accounts, centralLogServices.account)}:${createSnsTopicName(
-              alarmconfig['sns-alert-level'],
-            )}`,
+            accountKey === managementAccount &&
+            region === managementRegion &&
+            (alarmconfig['in-org-mgmt-use-lcl-sns'] === true ||
+              alarmDefaultDefinition['default-in-org-mgmt-use-lcl-sns'])
+              ? `arn:aws:sns:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:${createSnsTopicName(
+                  alarmconfig['sns-alert-level'],
+                )}`
+              : `arn:aws:sns:${cdk.Aws.REGION}:${getAccountId(
+                  accounts,
+                  centralLogServices.account,
+                )}:${createSnsTopicName(alarmconfig['sns-alert-level'])}`,
           ],
         });
       }

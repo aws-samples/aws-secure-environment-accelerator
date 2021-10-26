@@ -1,0 +1,18 @@
+{
+  "name": "@aws-accelerator/io-ts-annotations",
+  "version": "0.0.1",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "lint:typecheck": "pnpx tsc --noEmit",
+    "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
+  },
+  "dependencies": {
+    "io-ts": "2.2.16"
+  },
+  "devDependencies": {
+    "ts-node": "9.1.1",
+    "typescript": "4.2.4"
+  }
+}

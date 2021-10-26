@@ -2,7 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "Tag1",
+      "Sid": "TAG1",
       "Effect": "Deny",
       "Action": [
         "ec2:DeleteSecurityGroup",
@@ -21,7 +21,7 @@
       }
     },
     {
-      "Sid": "Tag2",
+      "Sid": "TAG2",
       "Effect": "Deny",
       "NotAction": [
         "sts:AssumeRole",
@@ -61,10 +61,7 @@
         "s3:PutObjectRetention",
         "s3:PutObjectTagging"
       ],
-      "Resource": [
-        "arn:aws:s3:::${ACCELERATOR_PREFIX_LND}-*",
-        "arn:aws:s3:::cdk-${ACCELERATOR_PREFIX_LND}*"
-      ],
+      "Resource": ["arn:aws:s3:::${ACCELERATOR_PREFIX_LND}-*", "arn:aws:s3:::cdk-${ACCELERATOR_PREFIX_LND}*"],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
@@ -83,7 +80,7 @@
       }
     },
     {
-      "Sid": "Alarms",
+      "Sid": "ALM",
       "Effect": "Deny",
       "Action": [
         "cloudwatch:DeleteAlarms",
@@ -93,12 +90,7 @@
         "cloudwatch:PutMetricAlarm",
         "cloudwatch:SetAlarmState"
       ],
-      "Resource": [
-        "arn:aws:cloudwatch:*:*:alarm:CloudTrail*",
-        "arn:aws:cloudwatch:*:*:alarm:${ACCELERATOR_PREFIX}*",
-        "arn:aws:cloudwatch:*:*:alarm:IAMPolicyChanges",
-        "arn:aws:cloudwatch:*:*:alarm:RootLogin"
-      ],
+      "Resource": ["arn:aws:cloudwatch:*:*:alarm:${ACCELERATOR_PREFIX}*"],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
@@ -106,7 +98,7 @@
       }
     },
     {
-      "Sid": "Roles",
+      "Sid": "ROL",
       "Effect": "Deny",
       "Action": ["iam:*"],
       "Resource": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ACCELERATOR_NAME}Ops-*"],
@@ -128,7 +120,6 @@
       ],
       "Resource": [
         "arn:aws:ssm:*:*:parameter/${ACCELERATOR_PREFIX_ND}*",
-        "arn:aws:ssm:*:*:parameter/cloudformation*",
         "arn:aws:ssm:*:*:document/${ACCELERATOR_PREFIX_ND}*",
         "arn:aws:ssm:*:*:document/SSM-SessionManagerRunShell"
       ],
@@ -139,7 +130,7 @@
       }
     },
     {
-      "Sid": "Log",
+      "Sid": "LOG",
       "Effect": "Deny",
       "Action": [
         "ec2:DeleteFlowLogs",
@@ -157,18 +148,23 @@
       "Resource": "*",
       "Condition": {
         "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}"]
+        }
+      }
+    },
+    {
+      "Sid": "LOG2",
+      "Effect": "Deny",
+      "Action": ["logs:AssociateKmsKey", "logs:DisassociateKmsKey", "logs:PutDestination", "logs:PutDestinationPolicy"],
+      "Resource": "arn:aws:logs:::log-group:*${ACCELERATOR_PREFIX_ND}*",
+      "Condition": {
+        "ArnNotLike": {
           "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
         }
       }
     },
     {
-      "Sid": "Org",
-      "Effect": "Deny",
-      "Action": "organizations:LeaveOrganization",
-      "Resource": "*"
-    },
-    {
-      "Sid": "Lambda",
+      "Sid": "LAM",
       "Effect": "Deny",
       "Action": [
         "lambda:AddPermission",
@@ -191,31 +187,55 @@
       }
     },
     {
-      "Sid": "Other",
+      "Sid": "NET1",
       "Effect": "Deny",
       "Action": [
-        "aws-portal:ModifyAccount",
-        "aws-portal:ViewAccount",
-        "aws-portal:ModifyBilling",
-        "aws-portal:ModifyPaymentMethods",
-        "aws-portal:ViewPaymentMethods",
-        "ec2:DisableEbsEncryptionByDefault",
-        "s3:PutAccountPublicAccessBlock",
-        "ds:AcceptSharedDirectory",
-        "ds:UnshareDirectory",
-        "ds:ShareDirectory",
-        "ds:EnableSso",
-        "ds:DisableSso",
-        "ram:AssociateResourceShare",
-        "ram:CreateResourceShare",
-        "ram:DeleteResourceShare",
-        "ram:EnableSharingWithAwsOrganization",
-        "config:DeleteAggregationAuthorization",
-        "config:DeleteConfigurationAggregator",
-        "config:PutAggregationAuthorization",
-        "config:PutConfigurationAggregator"
+        "ec2:DeleteNatGateway",
+        "ec2:DeleteTransitGatewayRoute",
+        "ec2:DeleteTransitGatewayRouteTable",
+        "ec2:DeleteTransitGatewayVpcAttachment",
+        "ec2:DeleteVpc",
+        "ec2:DeleteVpcEndpoints",
+        "ec2:DeleteVpcPeeringConnection",
+        "ec2:DeleteVpnConnection",
+        "ec2:DeleteVpnGateway",
+        "ec2:DetachVpnGateway",
+        "ec2:DeleteCustomerGateway",
+        "ec2:DeleteDhcpOptions",
+        "ec2:DeleteInternetGateway",
+        "ec2:DeleteRouteTable",
+        "ec2:DeleteSubnet",
+        "ec2:DeleteRoute",
+        "ec2:DetachInternetGateway",
+        "ec2:DisassociateRouteTable"
       ],
       "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "ec2:ResourceTag/Accelerator": "${ACCELERATOR_NAME}"
+        },
+        "ArnNotLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
+            "arn:aws:iam::*:role/${ACCELERATOR_NAME}Ops-*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "NFW",
+      "Effect": "Deny",
+      "Action": [
+        "network-firewall:AssociateSub*",
+        "network-firewall:DisassociateSub*",
+        "network-firewall:Create*",
+        "network-firewall:Delete*",
+        "network-firewall:Update*"
+      ],
+      "Resource": [
+        "arn:aws:network-firewall:*:*:firewal*/${ACCELERATOR_PREFIX_ND}*",
+        "arn:aws:network-firewall:*:*:state*/${ACCELERATOR_PREFIX_ND}*"
+      ],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
