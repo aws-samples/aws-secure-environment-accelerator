@@ -471,7 +471,7 @@ The Accelerator installation is complete, but several manual steps remain:
    - If deployed, login to any 3rd party firewalls and firewall manager appliances and update any default passwords;
    - Tighten security groups on the 3rd party firewall instances (using the Accelerator configuration file), further limiting access to firewall management interfaces to a set of designated and controlled CIDR ranges;
    - Update the firewall configuration per your organizations security requirements and best practices;
-   - Diagrams reflecting perimeter traffic flows when NFW and/or GWLB are used can be found [here](../architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md) on slides 6 through 9.
+   - Diagrams reflecting perimeter traffic flows when NFW and/or GWLB are used can be found [here](../architectures/AWS_Diagrams_Account_Network_VPC.md) on slides 6 through 9.
 
    **AWS Network Firewall**
 

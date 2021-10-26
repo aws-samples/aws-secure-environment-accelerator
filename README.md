@@ -164,15 +164,14 @@ This summarizes the installation process, the full installation document can be 
 
 ### - Prescriptive PBMM Architecture Design [Document](./docs/architectures/pbmm/architecture.md) (Early Draft)
 
-- Accelerator Prescriptive Architecture Sample [diagrams](./docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md)
+- Accelerator Prescriptive Architecture Sample [diagrams](./docs/architectures/AWS_Diagrams_Account_Network_VPC.md)
 
 ---
 
 Note: Two ZIP files are attached as assets of each [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases):
 
 - one contains a PDF version of the above documentation
-- the second contains a _DRAFT_ of the config file documentation, auto generated from a combination of the typescript schema and the field definitions added for the future GUI
-  - Extract and open src\lib\docs-gen\output-docs\en\index.html in your browser
+- the second contains a _DRAFT_ of the config file documentation, auto generated from a combination of the typescript schema and the field definitions added for the future GUI (extract and open src\lib\docs-gen\output-docs\en\index.html in your browser)
 
 ---
 
