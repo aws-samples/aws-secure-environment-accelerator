@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import { AccountStacks } from '../../common/account-stacks';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import * as c from '@aws-accelerator/common-config';
@@ -39,7 +26,7 @@ export interface CentralEndpointsStep5Props {
 export async function step5(props: CentralEndpointsStep5Props) {
   const { accountStacks, config, outputs, accounts, assumeRole, executionRole } = props;
   const allVpcConfigs = config.getVpcConfigs();
-  const masterAccountKey = config['global-options']['aws-org-management'].account;
+  const masterAccountKey = config['global-options']['aws-org-master'].account;
 
   const regionalZoneOutputs: { [regino: string]: HostedZoneOutput[] } = {};
   for (const { accountKey, vpcConfig } of allVpcConfigs) {

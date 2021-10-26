@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as cdk from '@aws-cdk/core';
 import * as accessanalyzer from '@aws-cdk/aws-accessanalyzer';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
@@ -31,7 +18,6 @@ import * as transitGateway from '../deployments/transit-gateway';
 import { getAccountId } from '../utils/accounts';
 import * as rsyslogDeployment from '../deployments/rsyslog';
 import * as cleanup from '../deployments/cleanup';
-import * as keyPair from '../deployments/key-pair';
 
 /**
  * This is the main entry point to deploy phase 0.
@@ -59,21 +45,12 @@ import * as keyPair from '../deployments/key-pair';
  * - enable Access Analyzer;
  */
 
-export async function deploy({
-  acceleratorConfig,
-  accountStacks,
-  accounts,
-  context,
-  outputs,
-  organizations,
-}: PhaseInput) {
+export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   if (!masterAccountId) {
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
   }
-  const rootOuId = organizations[0].rootOrgId!;
-  const { acceleratorBaseline } = context;
   // verify and create ec2 instance to increase account limits
   await accountWarming.step1({
     accountStacks,
@@ -81,7 +58,7 @@ export async function deploy({
     outputs,
   });
 
-  if (['ORGANIZATIONS', 'CONTROL_TOWER'].includes(acceleratorBaseline)) {
+  if (!acceleratorConfig['global-options']['alz-baseline']) {
     await passwordPolicy.step1({
       accountStacks,
       config: acceleratorConfig,
@@ -107,7 +84,6 @@ export async function deploy({
   const { secretsContainer } = await secretsDeployment.step1({
     accountStacks,
     config: acceleratorConfig,
-    outputs,
   });
 
   // Create IAM secrets
@@ -118,13 +94,14 @@ export async function deploy({
     secretsContainer,
   });
 
-  // Create IAM role for Config Service
-  // Can be disabled for CONTROL_TOWER when CONTROM_TOWER deployed in all regions
-  await iamDeployment.createConfigServiceRoles({
-    acceleratorPrefix: context.acceleratorPrefix,
-    config: acceleratorConfig,
-    accountStacks,
-  });
+  if (!acceleratorConfig['global-options']['alz-baseline']) {
+    // Create IAM role for Config Service
+    await iamDeployment.createConfigServiceRoles({
+      acceleratorPrefix: context.acceleratorPrefix,
+      config: acceleratorConfig,
+      accountStacks,
+    });
+  }
 
   // Create MAD secrets
   await madDeployment.createSecrets({
@@ -195,7 +172,6 @@ export async function deploy({
     accountStacks,
     config: acceleratorConfig,
     accounts,
-    rootOuId,
   });
 
   // Transit Gateway step 1
@@ -231,11 +207,6 @@ export async function deploy({
     config: acceleratorConfig,
     outputs,
     context,
-  });
-
-  await keyPair.step1({
-    accountStacks,
-    config: acceleratorConfig,
   });
 
   // TODO Deprecate these outputs

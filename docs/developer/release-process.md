@@ -24,13 +24,9 @@
 
 9. A successful run of this workflow will automatically kick off the "Generate Documentation" workflow. This workflow may also be initiated at any time manually via the GitHub Actions UI (since it is configured as a `workflow_dispatch` action).
 
-   - once the documentation is generated, add the ZIP file to the release assets, named `AWS-SEA-Documentation-vXXX.zip`
+   - once the documentaion is generated, add them to the release assets
 
-10. Rename the `AcceleratorInstaller.template.json` to `AcceleratorInstaller`XXX`.template.json` replacing XXX with the version number without punctuation (i.e. `AcceleratorInstaller121b.template.json`).
-    - Repeat for `AcceleratorInstaller-CodeCommit.template-vXXX.json`.
-11. Add the Accelerator configuration file schema documentation ZIP to the release assets, named `AWS-SEA-Config-Schema-vXXX-DRAFT.zip`.
-
-12. Add the Accelerator **_Alpha_** GUI ZIP to the release assets, named `AWS-SEA-GUI-mockup-DoNotUse-vXXX-alpha.zip`.
+10. Finally rename the `AcceleratorInstaller.template.json` to `AcceleratorInstaller`XXX`.template.json` replacing XXX with the version number without punctuation (i.e. `AcceleratorInstaller121b.template.json`)
 
 ---
 

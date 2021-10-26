@@ -2,39 +2,73 @@
   "name": "@aws-accelerator/deployments-runtime",
   "version": "0.0.1",
   "private": true,
-  "main": "dist/index.js",
   "scripts": {
-    "build": "pnpx esbuild --minify --bundle --platform=node --target=node14 --external:aws-sdk --outfile=./dist/index.js src/index.ts",
+    "build": "pnpx webpack-cli --config webpack.config.ts",
+    "prepare": "pnpx webpack-cli --config webpack.config.ts",
     "test": "pnpx jest",
-    "lint:typecheck": "pnpx tsc --noEmit",
-    "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
+    "lint": "eslint --ext .ts 'src/**/*.ts'"
+  },
+  "main": "dist/index.js",
+  "devDependencies": {
+    "@babel/core": "7.9.0",
+    "@babel/plugin-proposal-class-properties": "7.8.3",
+    "@babel/plugin-transform-typescript": "7.9.4",
+    "@babel/preset-env": "7.9.0",
+    "@babel/preset-typescript": "7.9.0",
+    "@types/adm-zip": "0.4.32",
+    "@types/aws-lambda": "8.10.46",
+    "@types/cfn-response": "1.0.4",
+    "@types/jest": "25.2.3",
+    "@types/node": "12.12.6",
+    "@types/webpack": "4.41.8",
+    "babel-jest": "25.2.0",
+    "babel-loader": "8.1.0",
+    "fork-ts-checker-webpack-plugin": "4.1.1",
+    "glob": "7.1.6",
+    "jest": "25.2.4",
+    "prettier": "2.2.0",
+    "ts-jest": "25.3.0",
+    "ts-node": "8.8.1",
+    "eslint": "7.10.0",
+    "@typescript-eslint/eslint-plugin": "4.4.0",
+    "@typescript-eslint/parser": "4.4.0",
+    "eslint-config-prettier": "6.12.0",
+    "eslint-config-standard": "14.1.1",
+    "eslint-plugin-standard": "4.0.1",
+    "eslint-plugin-deprecation": "1.1.0",
+    "eslint-plugin-promise": "4.2.1",
+    "eslint-plugin-import": "2.22.1",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-jsdoc": "30.6.4",
+    "eslint-plugin-prefer-arrow": "1.2.2",
+    "eslint-plugin-react": "7.21.3",
+    "eslint-plugin-unicorn": "22.0.0",
+    "typescript": "3.8.3",
+    "webpack": "4.42.1",
+    "webpack-cli": "3.3.11",
+    "@types/js-base64": "2.3.1",
+    "js-base64": "2.5.2"
+  },
+  "dependencies": {
+    "@aws-accelerator/common": "workspace:^0.0.1",
+    "@aws-accelerator/common-outputs": "workspace:^0.0.1",
+    "@aws-accelerator/common-config": "workspace:^0.0.1",
+    "adm-zip": "0.4.14",
+    "aws-lambda": "1.0.6",
+    "aws-sdk": "2.787.0",
+    "cfn-response": "1.0.1",
+    "generate-password": "1.5.1",
+    "io-ts": "2.1.2",
+    "original-fs": "1.1.0",
+    "pascal-case": "3.1.1"
   },
   "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
     "globals": {
       "ts-jest": {
         "isolatedModules": true
       }
-    },
-    "preset": "ts-jest",
-    "testEnvironment": "node"
-  },
-  "dependencies": {
-    "@aws-accelerator/common": "workspace:*",
-    "@aws-accelerator/common-config": "workspace:*",
-    "@aws-accelerator/common-outputs": "workspace:*",
-    "aws-lambda": "1.0.6",
-    "aws-sdk": "2.944.0",
-    "lodash": "^4.17.21",
-    "pascal-case": "3.1.2"
-  },
-  "devDependencies": {
-    "@types/aws-lambda": "8.10.76",
-    "@types/node": "14.14.31",
-    "esbuild": "0.11.18",
-    "eslint": "7.25.0",
-    "jest": "25.2.4",
-    "ts-jest": "25.3.0",
-    "ts-node": "9.1.1",
-    "typescript": "4.2.4"
+    }
   }
 }

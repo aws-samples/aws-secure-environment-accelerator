@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import * as AWS from 'aws-sdk';
@@ -27,7 +14,7 @@ const ec2 = new AWS.EC2();
 export const handler = errorHandler(onEvent);
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
-  console.log(`Amazon MarketPlace subscription check...`);
+  console.log(`Amazon MarketPlace Supscription check...`);
   console.log(JSON.stringify(event, null, 2));
 
   // eslint-disable-next-line default-case
@@ -43,7 +30,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const instanceParams = {
+  var instanceParams = {
     ImageId: properties.imageId,
     SubnetId: properties.subnetId,
     InstanceType: properties.instanceType || 't2.micro',

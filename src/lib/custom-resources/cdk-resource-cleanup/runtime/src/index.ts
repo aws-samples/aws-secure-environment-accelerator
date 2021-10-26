@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
@@ -228,7 +215,7 @@ async function deleteS3Objects(bucketName: string): Promise<void> {
 
   do {
     console.log('waiting for deletion of s3 objects');
-    await sleep(2000);
+    sleep(2000);
   } while ((await listObjectsList(bucketName)).length > 0);
   console.log('successfully deleted all objects');
 }
@@ -282,7 +269,7 @@ async function deleteS3Markers(bucketName: string): Promise<void> {
 
   do {
     console.log('waiting for deletion of s3 markers');
-    await sleep(2000);
+    sleep(2000);
   } while ((await listObjectMarkersList(bucketName)).length > 0);
   console.log('successfully deleted all marker');
 }
@@ -340,7 +327,7 @@ async function deleteS3Versions(bucketName: string): Promise<void> {
 
   do {
     console.log('waiting for deletion of s3 versions');
-    await sleep(2000);
+    sleep(2000);
   } while ((await listObjectVersionsList(bucketName)).length > 0);
   console.log('successfully deleted all versions');
 }

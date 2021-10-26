@@ -1,0 +1,20 @@
+{
+  "name": "@aws-accelerator/custom-resource-runtime-webpack-base",
+  "version": "0.0.1",
+  "private": true,
+  "main": "src/index.ts",
+  "dependencies": {
+    "@types/webpack": "4.41.8",
+    "ts-loader": "7.0.5",
+    "typescript": "3.8.3",
+    "webpack": "4.42.1",
+    "webpack-cli": "3.3.11",
+    "webpack-shell-plugin-next": "1.1.9"
+  },
+  "peerDependencies": {
+    "ts-loader": "7.0.5",
+    "typescript": "3.8.3",
+    "webpack": "4.42.1",
+    "webpack-cli": "3.3.11"
+  }
+}

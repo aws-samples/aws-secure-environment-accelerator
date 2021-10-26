@@ -1,24 +1,14 @@
 {
-  "name": "@aws-accelerator/root",
-  "version": "0.0.1",
-  "scripts": {
-    "build": "pnpm recursive run --no-bail build",
-    "test": "pnpm recursive run --no-bail --workspace-concurrency 1 test -- --pass-with-no-tests --silent --max-workers 1",
-    "lint:typecheck": "pnpm recursive run --no-bail lint:typecheck",
-    "lint:eslint": "pnpm recursive run --no-bail lint:eslint"
-  },
   "devDependencies": {
-    "@types/node": "14.14.31",
-    "@typescript-eslint/eslint-plugin": "4.22.0",
-    "@typescript-eslint/parser": "4.22.0",
-    "prettier": "2.2.1",
-    "eslint": "7.25.0",
-    "eslint-config-prettier": "8.3.0",
-    "eslint-plugin-deprecation": "1.2.0",
-    "eslint-plugin-import": "2.22.1",
-    "eslint-plugin-jsdoc": "33.0.0",
-    "eslint-plugin-prefer-arrow": "1.2.3",
-    "eslint-plugin-react": "7.23.2",
-    "eslint-plugin-unicorn": "31.0.0"
+    "@types/jest": "25.2.3",
+    "@types/node": "12.12.6",
+    "husky": "4.2.3",
+    "prettier": "2.2.0",
+    "pretty-quick": "2.0.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pnpx pretty-quick --pattern **/*.ts"
+    }
   }
 }

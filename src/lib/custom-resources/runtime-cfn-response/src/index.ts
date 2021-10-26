@@ -1,18 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
-/* eslint-disable deprecation/deprecation */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import https from 'https';
 import { parse } from 'url';
 import { backOff } from 'exponential-backoff';
@@ -63,7 +48,7 @@ export async function send(event: CloudFormationCustomResourceEvent, context: Co
   await backOff(
     () => {
       return new Promise((resolve, reject) => {
-        const request = https.request(options, response => {
+        var request = https.request(options, response => {
           console.log('Status code: ' + response.statusCode);
           console.log('Status message: ' + response.statusMessage);
           resolve(response.statusCode);

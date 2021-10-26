@@ -2,69 +2,69 @@ Description: This stack includes resources needed to deploy AWS CDK apps into th
 Parameters:
   TrustedAccounts:
     Description: List of AWS accounts that are trusted to publish assets and deploy stacks to this environment
-    Default: ''
+    Default: ""
     Type: CommaDelimitedList
   CloudFormationExecutionPolicies:
     Description: List of the ManagedPolicy ARN(s) to attach to the CloudFormation deployment role
-    Default: ''
+    Default: ""
     Type: CommaDelimitedList
   FileAssetsBucketName:
     Description: The name of the S3 bucket used for file assets
-    Default: ''
+    Default: ""
     Type: String
   FileAssetsBucketKmsKeyId:
     Description: Empty to create a new key (default), 'AWS_MANAGED_KEY' to use a managed S3 key, or the ID/ARN of an existing key.
-    Default: ''
+    Default: ""
     Type: String
   ContainerAssetsRepositoryName:
     Description: A user-provided custom name to use for the container assets ECR repository
-    Default: ''
+    Default: ""
     Type: String
   Qualifier:
     Description: An identifier to distinguish multiple bootstrap stacks in the same environment
     Default: hnb659fds
     Type: String
-    AllowedPattern: '[A-Za-z0-9_-]{1,10}'
+    AllowedPattern: "[A-Za-z0-9_-]{1,10}"
     ConstraintDescription: Qualifier must be an alphanumeric identifier of at most 10 characters
   PublicAccessBlockConfiguration:
     Description: Whether or not to enable S3 Staging Bucket Public Access Block Configuration
-    Default: 'true'
+    Default: "true"
     Type: String
     AllowedValues:
-      - 'true'
-      - 'false'
+      - "true"
+      - "false"
   OrganizationId:
     Description: Root OrganizationId to give access to staging Bucket to all accounts under Organization
-    Default: 'o-8rceswjlsq'
+    Default: "o-8rceswjlsq"
     Type: String
   AcceleratorPrefix:
     Description: Accelerator prefix used for deployment.
-    Default: ASEA-
+    Default: PBMMAccel-
     Type: String
-    AllowedPattern: '[a-zA-Z][a-zA-Z0-9-]*-'
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9-]*-"
 Conditions:
   HasTrustedAccounts:
     Fn::Not:
       - Fn::Equals:
-          - ''
+          - ""
           - Fn::Join:
-              - ''
+              - ""
               - Ref: TrustedAccounts
   HasCloudFormationExecutionPolicies:
     Fn::Not:
       - Fn::Equals:
-          - ''
+          - ""
           - Fn::Join:
-              - ''
+              - ""
               - Ref: CloudFormationExecutionPolicies
   HasCustomFileAssetsBucketName:
     Fn::Not:
       - Fn::Equals:
-          - ''
+          - ""
           - Ref: FileAssetsBucketName
   CreateNewKey:
     Fn::Equals:
-      - ''
+      - ""
       - Ref: FileAssetsBucketKmsKeyId
   UseAwsManagedKey:
     Fn::Equals:
@@ -73,17 +73,16 @@ Conditions:
   HasCustomContainerAssetsRepositoryName:
     Fn::Not:
       - Fn::Equals:
-          - ''
+          - ""
           - Ref: ContainerAssetsRepositoryName
   UsePublicAccessBlockConfiguration:
     Fn::Equals:
-      - 'true'
+      - "true"
       - Ref: PublicAccessBlockConfiguration
 Resources:
   FileAssetsBucketEncryptionKey:
     Type: AWS::KMS::Key
     Properties:
-      EnableKeyRotation: true
       KeyPolicy:
         Statement:
           - Action:
@@ -104,7 +103,7 @@ Resources:
             Principal:
               AWS:
                 Ref: AWS::AccountId
-            Resource: '*'
+            Resource: "*"
           - Action:
               - kms:Decrypt
               - kms:DescribeKey
@@ -113,8 +112,8 @@ Resources:
               - kms:GenerateDataKey*
             Effect: Allow
             Principal:
-              AWS: '*'
-            Resource: '*'
+              AWS: "*"
+            Resource: "*"
             Condition:
               StringEquals:
                 kms:CallerAccount:
@@ -129,18 +128,18 @@ Resources:
               - kms:GenerateDataKey*
             Effect: Allow
             Principal:
-              AWS: '*'
-            Resource: '*'
+              AWS: "*"
+            Resource: "*"
             Condition:
-              StringEquals:
-                aws:PrincipalOrgID: !Ref OrganizationId
-              ArnLike:
-                aws:PrincipalARN:
-                  Fn::Join:
-                    - ''
-                    - - 'arn:aws:iam::*:role/'
-                      - Ref: AcceleratorPrefix
-                      - '*'
+                StringEquals:
+                  aws:PrincipalOrgID: !Ref OrganizationId
+                ArnLike:
+                  aws:PrincipalARN: 
+                    Fn::Join:
+                      - ""
+                      - - "arn:aws:iam::*:role/"
+                        - Ref: AcceleratorPrefix
+                        - "*"
           - Action:
               - kms:Decrypt
               - kms:DescribeKey
@@ -151,7 +150,7 @@ Resources:
             Principal:
               AWS:
                 Fn::Sub: ${FilePublishingRole.Arn}
-            Resource: '*'
+            Resource: "*"
     Condition: CreateNewKey
   FileAssetsBucketEncryptionKeyAlias:
     Condition: CreateNewKey
@@ -199,7 +198,7 @@ Resources:
         Ref: StagingBucket
       PolicyDocument:
         Id: AccessControl
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Sid: AllowSSLRequestsOnly
             Action: s3:*
@@ -209,8 +208,8 @@ Resources:
               - Fn::Sub: ${StagingBucket.Arn}/*
             Condition:
               Bool:
-                aws:SecureTransport: 'false'
-            Principal: '*'
+                aws:SecureTransport: "false"
+            Principal: "*"
           - Sid: AllowOrgAcccountsAccess
             Action: s3:*
             Effect: Allow
@@ -221,13 +220,13 @@ Resources:
               StringEquals:
                 aws:PrincipalOrgID: !Ref OrganizationId
               ArnLike:
-                aws:PrincipalARN:
+                aws:PrincipalARN: 
                   Fn::Join:
-                    - ''
-                    - - 'arn:aws:iam::*:role/'
-                      - Ref: AcceleratorPrefix
-                      - '*'
-            Principal: '*'
+                      - ""
+                      - - "arn:aws:iam::*:role/"
+                        - Ref: AcceleratorPrefix
+                        - "*"
+            Principal: "*"
   ContainerAssetsRepository:
     Type: AWS::ECR::Repository
     Properties:
@@ -304,7 +303,7 @@ Resources:
                 - CreateNewKey
                 - Fn::Sub: ${FileAssetsBucketEncryptionKey.Arn}
                 - Fn::Sub: arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${FileAssetsBucketKmsKeyId}
-        Version: '2012-10-17'
+        Version: "2012-10-17"
       Roles:
         - Ref: FilePublishingRole
       PolicyName:
@@ -327,9 +326,9 @@ Resources:
             Effect: Allow
           - Action:
               - ecr:GetAuthorizationToken
-            Resource: '*'
+            Resource: "*"
             Effect: Allow
-        Version: '2012-10-17'
+        Version: "2012-10-17"
       Roles:
         - Ref: ImagePublishingRole
       PolicyName:
@@ -372,7 +371,7 @@ Resources:
                   - kms:Encrypt
                   - kms:ReEncrypt*
                   - kms:GenerateDataKey*
-                Resource: '*'
+                Resource: "*"
                 Effect: Allow
               - Action: iam:PassRole
                 Resource:
@@ -385,9 +384,9 @@ Resources:
                   - cloudformation:DeleteStack
                   - cloudformation:UpdateTerminationProtection
                   - sts:GetCallerIdentity
-                Resource: '*'
+                Resource: "*"
                 Effect: Allow
-            Version: '2012-10-17'
+            Version: "2012-10-17"
           PolicyName: default
       RoleName:
         Fn::Sub: cdk-${Qualifier}-deploy-role-${AWS::AccountId}-${AWS::Region}
@@ -400,7 +399,7 @@ Resources:
             Effect: Allow
             Principal:
               Service: cloudformation.amazonaws.com
-        Version: '2012-10-17'
+        Version: "2012-10-17"
       ManagedPolicyArns:
         Fn::If:
           - HasCloudFormationExecutionPolicies
@@ -417,7 +416,7 @@ Resources:
       Type: String
       Name:
         Fn::Sub: /cdk-bootstrap/${Qualifier}/version
-      Value: '6'
+      Value: "4"
 Outputs:
   BucketName:
     Description: The name of the S3 bucket owned by the CDK toolkit stack

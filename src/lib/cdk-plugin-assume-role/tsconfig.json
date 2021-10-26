@@ -11,9 +11,8 @@
     "preserveSymlinks": true,
     "skipLibCheck": true,
     "downlevelIteration": true,
-    "resolveJsonModule": true,
-    "typeRoots": ["node_modules/@types"]
+    "resolveJsonModule": true
   },
-  "include": ["src"],
+  "include": ["src/**/*"],
   "exclude": ["test/**/*"]
 }

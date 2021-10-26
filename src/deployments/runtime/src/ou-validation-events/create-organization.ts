@@ -1,20 +1,11 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import { ServiceControlPolicy } from '@aws-accelerator/common/src/scp';
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { ScheduledEvent } from 'aws-lambda';
 import { getInvoker } from './utils';
+
+interface OrganizationChangeEvent extends ScheduledEvent {
+  version?: string;
+}
 
 const acceleratorPrefix = process.env.ACCELERATOR_PREFIX!;
 const acceleratorName = process.env.ACCELERATOR_NAME!;
@@ -26,7 +17,7 @@ const ignoredOus = ignoredOrganizationalUnitsString.split(',');
 
 const organizations = new Organizations();
 
-export const handler = async (input: ScheduledEvent) => {
+export const handler = async (input: OrganizationChangeEvent) => {
   console.log(`Create Organizational Unit Event triggered ...`);
   console.log(JSON.stringify(input, null, 2));
   const requestDetail = input.detail;

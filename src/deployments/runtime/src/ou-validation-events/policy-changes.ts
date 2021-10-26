@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import * as org from 'aws-sdk/clients/organizations';
@@ -20,6 +7,10 @@ import { ScheduledEvent } from 'aws-lambda';
 import { AcceleratorConfig } from '@aws-accelerator/common-config';
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
 import { getInvoker } from './utils';
+
+interface PolicyChangeEvent extends ScheduledEvent {
+  version?: string;
+}
 
 export interface ConfigurationOrganizationalUnit {
   ouId: string;
@@ -49,7 +40,7 @@ const scpBucketName = process.env.ACCELERATOR_SCP_BUCKET_NAME!;
 
 const organizations = new Organizations();
 
-export const handler = async (input: ScheduledEvent) => {
+export const handler = async (input: PolicyChangeEvent) => {
   console.log(`ChangePolicy Event triggered invocation...`);
   console.log(JSON.stringify(input, null, 2));
   const requestDetail = input.detail;
@@ -81,11 +72,6 @@ export const handler = async (input: ScheduledEvent) => {
   if (!policyId) {
     console.warn(`Missing policyId, Ignoring`);
     return 'INVALID_REQUEST';
-  }
-
-  if (await isControlTowerSCP(policyId)) {
-    console.log('Policy Changes Performed by Control Tower, No operation required');
-    return 'NO_OPERATION_REQUIRED';
   }
   const eventName = requestDetail.eventName;
   if (!['DeletePolicy', 'AttachPolicy'].includes(eventName) && !(await isAcceleratorScp(policyId, scpNames))) {
@@ -197,7 +183,6 @@ export const handler = async (input: ScheduledEvent) => {
     await scps.detachPoliciesFromTargets({
       policyNamesToKeep: acceleratorPolicyNames,
       policyTargetIdsToInclude: acceleratorTargetOuIds,
-      baseline: globalOptionsConfig['ct-baseline'] ? 'CONTROL_TOWER' : 'ORGANIZATIONS',
     });
 
     await scps.attachFullAwsAccessPolicyToTargets({
@@ -241,21 +226,10 @@ async function isAcceleratorScp(policyId: string, scpNames: string[]): Promise<b
     return false;
   }
   if (policyName !== FULL_AWS_ACCESS_POLICY_NAME && !scpNames.includes(policy.PolicySummary?.Name!)) {
-    console.error(`Policy is not handled through Accelerator`);
+    console.error(`Policy is not handled through Acclerator`);
     return false;
   }
   return true;
-}
-
-async function isControlTowerSCP(policyId: string): Promise<boolean> {
-  const policyResponse = await organizations.describePolicy(policyId);
-  const policy = policyResponse.Policy;
-
-  const policyName = policy?.PolicySummary?.Name;
-  if (policyName?.startsWith('aws-guardrails-')) {
-    return true;
-  }
-  return false;
 }
 
 async function loadAccountsAndOrganizationsFromConfig(

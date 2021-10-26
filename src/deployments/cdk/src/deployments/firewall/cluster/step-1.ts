@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
@@ -38,14 +25,7 @@ export async function step1(props: FirewallStep1Props) {
       continue;
     }
 
-    for (const firewallConfig of firewallConfigs.filter(firewall => c.FirewallEC2ConfigType.is(firewall))) {
-      if (!firewallConfig.deploy) {
-        console.log(`Deploy set to false for "${firewallConfig.name}"`);
-        continue;
-      }
-      if (!c.FirewallEC2ConfigType.is(firewallConfig)) {
-        continue;
-      }
+    for (const firewallConfig of firewallConfigs) {
       const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, firewallConfig.region);
       if (!accountStack) {
         console.warn(`Cannot find account stack ${accountKey}`);
@@ -74,7 +54,7 @@ export async function step1(props: FirewallStep1Props) {
 async function createFirewallEips(props: {
   scope: cdk.Construct;
   vpcConfig: c.VpcConfig;
-  firewallConfig: c.FirewallEC2ConfigType;
+  firewallConfig: c.FirewallConfig;
 }) {
   const { scope, vpcConfig, firewallConfig } = props;
 

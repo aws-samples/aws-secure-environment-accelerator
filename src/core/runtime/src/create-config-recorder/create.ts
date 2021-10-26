@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import { ConfigService } from '@aws-accelerator/common/src/aws/configservice';
 import { ConfigurationRecorder } from 'aws-sdk/clients/configservice';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
@@ -63,7 +50,6 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     configCommitId,
     acceleratorPrefix,
     outputTableName,
-    baseline,
   } = input;
 
   const outputs = await loadOutputs(outputTableName, dynamodb);
@@ -95,10 +81,6 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
   console.log(`${accountId}: Excluding Config Recorder for regions from account "${accountId}"...`);
   console.log(`${accountId}: ${JSON.stringify(excludeRegions, null, 2)}`);
 
-  const globalOptions = acceleratorConfig['global-options'];
-  const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
-  const centralOperationsKey = acceleratorConfig.getMandatoryAccountKey('central-operations');
-
   const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
   const logBucketOutputs: LogBucketOutputType[] = getStackJsonOutput(outputs, {
     accountKey: logAccountKey,
@@ -122,28 +104,9 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     return errors;
   }
 
-  const masterAccountConfig = acceleratorConfig.getAccountByKey(masterAccountKey);
-  const masterAccount = await organizations.getAccountByEmail(masterAccountConfig.email);
-
-  console.log(`Got Master AccountId: ${masterAccount?.Id}`);
-
-  const ctSupportedRegions = acceleratorConfig['global-options']['control-tower-supported-regions'];
-  const credentials = await sts.getCredentialsForAccountAndRole(
-    accountId,
-    acceleratorConfig['global-options']['ct-baseline']
-      ? acceleratorConfig['global-options']['organization-admin-role']!
-      : assumeRoleName,
-  );
-  // Creating Config Recorder
+  const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
   for (const region of regions) {
-    // Skip creation of Config Recorder in CONTROL_TOWER deployed regions in all accounts
-    if (baseline === 'CONTROL_TOWER' && ctSupportedRegions.includes(region) && accountKey !== masterAccountKey) {
-      console.log(
-        `Skipping creation of Config Recorder in account "${accountKey}: ${region}" for baseline "${baseline}"`,
-      );
-      continue;
-    }
-    console.log(`Creating Config Recorder in ${accountKey}/${region}`);
+    console.log(`Creating Config Recorder in ${region}`);
     try {
       const configService = new ConfigService(credentials, region);
       const acceleratorRecorderName = createConfigRecorderName(acceleratorPrefix);
@@ -203,37 +166,16 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     }
   }
 
-  // Create Config Aggregator in Management Account
-  const configService = new ConfigService(credentials, centralSecurityRegion);
-
-  if (
-    (accountKey === masterAccountKey && globalOptions['aws-org-management']['config-aggr']) ||
-    (accountKey === securityAccountKey &&
-      baseline !== 'CONTROL_TOWER' &&
-      globalOptions['central-security-services']['config-aggr']) || // Don't deploy if CT; CT does it.
-    (accountKey === centralOperationsKey && globalOptions['central-operations-services']['config-aggr']) ||
-    (accountKey === logAccountKey && globalOptions['central-log-services']['config-aggr'])
-  ) {
+  if (accountKey === masterAccountKey) {
     const configAggregatorRole = IamRoleOutputFinder.tryFindOneByName({
       outputs,
       accountKey,
       roleKey: 'ConfigAggregatorRole',
     });
     if (!configAggregatorRole) {
-      errors.push(`${accountId}:: No Aggregator Role created in Master Account ${accountKey}`);
+      errors.push(`${accountId}:: No Aggregaror Role created in Master Account ${accountKey}`);
     } else {
-      if (accountKey !== masterAccountKey) {
-        // Register Delegated Admin
-        try {
-          await organizations.registerDelegatedAdministrator(accountId, 'config.amazonaws.com');
-          console.log(
-            `${accountKey} account registered as delegated administrator for AWS Config in the organization.`,
-          );
-        } catch (error) {
-          console.log(`Error registering delgated administrator ${error}`);
-        }
-      }
-
+      const configService = new ConfigService(credentials, centralSecurityRegion);
       const enableAggregator = await createAggregator(
         configService,
         accountId,
@@ -242,27 +184,6 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
         configAggregatorRole.roleArn,
       );
       errors.push(...enableAggregator);
-    }
-  } else if (
-    (accountKey === securityAccountKey &&
-      baseline !== 'CONTROL_TOWER' &&
-      globalOptions['central-security-services']['config-aggr'] === false) || // Don't deploy if CT; CT does it.
-    (accountKey === centralOperationsKey && globalOptions['central-operations-services']['config-aggr'] === false) ||
-    (accountKey === logAccountKey && globalOptions['central-log-services']['config-aggr'] === false)
-  ) {
-    const aggregatorName = createAggregatorName(acceleratorPrefix);
-
-    const aseaAggregator = (await configService.describeConfigurationAggregators({})).ConfigurationAggregators?.find(
-      i => i.ConfigurationAggregatorName === aggregatorName,
-    );
-
-    if (aseaAggregator) {
-      // Found it.
-      console.log(
-        `Config Aggregrator '${aggregatorName}' found in '${accountKey}' and config-aggr is false. Deleting...'`,
-      );
-      const disableAggregator = await deleteAggregator(configService, accountId, centralSecurityRegion, aggregatorName);
-      errors.push(...disableAggregator);
     }
   }
 
@@ -363,25 +284,6 @@ async function createAggregator(
     errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
   }
 
-  return errors;
-}
-
-async function deleteAggregator(
-  configService: ConfigService,
-  accountId: string,
-  region: string,
-  aggregatorName: string,
-) {
-  const errors: string[] = [];
-
-  // Delete Config Aggregator
-  try {
-    await configService.deleteAggregator({
-      ConfigurationAggregatorName: aggregatorName,
-    });
-  } catch (error) {
-    errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
-  }
   return errors;
 }
 

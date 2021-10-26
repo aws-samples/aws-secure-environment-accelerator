@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import { ScheduledEvent } from 'aws-lambda';
 import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
 import { AcceleratorConfig, AcceleratorUpdateConfig } from '@aws-accelerator/common-config/src';
@@ -26,6 +13,10 @@ import { pretty } from '@aws-accelerator/common/src/util/prettier';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
 import { getInvoker } from './utils';
 
+interface RemoveAccountOrganization extends ScheduledEvent {
+  version?: string;
+}
+
 const defaultRegion = process.env.ACCELERATOR_DEFAULT_REGION!;
 const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME!;
 const configFilePath = process.env.CONFIG_FILE_PATH!;
@@ -37,7 +28,7 @@ const configRootFilePath = process.env.CONFIG_ROOT_FILE_PATH!;
 const codecommit = new CodeCommit(undefined, defaultRegion);
 const dynamodb = new DynamoDB(undefined, defaultRegion);
 
-export const handler = async (input: ScheduledEvent) => {
+export const handler = async (input: RemoveAccountOrganization) => {
   console.log(`RemoveAccountFromOrganization, Remove account configuration from Accelerator config...`);
   console.log(JSON.stringify(input, null, 2));
   const requestDetail = input.detail;

@@ -1,22 +1,7 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
-import { AcceleratorConfig } from '..';
+import { config } from 'aws-sdk';
 import { compareConfiguration, Diff, getAccountNames } from './config-diff';
 import * as validate from './validate';
-import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
-
 /**
  * Retrieve and compare previous and the current configuration from CodeCommit
  */
@@ -28,9 +13,6 @@ export async function compareAcceleratorConfig(props: {
   region: string;
   overrideConfig: { [name: string]: boolean };
   scope: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
-  vpcCidrPoolAssignedTable: string;
-  subnetCidrPoolAssignedTable: string;
-  outputs: StackOutput[];
   targetAccounts?: string[];
   targetOus?: string[];
 }): Promise<string[]> {
@@ -44,9 +26,6 @@ export async function compareAcceleratorConfig(props: {
     scope,
     targetAccounts,
     targetOus,
-    subnetCidrPoolAssignedTable,
-    vpcCidrPoolAssignedTable,
-    outputs,
   } = props;
 
   const codeCommit = new CodeCommit();
@@ -69,17 +48,6 @@ export async function compareAcceleratorConfig(props: {
   const configChanges = compareConfiguration(previousConfig, modifiedConfig);
   if (!configChanges) {
     console.log('no differences found');
-    // Validate DDB Pool entries changes
-    if (!overrideConfig['ov-cidr']) {
-      const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
-      await validate.validateDDBChanges(
-        acceleratorConfig,
-        vpcCidrPoolAssignedTable,
-        subnetCidrPoolAssignedTable,
-        outputs,
-        errors,
-      );
-    }
     return errors;
   }
 
@@ -90,10 +58,10 @@ export async function compareAcceleratorConfig(props: {
 
   if (!overrideConfig['ov-global-options']) {
     await validate.validateGlobalOptions(configChanges, errors);
-    const ouMasterRegion = modifiedConfig['global-options']['aws-org-management'].region;
+    const ouMasterRegion = modifiedConfig['global-options']['aws-org-master'].region;
     if (region !== ouMasterRegion) {
       errors.push(
-        `ConfigCheck: state machine is running in the region ${region} but "aws-org-management" region has ${ouMasterRegion}`,
+        `ConfigCheck: state machine is running in the region ${region} but "aws-org-master" region has ${ouMasterRegion}`,
       );
     }
   }
@@ -108,10 +76,6 @@ export async function compareAcceleratorConfig(props: {
 
   if (!overrideConfig['ov-acct-email']) {
     await validate.validateAccountEmail(configChanges, errors);
-  }
-
-  if (!overrideConfig['ov-acct-warming']) {
-    await validate.validateAccountWarming(configChanges, errors);
   }
   if (!overrideConfig['ov-acct-ou']) {
     await validate.validateAccountOu(configChanges, errors);
@@ -154,27 +118,6 @@ export async function compareAcceleratorConfig(props: {
 
   if (!overrideConfig['ov-nacl']) {
     await validate.validateNacls(configChanges, errors);
-  }
-
-  if (!overrideConfig['ov-acct-vpc-optin']) {
-    await validate.validateAccountOptInVpc(configChanges, errors);
-  }
-
-  if (!overrideConfig['ov-nfw']) {
-    await validate.validateNfw(configChanges, errors);
-  }
-
-  // Validate DDB Pool entries changes
-  if (!overrideConfig['ov-cidr']) {
-    console.log(`Validating Cidr Changes`);
-    const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
-    await validate.validateDDBChanges(
-      acceleratorConfig,
-      vpcCidrPoolAssignedTable,
-      subnetCidrPoolAssignedTable,
-      outputs,
-      errors,
-    );
   }
 
   return errors;

@@ -1,18 +1,5 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as mocks from './load-configuration-step.mocks'; // IMPORTANT! Load the mocks _before_ the module under test!
-import { handler } from '../src/configuration/load-organizations-config';
+import { handler } from '../src/configuration/load-landing-zone-config';
 
 beforeAll(() => {
   mocks.install();
@@ -27,27 +14,21 @@ test('the handler should be successfully return when the configuration is correc
   const result = await handler({
     configFilePath: 'config.json',
     configRepositoryName: 'PBMMAccel-Repo-Config',
-    configCommitId: 'latestCommitId',
-    organizationAdminRole: '',
-    acceleratorPrefix: 'PBMMAccel-',
-    parametersTableName: 'PBMMAccel-Parameters',
+    configCommitId: 'fasdjfkhsdf',
   });
   expect(result);
 });
 
 test('the handler should be successfully return when a mandatory account is missing', async () => {
   // Remove operations account
-  const accounts = mocks.values.accounts;
-  const index = accounts.findIndex(a => a.Name === 'Operations');
-  accounts.splice(index, 1);
+  const coreAccounts = mocks.values.organizationalUnitAccounts['core-ou-id'];
+  const index = coreAccounts.findIndex(a => a.Name === 'operations');
+  coreAccounts.splice(index);
 
   const result = await handler({
     configFilePath: 'config.json',
     configRepositoryName: 'PBMMAccel-Repo-Config',
     configCommitId: '',
-    organizationAdminRole: '',
-    acceleratorPrefix: 'PBMMAccel-',
-    parametersTableName: 'PBMMAccel-Parameters',
   });
 
   // Returns only Accounts that needs to be created
@@ -56,7 +37,7 @@ test('the handler should be successfully return when a mandatory account is miss
 
 test('the handler should throw an error when the Accelerator config name does not match the account name', async () => {
   // @ts-ignore
-  mocks.values.acceleratorConfig['mandatory-account-configs']['shared-network']['account-name'] = 'modified';
+  mocks.values.acceleratorConfig['mandatory-account-configs']['shared-network-key']['account-name'] = 'modified';
 
   expect.assertions(1);
   try {
@@ -64,9 +45,6 @@ test('the handler should throw an error when the Accelerator config name does no
       configFilePath: 'config.json',
       configRepositoryName: 'PBMMAccel-Repo-Config',
       configCommitId: 'fasdjfkhsdf',
-      organizationAdminRole: '',
-      acceleratorPrefix: 'PBMMAccel-',
-      parametersTableName: 'PBMMAccel-Parameters',
     });
   } catch (e) {
     expect(e.message).toMatch('does not match the name in the Accelerator configuration');
@@ -75,7 +53,7 @@ test('the handler should throw an error when the Accelerator config name does no
 
 test('the handler should throw an error when the Accelerator config OU does not match the account OU', async () => {
   // @ts-ignore
-  mocks.values.acceleratorConfig['mandatory-account-configs']['shared-network'].ou = 'applications';
+  mocks.values.acceleratorConfig['mandatory-account-configs']['shared-network-key'].ou = 'applications';
 
   expect.assertions(1);
   try {
@@ -83,12 +61,66 @@ test('the handler should throw an error when the Accelerator config OU does not 
       configFilePath: 'config.json',
       configRepositoryName: 'PBMMAccel-Repo-Config',
       configCommitId: 'fasdjfkhsdf',
-      organizationAdminRole: '',
-      acceleratorPrefix: 'PBMMAccel-',
-      parametersTableName: 'PBMMAccel-Parameters',
     });
   } catch (e) {
     expect(e.message).toMatch('is not in OU');
+  }
+});
+
+test('the handler should throw an error when a Landing Zone account is missing', async () => {
+  // Remove security account
+  const coreAccounts = mocks.values.organizationalUnitAccounts['core-ou-id'];
+  const index = coreAccounts.findIndex(a => a.Name === 'security');
+  coreAccounts.splice(index);
+
+  expect.assertions(2);
+  try {
+    await handler({
+      configFilePath: 'config.json',
+      configRepositoryName: 'PBMMAccel-Repo-Config',
+      configCommitId: 'fasdjfkhsdf',
+    });
+  } catch (e) {
+    expect(e.message).toMatch('Cannot find non-primary account with name "security" that is used by Landing Zone');
+    expect(e.message).toMatch('Could not find Landing Zone account of type "security"');
+  }
+});
+
+test('the handler should throw an error when Landing Zone has more organizational units than Accelerator', async () => {
+  // Add an additional OU in Landing Zone config
+  mocks.values.landingZoneConfig.organizational_units.push({
+    name: 'sandbox',
+  });
+
+  expect.assertions(1);
+  try {
+    await handler({
+      configFilePath: 'config.json',
+      configRepositoryName: 'PBMMAccel-Repo-Config',
+      configCommitId: 'fasdjfkhsdf',
+    });
+  } catch (e) {
+    expect(e.message).toMatch(
+      /There are 1 organizational units in Accelerator configuration while there are only 2 organizational units in the Landing Zone configuration/,
+    );
+  }
+});
+
+test('the handler should throw an error when Accelerator has more organizational units than Landing Zone', async () => {
+  // Add an additional OU in Landing Zone config
+  mocks.values.acceleratorConfig['organizational-units']['sandbox'] = {};
+
+  expect.assertions(1);
+  try {
+    await handler({
+      configFilePath: 'config.json',
+      configRepositoryName: 'PBMMAccel-Repo-Config',
+      configCommitId: 'fasdjfkhsdf',
+    });
+  } catch (e) {
+    expect(e.message).toMatch(
+      /There are 2 organizational units in Accelerator configuration while there are only 1 organizational units in the Landing Zone configuration/,
+    );
   }
 });
 
@@ -105,132 +137,146 @@ function reset() {
       Id: 'applications-ou-id',
       Name: 'applications',
     },
-    {
-      Id: 'sandbox-ou-id',
-      Name: 'Sandbox',
-    },
-    {
-      Id: 'dev-ou-id',
-      Name: 'Dev',
-    },
-    {
-      Id: 'central-ou-id',
-      Name: 'Central',
-    },
-    {
-      Id: 'test-ou-id',
-      Name: 'Test',
-    },
-    {
-      Id: 'prod-ou-id',
-      Name: 'Prod',
-    },
-    {
-      Id: 'unclass-ou-id',
-      Name: 'UnClass',
-    },
   ];
 
   mocks.values.organizationalUnitAccounts = {
     'core-ou-id': [
       {
         Id: 'primary-account-id',
-        Name: 'management',
-        Email: 'myemail+pbmmT-management@example.com',
+        Name: 'lz@amazon.com',
+        Email: 'lz@amazon.com',
       },
       {
         Id: 'security-account-id',
         Name: 'security',
-        Email: 'myemail+pbmmT-sec@example.com',
+        Email: 'lz+security@amazon.com',
       },
       {
         Id: 'log-archive-account-id',
         Name: 'log-archive',
-        Email: 'myemail+pbmmT-log@example.com',
+        Email: 'lz+log-archive@amazon.com',
       },
       {
-        Id: 'perimeter-account-id',
-        Name: 'Perimeter',
-        Email: 'myemail+pbmmT-perimeter@example.com',
+        Id: 'shared-services-account-id',
+        Name: 'shared-services',
+        Email: 'lz+shared-services@amazon.com',
       },
       {
         Id: 'shared-network-account-id',
-        Name: 'SharedNetwork',
-        Email: 'myemail+pbmmT-network@example.com',
+        Name: 'shared-network',
+        Email: 'lz+shared-network@amazon.com',
       },
       {
         Id: 'operations-account-id',
-        Name: 'Operations',
-        Email: 'myemail+pbmmT-operations@example.com',
+        Name: 'operations',
+        Email: 'lz+operations@amazon.com',
       },
     ],
     'applications-ou-id': [],
-    'sandbox-ou-id': [
-      {
-        Id: 'sandbox-account-id',
-        Name: 'TheFunAccount',
-        Email: 'myemail+pbmmT-funacct@example.com',
-      },
-    ],
-    'dev-ou-id': [
-      {
-        Id: 'dev-account-id',
-        Name: 'MyDev1',
-        Email: 'myemail+pbmmT-dev1@example.com',
-      },
-    ],
-    'central-ou-id': [],
-    'test-ou-id': [],
-    'prod-ou-id': [],
-    'unclass-ou-id': [],
   };
 
-  mocks.values.masterAccount = {
-    Name: 'primary',
-    Email: 'myemail+pbmmT-management@example.com',
-    Id: 'management-account-id',
+  mocks.values.landingZoneConfig = {
+    organizational_units: [
+      {
+        name: 'core',
+        core_accounts: [
+          {
+            name: 'primary',
+            ssm_parameters: [
+              {
+                name: '/org/primary/account_id',
+                value: '$[AccountId]',
+              },
+              {
+                name: '/org/primary/email_id',
+                value: '$[AccountEmail]',
+              },
+            ],
+          },
+          {
+            name: 'security',
+            email: 'lz+security@amazon.com',
+            ssm_parameters: [
+              {
+                name: '/org/member/security/account_id',
+                value: '$[AccountId]',
+              },
+            ],
+          },
+          {
+            name: 'log-archive',
+            email: 'lz+log-archive@amazon.com',
+            ssm_parameters: [
+              {
+                name: '/org/member/logging/account_id',
+                value: '$[AccountId]',
+              },
+            ],
+          },
+          {
+            name: 'shared-services',
+            email: 'lz+shared-services@amazon.com',
+            ssm_parameters: [
+              {
+                name: '/org/member/sharedservices/account_id',
+                value: '$[AccountId]',
+              },
+            ],
+          },
+        ],
+      },
+    ],
   };
 
-  mocks.values.accounts = [
-    {
-      Id: 'primary-account-id',
-      Name: 'management',
-      Email: 'myemail+pbmmT-management@example.com',
+  mocks.values.acceleratorConfig = {
+    'global-options': {
+      'supported-regions': ['ca-central-1', 'us-east-1'],
     },
-    {
-      Id: 'security-account-id',
-      Name: 'security',
-      Email: 'myemail+pbmmT-sec@example.com',
+    'mandatory-account-configs': {
+      'primary-key': {
+        ou: 'core',
+        'landing-zone-account-type': 'primary',
+        'account-name': 'primary',
+        email: 'lz@amazon.com',
+        'src-filename': 'config.json',
+      },
+      'log-archive-key': {
+        ou: 'core',
+        'landing-zone-account-type': 'log-archive',
+        'account-name': 'log-archive',
+        email: 'lz+log-archive@amazon.com',
+        'src-filename': 'config.json',
+      },
+      'security-key': {
+        ou: 'core',
+        'landing-zone-account-type': 'security',
+        'account-name': 'security',
+        email: 'lz+security@amazon.com',
+        'src-filename': 'config.json',
+      },
+      'shared-services-key': {
+        ou: 'core',
+        'landing-zone-account-type': 'shared-services',
+        'account-name': 'shared-services',
+        email: 'lz+shared-services@amazon.com',
+        'src-filename': 'config.json',
+      },
+      'shared-network-key': {
+        ou: 'core',
+        'account-name': 'shared-network',
+        email: 'lz+shared-network@amazon.com',
+        'src-filename': 'config.json',
+      },
+      'operations-key': {
+        ou: 'core',
+        'account-name': 'operations',
+        email: 'lz+operations@amazon.com',
+        'src-filename': 'config.json',
+      },
     },
-    {
-      Id: 'log-archive-account-id',
-      Name: 'log-archive',
-      Email: 'myemail+pbmmT-log@example.com',
+    'workload-account-configs': {},
+    'organizational-units': {
+      core: {},
     },
-    {
-      Id: 'perimeter-account-id',
-      Name: 'Perimeter',
-      Email: 'myemail+pbmmT-perimeter@example.com',
-    },
-    {
-      Id: 'shared-network-account-id',
-      Name: 'SharedNetwork',
-      Email: 'myemail+pbmmT-network@example.com',
-    },
-    {
-      Id: 'operations-account-id',
-      Name: 'Operations',
-      Email: 'myemail+pbmmT-operations@example.com',
-    },
-    {
-      Id: 'sandbox-account-id',
-      Name: 'TheFunAccount',
-      Email: 'myemail+pbmmT-funacct@example.com',
-    },
-    {
-      Id: 'dev-account-id',
-      Name: 'MyDev1',
-      Email: 'myemail+pbmmT-dev1@example.com',
-    },
-  ];
+  };
 }

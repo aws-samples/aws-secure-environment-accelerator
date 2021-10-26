@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import { getAccountId } from '../utils/accounts';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
@@ -28,7 +15,6 @@ import { ImageIdOutputFinder } from '@aws-accelerator/common-outputs/src/ami-out
 import * as cloudWatchDeployment from '../deployments/cloud-watch';
 import * as ssmDeployment from '../deployments/ssm';
 import * as defaults from '../deployments/defaults';
-import * as alb from '../deployments/alb';
 
 /**
  * This is the main entry point to deploy phase 5
@@ -43,7 +29,6 @@ import * as alb from '../deployments/alb';
  */
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
-  const { defaultRegion } = context;
   // Find the account buckets in the outputs
   const accountBuckets = defaults.AccountBucketOutput.getAccountBuckets({
     accounts,
@@ -190,7 +175,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   const { acceleratorBaseline } = context;
 
-  if (['ORGANIZATIONS', 'CONTROL_TOWER'].includes(acceleratorBaseline)) {
+  if (acceleratorBaseline === 'ORGANIZATIONS') {
     const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey, 'us-east-1');
     if (!masterStack) {
       console.error(`Not able to create stack for "${masterAccountKey}"`);
@@ -242,15 +227,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accounts,
     config: acceleratorConfig,
     centralBucket,
-    outputs,
-  });
-
-  /**
-   * Create Routes for GatewayLoadBalancer endpoints
-   */
-  await alb.step4({
-    accountStacks,
-    config: acceleratorConfig,
     outputs,
   });
 }

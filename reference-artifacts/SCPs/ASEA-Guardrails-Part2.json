@@ -1,0 +1,255 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PMP",
+      "Effect": "Deny",
+      "Action": [
+        "aws-marketplace:CreatePrivateMarketplace",
+        "aws-marketplace:AssociateProductsWithPrivateMarketplace",
+        "aws-marketplace:CreatePrivateMarketplaceProfile",
+        "aws-marketplace:DescribePrivateMarketplaceProducts",
+        "aws-marketplace:DescribePrivateMarketplaceProfile",
+        "aws-marketplace:DescribePrivateMarketplaceStatus",
+        "aws-marketplace:DisassociateProducts*",
+        "aws-marketplace:ListPrivateMarketplaceProducts",
+        "aws-marketplace:StartPrivateMarketplace",
+        "aws-marketplace:StopPrivateMarketplace",
+        "aws-marketplace:UpdatePrivateMarketplaceProfile",
+        "lightsail:*", 
+        "sumerian:*",
+        "cloud9:*", 
+        "gamelift:*", 
+        "appflow:*",
+        "iq:*"
+      ],
+      "Resource": "*",
+      "Condition": {}
+    },
+    {
+      "Sid": "Root",
+      "Effect": "Deny",
+      "NotAction": [
+        "iam:CreateVirtualMFADevice",
+        "iam:EnableMFADevice",
+        "iam:GetUser",
+        "iam:ListMFADevices",
+        "iam:ListVirtualMFADevices",
+        "iam:ResyncMFADevice",
+        "aws-portal:*",
+        "sts:GetSessionToken",
+        "iam:DeleteVirtualMFADevice",
+        "trustedadvisor:*",
+        "support:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ArnLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:root"]
+        }
+      }
+    },
+    {
+      "Sid": "Ebs1",
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:*:*:volume/*",
+      "Condition": {
+        "Bool": {
+          "ec2:Encrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "EBS2",
+      "Effect": "Deny",
+      "Action": "ec2:CreateVolume",
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "ec2:Encrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "EFS",
+      "Effect": "Deny",
+      "Action": "elasticfilesystem:CreateFileSystem",
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "elasticfilesystem:Encrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "Rds",
+      "Effect": "Deny",
+      "Action": "rds:CreateDBInstance",
+      "Resource": "arn:aws:rds:*:*:db:*",
+      "Condition": {
+        "StringNotLike": {
+          "rds:DatabaseEngine": ["aurora*", "docdb*", "neptune"]
+        },
+        "Bool": {
+          "rds:StorageEncrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "Aurora",
+      "Effect": "Deny",
+      "Action": "rds:CreateDBCluster",
+      "Resource": "*",
+      "Condition": {
+        "StringLike": {
+          "rds:DatabaseEngine": ["aurora*", "docdb*", "neptune"]
+        },
+        "Bool": {
+          "rds:StorageEncrypted": "false"
+        }
+      }
+    },
+    {
+      "Effect": "Deny",
+      "Action": [
+        "kms:DeleteAlias",
+        "kms:UpdateAlias",
+        "kms:DisableKey",
+        "kms:ImportKeyMaterial",
+        "kms:PutKeyPolicy",
+        "kms:ScheduleKeyDeletion"
+      ],
+      "Resource": "arn:aws:kms:::alias/${ACCELERATOR_PREFIX_ND}*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        }
+      }
+    },
+    {
+      "Sid": "RDGW",
+      "Effect": "Deny",
+      "Action": ["iam:*"],
+      "Resource": "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}RDGW-Role",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        }
+      }
+    },
+    {
+      "Sid": "Log2",
+      "Effect": "Deny",
+      "Action": ["logs:AssociateKmsKey", "logs:DisassociateKmsKey", "logs:PutDestination", "logs:PutDestinationPolicy"],
+      "Resource": "arn:aws:logs:::log-group:*${ACCELERATOR_PREFIX_ND}*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        }
+      }
+    },
+    {
+      "Sid": "IAM",
+      "Effect": "Deny",
+      "Action": [
+        "iam:CreatePolicy",
+        "iam:DeletePolicy",
+        "iam:DeletePolicyVersion",
+        "iam:SetDefaultPolicyVersion",
+        "iam:CreatePolicyVersion"
+      ],
+      "Resource": "arn:aws:iam::*:policy/${ACCELERATOR_PREFIX}*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        }
+      }
+    },
+    {
+      "Sid": "Kinesis",
+      "Effect": "Deny",
+      "Action": [
+        "kinesis:Create*",
+        "kinesis:Decrease*",
+        "kinesis:Delete*",
+        "kinesis:Deregister*",
+        "kinesis:Start*",
+        "kinesis:Stop*",
+        "kinesis:Update*",
+        "firehose:Create*",
+        "firehose:Delete*",
+        "firehose:Start*",
+        "firehose:Stop*",
+        "firehose:Update*"
+      ],
+      "Resource": [
+        "arn:aws:firehose:*:*:deliverystream/${ACCELERATOR_PREFIX_ND}*",
+        "arn:aws:kinesis:*:*:stream/${ACCELERATOR_PREFIX_ND}*"
+      ],
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        }
+      }
+    },
+    {
+      "Sid": "Security",
+      "Effect": "Deny",
+      "Action": [
+        "guardduty:AcceptInvitation",
+        "guardduty:DeclineInvitations",
+        "guardduty:Delete*",
+        "guardduty:Disassociate*",
+        "guardduty:StopMonitoringMembers",
+        "guardduty:UpdateDetector",
+        "guardduty:UpdateFindingsFeedback",
+        "guardduty:UpdatePublishingDestination",
+        "guardduty:UpdateOrganizationConfiguration",
+        "guardduty:DisableOrganizationAdminAccount",
+        "guardduty:CreateMembers",
+        "guardduty:InviteMembers",
+        "securityhub:AcceptInvitation",
+        "securityhub:DeclineInvitations",
+        "securityhub:DeleteInvitations",
+        "securityhub:DeleteMembers",
+        "securityhub:InviteMembers",
+        "securityhub:CreateMembers",
+        "securityhub:DisableSecurityHub",
+        "securityhub:DisassociateFromMasterAccount",
+        "securityhub:DeleteInsight",
+        "securityhub:DisassociateMembers",
+        "securityhub:DeleteActionTarget",
+        "securityhub:BatchDisableStandards",
+        "securityhub:UpdateSecurityHubConfiguration",
+        "securityhub:UpdateStandardsControl",
+        "macie2:AcceptInvitation",
+        "macie2:CreateInvitations",
+        "macie2:CreateMember",
+        "macie2:DeclineInvitations",
+        "macie2:DeleteInvitations",
+        "macie2:DeleteMember",
+        "macie2:DisableMacie",
+        "macie2:DisableOrganizationAdminAccount",
+        "macie2:DisassociateFromMasterAccount",
+        "macie2:DisassociateMember",
+        "macie2:EnableMacie",
+        "macie2:EnableOrganizationAdminAccount",
+        "macie2:UpdateMacieSession",
+        "macie2:UpdateMemberSession",
+        "macie2:UpdateOrganizationConfiguration",
+        "fms:DisassociateAdminAccount",
+        "access-analyzer:DeleteAnalyzer",
+        "account:EnableRegion",
+        "account:DisableRegion",
+        "ec2:CreateDefaultVpc"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        }
+      }
+    }
+  ]
+}

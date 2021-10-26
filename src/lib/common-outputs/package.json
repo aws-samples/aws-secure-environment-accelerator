@@ -2,35 +2,53 @@
   "name": "@aws-accelerator/common-outputs",
   "version": "0.0.1",
   "private": true,
+  "scripts": {
+    "compile": "pnpx tsc --noEmit",
+    "test": "pnpx jest",
+    "lint": "eslint --ext .ts 'src/**/*.ts'"
+  },
   "main": "src/index.ts",
   "files": [
     "src"
   ],
-  "scripts": {
-    "test": "pnpx jest",
-    "lint:typecheck": "pnpx tsc --noEmit",
-    "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
+  "devDependencies": {
+    "@aws-cdk/assert": "1.85.0",
+    "@types/jest": "25.2.3",
+    "@types/node": "12.12.6",
+    "babel-jest": "25.2.0",
+    "fp-ts": "2.5.3",
+    "io-ts": "2.1.2",
+    "io-ts-types": "0.5.6",
+    "jest": "25.2.4",
+    "prettier": "2.2.0",
+    "ts-jest": "25.3.0",
+    "ts-node": "8.8.1",
+    "eslint": "7.10.0",
+    "@typescript-eslint/eslint-plugin": "4.4.0",
+    "@typescript-eslint/parser": "4.4.0",
+    "eslint-config-prettier": "6.12.0",
+    "eslint-config-standard": "14.1.1",
+    "eslint-plugin-standard": "4.0.1",
+    "eslint-plugin-deprecation": "1.1.0",
+    "eslint-plugin-promise": "4.2.1",
+    "eslint-plugin-import": "2.22.1",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-jsdoc": "30.6.4",
+    "eslint-plugin-prefer-arrow": "1.2.2",
+    "eslint-plugin-react": "7.21.3",
+    "eslint-plugin-unicorn": "22.0.0",
+    "typescript": "3.8.3"
+  },
+  "dependencies": {
+    "@aws-accelerator/common-types": "workspace:^0.0.1"
   },
   "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
     "globals": {
       "ts-jest": {
         "isolatedModules": true
       }
-    },
-    "preset": "ts-jest",
-    "testEnvironment": "node"
-  },
-  "dependencies": {
-    "@aws-accelerator/common-types": "workspace:*"
-  },
-  "devDependencies": {
-    "@types/node": "14.14.31",
-    "eslint": "7.25.0",
-    "fp-ts": "2.10.5",
-    "io-ts": "2.2.16",
-    "jest": "25.2.4",
-    "ts-jest": "25.3.0",
-    "ts-node": "9.1.1",
-    "typescript": "4.2.4"
+    }
   }
 }

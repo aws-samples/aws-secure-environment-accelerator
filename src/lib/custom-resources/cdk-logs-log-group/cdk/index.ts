@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
@@ -98,7 +85,7 @@ export class LogGroup extends cdk.Construct implements cdk.ITaggable {
   }
 
   get logGroupName() {
-    return cdk.Lazy.string({
+    return cdk.Lazy.stringValue({
       produce: () => this.resource!.getAttString('LogGroupName'),
     });
   }
@@ -124,7 +111,7 @@ export class LogGroup extends cdk.Construct implements cdk.ITaggable {
     const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, this.roleArn);
 
     return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_14_X,
+      runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,

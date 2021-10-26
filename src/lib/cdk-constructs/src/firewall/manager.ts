@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { SecurityGroup, Subnet } from '../vpc';
@@ -23,10 +10,7 @@ export interface FirewallManagerProps {
    */
   imageId: string;
   instanceType: string;
-  blockDeviceMappings: ec2.CfnInstance.BlockDeviceMappingProperty[];
   keyPairName?: string;
-  userData?: string;
-  iamInstanceProfile?: string;
 }
 
 export class FirewallManager extends cdk.Construct {
@@ -41,9 +25,20 @@ export class FirewallManager extends cdk.Construct {
       instanceType: this.props.instanceType,
       keyName: this.props.keyPairName,
       networkInterfaces: this.networkInterfacesProps,
-      blockDeviceMappings: this.props.blockDeviceMappings,
-      userData: this.props.userData ? cdk.Fn.base64(this.props.userData) : undefined,
-      iamInstanceProfile: props.iamInstanceProfile,
+      blockDeviceMappings: [
+        {
+          deviceName: '/dev/sda1',
+          ebs: {
+            encrypted: true,
+          },
+        },
+        {
+          deviceName: '/dev/sdb',
+          ebs: {
+            encrypted: true,
+          },
+        },
+      ],
     });
     cdk.Tags.of(this.resource).add('Name', this.props.name);
   }

@@ -1,16 +1,3 @@
-/**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
- *  with the License. A copy of the License is located at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
- *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
- *  and limitations under the License.
- */
-
 import * as cdk from '@aws-cdk/core';
 import * as c from '@aws-accelerator/common-config/src';
 import { AccountStacks } from '../../common/account-stacks';
@@ -27,7 +14,6 @@ export interface CentralServicesStep2Props {
   accounts: Account[];
   context: Context;
   outputs: StackOutput[];
-  rootOuId: string;
 }
 
 const LOG_PERMISSIONS = [
@@ -56,7 +42,7 @@ const LOG_PERMISSIONS = [
  * - Share Data in Sub Accounts to Monitoring Accounts
  */
 export async function step2(props: CentralServicesStep2Props) {
-  const { accountStacks, config, accounts, context, outputs, rootOuId } = props;
+  const { accountStacks, config, accounts, context, outputs } = props;
 
   const centralSecurityServices = config['global-options']['central-security-services'];
   const centralOperationsServices = config['global-options']['central-operations-services'];
@@ -112,7 +98,6 @@ export async function step2(props: CentralServicesStep2Props) {
       accessLevel,
       tagValue: context.acceleratorName,
       roleArn: iamCreateRoleOutput.roleArn,
-      rootOuId,
     });
   }
 }
@@ -138,9 +123,8 @@ async function centralLoggingShareDataSettings(props: {
   accessLevel: string;
   tagValue: string;
   roleArn: string;
-  rootOuId: string;
 }) {
-  const { scope, monitoringAccountIds, accessLevel, tagValue, roleArn, rootOuId } = props;
+  const { scope, monitoringAccountIds, accessLevel, tagValue, roleArn } = props;
 
   const logPermission = LOG_PERMISSIONS.find(lp => lp.level === accessLevel);
   if (!logPermission) {
@@ -155,6 +139,5 @@ async function centralLoggingShareDataSettings(props: {
     tagName: 'Accelerator',
     tagValue,
     lambdaRoleArn: roleArn,
-    rootOuId,
   });
 }
