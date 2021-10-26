@@ -42,7 +42,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const instanceParams = {
     ImageId: properties.imageId,
     SubnetId: properties.subnetId,

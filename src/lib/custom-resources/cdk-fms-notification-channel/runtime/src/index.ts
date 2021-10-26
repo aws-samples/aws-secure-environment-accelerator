@@ -47,7 +47,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { snsRoleArn, topicArn } = properties;
   await throttlingBackOff(() =>
     fms
@@ -63,7 +63,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 }
 
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { snsRoleArn, topicArn } = properties;
   await throttlingBackOff(() => fms.deleteNotificationChannel().promise());
   await throttlingBackOff(() =>

@@ -48,7 +48,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
-  const { content, name, type } = event.ResourceProperties as unknown as HandlerProperties;
+  const { content, name, type } = (event.ResourceProperties as unknown) as HandlerProperties;
   await throttlingBackOff(() =>
     ssm
       .createDocument({
@@ -66,7 +66,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   console.log('SSM Document Update...');
   console.log(JSON.stringify(event, null, 2));
-  const { content, name } = event.ResourceProperties as unknown as HandlerProperties;
+  const { content, name } = (event.ResourceProperties as unknown) as HandlerProperties;
   const ssmDocument = await throttlingBackOff(() =>
     ssm
       .updateDocument({
@@ -93,7 +93,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log('SSM Document Delete...');
   console.log(JSON.stringify(event, null, 2));
-  const { name } = event.ResourceProperties as unknown as HandlerProperties;
+  const { name } = (event.ResourceProperties as unknown) as HandlerProperties;
   if (event.PhysicalResourceId === `SSMDocument-${name}`) {
     try {
       const documentPermissions = await throttlingBackOff(() =>

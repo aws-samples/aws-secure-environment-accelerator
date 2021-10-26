@@ -47,7 +47,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { serviceId, endpoints } = properties;
   await throttlingBackOff(() =>
     ec2
@@ -63,10 +63,10 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 }
 
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { endpoints, serviceId } = properties;
 
-  const oldProperties = event.OldResourceProperties as unknown as HandlerProperties;
+  const oldProperties = (event.OldResourceProperties as unknown) as HandlerProperties;
   const newEndpoints = endpoints.filter(ep => !oldProperties.endpoints.includes(ep));
   await throttlingBackOff(() =>
     ec2

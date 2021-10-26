@@ -47,7 +47,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { serviceId, allowedPrincipals } = properties;
   await throttlingBackOff(() =>
     ec2
@@ -63,10 +63,10 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 }
 
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { allowedPrincipals, serviceId } = properties;
 
-  const oldProperties = event.OldResourceProperties as unknown as HandlerProperties;
+  const oldProperties = (event.OldResourceProperties as unknown) as HandlerProperties;
   const newPrincipals = allowedPrincipals.filter(rule => !oldProperties.allowedPrincipals.includes(rule));
   const removePrincipals = oldProperties.allowedPrincipals.filter(rule => !allowedPrincipals.includes(rule));
   await throttlingBackOff(() =>
@@ -84,7 +84,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { allowedPrincipals, serviceId } = properties;
   if (event.PhysicalResourceId !== `ModifyVpcEndpointServicePermissions-${serviceId}`) {
     return;

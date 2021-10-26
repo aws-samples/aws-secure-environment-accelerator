@@ -47,7 +47,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 export const handler = errorHandler(onEvent);
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { templateBucketName, templatePath, outputBucketName, outputPath } = properties;
 
   // Load template

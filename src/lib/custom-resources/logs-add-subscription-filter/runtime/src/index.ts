@@ -89,7 +89,7 @@ const isExcluded = (exclusions: string[], logGroupName: string): boolean => {
 };
 
 async function centralLoggingSubscription(event: CloudFormationCustomResourceEvent): Promise<void> {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { logDestinationArn, logRetention } = properties;
   const globalExclusions = properties.globalExclusions || [];
   const logGroups = await getLogGroups();
@@ -114,7 +114,7 @@ async function centralLoggingSubscription(event: CloudFormationCustomResourceEve
 }
 
 async function centralLoggingSubscriptionUpdate(event: CloudFormationCustomResourceEvent): Promise<void> {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { logDestinationArn, logRetention } = properties;
   const globalExclusions = properties.globalExclusions || [];
   const logGroups = await getLogGroups();

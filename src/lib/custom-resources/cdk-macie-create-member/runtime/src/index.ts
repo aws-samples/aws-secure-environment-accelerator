@@ -46,7 +46,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   return `${properties.accountId}`;
 }
@@ -54,7 +54,7 @@ function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
 async function onCreateOrUpdate(
   event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
 ) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   await createMember(properties);
   return {
     physicalResourceId: getPhysicalId(event),

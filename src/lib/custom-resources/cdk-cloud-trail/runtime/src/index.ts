@@ -141,7 +141,7 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Deleting CloudTrail ...`);
   console.log(JSON.stringify(event, null, 2));
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { cloudTrailName } = properties;
   if (event.PhysicalResourceId !== `OrgCloudTrail-${cloudTrailName}`) {
     return;
@@ -244,7 +244,7 @@ function buildCloudTrailUpdateRequest(props: {
 }
 
 function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   if (typeof properties.managementEvents === 'string') {
     properties.managementEvents = properties.managementEvents === 'true';
   }

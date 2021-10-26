@@ -48,7 +48,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   return `MacieUpdateSession${properties.findingPublishingFrequency}${properties.status}`;
 }
@@ -91,7 +91,7 @@ async function updatePublishConfiguration(enableSensitiveData: boolean) {
 }
 
 function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   if (typeof properties.publishSensitiveFindings === 'string') {
     properties.publishSensitiveFindings = properties.publishSensitiveFindings === 'true';
   }

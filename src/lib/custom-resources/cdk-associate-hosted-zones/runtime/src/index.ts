@@ -105,7 +105,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { assumeRoleName, hostedZoneAccountId, hostedZoneIds, vpcAccountId, vpcId, vpcName, vpcRegion } = properties;
 
   const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
@@ -161,7 +161,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 }
 
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { assumeRoleName, hostedZoneAccountId, hostedZoneIds, vpcAccountId, vpcId, vpcName, vpcRegion } = properties;
 
   const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
@@ -178,7 +178,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
     });
   }
 
-  const oldProperties = event.OldResourceProperties as unknown as HandlerProperties;
+  const oldProperties = (event.OldResourceProperties as unknown) as HandlerProperties;
   const currentAssociations = hostedZoneIds.filter(hz => !oldProperties.hostedZoneIds.includes(hz));
   const removeAssociations = oldProperties.hostedZoneIds.filter(hz => !hostedZoneIds.includes(hz));
   for (const hostedZoneId of currentAssociations) {
@@ -279,7 +279,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Deleting Log Group Metric filter...`);
   console.log(JSON.stringify(event, null, 2));
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { assumeRoleName, hostedZoneAccountId, hostedZoneIds, vpcAccountId, vpcId, vpcName, vpcRegion } = properties;
   if (
     event.PhysicalResourceId !== `AssociateHostedZones-${vpcName}-${vpcRegion}-${vpcAccountId}-${hostedZoneAccountId}`

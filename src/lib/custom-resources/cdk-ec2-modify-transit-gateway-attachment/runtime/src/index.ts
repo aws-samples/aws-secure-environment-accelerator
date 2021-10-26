@@ -43,7 +43,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { subnetIds, transitGatewayAttachmentId } = properties;
   const existingAttachmentResponse = await throttlingBackOff(() =>
     ec2
@@ -81,7 +81,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Deleting Log Group Metric filter...`);
   console.log(JSON.stringify(event, null, 2));
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { transitGatewayAttachmentId, ignoreWhileDeleteSubnets } = properties;
   if (event.PhysicalResourceId !== `ModifyTransitGatewayVpcAttachment-${transitGatewayAttachmentId}`) {
     return {

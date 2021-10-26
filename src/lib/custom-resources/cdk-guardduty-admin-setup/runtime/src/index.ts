@@ -272,7 +272,7 @@ async function listMembers(detectorId: string): Promise<AWS.GuardDuty.Member[]> 
 }
 
 function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   if (typeof properties.s3Protection === 'string') {
     properties.s3Protection = properties.s3Protection === 'true';
   }

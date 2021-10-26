@@ -49,7 +49,7 @@ function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
 }
 
 function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   if (typeof properties.autoEnable === 'string') {
     properties.autoEnable = properties.autoEnable === 'true';
   }

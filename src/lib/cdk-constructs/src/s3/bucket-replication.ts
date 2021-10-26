@@ -46,7 +46,7 @@ export class BucketReplication extends cdk.Construct {
     this.bucket = props.bucket;
     this.s3PutReplicationRole = props.s3PutReplicationRole;
     // Get the underlying resource
-    this.resource = props.bucket as unknown as s3.CfnBucket;
+    this.resource = (props.bucket as unknown) as s3.CfnBucket;
   }
 
   replicateFrom(principals: iam.IPrincipal[], organizationId: string, prefix: string) {

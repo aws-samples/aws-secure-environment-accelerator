@@ -39,7 +39,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
 };
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   // Find VPN connection by its ID
   const describeVpnConnections = await throttlingBackOff(() =>

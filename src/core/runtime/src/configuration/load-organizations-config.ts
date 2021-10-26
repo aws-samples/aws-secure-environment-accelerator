@@ -44,8 +44,14 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
   console.log(`Loading Organization baseline configuration...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configFilePath, configRepositoryName, configCommitId, acceleratorPrefix, parametersTableName, baseline } =
-    input;
+  const {
+    configFilePath,
+    configRepositoryName,
+    configCommitId,
+    acceleratorPrefix,
+    parametersTableName,
+    baseline,
+  } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({

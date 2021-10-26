@@ -46,7 +46,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { logGroupName, retention, tags, kmsKeyId } = properties;
   try {
     const existingLogGroups = await throttlingBackOff(() =>
@@ -121,7 +121,7 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Deleting CloudWatch LogGroup ...`);
   console.log(JSON.stringify(event, null, 2));
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { logGroupName } = properties;
   if (event.PhysicalResourceId !== logGroupName) {
     return;

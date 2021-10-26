@@ -47,7 +47,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { bucketName, rulesDomainNames, phzDomainNames, cdkStackName } = properties;
 
   // If bucket name exists, deleting the attached bucket policy

@@ -225,5 +225,5 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
 }
 
 function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
-  return event.ResourceProperties as unknown as HandlerProperties;
+  return (event.ResourceProperties as unknown) as HandlerProperties;
 }

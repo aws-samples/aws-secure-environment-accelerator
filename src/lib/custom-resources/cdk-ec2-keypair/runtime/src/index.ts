@@ -48,13 +48,13 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   return `${properties.secretPrefix}${properties.keyName}`;
 }
 
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const response = await generateKeypair(properties);
   return {
     physicalResourceId: getPhysicalId(event),
@@ -68,11 +68,11 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   // delete old keypair
   // TODO Do not delete the old keypair if the name did not change
   //      This could happen when the `secretPrefix` changes
-  const oldProperties = event.OldResourceProperties as unknown as HandlerProperties;
+  const oldProperties = (event.OldResourceProperties as unknown) as HandlerProperties;
   await deleteKeypair(oldProperties);
 
   // create new keypair
-  const newProperties = event.ResourceProperties as unknown as HandlerProperties;
+  const newProperties = (event.ResourceProperties as unknown) as HandlerProperties;
   const response = await generateKeypair(newProperties);
   return {
     physicalResourceId: getPhysicalId(event),
@@ -83,7 +83,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const physicalResourceId = getPhysicalId(event);
   if (physicalResourceId !== event.PhysicalResourceId) {
     return;

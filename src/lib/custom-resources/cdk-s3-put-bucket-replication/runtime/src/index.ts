@@ -49,14 +49,14 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   return `S3PutReplication-${properties.bucketName}`;
 }
 
 async function onCreateOrUpdate(
   event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
 ) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { bucketName, replicationRole, rules } = properties;
   await throttlingBackOff(() =>
     s3
@@ -76,7 +76,7 @@ async function onCreateOrUpdate(
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { bucketName } = properties;
   if (event.PhysicalResourceId !== getPhysicalId(event)) {
     return;

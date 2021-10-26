@@ -134,8 +134,15 @@ export class FirewallInstance extends cdk.Construct {
     vpnTunnelOptions?: FirewallVpnTunnelOptions;
     additionalReplacements?: { [key: string]: string };
   }): ec2.CfnNetworkInterface {
-    const { name, securityGroup, subnet, privateStaticIp, eipAllocationId, vpnTunnelOptions, additionalReplacements } =
-      props;
+    const {
+      name,
+      securityGroup,
+      subnet,
+      privateStaticIp,
+      eipAllocationId,
+      vpnTunnelOptions,
+      additionalReplacements,
+    } = props;
     const index = this.networkInterfacesProps.length;
 
     // Create network interface

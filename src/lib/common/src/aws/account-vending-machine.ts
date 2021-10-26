@@ -36,8 +36,15 @@ export class AccountVendingMachine {
    * Create account using account-vending-machine
    */
   async createAccount(input: CreateAvmAccountInput): Promise<CreateAccountOutput> {
-    const { avmPortfolioName, avmProductName, accountName, emailAddress, organizationalUnit, accountKey, accountId } =
-      input;
+    const {
+      avmPortfolioName,
+      avmProductName,
+      accountName,
+      emailAddress,
+      organizationalUnit,
+      accountKey,
+      accountId,
+    } = input;
 
     // find service catalog portfolioId by name
     const portfolio = await throttlingBackOff(() => this.client.findPortfolioByName(avmPortfolioName));

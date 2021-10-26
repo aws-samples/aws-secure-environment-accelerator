@@ -49,9 +49,8 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   // Getting standards and disabling specific Controls for each standard
   for (const standard of standards) {
     const standardArn = standardsResponse?.find(x => x.Name === standard.name)?.StandardsArn;
-    const standardSubscriptionArn = enabledStandardsResponse?.find(
-      s => s.StandardsArn === standardArn,
-    )?.StandardsSubscriptionArn;
+    const standardSubscriptionArn = enabledStandardsResponse?.find(s => s.StandardsArn === standardArn)
+      ?.StandardsSubscriptionArn;
 
     const standardControls = await describeStandardsControls(standardSubscriptionArn);
     for (const disableControl of standard['controls-to-disable']) {

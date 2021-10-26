@@ -44,7 +44,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { comment, vpcId, domain, region } = properties;
   let hostedZoneId: string;
   // Sleep 1 to 10 random seconds after creation of the vpc endpoint to avoid RateExceeded issue with Route53 api accross regions
@@ -94,7 +94,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Deleting Hosted Zone...`);
   console.log(JSON.stringify(event, null, 2));
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { vpcId, domain, region } = properties;
   if (event.PhysicalResourceId !== `${vpcId}-${domain}`) {
     return;

@@ -41,7 +41,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   await throttlingBackOff(() => ec2.enableEbsEncryptionByDefault().promise());
   await throttlingBackOff(() =>

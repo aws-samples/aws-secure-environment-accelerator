@@ -49,7 +49,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   if (typeof properties.cloudWatchEncryptionEnabled === 'string') {
     properties.cloudWatchEncryptionEnabled = properties.cloudWatchEncryptionEnabled === 'true';
   }
