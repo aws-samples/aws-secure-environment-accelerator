@@ -164,7 +164,7 @@ This summarizes the installation process, the full installation document can be 
 
 ### - Prescriptive PBMM Architecture Design [Document](./docs/architectures/pbmm/architecture.md) (Early Draft)
 
-- Accelerator Prescriptive Architecture Sample [diagrams](./docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md)
+- Accelerator Prescriptive Architecture Sample [diagrams](./docs/architectures/AWS_Accel_Account_Network_VPC.md)
 
 ---
 

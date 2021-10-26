@@ -82,7 +82,7 @@ jobs:
 
       - name: Copy file output 2b1
         run: |
-          cp reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.lite-example.json
+          cp reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.lite-VPN-example.json
 
       - name: Copy file output 2b2
         run: |
@@ -252,7 +252,7 @@ jobs:
 
       - name: Copy file output 6b
         run: |
-          cp docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.pdf ${{ steps.setup.outputs.dir }}/6b-${{ steps.setup.outputs.prefix }}-PBMM_Accel_Account_Network_VPC.pdf
+          cp docs/architectures/AWS_Accel_Account_Network_VPC.pdf ${{ steps.setup.outputs.dir }}/6b-${{ steps.setup.outputs.prefix }}-Accel_Account_Network_VPC.pdf
 
       - uses: actions/upload-artifact@v2
         with:
