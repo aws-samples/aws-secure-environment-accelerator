@@ -83,10 +83,8 @@ export function install() {
   jest
     .spyOn(DynamoDB.prototype, 'getItem')
     .mockImplementation(async (tableName: string, client: DynamoDB) => Promise.resolve([]));
-  
-  jest
-    .spyOn(ServiceCatalog.prototype, 'searchProvisionedProductsForAllAccounts')
-    .mockImplementation(async() => []);
+
+  jest.spyOn(ServiceCatalog.prototype, 'searchProvisionedProductsForAllAccounts').mockImplementation(async () => []);
 
   // Mock "loadAcceleratorConfig" directly with content from test/config.example.json
   const configFilePath = path.join(__dirname, '..', '..', '..', '..', 'test', 'config.example.json');

@@ -367,7 +367,6 @@ export class Organizations {
     return accounts.find(a => equalIgnoreCase(a.Email!, email));
   }
 
-
   async getOrganizationalUnitWithPath(ouId: string): Promise<OrganizationalUnit> {
     const organizationalUnit = await this.getOrganizationalUnit(ouId);
     const parents = await this.getOrganizationParents(ouId, [organizationalUnit!]);

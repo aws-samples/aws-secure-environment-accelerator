@@ -11,7 +11,7 @@
  *  and limitations under the License.
  */
 
- export interface CreateAccountInput {
+export interface CreateAccountInput {
   accountId?: string;
   accountName: string;
   emailAddress: string;
@@ -35,7 +35,12 @@ export interface CreateAccountOutput {
   provisionToken?: string;
 }
 
-export type AccountAvailableStatus = 'SUCCESS' | 'FAILURE' | 'IN_PROGRESS' | 'NON_MANDATORY_ACCOUNT_FAILURE' | 'NOT_EXISTS';
+export type AccountAvailableStatus =
+  | 'SUCCESS'
+  | 'FAILURE'
+  | 'IN_PROGRESS'
+  | 'NON_MANDATORY_ACCOUNT_FAILURE'
+  | 'NOT_EXISTS';
 
 export interface AccountAvailableOutput {
   status?: AccountAvailableStatus | OrganizationAccountOutputStatus;

@@ -110,7 +110,7 @@ export namespace PeeringConnection {
         }
         // Add Route to RouteTable
         for (const [index, subnet] of targetSubnet.definitions.entries()) {
-          if (subnet.disabled || !subnet.cidr) {
+          if (subnet.disabled) {
             continue;
           }
           const destinationCidrBlock = targetVpcOutput.subnets.find(

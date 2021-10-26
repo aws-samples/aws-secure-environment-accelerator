@@ -11,43 +11,42 @@
  *  and limitations under the License.
  */
 
- import { AccountVendingMachine } from '@aws-accelerator/common/src/aws/account-vending-machine';
- import { ConfigurationAccount } from '../load-configuration-step';
- import { AccountAvailableOutput } from '@aws-accelerator/common/src/aws/types/account';
- 
- interface CheckStepInput {
-   account: ConfigurationAccount;
- }
- 
- export const handler = async (input: Partial<CheckStepInput>): Promise<AccountAvailableOutput> => {
-   console.log(`Verifying status of provisioned account`);
-   console.log(JSON.stringify(input, null, 2));
- 
-   const { account } = input;
- 
-   const avm = new AccountVendingMachine();
- 
-   // Check the status of the provisioned account.
- 
-   let verifyAccountOutput: AccountAvailableOutput;
-   if (account?.accountId){
-     verifyAccountOutput = await avm.isAccountAvailableByAccountId(account.accountId);
-     if (verifyAccountOutput.status === 'FAILURE') {
+import { AccountVendingMachine } from '@aws-accelerator/common/src/aws/account-vending-machine';
+import { ConfigurationAccount } from '../load-configuration-step';
+import { AccountAvailableOutput } from '@aws-accelerator/common/src/aws/types/account';
+
+interface CheckStepInput {
+  account: ConfigurationAccount;
+}
+
+export const handler = async (input: Partial<CheckStepInput>): Promise<AccountAvailableOutput> => {
+  console.log(`Verifying status of provisioned account`);
+  console.log(JSON.stringify(input, null, 2));
+
+  const { account } = input;
+
+  const avm = new AccountVendingMachine();
+
+  // Check the status of the provisioned account.
+
+  let verifyAccountOutput: AccountAvailableOutput;
+  if (account?.accountId) {
+    verifyAccountOutput = await avm.isAccountAvailableByAccountId(account.accountId);
+    if (verifyAccountOutput.status === 'FAILURE') {
       verifyAccountOutput = await avm.isAccountAvailable(account.accountKey);
-     }
-   } else {
-     verifyAccountOutput = await avm.isAccountAvailable(account?.accountKey!);
-   }
- 
-   if (account && !account.isMandatoryAccount) {
-     const status = verifyAccountOutput.status;
-     if (status && status === 'FAILURE') {
-       return {
-         status: 'FAILURE',
-         statusReason: `Account creation in Control Tower failed for "${account.accountKey}"`,
-       };
-     }
-   }
-   return verifyAccountOutput;
- };
- 
+    }
+  } else {
+    verifyAccountOutput = await avm.isAccountAvailable(account?.accountKey!);
+  }
+
+  if (account && !account.isMandatoryAccount) {
+    const status = verifyAccountOutput.status;
+    if (status && status === 'FAILURE') {
+      return {
+        status: 'FAILURE',
+        statusReason: `Account creation in Control Tower failed for "${account.accountKey}"`,
+      };
+    }
+  }
+  return verifyAccountOutput;
+};

@@ -33,7 +33,6 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
   const centralOperationsKey = config.getMandatoryAccountKey('central-operations');
   const centralLogKey = config.getMandatoryAccountKey('central-log');
 
-
   for (const accountKey of accountKeys) {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
     if (!accountStack) {
@@ -42,7 +41,9 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
     }
 
     if (
-      (accountKey === securityAccountKey  && baseline !== 'CONTROL_TOWER' && globalOptions['central-security-services']['config-aggr']) || // Don't deploy if CT; aggregator is configured there.
+      (accountKey === securityAccountKey &&
+        baseline !== 'CONTROL_TOWER' &&
+        globalOptions['central-security-services']['config-aggr']) || // Don't deploy if CT; aggregator is configured there.
       (accountKey === centralOperationsKey && globalOptions['central-operations-services']['config-aggr']) ||
       (accountKey === centralLogKey && globalOptions['central-log-services']['config-aggr'])
     ) {

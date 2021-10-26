@@ -27,10 +27,9 @@ const translationHelper = new TranslationExtractHelper(languageCode);
 translationHelper.iterate(schemaParsed, schemaParsed.title);
 
 // Merge base and extracted translations
-for(const prop in baseTranslationParsed[languageCode]){
+for (const prop in baseTranslationParsed[languageCode]) {
   translationHelper.typeDocTranslation[languageCode][prop] = baseTranslationParsed[languageCode][prop];
 }
 
 const schemaString = JSON.stringify(translationHelper.typeDocTranslation, null, 2);
 fs.writeFileSync(outputFile, schemaString);
-

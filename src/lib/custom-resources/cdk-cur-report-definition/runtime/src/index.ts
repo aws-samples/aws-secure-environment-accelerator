@@ -83,7 +83,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
 }
 
 async function createOrUpdateReportDefinition(event: CloudFormationCustomResourceEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
 
   // Sometimes the RefreshClosedReports value is passed as a string
   if (typeof properties.RefreshClosedReports === 'string') {

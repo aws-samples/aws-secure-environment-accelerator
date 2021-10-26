@@ -141,28 +141,6 @@ test('the VPC creation should create the correct amount of subnets', () => {
           },
         ],
       },
-      {
-        name: 'Web2',
-        'share-to-ou-accounts': false,
-        definitions: [
-          {
-            az: 'a',
-            'route-table': 'DevVPC_Common',
-            cidr: '10.3.32.0/20',
-          },
-          {
-            az: 'b',
-            'route-table': 'DevVPC_Common',
-            cidr: '10.3.128.0/20',
-          },
-          {
-            az: 'd',
-            'route-table': 'DevVPC_Common',
-            cidr: '10.3.192.0/20',
-            disabled: true,
-          },
-        ],
-      },
     ],
     'route-tables': [
       {

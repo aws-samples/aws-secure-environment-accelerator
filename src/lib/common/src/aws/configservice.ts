@@ -94,8 +94,12 @@ export class ConfigService {
    *
    * @param DescribeConfigurationAggregatorsRequest
    */
-  async describeConfigurationAggregators(input: DescribeConfigurationAggregatorsRequest): Promise<DescribeConfigurationAggregatorsResponse> {
-    const describeConfigurationAggregators = await throttlingBackOff(() => this.client.describeConfigurationAggregators(input).promise());
+  async describeConfigurationAggregators(
+    input: DescribeConfigurationAggregatorsRequest,
+  ): Promise<DescribeConfigurationAggregatorsResponse> {
+    const describeConfigurationAggregators = await throttlingBackOff(() =>
+      this.client.describeConfigurationAggregators(input).promise(),
+    );
     return describeConfigurationAggregators;
   }
 

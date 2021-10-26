@@ -82,8 +82,9 @@ export class Nacl extends cdk.Construct {
           const ruleResolvedVpcConfig = vpcConfigs.find(
             x => x.vpcConfig.name === cidr.vpc && x.accountKey === vpcAccountKey,
           );
-          const ruleVpcConfig = vpcConfigs.find(x => x.vpcConfig.name === cidr.vpc && x.accountKey === vpcAccountKey)
-            ?.vpcConfig;
+          const ruleVpcConfig = vpcConfigs.find(
+            x => x.vpcConfig.name === cidr.vpc && x.accountKey === vpcAccountKey,
+          )?.vpcConfig;
           if (!ruleVpcConfig) {
             console.warn(`VPC Not Found in Config "${cidr.vpc}"`);
             continue;

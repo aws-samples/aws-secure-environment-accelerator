@@ -46,11 +46,6 @@ export class ApplicationLoadBalancer extends cdk.Construct {
       loadBalancerArn: this.resource.ref,
       loadBalancerName: albName,
     });
-
-    new ElbDeletionProtection(this, 'AlbDeletionProtection', {
-      loadBalancerArn: this.resource.ref,
-      loadBalancerName: albName,
-    });
   }
 
   logToBucket(bucket: s3.IBucket) {

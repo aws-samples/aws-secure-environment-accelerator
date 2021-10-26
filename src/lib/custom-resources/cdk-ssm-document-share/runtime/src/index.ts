@@ -49,7 +49,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
-  const { accountIds, name } = (event.ResourceProperties as unknown) as HandlerProperties;
+  const { accountIds, name } = event.ResourceProperties as unknown as HandlerProperties;
   let pageNumber = 1;
   let currentAccountIds: string[] = paginate(accountIds, pageNumber, pageSize);
   while (currentAccountIds.length > 0) {
@@ -73,8 +73,8 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   console.log(`SSM Document Share Update...`);
   console.log(JSON.stringify(event, null, 2));
-  const { accountIds, name } = (event.ResourceProperties as unknown) as HandlerProperties;
-  const oldProperties = (event.OldResourceProperties as unknown) as HandlerProperties;
+  const { accountIds, name } = event.ResourceProperties as unknown as HandlerProperties;
+  const oldProperties = event.OldResourceProperties as unknown as HandlerProperties;
   const shareAccounts = accountIds.filter(accountId => !oldProperties.accountIds.includes(accountId));
   const unShareAccounts = oldProperties.accountIds.filter(accountId => !accountIds.includes(accountId));
 
@@ -120,7 +120,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`SSM Document Share Delete...`);
   console.log(JSON.stringify(event, null, 2));
-  const { accountIds, name } = (event.ResourceProperties as unknown) as HandlerProperties;
+  const { accountIds, name } = event.ResourceProperties as unknown as HandlerProperties;
   if (event.PhysicalResourceId !== `SSMDocumentShare-${name}`) {
     return {
       physicalResourceId: `SSMDocumentShare-${name}`,

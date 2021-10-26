@@ -47,7 +47,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
   const { resolverRuleIds, vpcId } = properties;
   for (const ruleId of resolverRuleIds) {
     try {
@@ -75,10 +75,10 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 }
 
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
   const { resolverRuleIds, vpcId } = properties;
 
-  const oldProperties = (event.OldResourceProperties as unknown) as HandlerProperties;
+  const oldProperties = event.OldResourceProperties as unknown as HandlerProperties;
   const newAssociations = resolverRuleIds.filter(rule => !oldProperties.resolverRuleIds.includes(rule));
   const removeAssociations = oldProperties.resolverRuleIds.filter(rule => !resolverRuleIds.includes(rule));
   for (const ruleId of newAssociations) {
@@ -131,7 +131,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Deleting Log Group Metric filter...`);
   console.log(JSON.stringify(event, null, 2));
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
   const { resolverRuleIds, vpcId } = properties;
   if (event.PhysicalResourceId !== `AssociateResolverRules-${vpcId}`) {
     return;

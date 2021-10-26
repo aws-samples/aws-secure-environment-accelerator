@@ -37,7 +37,7 @@ jobs:
           find node_modules -name runtime-info.js -exec sed -i 's/mod.paths/(mod.paths || [])/g' {} \;
       - name: Build all workspaces
         run: |
-          pnpm recursive run build -- --noEmit
+          pnpm recursive run build
       - name: Run tests in all workspaces
         run: |
           pnpm recursive run test -- --pass-with-no-tests --silent

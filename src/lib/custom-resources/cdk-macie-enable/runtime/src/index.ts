@@ -57,7 +57,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
 
   return `${properties.findingPublishingFrequency}${properties.status}`;
 }
@@ -65,7 +65,7 @@ function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
 async function onCreateOrUpdate(
   event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
 ) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
   const response = await enableMacie(properties);
   return {
     physicalResourceId: getPhysicalId(event),

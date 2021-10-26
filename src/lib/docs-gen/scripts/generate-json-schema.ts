@@ -12,7 +12,7 @@ const selectedLanguage = process.argv[2];
 const outputFile = process.argv[3];
 
 const folder = path.dirname(outputFile);
-fs.mkdirSync(folder,{recursive:true});
+fs.mkdirSync(folder, { recursive: true });
 
 let schema;
 if (selectedLanguage === 'fr') {

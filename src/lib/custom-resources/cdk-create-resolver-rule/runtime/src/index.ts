@@ -50,7 +50,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
   const { targetIps, vpcId, domainName, resolverEndpointId, name } = properties;
   let resolverRuleId: string;
   try {
@@ -95,7 +95,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 }
 
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
   const { targetIps, domainName, resolverEndpointId, name } = properties;
   let resolverRuleId: string;
   try {
@@ -147,7 +147,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Deleting Resolver Rule...`);
   console.log(JSON.stringify(event, null, 2));
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
   const { resolverEndpointId, name } = properties;
   let maxRetries = 25;
   if (event.PhysicalResourceId !== name) {

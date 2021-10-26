@@ -298,7 +298,7 @@ export async function loadAssignedVpcCidrPool(tableName: string, client?: Dynamo
   const assignedVpcCidrPools = await client.scan({
     TableName: tableName,
   });
-  return (assignedVpcCidrPools as unknown) as AssignedVpcCidrPool[];
+  return assignedVpcCidrPools as unknown as AssignedVpcCidrPool[];
 }
 
 export async function loadAssignedSubnetCidrPool(tableName: string, client?: DynamoDB) {
@@ -308,7 +308,7 @@ export async function loadAssignedSubnetCidrPool(tableName: string, client?: Dyn
   const assignedSubnetCidrPools = await client.scan({
     TableName: tableName,
   });
-  return (assignedSubnetCidrPools as unknown) as AssignedSubnetCidrPool[];
+  return assignedSubnetCidrPools as unknown as AssignedSubnetCidrPool[];
 }
 
 export async function loadCidrPools(tableName: string, client?: DynamoDB): Promise<CidrPool[]> {
@@ -318,7 +318,7 @@ export async function loadCidrPools(tableName: string, client?: DynamoDB): Promi
   const cidrPools = await client.scan({
     TableName: tableName,
   });
-  return (cidrPools as unknown) as CidrPool[];
+  return cidrPools as unknown as CidrPool[];
 }
 
 export function randomAlphanumericString(length: number) {

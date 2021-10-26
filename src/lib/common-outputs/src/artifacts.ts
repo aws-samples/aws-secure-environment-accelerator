@@ -23,7 +23,7 @@ export const ArtifactNameType = enums('ArtifactName', [
   'Rsyslog',
   'SsmDocument',
   'ConfigRules',
-  'NFW'
+  'NFW',
 ]);
 
 export type ArtifactName = t.TypeOf<typeof ArtifactNameType>;

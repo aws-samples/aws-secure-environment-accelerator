@@ -39,7 +39,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
   const grant = await throttlingBackOff(() =>
     kms
       .createGrant({
@@ -67,7 +67,7 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
 
   // When the grant fails to create, the physical resource ID will not be set
   if (!event.PhysicalResourceId) {

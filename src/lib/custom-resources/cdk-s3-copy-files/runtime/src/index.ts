@@ -81,7 +81,7 @@ async function onDelete(_: CloudFormationCustomResourceEvent) {
 }
 
 function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
   if (typeof properties.deleteSourceObjects === 'string') {
     properties.deleteSourceObjects = properties.deleteSourceObjects === 'true';
   }

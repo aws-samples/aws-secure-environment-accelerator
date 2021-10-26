@@ -2033,7 +2033,7 @@
             }
           }
         ],
-        "xxfirewall-manager": {
+        "firewall-manager": {
           "name": "FirewallMgr",
           "image-id": "ami-0a0e17ee05506072e",
           "instance-sizes": "c5.large",

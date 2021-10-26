@@ -47,7 +47,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
 
   return `${properties.bucketName}${properties.kmsKeyArn}${properties.keyPrefix}`;
 }
@@ -55,7 +55,7 @@ function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
 async function onCreateOrUpdate(
   event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
 ) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
   const response = await configExport(properties);
   return {
     physicalResourceId: getPhysicalId(event),

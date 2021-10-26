@@ -192,10 +192,7 @@ export namespace LogBucketOutput {
     });
   }
 
-  export function getBucketDetails(props: {
-    config: AcceleratorConfig;
-    outputs: StackOutput[];
-  }): {
+  export function getBucketDetails(props: { config: AcceleratorConfig; outputs: StackOutput[] }): {
     arn: string;
     name: string;
   } {

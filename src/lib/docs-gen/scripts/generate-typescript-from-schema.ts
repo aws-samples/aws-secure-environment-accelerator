@@ -1,9 +1,9 @@
 import * as fs from 'fs';
-import { compileFromFile } from 'json-schema-to-typescript'
+import { compileFromFile } from 'json-schema-to-typescript';
 import path from 'path';
 
 if (process.argv.length !== 4) {
-    throw new Error(`Usage ${process.argv0} <INPUT_FILE> <OUTPUT_FILE>`);
+  throw new Error(`Usage ${process.argv0} <INPUT_FILE> <OUTPUT_FILE>`);
 }
 
 const inputFile = process.argv[2];
@@ -14,7 +14,7 @@ const outputFolder = path.dirname(outputFile);
 fs.mkdirSync(outputFolder, { recursive: true });
 
 compileFromFile(`${inputFile}`, {
-    bannerComment: ""
+  bannerComment: '',
 }).then(ts => {
-    fs.writeFileSync(`${outputFile}`, ts)
+  fs.writeFileSync(`${outputFile}`, ts);
 });

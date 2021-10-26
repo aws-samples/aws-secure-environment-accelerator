@@ -48,13 +48,13 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
 
   return `${properties.detectorId}${properties.destinationArn}${properties.kmsKeyArn}`;
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
   await deletePublishDestination(properties);
   return {
     physicalResourceId: getPhysicalId(event),
@@ -65,7 +65,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
 async function onCreateOrUpdate(
   event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
 ) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
   const { detectorId } = properties;
   if (detectorId === 'NotFound') {
     console.warn(`DetecrorId Not Found, Skipping creation of publisher`);

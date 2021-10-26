@@ -115,13 +115,8 @@ async function updateCidrs(params: {
   outputTableName: string;
   parametersTableName: string;
 }) {
-  const {
-    config,
-    outputTableName,
-    parametersTableName,
-    subnetCidrPoolAssignedTable,
-    vpcCidrPoolAssignedTable,
-  } = params;
+  const { config, outputTableName, parametersTableName, subnetCidrPoolAssignedTable, vpcCidrPoolAssignedTable } =
+    params;
   const assignedVpcCidrPools = await loadAssignedVpcCidrPool(vpcCidrPoolAssignedTable);
   const assignedSubnetCidrPools = await loadAssignedSubnetCidrPool(subnetCidrPoolAssignedTable);
   const outputs = await loadOutputs(outputTableName, dynamodb);
