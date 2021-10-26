@@ -5,7 +5,7 @@
       "b": ["${HOME_REGION}", "${GBL_REGION}"],
       "c": ["${HOME_REGION}", "${GBL_REGION}"]
     },
-	"INFO": "Deploying in us-east-1 requires removing ${GBL_REGION} throught the file",
+    "INFO": "Deploying in us-east-1 requires removing ${GBL_REGION} throught the file",
     "alarm-not-ip": "10.10.10.*"
   },
   "global-options": {
@@ -589,6 +589,7 @@
       "email": "myemail+aseaT-management@example.com---------------------REPLACE----------------------",
       "ou": "Security",
       "src-filename": "config.json",
+      "gui-perm": true,
       "budget": {
         "name": "Organization Budget",
         "period": "Monthly",
@@ -640,13 +641,15 @@
       "account-name": "Log Archive",
       "ou": "Security",
       "email": "myemail+aseaT-logs@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json"
+      "src-filename": "config.json",
+      "gui-perm": true
     },
     "security": {
       "account-name": "Security",
       "ou": "Security",
       "email": "myemail+aseaT-audit@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json"
+      "src-filename": "config.json",
+      "gui-perm": true
     }
   },
   "workload-account-configs": {},
@@ -654,6 +657,7 @@
     "Security": {
       "type": "ignore",
       "scps": ["Guardrails-Part-0-Core", "Guardrails-Part-1", "Guardrails-Sensitive"],
+      "gui-perm": true,
       "default-budgets": {
         "name": "Default Security Budget",
         "period": "Monthly",

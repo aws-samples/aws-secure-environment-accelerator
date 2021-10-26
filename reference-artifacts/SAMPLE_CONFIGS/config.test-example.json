@@ -1696,6 +1696,7 @@
       "ou": "Security",
       "src-filename": "config.json",
       "description": "This is the Organization Management or root account.  Access must be highly restricted.  This account should not contain customer resources.",
+      "gui-perm": true,
       "budget": {
         "name": "Organization Budget",
         "period": "Monthly",
@@ -1830,14 +1831,16 @@
       "ou": "Security",
       "email": "myemail+aseaT-log@example.com---------------------REPLACE------------",
       "src-filename": "config.json",
-      "description": "This Account is used to centralized and store immutable logs for the Organization."
+      "description": "This Account is used to centralized and store immutable logs for the Organization.",
+      "gui-perm": true
     },
     "security": {
       "account-name": "Security",
       "ou": "Security",
       "email": "myemail+aseaT-sec@example.com---------------------REPLACE------------",
       "src-filename": "config.json",
-      "description": "This Account is used to centralized access to AWS security tooling and consoles."
+      "description": "This Account is used to centralized access to AWS security tooling and consoles.",
+      "gui-perm": true
     }
   },
   "workload-account-configs": {},
@@ -1846,6 +1849,7 @@
       "type": "ignore",
       "description": "The Security OU is used to hold AWS accounts containing AWS security resources shared or utilized by the rest of the Organization.",
       "scps": ["Guardrails-Part-0-Core", "Guardrails-Part-1", "Guardrails-Sensitive"],
+      "gui-perm": true,
       "default-budgets": {
         "name": "Default Security Budget",
         "period": "Monthly",

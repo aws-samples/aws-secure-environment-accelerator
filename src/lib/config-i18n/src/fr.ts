@@ -46,7 +46,7 @@ const translations = translation(
       import: 'Importer',
       next: 'Next', // TODO
       previous: 'Previous', // TODO,
-      save_changes: "Save Changes" // TODO
+      save_changes: 'Save Changes', // TODO
     },
     labels: {
       empty: '<empty>',
@@ -2179,7 +2179,7 @@ translate(c.MandatoryAccountConfigType, {
   title: 'Configuration des Accounts',
   description: '',
   fields: {
-    "gui-perm": {
+    'gui-perm': {
       title: '',
       description: '',
     },
@@ -2308,7 +2308,7 @@ translate(c.OrganizationalUnitConfigType, {
   title: '',
   description: '',
   fields: {
-    "gui-perm": {
+    'gui-perm': {
       title: '',
       description: '',
     },
@@ -2628,8 +2628,8 @@ translate(c.CentralServicesConfigType, {
     },
     'config-aggr': {
       title: '',
-      description: ''
-    }
+      description: '',
+    },
   },
 });
 
