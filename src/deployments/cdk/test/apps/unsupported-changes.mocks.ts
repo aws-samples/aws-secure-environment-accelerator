@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import 'jest';
 import * as path from 'path';
@@ -11,6 +24,7 @@ import { Limiter } from '../../src/utils/limits';
 import { PhaseInput } from '../../src/apps/shared';
 import { PhaseInfo } from '../../src/app';
 import { Context } from '../../src/utils/context';
+import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
 
 export async function* deployPhases(phases: PhaseInfo[]): AsyncIterable<cdk.Stage> {
   const input = createPhaseInput();
@@ -42,6 +56,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       email: 'test+pbmm@amazon.com',
       ou: 'core',
       type: 'primary',
+      inScope: true,
     },
     {
       key: 'log-archive',
@@ -51,6 +66,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       email: 'test+pbmm-lz-logs@amazon.com',
       ou: 'core',
       type: 'log-archive',
+      inScope: true,
     },
     {
       key: 'security',
@@ -60,6 +76,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       email: 'test+pbmm-lz-security@amazon.com',
       ou: 'core',
       type: 'security',
+      inScope: true,
     },
     {
       key: 'operations',
@@ -68,6 +85,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       name: 'test-operations',
       email: 'test+pbmm-lz-operations@amazon.com',
       ou: 'core',
+      inScope: true,
     },
     {
       key: 'shared-network',
@@ -76,6 +94,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       name: 'test-shared-network',
       email: 'test+pbmm-lz-shared-network@amazon.com',
       ou: 'core',
+      inScope: true,
     },
     {
       key: 'shared-services',
@@ -84,6 +103,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       name: 'test-shared-services',
       email: 'test+pbmm-lz-shared-services@amazon.com',
       ou: 'core',
+      inScope: true,
     },
     {
       key: 'perimeter',
@@ -92,6 +112,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       name: 'test-perimeter',
       email: 'test+pbmm-lz-perimeter@amazon.com',
       ou: 'core',
+      inScope: true,
     },
     {
       key: 'fun-acct',
@@ -100,6 +121,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       name: 'test-fun-act',
       email: 'test+pbmm-fun-act@amazon.com',
       ou: 'core',
+      inScope: true,
     },
     {
       key: 'mydevacct1',
@@ -108,6 +130,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       name: 'test-mydevacct1',
       email: 'test+pbmm-mydevacct1@amazon.com',
       ou: 'core',
+      inScope: true,
     },
   ];
 
@@ -132,6 +155,9 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     installerVersion: '0.0.0',
     centralOperationsAccount: 'operations',
     masterAccount: 'master',
+    cidrPoolTable: 'cidr-pool',
+    subnetCidrPoolAssignedTable: 'cidr-subnet-assign',
+    vpcCidrPoolAssignedTable: 'cidr-vpc-assign',
   };
 
   const limiter = new Limiter([]);
@@ -1345,11 +1371,29 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
   ];
 
+  const organizations: OrganizationalUnit[] = [
+    {
+      ouId: 'ou-core',
+      ouArn: 'arn:aws:organizations::111111111111:ou/o-test/ou-core',
+      ouName: 'Core',
+      ouPath: 'Core',
+      rootOrgId: 'o-test',
+    },
+    {
+      ouId: 'ou-test',
+      ouArn: 'arn:aws:organizations::111111111111:ou/o-test/ou-test',
+      ouName: 'Test',
+      ouPath: 'Test',
+      rootOrgId: 'o-test',
+    },
+  ];
+
   return {
     acceleratorConfig: config,
     accounts,
     context,
     limiter,
     outputs,
+    organizations,
   };
 }

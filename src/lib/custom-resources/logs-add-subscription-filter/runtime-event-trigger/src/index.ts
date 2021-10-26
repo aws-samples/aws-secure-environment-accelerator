@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
 import { throttlingBackOff, CloudWatchRulePrefix } from '@aws-accelerator/custom-resource-cfn-utils';
@@ -8,11 +21,12 @@ export const handler = async (input: any): Promise<string> => {
   console.log(`Add Subscription to point LogDestination in log-archive account...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const logGroupName = input['detail']['requestParameters']['logGroupName'];
+  const logGroupName = input.detail.requestParameters.logGroupName as string;
   const logDestinationArn = process.env.LOG_DESTINATION;
   if (!logDestinationArn) {
-    console.warn(`Log Destination is not praent in env for this account`);
-    return `Log Destination is not praent in env for this account`;
+    console.warn(`Log Destination is not parent in env for this account`);
+    const newLocal = `Log Destination is not parent in env for this account`;
+    return newLocal;
   }
   let exclusions: string[] = [];
   if (process.env.EXCLUSIONS) {
@@ -29,7 +43,7 @@ export const handler = async (input: any): Promise<string> => {
   const logRetention = process.env.LOG_RETENTION;
   if (logRetention) {
     // Update Log Retention Policy
-    await putLogRetentionPolicy(logGroupName!, Number(logRetention));
+    await putLogRetentionPolicy(logGroupName, Number(logRetention));
   }
   return 'SUCCESS';
 };

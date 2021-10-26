@@ -1,0 +1,76 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "autoscaling:DescribeAutoScalingGroups",
+                "ec2:DescribeCustomerGateways",
+                "ec2:DescribeInstances",
+                "ec2:DescribeNetworkInterfaces",
+                "ec2:DescribeRouteTables",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeTransitGateways",
+                "ec2:DescribeTransitGatewayAttachments",
+                "ec2:DescribeTransitGatewayRouteTables",
+                "ec2:DescribeVpcs",
+                "ec2:DescribeVpnGateways",
+                "ec2:DescribeVpnConnections",
+                "ec2:DescribeInternetGateways",
+                "ec2:DescribeVpcEndpoints",
+                "ec2:DescribeVpcEndpointServiceConfigurations",
+                "ec2:GetTransitGatewayAttachmentPropagations",
+                "elasticloadbalancing:DescribeLoadBalancers",
+                "elasticloadbalancing:DescribeTags",
+                "elasticloadbalancing:DescribeListeners",
+                "elasticloadbalancing:DescribeTargetGroups",
+                "elasticloadbalancing:DescribeRules",
+                "elasticloadbalancing:DescribeTargetHealth"
+            ],
+            "Resource": "*",
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "ec2:AssociateTransitGatewayRouteTable",
+                "ec2:AttachVpnGateway",
+                "ec2:CreateCustomerGateway",
+                "ec2:CreateVpnConnection",
+                "ec2:CreateVpnGateway",
+                "ec2:DeleteCustomerGateway",
+                "ec2:DeleteVpnConnection",
+                "ec2:DeleteVpnGateway",
+                "ec2:DetachVpnGateway",
+                "ec2:DisableTransitGatewayRouteTablePropagation",
+                "ec2:DisableVgwRoutePropagation",
+                "ec2:DisassociateTransitGatewayRouteTable",
+                "ec2:EnableTransitGatewayRouteTablePropagation",
+                "ec2:EnableVgwRoutePropagation",
+                "ec2:CreateRoute",
+                "ec2:ReplaceRoute",
+                "ec2:DeleteRoute",
+                "ec2:CreateRouteTable",
+                "ec2:AssociateRouteTable",
+                "ec2:CreateTags"
+            ],
+            "Resource": "*",
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "cloudformation:DescribeStacks",
+                "cloudformation:DescribeStackResources"
+            ],
+            "Resource": "*",
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "cloudformation:CreateStack",
+                "cloudformation:DeleteStack"
+            ],
+            "Resource": "arn:aws:cloudformation:*:*:stack/vpn-by-tag--*/*",
+            "Effect": "Allow"
+        }
+    ]
+}

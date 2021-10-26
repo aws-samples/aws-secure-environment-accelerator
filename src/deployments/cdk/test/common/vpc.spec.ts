@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import 'jest';
 import * as cdk from '@aws-cdk/core';
@@ -25,6 +38,9 @@ const testStacks = new AccountStacks({
     defaultRegion: 'test',
     configRootFilePath: 'config.json',
     installerVersion: '0.0.0',
+    cidrPoolTable: 'cidr-pool',
+    subnetCidrPoolAssignedTable: 'cidr-subnet-assign',
+    vpcCidrPoolAssignedTable: 'cidr-vpc-assign',
   },
 });
 
@@ -33,14 +49,19 @@ test('the VPC creation should create the correct amount of subnets', () => {
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
-    cidr: '10.2.0.0/16',
-    cidr2: ['10.3.0.0/16', '10.4.0.0/16'],
+    cidr: [
+      {
+        value: '10.2.0.0/16',
+      },
+      {
+        value: '10.3.0.0/16',
+      },
+      {
+        value: '10.4.0.0/16',
+      },
+    ],
     region: 'ca-central-1',
     deploy: 'local',
-    igw: false,
-    vgw: false,
-    pcx: false,
-    natgw: false,
     'flow-logs': 'NONE',
     'gateway-endpoints': ['s3', 'dynamodb'],
     subnets: [
@@ -51,17 +72,23 @@ test('the VPC creation should create the correct amount of subnets', () => {
           {
             az: 'a',
             'route-table': 'DevVPC_Common',
-            cidr: '10.2.88.0/27',
+            cidr: {
+              value: '10.2.88.0/27',
+            },
           },
           {
             az: 'b',
             'route-table': 'DevVPC_Common',
-            cidr: '10.2.88.32/27',
+            cidr: {
+              value: '10.2.88.32/27',
+            },
           },
           {
             az: 'd',
             'route-table': 'DevVPC_Common',
-            cidr: '10.2.88.64/27',
+            cidr: {
+              value: '10.2.88.64/27',
+            },
             disabled: true,
           },
         ],
@@ -73,17 +100,21 @@ test('the VPC creation should create the correct amount of subnets', () => {
           {
             az: 'a',
             'route-table': 'DevVPC_Common',
-            cidr: '10.2.32.0/20',
+            cidr: {
+              value: '10.2.32.0/20',
+            },
           },
           {
             az: 'b',
             'route-table': 'DevVPC_Common',
-            cidr: '10.2.128.0/20',
+            cidr: {
+              value: '10.2.128.0/20',
+            },
           },
           {
             az: 'd',
             'route-table': 'DevVPC_Common',
-            cidr: '10.2.192.0/20',
+            cidr: { value: '10.2.192.0/20' },
             disabled: true,
           },
         ],
@@ -95,17 +126,17 @@ test('the VPC creation should create the correct amount of subnets', () => {
           {
             az: 'a',
             'route-table': 'DevVPC_Common',
-            cidr: '10.3.32.0/20',
+            cidr: { value: '10.3.32.0/20' },
           },
           {
             az: 'b',
             'route-table': 'DevVPC_Common',
-            cidr: '10.3.128.0/20',
+            cidr: { value: '10.3.128.0/20' },
           },
           {
             az: 'd',
             'route-table': 'DevVPC_Common',
-            cidr: '10.3.192.0/20',
+            cidr: { value: '10.3.192.0/20' },
             disabled: true,
           },
         ],
@@ -143,6 +174,8 @@ test('the VPC creation should create the correct amount of subnets', () => {
     outputs: [],
     acceleratorName: 'test',
     installerVersion: '0.0.0',
+    subnetPools: [],
+    vpcPools: [],
     existingAttachments: [],
   });
 
@@ -233,14 +266,9 @@ test('the VPC creation should throw an error when a subnet uses a route table th
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
-    cidr: '10.2.0.0/16',
+    cidr: [{ value: '10.2.0.0/16' }],
     region: 'ca-central-1',
     deploy: 'local',
-    igw: false,
-    vgw: false,
-    pcx: false,
-    natgw: false,
-    'flow-logs': 'NONE',
     subnets: [
       {
         name: 'TGW',
@@ -249,7 +277,7 @@ test('the VPC creation should throw an error when a subnet uses a route table th
           {
             az: 'a',
             'route-table': 'DevVPC_Common',
-            cidr: '10.2.88.0/27',
+            cidr: { value: '10.2.88.0/27' },
           },
         ],
       },
@@ -265,6 +293,8 @@ test('the VPC creation should throw an error when a subnet uses a route table th
       outputs: [],
       acceleratorName: 'test',
       installerVersion: '0.0.0',
+      subnetPools: [],
+      vpcPools: [],
       existingAttachments: [],
     });
   });
@@ -275,14 +305,10 @@ test('the VPC creation should create the internet gateway', () => {
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
-    cidr: '10.2.0.0/16',
+    cidr: [{ value: '10.2.0.0/16' }],
     region: 'ca-central-1',
     deploy: 'local',
     igw: true,
-    vgw: false,
-    pcx: false,
-    natgw: false,
-    'flow-logs': 'NONE',
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
@@ -294,6 +320,8 @@ test('the VPC creation should create the internet gateway', () => {
     outputs: [],
     acceleratorName: 'test',
     installerVersion: '0.0.0',
+    subnetPools: [],
+    vpcPools: [],
     existingAttachments: [],
   });
 
@@ -312,14 +340,10 @@ test('the VPC creation should create the VPN gateway', () => {
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
-    cidr: '10.2.0.0/16',
+    cidr: [{ value: '10.2.0.0/16' }],
     region: 'ca-central-1',
     deploy: 'local',
-    igw: false,
-    vgw: true,
-    pcx: false,
-    natgw: false,
-    'flow-logs': 'NONE',
+    vgw: {},
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
@@ -331,6 +355,8 @@ test('the VPC creation should create the VPN gateway', () => {
     outputs: [],
     acceleratorName: 'test',
     installerVersion: '0.0.0',
+    subnetPools: [],
+    vpcPools: [],
     existingAttachments: [],
   });
 
@@ -376,13 +402,10 @@ test('the VPC creation should create the NAT gateway', () => {
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
-    cidr: '10.2.0.0/16',
+    cidr: [{ value: '10.2.0.0/16' }],
     region: 'ca-central-1',
     deploy: 'local',
     igw: true,
-    vgw: false,
-    pcx: false,
-    'flow-logs': 'NONE',
     natgw: {
       subnet: {
         name: 'Public',
@@ -398,12 +421,12 @@ test('the VPC creation should create the NAT gateway', () => {
           {
             az: 'a',
             'route-table': 'Private',
-            cidr: '10.2.88.0/27',
+            cidr: { value: '10.2.88.0/27' },
           },
           {
             az: 'b',
             'route-table': 'Private',
-            cidr: '10.2.88.32/27',
+            cidr: { value: '10.2.88.32/27' },
           },
         ],
       },
@@ -414,12 +437,12 @@ test('the VPC creation should create the NAT gateway', () => {
           {
             az: 'a',
             'route-table': 'Public',
-            cidr: '10.2.32.0/20',
+            cidr: { value: '10.2.32.0/20' },
           },
           {
             az: 'b',
             'route-table': 'Public',
-            cidr: '10.2.128.0/20',
+            cidr: { value: '10.2.128.0/20' },
           },
         ],
       },
@@ -457,6 +480,8 @@ test('the VPC creation should create the NAT gateway', () => {
     outputs: [],
     acceleratorName: 'test',
     installerVersion: '0.0.0',
+    subnetPools: [],
+    vpcPools: [],
     existingAttachments: [],
   });
 
@@ -477,7 +502,6 @@ test('the VPC creation should create the NAT gateway', () => {
 
   const privateRoute = routeTables.find(x => x.LogicalId.startsWith('SharedNetworkPrivate'));
   const routes = resources.filter(r => r.Type === 'AWS::EC2::Route');
-  const natRoute = routes.find(x => x.Properties.NatGatewayId!! !== undefined);
 
   // Check NAT Gateway Route is assigned to Private Route Table
   expect(routes).toEqual(

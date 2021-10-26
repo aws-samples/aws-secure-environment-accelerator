@@ -1,47 +1,45 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as fs from 'fs';
 import * as path from 'path';
-import { AcceleratorConfig } from '../../';
-import { LandingZoneStack } from '../../../common/src/landing-zone';
+import { AcceleratorConfig, ReplacementsConfig } from '../../';
+import { additionalReplacements, replaceDefaults } from '../../../common/src/util/common';
 
-const configFilePath = path.join(__dirname, '..', '..', '..', '..', '..', 'test', 'config.ALZ.json');
+const baseDir = path.join(__dirname, '..', '..', '..', '..', '..');
 
-const landingZoneFilePath = path.join(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  '..',
-  '..',
-  'reference-artifacts',
-  'aws-landing-zone-configuration',
-);
+test.each([
+  'reference-artifacts/SAMPLE_CONFIGS/config.example.json',
+  'reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json',
+  'reference-artifacts/SAMPLE_CONFIGS/config.multi-region-example.json',
+  'reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json',
+  'reference-artifacts/SAMPLE_CONFIGS/config.test-example.json',
+  'test/config.example.json',
+])('%s should be parsed correctly', file => {
+  const content = fs.readFileSync(path.join(baseDir, file));
+  const replacements: ReplacementsConfig = JSON.parse(content.toString()).replacements ?? {};
 
-const landingZoneZipFilePath = path.join(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  '..',
-  '..',
-  'reference-artifacts',
-  'aws-landing-zone-configuration.zip',
-);
+  // Replace variables in the JSON file
+  const replaced = replaceDefaults({
+    config: content.toString(),
+    acceleratorName: 'PBMM',
+    acceleratorPrefix: 'PBMM-Accel',
+    additionalReplacements: additionalReplacements(replacements),
+    region: 'us-east-1',
+  });
 
-test('config.example.json should be parsed correctly', () => {
-  // Working directory is `common-lambda` so the config file is one directory up
-  const content = fs.readFileSync(configFilePath);
-  const result = AcceleratorConfig.fromString(content.toString());
-
-  expect(result).not.toBeNull();
-});
-
-test('create landing zone config zip', () => {
-  LandingZoneStack.createLandingZoneConfig(landingZoneFilePath, landingZoneZipFilePath);
-});
-
-test('aws-landing-zone-configuration.zip load correctly', () => {
-  const content = fs.readFileSync(landingZoneZipFilePath);
-  const result = LandingZoneStack.loadLandingZoneConfig(content);
+  // Parse the configuration file
+  const result = AcceleratorConfig.fromString(replaced);
 
   expect(result).not.toBeNull();
 });

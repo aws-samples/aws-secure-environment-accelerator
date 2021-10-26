@@ -1,0 +1,12 @@
+{
+    "fr": {
+        "Language": "French",
+        "language-code": "fr",
+        "app-title": "Documentation du fichier de configuration de l'Accelerateur",
+        "Hierarchy": "Hiérarchie",
+        "Inherited": "Hérité",
+        "Title": "Titre",
+        "Description": "Description",
+        "Disclaimer": "(FR) The configuration file schema documentation is a work in progress. Please use this <b>draft</b> document with caution.  The deeper you browse into the hierarchy, the less accurate the definitions are likely to be."
+    }
+}

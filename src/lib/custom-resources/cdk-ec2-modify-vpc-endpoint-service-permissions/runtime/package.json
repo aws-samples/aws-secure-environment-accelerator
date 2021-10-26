@@ -1,0 +1,25 @@
+{
+  "name": "@aws-accelerator/custom-resource-modify-vpc-endpoint-service-permissions-runtime",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "pnpx esbuild --minify --bundle --platform=node --target=node14 --external:aws-sdk --outfile=./dist/index.js src/index.ts",
+    "lint:typecheck": "pnpx tsc --noEmit",
+    "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
+  },
+  "dependencies": {
+    "@aws-accelerator/custom-resource-cfn-utils": "workspace:*",
+    "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:*",
+    "aws-lambda": "1.0.6",
+    "aws-sdk": "2.944.0",
+    "exponential-backoff": "3.1.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.76",
+    "@types/node": "14.14.31",
+    "esbuild": "0.11.18",
+    "typescript": "4.2.4"
+  }
+}

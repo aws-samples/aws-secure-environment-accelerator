@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as path from 'path';
@@ -12,6 +25,7 @@ export interface IamCreateRoleProperties {
   tagName: string;
   tagValue: string;
   lambdaRoleArn: string;
+  rootOuId: string;
 }
 
 /**
@@ -21,7 +35,7 @@ export class IamCreateRole extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: IamCreateRoleProperties) {
     super(scope, id);
 
-    const { roleName, accountIds, managedPolicies, tagName, tagValue, lambdaRoleArn } = props;
+    const { roleName, accountIds, managedPolicies, tagName, tagValue, lambdaRoleArn, rootOuId } = props;
 
     const createRole = this.lambdaFunction(lambdaRoleArn);
     new cdk.CustomResource(this, 'Resource', {
@@ -33,6 +47,7 @@ export class IamCreateRole extends cdk.Construct {
         managedPolicies,
         tagName,
         tagValue,
+        rootOuId,
       },
     });
   }
@@ -50,7 +65,7 @@ export class IamCreateRole extends cdk.Construct {
     const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, roleArn);
 
     return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,

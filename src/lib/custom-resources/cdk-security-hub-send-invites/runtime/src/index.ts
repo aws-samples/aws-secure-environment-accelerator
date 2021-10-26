@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
@@ -30,7 +43,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   console.log(`Creating Members for "${memberAccounts}"`);
   const accountIds: string[] = [];
 
-  //Security Hub will only process 50.
+  // Security Hub will only process 50.
   const pageSize = 50;
   for (let i = 0; i < memberAccounts.length; i += pageSize) {
     const currentPage = memberAccounts.slice().splice(i, pageSize);
@@ -47,7 +60,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
 
   console.log(`Inviting Members for "${accountIds}"`);
 
-  //Security Hub will only process 50.
+  // Security Hub will only process 50.
   for (let i = 0; i < accountIds.length; i += pageSize) {
     const currentPage = accountIds.slice().splice(i, pageSize);
     const pagedParams = {

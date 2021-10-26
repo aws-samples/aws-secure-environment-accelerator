@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { getOutput, OutputUtilGenericType, SaveOutputsInput, getIndexOutput, saveIndexOutput } from './utils';
 import { SSM } from '@aws-accelerator/common/src/aws/ssm';
@@ -111,7 +124,7 @@ export async function saveElbOutputs(props: SaveOutputsInput) {
     .filter(lb => lb.accountKey !== account.key)
     .map(al => al.accountKey);
   const additionalAlbAccountKeys = config
-    .getAlbConfigs()
+    .getElbConfigs()
     .filter(lb => lb.accountKey !== account.key)
     .map(al => al.accountKey);
   const additionalAccountKeys = Array.from(new Set([...additionalNlbAccountKeys, ...additionalAlbAccountKeys]));
