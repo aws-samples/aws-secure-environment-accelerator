@@ -50,7 +50,6 @@ These installation instructions assume one of the prescribed architectures is be
 
 - Management or root AWS Organization account (the AWS Accelerator cannot be deployed in an AWS sub-account)
   - No additional AWS accounts need to be pre-created before Accelerator installation
-- Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
 - Valid Accelerator configuration file, updated to reflect your requirements (see below)
 - Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
 - Government of Canada customers are still required to do a standalone installation at this time, please request standalone installation instructions from your Account SA or TAM
