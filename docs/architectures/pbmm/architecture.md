@@ -707,9 +707,9 @@ Session Manager is a fully managed AWS Systems Manager capability that lets you 
 The _AWS Secure Environment Architecture_ recommends that you choose to store session log data in a centralized S3 bucket for auditing purposes and encrypt with Key Management Service (KMS). In addition, session log data should also be configured to be sent to Amazon CloudWatch Logs with KMS encryption using your AWS KMS key.
 
 [pbmm]: https://www.canada.ca/en/government/system/digital-government/modern-emerging-technologies/cloud-services/government-canada-security-control-profile-cloud-based-it-services.html#toc4
-[ops_guide]: https://TODO
-[dev_guide]: https://TODO
-[accel_tool]: /docs/
+[ops_guide]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/operations/operations-troubleshooting-guide.md
+[dev_guide]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/developer/developer-guide.md
+[accel_tool]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/README.md
 [aws_org]: https://aws.amazon.com/organizations/
 [aws_scps]: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_type-auth.html#orgs_manage_policies_scp
 [aws_vpn]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html
