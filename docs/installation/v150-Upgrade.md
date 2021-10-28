@@ -79,7 +79,7 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
 
 ## 1.4. Upgrade process
 
-- Before proceeding with your upgrade please review the General Upgrade Considerations [here](./installation.md#31-considerations)
+- Before proceeding with your upgrade please review the General Upgrade Considerations [here](./installation.md#31-considerations) in the Installation and Upgrade guide
   - upgrades directly from v1.3.8 need to ensure they include the extra step required for v1.3.9 upgrades (removal of endpoints with periods)
 - Login to your AWS Organization Management account, in your home or default region
 - Place your _updated and validated_ config file back in the root folder of your CodeCommit repository
@@ -108,7 +108,7 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
 
 1. Login to your Organization Management (root) AWS account with administrative privileges
 2. Either: a) Ensure a valid Github token is stored in secrets manager, or b) Ensure the latest release is in a valid branch of CodeCommit in the Organization Management account. See [(section 2.3.2)](#232-create-github-personal-access-token-and-store-in-secrets-manager) for more details.
-3. Review and implement any relevant tasks noted in the upgrade considerations in [section 3.1](#31-considerations)
+3. Review and implement any relevant tasks noted in the upgrade considerations in [section 3.1](./installation.md#31-considerations) of the Installation and Upgrade guide
 4. Update the config file in CodeCommit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
    - An automated script is available to help convert config files to the new v1.5.0 format
    - Compare your running config file with the sample config file from the latest release
