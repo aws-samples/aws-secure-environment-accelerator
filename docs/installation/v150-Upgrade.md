@@ -45,7 +45,7 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
 - You must first upgrade to Accelerator v1.3.8 or v1.3.9
 - Login to your AWS Organization Management account
 - Pull your current config.json file from CodeCommit and save as a text file
-- Locate the python conversion script and review its readme [here](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Custom-Scripts/Update-Scripts/v1.3.8_to_v1.5.0)
+- Locate the python conversion script and review its readme [here](../../reference-artifacts/Custom-Scripts/Update-Scripts/v1.3.8_to_v1.5.0)
 
   - To convert your configuration file execute: (completely offline process)
 
@@ -79,7 +79,7 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
 
 ## 1.4. Upgrade process
 
-- Before proceeding with your upgrade please review the General Upgrade Considerations [here](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/installation/installation.md#31-considerations)
+- Before proceeding with your upgrade please review the General Upgrade Considerations [here](./installation.md#31-considerations)
   - upgrades directly from v1.3.8 need to ensure they include the extra step required for v1.3.9 upgrades (removal of endpoints with periods)
 - Login to your AWS Organization Management account, in your home or default region
 - Place your _updated and validated_ config file back in the root folder of your CodeCommit repository
@@ -102,7 +102,7 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
   - Select Rules under events in the left navigation pane
   - Select the `PBMMAccel-MoveAccount_rule`, select `actions`, select `Enable`
   - Select the `PBMMAccel-PolicyChanges_rule`, select `actions`, select `Enable`
-- Follow the Standard Upgrade instructions in [Section 3.2](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/installation/installation.md#32-summary-of-upgrade-steps-all-versions) of the Installation and Upgrade guide, repeated verbatim below for ease of reference
+- Follow the Standard Upgrade instructions in [Section 3.2](./installation.md#32-summary-of-upgrade-steps-all-versions) of the Installation and Upgrade guide, repeated verbatim below for ease of reference
 
 ## 1.5. "3.2. Summary of Upgrade Steps (all versions)" **_(Copied from installation guide)_**
 
@@ -139,7 +139,7 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
 
   - Using the converted version of your config file (update-config.json)
     - Validate you are happy with the `pool` names assigned to each vpc and subnet throughout the config file. Update as appropriate, pool names can be any alpha-numeric string, but a subnets pool must match one of its vpc's pools.
-  - Locate the python conversion script and review its readme [here](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Custom-Scripts/Update-Scripts/v1.3.8_to_v1.5.0)
+  - Locate the python conversion script and review its readme [here](../../reference-artifacts/Custom-Scripts/Update-Scripts/v1.3.8_to_v1.5.0)
 
     - To load DynamoDB with your CIDR ranges, execute: (online, requires credentials to the Organization Management account)
 
