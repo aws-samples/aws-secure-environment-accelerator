@@ -1,8 +1,6 @@
 # 1. Accelerator Installation and Upgrade Guide
 
-**_Deploying the AWS Accelerator requires the assistance of your local AWS Account team. Attempts to deploy the Accelerator without the support of your AWS SA, TAM, Proserve, or AM will fail as new AWS accounts do not have appropriate limits established to facilitate installation._**
-
-Installation of the provided prescriptive AWS architectures, as-is, requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization plus any additional required workload accounts.
+**_We encourage customers installing the Accelerator to get the support of their local AWS account team (SA, TAM, CSM, Proserve) to assist with the installation of the Accelerator, as the Accelerator leverages, deploys, or orchestrates over 30 different AWS services._**
 
 _Users are strongly encouraged to also read the [Accelerator Operations/Troubleshooting Guide](../operations/operations-troubleshooting-guide.md) before installation. The Operations/Troubleshooting Guide provides details as to what is being performed at each stage of the installation process, including detailed troubleshooting guidance._
 
