@@ -388,13 +388,21 @@ async function validateScpsCount(
       Filter: 'SERVICE_CONTROL_POLICY',
       TargetId: ouObject.Id!,
     });
-    const accelScps = ouConfig.scps.map(policyName =>
+    const accelOuScps = ouConfig.scps.map(policyName =>
+      ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
+    );
+    const accelScps = config.scps.map(policyName =>
       ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
     );
     const nonAccelScps = attachedScps.filter(as => !accelScps.includes(as.Name!));
     if (nonAccelScps.length + accelScps.length > MAX_SCPS_ALLOWED) {
       errors.push(
         `Max Allowed SCPs for OU "${oukey}" is ${MAX_SCPS_ALLOWED}, found already attached scps count ${nonAccelScps.length} and Accelerator scps ${accelScps.length} => ${accelScps}`,
+      );
+    }
+    if (accelOuScps.length > MAX_SCPS_ALLOWED) {
+      errors.push(
+        `Max Allowed SCPs for OU "${oukey}" is ${MAX_SCPS_ALLOWED}, found ${accelOuScps.length} OU SCPs defined in config`,
       );
     }
   }
