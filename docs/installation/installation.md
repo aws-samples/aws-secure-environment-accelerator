@@ -163,6 +163,12 @@ Before installing, you must first:
    2. Select your `home` region (i.e. `ca-central-1`)
       - the Accelerator home region must match the Control Tower home region
    3. Select _all_ regions for `Additional AWS Regions for governance`, click `Next`
+      - The Control Tower and Accelerator regions MUST be properly aligned
+	  - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions`
+	  - To manage a region requires the region:
+	    - be enabled in Control Tower (if supported)
+		- added to the config file `control-tower-supported-regions` list (if supported)
+		- added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`)
    4. For the `Foundational OU`, leave the default value `Security`
    5. For the `Additional OU` provide the value `Infrastructure`, click `Next`
    6. Enter the email addresses for your `Log Archive` and `Audit` accounts, change the `Audit` account name to `Security`, click `Next`
@@ -377,6 +383,7 @@ Current Issues:
 
 - On larger deployments we are occassionally seeing state machine failures when `Creating Config Recorders`.
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
+- Applying new Control Tower Detective guardrails fails in v1.5.0.  This has already been fixed in the next release.
 
 Issues in Older Releases:
 
