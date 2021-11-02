@@ -1068,7 +1068,7 @@
           "cidr-src": "dynamic",
           "cidr": [
             {
-              "pool": "main",
+              "pool": "east",
               "size": 22
             }
           ],
@@ -1084,7 +1084,7 @@
                   "az": "a",
                   "route-table": "EndpointVPC_Common",
                   "cidr": {
-                    "pool": "main",
+                    "pool": "east",
                     "size": 24
                   }
                 },
@@ -1092,7 +1092,7 @@
                   "az": "b",
                   "route-table": "EndpointVPC_Common",
                   "cidr": {
-                    "pool": "main",
+                    "pool": "east",
                     "size": 24
                   }
                 }
