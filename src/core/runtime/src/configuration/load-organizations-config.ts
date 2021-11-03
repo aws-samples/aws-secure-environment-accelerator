@@ -433,7 +433,7 @@ async function validateScpsCount(
         ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
       ) || [];
     const nonAccelScps = attachedScps.filter(as => !accelScps.includes(as.Name!));
-    if (nonAccelScps.length + accelScps.length > MAX_SCPS_ALLOWED) {
+    if (nonAccelScps.length + accelAccountScps.length > MAX_SCPS_ALLOWED) {
       errors.push(
         `Max Allowed SCPs for Account "${accountKey}" is ${MAX_SCPS_ALLOWED}, found already attached scps count ${nonAccelScps.length} and Accelerator scps ${accelAccountScps.length} => ${accelAccountScps}`,
       );
