@@ -391,6 +391,8 @@ async function validateScpsCount(
     const accelOuScps = ouConfig.scps.map(policyName =>
       ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
     );
+    console.log('EGG')
+    console.log(config['global-options']['scps'])
     const accelScps = config['global-options']['scps'].map(policyName =>
       ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
     );
