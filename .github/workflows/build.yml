@@ -29,7 +29,7 @@ jobs:
       - name: Install Node.js modules
         run: |
           npm install -g pnpm@6.2.3
-          pnpm recursive install
+          pnpm recursive install --frozen-lockfile
       - name: Build all workspaces
         run: |
           pnpm -w build
