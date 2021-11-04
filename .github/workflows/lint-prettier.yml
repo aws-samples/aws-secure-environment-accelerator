@@ -32,7 +32,8 @@ jobs:
           pnpm install --frozen-lockfile
       - name: Analyze TypeScript files
         run: |
-          pnpm recursive run lint
+          pnpm -w lint:eslint
+          pnpm -w lint:typecheck
   prettier:
     name: Prettier
     runs-on: ubuntu-latest
