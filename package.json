@@ -4,8 +4,8 @@
   "scripts": {
     "build": "pnpm recursive run --no-bail build",
     "test": "pnpm recursive run --no-bail --workspace-concurrency 1 test -- --pass-with-no-tests --silent --max-workers 1",
-    "lint:typecheck": "pnpm recursive run --no-sort --workspace-concurrency 0 --no-bail lint:typecheck",
-    "lint:eslint": "pnpm recursive run --no-sort --workspace-concurrency 0 --no-bail lint:eslint"
+    "lint:typecheck": "pnpm recursive run --no-sort --workspace-concurrency 4 --no-bail lint:typecheck",
+    "lint:eslint": "pnpm recursive run --no-sort --workspace-concurrency 4 --no-bail lint:eslint"
   },
   "devDependencies": {
     "@types/node": "14.14.31",
