@@ -399,11 +399,6 @@ async function validateScpsCount(
       }),
     );
     const nonAccelScps = attachedScps.filter(as => !accelScps.includes(as.Name!));
-    if (accelOuScps.length > MAX_SCPS_ALLOWED) {
-      errors.push(
-        `Max Allowed SCPs for OU "${oukey}" is ${MAX_SCPS_ALLOWED}, found ${accelOuScps.length} OU SCPs defined in config`,
-      );
-    }
     if (nonAccelScps.length + accelOuScps.length > MAX_SCPS_ALLOWED) {
       errors.push(
         `Max Allowed SCPs for OU "${oukey}" is ${MAX_SCPS_ALLOWED}, found already attached scps count ${nonAccelScps.length} and Accelerator OU scps ${accelOuScps.length} => ${accelOuScps}`,
