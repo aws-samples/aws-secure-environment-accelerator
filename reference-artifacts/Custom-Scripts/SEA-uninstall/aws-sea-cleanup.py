@@ -15,7 +15,7 @@ from os import path
 
 
 parser = argparse.ArgumentParser(
-        description="A development script that cleans up resources deployed by the accelerator. Use Administrator AWS credentials in the master account when running this script."
+        description="A development script that cleans up resources deployed by the accelerator. Use Administrator AWS credentials in the root account when running this script."
 )
 parser.add_argument('--AcceleratorPrefix', default='ASEA', help='The value set in AcceleratorPrefix')
 
@@ -24,14 +24,19 @@ sts = boto3.client("sts")
 
 def get_accounts():
     print("Accounts:")
-    aws_accounts = organizations.list_accounts()
-    tmp = map(lambda x: [x["Id"], x["Name"]], aws_accounts["Accounts"])
+    all_aws_accounts = []
+    paginator = organizations.get_paginator('list_accounts')
+    page_iterator = paginator.paginate()
+    for aws_accounts in page_iterator:
+        tmp = map(lambda x: [x["Id"], x["Name"]], aws_accounts["Accounts"])
     
-    print(tabulate(list(tmp), headers=["Id", "Name"]))
+        print(tabulate(list(tmp), headers=["Id", "Name"]))
+        
+        all_aws_accounts = all_aws_accounts + list(aws_accounts["Accounts"])
 
-    return aws_accounts["Accounts"]
+    return all_aws_accounts
 
-def build_stack_data(accounts, regions, admin_role_name, master_account_name):
+def build_stack_data(accounts, regions, admin_role_name, root_account_name):
     print("Stacks:")
 
     result = {}
@@ -52,7 +57,7 @@ def build_stack_data(accounts, regions, admin_role_name, master_account_name):
                 "AdminRoleArn": roleArn
             }
         )
-
+        
         credentials = sts.assume_role(
             RoleArn=roleArn,
             RoleSessionName="AcceleratorCleanupScript"
@@ -60,7 +65,8 @@ def build_stack_data(accounts, regions, admin_role_name, master_account_name):
 
         region_stacks = {}
 
-        for region in regions:            
+        for region in regions:
+            print("Processing {} - {}".format(account["Name"], region))
             cloudformation = boto3.client("cloudformation", 
                 region_name=region,
                 aws_access_key_id=credentials["Credentials"]["AccessKeyId"],
@@ -68,11 +74,11 @@ def build_stack_data(accounts, regions, admin_role_name, master_account_name):
                 aws_session_token=credentials["Credentials"]["SessionToken"]
             )
             stacks = cloudformation.list_stacks(
-                StackStatusFilter=['CREATE_COMPLETE', 'UPDATE_COMPLETE']            
+                StackStatusFilter=['CREATE_COMPLETE', 'UPDATE_COMPLETE', 'DELETE_FAILED', 'DELETE_IN_PROGRESS', 'ROLLBACK_COMPLETE', 'ROLLBACK_FAILED']
             )
-            region_stacks[region] = list(map(lambda x: {"StackName":x["StackName"],"StackId":x["StackId"]}, stacks["StackSummaries"]))
-            tmp = map(lambda x: [x["StackName"], "True" if "ParentId" in x else "", region, account["Id"]], stacks["StackSummaries"])
-            print(tabulate(list(tmp), headers=["StackName", "IsNested", "Region", "AccountId"]))
+            region_stacks[region] = list(map(lambda x: {"StackName":x["StackName"],"StackId":x["StackId"], "StackStatus":x["StackStatus"]}, stacks["StackSummaries"]))
+            tmp = map(lambda x: [x["StackName"], "True" if "ParentId" in x else "", region, account["Id"], x["StackStatus"]], stacks["StackSummaries"])
+            print(tabulate(list(tmp), headers=["StackName", "IsNested", "Region", "AccountId", "StackStatus"]))
             
             print()
           
@@ -91,6 +97,7 @@ def process_delete(all_stacks):
     phases = [        
         "-Phase5",
         "Phase4-HostedZonesAssc1",
+        "Phase4-RulesAsscociation1",
         "-Phase4",
         "Phase3-CentralVpcResolverEndpoints",
         "-Phase3",
@@ -99,7 +106,9 @@ def process_delete(all_stacks):
         "-Phase1",
         "-Phase0",
         "-Phase-1",
-        "-InitialSetup"
+        "-InitialSetup",
+        "{}-CDKToolkit".format(AcceleratorPrefix),
+        "{}-PipelineRole".format(AcceleratorPrefix),
     ]
 
     # Process one phase at a time, but to all accounts through all regions
@@ -111,39 +120,33 @@ def process_delete(all_stacks):
     # Wait until all done
     
     for phase in phases:
-        print("Processing '{}'".format(phase))
+        print("\n\nProcessing '{}'".format(phase))
         threads = list()
         try:
-            for account in all_stacks["Accounts"]:
-                #print("\tProcessing '{}'".format(account["AccountId"]))
+            print("Waiting for all Phase stack cleanup threads to finish...")
+            for account in all_stacks["Accounts"]:                
                  
-                for region in all_stacks["Regions"]:
-                    #print("\t\tProcessing '{}'".format(region))
+                for region in all_stacks["Regions"]:                    
 
                     for stack in all_stacks["AllStacks"][account["AccountId"]][region]:                        
-                        if stack["StackName"].endswith(phase):
-                            print("\tProcessing '{}' in {} {}".format(stack["StackName"], account["AccountId"], region))
-                            t = threading.Thread(target=thread_cloudformation_delete, args=(phase, region, stack["StackId"], account["AdminRoleArn"],))
+                        if stack["StackName"].endswith(phase):                            
+                            t = threading.Thread(target=thread_cloudformation_delete, args=(phase, region, stack["StackId"], account["AdminRoleArn"], account["AccountId"]))
                             threads.append(t)
                             t.start()
         except:
             print("Error!", sys.exc_info()[0], "occurred.")
-        finally:
-            print("Waiting for all threads to finish")
+        finally:            
             for index, thread in enumerate(threads):            
                 thread.join()
-            print("Done waiting for all threads to finish.")
+            print("Done. All Phase stack cleanup threads finished.")
              
-        print("Done")
+        print("Done processing '{}'".format(phase))
 
-   
+
+
+def thread_cloudformation_delete(phase, region, stackid, admin_role, accountId):
     
-             
-
-
-
-def thread_cloudformation_delete(phase, region, stackid, admin_role):
-    
+    print("TID-{} - Processing '{}' in {} {}".format(threading.get_ident(), stackid, accountId, region))
  
     sts = boto3.client("sts")
     
@@ -164,10 +167,22 @@ def thread_cloudformation_delete(phase, region, stackid, admin_role):
         resources = cloudformation.describe_stack_resources(StackName=stackid)
 
         for resource in resources["StackResources"]:
-            if resource["ResourceType"] == "AWS::S3::Bucket":
+            if resource["ResourceType"] == "AWS::S3::Bucket" and resource["ResourceStatus"] != "DELETE_COMPLETE":
                 #delete all bucket contents first
-                print("S3 Bucket Resource '{}'".format(resource["PhysicalResourceId"]))
+                print("TID-{} - S3 Bucket Resource '{}'".format(threading.get_ident(), resource["PhysicalResourceId"]))
                 delete_s3_bucket(region, credentials["Credentials"], resource["PhysicalResourceId"])
+            elif resource["ResourceType"] == "AWS::ElasticLoadBalancingV2::LoadBalancer" and resource["ResourceStatus"] != "DELETE_COMPLETE":
+                print("TID-{} - Checking ELB termination protection '{}'".format(threading.get_ident(), resource["PhysicalResourceId"]))
+                remove_elb_termination_block(region, credentials["Credentials"], resource["PhysicalResourceId"])
+            elif resource["ResourceType"] == "AWS::ECR::Repository" and resource["ResourceStatus"] != "DELETE_COMPLETE":
+                print("TID-{} - ECR Resource '{}".format(threading.get_ident(), resource["PhysicalResourceId"]))
+                remove_ecr_repository(region, credentials["Credentials"], resource["PhysicalResourceId"])
+            elif resource["ResourceType"] == "AWS::IAM::Role" and resource["ResourceStatus"] != "DELETE_COMPLETE":
+                print("TID-{} - IAM Role Permission Boundary check '{}'".format(threading.get_ident(), resource["PhysicalResourceId"]))
+                remove_permission_boundaries(region, credentials["Credentials"], resource["PhysicalResourceId"])
+                remove_permissions_special_case(region, credentials["Credentials"], resource["PhysicalResourceId"])
+
+            
 
 
         stack = cloudformation.describe_stacks(
@@ -178,7 +193,7 @@ def thread_cloudformation_delete(phase, region, stackid, admin_role):
             stack_name = s["StackId"]
             
             if s["StackStatus"] != "DELETE_COMPLETE":
-                print("Deleting Stack Region: {}, StackName: {}, StackStatus: {}".format( region, stack_name, s["StackStatus"]))
+                print("TID-{} - Deleting Stack Region: {}, StackName: {}, StackStatus: {}".format( threading.get_ident(),region, stack_name, s["StackStatus"]))
            
                 cloudformation.update_termination_protection(           
                     EnableTerminationProtection=False,
@@ -194,12 +209,12 @@ def thread_cloudformation_delete(phase, region, stackid, admin_role):
                 #Did the stack delete fail?
                 stack_failed = stack_exists(cloudformation, stack_name, 'DELETE_FAILED')
 
-                print("Done. Deleting Stack Region: {}, StackName: {}, StackStatus: {}".format( region, stack_name, s["StackStatus"]))
+                print("TID-{} - Done. Deleting Stack Region: {}, StackName: {}, StackStatus: {}".format(threading.get_ident(), region, stack_name, s["StackStatus"]))
 
                
 
     except botocore.exceptions.ClientError as err:
-        print('Error Message: {}'.format(err.response['Error']['Message']))
+        print('TID-{} Error Message: {}'.format(threading.get_ident(), err.response['Error']['Message']))
 
 
 def stack_exists(client, name, required_status = 'CREATE_COMPLETE'):
@@ -208,6 +223,83 @@ def stack_exists(client, name, required_status = 'CREATE_COMPLETE'):
     except botocore.exceptions.ClientError:
         return False
     return data['Stacks'][0]['StackStatus'] == required_status
+
+def remove_ecr_repository(region, account_credentials, ecr_id):
+    ecr =  boto3.client('ecr', 
+        region_name=region, 
+        aws_access_key_id=account_credentials['AccessKeyId'], 
+        aws_secret_access_key=account_credentials['SecretAccessKey'], 
+        aws_session_token=account_credentials['SessionToken']
+    )
+
+    print("TID-{} - Deleting ECR Repository '{}'".format(threading.get_ident(), ecr_id))
+    ecr.delete_repository(repositoryName=ecr_id, force=True)
+    print("TID-{} - Deleted ECR Repository '{}'".format(threading.get_ident(), ecr_id))
+
+def remove_permissions_special_case(region, account_credentials, role_id):
+    
+    if role_id.endswith("-Rsyslog-Role") or role_id.endswith("Firewall-Role"):
+        iam =  boto3.client('iam', 
+            region_name=region, 
+            aws_access_key_id=account_credentials['AccessKeyId'], 
+            aws_secret_access_key=account_credentials['SecretAccessKey'], 
+            aws_session_token=account_credentials['SessionToken']
+        )
+
+        managed_policies = iam.list_attached_role_policies(RoleName=role_id)
+
+        for mpolicy in managed_policies['AttachedPolicies']:
+            print("TID-{} - Detaching policy {} from {}".format(threading.get_ident(), mpolicy['PolicyName'], role_id))
+            iam.detach_role_policy(RoleName=role_id, PolicyArn=mpolicy['PolicyArn'])
+            print("TID-{} - Detached policy {} from {}".format(threading.get_ident(), mpolicy['PolicyName'], role_id))
+
+        inline_policies = iam.list_role_policies(RoleName=role_id)
+
+        for ipolicy in inline_policies['PolicyNames']:
+            print("TID-{} - Deleting inline policy {} from {}".format(threading.get_ident(), ipolicy, role_id))
+            iam.delete_role_policy(RoleName=role_id, PolicyName=ipolicy)
+            print("TID-{} - Deleted inline policy {} from {}".format(threading.get_ident(), ipolicy, role_id))
+
+
+def remove_permission_boundaries(region, account_credentials, role_id):
+    iam =  boto3.client('iam', 
+        region_name=region, 
+        aws_access_key_id=account_credentials['AccessKeyId'], 
+        aws_secret_access_key=account_credentials['SecretAccessKey'], 
+        aws_session_token=account_credentials['SessionToken']
+    )
+
+    role = iam.get_role(RoleName=role_id)['Role']
+        
+    # Is there a permission boundary
+    if 'PermissionsBoundary' in role:
+        print("TID-{} - Removing permission boundary from {}".format(threading.get_ident(), role_id))
+        iam.delete_role_permissions_boundary(RoleName=role_id)
+        print("TID-{} - Removed permission boundary from {}".format(threading.get_ident(), role_id))
+    else:
+        print("TID-{} - Role '{}' has no permission boundary".format(threading.get_ident(), role_id))
+
+
+def remove_elb_termination_block(region, account_credentials, elb_id):
+    ec2 =  boto3.client('elbv2', 
+        region_name=region, 
+        aws_access_key_id=account_credentials['AccessKeyId'], 
+        aws_secret_access_key=account_credentials['SecretAccessKey'], 
+        aws_session_token=account_credentials['SessionToken']
+    )
+
+    elb_attr = ec2.describe_load_balancer_attributes(LoadBalancerArn=elb_id)
+
+    for attr in elb_attr["Attributes"]:        
+        if attr["Key"] == "deletion_protection.enabled" and bool(attr["Value"]) == True:
+            attr["Value"] = 'false'
+            ec2.modify_load_balancer_attributes(
+                LoadBalancerArn=elb_id,
+                Attributes=[attr]
+            )
+            print("TID-{} - Removed deletion protection for {}".format(threading.get_ident(), elb_id))
+
+
 
 def delete_s3_bucket(region, account_credentials, bucket_name):
     s3 = boto3.resource('s3', 
@@ -218,18 +310,19 @@ def delete_s3_bucket(region, account_credentials, bucket_name):
     )
     s3_bucket = s3.Bucket(bucket_name)
     if s3_bucket in s3.buckets.all():
-        print("Emptying bucket (this may take a while) {}".format(bucket_name))
+        print("TID-{} - Emptying bucket (this may take a while) {}".format(threading.get_ident(), bucket_name))
         s3_bucket.object_versions.all().delete()
         
-        print("Done. Emptying bucket (this may take a while) {}".format(bucket_name))
+        print("TID-{} Done. Emptying bucket (this may take a while) {}".format(threading.get_ident(), bucket_name))
                             
-        print('Deleting bucket {}'.format(bucket_name))
+        print('TID-{} Deleting bucket {}'.format(threading.get_ident(), bucket_name))
         try:
             s3_bucket.delete()
-            print('Done. Deleting bucket {}'.format(bucket_name))
+            print('TID-{} Done. Deleting bucket {}'.format(threading.get_ident(), bucket_name))
            
         except botocore.exceptions.ClientError as e:
-            print("Error while trying to delete S3 bucket {}, it should be empty by now so if you see BucketNotEmpty check the bucket in AWS console and delete it manually")
+            print("TID-{} Error while trying to delete S3 bucket {}, it should be empty by now so if you see BucketNotEmpty check the bucket in AWS console and delete it manually".format(threading.get_ident(), bucket_name))
+            print(e)
              
 
 def delete_scps(credentials, region):
@@ -269,7 +362,7 @@ def delete_scps(credentials, region):
     print("Done. Deleting SCPs...")   
 
 
-def master_cleanup(credentials, region):
+def root_cleanup(credentials, region):
     print("delete stack sets")
    
 
@@ -329,38 +422,46 @@ def master_cleanup(credentials, region):
     except botocore.exceptions.ClientError as err:
         print('Error Message: {}'.format(err.response['Error']['Message']))
 
-    delete_scps(credentials, region)
+    cleanup_ecr(credentials, region)
 
+    cleanup_dynamodb(credentials, region)
 
+ 
 
 def cleanup():
     print("cleanup")
     supported_regions = []
     admin_role = ""
-    master_account_name = ""
-    master_region = ""
+    root_account_name = ""
+    root_region = ""
     security_account_name = ""
     isALZorCT = False
     with open('config.json') as json_file:
         config = json.load(json_file)
         supported_regions = config["global-options"]["supported-regions"]
         admin_role = config["global-options"]["organization-admin-role"]
-        config_master_account_name = config["global-options"]["aws-org-management"]["account"]
-        master_region = config["global-options"]["aws-org-management"]["region"]
+        config_root_account_name = config["global-options"]["aws-org-management"]["account"]
+        root_region = config["global-options"]["aws-org-management"]["region"]
+        
+        if root_region == "${HOME_REGION}":
+            my_session = boto3.session.Session()
+            root_region = my_session.region_name
+            print("Setting region to '{}'".format(root_region))
+
 
         config_security_account_name = config["global-options"]["central-security-services"]["account"]
         
-        master_account_name = config["mandatory-account-configs"][config_master_account_name]["account-name"]
+        root_account_name = config["mandatory-account-configs"][config_root_account_name]["account-name"]
         security_account_name = config["mandatory-account-configs"][config_security_account_name]["account-name"]
 
-        isALZorCT = config["global-options"]["alz-baseline"] or config["global-options"]["alz-baseline"]
+        isALZorCT = config["global-options"]["ct-baseline"] or ("alz-baseline" in config["global-options"] and config["global-options"]["alz-baseline"])
 
 
     if isALZorCT:
         print("This cleanup script is designed to retract all components deployed in the accelerator and is intended for development use. It isn't tested for cleanup with baseline configurations.")
         return
 
-    print("MasterAccount: {}", master_account_name)    
+    print("RootAccount: {}", root_account_name)    
 
     all_stacks = None
 
@@ -375,7 +476,7 @@ def cleanup():
         
         aws_accounts = get_accounts()
 
-        all_stacks = build_stack_data(aws_accounts, supported_regions, admin_role, master_account_name)
+        all_stacks = build_stack_data(aws_accounts, supported_regions, admin_role, root_account_name)
 
         print("Review stacks.json")
 
@@ -384,24 +485,25 @@ def cleanup():
 
    
 
-    master_admin_arn_role = None
+    root_admin_arn_role = None
     for a in all_stacks["Accounts"]:
-        if a["AccountName"] == master_account_name:
-            master_admin_arn_role = a["AdminRoleArn"]
+        if a["AccountName"] == root_account_name:
+            root_admin_arn_role = a["AdminRoleArn"]
 
-    master_credentials = sts.assume_role(
-            RoleArn=master_admin_arn_role,
+    root_credentials = sts.assume_role(
+            RoleArn=root_admin_arn_role,
             RoleSessionName="AcceleratorCleanupScript"
     )
 
+    delete_scps(root_credentials, root_region)
 
     cleanup_route53_resolver_load_config()
 
     cleanup_directory_sharing_load_config()
 
     process_delete(all_stacks)
-    
-    master_cleanup(master_credentials, master_region)
+        
+    root_cleanup(root_credentials, root_region)
         
     security_credentials = None   
     for a in all_stacks["Accounts"]:
@@ -414,13 +516,17 @@ def cleanup():
             break
     
     if security_credentials is not None:
-        cleanup_guardduty(master_credentials, security_credentials, master_region, security_account_name, all_stacks)
-        cleanup_macie(master_credentials, security_credentials, master_region, security_account_name, all_stacks)
+        cleanup_guardduty(root_credentials, security_credentials, root_region, security_account_name, all_stacks)
+        cleanup_macie(root_credentials, security_credentials, root_region, security_account_name, all_stacks)
 
     cleanup_cwl(all_stacks)
+
+    cleanup_parameter_store(all_stacks)
+
+
     
     
-def cleanup_macie(master_credentials, security_credentials, master_region, security_account_name, all_stacks):
+def cleanup_macie(root_credentials, security_credentials, root_region, security_account_name, all_stacks):
     print("Cleaning up Macie")
     try:     
 
@@ -429,15 +535,15 @@ def cleanup_macie(master_credentials, security_credentials, master_region, secur
             if a["AccountName"] == security_account_name:
                 security_account_id = a["AccountId"]
 
-        macie_master = boto3.client("macie2", 
-            region_name=master_region,
-            aws_access_key_id=master_credentials["Credentials"]["AccessKeyId"],
-            aws_secret_access_key=master_credentials["Credentials"]["SecretAccessKey"],
-            aws_session_token=master_credentials["Credentials"]["SessionToken"]
+        macie_root = boto3.client("macie2", 
+            region_name=root_region,
+            aws_access_key_id=root_credentials["Credentials"]["AccessKeyId"],
+            aws_secret_access_key=root_credentials["Credentials"]["SecretAccessKey"],
+            aws_session_token=root_credentials["Credentials"]["SessionToken"]
         )
 
         macie = boto3.client("macie2", 
-            region_name=master_region,
+            region_name=root_region,
             aws_access_key_id=security_credentials["Credentials"]["AccessKeyId"],
             aws_secret_access_key=security_credentials["Credentials"]["SecretAccessKey"],
             aws_session_token=security_credentials["Credentials"]["SessionToken"]
@@ -462,24 +568,24 @@ def cleanup_macie(master_credentials, security_credentials, master_region, secur
                     print("Delete Member {} {}".format(region, memberId))
                     macie_r.delete_member(id=memberId)
             except botocore.exceptions.ClientError as err:
-                print('Error Message: {}'.format(err.response['Error']['Message']))
+                print('Error Message: {} - {}'.format(err.response['Error']['Message'], region))
 
         threads = list()
-        try:            
+        try:
+            print("Waiting for all Macie cleanup threads to finish...")
             for account in all_stacks["Accounts"]:                    
                 for region in all_stacks["Regions"]:
                    
                     t = threading.Thread(target=thread_macie_delete, args=(region, account["AdminRoleArn"], account["AccountId"]))
                     threads.append(t)
                     t.start()
-        finally:            
-            print("Waiting for all threads to finish")
+        finally:                        
             for index, thread in enumerate(threads):            
                 thread.join()
-            print("Done Join")
+            print("Done. All Macie cleanup threads finished.")
 
         try:
-            macie_master.disable_organization_admin_account(
+            macie_root.disable_organization_admin_account(
                 adminAccountId=security_account_id
             )
         except botocore.exceptions.ClientError as err:
@@ -507,14 +613,12 @@ def thread_macie_delete(region, admin_role, accountId):
             aws_secret_access_key=credentials["Credentials"]["SecretAccessKey"],
             aws_session_token=credentials["Credentials"]["SessionToken"]
         )
-
-        print("Disabling macie in {} for {}".format(region, accountId))
-
-      
+              
         try:
+            print("Disabling macie in {} for {}".format(region, accountId))
             macie.disable_macie()
         except botocore.exceptions.ClientError as err:
-            print('Error Message: {}'.format(err.response['Error']['Message']))
+            print('Error Message: {} - {} - {}'.format(err.response['Error']['Message'], accountId, region))
            
 
     except botocore.exceptions.ClientError as err:
@@ -523,7 +627,7 @@ def thread_macie_delete(region, admin_role, accountId):
 
 
     
-def cleanup_guardduty(master_credentials, security_credentials, master_region, security_account_name, all_stacks):
+def cleanup_guardduty(root_credentials, security_credentials, root_region, security_account_name, all_stacks):
     print("Cleaning up GuardDuty")
     try:     
 
@@ -532,17 +636,17 @@ def cleanup_guardduty(master_credentials, security_credentials, master_region, s
             if a["AccountName"] == security_account_name:
                 security_account_id = a["AccountId"]
 
-        guardduty_master = boto3.client("guardduty", 
-            region_name=master_region,
-            aws_access_key_id=master_credentials["Credentials"]["AccessKeyId"],
-            aws_secret_access_key=master_credentials["Credentials"]["SecretAccessKey"],
-            aws_session_token=master_credentials["Credentials"]["SessionToken"]
+        guardduty_root = boto3.client("guardduty", 
+            region_name=root_region,
+            aws_access_key_id=root_credentials["Credentials"]["AccessKeyId"],
+            aws_secret_access_key=root_credentials["Credentials"]["SecretAccessKey"],
+            aws_session_token=root_credentials["Credentials"]["SessionToken"]
         )
 
       
 
         guardduty = boto3.client("guardduty", 
-            region_name=master_region,
+            region_name=root_region,
             aws_access_key_id=security_credentials["Credentials"]["AccessKeyId"],
             aws_secret_access_key=security_credentials["Credentials"]["SecretAccessKey"],
             aws_session_token=security_credentials["Credentials"]["SessionToken"]
@@ -584,16 +688,16 @@ def cleanup_guardduty(master_credentials, security_credentials, master_region, s
                         except botocore.exceptions.ClientError as err:
                             print('Error Message: {}'.format(err.response['Error']['Message']))
                     
-                    guardduty_master_r = boto3.client("guardduty", 
+                    guardduty_root_r = boto3.client("guardduty", 
                         region_name=region,
-                        aws_access_key_id=master_credentials["Credentials"]["AccessKeyId"],
-                        aws_secret_access_key=master_credentials["Credentials"]["SecretAccessKey"],
-                        aws_session_token=master_credentials["Credentials"]["SessionToken"]
+                        aws_access_key_id=root_credentials["Credentials"]["AccessKeyId"],
+                        aws_secret_access_key=root_credentials["Credentials"]["SecretAccessKey"],
+                        aws_session_token=root_credentials["Credentials"]["SessionToken"]
                     )
 
                     try:
                         print("Disabling organization admin account")
-                        guardduty_master_r.disable_organization_admin_account(
+                        guardduty_root_r.disable_organization_admin_account(
                             AdminAccountId=security_account_id
                         )
                         print("Done. Disabling organization admin account")
@@ -611,22 +715,22 @@ def cleanup_guardduty(master_credentials, security_credentials, master_region, s
                 print('Error Message: {}'.format(err.response['Error']['Message']))
         
         threads = list()
-        try:            
+        try:
+            print("Waiting for all GuardDuty cleanup threads to finish...")            
             for account in all_stacks["Accounts"]:                    
                 for region in all_stacks["Regions"]:
                    
                     t = threading.Thread(target=thread_guardduty_delete, args=(region, account["AdminRoleArn"], account["AccountId"]))
                     threads.append(t)
                     t.start()
-        finally:            
-            print("Waiting for all threads to finish")
+        finally:                        
             for index, thread in enumerate(threads):            
                 thread.join()
-            print("Done Join")
+            print("Done. All GuardDuty cleanup threads finished.")
 
         try:
             print("Disabling organization admin account")
-            guardduty_master.disable_organization_admin_account(
+            guardduty_root.disable_organization_admin_account(
                 AdminAccountId=security_account_id
             )
             print("Done. Disabling organization admin account")
@@ -673,19 +777,19 @@ def thread_guardduty_delete(region, admin_role, accountId):
         
 
 def cleanup_cwl(all_stacks):
-    
+    print("Cleaning up CloudWatch Logs")
     threads = list()
-    try:            
+    try:
+        print("Waiting for all CloudWatch Logs threads to finish...")
         for account in all_stacks["Accounts"]:
             for region in all_stacks["Regions"]:
                 t = threading.Thread(target=thread_cwl_cleanup, args=(region, account["AdminRoleArn"], account["AccountId"]))
                 threads.append(t)
                 t.start()
-    finally:            
-        print("Waiting for all threads to finish")
+    finally:                    
         for index, thread in enumerate(threads):            
             thread.join()
-        print("Done Join")         
+        print("Done. All CloudWatch Logs threads finished.")
             
 
 def thread_cwl_cleanup(region, admin_role_arn, accountId):
@@ -712,12 +816,55 @@ def thread_cwl_cleanup(region, admin_role_arn, accountId):
             if AcceleratorPrefix  in log_group["logGroupName"]:
                 print("Deleting log group '{}' in {} for {}".format(log_group["logGroupName"], region, accountId))
                 cwl.delete_log_group(logGroupName=log_group["logGroupName"])
-                print("Deleting log group '{}' in {} for {}".format(log_group["logGroupName"], region, accountId))
+                print("Deleted log group '{}' in {} for {}".format(log_group["logGroupName"], region, accountId))
 
         if "nextToken" in log_groups and log_groups["nextToken"] is not None:
             log_groups = cwl.describe_log_groups(nextToken=log_groups["nextToken"])
         else:
             break
+
+
+def cleanup_parameter_store(all_stacks):
+    print("Cleanup SSM Parameters")
+    threads = list()
+    try:
+        print("Waiting for all SSM Parameter cleanup threads to finish...")
+        for account in all_stacks["Accounts"]:
+            for region in all_stacks["Regions"]:
+                t = threading.Thread(target=thread_parameter_store, args=(region, account["AdminRoleArn"], account["AccountId"]))
+                threads.append(t)
+                t.start()
+    finally:                    
+        for index, thread in enumerate(threads):            
+            thread.join()
+        print("Done. All SSM Parameter cleanup threads finished.")
+
+    # todo cleanup the version
+            
+
+def thread_parameter_store(region, admin_role_arn, accountId):
+
+    sts = boto3.client("sts")
+
+    credentials = sts.assume_role(
+            RoleArn=admin_role_arn,
+            RoleSessionName="AcceleratorCleanupScript"
+    )
+
+    ssm = boto3.client("ssm", 
+        region_name=region,
+        aws_access_key_id=credentials["Credentials"]["AccessKeyId"],
+        aws_secret_access_key=credentials["Credentials"]["SecretAccessKey"],
+        aws_session_token=credentials["Credentials"]["SessionToken"]
+    )
+
+    paginator = ssm.get_paginator('get_parameters_by_path')
+    page_iterator = paginator.paginate(Path="/{}/".format(AcceleratorPrefix), Recursive=True)
+    for ssm_parameters in page_iterator:    
+        for ssm_parameter in ssm_parameters["Parameters"]:            
+            print("Deleting ssm parameter '{}' in {} for {}".format(ssm_parameter["Name"], region, accountId))
+            ssm.delete_parameter(Name=ssm_parameter["Name"])
+            print("Deletedlog group '{}' in {} for {}".format(ssm_parameter["Name"], region, accountId))
 
 
 
@@ -800,23 +947,25 @@ def cleanup_directory_sharing(credentials, region, mad_dns_domain):
                     print('Error Message: {}'.format(err.response['Error']['Message']))            
 
   
-
-
-
-
 def cleanup_directory_sharing_load_config():
     print("cleanup_directory_sharing")
 
     mad_account = ""    
     admin_role = ""
-    master_region = ""
+    root_region = ""
     mad_dns_domain = ""
 
     with open('config.json') as json_file:
         config = json.load(json_file)       
 
         admin_role = config["global-options"]["organization-admin-role"]        
-        master_region = config["global-options"]["aws-org-management"]["region"]
+        root_region = config["global-options"]["aws-org-management"]["region"]
+
+        if root_region == "${HOME_REGION}":
+            my_session = boto3.session.Session()
+            root_region = my_session.region_name
+            print("Setting region to '{}'".format(root_region))
+
 
         mad_account_name = config["global-options"]["central-operations-services"]["account"]
         mad_account =  config["mandatory-account-configs"][mad_account_name]["account-name"]
@@ -839,11 +988,11 @@ def cleanup_directory_sharing_load_config():
     
     if mad_account_id is not None:
         mad_account_creds = sts_credentials(mad_account_id, admin_role)
-        cleanup_directory_sharing(mad_account_creds, master_region, mad_dns_domain)
+        cleanup_directory_sharing(mad_account_creds, root_region, mad_dns_domain)
 
 
-    #Cleanup AD Connector in master account
-    cleanup_ad_connectors(master_region, mad_dns_domain)
+    #Cleanup AD Connector in root account
+    cleanup_ad_connectors(root_region, mad_dns_domain)
 
     print("Done. cleanup_directory_sharing")
 
@@ -866,16 +1015,15 @@ def cleanup_ad_connectors(region, mad_dns_domain):
 
 def cleanup_route53_resolver_load_config():
 
-    central_resolver_rule_account = ""    
-    master_account_name = ""
+    central_resolver_rule_account = ""        
     admin_role = ""
-    master_region = ""
+    root_region = ""
     
     with open('config.json') as json_file:
         config = json.load(json_file)
         
         admin_role = config["global-options"]["organization-admin-role"]        
-        master_region = config["global-options"]["aws-org-management"]["region"]
+        root_region = config["global-options"]["aws-org-management"]["region"]
 
         central_account_name = config["global-options"]["central-operations-services"]["account"]
         if "mad" not in config["mandatory-account-configs"][central_account_name]["deployments"]:
@@ -884,10 +1032,7 @@ def cleanup_route53_resolver_load_config():
             return "mad not configured"
 
         central_resolver_rule_account =  config["mandatory-account-configs"][central_account_name]["deployments"]["mad"]["central-resolver-rule-account"]
-        
-        config_master_account_name = config["global-options"]["aws-org-management"]["account"]
-        master_account_name = config["mandatory-account-configs"][config_master_account_name]["account-name"]
-
+                
     accounts = get_accounts()
 
     # find the cenral_resolver_rule_account
@@ -900,7 +1045,44 @@ def cleanup_route53_resolver_load_config():
     
     if central_resolver_rule_account_id is not None:
         central_resolver_rule_account_creds = sts_credentials(central_resolver_rule_account_id, admin_role)
-        cleanup_route53_resolver(central_resolver_rule_account_creds, master_region)
+        cleanup_route53_resolver(central_resolver_rule_account_creds, root_region)
+
+
+
+def cleanup_ecr(credentials, region):
+    print("Cleaning up ECR")
+
+    client = boto3.client("ecr",
+        region_name=region,
+        aws_access_key_id=credentials["Credentials"]["AccessKeyId"],
+        aws_secret_access_key=credentials["Credentials"]["SecretAccessKey"],
+        aws_session_token=credentials["Credentials"]["SessionToken"]
+    )
+
+def cleanup_dynamodb(credentials, region):
+    print("Cleaning up DynamoDB")
+
+    client = boto3.client("dynamodb",
+        region_name=region,
+        aws_access_key_id=credentials["Credentials"]["AccessKeyId"],
+        aws_secret_access_key=credentials["Credentials"]["SecretAccessKey"],
+        aws_session_token=credentials["Credentials"]["SessionToken"]
+    )
+
+    tables = client.list_tables()
+
+    for tableName in tables["TableNames"]:
+        if tableName.startswith(AcceleratorPrefix):
+            print("Deleting DynamoDB Table '{}'".format(tableName))
+            client.delete_table(TableName=tableName)
+            print("Deleted DynamoDB Table '{}'".format(tableName))
+
+def cleanup_secrets(credentials, region):
+    print("Cleaning up")
+
+
+def cleanup_config_aggregators(credentials, region):
+    print("Cleaning up config aggregators")
 
 
 def sts_credentials(accountId, roleName):

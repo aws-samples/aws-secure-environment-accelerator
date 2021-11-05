@@ -1,8 +1,6 @@
 # 1. Accelerator Installation and Upgrade Guide
 
-**_Deploying the AWS Accelerator requires the assistance of your local AWS Account team. Attempts to deploy the Accelerator without the support of your AWS SA, TAM, Proserve, or AM will fail as new AWS accounts do not have appropriate limits established to facilitate installation._**
-
-Installation of the provided prescriptive AWS architectures, as-is, requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization plus any additional required workload accounts.
+**_We encourage customers installing the Accelerator to get the support of their local AWS account team (SA, TAM, CSM, Proserve) to assist with the installation of the Accelerator, as the Accelerator leverages, deploys, or orchestrates over 30 different AWS services._**
 
 _Users are strongly encouraged to also read the [Accelerator Operations/Troubleshooting Guide](../operations/operations-troubleshooting-guide.md) before installation. The Operations/Troubleshooting Guide provides details as to what is being performed at each stage of the installation process, including detailed troubleshooting guidance._
 
@@ -50,7 +48,7 @@ These installation instructions assume one of the prescribed architectures is be
 
 - Management or root AWS Organization account (the AWS Accelerator cannot be deployed in an AWS sub-account)
   - No additional AWS accounts need to be pre-created before Accelerator installation
-- Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
+- If required, a limit increase to support your desired number of new AWS sub-accounts (default limit is 10 sub-accounts)
 - Valid Accelerator configuration file, updated to reflect your requirements (see below)
 - Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
 - Government of Canada customers are still required to do a standalone installation at this time, please request standalone installation instructions from your Account SA or TAM
@@ -165,6 +163,12 @@ Before installing, you must first:
    2. Select your `home` region (i.e. `ca-central-1`)
       - the Accelerator home region must match the Control Tower home region
    3. Select _all_ regions for `Additional AWS Regions for governance`, click `Next`
+      - The Control Tower and Accelerator regions MUST be properly aligned
+	  - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions`
+	  - To manage a region requires the region:
+	    - be enabled in Control Tower (if supported)
+		- added to the config file `control-tower-supported-regions` list (if supported)
+		- added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`)
    4. For the `Foundational OU`, leave the default value `Security`
    5. For the `Additional OU` provide the value `Infrastructure`, click `Next`
    6. Enter the email addresses for your `Log Archive` and `Audit` accounts, change the `Audit` account name to `Security`, click `Next`
@@ -379,6 +383,7 @@ Current Issues:
 
 - On larger deployments we are occassionally seeing state machine failures when `Creating Config Recorders`.
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
+- Applying new Control Tower Detective guardrails fails in v1.5.0.  This has already been fixed in the next release.
 
 Issues in Older Releases:
 
