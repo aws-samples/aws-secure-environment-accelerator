@@ -81,6 +81,13 @@ export interface ResolvedRsysLogConfig extends ResolvedConfigBase {
   rsyslog: c.RsyslogConfig;
 }
 
+export interface ResolvedOpenSearchSIEMConfig extends ResolvedConfigBase {
+   /**
+   * The OpenSearchSIEM config to be deployed.
+   */
+  siem: c.OpenSearchSIEMConfig
+}
+
 export class AcceleratorConfig implements t.TypeOf<typeof c.AcceleratorConfigType> {
   readonly 'replacements': c.ReplacementsConfig;
   readonly 'global-options': c.GlobalOptionsConfig;
@@ -361,6 +368,24 @@ export class AcceleratorConfig implements t.TypeOf<typeof c.AcceleratorConfigTyp
       result.push({
         accountKey: key,
         mad,
+      });
+    }
+    return result;
+  }
+
+  /**
+   * Find all OpenSearch siem configurations in mandatory accounts, workload accounts and organizational units.
+   */
+   getOpenSearchSIEMConfigs(): ResolvedOpenSearchSIEMConfig[] {
+    const result: ResolvedOpenSearchSIEMConfig[] = [];
+    for (const [key, config] of this.getAccountConfigs()) {
+      const siem = config.deployments?.siem;
+      if (!siem) {
+        continue;
+      }
+      result.push({
+        accountKey: key,
+        siem,
       });
     }
     return result;

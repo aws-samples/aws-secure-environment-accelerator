@@ -1250,6 +1250,43 @@
           "rsyslog-instance-role": "${ACCELERATOR_PREFIX_ND}-Rsyslog-Role",
           "rsyslog-root-volume-size": 100,
           "rsyslog-max-instance-age": 7
+        },
+        "opensearch-siem": {
+          "deploy": true,
+          "vpc-name": "Central",
+          "region": "${HOME_REGION}",          
+          "security-groups": [
+            {
+              "name": "opensearch-siem",
+              "inbound-rules": [
+                {
+                  "description": "Allow Traffic Inbound",
+                  "tcp-ports": [443],                  
+                  "source": "${RANGE-RESTRICT}"
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "app-subnets": [
+            {
+              "name": "App",
+              "az": "a"
+            },
+            {
+              "name": "App",
+              "az": "b"
+            }
+          ],          
+          "opensearch-instance-type": "t3.large",
+          "opensearch-instance-role": "${ACCELERATOR_PREFIX_ND}-OpenSearch-Role",
+          "opensearch-volume-size": 100
         }
       }
     },
