@@ -458,7 +458,7 @@ def impl(accel_prefix, config_file, region, load_db, load_config):
                         for target in target_list:
                             if target.get('lambda-filename') == "":
                                 del target['lambda-filename'] 
-            if config[config_section][key_name].get('share-mad-from'):
+            if config[config_section][key_name].get('share-mad-from') == "":
                 del config[config_section][key_name]['share-mad-from']
 
         if config_section == 'organizational-units':

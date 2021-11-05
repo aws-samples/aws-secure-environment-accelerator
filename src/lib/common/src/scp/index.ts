@@ -277,7 +277,7 @@ export class ServiceControlPolicy {
       for (const ouPolicyName of ouPolicyNames) {
         const policy = existingPolicies.find(p => p.Name === ouPolicyName);
         if (!policy) {
-          console.warn(`Cannot find policy with name "${ouPolicyName}"`);
+          throw new Error(`Cannot find policy with name "${ouPolicyName}"`);
           continue;
         }
 
@@ -347,7 +347,7 @@ export class ServiceControlPolicy {
       for (const accountPolicyName of accountPolicyNames) {
         const policy = existingPolicies.find(p => p.Name === accountPolicyName);
         if (!policy) {
-          console.warn(`Cannot find policy with name "${accountPolicyName}"`);
+          throw new Error(`Cannot find policy with name "${accountPolicyName}"`);
           continue;
         }
 
