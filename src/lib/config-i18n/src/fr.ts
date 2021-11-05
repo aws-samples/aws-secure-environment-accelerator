@@ -1345,6 +1345,59 @@ translate(c.RsyslogSubnetConfig, {
   },
 });
 
+
+translate(c.OpenSearchSIEMConfig, {
+  title: '',
+  description:'',
+  fields: {
+    deploy: {
+      title: '',
+      description: '',
+    },
+    'vpc-name': {
+      title: '',
+      description: '',
+    },
+    region: {
+      title: '',
+      description: '',
+    },    
+    'security-groups': {
+      title: '',
+      description: '',
+    },
+    'app-subnets': {
+      title: '',
+      description: '',
+    },
+    'lambda-log-processing-role': {
+      title: '',
+      description: ''
+    },
+    'cognito-domain-prefix': {
+      title: ''
+    },
+    'opensearch-instance-type-main-nodes': {
+      title: ''
+    },
+    'opensearch-instance-type-data-nodes': {
+      title: ''
+    },
+    'opensearch-instance-role': {
+      title: ''
+    },
+    'opensearch-capacity-main-nodes': {
+      title: ''
+    },
+    'opensearch-capacity-data-nodes': {
+      title: ''
+    },
+    'opensearch-volume-size': {
+      title: ''
+    }    
+  },
+});
+
 translate(c.RsyslogConfig, {
   title: '',
   description: '',

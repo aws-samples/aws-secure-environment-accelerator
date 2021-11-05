@@ -32,6 +32,7 @@ import { getAccountId } from '../utils/accounts';
 import * as rsyslogDeployment from '../deployments/rsyslog';
 import * as cleanup from '../deployments/cleanup';
 import * as keyPair from '../deployments/key-pair';
+import * as opensearchSiemDeployment from '../deployments/opensearch-siem';
 
 /**
  * This is the main entry point to deploy phase 0.
@@ -57,6 +58,7 @@ import * as keyPair from '../deployments/key-pair';
  * - enable Macie (step 1);
  * - enable GuardDuty;
  * - enable Access Analyzer;
+ * - create opensearch siem deployment (step 1);
  */
 
 export async function deploy({
@@ -211,6 +213,18 @@ export async function deploy({
     accountStacks,
     config: acceleratorConfig,
     logBucket,
+  });
+
+  await opensearchSiemDeployment.step1({
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountEbsEncryptionKeys: defaultsResult.accountEbsEncryptionKeys,
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    logBuckets: [
+      defaultsResult.centralLogBucket, defaultsResult.aesLogBucket!
+    ]
   });
 
   await cleanup.step1({
