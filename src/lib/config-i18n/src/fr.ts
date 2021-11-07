@@ -1394,7 +1394,15 @@ translate(c.OpenSearchSIEMConfig, {
     },
     'opensearch-volume-size': {
       title: ''
-    }    
+    },
+    'opensearch-configuration': {
+      title: '',
+      description: ''
+    },
+    'opensearch-processing-configuration': {
+      title: '',
+      description: ''
+    }
   },
 });
 

@@ -1284,9 +1284,16 @@
               "az": "b"
             }
           ],          
-          "opensearch-instance-type": "t3.large",
-          "opensearch-instance-role": "${ACCELERATOR_PREFIX_ND}-OpenSearch-Role",
-          "opensearch-volume-size": 100
+          "lambda-log-processing-role": "ASEA-OpenSearch-ProcessingRole",
+          "cognito-domain-prefix": "asea-siem-1234",
+          "opensearch-instance-type-main-nodes": "c6g.xlarge.search",
+          "opensearch-instance-type-data-nodes": "r6g.xlarge.search",
+          "opensearch-instance-role": "ASEA-OpenSearch-Role",
+          "opensearch-capacity-main-nodes": 3,
+          "opensearch-capacity-data-nodes": 4,
+          "opensearch-volume-size": 100,
+          "opensearch-configuration": "siem/opensearch-config.json",
+          "opensearch-processing-configuration": "sim/opensearch-processing-config.json"
         }
       }
     },

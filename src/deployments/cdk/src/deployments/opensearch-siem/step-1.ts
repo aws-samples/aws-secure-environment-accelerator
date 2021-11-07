@@ -112,6 +112,14 @@ export interface OpenSearchSIEMStep1Props {
           iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess')
         ],
       });
+
+      lambdaProcessingRole.addToPrincipalPolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['kms:Decrypt'],
+          resources: ['*']
+        })
+      );
    
       if (props.logBuckets.length > 0) {
         const organizations = new Organizations(props.logBuckets[0].stack, 'OrganizationsOpenSearch');

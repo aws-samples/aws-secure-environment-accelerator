@@ -1523,7 +1523,15 @@ translate(c.OpenSearchSIEMConfig, {
     'opensearch-volume-size': {
       title: 'Volume Size',
       description: 'The number of GB to provision the data node EBS volumes.'
-    }    
+    },
+    'opensearch-configuration': {
+      title: 'Configuration File S3 Key',
+      description: 'The S3 Key for the configuration file'
+    },
+    'opensearch-processing-configuration': {
+      title: 'Processing Configuration File S3 Key',
+      description: 'The S3 Key for the processing file'
+    }
   },
 });
 
