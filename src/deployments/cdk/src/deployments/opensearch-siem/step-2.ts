@@ -31,6 +31,9 @@ import { Context } from '../../utils/context';
 import { EbsKmsOutput } from '@aws-accelerator/common-outputs/src/ebs';
 import { IamRoleNameOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { Sqs } from '@aws-accelerator/cdk-constructs/src/sqs';
+import { CentralBucketOutputFinder } from '@aws-accelerator/common-outputs/src/central-bucket';
+import { OpenSearchSiemConfigure } from '@aws-accelerator/custom-resource-opensearch-siem-configure';
+import { HostedZoneOutputFinder } from '@aws-accelerator/common-outputs/src/hosted-zone';
 
 import path from 'path';
 
@@ -42,7 +45,7 @@ export interface OpenSearchSIEMStep2Props {
   logArchiveBucket: s3.IBucket;
   context: Context;
   aesLogArchiveBucket: s3.IBucket;
-  processingTimeout: number;
+  processingTimeout?: number;
 }
 
 export async function step2(props: OpenSearchSIEMStep2Props) {
@@ -104,6 +107,13 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       return;
     }
 
+    // Get STS Hosted Zones        
+    const hostedZoneOutputs = HostedZoneOutputFinder.findAll({
+      outputs
+    });
+    const stsHostedZoneDnsEntries = hostedZoneOutputs.filter(hzo => hzo.serviceName === 'sts').map(hostedZone => hostedZone.aliasTargetDns);
+    const stsDnsEntries = ['sts.amazonaws.com', ...stsHostedZoneDnsEntries];
+
     const openSearchSiemProcessingRoleOutput = StructuredOutput.fromOutputs(outputs, {
       accountKey,
       type: OpenSearchLambdaProcessingRoleOutput,
@@ -113,6 +123,14 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       return;
     }
     const openSearchSiemProcessingRoleArn = openSearchSiemProcessingRoleOutput[0].roleArn;
+
+
+    // Central Bucket
+    const masterAccountKey = config.getMandatoryAccountKey('master');
+    const centralBucketOutput = CentralBucketOutputFinder.findOneByName({
+      outputs,
+      accountKey: masterAccountKey,
+    });
 
     // creating security group for the instance
     const securityGroup = new SecurityGroup(accountStack, `OpenSearchSiemSG${accountKey}`, {
@@ -124,6 +142,19 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
     });
     const securityGroupId = securityGroup.securityGroups[0].id;
 
+    const azs = new Set(vpc.subnets.map(x => x.az));
+
+    const lambdaRole = iam.Role.fromRoleArn(accountStack, `${context.acceleratorPrefix}OpenSearchSiemProcessEventsLambdaRole`, openSearchSiemProcessingRoleArn, {
+      mutable: true,
+    });
+
+    lambdaRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['sts:AssumeRole'],
+        resources: [openSearchAdminRoleArn]
+      })
+    );
 
     createOpenSearchCluster(
       accountKey,
@@ -133,7 +164,12 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       accountEbsEncryptionKeyId,
       openSearchAdminRoleArn,
       domainSubnetIds,
-      [securityGroupId]
+      [securityGroupId],
+      vpc,
+      [...azs],
+      lambdaRole,
+      centralBucketOutput.bucketName,
+      stsDnsEntries
     );
 
     const eventQueue = createSQS(
@@ -143,36 +179,37 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       logArchiveBucket,
       processingTimeout
     );
-
+   
     createProcessingLambda(
       vpc,
+      [...azs],
       domainSubnetIds,
       securityGroup,
       accountStack,
       context.acceleratorPrefix,
       eventQueue,
       processingTimeout,
-      openSearchSiemProcessingRoleArn
+      lambdaRole
     );
   }
 }
 
 export function createProcessingLambda(
   vpc: Vpc,
+  azs: string[],
   domainSubnetIds: string[],
   securityGroup: SecurityGroup,
   accountStack: AcceleratorStack,
   acceleratorPrefix: string,
   eventQueue: sqs.IQueue,
   processingTimeout: number,
-  roleArn: string
+  lambdaRole: iam.Role
 ) {
 
   const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
   const lambdaDir = path.dirname(lambdaPath);
   const lambdaCode = lambda.Code.fromAsset(lambdaDir);
 
-  const azs = new Set(vpc.subnets.map(x => x.az));
   const cdkVpc = ec2.Vpc.fromVpcAttributes(accountStack, 'OpenSearchVPCLookupAttr', {
     vpcId: vpc.id,
     availabilityZones: [...azs],
@@ -184,18 +221,16 @@ export function createProcessingLambda(
     vpc_sg.push(tmp);
   }
 
-  const lambaRole = iam.Role.fromRoleArn(accountStack, `${acceleratorPrefix}OpenSearchSiemProcessEventsLambdaRole`, roleArn, {
-    mutable: true,
-  });
-
+ 
 
   const eventProcessingLambda = new lambda.Function(accountStack, `${acceleratorPrefix}OpenSearchSiemProcessEvents`, {
     runtime: lambda.Runtime.NODEJS_14_X,
     code: lambdaCode,
-    role: lambaRole,
+    role: lambdaRole,
     handler: 'index.openSearchSiemEventsProcessor.openSearchSiemProcessEvents',
     timeout: cdk.Duration.seconds(processingTimeout),
     vpc: cdkVpc,
+    memorySize: 2048,
     vpcSubnets: {
       subnetFilters: [ec2.SubnetFilter.byIds(domainSubnetIds)],
     },
@@ -253,7 +288,12 @@ export function createOpenSearchCluster(
   accountEbsEncryptionKeyId: string,
   adminRole: string,
   domainSubnetIds: string[],
-  securityGroupIds: string[]
+  securityGroupIds: string[],
+  vpc: Vpc,
+  azs: string[],
+  lambdaRole: iam.Role,
+  centralConfigBucketName: string,
+  stsHostedZoneDnsEntries: string[]
 ) {
 
   const cognitoUserPool = new CognitoUserPool(accountStack, `${acceleratorPrefix}OpenSearchSiemUserPool`, {
@@ -331,7 +371,26 @@ export function createOpenSearchCluster(
     resources: [`${domain.arn}/*`]
   }));
 
+  
+  const openSearchConfigure = new OpenSearchSiemConfigure(accountStack, `${acceleratorPrefix}OpenSearchConfigure`, {
+    openSearchDomain: domain.dns,
+    adminRoleMappingArn: authenticatedRole.roleArn,
+    adminOpenSearchRoleArn: adminRole,
+    openSearchConfigurationS3Bucket: centralConfigBucketName,
+    openSearchConfigurationS3Key: openSearchSIEMDeploymentConfig['opensearch-configuration'],
+    lambdaExecutionRole: lambdaRole.roleArn,
+    vpc: vpc.id,
+    availablityZones: azs,
+    domainSubnetIds: domainSubnetIds,
+    securityGroupIds: securityGroupIds,
+    stsDns: stsHostedZoneDnsEntries
+  });
+
+  openSearchConfigure.node.addDependency(domain);
+  
   new CfnOpenSearchClusterDnsOutput(accountStack, 'OpenSearchSIEMDomainEndpoint', {
     clusterDNS: domain.dns
   });
+
+  
 }

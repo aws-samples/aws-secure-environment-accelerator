@@ -469,7 +469,9 @@ export const OpenSearchSIEMConfig = t.interface({
   'opensearch-instance-role': t.nonEmptyString,
   'opensearch-capacity-main-nodes': t.number,
   'opensearch-capacity-data-nodes': t.number,
-  'opensearch-volume-size': t.number
+  'opensearch-volume-size': t.number,
+  'opensearch-configuration': t.nonEmptyString,
+  'opensearch-processing-configuration': t.nonEmptyString
 });
 
 export type OpenSearchSIEMConfig = t.TypeOf<typeof OpenSearchSIEMConfig>;

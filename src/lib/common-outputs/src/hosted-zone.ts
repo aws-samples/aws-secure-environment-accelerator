@@ -28,6 +28,7 @@ export const HostedZoneOutput = t.interface(
     zoneType: HostedZoneType,
     serviceName: optional(t.string),
     vpcName: optional(t.string),
+    aliasTargetDns: optional(t.string)
   },
   'HostedZoneOutput',
 );
