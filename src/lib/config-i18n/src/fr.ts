@@ -2119,6 +2119,10 @@ translate(c.DeploymentConfigType, {
       title: '',
       description: '',
     },
+    'siem': {
+      title: '',
+      description: ''
+    }
   },
 });
 

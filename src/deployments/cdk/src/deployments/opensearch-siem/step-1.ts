@@ -59,6 +59,11 @@ export interface OpenSearchSIEMStep1Props {
           continue;
         }
 
+        if (openSearchSIEMDeploymentConfig == undefined) {
+          console.warn(`Could not find the SIEM configuration`);
+          continue;
+        }
+
         const region = openSearchSIEMDeploymentConfig!.region;
         const accountEbsEncryptionKey = accountEbsEncryptionKeys[accountKey]?.[region];
         if (!accountEbsEncryptionKey) {

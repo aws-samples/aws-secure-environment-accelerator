@@ -58,6 +58,13 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
 
     const openSearchSIEMDeploymentConfig = accountConfig.deployments?.siem;
     if (!openSearchClusterExists && (!openSearchSIEMDeploymentConfig || !openSearchSIEMDeploymentConfig.deploy)) {
+      //If cluster doesn't exist, based on data in output, and the SIEM section has been removed or marked deployed false
+      //continue. ie, this would remove aws resources from the stack.
+      continue;
+    }
+
+    if (openSearchSIEMDeploymentConfig == undefined) {
+      console.warn(`Could not find the SIEM configuration`);
       continue;
     }
 

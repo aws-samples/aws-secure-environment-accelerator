@@ -2267,6 +2267,10 @@ translate(c.DeploymentConfigType, {
       title: '',
       description: 'Deploy a 3rd party Firewall Management Appliance',
     },
+    'siem': {
+      title: 'OpenSearch SIEM',
+      description: 'Deploys OpenSearch as a SIEM that will ingest logs in the log-archive account.'
+    }
   },
 });
 
