@@ -1,0 +1,7 @@
+node_modules
+dist
+# TODO Add ESLint for the UI project at one point, there are too many changes to do right now
+src/ui/*
+reference-artifacts
+deployment
+.eslintrc.js

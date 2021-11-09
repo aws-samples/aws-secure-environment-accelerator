@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "src/core/**/*",
+    "src/deployments/**/*",
+    "src/installer/**/*",
+    "src/lib/**/*"
+  ],
+  "exclude": [
+    "src/deployments/cdk/*",
+    "src/core/runtime/test/*"
+  ]
+}
