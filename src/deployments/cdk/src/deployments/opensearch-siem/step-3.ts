@@ -33,7 +33,7 @@ export async function step3(props: OpenSearchSIEMStep3Props) {
 
   for (const [accountKey, accountConfig] of config.getMandatoryAccountConfigs()) {
     const openSearchSIEMDeploymentConfig = accountConfig.deployments?.siem;
-    if (!openSearchSIEMDeploymentConfig || !openSearchSIEMDeploymentConfig.deploy) {
+    if (openSearchSIEMDeploymentConfig == undefined || !openSearchSIEMDeploymentConfig || !openSearchSIEMDeploymentConfig.deploy) {
       continue;
     }
     
