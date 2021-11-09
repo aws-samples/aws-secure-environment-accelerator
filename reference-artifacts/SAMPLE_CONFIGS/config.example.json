@@ -1121,6 +1121,13 @@
             "ssm-log-archive-write-access": true,
             "policies": ["AmazonSSMManagedInstanceCore", "CloudWatchAgentServerPolicy", "AmazonS3ReadOnlyAccess"],
             "boundary-policy": "Default-Boundary-Policy"
+          },
+          {
+            "role": "ASEA-OpenSearch-Role",
+            "type": "other",
+            "policies": ["AmazonOpenSearchServiceFullAccess"],
+            "source-account": "operations",              
+            "boundary-policy": "Default-Boundary-Policy"
           }
         ]
       },
@@ -1292,8 +1299,7 @@
           "opensearch-capacity-main-nodes": 3,
           "opensearch-capacity-data-nodes": 4,
           "opensearch-volume-size": 100,
-          "opensearch-configuration": "siem/opensearch-config.json",
-          "opensearch-processing-configuration": "sim/opensearch-processing-config.json",
+          "opensearch-configuration": "siem/opensearch-config.json",          
           "event-processor-lambda-package": "siem/os-loader.zip"
         }
       }
