@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import { IPv4CidrRange } from 'ip-num';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
@@ -24,7 +37,7 @@ export interface FirewallVpnTunnelOptions {
 
 export interface FirewallConfigurationProps {
   templateBucket: s3.IBucket;
-  templateConfigPath: string;
+  templateConfigPath?: string;
   /**
    * Account bucket where the template and license will be copied to.
    */
@@ -48,17 +61,19 @@ export interface FirewallInstanceProps {
   instanceProfile: IInstanceProfile;
   keyPairName?: string;
   configuration: FirewallConfigurationProps;
+  blockDeviceMappings: ec2.CfnInstance.BlockDeviceMappingProperty[];
+  userData?: string;
 }
 
 export class FirewallInstance extends cdk.Construct {
   private readonly resource: ec2.CfnInstance;
-  private readonly template: S3Template;
+  private readonly template?: S3Template;
   private readonly networkInterfacesProps: ec2.CfnInstance.NetworkInterfaceProperty[] = [];
   readonly instanceName: string;
   constructor(scope: cdk.Construct, id: string, private readonly props: FirewallInstanceProps) {
     super(scope, id);
 
-    const { configuration } = props;
+    const { configuration, blockDeviceMappings, userData } = props;
 
     // Copy license without replacing anything
     // TODO Should we create another custom resource for this?
@@ -71,63 +86,63 @@ export class FirewallInstance extends cdk.Construct {
       });
     }
 
-    this.template = new S3Template(this, 'Config', {
-      templateBucket: configuration.templateBucket,
-      templatePath: configuration.templateConfigPath,
-      outputBucket: configuration.bucket,
-      outputPath: configuration.configPath,
-    });
-
-    this.addVpcReplacements();
+    if (configuration.templateConfigPath) {
+      this.template = new S3Template(this, 'Config', {
+        templateBucket: configuration.templateBucket,
+        templatePath: configuration.templateConfigPath,
+        outputBucket: configuration.bucket,
+        outputPath: configuration.configPath,
+      });
+      this.addVpcReplacements();
+    }
 
     this.resource = new ec2.CfnInstance(this, 'Resource', {
       imageId: this.props.imageId,
       instanceType: this.props.instanceType,
       iamInstanceProfile: this.props.instanceProfile.instanceProfileName,
-      keyName: this.props.keyPairName,
+      keyName: this.props.keyPairName!,
       networkInterfaces: this.networkInterfacesProps,
-      blockDeviceMappings: [
-        {
-          deviceName: '/dev/sda1',
-          ebs: {
-            encrypted: true,
-          },
-        },
-        {
-          deviceName: '/dev/sdb',
-          ebs: {
-            encrypted: true,
-          },
-        },
-      ],
-      userData: cdk.Fn.base64(
-        JSON.stringify(
-          {
-            bucket: configuration.bucket.bucketName,
-            region: configuration.bucketRegion,
-            config: `/${configuration.configPath}`,
-            license: props.licensePath ? `/${props.licensePath}` : '',
-          },
-          null,
-          2,
-        ),
-      ),
+      blockDeviceMappings,
+      userData: userData
+        ? cdk.Fn.base64(userData)
+        : cdk.Fn.base64(
+            JSON.stringify(
+              {
+                bucket: configuration.bucket.bucketName,
+                region: configuration.bucketRegion,
+                config: `/${configuration.configPath}`,
+                license: props.licensePath ? `/${props.licensePath}` : '',
+              },
+              null,
+              2,
+            ),
+          ),
     });
     cdk.Tags.of(this.resource).add('Name', this.props.name);
     this.instanceName = this.props.name;
-
-    this.resource.node.addDependency(this.template);
+    if (this.template) {
+      this.resource.node.addDependency(this.template);
+    }
   }
 
   addNetworkInterface(props: {
     name: string;
     securityGroup: SecurityGroup;
     subnet: Subnet;
+    privateStaticIp?: string;
     eipAllocationId?: string;
     vpnTunnelOptions?: FirewallVpnTunnelOptions;
     additionalReplacements?: { [key: string]: string };
   }): ec2.CfnNetworkInterface {
-    const { name, securityGroup, subnet, eipAllocationId, vpnTunnelOptions, additionalReplacements } = props;
+    const {
+      name,
+      securityGroup,
+      subnet,
+      privateStaticIp,
+      eipAllocationId,
+      vpnTunnelOptions,
+      additionalReplacements,
+    } = props;
     const index = this.networkInterfacesProps.length;
 
     // Create network interface
@@ -135,6 +150,7 @@ export class FirewallInstance extends cdk.Construct {
       groupSet: [securityGroup.id],
       subnetId: subnet.id,
       sourceDestCheck: false,
+      privateIpAddress: privateStaticIp,
     });
     this.networkInterfacesProps.push({
       deviceIndex: `${index}`,
@@ -157,38 +173,40 @@ export class FirewallInstance extends cdk.Construct {
     }
 
     const cidrBlock = IPv4CidrRange.fromCidr(subnet.cidrBlock);
-    const cidrMask = cidrBlock.cidrPrefix.toSubnetMask();
+    const cidrMask = cidrBlock.cidrPrefix.toMask();
     const networkIp = cidrBlock.getFirst();
     const routerIp = networkIp.nextIPNumber();
 
     // Store the IP and router IP in parameters
     // The 1 in "Ip1" is to plan for auto-scaling
-    this.template.addReplacement(`\${${name}Ip1}`, networkInterface.attrPrimaryPrivateIpAddress);
-    this.template.addReplacement(`\${${name}NetworkIp}`, networkIp.toString());
-    this.template.addReplacement(`\${${name}RouterIp}`, routerIp.toString());
-    this.template.addReplacement(`\${${name}Cidr}`, cidrBlock.toCidrString());
-    this.template.addReplacement(`\${${name}Mask}`, cidrMask.toString());
-    if (vpnTunnelOptions) {
-      this.template.addReplacement(`\${${name}CgwTunnelOutsideAddress1}`, vpnTunnelOptions?.cgwTunnelOutsideAddress1);
-      this.template.addReplacement(`\${${name}CgwTunnelInsideAddress1}`, vpnTunnelOptions?.cgwTunnelInsideAddress1);
-      if (vpnTunnelOptions?.cgwBgpAsn1) {
-        this.template.addReplacement(`\${${name}CgwBgpAsn1}`, vpnTunnelOptions?.cgwBgpAsn1);
+    if (this.template) {
+      this.template.addReplacement(`\${${name}Ip1}`, networkInterface.attrPrimaryPrivateIpAddress);
+      this.template.addReplacement(`\${${name}NetworkIp}`, networkIp.toString());
+      this.template.addReplacement(`\${${name}RouterIp}`, routerIp.toString());
+      this.template.addReplacement(`\${${name}Cidr}`, cidrBlock.toCidrString());
+      this.template.addReplacement(`\${${name}Mask}`, cidrMask.toString());
+      if (vpnTunnelOptions) {
+        this.template.addReplacement(`\${${name}CgwTunnelOutsideAddress1}`, vpnTunnelOptions?.cgwTunnelOutsideAddress1);
+        this.template.addReplacement(`\${${name}CgwTunnelInsideAddress1}`, vpnTunnelOptions?.cgwTunnelInsideAddress1);
+        if (vpnTunnelOptions.cgwBgpAsn1) {
+          this.template.addReplacement(`\${${name}CgwBgpAsn1}`, vpnTunnelOptions.cgwBgpAsn1);
+        }
+        this.template.addReplacement(`\${${name}VpnTunnelOutsideAddress1}`, vpnTunnelOptions?.vpnTunnelOutsideAddress1);
+        this.template.addReplacement(`\${${name}VpnTunnelInsideAddress1}`, vpnTunnelOptions?.vpnTunnelInsideAddress1);
+        if (vpnTunnelOptions.vpnBgpAsn1) {
+          this.template.addReplacement(`\${${name}VpnBgpAsn1}`, vpnTunnelOptions.vpnBgpAsn1);
+        }
+        this.template.addReplacement(`\${${name}PreSharedSecret1}`, vpnTunnelOptions?.preSharedSecret1);
+        this.template.addReplacement(`\${${name}CgwTunnelOutsideAddress2}`, vpnTunnelOptions?.cgwTunnelOutsideAddress2);
+        this.template.addReplacement(`\${${name}CgwTunnelInsideAddress2}`, vpnTunnelOptions?.cgwTunnelInsideAddress2);
+        this.template.addReplacement(`\${${name}VpnTunnelOutsideAddress2}`, vpnTunnelOptions?.vpnTunnelOutsideAddress2);
+        this.template.addReplacement(`\${${name}VpnTunnelInsideAddress2}`, vpnTunnelOptions?.vpnTunnelInsideAddress2);
+        this.template.addReplacement(`\${${name}PreSharedSecret2}`, vpnTunnelOptions?.preSharedSecret2);
       }
-      this.template.addReplacement(`\${${name}VpnTunnelOutsideAddress1}`, vpnTunnelOptions?.vpnTunnelOutsideAddress1);
-      this.template.addReplacement(`\${${name}VpnTunnelInsideAddress1}`, vpnTunnelOptions?.vpnTunnelInsideAddress1);
-      if (vpnTunnelOptions?.vpnBgpAsn1) {
-        this.template.addReplacement(`\${${name}VpnBgpAsn1}`, vpnTunnelOptions?.vpnBgpAsn1);
-      }
-      this.template.addReplacement(`\${${name}PreSharedSecret1}`, vpnTunnelOptions?.preSharedSecret1);
-      this.template.addReplacement(`\${${name}CgwTunnelOutsideAddress2}`, vpnTunnelOptions?.cgwTunnelOutsideAddress2);
-      this.template.addReplacement(`\${${name}CgwTunnelInsideAddress2}`, vpnTunnelOptions?.cgwTunnelInsideAddress2);
-      this.template.addReplacement(`\${${name}VpnTunnelOutsideAddress2}`, vpnTunnelOptions?.vpnTunnelOutsideAddress2);
-      this.template.addReplacement(`\${${name}VpnTunnelInsideAddress2}`, vpnTunnelOptions?.vpnTunnelInsideAddress2);
-      this.template.addReplacement(`\${${name}PreSharedSecret2}`, vpnTunnelOptions?.preSharedSecret2);
-    }
-    if (additionalReplacements) {
-      for (const [key, value] of Object.entries(additionalReplacements)) {
-        this.template.addReplacement(key, value);
+      if (additionalReplacements) {
+        for (const [key, value] of Object.entries(additionalReplacements)) {
+          this.template.addReplacement(key, value);
+        }
       }
     }
 
@@ -197,18 +215,18 @@ export class FirewallInstance extends cdk.Construct {
 
   private addVpcReplacements() {
     // eslint-disable-next-line no-template-curly-in-string
-    this.template.addReplacement('${Hostname}', this.props.hostname);
+    this.template?.addReplacement('${Hostname}', this.props.hostname);
 
     const addVpcReplacement = (cidrBlock: string, suffix: string) => {
       const vpcCidrBlock = IPv4CidrRange.fromCidr(cidrBlock);
-      const vpcCidrMask = vpcCidrBlock.cidrPrefix.toSubnetMask();
+      const vpcCidrMask = vpcCidrBlock.cidrPrefix.toMask();
       const vpcNetworkIp = vpcCidrBlock.getFirst();
       const vpcRouterIp = vpcNetworkIp.nextIPNumber();
 
-      this.template.addReplacement(`\${VpcMask${suffix}}`, vpcCidrMask.toString());
-      this.template.addReplacement(`\${VpcCidr${suffix}}`, vpcCidrBlock.toCidrString());
-      this.template.addReplacement(`\${VpcNetworkIp${suffix}}`, vpcNetworkIp.toString());
-      this.template.addReplacement(`\${VpcRouterIp${suffix}}`, vpcRouterIp.toString());
+      this.template?.addReplacement(`\${VpcMask${suffix}}`, vpcCidrMask.toString());
+      this.template?.addReplacement(`\${VpcCidr${suffix}}`, vpcCidrBlock.toCidrString());
+      this.template?.addReplacement(`\${VpcNetworkIp${suffix}}`, vpcNetworkIp.toString());
+      this.template?.addReplacement(`\${VpcRouterIp${suffix}}`, vpcRouterIp.toString());
     };
 
     // Add default VPC CIDR block replacements
@@ -227,6 +245,6 @@ export class FirewallInstance extends cdk.Construct {
   }
 
   get replacements(): { [key: string]: string } {
-    return this.template.replacements;
+    return this.template?.replacements!;
   }
 }

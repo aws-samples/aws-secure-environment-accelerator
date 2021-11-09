@@ -2,46 +2,174 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "DenyNetworkUnclass",
+      "Sid": "PMP",
       "Effect": "Deny",
       "Action": [
-        "ec2:AcceptVpcPeeringConnection",
+        "aws-marketplace:CreatePrivateMarketplace",
+        "aws-marketplace:AssociateProductsWithPrivateMarketplace",
+        "aws-marketplace:CreatePrivateMarketplaceProfile",
+        "aws-marketplace:DescribePrivateMarketplaceProducts",
+        "aws-marketplace:DescribePrivateMarketplaceProfile",
+        "aws-marketplace:DescribePrivateMarketplaceStatus",
+        "aws-marketplace:DisassociateProducts*",
+        "aws-marketplace:ListPrivateMarketplaceProducts",
+        "aws-marketplace:StartPrivateMarketplace",
+        "aws-marketplace:StopPrivateMarketplace",
+        "aws-marketplace:UpdatePrivateMarketplaceProfile"
+      ],
+      "Resource": "*",
+      "Condition": {}
+    },
+    {
+      "Sid": "ROOT",
+      "Effect": "Deny",
+      "NotAction": [
+        "iam:CreateVirtualMFADevice",
+        "iam:EnableMFADevice",
+        "iam:GetUser",
+        "iam:ListMFADevices",
+        "iam:ListVirtualMFADevices",
+        "iam:ResyncMFADevice",
+        "aws-portal:*",
+        "sts:GetSessionToken",
+        "iam:DeleteVirtualMFADevice",
+        "trustedadvisor:*",
+        "support:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ArnLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:root"]
+        }
+      }
+    },
+    {
+      "Sid": "EBS1",
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:*:*:volume/*",
+      "Condition": {
+        "Bool": {
+          "ec2:Encrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "EBS2",
+      "Effect": "Deny",
+      "Action": "ec2:CreateVolume",
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "ec2:Encrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "EFS",
+      "Effect": "Deny",
+      "Action": "elasticfilesystem:CreateFileSystem",
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "elasticfilesystem:Encrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "RDS",
+      "Effect": "Deny",
+      "Action": "rds:CreateDBInstance",
+      "Resource": "arn:aws:rds:*:*:db:*",
+      "Condition": {
+        "StringNotLike": {
+          "rds:DatabaseEngine": ["aurora*", "docdb*", "neptune"]
+        },
+        "Bool": {
+          "rds:StorageEncrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "AUR",
+      "Effect": "Deny",
+      "Action": "rds:CreateDBCluster",
+      "Resource": "*",
+      "Condition": {
+        "StringLike": {
+          "rds:DatabaseEngine": ["aurora*", "docdb*", "neptune"]
+        },
+        "Bool": {
+          "rds:StorageEncrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "OTHS",
+      "Effect": "Deny",
+      "Action": [
+        "organizations:LeaveOrganization",
+        "aws-portal:ModifyAccount",
+        "aws-portal:ViewAccount",
+        "aws-portal:ModifyBilling",
+        "aws-portal:ModifyPaymentMethods",
+        "aws-portal:ViewPaymentMethods",
+        "ds:AcceptSharedDirectory",
+        "ds:ShareDirectory",
+        "ds:EnableSso",
+        "ds:DisableSso",
+        "ram:AcceptResourceShareInvitation",
+        "ram:AssociateResourceShare",
+        "ram:CreateResourceShare",
+        "ram:EnableSharingWithAwsOrganization",
+        "lightsail:*",
+        "sumerian:*",
+        "cloud9:*",
+        "gamelift:*",
+        "appflow:*",
+        "iq:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}"]
+        }
+      }
+    },
+    {
+      "Sid": "NET2",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:AcceptVpc*",
+        "ec2:AcceptTransitGateway*",
+        "ec2:AssociateClientVpn*",
+        "ec2:AuthorizeClientVpn*",
         "ec2:AttachEgressOnlyInternetGateway",
         "ec2:AttachInternetGateway",
+        "ec2:AttachVpnGateway",
+        "ec2:CreateCarrierGateway",
+        "ec2:CreateClientVpn*",
+        "ec2:CreateCustomerGateway",
         "ec2:CreateEgressOnlyInternetGateway",
         "ec2:CreateInternetGateway",
         "ec2:CreateNatGateway",
-        "ec2:CreateTransitGateway",
-        "ec2:CreateTransitGatewayRoute",
-        "ec2:CreateTransitGatewayRouteTable",
-        "ec2:CreateTransitGatewayVpcAttachment",
+        "ec2:CreateTransitGateway*",
         "ec2:CreateVpc",
         "ec2:CreateVpcEndpoint",
         "ec2:CreateVpcPeeringConnection",
-        "ec2:DeleteNatGateway",
-        "ec2:DeleteTransitGatewayRoute",
-        "ec2:DeleteTransitGatewayRouteTable",
-        "ec2:DeleteTransitGatewayVpcAttachment",
-        "ec2:DeleteVpc",
-        "ec2:DeleteVpcEndpoints",
-        "ec2:DeleteVpcPeeringConnection",
-        "ec2:DeleteCustomerGateway",
-        "ec2:DeleteDhcpOptions",
-        "ec2:DeleteInternetGateway",
-        "ec2:DeleteRouteTable",
-        "ec2:DeleteSubnet",
-        "ec2:DeleteVpnConnection",
-        "ec2:DeleteVpnGateway",
-        "ec2:DeleteRoute",
-        "ec2:DetachInternetGateway",
-        "ec2:DetachVpnGateway",
-        "ec2:DisassociateRouteTable",
+        "ec2:CreateVpn*",
+        "ec2:DeleteClientVpn*",
+        "ec2:DeleteNetworkAcl*",
         "ec2:AllocateAddress",
         "ec2:AssociateAddress",
+        "ec2:ModifyClientVpn*",
         "ec2:ModifyImageAttribute",
         "ec2:ModifySnapshotAttribute",
+        "ec2:ModifyVpn*",
+        "ec2:RevokeClientVpn*",
         "rds:ModifyDBSnapshotAttribute",
         "rds:ModifyDBClusterSnapshotAttribute",
+        "elasticmapreduce:PutBlockPublic*",
         "globalaccelerator:Create*",
         "globalaccelerator:Update*",
         "kms:ScheduleKeyDeletion",
@@ -74,11 +202,12 @@
       }
     },
     {
-      "Sid": "DenyRegionsUnclass",
+      "Sid": "GBL1",
       "Effect": "Deny",
       "NotAction": [
         "a4b:*",
         "access-analyzer:ValidatePolicy",
+        "access-analyzer:ListPolicyGenerations",
         "aws-marketplace-management:*",
         "aws-marketplace:*",
         "aws-portal:*",
@@ -103,9 +232,9 @@
         "route53:*",
         "route53domains:*",
         "s3:GetAccountPublic*",
+        "s3:GetBucketLocation",
         "s3:ListAllMyBuckets",
         "s3:ListBuckets",
-        "s3:PutAccountPublic*",
         "shield:*",
         "sts:*",
         "support:*",
@@ -120,7 +249,7 @@
           "aws:RequestedRegion": "${ADDL_REGIONS_C}"
         },
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}"]
         }
       }
     }

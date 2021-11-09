@@ -1,7 +1,22 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
+import omit from 'lodash.omit';
 import aws from './aws-client';
 import * as org from 'aws-sdk/clients/organizations';
 import { throttlingBackOff } from './backoff';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
+import { equalIgnoreCase } from './../util/common';
 
 export interface OrganizationalUnit extends org.OrganizationalUnit {
   Path: string;
@@ -46,16 +61,13 @@ export class Organizations {
   }
 
   async getPolicyByName(input: org.ListPoliciesRequest & { Name: string }): Promise<org.Policy | undefined> {
-    const name = input.Name;
-    delete input.Name;
-
     const summaries = listWithNextTokenGenerator<org.ListPoliciesRequest, org.ListPoliciesResponse, org.PolicySummary>(
       this.client.listPolicies.bind(this.client),
       r => r.Policies!,
-      input,
+      omit(input, 'Name'),
     );
     for await (const summary of summaries) {
-      if (summary.Name === name) {
+      if (summary.Name === input.Name) {
         const describePolicy = await this.describePolicy(summary.Id!);
         return describePolicy.Policy;
       }
@@ -347,6 +359,12 @@ export class Organizations {
         .promise(),
     );
     return response.Account;
+  }
+
+  async getAccountByEmail(email: string): Promise<org.Account | undefined> {
+    const accounts = await this.listAccounts();
+
+    return accounts.find(a => equalIgnoreCase(a.Email!, email));
   }
 
   async getOrganizationalUnitWithPath(ouId: string): Promise<OrganizationalUnit> {

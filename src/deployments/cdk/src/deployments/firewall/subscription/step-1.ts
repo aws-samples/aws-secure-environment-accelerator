@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as c from '@aws-accelerator/common-config/src';
 import { Vpc } from '@aws-accelerator/cdk-constructs/src/vpc';
 import { AccountStacks } from '../../../common/account-stacks';
@@ -23,12 +36,15 @@ export async function step1(props: FirewallSubscriptionStep1Props) {
   const { accountKey, deployments, vpc, accountStacks } = props;
 
   const managerConfig = deployments?.['firewall-manager'];
-  const firewallConfigs = deployments?.firewalls;
+  const firewallConfigs = deployments?.firewalls?.filter(fw => fw.region === vpc.region);
   if (!firewallConfigs || firewallConfigs.length === 0) {
     return;
   }
 
   for (const [index, firewallConfig] of Object.entries(firewallConfigs)) {
+    if (!firewallConfig.deploy || c.FirewallCGWConfigType.is(firewallConfig)) {
+      continue;
+    }
     if (!vpc) {
       console.log(
         `Skipping firewall marketplace image subscription check because of missing VPC "${firewallConfig.vpc}"`,
@@ -54,7 +70,7 @@ export async function step1(props: FirewallSubscriptionStep1Props) {
       value: firewallAmiSubOutput,
     });
 
-    if (managerConfig) {
+    if (managerConfig && managerConfig.region === vpc.region) {
       const firewallManagerAmiSubOutput: AmiSubscriptionOutput = {
         imageId: managerConfig['image-id'],
         status: checkStatus(accountStack, managerConfig['image-id'], subnetId, `ManagerAmiSubCheck${index}`),

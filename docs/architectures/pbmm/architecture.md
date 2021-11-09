@@ -90,14 +90,14 @@ It is anticipated we will offer multiple sample architectures with the AWS SEA s
 
 # 3. Introduction
 
-The _AWS Secure Environment Architecture_ has been built with the following design principles in mind:
+The _AWS Secure Environment Architecture_ has been built with the following design principles:
 
 1. Maximize agility, scalability, and availability
-2. Enable the full capability of the AWS cloud and do not artificially limit capabilities based on lowest common denominator supported capabilities of other cloud providers
+2. Enable the full capability of the AWS cloud
 3. Be adaptable to evolving technological capabilities in the underlying platform being used in the _AWS Secure Environment Architecture_
 4. Allow for seamless auto-scaling and provide unbounded bandwidth as bandwidth requirements increase (or decrease) based on actual customer load (a key aspect of the value proposition of cloud computing)
-5. High availability is paramount: the design stretches across two physical AWS Availability Zones (AZ), such that the loss of any one AZ does not impact application availability. The design can be easily extended to a third availability zone.
-6. Least Privilege: all principals in the accounts are intended to operate with the lowest-feasible permission set.
+5. Design for high availability: the design stretches across two physical AWS Availability Zones (AZ), such that the loss of any one AZ does not impact application availability. The design can be easily extended to a third availability zone.
+6. Operate as least privilege: all principals in the accounts are intended to operate with the lowest-feasible permission set.
 
 ## 3.1. Purpose of Document
 
@@ -471,11 +471,11 @@ versus
 
 > "permit port 3306 traffic from `10.0.1.0/24` to `10.0.2.0/24`.
 
-Security group egress rules are often used in 'allow all' mode (`0.0.0.0/0`), with the focus primarily being on consistently whitelisting required ingress traffic.  This ensures day to day activities like patching, access to DNS, or to directory services access can function on instances without friction. The provided sample security groups in the workload accounts offers a good balance that considers both security, ease of operations, and frictionless development.  They allow developers to focus on developing, enabling them to simply use the pre-created security constructs for their workloads, and avoid the creation of wide-open security groups.  Developers can equally choose to create more appropriate least-privilege security groups more suitable for their application, if they are skilled in this area.  It is expected as an application is promoted through the SDLC cycle from Dev through Test to Prod, these security groups will be further refined by the extended customers teams to further reduce privilege, as appropriate.  It is expected that each customer will review and tailor their Security Groups based on their own security requirements.
+Security group egress rules are often used in 'allow all' mode (`0.0.0.0/0`), with the focus primarily being on consistently whitelisting required ingress traffic. This ensures day to day activities like patching, access to DNS, or to directory services access can function on instances without friction. The provided sample security groups in the workload accounts offers a good balance that considers both security, ease of operations, and frictionless development. They allow developers to focus on developing, enabling them to simply use the pre-created security constructs for their workloads, and avoid the creation of wide-open security groups. Developers can equally choose to create more appropriate least-privilege security groups more suitable for their application, if they are skilled in this area. It is expected as an application is promoted through the SDLC cycle from Dev through Test to Prod, these security groups will be further refined by the extended customers teams to further reduce privilege, as appropriate. It is expected that each customer will review and tailor their Security Groups based on their own security requirements.
 
 #### 5.3.5.2. NACLs
 
-Network Access-Control Lists (NACLs) are stateless constructs used sparingly as a defense-in-depth measure in this architecture. AWS generally discourages the use of NACLs given the added complexity and management burden, given the availability and ease of use provided by security groups.  Each network flow often requires four NACL entries (egress from ephemeral, ingress to destination, egress from destination, ingress to ephemeral).  The architecture recommends NACLs as a segmentation mechanism for `Data` subnets; i.e. `DENY` all inbound traffic to such a subnet except that which originates in the `App` subnet for the same VPC.  As with security groups, we encourage customers to review and tailor their NACLs based on their own security requirements.
+Network Access-Control Lists (NACLs) are stateless constructs used sparingly as a defense-in-depth measure in this architecture. AWS generally discourages the use of NACLs given the added complexity and management burden, given the availability and ease of use provided by security groups. Each network flow often requires four NACL entries (egress from ephemeral, ingress to destination, egress from destination, ingress to ephemeral). The architecture recommends NACLs as a segmentation mechanism for `Data` subnets; i.e. `DENY` all inbound traffic to such a subnet except that which originates in the `App` subnet for the same VPC. As with security groups, we encourage customers to review and tailor their NACLs based on their own security requirements.
 
 ### 5.3.6. Central VPC
 
@@ -707,9 +707,9 @@ Session Manager is a fully managed AWS Systems Manager capability that lets you 
 The _AWS Secure Environment Architecture_ recommends that you choose to store session log data in a centralized S3 bucket for auditing purposes and encrypt with Key Management Service (KMS). In addition, session log data should also be configured to be sent to Amazon CloudWatch Logs with KMS encryption using your AWS KMS key.
 
 [pbmm]: https://www.canada.ca/en/government/system/digital-government/modern-emerging-technologies/cloud-services/government-canada-security-control-profile-cloud-based-it-services.html#toc4
-[ops_guide]: https://TODO
-[dev_guide]: https://TODO
-[accel_tool]: (../../../../)
+[ops_guide]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/operations/operations-troubleshooting-guide.md
+[dev_guide]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/developer/developer-guide.md
+[accel_tool]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/README.md
 [aws_org]: https://aws.amazon.com/organizations/
 [aws_scps]: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_type-auth.html#orgs_manage_policies_scp
 [aws_vpn]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html

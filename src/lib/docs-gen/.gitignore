@@ -1,0 +1,25 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Runtime data
+pids
+*.pid
+.DS_Store
+.vscode
+
+# Dependency directories
+node_modules/
+
+# Ignore output folders
+output-docs/
+output-schema/
+output-translations/
+output-ts/

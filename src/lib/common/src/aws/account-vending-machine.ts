@@ -1,9 +1,23 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import aws from './aws-client';
 import { v4 as uuidv4 } from 'uuid';
-import { ProductAVMParam, ServiceCatalog } from './service-catalog';
+import { ServiceCatalog } from './service-catalog';
 import { STS } from './sts';
 import { CreateAccountInput, CreateAccountOutput, AccountAvailableOutput } from './types/account';
 import { throttlingBackOff } from './backoff';
+import * as crypto from 'crypto';
 
 export interface CreateAvmAccountInput extends CreateAccountInput {
   avmPortfolioName: string;
@@ -22,7 +36,15 @@ export class AccountVendingMachine {
    * Create account using account-vending-machine
    */
   async createAccount(input: CreateAvmAccountInput): Promise<CreateAccountOutput> {
-    const { avmPortfolioName, avmProductName, accountName, emailAddress, organizationalUnit } = input;
+    const {
+      avmPortfolioName,
+      avmProductName,
+      accountName,
+      emailAddress,
+      organizationalUnit,
+      accountKey,
+      accountId,
+    } = input;
 
     // find service catalog portfolioId by name
     const portfolio = await throttlingBackOff(() => this.client.findPortfolioByName(avmPortfolioName));
@@ -34,7 +56,6 @@ export class AccountVendingMachine {
       };
     }
 
-    // TODO Add a exponential backoff here
     // find service catalog ProductId by name
     const searchProductsOutput = await throttlingBackOff(() => this.client.findProduct(avmProductName));
     const productId = searchProductsOutput?.ProductViewSummaries?.[0]?.ProductId;
@@ -59,7 +80,6 @@ export class AccountVendingMachine {
     }
 
     const provisionToken = uuidv4();
-
     // launch AVM Product
     let provisionProductOutput;
     try {
@@ -68,7 +88,7 @@ export class AccountVendingMachine {
           ProductId: productId,
           ProvisionToken: provisionToken,
           ProvisioningArtifactId: provisioningArtifactId,
-          ProvisionedProductName: accountName,
+          ProvisionedProductName: accountKey,
           ProvisioningParameters: [
             {
               Key: 'AccountName',
@@ -79,8 +99,20 @@ export class AccountVendingMachine {
               Value: emailAddress,
             },
             {
-              Key: 'OrgUnitName',
+              Key: 'ManagedOrganizationalUnit',
               Value: organizationalUnit,
+            },
+            {
+              Key: 'SSOUserEmail',
+              Value: emailAddress,
+            },
+            {
+              Key: 'SSOUserFirstName',
+              Value: accountName,
+            },
+            {
+              Key: 'SSOUserLastName',
+              Value: accountName,
             },
             {
               Key: 'VPCOptions',
@@ -138,7 +170,65 @@ export class AccountVendingMachine {
     const SearchProvisionedProductsOutput = await throttlingBackOff(() =>
       this.client.searchProvisionedProducts(accountName),
     );
-    const provisionedProductStatus = SearchProvisionedProductsOutput?.ProvisionedProducts?.[0].Status;
+    console.log(JSON.stringify(SearchProvisionedProductsOutput, null, 2));
+    const provisionedProductStatus = SearchProvisionedProductsOutput?.ProvisionedProducts?.[0]?.Status;
+
+    if (provisionedProductStatus === 'AVAILABLE') {
+      return {
+        status: 'SUCCESS',
+        statusReason: `${accountName} account created successfully using Account Vending Machine!`,
+        provisionedProductStatus,
+      };
+    } else if (provisionedProductStatus === 'UNDER_CHANGE' || provisionedProductStatus === 'PLAN_IN_PROGRESS') {
+      return {
+        status: 'IN_PROGRESS',
+        statusReason: `${accountName} account is being created using Account Vending Machine!`,
+        provisionedProductStatus,
+      };
+    }
+    return {
+      status: 'FAILURE',
+      statusReason: `Unable to create ${accountName} account using Account Vending Machine!`,
+      provisionedProductStatus,
+    };
+  }
+
+  /**
+   * Is the account created using account-vending-machine available now?
+   * @param accountName
+   */
+  async isAccountAvailableByAccountId(accountId: string): Promise<AccountAvailableOutput> {
+    const SearchProvisionedProductsOutput = await throttlingBackOff(() =>
+      this.client.searchProvisionedProductsForSingleAccount(accountId),
+    );
+    console.log(JSON.stringify(SearchProvisionedProductsOutput, null, 2));
+    const provisionedProductStatus = SearchProvisionedProductsOutput?.[0]?.Status;
+
+    if (provisionedProductStatus === 'AVAILABLE') {
+      return {
+        status: 'SUCCESS',
+        statusReason: `${accountId} account created successfully using Account Vending Machine!`,
+        provisionedProductStatus,
+      };
+    } else if (provisionedProductStatus === 'UNDER_CHANGE' || provisionedProductStatus === 'PLAN_IN_PROGRESS') {
+      return {
+        status: 'IN_PROGRESS',
+        statusReason: `${accountId} account is being created using Account Vending Machine!`,
+        provisionedProductStatus,
+      };
+    }
+    return {
+      status: 'FAILURE',
+      statusReason: `Unable to create ${accountId} account using Account Vending Machine!`,
+      provisionedProductStatus,
+    };
+  }
+
+  async getAccountStatus(accountName: string): Promise<AccountAvailableOutput> {
+    const SearchProvisionedProductsOutput = await throttlingBackOff(() =>
+      this.client.searchProvisionedProducts(accountName),
+    );
+    const provisionedProductStatus = SearchProvisionedProductsOutput?.ProvisionedProducts?.[0]?.Status;
 
     if (provisionedProductStatus === 'AVAILABLE') {
       return {
@@ -146,7 +236,7 @@ export class AccountVendingMachine {
         statusReason: accountName + ' account created successfully using Account Vending Machine!',
         provisionedProductStatus,
       };
-    } else if (provisionedProductStatus === 'UNDER_CHANGE') {
+    } else if (provisionedProductStatus === 'UNDER_CHANGE' || provisionedProductStatus === 'PLAN_IN_PROGRESS') {
       return {
         status: 'IN_PROGRESS',
         statusReason: accountName + ' account is being created using Account Vending Machine!',
@@ -154,9 +244,14 @@ export class AccountVendingMachine {
       };
     }
     return {
-      status: 'FAILURE',
-      statusReason: 'Unable to create ' + accountName + ' account using Account Vending Machine!',
+      status: 'NOT_EXISTS',
+      statusReason: 'Account ' + accountName + ' is not enrolled in Control Tower',
       provisionedProductStatus,
     };
   }
+}
+
+function hashName(name: string, length: number) {
+  const hash = crypto.createHash('md5').update(name).digest('hex');
+  return hash.slice(0, length).toUpperCase();
 }

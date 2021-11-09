@@ -1,0 +1,103 @@
+{
+  "statelessDefaultActions": ["aws:forward_to_sfe"],
+  "statelessFragmentDefaultActions": ["aws:forward_to_sfe"],
+  "statelessRuleGroup": [
+    {
+      "priority": 10,
+      "ruleGroupName": "StatelessCIDRRuleGroup",
+      "type": "STATELESS",
+      "capacity": 100,
+      "ruleGroup": {
+        "rulesSource": {
+          "statelessRulesAndCustomActions": {
+            "statelessRules": [
+              {
+                "ruleDefinition": {
+                  "matchAttributes": {
+                    "sources": [
+                      {
+                        "addressDefinition": "10.0.0.0/13"
+                      },
+                      {
+                        "addressDefinition": "100.96.252.0/23"
+                      },
+                      {
+                        "addressDefinition": "100.96.250.0/23"
+                      }
+                    ],
+                    "destinations": [
+                      {
+                        "addressDefinition": "0.0.0.0/0"
+                      }
+                    ],
+                    "destinationPorts": [
+                      {
+                        "fromPort": 443,
+                        "toPort": 443
+                      },
+                      {
+                        "fromPort": 80,
+                        "toPort": 80
+                      }
+                    ],
+                    "protocols": [6]
+                  },
+                  "actions": ["aws:forward_to_sfe"]
+                },
+                "priority": 10
+              },
+              {
+                "ruleDefinition": {
+                  "matchAttributes": {
+                    "sources": [
+                      {
+                        "addressDefinition": "0.0.0.0/0"
+                      }
+                    ],
+                    "destinations": [
+                      {
+                        "addressDefinition": "10.7.4.0/22"
+                      }
+                    ],
+                    "destinationPorts": [
+                      {
+                        "fromPort": 443,
+                        "toPort": 443
+                      }
+                    ],
+                    "protocols": [6]
+                  },
+                  "actions": ["aws:forward_to_sfe"]
+                },
+                "priority": 20
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "statefulRuleGroup": [
+    {
+      "ruleGroupName": "DeniedDomainsStatefulRuleGroup",
+      "type": "STATEFUL",
+      "capacity": 100,
+      "ruleGroup": {
+        "ruleVariables": {
+          "ipSets": {
+            "HOME_NET": {
+              "definition": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+            }
+          }
+        },
+        "rulesSource": {
+          "rulesSourceList": {
+            "targetTypes": ["HTTP_HOST", "TLS_SNI"],
+            "targets": ["abc.com", "github.com", "test.com"],
+            "generatedRulesType": "DENYLIST"
+          }
+        }
+      }
+    }
+  ]
+}

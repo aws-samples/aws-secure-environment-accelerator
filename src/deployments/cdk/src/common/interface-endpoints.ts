@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as cdk from '@aws-cdk/core';
@@ -94,9 +107,10 @@ export class InterfaceEndpoint extends cdk.Construct {
 
     this._hostedZone.addDependsOn(endpoint);
 
+    const recordSetName = recordSetNameForRegionAndEndpointName(vpcRegion, serviceName);
     const recordSet = new route53.CfnRecordSet(this, 'RecordSet', {
       type: 'A',
-      name: hostedZoneName,
+      name: recordSetName,
       hostedZoneId: this._hostedZone.ref,
       aliasTarget: aliasTargetForServiceNameAndEndpoint(serviceName, endpoint),
     });
@@ -121,12 +135,17 @@ function interfaceVpcEndpointForRegionAndEndpointName(region: string, name: stri
   if (name === 'notebook') {
     return `aws.sagemaker.${region}.${name}`;
   }
+
   return `com.amazonaws.${region}.${name}`;
 }
 
 function zoneNameForRegionAndEndpointName(region: string, name: string) {
   if (name === 'notebook') {
     return `notebook.${region}.sagemaker.aws.`;
+  }
+  if (name.indexOf('.') > 0) {
+    const tmp = name.split('.').reverse().join('.');
+    return `${tmp}.${region}.amazonaws.com.`;
   }
   return `${name}.${region}.amazonaws.com.`;
 }
@@ -138,4 +157,14 @@ function getZoneAliasTargetIndex(name: string): number {
     return 4;
   }
   return 0;
+}
+
+function recordSetNameForRegionAndEndpointName(region: string, name: string) {
+  const hostedZoneName = zoneNameForRegionAndEndpointName(region, name);
+
+  if (name === 'ecr.dkr') {
+    return `*.${hostedZoneName}`;
+  }
+
+  return hostedZoneName;
 }

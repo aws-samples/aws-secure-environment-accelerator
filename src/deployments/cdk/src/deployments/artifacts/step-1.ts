@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as path from 'path';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
@@ -25,7 +38,15 @@ export async function step1(props: ArtifactsStep1Props) {
   const centralConfigBucket = s3.Bucket.fromBucketAttributes(masterAccountStack, 'CentralBucket', {
     bucketName: centralConfigBucketName,
   });
-
+  // upload AWS NFW Artifacts
+  const nfwUpload = uploadArtifacts({
+    accountStack: masterAccountStack,
+    artifactName: 'NFW',
+    artifactFolderName: 'NFW',
+    artifactKeyPrefix: 'nfw',
+    centralBucket,
+    destinationKeyPrefix: 'nfw',
+  });
   // upload SCP Artifacts
   const scpUpload = uploadArtifacts({
     accountStack: masterAccountStack,
@@ -103,6 +124,7 @@ export async function step1(props: ArtifactsStep1Props) {
   copyFiles.node.addDependency(iamUpload);
   copyFiles.node.addDependency(scpUpload);
   copyFiles.node.addDependency(configRulesUpload);
+  copyFiles.node.addDependency(nfwUpload);
 }
 
 function uploadArtifacts(props: {

@@ -164,7 +164,7 @@ The folder structure of the project is as follows:
 
 Read the [Operations Guide](../operations/operations-troubleshooting-guide.md#installer-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
 
-As stated in the Operations Guide, the `Installer` stack is responsible for installing the `Initial Setup` stack. It is an Accelerator-management resource. The main resource in the `Installer` stack is the `PBMMAccel-Installer` CodePipeline. The CodePipeline uses this GitHub repository as source action and runs CDK in a CodeBuild step to deploy the `Initial Setup` stack.
+As stated in the Operations Guide, the `Installer` stack is responsible for installing the `Initial Setup` stack. It is an Accelerator-management resource. The main resource in the `Installer` stack is the `ASEA-Installer` CodePipeline. The CodePipeline uses this GitHub repository as source action and runs CDK in a CodeBuild step to deploy the `Initial Setup` stack.
 
 ```typescript
 new codebuild.PipelineProject(stack, 'InstallerProject', {
@@ -173,10 +173,14 @@ new codebuild.PipelineProject(stack, 'InstallerProject', {
     phases: {
       install: {
         'runtime-versions': {
-          nodejs: 12,
+          nodejs: 14,
         },
         // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-        commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm --frozen-lockfile'],
+        commands: ['npm install --global pnpm@6.2.3', 'pnpm install --unsafe-perm --frozen-lockfile'],
+      },
+      pre_build: {
+        // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
+        commands: ['pnpm recursive run build --unsafe-perm'],
       },
       build: {
         commands: [
@@ -203,7 +207,7 @@ The `Initial Setup` stack deployment receives environment variables from the Cod
 
 Read [Operations Guide](../operations/operations-troubleshooting-guide.md#initial-setup-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
 
-As stated in the Operations Guide, the `Initial Setup` stack consists of a state machine, named `PBMMAccel-MainStateMachine_sm`, which executes steps to create the Accelerator-managed stacks and resources in the managed accounts. It is an Accelerator-management resource.
+As stated in the Operations Guide, the `Initial Setup` stack consists of a state machine, named `ASEA-MainStateMachine_sm`, which executes steps to create the Accelerator-managed stacks and resources in the managed accounts. It is an Accelerator-management resource.
 
 The `Initial Setup` stack is defined in the `src/core/cdk` folder.
 
@@ -243,6 +247,8 @@ WORKDIR /app
 ADD . /app/
 # Install the dependencies
 RUN pnpm install --unsafe-perm --frozen-lockfile
+# Build all Lambda function runtime code
+RUN pnpm recursive run build --unsafe-perm
 ```
 
 When this CodeBuild project executes, it uses the Docker image as base -- the dependencies are already installed -- and runs the same commands as the `CdkDeployProject` to deploy the `Phase` stacks.
@@ -251,10 +257,10 @@ When this CodeBuild project executes, it uses the Docker image as base -- the de
 
 Some steps in the state machine write data to Amazon DynamoDB. This data is necessary to deploy the `Phase` stacks later on. At one time this data was written to Secrets Manager and/or S3, these mechanisms were deemed ineffective due to object size limitations or consistency challenges and were all eventually migrated to DynamoDB.
 
-- `Load Accounts` step: This step finds the Accelerator-managed accounts in AWS Organizations and stores the account key -- the key of the account in `mandatory-account-configs` or `workload-account-configs` object in the Accelerator config -- and account ID and other useful information in the `PBMMAccel-Parameters` table, `accounts/#` key and `accounts-items-count` key;
-- `Load Organizations` step: More or less the same as the `Load Accounts` step but for organizational units in AWS Organizations and stores the values in the `PBMMAccel-Parameters` table, `organizations` key;
-- `Load Limits` step: This step requests limit increases for Accelerator-managed accounts and stores the current limits in the the `PBMMAccel-Parameters` table, `limits` key.
-- `Store Phase X Output`: This step loads stack outputs from all existing `Phase` stacks and stores the outputs in the DynamoDB table `PBMMAccel-Outputs`.
+- `Load Accounts` step: This step finds the Accelerator-managed accounts in AWS Organizations and stores the account key -- the key of the account in `mandatory-account-configs` or `workload-account-configs` object in the Accelerator config -- and account ID and other useful information in the `ASEA-Parameters` table, `accounts/#` key and `accounts-items-count` key;
+- `Load Organizations` step: More or less the same as the `Load Accounts` step but for organizational units in AWS Organizations and stores the values in the `ASEA-Parameters` table, `organizations` key;
+- `Load Limits` step: This step requests limit increases for Accelerator-managed accounts and stores the current limits in the the `ASEA-Parameters` table, `limits` key.
+- `Store Phase X Output`: This step loads stack outputs from all existing `Phase` stacks and stores the outputs in the DynamoDB table `ASEA-Outputs`.
 
 Other data is passed through environment variables:
 
@@ -280,14 +286,14 @@ The `cdk.ts` command parses command line arguments and creates all the `cdk.App`
 
 Customers need the CloudFormation outputs of resources that are created by the accelerator in order to deploy their own resources in AWS. eg. vpcId in shared-network account to create an ec2 instance, etc.
 
-This step loads the stack outputs from our DynamoDB Table `PBMMAccel-Outputs` and stores as key value pairs in SSM Parameter Store in each account.
+This step loads the stack outputs from our DynamoDB Table `ASEA-Outputs` and stores as key value pairs in SSM Parameter Store in each account.
 
 Example values are
 
-- /PBMMAccel/network/vpc/1/name => Endpoint
-- /PBMMAccel/network/vpc/1/id => vpc-XXXXXXXXXX
+- /ASEA/network/vpc/1/name => Endpoint
+- /ASEA/network/vpc/1/id => vpc-XXXXXXXXXX
 
-`PBMMAccel-Outputs-Utils` DynamoDB Table is used extensively to maintain same index irrespective of configuration changes.
+`ASEA-Outputs-Utils` DynamoDB Table is used extensively to maintain same index irrespective of configuration changes.
 
 This allows customers to reliably build Infrastructure as Code (IaC) which depends on accelerator deployed objects like VPC's, security groups, subnets, ELB's, KMS keys, IAM users and policies. Rather than making the parameters dependent on object names, we used an indexing scheme, which we maintain and don't update as a customers configuration changes. We have attempted to keep the index values consistent across accounts (based on the config file), such that when code is propoted through the SDLC cycle from Dev to Test to Prod, the input parameters to the IaC scripts do not need to be updated, the App subnet, for example, will have the same index value in all accounts.
 
@@ -486,7 +492,7 @@ Another goal of the interface is to provide an interface on top of imported VPC 
 
 #### 4.6.4.6. `Limiter`
 
-So far we haven't talked about limits yet. There is a step in the `Initial Setup` state machine that requests limit increases according to the desired limits in the configuration file. The step saves the current limits to the `limits` key in the DynamoDB table `PBMMAccel-Parameters`. The `apps/app.ts` file loads the limits and passes them as an input to the phase deployment.
+So far we haven't talked about limits yet. There is a step in the `Initial Setup` state machine that requests limit increases according to the desired limits in the configuration file. The step saves the current limits to the `limits` key in the DynamoDB table `ASEA-Parameters`. The `apps/app.ts` file loads the limits and passes them as an input to the phase deployment.
 
 The `Limiter` class helps keeps track of resource we create and prevents exceeding these limits.
 
@@ -693,7 +699,7 @@ This library defines the base Webpack template to compile custom resource runtim
   "devDependencies": {
     "@aws-accelerator/custom-resource-runtime-webpack-base": "workspace:^0.0.1",
     "@types/aws-lambda": "8.10.46",
-    "@types/node": "12.12.6",
+    "@types/node": "14.14.31",
     "ts-loader": "7.0.5",
     "typescript": "3.8.3",
     "webpack": "4.42.1",
@@ -739,7 +745,7 @@ You can also deploy the installer stack directly from the command line but then 
 
 ```sh
 cd accelerator/installer
-pnpx cdk deploy --parameters GithubBranch=main --parameters ConfigS3Bucket=pbmmaccel-myconfigbucket
+pnpx cdk deploy --parameters GithubBranch=main --parameters ConfigS3Bucket=ASEA-myconfigbucket
 ```
 
 ### 4.8.2. Initial Setup Stack
@@ -762,16 +768,16 @@ The script enables development mode which means that accounts, organizations, co
     "key": "shared-network",
     "id": "000000000001",
     "arn": "arn:aws:organizations::000000000000:account/o-0123456789/000000000001",
-    "name": "myacct-pbmm-shared-network",
-    "email": "myacct+pbmm-mandatory-shared-network@example.com",
+    "name": "myacct-ASEA-shared-network",
+    "email": "myacct+ASEA-mandatory-shared-network@example.com",
     "ou": "core"
   },
   {
     "key": "operations",
     "id": "000000000002",
     "arn": "arn:aws:organizations::000000000000:account/o-0123456789/000000000002",
-    "name": "myacct-pbmm-operations",
-    "email": "myacct+pbmm-mandatory-operations@example.com",
+    "name": "myacct-ASEA-operations",
+    "email": "myacct+ASEA-mandatory-operations@example.com",
     "ou": "core"
   }
 ]
@@ -826,7 +832,7 @@ The script enables development mode which means that accounts, organizations, co
   {
     "accountKey": "shared-network",
     "outputKey": "DefaultBucketOutputC7CE5936",
-    "outputValue": "{\"type\":\"AccountBucket\",\"value\":{\"bucketArn\":\"arn:aws:s3:::pbmmaccel-sharednetwork-phase1-cacentral1-18vq0emthri3h\",\"bucketName\":\"pbmmaccel-sharednetwork-phase1-cacentral1-18vq0emthri3h\",\"encryptionKeyArn\":\"arn:aws:kms:ca-central-1:0000000000001:key/d54a8acb-694c-4fc5-9afe-ca2b263cd0b3\",\"region\":\"ca-central-1\"}}"
+    "outputValue": "{\"type\":\"AccountBucket\",\"value\":{\"bucketArn\":\"arn:aws:s3:::ASEA-sharednetwork-phase1-cacentral1-18vq0emthri3h\",\"bucketName\":\"ASEA-sharednetwork-phase1-cacentral1-18vq0emthri3h\",\"encryptionKeyArn\":\"arn:aws:kms:ca-central-1:0000000000001:key/d54a8acb-694c-4fc5-9afe-ca2b263cd0b3\",\"region\":\"ca-central-1\"}}"
   }
 ]
 ```
@@ -835,9 +841,9 @@ The script enables development mode which means that accounts, organizations, co
 
 ```json
 {
-  "acceleratorName": "PBMM",
-  "acceleratorPrefix": "PBMMAccel-",
-  "acceleratorExecutionRoleName": "PBMMAccel-PipelineRole",
+  "acceleratorName": "ASEA",
+  "acceleratorPrefix": "ASEA-",
+  "acceleratorExecutionRoleName": "ASEA-PipelineRole",
   "defaultRegion": "ca-central-1"
 }
 ```
@@ -1095,7 +1101,7 @@ class LambdaFun extends cdk.Construct {
     const runtimeDir = path.dirname(lambdaPath);
 
     new lambda.Function(this, 'Resource', {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset(runtimeDir),
       handler: 'index.handler', // The `handler` function in `index.js`
     });

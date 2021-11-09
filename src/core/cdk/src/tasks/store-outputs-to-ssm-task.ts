@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
@@ -30,6 +43,17 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
       }),
     );
 
+    const fetchConfigData = new CodeTask(scope, `Load All Config`, {
+      comment: 'Load All Config',
+      resultPath: '$.configDetails',
+      functionPayload,
+      functionProps: {
+        role,
+        code: lambdaCode,
+        handler: 'index.loadAllConfig',
+      },
+    });
+
     const storeAccountOutputs = new sfn.Map(this, `Store Account Outputs To SSM`, {
       itemsPath: `$.accounts`,
       resultPath: 'DISCARD',
@@ -45,6 +69,7 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
         'configCommitId.$': '$.configCommitId',
         'outputUtilsTableName.$': '$.outputUtilsTableName',
         'accountsTableName.$': '$.accountsTableName',
+        'configDetails.$': '$.configDetails',
       },
     });
 
@@ -74,9 +99,11 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
         'configCommitId.$': '$.configCommitId',
         'outputUtilsTableName.$': '$.outputUtilsTableName',
         'accountsTableName.$': '$.accountsTableName',
+        'configDetails.$': '$.configDetails',
       },
     });
 
+    fetchConfigData.next(storeAccountOutputs);
     getAccountInfoTask.next(storeAccountRegionOutputs);
     const storeOutputsTask = new CodeTask(scope, `Store Outputs To SSM`, {
       resultPath: '$.storeOutputsOutput',
@@ -93,7 +120,7 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
     storeAccountRegionOutputs.iterator(storeOutputsTask);
     const chain = sfn.Chain.start(storeAccountOutputs).next(pass);
 
-    this.startState = chain.startState;
+    this.startState = fetchConfigData.startState;
     this.endStates = chain.endStates;
   }
 }

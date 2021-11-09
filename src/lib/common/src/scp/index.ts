@@ -1,6 +1,19 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import { Organizations } from '../aws/organizations';
 import { S3 } from '../aws/s3';
-import { ScpConfig, OrganizationalUnitConfig, ReplacementsConfig } from '@aws-accelerator/common-config';
+import { ScpConfig, OrganizationalUnitConfig, ReplacementsConfig, BaseLineType } from '@aws-accelerator/common-config';
 import { stringType } from 'aws-sdk/clients/iam';
 import { PolicySummary } from 'aws-sdk/clients/organizations';
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
@@ -46,7 +59,7 @@ export class ServiceControlPolicy {
       Name: policyName,
       Filter: 'SERVICE_CONTROL_POLICY',
     });
-    let policyId = getPolicyByName?.PolicySummary?.Id;
+    let policyId = getPolicyByName?.PolicySummary?.Id!;
     if (policyId) {
       console.log(`Updating policy ${policyName}`);
       if (getPolicyByName?.Content !== policyContent) {
@@ -155,8 +168,12 @@ export class ServiceControlPolicy {
   /**
    * Detach the policies that are not in the given policy names to keep from targets that are in the targets list.
    */
-  async detachPoliciesFromTargets(props: { policyNamesToKeep: string[]; policyTargetIdsToInclude: string[] }) {
-    const { policyNamesToKeep, policyTargetIdsToInclude } = props;
+  async detachPoliciesFromTargets(props: {
+    policyNamesToKeep: string[];
+    policyTargetIdsToInclude: string[];
+    baseline?: BaseLineType;
+  }) {
+    const { policyNamesToKeep, policyTargetIdsToInclude, baseline } = props;
 
     // Remove non-Accelerator policies from Accelerator targets
 
@@ -168,7 +185,11 @@ export class ServiceControlPolicy {
       for (const policy of existingPolicies) {
         const policyName = policy.Name!;
         // Do **NOT** detach FullAWSAccess and do not detach Accelerator policy names
-        if (policyName === FULL_AWS_ACCESS_POLICY_NAME || policyNamesToKeep.includes(policyName)) {
+        if (
+          policyName === FULL_AWS_ACCESS_POLICY_NAME ||
+          policyNamesToKeep.includes(policyName) ||
+          (policyName.startsWith('aws-guardrails-') && baseline === 'CONTROL_TOWER')
+        ) {
           continue;
         }
         await this.org.detachPolicy(policy.Id!, target);
@@ -215,8 +236,9 @@ export class ServiceControlPolicy {
     configurationOus: OrganizationalUnit[];
     acceleratorOus: [string, OrganizationalUnitConfig][];
     acceleratorPrefix: string;
+    baseline?: BaseLineType;
   }) {
-    const { existingPolicies, configurationOus, acceleratorOus, acceleratorPrefix } = props;
+    const { existingPolicies, configurationOus, acceleratorOus, acceleratorPrefix, baseline } = props;
 
     // Attach Accelerator SCPs to OUs
     for (const [ouKey, ouConfig] of acceleratorOus) {
@@ -242,6 +264,9 @@ export class ServiceControlPolicy {
       // Detach removed policies
       for (const policyTarget of policyTargets) {
         const policyTargetName = policyTarget.Name!;
+        if (policyTargetName.startsWith('aws-guardrails-') && baseline === 'CONTROL_TOWER') {
+          continue;
+        }
         if (!ouPolicyNames.includes(policyTargetName) && policyTargetName !== FULL_AWS_ACCESS_POLICY_NAME) {
           console.log(`Detaching ${policyTargetName} from OU ${ouKey}`);
           await this.org.detachPolicy(policyTarget.Id!, organizationalUnit.ouId);
@@ -252,7 +277,7 @@ export class ServiceControlPolicy {
       for (const ouPolicyName of ouPolicyNames) {
         const policy = existingPolicies.find(p => p.Name === ouPolicyName);
         if (!policy) {
-          console.warn(`Cannot find policy with name "${ouPolicyName}"`);
+          throw new Error(`Cannot find policy with name "${ouPolicyName}"`);
           continue;
         }
 
@@ -322,7 +347,7 @@ export class ServiceControlPolicy {
       for (const accountPolicyName of accountPolicyNames) {
         const policy = existingPolicies.find(p => p.Name === accountPolicyName);
         if (!policy) {
-          console.warn(`Cannot find policy with name "${accountPolicyName}"`);
+          throw new Error(`Cannot find policy with name "${accountPolicyName}"`);
           continue;
         }
 

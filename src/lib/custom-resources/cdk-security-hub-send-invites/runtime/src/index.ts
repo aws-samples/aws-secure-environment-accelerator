@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
@@ -26,23 +39,37 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const memberAccounts = event.ResourceProperties.memberAccounts;
 
-  const memberParams = {
-    AccountDetails: memberAccounts,
-  };
   // Creating Members
-  console.log(`Creating Members for "${memberParams}"`);
+  console.log(`Creating Members for "${memberAccounts}"`);
   const accountIds: string[] = [];
-  await throttlingBackOff(() => hub.createMembers(memberParams).promise());
-  for (const account of memberAccounts) {
-    accountIds.push(account.AccountId);
+
+  // Security Hub will only process 50.
+  const pageSize = 50;
+  for (let i = 0; i < memberAccounts.length; i += pageSize) {
+    const currentPage = memberAccounts.slice().splice(i, pageSize);
+    const pagedMemberParams = {
+      AccountDetails: currentPage,
+    };
+    console.log(`Creating Members (paged) for "${pagedMemberParams}"`);
+    const createResponse = await throttlingBackOff(() => hub.createMembers(pagedMemberParams).promise());
+    console.log(`Create Sub Accounts Response "${JSON.stringify(createResponse)}""`);
+    for (const account of currentPage) {
+      accountIds.push(account.AccountId);
+    }
   }
 
-  const params = {
-    AccountIds: accountIds,
-  };
   console.log(`Inviting Members for "${accountIds}"`);
-  const inviteResponse = await throttlingBackOff(() => hub.inviteMembers(params).promise());
-  console.log(`Invite Sub Accounts Response "${inviteResponse}"`);
+
+  // Security Hub will only process 50.
+  for (let i = 0; i < accountIds.length; i += pageSize) {
+    const currentPage = accountIds.slice().splice(i, pageSize);
+    const pagedParams = {
+      AccountIds: currentPage,
+    };
+    console.log(`Inviting Members (paged) for "${pagedParams}"`);
+    const inviteResponse = await throttlingBackOff(() => hub.inviteMembers(pagedParams).promise());
+    console.log(`Invite Sub Accounts Response "${JSON.stringify(inviteResponse)}"`);
+  }
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {
