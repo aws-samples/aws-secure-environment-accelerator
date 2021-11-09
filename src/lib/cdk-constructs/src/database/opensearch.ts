@@ -43,7 +43,7 @@ export class OpenSearchDomain extends cdk.Construct {
          
     this.resource = new opensearch.CfnDomain(this, 'Domain', {
       engineVersion: 'OpenSearch_1.0',
-      domainName: domainName,
+      domainName,
       clusterConfig: {
         dedicatedMasterEnabled: true,
         dedicatedMasterCount: mainNodeCount,
@@ -60,7 +60,7 @@ export class OpenSearchDomain extends cdk.Construct {
       },
       ebsOptions: {
         ebsEnabled: true,
-        volumeSize: volumeSize,
+        volumeSize,
         volumeType: 'gp2'
       },
       advancedSecurityOptions: {
@@ -85,8 +85,8 @@ export class OpenSearchDomain extends cdk.Construct {
         automatedSnapshotStartHour: 0
       },
       vpcOptions: {
-        subnetIds: subnetIds,
-        securityGroupIds: securityGroupIds
+        subnetIds,
+        securityGroupIds
       }
     });
     
@@ -95,7 +95,7 @@ export class OpenSearchDomain extends cdk.Construct {
   }
 
   get name(): string {
-    return this.resource.ref!;
+    return this.resource.ref;
   }
 
   get dns(): string {

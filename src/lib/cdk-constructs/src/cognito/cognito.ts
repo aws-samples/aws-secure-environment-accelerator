@@ -15,9 +15,6 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as cognito from '@aws-cdk/aws-cognito';
 
-export interface SchemaMapping {
-  [key: string]: string;
-}
 
 export interface CognitoUserPoolDomainConfigurationProps {
   domainPrefix: string;
@@ -26,8 +23,7 @@ export interface CognitoUserPoolDomainConfigurationProps {
 
 export interface CognitoUserPoolConfigurationProps {
   userPoolName: string;
-  usernameAttributes: string[];
-  //schema: SchemaMapping[];
+  usernameAttributes: string[];  
 }
 
 export interface CognitoIdentityPoolConfigurationProps {
@@ -57,7 +53,7 @@ export class CognitoIdentityPoolRoleMapping extends cdk.Construct {
     });
 
     if (unauthenticatedRole) {
-      this.resource.roles["unauthenticated"] = unauthenticatedRole.roleArn
+      this.resource.roles.unauthenticated = unauthenticatedRole.roleArn
     }
   }
 }

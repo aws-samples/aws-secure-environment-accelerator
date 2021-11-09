@@ -204,7 +204,6 @@ importers:
       '@aws-cdk/aws-s3-deployment': 1.130.0
       '@aws-cdk/aws-secretsmanager': 1.130.0
       '@aws-cdk/aws-sns': 1.130.0
-      '@aws-cdk/aws-sqs': 1.130.0
       '@aws-cdk/aws-ssm': 1.130.0
       '@aws-cdk/aws-stepfunctions': 1.130.0
       '@aws-cdk/cfnspec': 1.130.0
@@ -317,7 +316,6 @@ importers:
       '@aws-cdk/aws-s3-deployment': 1.130.0
       '@aws-cdk/aws-secretsmanager': 1.130.0
       '@aws-cdk/aws-sns': 1.130.0
-      '@aws-cdk/aws-sqs': 1.130.0
       '@aws-cdk/aws-ssm': 1.130.0
       '@aws-cdk/aws-stepfunctions': 1.130.0
       '@aws-cdk/core': 1.130.0
@@ -511,7 +509,6 @@ importers:
       '@aws-cdk/aws-route53resolver': 1.130.0
       '@aws-cdk/aws-s3': 1.130.0
       '@aws-cdk/aws-s3-assets': 1.130.0
-      '@aws-cdk/aws-sqs': 1.130.0
       '@aws-cdk/aws-ssm': 1.130.0
       '@aws-cdk/core': 1.130.0
       '@aws-cdk/region-info': 1.130.0
@@ -546,7 +543,6 @@ importers:
       '@aws-cdk/aws-route53resolver': 1.130.0
       '@aws-cdk/aws-s3': 1.130.0
       '@aws-cdk/aws-s3-assets': 1.130.0
-      '@aws-cdk/aws-sqs': 1.130.0
       '@aws-cdk/aws-ssm': 1.130.0
       '@aws-cdk/core': 1.130.0
       '@aws-cdk/region-info': 1.130.0
@@ -13582,6 +13578,7 @@ packages:
   /constructs/3.3.71:
     resolution: {integrity: sha512-3KFtTsA7OV27m/+pJhN4iJkKzHbPIPvyvEX5BQ/JCAWjfCHOQEVpIgxHLpT4i8L1OFta+pJrzcEVAHo6UitwqA==}
     engines: {node: '>= 10.17.0'}
+    bundledDependencies: []
 
   /contains-path/0.1.0:
     resolution: {integrity: sha1-/ozxhP9mcLa67wGp1IYaXL7EEgo=}
