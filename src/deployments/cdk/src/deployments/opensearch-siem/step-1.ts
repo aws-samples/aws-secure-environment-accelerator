@@ -13,23 +13,25 @@
  import * as iam from '@aws-cdk/aws-iam';
  import * as s3 from '@aws-cdk/aws-s3';
  import { Account } from '../../utils/accounts';
- import { AcceleratorConfig, AccountsConfigType } from '@aws-accelerator/common-config/src';
+ import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
  import { AccountStacks } from '../../common/account-stacks';  
  import { ServiceLinkedRole } from '@aws-accelerator/cdk-constructs/src/iam';
  import { CfnSleep } from '@aws-accelerator/custom-resource-cfn-sleep';
- import { CfnOpenSearchRoleOutput, CfnOpenSearchLambdaProcessingRoleOutput } from './outputs';
+ import { StructuredOutput } from '../../common/structured-output';
+ import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+ import { CfnOpenSearchRoleOutput, CfnOpenSearchLambdaProcessingRoleOutput, OpenSearchClusterDNSOutput } from './outputs';
  import { AccountRegionEbsEncryptionKeys } from '../defaults';
  import { Organizations } from '@aws-accelerator/custom-resource-organization';
 
 
 export interface OpenSearchSIEMStep1Props {
-    acceleratorName: string;
     acceleratorPrefix: string;
     accounts: Account[];
     accountEbsEncryptionKeys: AccountRegionEbsEncryptionKeys;
     config: AcceleratorConfig;
     accountStacks: AccountStacks;
     logBuckets: s3.IBucket[];
+    outputs: StackOutput[];
   }
   
   /**
@@ -40,14 +42,24 @@ export interface OpenSearchSIEMStep1Props {
    * Enables Amazon OpenSearch
    */
   export async function step1(props: OpenSearchSIEMStep1Props) {
-    const { accountStacks, accountEbsEncryptionKeys, config, acceleratorName, acceleratorPrefix } = props;
+    const { accountStacks, accountEbsEncryptionKeys, config, acceleratorPrefix, outputs } = props;
     for (const [accountKey, accountConfig] of config.getMandatoryAccountConfigs()) {
-        const openSearchSIEMDeploymentConfig = accountConfig.deployments?.siem;
-        if (!openSearchSIEMDeploymentConfig || !openSearchSIEMDeploymentConfig.deploy) {
+
+
+        const openSearchClusters = StructuredOutput.fromOutputs(outputs, {
+          accountKey,
+          type: OpenSearchClusterDNSOutput,
+        });
+        const openSearchClusterExists = openSearchClusters.length == 1;
+
+        console.log(`OpenSearchSiem-Step1: ${openSearchClusterExists}`);
+
+        const openSearchSIEMDeploymentConfig = accountConfig.deployments?.siem; //If a DNS entry exists and deploy is false, it could be a delete but it will fail while in use. Subsequent runs will remove all this.
+        if (!openSearchClusterExists && (!openSearchSIEMDeploymentConfig || !openSearchSIEMDeploymentConfig.deploy)) {
           continue;
         }
 
-        const region = openSearchSIEMDeploymentConfig.region;
+        const region = openSearchSIEMDeploymentConfig!.region;
         const accountEbsEncryptionKey = accountEbsEncryptionKeys[accountKey]?.[region];
         if (!accountEbsEncryptionKey) {
             console.warn(`Could not find EBS encryption key in account "${accountKey}" to deploy service-linked role`);
@@ -59,11 +71,8 @@ export interface OpenSearchSIEMStep1Props {
           console.warn(`Cannot find account stack ${accountStack}`);
           continue;
         }
-
-     
-    
-        // Create the opensearch service-linked role manually 
-        
+         
+        // Create the opensearch service-linked role manually         
         const role = new ServiceLinkedRole(accountStack, 'OpenSearchSlr', {
           awsServiceName: 'es.amazonaws.com',
         });

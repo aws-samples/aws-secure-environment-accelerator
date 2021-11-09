@@ -89,6 +89,8 @@ export class OpenSearchDomain extends cdk.Construct {
         securityGroupIds: securityGroupIds
       }
     });
+    
+    this.resource.cfnOptions.deletionPolicy = cdk.CfnDeletionPolicy.DELETE;
 
   }
 
