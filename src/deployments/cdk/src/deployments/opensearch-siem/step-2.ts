@@ -23,7 +23,7 @@ import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorStack } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-stack';
 import { SecurityGroup } from '../../common/security-group';
 import { StructuredOutput } from '../../common/structured-output';
-import { CfnOpenSearchClusterDnsOutput, CfnOpenSearchSiemLambdaArnOutput, OpenSearchLambdaProcessingRoleOutput } from './outputs';
+import { CfnOpenSearchClusterDnsOutput, CfnOpenSearchSiemLambdaArnOutput, OpenSearchLambdaProcessingRoleOutput, OpenSearchClusterDNSOutput } from './outputs';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { Context } from '../../utils/context';
 import { EbsKmsOutput } from '@aws-accelerator/common-outputs/src/ebs';
@@ -31,9 +31,6 @@ import { IamRoleNameOutputFinder } from '@aws-accelerator/common-outputs/src/iam
 import { CentralBucketOutputFinder } from '@aws-accelerator/common-outputs/src/central-bucket';
 import { OpenSearchSiemConfigure } from '@aws-accelerator/custom-resource-opensearch-siem-configure';
 import { HostedZoneOutputFinder } from '@aws-accelerator/common-outputs/src/hosted-zone';
-
-
-import path from 'path';
 
 export interface OpenSearchSIEMStep2Props {
   accountStacks: AccountStacks;
@@ -50,8 +47,17 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
   const { accountStacks, config, outputs, vpcs, logArchiveBucket, context, aesLogArchiveBucket, processingTimeout = 900 } = props;
 
   for (const [accountKey, accountConfig] of config.getMandatoryAccountConfigs()) {
+
+    const openSearchClusters = StructuredOutput.fromOutputs(outputs, {
+      accountKey,
+      type: OpenSearchClusterDNSOutput,
+    });
+    const openSearchClusterExists = openSearchClusters.length == 1;
+
+    console.log(`OpenSearchSiem-Step1: ${openSearchClusterExists}`);
+
     const openSearchSIEMDeploymentConfig = accountConfig.deployments?.siem;
-    if (!openSearchSIEMDeploymentConfig || !openSearchSIEMDeploymentConfig.deploy) {
+    if (!openSearchClusterExists && (!openSearchSIEMDeploymentConfig || !openSearchSIEMDeploymentConfig.deploy)) {
       continue;
     }
 
@@ -214,25 +220,20 @@ export function createProcessingLambda(
   logArchiveAccountId: string,
   logBuckets: s3.IBucket[]
 ) {
-
-  const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
-  const lambdaDir = path.dirname(lambdaPath);
-  const lambdaCode = lambda.Code.fromAsset(lambdaDir);
-
+    
   const cdkVpc = ec2.Vpc.fromVpcAttributes(accountStack, 'OpenSearchVPCLookupAttr', {
     vpcId: vpc.id,
     availabilityZones: [...azs],
     privateSubnetIds: domainSubnetIds
-  })
+  });
+
   const vpc_sg = [];
   for (const sg of securityGroup.securityGroups) {
     const tmp = ec2.SecurityGroup.fromSecurityGroupId(accountStack, `OpenSearchVPCLookup-${sg.name}`, sg.id);
     vpc_sg.push(tmp);
   }
 
- 
   const configBucket = s3.Bucket.fromBucketName(accountStack, 'ConfigBucket', centralConfigBucketName);
-
 
   const eventProcessingLambda = new lambda.Function(accountStack, `${acceleratorPrefix}OpenSearchSiemProcessEvents`, {
     runtime: lambda.Runtime.PYTHON_3_8,

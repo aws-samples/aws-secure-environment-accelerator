@@ -40,7 +40,7 @@ export interface HandlerProperties {
 
 export const handler = errorHandler(onEvent);
 
-let region = process.env.AWS_REGION || 'ca-central-1' // Dev
+let region = process.env.AWS_REGION || ''; //'ca-central-1'; // Dev
 let openSearchAdminCredentials: any;
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
