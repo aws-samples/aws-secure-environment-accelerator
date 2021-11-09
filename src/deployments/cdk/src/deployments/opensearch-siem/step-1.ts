@@ -143,6 +143,23 @@ export interface OpenSearchSIEMStep1Props {
             }),
           );
 
+          if (logBucket.encryptionKey) {
+            logBucket.encryptionKey.addToResourcePolicy(new iam.PolicyStatement({
+                sid: 'Allow OS processing role use of the CMK',
+                principals: [new iam.AnyPrincipal()],
+                actions: ['kms:Decrypt'],
+                resources: ['*'],
+                conditions: {
+                  StringEquals: {
+                    'aws:PrincipalOrgID': organizations.organizationId,
+                  },
+                  ArnLike: {
+                    'aws:PrincipalARN': `arn:aws:iam::*:role/${lambdaProcessingRoleName}*`,
+                  },
+                },
+            }));
+          }
+
         }
       }
 

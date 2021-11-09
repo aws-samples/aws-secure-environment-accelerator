@@ -1398,8 +1398,8 @@ translate(c.OpenSearchSIEMConfig, {
     'opensearch-configuration': {
       title: '',
       description: ''
-    },
-    'opensearch-processing-configuration': {
+    },  
+    'event-processor-lambda-package': {
       title: '',
       description: ''
     }

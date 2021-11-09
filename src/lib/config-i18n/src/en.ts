@@ -1527,10 +1527,10 @@ translate(c.OpenSearchSIEMConfig, {
     'opensearch-configuration': {
       title: 'Configuration File S3 Key',
       description: 'The S3 Key for the configuration file'
-    },
-    'opensearch-processing-configuration': {
-      title: 'Processing Configuration File S3 Key',
-      description: 'The S3 Key for the processing file'
+    },   
+    'event-processor-lambda-package':  {
+      title: 'Lambda Package Zipfile S3 Key',
+      description: 'The S3 key for the lambda package zip file'
     }
   },
 });

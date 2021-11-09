@@ -470,8 +470,8 @@ export const OpenSearchSIEMConfig = t.interface({
   'opensearch-capacity-main-nodes': t.number,
   'opensearch-capacity-data-nodes': t.number,
   'opensearch-volume-size': t.number,
-  'opensearch-configuration': t.nonEmptyString,
-  'opensearch-processing-configuration': t.nonEmptyString
+  'opensearch-configuration': t.nonEmptyString,  
+  'event-processor-lambda-package': t.nonEmptyString
 });
 
 export type OpenSearchSIEMConfig = t.TypeOf<typeof OpenSearchSIEMConfig>;

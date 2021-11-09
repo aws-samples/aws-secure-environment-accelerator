@@ -23,6 +23,7 @@
    openSearchDomain: string;
    adminRoleMappingArn: string;
    adminOpenSearchRoleArn: string;
+   osProcesserRoleArn: string;
    openSearchConfigurationS3Bucket: string;
    openSearchConfigurationS3Key: string;
    lambdaExecutionRole: string;

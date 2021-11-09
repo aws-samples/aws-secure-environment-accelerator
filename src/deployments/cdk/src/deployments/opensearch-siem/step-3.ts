@@ -17,7 +17,7 @@ import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { AccountStacks } from '../../common/account-stacks';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { S3BucketNotifications } from '@aws-accelerator/custom-resource-s3-bucket-notifications';
-import { SiemQueueArnOutput } from './outputs';
+import { OpenSearchLambdaProcessingArnOutput } from './outputs';
 
 export interface OpenSearchSIEMStep3Props {
   acceleratorPrefix: string;
@@ -50,21 +50,21 @@ export async function step3(props: OpenSearchSIEMStep3Props) {
       continue;
     }
 
-    const siemQueue = StructuredOutput.fromOutputs(outputs, {
+    const processingLambdaArn = StructuredOutput.fromOutputs(outputs, {
       accountKey,
-      type: SiemQueueArnOutput,
+      type: OpenSearchLambdaProcessingArnOutput,
     });
 
-    if (siemQueue.length !== 1) {
-      console.warn(`Cannot find required EBS KMS Key role in account "${accountKey}"`);
+    if (processingLambdaArn.length !== 1) {
+      console.warn(`Cannot find required processing lambda function arn in account "${accountKey}"`);
       return;
     }
-    const queueArn = siemQueue[0].queueArn;
+    const lambdaArn = processingLambdaArn[0].lambdaArn;
 
     configureS3LoggingNotifications(
       logArchiveBucket,
       aesLogArchiveBucket,
-      queueArn,
+      lambdaArn,
       acceleratorPrefix
     );
 
@@ -74,16 +74,16 @@ export async function step3(props: OpenSearchSIEMStep3Props) {
 export function configureS3LoggingNotifications(   
   logArchiveBucket: s3.IBucket,
   aesLogArchiveBucket: s3.IBucket,
-  queueArn: string,
+  lambdaArn: string,
   acceleratorPrefix: string
 ) {
   
   for (const bucket of [aesLogArchiveBucket, logArchiveBucket]) {    
     new S3BucketNotifications(bucket.stack, `S3Notifications${bucket.bucketName}`, {
       bucketName: bucket.bucketName,
-      queueArn: queueArn,
+      lambdaArn: lambdaArn,
       s3Events: ["s3:ObjectCreated:Put", "s3:ObjectCreated:Post"],
-      s3EventName: `${acceleratorPrefix}SIEM-SendToQueue`
+      s3EventName: `${acceleratorPrefix}SIEM-SendToLambda`
     });
   }
      
