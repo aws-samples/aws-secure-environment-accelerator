@@ -1,8 +1,8 @@
 module.exports = {
-    ifEquals: function (value1, value2, options) {
+    ifEquals (value1, value2, options) {
         return value1 === value2 ? options.fn(this) : "";
     },
-    ifNotEquals: function (value1, value2, options) {
+    ifNotEquals (value1, value2, options) {
         return value1 !== value2 ? options.fn(this) : "";
     }
 }

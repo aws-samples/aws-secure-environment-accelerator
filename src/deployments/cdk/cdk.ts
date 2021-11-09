@@ -6,6 +6,7 @@ import { debugModeEnabled } from '@aws-cdk/core/lib/debug';
 import * as v8 from 'v8';
 const fs = require('fs').promises;
 
+// eslint-disable-next-line
 const PAGE_SIZE = parseInt(process.env.DEPLOY_STACK_PAGE_SIZE) || 850;
 
 process.on('unhandledRejection', (reason, _) => {
@@ -21,7 +22,7 @@ microstats.on('disk', function (value) {
 microstats.on('cpu', function (value) {
   console.log('CPU:', value);
 });
-let microstatsOptions = {
+const microstatsOptions = {
   frequency: 'onalert',
   memoryalert: { used: '>80%' },
   cpualert: { load: '>90%' },
@@ -76,7 +77,7 @@ async function main() {
     },
   });
 
-  const commands = args['_'];
+  const commands = args._;
   const phase = args.phase;
   const parallel = args.parallel;
   if (phase === undefined || commands.length === 0) {

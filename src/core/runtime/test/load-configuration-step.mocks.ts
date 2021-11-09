@@ -21,7 +21,6 @@ import { STS } from '@aws-accelerator/common/src/aws/sts';
 import * as path from 'path';
 import * as fs from 'fs';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
-//import { ServiceCatalog } from 'aws-sdk';
 import { ProvisionedProductAttributes, SearchProvisionedProductsOutput } from 'aws-sdk/clients/servicecatalog';
 jest.mock('@aws-accelerator/common-config/src/load');
 aws.config.logger = console;
@@ -29,7 +28,7 @@ aws.config.logger = console;
 type DeepPartial<T> = {
   // eslint-disable-next-line @typescript-eslint/array-type
   [P in keyof T]?: T[P] extends Array<infer U> // eslint-disable-next-line @typescript-eslint/array-type
-    ? Array<DeepPartial<U>> //eslint-disable-next-line @typescript-eslint/no-shadow
+    ? Array<DeepPartial<U>> // eslint-disable-next-line @typescript-eslint/no-shadow
     : T[P] extends ReadonlyArray<infer U>
     ? ReadonlyArray<DeepPartial<U>>
     : DeepPartial<T[P]>;

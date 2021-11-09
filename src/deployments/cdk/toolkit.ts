@@ -15,10 +15,10 @@ import path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as cxschema from '@aws-cdk/cloud-assembly-schema';
 import { CloudAssembly, CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
-import { ToolkitInfo, Mode } from 'aws-cdk';
+import { Mode, ToolkitInfo } from 'aws-cdk';
 import { setLogLevel } from 'aws-cdk/lib/logging';
 import { Bootstrapper } from 'aws-cdk/lib/api/bootstrap';
-import { Configuration, Command } from 'aws-cdk/lib/settings';
+import { Command, Configuration } from 'aws-cdk/lib/settings';
 import { SdkProvider } from 'aws-cdk/lib/api/aws-auth';
 import { CloudFormationDeployments } from 'aws-cdk/lib/api/cloudformation-deployments';
 import { PluginHost } from 'aws-cdk/lib/plugin';
@@ -27,7 +27,7 @@ import { AssumeProfilePlugin } from '@aws-accelerator/cdk-plugin-assume-role/src
 import { fulfillAll } from './promise';
 import { promises as fsp } from 'fs';
 
-//Set microstats emitters
+// Set microstats emitters
 const microstatsOptions = { frequency: '5s' };
 
 // Set debug logging
@@ -73,6 +73,7 @@ export class CdkToolkit {
     // TODO Remove configuration dependency
     const settings = this.props.configuration.settings;
     const env = process.env;
+    // eslint-disable-next-line radix
     this.deploymentPageSize = parseInt(env.DEPLOY_STACK_PAGE_SIZE) || 850;
     this.toolkitStackName = env.BOOTSTRAP_STACK_NAME || ToolkitInfo.determineName(settings.get(['toolkitStackName']));
     this.toolkitBucketName = settings.get(['toolkitBucket', 'bucketName']);
@@ -180,7 +181,7 @@ export class CdkToolkit {
     // Merge all stack outputs
     return combinedOutputs;
   }
-  async deploymentLog(stack: CloudFormationStackArtifact, message: string, messageType: string = 'INFO') {
+  deploymentLog(stack: CloudFormationStackArtifact, message: string, messageType: string = 'INFO') {
     const stackLoggingInfo = {
       stackName: stack.displayName,
       stackEnvironment: stack.environment,
@@ -207,7 +208,7 @@ export class CdkToolkit {
       this.deploymentLog(stack, 'Stack has no resources');
       if (stackExists) {
         this.deploymentLog(stack, 'Deleting existing stack');
-        this.destroyStack(stack);
+        await this.destroyStack(stack);
       }
       return [];
     } else if (stackExists) {
@@ -266,7 +267,7 @@ export class CdkToolkit {
         this.deploymentLog(stack, 'Deployment Successful');
       }
       this.deploymentLog(stack, 'Deleting assembly directory');
-      this.deleteAssemblyDir(stack.assembly.directory);
+      await this.deleteAssemblyDir(stack.assembly.directory);
       this.deploymentLog(stack, 'Deleted assembly directory');
 
       return Object.entries(result.outputs).map(([name, value]) => ({
@@ -287,7 +288,7 @@ export class CdkToolkit {
         console.log(e);
         this.deploymentLog(stack, `Deployment failed because of error. Retrying deployment ${retries}`);
         await this.sleep(10000);
-        return await this.deployStack(stack, retries + 1);
+        return this.deployStack(stack, retries + 1);
       }
       throw e;
     }

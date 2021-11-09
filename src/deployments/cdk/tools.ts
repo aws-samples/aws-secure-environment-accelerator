@@ -88,17 +88,17 @@ async function main() {
   const usage = `Usage: tools.ts <command>`;
   const args = mri(process.argv.slice(2));
 
-  const commands = args['_'];
+  const commands = args._;
   if (commands.length !== 1) {
     console.log(usage);
     return;
   }
 
   if (commands.includes('cleanup-cdk-buckets')) {
-    cleanupCdkBuckets();
+    await cleanupCdkBuckets();
   } else if (commands.includes('list-cdk-buckets')) {
-    listEmptyCdkObjects();
+    await listEmptyCdkObjects();
   }
 }
 
-main();
+await main();
