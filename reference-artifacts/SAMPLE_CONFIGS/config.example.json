@@ -1293,7 +1293,8 @@
           "opensearch-capacity-data-nodes": 4,
           "opensearch-volume-size": 100,
           "opensearch-configuration": "siem/opensearch-config.json",
-          "opensearch-processing-configuration": "sim/opensearch-processing-config.json"
+          "opensearch-processing-configuration": "sim/opensearch-processing-config.json",
+          "event-processor-lambda-package": "siem/os-loader.zip"
         }
       }
     },

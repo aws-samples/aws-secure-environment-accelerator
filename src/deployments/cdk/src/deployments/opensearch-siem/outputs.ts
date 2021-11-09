@@ -37,22 +37,22 @@
    'OpenSearchClusterDNS'
  );
  
-export const SiemQueueArnOutput = t.interface(
+export const OpenSearchLambdaProcessingArnOutput = t.interface(
   {
-  queueArn: t.string,
+  lambdaArn: t.string,
   },
-  'SiemQueueArn'
+  'OpenSearchSiemLambdaArn'
 );
 
  export type OpenSearchRoleOutput = t.TypeOf<typeof OpenSearchRoleOutput>;
  export type OpenSearchLambdaProcessingRoleOutput = t.TypeOf<typeof OpenSearchLambdaProcessingRoleOutput>;
  export type OpenSearchClusterDNSOutput = t.TypeOf<typeof OpenSearchClusterDNSOutput>;
 
- export type SiemQueueArnOutput = t.TypeOf<typeof SiemQueueArnOutput>;
+ export type OpenSearchLambdaProcessingArnOutput = t.TypeOf<typeof OpenSearchLambdaProcessingArnOutput>;
 
  export const CfnOpenSearchRoleOutput = createCfnStructuredOutput(OpenSearchRoleOutput);
  export const CfnOpenSearchLambdaProcessingRoleOutput = createCfnStructuredOutput(OpenSearchLambdaProcessingRoleOutput);
  export const CfnOpenSearchClusterDnsOutput = createCfnStructuredOutput(OpenSearchClusterDNSOutput);
- export const CfnSiemQueueArnOutput = createCfnStructuredOutput(SiemQueueArnOutput);
+ export const CfnOpenSearchSiemLambdaArnOutput = createCfnStructuredOutput(OpenSearchLambdaProcessingArnOutput);
  
  

@@ -21,7 +21,7 @@ const resourceType = 'Custom::S3BucketNotifications';
 
 export interface S3BucketNotificationProps {  
   bucketName: string;
-  queueArn: string;
+  lambdaArn: string;
   s3Events: string[];
   s3EventName: string;
   roleName?: string;

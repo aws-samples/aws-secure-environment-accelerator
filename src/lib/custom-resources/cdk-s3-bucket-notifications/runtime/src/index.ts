@@ -29,7 +29,7 @@ const sts = new AWS.STS();
 export interface HandlerProperties {
   s3EventName: string;
   bucketName: string;
-  queueArn: string;
+  lambdaArn: string;
   s3Events: string[];
 }
 
@@ -59,7 +59,7 @@ async function onCreateOrUpdate(
   event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
 ) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const { bucketName, queueArn, s3Events, s3EventName } = properties;
+  const { bucketName, lambdaArn, s3Events, s3EventName } = properties;
   
   const existingNotifcationConfiguration = await throttlingBackOff(() =>
     s3.getBucketNotificationConfiguration({
@@ -69,18 +69,18 @@ async function onCreateOrUpdate(
 
   console.log(existingNotifcationConfiguration);
 
-  let queueConfigurations = existingNotifcationConfiguration.QueueConfigurations ?? [];
-  const foundIndex = queueConfigurations.findIndex(x => x.Id === s3EventName );
+  let lambdaConfigurations = existingNotifcationConfiguration.LambdaFunctionConfigurations ?? [];
+  const foundIndex = lambdaConfigurations.findIndex(x => x.Id === s3EventName );
   
   if (foundIndex > -1) {  
-    queueConfigurations = foundIndex == 0 ? [] : queueConfigurations.splice(foundIndex, 1);  
+    lambdaConfigurations = foundIndex == 0 ? [] : lambdaConfigurations.splice(foundIndex, 1);  
   }
-  queueConfigurations.push({
+  lambdaConfigurations.push({
     Id: s3EventName,
-    QueueArn: queueArn,
+    LambdaFunctionArn: lambdaArn,
     Events: s3Events
   });
-  existingNotifcationConfiguration.QueueConfigurations = queueConfigurations;
+  existingNotifcationConfiguration.LambdaFunctionConfigurations = lambdaConfigurations;
 
   await throttlingBackOff(() =>
     s3
@@ -112,13 +112,13 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
 
   console.log(existingNotifcationConfiguration);
 
-  let queueConfigurations = existingNotifcationConfiguration.QueueConfigurations ?? [];
-  const foundIndex = queueConfigurations.findIndex(x => x.Id === s3EventName );
+  let lambdaConfigurations = existingNotifcationConfiguration.LambdaFunctionConfigurations ?? [];
+  const foundIndex = lambdaConfigurations.findIndex(x => x.Id === s3EventName );
   
   if (foundIndex > -1) {  
-    queueConfigurations = foundIndex == 0 ? [] : queueConfigurations.splice(foundIndex, 1);  
+    lambdaConfigurations = foundIndex == 0 ? [] : lambdaConfigurations.splice(foundIndex, 1);  
   }
-  existingNotifcationConfiguration.QueueConfigurations = queueConfigurations;
+  existingNotifcationConfiguration.LambdaFunctionConfigurations = lambdaConfigurations;
 
   await throttlingBackOff(() =>
     s3

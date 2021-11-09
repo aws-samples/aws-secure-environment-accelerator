@@ -34,7 +34,8 @@ export interface HandlerProperties {
     adminRoleMappingArn: string;
     openSearchConfigurationS3Bucket: string;
     openSearchConfigurationS3Key: string;
-    stsDns: string[]
+    stsDns: string[],
+    osProcesserRoleArn: string;
 }
 
 export const handler = errorHandler(onEvent);
@@ -84,19 +85,20 @@ async function onCreateOrUpdate(
 ) {
     const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
-    const { openSearchDomain, adminRoleMappingArn, adminOpenSearchRoleArn, openSearchConfigurationS3Bucket, openSearchConfigurationS3Key, stsDns } = properties;
+    const { openSearchDomain, adminRoleMappingArn, adminOpenSearchRoleArn, osProcesserRoleArn, openSearchConfigurationS3Bucket, openSearchConfigurationS3Key, stsDns } = properties;
 
     console.log("Opensearch Siem Events Processor");
  
     console.log("Download configuration file");
 
     let siemOpenSearchConfig;
-            
+
     const fileBody = await getS3Body(openSearchConfigurationS3Bucket!, openSearchConfigurationS3Key);
-    console.log('Downloaded file');
-    console.log(fileBody);
+    console.log('Downloaded file');    
     siemOpenSearchConfig = JSON.parse(fileBody.toString());    
-    console.log(siemOpenSearchConfig);
+    // For Development
+    // const rawdata = fs.readFileSync('../../../../../reference-artifacts/siem/opensearch-config.json');
+    // siemOpenSearchConfig = JSON.parse(rawdata.toString()); 
             
     for (const stsEndpoint of stsDns) {
         try {
@@ -104,7 +106,7 @@ async function onCreateOrUpdate(
             const sts = new AWS.STS({
                 endpoint: `https://${stsEndpoint}`,
                 httpOptions: {
-                    connectTimeout: 5
+                    connectTimeout: 15
                 }
             });
 
@@ -116,15 +118,15 @@ async function onCreateOrUpdate(
             const { AccessKeyId, SecretAccessKey, SessionToken } = assumeRoleResponse.Credentials;
             console.log(`Role assumed AccessKeId: ${AccessKeyId}`);        
             openSearchAdminCredentials = new AWS.Credentials(AccessKeyId, SecretAccessKey, SessionToken);
-        
-            break;
 
+            break;
+                    
         } catch (err) {
             console.log(err);
         }
     }
   
-    await configureOpenSearch(openSearchDomain, siemOpenSearchConfig, adminRoleMappingArn);
+    await configureOpenSearch(openSearchDomain, siemOpenSearchConfig, osProcesserRoleArn, adminRoleMappingArn);
 
     return {
         physicalResourceId: getPhysicalId(event),
@@ -189,16 +191,34 @@ const query = async (openSearchDomain: string, method: string, path: string, doc
 
     const request = await osAuth(openSearchDomain, region, method, path, document);
     const response: any = await osSendRequest(request);
-
-    return JSON.parse(response);
+    
+    return response.length > 0 ? JSON.parse(response) : null;
 }
 
 const upsertObj = async (openSearchDomain: string, obj: any, method: string, path: string) => {
     for (const itemKey of Object.keys(obj)) {
         const payload = obj[itemKey];
         const objPath = `${path}/${itemKey}`;
+        console.log(objPath);
         const resp = await query(openSearchDomain, method, objPath, payload);
-        console.log(resp);
+        console.log(JSON.stringify(resp));
+        
+    }
+}
+
+const deleteObj = async (openSearchDomain: string, obj: any, path: string) => {
+    for (const itemKey of Object.keys(obj)) {        
+        const objPath = `${path}/${itemKey}`;
+        console.log(`Does ${objPath} exist?`);
+        const resp_head = await query(openSearchDomain, 'HEAD', objPath, null);
+        if (resp_head) {
+            // Exists
+            console.log('Exists');
+            const resp_delete = query(openSearchDomain, 'DELETE', objPath, null);
+            console.log(resp_delete);
+        } else {
+            continue;
+        }        
     }
 }
 
@@ -223,34 +243,48 @@ const upsertPolicy = async (openSearchDomain: string, obj: any) => {
 }
 
 const configureIndexRollover = async (openSearchDomain: string, indexPatterns: any) => {
+    console.log();
     console.log(`Create initial index 000001 for rollover`);
     //  console.log(indexPatterns);
     let idx = null;
     let payload = {};
     for (const objKey of Object.keys(indexPatterns)) {
-        console.log(objKey);
+        console.log(`objKey: ${objKey}`);
         const alias = objKey.replace('_rollover', '');
         const res_alias = await query(openSearchDomain, 'GET', alias, null);
         let isRefresh = false;
         console.log(res_alias);
-        if (alias in res_alias) {
-            // console.log(`Already exists ${alias}`);
-            // idx = 
-            //TODO
+        if (!('status' in res_alias)) {
+            console.log(`Already exists ${alias} key ${objKey}`);
+            idx = Object.keys(res_alias)[0];
+            
+            const res_count = await query(openSearchDomain, 'GET', `${idx}/_count`, null);
+            
+            if ('count' in res_count) {
+                const docCount = res_count['count'];
+                if (docCount == 0) {
+                    await query(openSearchDomain, 'DELETE', idx, null);
+                    console.log(`${idx} is deleted and refrehsed`);
+                    isRefresh = true;
+                }
+            }           
         } else {
             isRefresh = true;
             idx = objKey.replace('_rollover', '-000001')
         }
 
         if (isRefresh && idx) {
+            console.log('Putting alias update');
             payload = { 'aliases': { [alias]: { "is_write_index": true } } };
             const res = await query(openSearchDomain, 'PUT', idx, payload);
             console.log(res);
         }
+
+        
     }
 }
 
- const configureOpenSearch = async (openSearchDomain: string, siemOpenSearchConfig: any, adminRoleMappingArn: string) => {
+ const configureOpenSearch = async (openSearchDomain: string, siemOpenSearchConfig: any, osProcesserRoleArn: string, adminRoleMappingArn: string) => {
     console.log(`Create or update role/mapping`);
 
     console.log(`Applying cluster settings`);
@@ -286,7 +320,16 @@ const configureIndexRollover = async (openSearchDomain: string, indexPatterns: a
     // apply role mapping
     await upsertRoleMapping(openSearchDomain, 'all_access', null, null, adminRoleMappingArn, null);
     await upsertRoleMapping(openSearchDomain, 'security_manager', null, null, adminRoleMappingArn, null);
+    await upsertRoleMapping(openSearchDomain, 'event_processor', null, null, osProcesserRoleArn, null);
 
+    // // delete legacy index templates    
+    const oldLegacyTemplates = siemOpenSearchConfig['deleted-old-index-template']
+    await deleteObj(openSearchDomain, oldLegacyTemplates, '_template');
+
+
+    console.log('Create/Update legacy index templates');
+    const legacyTemplates = siemOpenSearchConfig['legacy-index-template']
+    await upsertObj(openSearchDomain, legacyTemplates, 'PUT', '_template');
  }
 
 const upsertRoleMapping = async (openSearchDomain: string, roleName: string, osAppData?: any, userToAdd?: any, roleToAdd?: any, hostToAdd?: any) => {
@@ -367,3 +410,64 @@ const sleep = async (ms: number) => {
 }
 
 
+onEvent({
+    "RequestType": "Update",
+    "ServiceToken": "arn:aws:lambda:ca-central-1:428532460802:function:ASEA-Operations-Phase3-OpenSearchSiemConfigureBDDA-WspebU0Ecizk",
+    "ResponseURL": "https://cloudformation-custom-resource-response-cacentral1.s3.ca-central-1.amazonaws.com/arn%3Aaws%3Acloudformation%3Aca-central-1%3A428532460802%3Astack/ASEA-Operations-Phase3/b17d2030-3c15-11ec-a162-0e9fc950972a%7CASEAOpenSearchConfigureD2BD5A41%7C96f08536-733a-4a6d-a414-797f77d4d0d3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20211108T053653Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIAVYHELKCFQNTLEBPQ%2F20211108%2Fca-central-1%2Fs3%2Faws4_request&X-Amz-Signature=28bd763483b30b8e65633bc24458c2a755030010e78c877e59755877aa7830b6",
+    "StackId": "arn:aws:cloudformation:ca-central-1:428532460802:stack/ASEA-Operations-Phase3/b17d2030-3c15-11ec-a162-0e9fc950972a",
+    "RequestId": "96f08536-733a-4a6d-a414-797f77d4d0d3",
+    "LogicalResourceId": "ASEAOpenSearchConfigureD2BD5A41",
+    "PhysicalResourceId": "OpenSearchSiemConfiguration",
+    "ResourceType": "Custom::OpenSearchSiemConfigure",
+    "ResourceProperties": {
+        "ServiceToken": "arn:aws:lambda:ca-central-1:428532460802:function:ASEA-Operations-Phase3-OpenSearchSiemConfigureBDDA-WspebU0Ecizk",
+        "availablityZones": [
+            "a",
+            "b"
+        ],
+        "adminOpenSearchRoleArn": "arn:aws:iam::428532460802:role/ASEA-OpenSearch-Role",
+        "lambdaExecutionRole": "arn:aws:iam::428532460802:role/ASEA-OpenSearchLambdaProcessingRole",
+        "stsDns": [
+            "sts.ca-central-1.amazonaws.com",
+            "vpce-0d1474b432bf38227-qobiar2a.sts.ca-central-1.vpce.amazonaws.com"
+        ],
+        "vpc": "vpc-0b5afc0e6b33133bb",
+        "openSearchDomain": "vpc-asea--siem-kpiqwuvpnmkttqgtha7acn5xgu.ca-central-1.es.amazonaws.com",
+        "securityGroupIds": [
+            "sg-03e8bf11e10525521"
+        ],
+        "openSearchConfigurationS3Bucket": "asea-management-phase0-configcacentral1-1g9ucir5s5ry0",
+        "openSearchConfigurationS3Key": "siem/opensearch-config.json",
+        "adminRoleMappingArn": "arn:aws:iam::428532460802:role/ASEA-Operations-Phase3-ASEAOpenSearchSiemIdentityA-MZE63HZNWQJ2",
+        "domainSubnetIds": [
+            "subnet-0b328da0225279984",
+            "subnet-0369cc09c2836e547"
+        ],
+        "osProcesserRoleArn": "arn:aws:iam::428532460802:role/ASEA-OpenSearchLambdaProcessingRole"
+    },
+    "OldResourceProperties": {
+        "ServiceToken": "arn:aws:lambda:ca-central-1:428532460802:function:ASEA-Operations-Phase3-OpenSearchSiemConfigureBDDA-WspebU0Ecizk",
+        "availablityZones": [
+            "a",
+            "b"
+        ],
+        "adminOpenSearchRoleArn": "arn:aws:iam::428532460802:role/ASEA-OpenSearch-Role",
+        "lambdaExecutionRole": "arn:aws:iam::428532460802:role/ASEA-OpenSearchLambdaProcessingRole",
+        "stsDns": [
+            "sts.ca-central-1.amazonaws.com",
+            "vpce-0d1474b432bf38227-qobiar2a.sts.ca-central-1.vpce.amazonaws.com"
+        ],
+        "openSearchDomain": "vpc-asea--siem-kpiqwuvpnmkttqgtha7acn5xgu.ca-central-1.es.amazonaws.com",
+        "securityGroupIds": [
+            "sg-03e8bf11e10525521"
+        ],
+        "openSearchConfigurationS3Bucket": "asea-management-phase0-configcacentral1-1g9ucir5s5ry0",
+        "openSearchConfigurationS3Key": "siem/opensearch-config.json",
+        "vpc": "vpc-0b5afc0e6b33133bb",
+        "adminRoleMappingArn": "arn:aws:iam::428532460802:role/ASEA-Operations-Phase3-ASEAOpenSearchSiemIdentityA-MZE63HZNWQJ2",
+        "domainSubnetIds": [
+            "subnet-0b328da0225279984",
+            "subnet-0369cc09c2836e547"
+        ]
+    }
+});
