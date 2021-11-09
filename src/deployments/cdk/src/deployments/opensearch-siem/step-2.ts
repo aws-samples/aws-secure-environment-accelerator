@@ -345,7 +345,7 @@ export function createOpenSearchCluster(
   });
 
 
-  const domainName = `${acceleratorPrefix}-siem`.toLowerCase(); // [a-z][a-z0-9\-]+
+  const domainName = `${acceleratorPrefix}siem`.toLowerCase(); // [a-z][a-z0-9\-]+
   const domain = new OpenSearchDomain(accountStack, `OpenSearchSiemDomain${accountKey}`, {
     domainName: domainName,
     subnetIds: domainSubnetIds,
