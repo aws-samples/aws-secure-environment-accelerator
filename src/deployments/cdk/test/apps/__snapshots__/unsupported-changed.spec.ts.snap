@@ -1982,23 +1982,7 @@ Array [
     "LogicalId": "TgwMain627BB489",
     "Properties": Object {
       "AmazonSideAsn": 65521,
-      "AutoAcceptSharedAttachments": "enable",
-      "DefaultRouteTableAssociation": "disable",
-      "DefaultRouteTablePropagation": "disable",
-      "Description": undefined,
-      "DnsSupport": "enable",
       "MulticastSupport": undefined,
-      "Tags": Array [
-        Object {
-          "Key": "Accelerator",
-          "Value": "PBMM",
-        },
-        Object {
-          "Key": "Name",
-          "Value": "Main_tgw",
-        },
-      ],
-      "VpnEcmpSupport": "enable",
     },
   },
 ]
