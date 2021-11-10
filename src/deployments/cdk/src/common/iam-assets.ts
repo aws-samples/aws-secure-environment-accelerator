@@ -115,7 +115,9 @@ export class IamAssets extends cdk.Construct {
         newRole = new iam.Role(this, `IAM-Role-${role}-${accountKey}`, {
           roleName: role,
           description: `PBMM - ${role}`,
-          assumedBy: sourceAccountRole ? new iam.ArnPrincipal(`arn:aws:iam::${sourceAccountId}:role/${sourceAccountRole}`) : new iam.ArnPrincipal(`arn:aws:iam::${sourceAccountId}:root`),
+          assumedBy: sourceAccountRole
+            ? new iam.ArnPrincipal(`arn:aws:iam::${sourceAccountId}:role/${sourceAccountRole}`)
+            : new iam.ArnPrincipal(`arn:aws:iam::${sourceAccountId}:root`),
           managedPolicies: policies.map(
             x => customerManagedPolicies[x] ?? iam.ManagedPolicy.fromAwsManagedPolicyName(x),
           ),

@@ -26,7 +26,6 @@ import * as transitGateway from '../deployments/transit-gateway';
 import * as awsConfig from '../deployments/config';
 import * as openSearchSiemDeployment from '../deployments/opensearch-siem';
 
-
 /**
  * This is the main entry point to deploy phase 3
  *
@@ -171,9 +170,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     defaultRegion: context.defaultRegion,
   });
 
-   // Find the central bucket in the outputs
-  const logArchiveBucket = accountBuckets[acceleratorConfig['global-options']['central-log-services'].account]
-  
+  // Find the central bucket in the outputs
+  const logArchiveBucket = accountBuckets[acceleratorConfig['global-options']['central-log-services'].account];
+
   await openSearchSiemDeployment.step2({
     accountStacks,
     config: acceleratorConfig,

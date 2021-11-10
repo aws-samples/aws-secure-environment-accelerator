@@ -23,8 +23,8 @@ export interface OpenSearchSIEMStep3Props {
   acceleratorPrefix: string;
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
-  outputs: StackOutput[];  
-  logArchiveBucket: s3.IBucket;  
+  outputs: StackOutput[];
+  logArchiveBucket: s3.IBucket;
   aesLogArchiveBucket: s3.IBucket;
 }
 
@@ -33,10 +33,14 @@ export async function step3(props: OpenSearchSIEMStep3Props) {
 
   for (const [accountKey, accountConfig] of config.getMandatoryAccountConfigs()) {
     const openSearchSIEMDeploymentConfig = accountConfig.deployments?.siem;
-    if (openSearchSIEMDeploymentConfig == undefined || !openSearchSIEMDeploymentConfig || !openSearchSIEMDeploymentConfig.deploy) {
+    if (
+      openSearchSIEMDeploymentConfig == undefined ||
+      !openSearchSIEMDeploymentConfig ||
+      !openSearchSIEMDeploymentConfig.deploy
+    ) {
       continue;
     }
-    
+
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountKey}`);
@@ -44,7 +48,7 @@ export async function step3(props: OpenSearchSIEMStep3Props) {
     }
 
     const logAccountConfig = config['global-options']['central-log-services'];
-    const logAccountStack = accountStacks.tryGetOrCreateAccountStack(logAccountConfig.account);  
+    const logAccountStack = accountStacks.tryGetOrCreateAccountStack(logAccountConfig.account);
     if (!logAccountStack) {
       console.warn(`Cannot find account stack ${logAccountStack}`);
       continue;
@@ -61,30 +65,22 @@ export async function step3(props: OpenSearchSIEMStep3Props) {
     }
     const lambdaArn = processingLambdaArn[0].lambdaArn;
 
-    configureS3LoggingNotifications(
-      logArchiveBucket,
-      aesLogArchiveBucket,
-      lambdaArn,
-      acceleratorPrefix
-    );
-
+    configureS3LoggingNotifications(logArchiveBucket, aesLogArchiveBucket, lambdaArn, acceleratorPrefix);
   }
 }
 
-export function configureS3LoggingNotifications(   
+export function configureS3LoggingNotifications(
   logArchiveBucket: s3.IBucket,
   aesLogArchiveBucket: s3.IBucket,
   lambdaArn: string,
-  acceleratorPrefix: string
+  acceleratorPrefix: string,
 ) {
-  
-  for (const bucket of [aesLogArchiveBucket, logArchiveBucket]) {    
+  for (const bucket of [aesLogArchiveBucket, logArchiveBucket]) {
     new S3BucketNotifications(bucket.stack, `S3Notifications${bucket.bucketName}`, {
       bucketName: bucket.bucketName,
       lambdaArn: lambdaArn,
-      s3Events: ["s3:ObjectCreated:Put", "s3:ObjectCreated:Post"],
-      s3EventName: `${acceleratorPrefix}SIEM-SendToLambda`
+      s3Events: ['s3:ObjectCreated:Put', 's3:ObjectCreated:Post'],
+      s3EventName: `${acceleratorPrefix}SIEM-SendToLambda`,
     });
   }
-     
 }

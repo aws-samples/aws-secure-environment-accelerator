@@ -15,7 +15,6 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as cognito from '@aws-cdk/aws-cognito';
 
-
 export interface CognitoUserPoolDomainConfigurationProps {
   domainPrefix: string;
   userPool: CognitoUserPool;
@@ -23,7 +22,7 @@ export interface CognitoUserPoolDomainConfigurationProps {
 
 export interface CognitoUserPoolConfigurationProps {
   userPoolName: string;
-  usernameAttributes: string[];  
+  usernameAttributes: string[];
 }
 
 export interface CognitoIdentityPoolConfigurationProps {
@@ -40,7 +39,11 @@ export interface CognitoIdentityPoolRoleMappingConfigurationProps {
 export class CognitoIdentityPoolRoleMapping extends cdk.Construct {
   private readonly resource: cognito.CfnIdentityPoolRoleAttachment;
 
-  constructor(scope: cdk.Construct, id: string, private readonly props: CognitoIdentityPoolRoleMappingConfigurationProps) {
+  constructor(
+    scope: cdk.Construct,
+    id: string,
+    private readonly props: CognitoIdentityPoolRoleMappingConfigurationProps,
+  ) {
     super(scope, id);
 
     const { authenticatedRole, identityPool, unauthenticatedRole } = props;
@@ -48,12 +51,12 @@ export class CognitoIdentityPoolRoleMapping extends cdk.Construct {
     this.resource = new cognito.CfnIdentityPoolRoleAttachment(this, 'RoleAttachment', {
       identityPoolId: identityPool.id,
       roles: {
-        "authenticated": authenticatedRole.roleArn
-      }
+        authenticated: authenticatedRole.roleArn,
+      },
     });
 
     if (unauthenticatedRole) {
-      this.resource.roles.unauthenticated = unauthenticatedRole.roleArn
+      this.resource.roles.unauthenticated = unauthenticatedRole.roleArn;
     }
   }
 }
@@ -68,14 +71,13 @@ export class CognitoIdentityPool extends cdk.Construct {
 
     this.resource = new cognito.CfnIdentityPool(this, 'IdentityPool', {
       identityPoolName,
-      allowUnauthenticatedIdentities
+      allowUnauthenticatedIdentities,
     });
   }
 
   get id(): string {
     return this.resource.ref;
   }
-
 }
 
 export class CognitoUserPoolDomain extends cdk.Construct {
@@ -88,9 +90,8 @@ export class CognitoUserPoolDomain extends cdk.Construct {
 
     this.resource = new cognito.CfnUserPoolDomain(this, 'UserPoolDomain', {
       userPoolId: userPool.id,
-      domain: domainPrefix
+      domain: domainPrefix,
     });
-
   }
 
   get id(): string {
@@ -98,9 +99,7 @@ export class CognitoUserPoolDomain extends cdk.Construct {
   }
 }
 
-
 export class CognitoUserPool extends cdk.Construct {
-
   private readonly resource: cognito.CfnUserPool;
 
   constructor(scope: cdk.Construct, id: string, private readonly props: CognitoUserPoolConfigurationProps) {
@@ -110,13 +109,11 @@ export class CognitoUserPool extends cdk.Construct {
 
     this.resource = new cognito.CfnUserPool(this, 'UserPool', {
       userPoolName,
-      usernameAttributes
+      usernameAttributes,
     });
-
   }
 
   get id(): string {
     return this.resource.ref;
   }
-
 }

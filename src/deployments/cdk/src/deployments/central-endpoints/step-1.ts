@@ -75,7 +75,7 @@ export async function step1(props: CentralEndpointsStep1Props) {
         zoneType: 'PUBLIC',
         vpcName: undefined,
         serviceName: undefined,
-        aliasTargetDns: undefined
+        aliasTargetDns: undefined,
       });
     }
 
@@ -115,7 +115,7 @@ export async function step1(props: CentralEndpointsStep1Props) {
         zoneType: 'PRIVATE',
         vpcName: vpcConfig.name,
         serviceName: undefined,
-        aliasTargetDns: undefined
+        aliasTargetDns: undefined,
       });
     }
   }

@@ -37,7 +37,7 @@ enum ProtocolPrefix {
 export class InterfaceEndpoint extends cdk.Construct {
   private _hostedZone: route53.CfnHostedZone;
   private _aliasTargetDns: string;
-  
+
   constructor(scope: cdk.Construct, id: string, props: InterfaceEndpointProps) {
     super(scope, id);
 
@@ -110,7 +110,7 @@ export class InterfaceEndpoint extends cdk.Construct {
     this._hostedZone.addDependsOn(endpoint);
 
     const recordSetName = recordSetNameForRegionAndEndpointName(vpcRegion, serviceName);
-    const aliasTargetForService =  aliasTargetForServiceNameAndEndpoint(serviceName, endpoint);
+    const aliasTargetForService = aliasTargetForServiceNameAndEndpoint(serviceName, endpoint);
     this._aliasTargetDns = aliasTargetForService.dnsName;
 
     const recordSet = new route53.CfnRecordSet(this, 'RecordSet', {

@@ -1345,10 +1345,9 @@ translate(c.RsyslogSubnetConfig, {
   },
 });
 
-
 translate(c.OpenSearchSIEMConfig, {
   title: '',
-  description:'',
+  description: '',
   fields: {
     deploy: {
       title: '',
@@ -1361,7 +1360,7 @@ translate(c.OpenSearchSIEMConfig, {
     region: {
       title: '',
       description: '',
-    },    
+    },
     'security-groups': {
       title: '',
       description: '',
@@ -1372,37 +1371,37 @@ translate(c.OpenSearchSIEMConfig, {
     },
     'lambda-log-processing-role': {
       title: '',
-      description: ''
+      description: '',
     },
     'cognito-domain-prefix': {
-      title: ''
+      title: '',
     },
     'opensearch-instance-type-main-nodes': {
-      title: ''
+      title: '',
     },
     'opensearch-instance-type-data-nodes': {
-      title: ''
+      title: '',
     },
     'opensearch-instance-role': {
-      title: ''
+      title: '',
     },
     'opensearch-capacity-main-nodes': {
-      title: ''
+      title: '',
     },
     'opensearch-capacity-data-nodes': {
-      title: ''
+      title: '',
     },
     'opensearch-volume-size': {
-      title: ''
+      title: '',
     },
     'opensearch-configuration': {
       title: '',
-      description: ''
-    },  
+      description: '',
+    },
     'event-processor-lambda-package': {
       title: '',
-      description: ''
-    }
+      description: '',
+    },
   },
 });
 
@@ -2119,10 +2118,10 @@ translate(c.DeploymentConfigType, {
       title: '',
       description: '',
     },
-    'siem': {
+    siem: {
       title: '',
-      description: ''
-    }
+      description: '',
+    },
   },
 });
 

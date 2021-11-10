@@ -215,16 +215,14 @@ export async function deploy({
     logBucket,
   });
 
-  await opensearchSiemDeployment.step1({    
+  await opensearchSiemDeployment.step1({
     acceleratorPrefix: context.acceleratorPrefix,
     accountEbsEncryptionKeys: defaultsResult.accountEbsEncryptionKeys,
     accountStacks,
     accounts,
     config: acceleratorConfig,
-    logBuckets: [
-      defaultsResult.centralLogBucket, defaultsResult.aesLogBucket!
-    ],
-    outputs
+    logBuckets: [defaultsResult.centralLogBucket, defaultsResult.aesLogBucket!],
+    outputs,
   });
 
   await cleanup.step1({
