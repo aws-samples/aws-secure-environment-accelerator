@@ -70,18 +70,18 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       accountKey,
       type: OpenSearchClusterDNSOutput,
     });
-    const openSearchClusterExists = openSearchClusters.length == 1;
+    const openSearchClusterExists = openSearchClusters.length === 1;
 
     console.log(`OpenSearchSiem-Step1: ${openSearchClusterExists}`);
 
     const openSearchSIEMDeploymentConfig = accountConfig.deployments?.siem;
     if (!openSearchClusterExists && (!openSearchSIEMDeploymentConfig || !openSearchSIEMDeploymentConfig.deploy)) {
-      //If cluster doesn't exist, based on data in output, and the SIEM section has been removed or marked deployed false
-      //continue. ie, this would remove aws resources from the stack.
+      // If cluster doesn't exist, based on data in output, and the SIEM section has been removed or marked deployed false
+      // continue. ie, this would remove aws resources from the stack.
       continue;
     }
 
-    if (openSearchSIEMDeploymentConfig == undefined) {
+    if (openSearchSIEMDeploymentConfig === undefined) {
       console.warn(`Could not find the SIEM configuration`);
       continue;
     }
@@ -260,10 +260,10 @@ export function createProcessingLambda(
     privateSubnetIds: domainSubnetIds,
   });
 
-  const vpc_sg = [];
+  const vpcSecurityGroups = [];
   for (const sg of securityGroup.securityGroups) {
     const tmp = ec2.SecurityGroup.fromSecurityGroupId(accountStack, `OpenSearchVPCLookup-${sg.name}`, sg.id);
-    vpc_sg.push(tmp);
+    vpcSecurityGroups.push(tmp);
   }
 
   const configBucket = s3.Bucket.fromBucketName(accountStack, 'ConfigBucket', centralConfigBucketName);
@@ -279,7 +279,7 @@ export function createProcessingLambda(
     vpcSubnets: {
       subnetFilters: [ec2.SubnetFilter.byIds(domainSubnetIds)],
     },
-    securityGroups: vpc_sg,
+    securityGroups: vpcSecurityGroups,
     environment: {
       LOG_LEVEL: 'info',
       POWERTOOLS_LOGGER_LOG_EVENT: 'false',
@@ -356,8 +356,8 @@ export function createOpenSearchCluster(
 
   new CognitoIdentityPoolRoleMapping(accountStack, `${acceleratorPrefix}OpenSearchSiemRoleMapping`, {
     identityPool: cognitoIdentityPool,
-    authenticatedRole: authenticatedRole,
-    unauthenticatedRole: unauthenticatedRole,
+    authenticatedRole,
+    unauthenticatedRole,
   });
 
   new CognitoUserPoolDomain(accountStack, `${acceleratorPrefix}OpenSearchCognitoDomain`, {
@@ -367,16 +367,16 @@ export function createOpenSearchCluster(
 
   const domainName = `${acceleratorPrefix}siem`.toLowerCase(); // [a-z][a-z0-9\-]+
   const domain = new OpenSearchDomain(accountStack, `OpenSearchSiemDomain${accountKey}`, {
-    domainName: domainName,
+    domainName,
     subnetIds: domainSubnetIds,
-    securityGroupIds: securityGroupIds,
+    securityGroupIds,
     mainNodeCount: openSearchSIEMDeploymentConfig['opensearch-capacity-main-nodes'],
     dataNodeCount: openSearchSIEMDeploymentConfig['opensearch-capacity-data-nodes'],
     mainNodeInstanceType: openSearchSIEMDeploymentConfig['opensearch-instance-type-main-nodes'],
     dataNodeInstanceType: openSearchSIEMDeploymentConfig['opensearch-instance-type-data-nodes'],
     volumeSize: openSearchSIEMDeploymentConfig['opensearch-volume-size'],
     encryptionKeyId: accountEbsEncryptionKeyId,
-    adminRole: adminRole,
+    adminRole,
     cognitoIdentityPoolId: cognitoIdentityPool.id,
     cognitoUserPoolId: cognitoUserPool.id,
     cognitoPermissionRoleForOpenSearchArn: cognitoRoleForOpenSearch.roleArn,
@@ -399,8 +399,8 @@ export function createOpenSearchCluster(
     lambdaExecutionRole: lambdaRole.roleArn,
     vpcId: vpc.id,
     availablityZones: azs,
-    domainSubnetIds: domainSubnetIds,
-    securityGroupIds: securityGroupIds,
+    domainSubnetIds,
+    securityGroupIds,
     stsDns: stsHostedZoneDnsEntries,
   });
 

@@ -76,15 +76,15 @@ export class OpenSearchSiemConfigure extends cdk.Construct {
       privateSubnetIds: this.props.domainSubnetIds,
     });
 
-    const vpc_sg = [];
+    const vpcSecurityGroups = [];
 
     for (const sgId of this.props.securityGroupIds) {
       const tmp = ec2.SecurityGroup.fromSecurityGroupId(
         stack,
-        `OpenSearchConfigureSecurityGroupLookup-${vpc_sg.length}`,
+        `OpenSearchConfigureSecurityGroupLookup-${vpcSecurityGroups.length}`,
         sgId,
       );
-      vpc_sg.push(tmp);
+      vpcSecurityGroups.push(tmp);
     }
 
     const lambdaRole = iam.Role.fromRoleArn(
@@ -107,7 +107,7 @@ export class OpenSearchSiemConfigure extends cdk.Construct {
       vpcSubnets: {
         subnetFilters: [ec2.SubnetFilter.byIds(this.props.domainSubnetIds)],
       },
-      securityGroups: vpc_sg,
+      securityGroups: vpcSecurityGroups,
       environment: {
         OPEN_SEARCH_ADMIN_ROLE_ARN: this.props.adminOpenSearchRoleArn,
       },

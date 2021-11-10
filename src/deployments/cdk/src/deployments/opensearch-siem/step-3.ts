@@ -34,7 +34,7 @@ export async function step3(props: OpenSearchSIEMStep3Props) {
   for (const [accountKey, accountConfig] of config.getMandatoryAccountConfigs()) {
     const openSearchSIEMDeploymentConfig = accountConfig.deployments?.siem;
     if (
-      openSearchSIEMDeploymentConfig == undefined ||
+      openSearchSIEMDeploymentConfig === undefined ||
       !openSearchSIEMDeploymentConfig ||
       !openSearchSIEMDeploymentConfig.deploy
     ) {
@@ -78,7 +78,7 @@ export function configureS3LoggingNotifications(
   for (const bucket of [aesLogArchiveBucket, logArchiveBucket]) {
     new S3BucketNotifications(bucket.stack, `S3Notifications${bucket.bucketName}`, {
       bucketName: bucket.bucketName,
-      lambdaArn: lambdaArn,
+      lambdaArn,
       s3Events: ['s3:ObjectCreated:Put', 's3:ObjectCreated:Post'],
       s3EventName: `${acceleratorPrefix}SIEM-SendToLambda`,
     });
