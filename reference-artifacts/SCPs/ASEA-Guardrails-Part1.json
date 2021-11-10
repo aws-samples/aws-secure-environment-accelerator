@@ -133,7 +133,6 @@
       "Sid": "LOG",
       "Effect": "Deny",
       "Action": [
-        "ec2:DeleteFlowLogs",
         "logs:DeleteResourcePolicy",
         "logs:DeleteMetricFilter",
         "logs:DeleteSubscriptionFilter",
@@ -145,7 +144,7 @@
         "logs:PutSubscriptionFilter",
         "logs:DeleteLogStream"
       ],
-      "Resource": "*",
+      "Resource": "arn:aws:logs:*:*:log-group:*${ACCELERATOR_PREFIX}*",
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}"]
@@ -190,6 +189,7 @@
       "Sid": "NET1",
       "Effect": "Deny",
       "Action": [
+        "ec2:DeleteFlowLogs",
         "ec2:DeleteNatGateway",
         "ec2:DeleteTransitGatewayRoute",
         "ec2:DeleteTransitGatewayRouteTable",
