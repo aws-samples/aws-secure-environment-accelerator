@@ -51,21 +51,21 @@ export async function step1(props: OpenSearchSIEMStep1Props) {
       accountKey,
       type: OpenSearchClusterDNSOutput,
     });
-    const openSearchClusterExists = openSearchClusters.length == 1;
+    const openSearchClusterExists = openSearchClusters.length === 1;
 
     console.log(`OpenSearchSiem-Step1: ${openSearchClusterExists}`);
 
-    const openSearchSIEMDeploymentConfig = accountConfig.deployments?.siem; //If a DNS entry exists and deploy is false, it could be a delete but it will fail while in use. Subsequent runs will remove all this.
+    const openSearchSIEMDeploymentConfig = accountConfig.deployments?.siem; // If a DNS entry exists and deploy is false, it could be a delete but it will fail while in use. Subsequent runs will remove all this.
     if (!openSearchClusterExists && (!openSearchSIEMDeploymentConfig || !openSearchSIEMDeploymentConfig.deploy)) {
       continue;
     }
 
-    if (openSearchSIEMDeploymentConfig == undefined) {
+    if (openSearchSIEMDeploymentConfig === undefined) {
       console.warn(`Could not find the SIEM configuration`);
       continue;
     }
 
-    const region = openSearchSIEMDeploymentConfig!.region;
+    const region = openSearchSIEMDeploymentConfig.region;
     const accountEbsEncryptionKey = accountEbsEncryptionKeys[accountKey]?.[region];
     if (!accountEbsEncryptionKey) {
       console.warn(`Could not find EBS encryption key in account "${accountKey}" to deploy service-linked role`);
