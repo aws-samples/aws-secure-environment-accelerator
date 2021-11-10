@@ -38,7 +38,7 @@ export interface HandlerProperties {
 
 export const handler = errorHandler(onEvent);
 
-let region = process.env.AWS_REGION || ''; //'ca-central-1'; // Dev
+const region = process.env.AWS_REGION || ''; // 'ca-central-1'; // Dev
 let openSearchAdminCredentials: any;
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
@@ -97,11 +97,9 @@ async function onCreateOrUpdate(
 
   console.log('Download configuration file');
 
-  let siemOpenSearchConfig;
-
-  const fileBody = await getS3Body(openSearchConfigurationS3Bucket!, openSearchConfigurationS3Key);
+  const fileBody = await getS3Body(openSearchConfigurationS3Bucket, openSearchConfigurationS3Key);
   console.log('Downloaded file');
-  siemOpenSearchConfig = JSON.parse(fileBody.toString());
+  const siemOpenSearchConfig = JSON.parse(fileBody.toString());
   // For Development
   // const rawdata = fs.readFileSync('../../../../../reference-artifacts/siem/opensearch-config.json');
   // siemOpenSearchConfig = JSON.parse(rawdata.toString());
@@ -156,7 +154,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
 
 const osAuth = async (domain: string, region: string, method: string, path: string, body: any) => {
   const endpoint = new AWS.Endpoint(domain);
-  var request = new AWS.HttpRequest(endpoint, region);
+  const request = new AWS.HttpRequest(endpoint, region);
 
   request.method = method;
   request.path += path;
@@ -165,7 +163,7 @@ const osAuth = async (domain: string, region: string, method: string, path: stri
     request.headers['Content-Length'] = Buffer.byteLength(request.body).toString();
   }
 
-  request.headers['host'] = domain;
+  request.headers.host = domain;
   request.headers['Content-Type'] = 'application/json';
 
   const signer = new AWS.Signers.V4(request, 'es');
@@ -219,12 +217,12 @@ const deleteObj = async (openSearchDomain: string, obj: any, path: string) => {
   for (const itemKey of Object.keys(obj)) {
     const objPath = `${path}/${itemKey}`;
     console.log(`Does ${objPath} exist?`);
-    const resp_head = await query(openSearchDomain, 'HEAD', objPath, null);
-    if (resp_head) {
+    const respHead = await query(openSearchDomain, 'HEAD', objPath, null);
+    if (respHead) {
       // Exists
       console.log('Exists');
-      const resp_delete = query(openSearchDomain, 'DELETE', objPath, null);
-      console.log(resp_delete);
+      const respDelete = query(openSearchDomain, 'DELETE', objPath, null);
+      console.log(respDelete);
     } else {
       continue;
     }
@@ -239,9 +237,9 @@ const upsertPolicy = async (openSearchDomain: string, obj: any) => {
     console.log(resp);
 
     if ('_id' in resp) {
-      const seq_no = resp['_seq_no'];
-      const primary_term = resp['_primary_term'];
-      objPath = `${objPath}?if_seq_no=${seq_no}&if_primary_term=${primary_term}`;
+      const seqNo = resp._seq_no;
+      const primaryTerm = resp._primary_term;
+      objPath = `${objPath}?if_seq_no=${seqNo}&if_primary_term=${primaryTerm}`;
     }
 
     const payload = obj[itemKey];
@@ -259,18 +257,18 @@ const configureIndexRollover = async (openSearchDomain: string, indexPatterns: a
   for (const objKey of Object.keys(indexPatterns)) {
     console.log(`objKey: ${objKey}`);
     const alias = objKey.replace('_rollover', '');
-    const res_alias = await query(openSearchDomain, 'GET', alias, null);
+    const resAlias = await query(openSearchDomain, 'GET', alias, null);
     let isRefresh = false;
-    console.log(res_alias);
-    if (!('status' in res_alias)) {
+    console.log(resAlias);
+    if (!('status' in resAlias)) {
       console.log(`Already exists ${alias} key ${objKey}`);
-      idx = Object.keys(res_alias)[0];
+      idx = Object.keys(resAlias)[0];
 
-      const res_count = await query(openSearchDomain, 'GET', `${idx}/_count`, null);
+      const resCount = await query(openSearchDomain, 'GET', `${idx}/_count`, null);
 
-      if ('count' in res_count) {
-        const docCount = res_count['count'];
-        if (docCount == 0) {
+      if ('count' in resCount) {
+        const docCount = resCount.count;
+        if (docCount === 0) {
           await query(openSearchDomain, 'DELETE', idx, null);
           console.log(`${idx} is deleted and refrehsed`);
           isRefresh = true;
@@ -299,34 +297,34 @@ const configureOpenSearch = async (
   console.log(`Create or update role/mapping`);
 
   console.log(`Applying cluster settings`);
-  const cluster_settings = siemOpenSearchConfig['cluster-settings'];
-  for (const key of Object.keys(cluster_settings)) {
+  const clusterSettings = siemOpenSearchConfig['cluster-settings'];
+  for (const key of Object.keys(clusterSettings)) {
     console.log(`system setting: ${key}`);
-    const payload = cluster_settings[key];
+    const payload = clusterSettings[key];
     console.log(payload);
     const res = await query(openSearchDomain, 'PUT', '_cluster/settings', payload);
     console.log(JSON.stringify(res));
   }
 
   console.log('Applying component templates');
-  const component_templates = siemOpenSearchConfig['component-templates'];
-  await upsertObj(openSearchDomain, component_templates, 'PUT', '_component_template');
+  const componentTemplates = siemOpenSearchConfig['component-templates'];
+  await upsertObj(openSearchDomain, componentTemplates, 'PUT', '_component_template');
 
   console.log('Applying index templates');
-  const index_templates = siemOpenSearchConfig['index-templates'];
-  await upsertObj(openSearchDomain, index_templates, 'PUT', '_index_template');
+  const indexTemplates = siemOpenSearchConfig['index-templates'];
+  await upsertObj(openSearchDomain, indexTemplates, 'PUT', '_index_template');
 
   // create index_state_management_policies such as rollover policy
   console.log('Applying index policies');
-  const policies = siemOpenSearchConfig['index_state_management_policies'];
+  const policies = siemOpenSearchConfig.index_state_management_policies;
   await upsertPolicy(openSearchDomain, policies);
 
   // index template for rollover
-  const index_rollover = siemOpenSearchConfig['index-rollover'];
-  await upsertObj(openSearchDomain, index_rollover, 'PUT', '_index_template');
+  const indexRollover = siemOpenSearchConfig['index-rollover'];
+  await upsertObj(openSearchDomain, indexRollover, 'PUT', '_index_template');
 
   // index rollvover
-  await configureIndexRollover(openSearchDomain, index_rollover);
+  await configureIndexRollover(openSearchDomain, indexRollover);
 
   // apply role mapping
   await upsertRoleMapping(openSearchDomain, 'all_access', null, null, adminRoleMappingArn, null);
@@ -358,7 +356,7 @@ const upsertRoleMapping = async (
   const res: any = await query(openSearchDomain, 'GET', `_plugins/_security/api/rolesmapping/${roleName}`, null);
   console.log(res);
 
-  if (res['status'] === 'NOT_FOUND') {
+  if (res.status === 'NOT_FOUND') {
     console.log('Create new role/mapping');
     const pathRoles = `_plugins/_security/api/roles/${roleName}`;
     const newRolepayload = {
@@ -398,7 +396,7 @@ const upsertRoleMapping = async (
     console.log(`Role '${roleName}' already exists`);
     console.log(res[roleName].backend_roles);
 
-    if (res[roleName].backend_roles.indexOf(roleToAdd) == -1) {
+    if (res[roleName].backend_roles.indexOf(roleToAdd) === -1) {
       const backendRoles = [...res[roleName].backend_roles, roleToAdd];
       const pathRoleMappings = `_plugins/_security/api/rolesmapping/${roleName}`;
       const newBackendRolePayload = [

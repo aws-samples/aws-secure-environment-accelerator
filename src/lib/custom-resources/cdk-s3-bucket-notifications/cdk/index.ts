@@ -82,7 +82,7 @@ export class S3BucketNotifications extends cdk.Construct {
       runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
-      role: role,
+      role,
       timeout: cdk.Duration.minutes(15),
     });
   }

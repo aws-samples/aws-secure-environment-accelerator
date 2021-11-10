@@ -74,7 +74,7 @@ async function onCreateOrUpdate(
   const foundIndex = lambdaConfigurations.findIndex(x => x.Id === s3EventName);
 
   if (foundIndex > -1) {
-    lambdaConfigurations = foundIndex == 0 ? [] : lambdaConfigurations.splice(foundIndex, 1);
+    lambdaConfigurations = foundIndex === 0 ? [] : lambdaConfigurations.splice(foundIndex, 1);
   }
   lambdaConfigurations.push({
     Id: s3EventName,
@@ -119,7 +119,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const foundIndex = lambdaConfigurations.findIndex(x => x.Id === s3EventName);
 
   if (foundIndex > -1) {
-    lambdaConfigurations = foundIndex == 0 ? [] : lambdaConfigurations.splice(foundIndex, 1);
+    lambdaConfigurations = foundIndex === 0 ? [] : lambdaConfigurations.splice(foundIndex, 1);
   }
   existingNotifcationConfiguration.LambdaFunctionConfigurations = lambdaConfigurations;
 
