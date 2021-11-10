@@ -16,14 +16,24 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { OpenSearchDomain } from '@aws-accelerator/cdk-constructs/src/database';
-import { CognitoIdentityPoolRoleMapping, CognitoIdentityPool, CognitoUserPool, CognitoUserPoolDomain } from '@aws-accelerator/cdk-constructs/src/cognito';
+import {
+  CognitoIdentityPoolRoleMapping,
+  CognitoIdentityPool,
+  CognitoUserPool,
+  CognitoUserPoolDomain,
+} from '@aws-accelerator/cdk-constructs/src/cognito';
 import { Vpc } from '@aws-accelerator/cdk-constructs/src/vpc';
 import { AcceleratorConfig, OpenSearchSIEMConfig } from '@aws-accelerator/common-config/src';
 import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorStack } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-stack';
 import { SecurityGroup } from '../../common/security-group';
 import { StructuredOutput } from '../../common/structured-output';
-import { CfnOpenSearchClusterDnsOutput, CfnOpenSearchSiemLambdaArnOutput, OpenSearchLambdaProcessingRoleOutput, OpenSearchClusterDNSOutput } from './outputs';
+import {
+  CfnOpenSearchClusterDnsOutput,
+  CfnOpenSearchSiemLambdaArnOutput,
+  OpenSearchLambdaProcessingRoleOutput,
+  OpenSearchClusterDNSOutput,
+} from './outputs';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { Context } from '../../utils/context';
 import { EbsKmsOutput } from '@aws-accelerator/common-outputs/src/ebs';
@@ -44,10 +54,18 @@ export interface OpenSearchSIEMStep2Props {
 }
 
 export async function step2(props: OpenSearchSIEMStep2Props) {
-  const { accountStacks, config, outputs, vpcs, logArchiveBucket, context, aesLogArchiveBucket, processingTimeout = 900 } = props;
+  const {
+    accountStacks,
+    config,
+    outputs,
+    vpcs,
+    logArchiveBucket,
+    context,
+    aesLogArchiveBucket,
+    processingTimeout = 900,
+  } = props;
 
   for (const [accountKey, accountConfig] of config.getMandatoryAccountConfigs()) {
-
     const openSearchClusters = StructuredOutput.fromOutputs(outputs, {
       accountKey,
       type: OpenSearchClusterDNSOutput,
@@ -70,7 +88,9 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
 
     const vpc = vpcs.find(v => v.name === openSearchSIEMDeploymentConfig['vpc-name']);
     if (!vpc) {
-      console.log(`Skipping OpenSearch deployment because of missing VPC "${openSearchSIEMDeploymentConfig['vpc-name']}"`);
+      console.log(
+        `Skipping OpenSearch deployment because of missing VPC "${openSearchSIEMDeploymentConfig['vpc-name']}"`,
+      );
       continue;
     }
 
@@ -84,7 +104,7 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       outputs,
       accountKey,
       roleName: openSearchSIEMDeploymentConfig['opensearch-instance-role'],
-      roleKey: "IamAccountRole"
+      roleKey: 'IamAccountRole',
     });
     if (!openSearchAdminRoleOutput) {
       console.warn(`Cannot find OpenSearch role ${openSearchSIEMDeploymentConfig['opensearch-instance-role']}`);
@@ -102,35 +122,39 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
     }
     const accountEbsEncryptionKeyId = accountEbsEncryptionKeys[0].encryptionKeyId;
 
-
     const domainSubnetIds: string[] = [];
     for (const subnetConfig of openSearchSIEMDeploymentConfig['app-subnets']) {
       const subnet = vpc.tryFindSubnetByNameAndAvailabilityZone(subnetConfig.name, subnetConfig.az);
       if (!subnet) {
-        console.warn(`Cannot find app subnet with name "${subnetConfig.name}" in availability zone "${subnetConfig.az}"`);
+        console.warn(
+          `Cannot find app subnet with name "${subnetConfig.name}" in availability zone "${subnetConfig.az}"`,
+        );
         continue;
       }
       domainSubnetIds.push(subnet.id);
     }
 
     if (domainSubnetIds.length === 0) {
-      console.log(`Skipping OpenSearch deployment because of missing app subnets "${openSearchSIEMDeploymentConfig['app-subnets']}"`);
+      console.log(
+        `Skipping OpenSearch deployment because of missing app subnets "${openSearchSIEMDeploymentConfig['app-subnets']}"`,
+      );
       return;
     }
 
     // Get STS Hosted Zones
     const hostedZoneOutputs = HostedZoneOutputFinder.findAll({
-      outputs
+      outputs,
     });
-    const stsHostedZoneDnsEntries = hostedZoneOutputs.filter(hzo =>  hzo.serviceName === 'sts').map(hostedZone => hostedZone.aliasTargetDns);
+    const stsHostedZoneDnsEntries = hostedZoneOutputs
+      .filter(hzo => hzo.serviceName === 'sts')
+      .map(hostedZone => hostedZone.aliasTargetDns);
     const stsDnsEntries: string[] = [`sts.amazonaws.com`, `sts.${accountStack.region}.amazonaws.com`];
     for (const dnsEntry of stsHostedZoneDnsEntries) {
       if (dnsEntry) {
         stsDnsEntries.push(dnsEntry);
       }
     }
-    
-        
+
     const openSearchSiemProcessingRoleOutput = StructuredOutput.fromOutputs(outputs, {
       accountKey,
       type: OpenSearchLambdaProcessingRoleOutput,
@@ -141,8 +165,7 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
     }
     const openSearchSiemProcessingRoleArn = openSearchSiemProcessingRoleOutput[0].roleArn;
 
-
-    const logAccountKey = config.getMandatoryAccountKey('central-log');    
+    const logAccountKey = config.getMandatoryAccountKey('central-log');
     const logArchiveStack = accountStacks.getOrCreateAccountStack(logAccountKey);
 
     // Central Bucket
@@ -164,22 +187,27 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
 
     const azs = new Set(vpc.subnets.map(x => x.az));
 
-    const lambdaRole = iam.Role.fromRoleArn(accountStack, `${context.acceleratorPrefix}OpenSearchSiemProcessEventsLambdaRole`, openSearchSiemProcessingRoleArn, {
-      mutable: true,
-    });
+    const lambdaRole = iam.Role.fromRoleArn(
+      accountStack,
+      `${context.acceleratorPrefix}OpenSearchSiemProcessEventsLambdaRole`,
+      openSearchSiemProcessingRoleArn,
+      {
+        mutable: true,
+      },
+    );
 
     lambdaRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ['sts:AssumeRole'],
-        resources: [openSearchAdminRoleArn]
-      })
+        resources: [openSearchAdminRoleArn],
+      }),
     );
-    
+
     const domain = createOpenSearchCluster(
       accountKey,
       openSearchSIEMDeploymentConfig,
-      accountStack,            
+      accountStack,
       context.acceleratorPrefix,
       accountEbsEncryptionKeyId,
       openSearchAdminRoleArn,
@@ -192,7 +220,6 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       stsDnsEntries,
     );
 
-    
     const lambdaProcessingFile = openSearchSIEMDeploymentConfig['event-processor-lambda-package'];
     createProcessingLambda(
       vpc,
@@ -200,14 +227,14 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       domainSubnetIds,
       securityGroup,
       accountStack,
-      context.acceleratorPrefix,      
+      context.acceleratorPrefix,
       processingTimeout,
       lambdaRole,
       centralBucketOutput.bucketName,
       lambdaProcessingFile,
       domain.dns,
       logArchiveStack.accountId,
-      [aesLogArchiveBucket, logArchiveBucket]
+      [aesLogArchiveBucket, logArchiveBucket],
     );
   }
 }
@@ -225,13 +252,12 @@ export function createProcessingLambda(
   lambdaProcessingFile: string,
   osDomain: string,
   logArchiveAccountId: string,
-  logBuckets: s3.IBucket[]
+  logBuckets: s3.IBucket[],
 ) {
-    
   const cdkVpc = ec2.Vpc.fromVpcAttributes(accountStack, 'OpenSearchVPCLookupAttr', {
     vpcId: vpc.id,
     availabilityZones: [...azs],
-    privateSubnetIds: domainSubnetIds
+    privateSubnetIds: domainSubnetIds,
   });
 
   const vpc_sg = [];
@@ -254,12 +280,12 @@ export function createProcessingLambda(
       subnetFilters: [ec2.SubnetFilter.byIds(domainSubnetIds)],
     },
     securityGroups: vpc_sg,
-    environment: {      
-        'LOG_LEVEL': 'info',
-        'POWERTOOLS_LOGGER_LOG_EVENT': 'false',
-        'POWERTOOLS_SERVICE_NAME': 'os-loader',
-        'POWERTOOLS_METRICS_NAMESPACE': 'SIEM',
-        'ES_ENDPOINT': osDomain
+    environment: {
+      LOG_LEVEL: 'info',
+      POWERTOOLS_LOGGER_LOG_EVENT: 'false',
+      POWERTOOLS_SERVICE_NAME: 'os-loader',
+      POWERTOOLS_METRICS_NAMESPACE: 'SIEM',
+      ES_ENDPOINT: osDomain,
     },
   });
 
@@ -267,21 +293,19 @@ export function createProcessingLambda(
     eventProcessingLambda.addPermission(`AllowS3Invoke-${logBucket.bucketName}`, {
       principal: new iam.ServicePrincipal('s3.amazonaws.com'),
       sourceArn: logBucket.bucketArn,
-      sourceAccount: logArchiveAccountId
+      sourceAccount: logArchiveAccountId,
     });
   }
 
-  
   new CfnOpenSearchSiemLambdaArnOutput(accountStack, 'OpenSearchSiemProcessingLambdaArn', {
-    lambdaArn: eventProcessingLambda.functionArn
+    lambdaArn: eventProcessingLambda.functionArn,
   });
-
 }
 
 export function createOpenSearchCluster(
   accountKey: string,
   openSearchSIEMDeploymentConfig: OpenSearchSIEMConfig,
-  accountStack: AcceleratorStack,  
+  accountStack: AcceleratorStack,
   acceleratorPrefix: string,
   accountEbsEncryptionKeyId: string,
   adminRole: string,
@@ -291,12 +315,11 @@ export function createOpenSearchCluster(
   azs: string[],
   lambdaRole: iam.IRole,
   centralConfigBucketName: string,
-  stsHostedZoneDnsEntries: string[]
+  stsHostedZoneDnsEntries: string[],
 ) {
-
   const cognitoUserPool = new CognitoUserPool(accountStack, `${acceleratorPrefix}OpenSearchSiemUserPool`, {
     userPoolName: 'OpenSearchSiemUserPool',
-    usernameAttributes: ["email"],
+    usernameAttributes: ['email'],
   });
 
   const cognitoIdentityPool = new CognitoIdentityPool(accountStack, `${acceleratorPrefix}OpenSearchSiemIdenittyPool`, {
@@ -306,44 +329,41 @@ export function createOpenSearchCluster(
 
   const authenticatedRole = new iam.Role(accountStack, `${acceleratorPrefix}OpenSearchSiemIdentityAuthRole`, {
     assumedBy: new iam.WebIdentityPrincipal('cognito-identity.amazonaws.com', {
-      "StringEquals": {
-        "cognito-identity.amazonaws.com:aud": cognitoIdentityPool.id
+      StringEquals: {
+        'cognito-identity.amazonaws.com:aud': cognitoIdentityPool.id,
       },
-      "ForAnyValue:StringLike": {
-        "cognito-identity.amazonaws.com:amr": "authenticated"
-      }
-    })
+      'ForAnyValue:StringLike': {
+        'cognito-identity.amazonaws.com:amr': 'authenticated',
+      },
+    }),
   });
 
   const unauthenticatedRole = new iam.Role(accountStack, `${acceleratorPrefix}OpenSearchSiemIdentityUnauthRole`, {
     assumedBy: new iam.WebIdentityPrincipal('cognito-identity.amazonaws.com', {
-      "StringEquals": {
-        "cognito-identity.amazonaws.com:aud": cognitoIdentityPool.id
+      StringEquals: {
+        'cognito-identity.amazonaws.com:aud': cognitoIdentityPool.id,
       },
-      "ForAnyValue:StringLike": {
-        "cognito-identity.amazonaws.com:amr": "unauthenticated"
-      }
-    })
+      'ForAnyValue:StringLike': {
+        'cognito-identity.amazonaws.com:amr': 'unauthenticated',
+      },
+    }),
   });
 
   const cognitoRoleForOpenSearch = new iam.Role(accountStack, `${acceleratorPrefix}OpenSearchSiemRoleForCognito`, {
     assumedBy: new iam.ServicePrincipal('es.amazonaws.com'),
-    managedPolicies: [
-      iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonOpenSearchServiceCognitoAccess')
-    ]
+    managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonOpenSearchServiceCognitoAccess')],
   });
 
   new CognitoIdentityPoolRoleMapping(accountStack, `${acceleratorPrefix}OpenSearchSiemRoleMapping`, {
     identityPool: cognitoIdentityPool,
     authenticatedRole: authenticatedRole,
-    unauthenticatedRole: unauthenticatedRole
+    unauthenticatedRole: unauthenticatedRole,
   });
 
   new CognitoUserPoolDomain(accountStack, `${acceleratorPrefix}OpenSearchCognitoDomain`, {
     domainPrefix: openSearchSIEMDeploymentConfig['cognito-domain-prefix'],
-    userPool: cognitoUserPool
+    userPool: cognitoUserPool,
   });
-
 
   const domainName = `${acceleratorPrefix}siem`.toLowerCase(); // [a-z][a-z0-9\-]+
   const domain = new OpenSearchDomain(accountStack, `OpenSearchSiemDomain${accountKey}`, {
@@ -359,17 +379,16 @@ export function createOpenSearchCluster(
     adminRole: adminRole,
     cognitoIdentityPoolId: cognitoIdentityPool.id,
     cognitoUserPoolId: cognitoUserPool.id,
-    cognitoPermissionRoleForOpenSearchArn: cognitoRoleForOpenSearch.roleArn
+    cognitoPermissionRoleForOpenSearchArn: cognitoRoleForOpenSearch.roleArn,
   });
 
-  authenticatedRole.addToPrincipalPolicy(new iam.PolicyStatement({
-    actions: [
-      'es:*'
-    ],
-    resources: [`${domain.arn}/*`]
-  }));
+  authenticatedRole.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      actions: ['es:*'],
+      resources: [`${domain.arn}/*`],
+    }),
+  );
 
-  
   const openSearchConfigure = new OpenSearchSiemConfigure(accountStack, `${acceleratorPrefix}OpenSearchConfigure`, {
     openSearchDomain: domain.dns,
     adminRoleMappingArn: authenticatedRole.roleArn,
@@ -382,13 +401,13 @@ export function createOpenSearchCluster(
     availablityZones: azs,
     domainSubnetIds: domainSubnetIds,
     securityGroupIds: securityGroupIds,
-    stsDns: stsHostedZoneDnsEntries
+    stsDns: stsHostedZoneDnsEntries,
   });
 
   openSearchConfigure.node.addDependency(domain);
-  
+
   new CfnOpenSearchClusterDnsOutput(accountStack, 'OpenSearchSIEMDomainEndpoint', {
-    clusterDNS: domain.dns
+    clusterDNS: domain.dns,
   });
 
   return domain;

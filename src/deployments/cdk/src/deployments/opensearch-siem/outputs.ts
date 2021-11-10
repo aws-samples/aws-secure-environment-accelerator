@@ -11,48 +11,45 @@
  *  and limitations under the License.
  */
 
- import * as t from 'io-ts';
- import { createCfnStructuredOutput } from '../../common/structured-output';
- import { ImageIdOutput } from '@aws-accelerator/common-outputs/src/ami-output';
- 
- export const OpenSearchRoleOutput = t.interface(
-   {
-     roleArn: t.string,
-   },
-   'OpenSearchRole',
- );
+import * as t from 'io-ts';
+import { createCfnStructuredOutput } from '../../common/structured-output';
+import { ImageIdOutput } from '@aws-accelerator/common-outputs/src/ami-output';
 
- export const OpenSearchLambdaProcessingRoleOutput = t.interface(
+export const OpenSearchRoleOutput = t.interface(
+  {
+    roleArn: t.string,
+  },
+  'OpenSearchRole',
+);
+
+export const OpenSearchLambdaProcessingRoleOutput = t.interface(
   {
     roleArn: t.string,
   },
   'OpenSearchLambdaProcessingRole',
 );
 
-
- export const OpenSearchClusterDNSOutput = t.interface(
-   {
-     clusterDNS: t.string
-   },
-   'OpenSearchClusterDNS'
- );
- 
-export const OpenSearchLambdaProcessingArnOutput = t.interface(
+export const OpenSearchClusterDNSOutput = t.interface(
   {
-  lambdaArn: t.string,
+    clusterDNS: t.string,
   },
-  'OpenSearchSiemLambdaArn'
+  'OpenSearchClusterDNS',
 );
 
- export type OpenSearchRoleOutput = t.TypeOf<typeof OpenSearchRoleOutput>;
- export type OpenSearchLambdaProcessingRoleOutput = t.TypeOf<typeof OpenSearchLambdaProcessingRoleOutput>;
- export type OpenSearchClusterDNSOutput = t.TypeOf<typeof OpenSearchClusterDNSOutput>;
+export const OpenSearchLambdaProcessingArnOutput = t.interface(
+  {
+    lambdaArn: t.string,
+  },
+  'OpenSearchSiemLambdaArn',
+);
 
- export type OpenSearchLambdaProcessingArnOutput = t.TypeOf<typeof OpenSearchLambdaProcessingArnOutput>;
+export type OpenSearchRoleOutput = t.TypeOf<typeof OpenSearchRoleOutput>;
+export type OpenSearchLambdaProcessingRoleOutput = t.TypeOf<typeof OpenSearchLambdaProcessingRoleOutput>;
+export type OpenSearchClusterDNSOutput = t.TypeOf<typeof OpenSearchClusterDNSOutput>;
 
- export const CfnOpenSearchRoleOutput = createCfnStructuredOutput(OpenSearchRoleOutput);
- export const CfnOpenSearchLambdaProcessingRoleOutput = createCfnStructuredOutput(OpenSearchLambdaProcessingRoleOutput);
- export const CfnOpenSearchClusterDnsOutput = createCfnStructuredOutput(OpenSearchClusterDNSOutput);
- export const CfnOpenSearchSiemLambdaArnOutput = createCfnStructuredOutput(OpenSearchLambdaProcessingArnOutput);
- 
- 
+export type OpenSearchLambdaProcessingArnOutput = t.TypeOf<typeof OpenSearchLambdaProcessingArnOutput>;
+
+export const CfnOpenSearchRoleOutput = createCfnStructuredOutput(OpenSearchRoleOutput);
+export const CfnOpenSearchLambdaProcessingRoleOutput = createCfnStructuredOutput(OpenSearchLambdaProcessingRoleOutput);
+export const CfnOpenSearchClusterDnsOutput = createCfnStructuredOutput(OpenSearchClusterDNSOutput);
+export const CfnOpenSearchSiemLambdaArnOutput = createCfnStructuredOutput(OpenSearchLambdaProcessingArnOutput);

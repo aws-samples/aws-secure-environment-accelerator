@@ -16,10 +16,9 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 
-
 const resourceType = 'Custom::S3BucketNotifications';
 
-export interface S3BucketNotificationProps {  
+export interface S3BucketNotificationProps {
   bucketName: string;
   lambdaArn: string;
   s3Events: string[];
@@ -27,18 +26,17 @@ export interface S3BucketNotificationProps {
   roleName?: string;
 }
 
-export type S3BucketNotificationRuntimeProps = Omit<S3BucketNotificationProps, "roleName">;
+export type S3BucketNotificationRuntimeProps = Omit<S3BucketNotificationProps, 'roleName'>;
 
 /**
  * Custom resource that will configure S3 Bucket Notifications
  */
 export class S3BucketNotifications extends cdk.Construct {
   private readonly resource: cdk.CustomResource;
-  
+
   constructor(scope: cdk.Construct, id: string, private readonly props: S3BucketNotificationProps) {
     super(scope, id);
-   
-   
+
     const runtimeProps: S3BucketNotificationRuntimeProps = props;
 
     this.resource = new cdk.CustomResource(this, 'Resource', {
@@ -47,14 +45,14 @@ export class S3BucketNotifications extends cdk.Construct {
       properties: {
         ...runtimeProps,
       },
-    });   
+    });
   }
 
-  private get lambdaFunction(): lambda.Function {   
+  private get lambdaFunction(): lambda.Function {
     const constructName = `${resourceType}Lambda`;
     const stack = cdk.Stack.of(this);
-    const existing = stack.node.tryFindChild(constructName);    
-    if (existing) {      
+    const existing = stack.node.tryFindChild(constructName);
+    if (existing) {
       return existing as lambda.Function;
     }
 
@@ -62,24 +60,24 @@ export class S3BucketNotifications extends cdk.Construct {
       roleName: this.props.roleName,
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
-    
+
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
         resources: ['*'],
       }),
     );
-    
+
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ['s3:GetBucketNotification', 's3:PutBucketNotification'],
         resources: ['*'],
       }),
     );
-    
+
     const lambdaPath = require.resolve('@aws-accelerator/custom-resource-s3-bucket-notifications-runtime');
     const lambdaDir = path.dirname(lambdaPath);
-    
+
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset(lambdaDir),

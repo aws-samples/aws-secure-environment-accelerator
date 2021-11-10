@@ -14,7 +14,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as opensearch from '@aws-cdk/aws-opensearchservice';
 
-
 export interface OpenSearchDomainConfigurationProps {
   domainName: string;
   subnetIds: string[];
@@ -23,24 +22,36 @@ export interface OpenSearchDomainConfigurationProps {
   dataNodeCount: number;
   mainNodeInstanceType: string;
   dataNodeInstanceType: string;
-  volumeSize: number;  
+  volumeSize: number;
   encryptionKeyId: string;
   adminRole: string;
   cognitoUserPoolId: string;
   cognitoIdentityPoolId: string;
-  cognitoPermissionRoleForOpenSearchArn: string
+  cognitoPermissionRoleForOpenSearchArn: string;
 }
 
-
 export class OpenSearchDomain extends cdk.Construct {
-
   private readonly resource: opensearch.CfnDomain;
 
   constructor(scope: cdk.Construct, id: string, private readonly props: OpenSearchDomainConfigurationProps) {
     super(scope, id);
 
-    const { domainName, subnetIds, securityGroupIds, mainNodeCount, dataNodeCount, mainNodeInstanceType, dataNodeInstanceType, volumeSize, adminRole, encryptionKeyId, cognitoUserPoolId, cognitoIdentityPoolId, cognitoPermissionRoleForOpenSearchArn } = props;
-         
+    const {
+      domainName,
+      subnetIds,
+      securityGroupIds,
+      mainNodeCount,
+      dataNodeCount,
+      mainNodeInstanceType,
+      dataNodeInstanceType,
+      volumeSize,
+      adminRole,
+      encryptionKeyId,
+      cognitoUserPoolId,
+      cognitoIdentityPoolId,
+      cognitoPermissionRoleForOpenSearchArn,
+    } = props;
+
     this.resource = new opensearch.CfnDomain(this, 'Domain', {
       engineVersion: 'OpenSearch_1.0',
       domainName,
@@ -50,48 +61,47 @@ export class OpenSearchDomain extends cdk.Construct {
         dedicatedMasterType: mainNodeInstanceType,
         instanceCount: dataNodeCount,
         instanceType: dataNodeInstanceType,
-        zoneAwarenessEnabled: true
+        zoneAwarenessEnabled: true,
       },
       cognitoOptions: {
         enabled: true,
         identityPoolId: cognitoIdentityPoolId,
         userPoolId: cognitoUserPoolId,
-        roleArn: cognitoPermissionRoleForOpenSearchArn
+        roleArn: cognitoPermissionRoleForOpenSearchArn,
       },
       ebsOptions: {
         ebsEnabled: true,
         volumeSize,
-        volumeType: 'gp2'
+        volumeType: 'gp2',
       },
       advancedSecurityOptions: {
         internalUserDatabaseEnabled: false,
         enabled: true,
-        masterUserOptions: {   
-          masterUserArn: adminRole
-        }
+        masterUserOptions: {
+          masterUserArn: adminRole,
+        },
       },
       domainEndpointOptions: {
         enforceHttps: true,
-        tlsSecurityPolicy: opensearch.TLSSecurityPolicy.TLS_1_2
+        tlsSecurityPolicy: opensearch.TLSSecurityPolicy.TLS_1_2,
       },
       encryptionAtRestOptions: {
         enabled: true,
-        kmsKeyId: encryptionKeyId
+        kmsKeyId: encryptionKeyId,
       },
       nodeToNodeEncryptionOptions: {
-        enabled: true
+        enabled: true,
       },
       snapshotOptions: {
-        automatedSnapshotStartHour: 0
+        automatedSnapshotStartHour: 0,
       },
       vpcOptions: {
         subnetIds,
-        securityGroupIds
-      }
+        securityGroupIds,
+      },
     });
-    
-    this.resource.cfnOptions.deletionPolicy = cdk.CfnDeletionPolicy.DELETE;
 
+    this.resource.cfnOptions.deletionPolicy = cdk.CfnDeletionPolicy.DELETE;
   }
 
   get name(): string {
@@ -105,5 +115,4 @@ export class OpenSearchDomain extends cdk.Construct {
   get arn(): string {
     return this.resource.attrArn;
   }
-
 }

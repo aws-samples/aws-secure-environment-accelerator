@@ -22,7 +22,6 @@ import {
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-
 const s3 = new AWS.S3();
 const sts = new AWS.STS();
 
@@ -60,25 +59,27 @@ async function onCreateOrUpdate(
 ) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { bucketName, lambdaArn, s3Events, s3EventName } = properties;
-  
+
   const existingNotifcationConfiguration = await throttlingBackOff(() =>
-    s3.getBucketNotificationConfiguration({
-      Bucket: bucketName
-    }).promise()
+    s3
+      .getBucketNotificationConfiguration({
+        Bucket: bucketName,
+      })
+      .promise(),
   );
 
   console.log(existingNotifcationConfiguration);
 
   let lambdaConfigurations = existingNotifcationConfiguration.LambdaFunctionConfigurations ?? [];
-  const foundIndex = lambdaConfigurations.findIndex(x => x.Id === s3EventName );
-  
-  if (foundIndex > -1) {  
-    lambdaConfigurations = foundIndex == 0 ? [] : lambdaConfigurations.splice(foundIndex, 1);  
+  const foundIndex = lambdaConfigurations.findIndex(x => x.Id === s3EventName);
+
+  if (foundIndex > -1) {
+    lambdaConfigurations = foundIndex == 0 ? [] : lambdaConfigurations.splice(foundIndex, 1);
   }
   lambdaConfigurations.push({
     Id: s3EventName,
     LambdaFunctionArn: lambdaArn,
-    Events: s3Events
+    Events: s3Events,
   });
   existingNotifcationConfiguration.LambdaFunctionConfigurations = lambdaConfigurations;
 
@@ -86,7 +87,7 @@ async function onCreateOrUpdate(
     s3
       .putBucketNotificationConfiguration({
         Bucket: bucketName,
-        NotificationConfiguration: existingNotifcationConfiguration
+        NotificationConfiguration: existingNotifcationConfiguration,
       })
       .promise(),
   );
@@ -103,20 +104,22 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   if (event.PhysicalResourceId !== getPhysicalId(event)) {
     return;
   }
-    
+
   const existingNotifcationConfiguration = await throttlingBackOff(() =>
-    s3.getBucketNotificationConfiguration({
-      Bucket: bucketName
-    }).promise()
+    s3
+      .getBucketNotificationConfiguration({
+        Bucket: bucketName,
+      })
+      .promise(),
   );
 
   console.log(existingNotifcationConfiguration);
 
   let lambdaConfigurations = existingNotifcationConfiguration.LambdaFunctionConfigurations ?? [];
-  const foundIndex = lambdaConfigurations.findIndex(x => x.Id === s3EventName );
-  
-  if (foundIndex > -1) {  
-    lambdaConfigurations = foundIndex == 0 ? [] : lambdaConfigurations.splice(foundIndex, 1);  
+  const foundIndex = lambdaConfigurations.findIndex(x => x.Id === s3EventName);
+
+  if (foundIndex > -1) {
+    lambdaConfigurations = foundIndex == 0 ? [] : lambdaConfigurations.splice(foundIndex, 1);
   }
   existingNotifcationConfiguration.LambdaFunctionConfigurations = lambdaConfigurations;
 
@@ -124,7 +127,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     s3
       .putBucketNotificationConfiguration({
         Bucket: bucketName,
-        NotificationConfiguration: existingNotifcationConfiguration
+        NotificationConfiguration: existingNotifcationConfiguration,
       })
       .promise(),
   );

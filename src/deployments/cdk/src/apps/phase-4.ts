@@ -134,9 +134,9 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
   await openSearchSiemDeployment.step3({
     accountStacks,
     config: acceleratorConfig,
-    outputs,    
-    logArchiveBucket,    
+    outputs,
+    logArchiveBucket,
     aesLogArchiveBucket,
-    acceleratorPrefix: context.acceleratorPrefix
+    acceleratorPrefix: context.acceleratorPrefix,
   });
 }

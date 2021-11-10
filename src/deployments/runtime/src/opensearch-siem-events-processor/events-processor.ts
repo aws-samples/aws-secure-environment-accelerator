@@ -11,14 +11,9 @@
  *  and limitations under the License.
  */
 
- 
- import * as AWS from 'aws-sdk';
- 
+import * as AWS from 'aws-sdk';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const handler = async (_event: any, _context: any) => {
-    
-    
-    return 'Done';
+  return 'Done';
 };
-  
