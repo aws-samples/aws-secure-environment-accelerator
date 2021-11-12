@@ -1,13 +1,13 @@
 {
   "extends": "./tsconfig.base.json",
   "include": [
-    "src/core/**/*",
-    "src/deployments/**/*",
-    "src/installer/**/*",
-    "src/lib/**/*"
+    "src/**/*",
   ],
   "exclude": [
+    // We ignore files at the root of the cdk folder and not subfolders here
     "src/deployments/cdk/*",
+    // TODO Add back tsc for the UI project at one point
+    "src/ui/**/*",
     "src/core/runtime/test/*"
   ]
 }
