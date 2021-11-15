@@ -21,7 +21,7 @@ import { STS } from '@aws-accelerator/common/src/aws/sts';
 import * as path from 'path';
 import * as fs from 'fs';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
-import { ProvisionedProductAttributes} from 'aws-sdk/clients/servicecatalog';
+import { ProvisionedProductAttributes } from 'aws-sdk/clients/servicecatalog';
 import { GetItemInput, GetItemOutput } from 'aws-sdk/clients/dynamodb';
 jest.mock('@aws-accelerator/common-config/src/load');
 aws.config.logger = console;
@@ -50,7 +50,7 @@ export const values: MockValues = {
   organizationalUnitAccounts: {},
   accounts: [],
   masterAccount: {},
-  provisionedProducts : []
+  provisionedProducts: [],
 };
 
 export function install() {
@@ -74,17 +74,13 @@ export function install() {
     Account: '111111111111',
   }));
 
-  jest
-    .spyOn(Organizations.prototype, 'getAccount')
-    .mockImplementation(async () => values.masterAccount);
+  jest.spyOn(Organizations.prototype, 'getAccount').mockImplementation(async () => values.masterAccount);
 
   jest.spyOn(Organizations.prototype, 'listPoliciesForTarget').mockImplementation(async () => []);
 
-  jest
-    .spyOn(DynamoDB.prototype, 'getItem')
-    .mockImplementation(async () => {
-      return Promise.resolve([]) as GetItemOutput;
-    });
+  jest.spyOn(DynamoDB.prototype, 'getItem').mockImplementation(async () => {
+    return Promise.resolve([]) as GetItemOutput;
+  });
 
   jest.spyOn(ServiceCatalog.prototype, 'searchProvisionedProductsForAllAccounts').mockImplementation(async () => []);
 

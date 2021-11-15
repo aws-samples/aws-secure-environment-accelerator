@@ -7,7 +7,7 @@ import * as v8 from 'v8';
 const fs = require('fs').promises;
 
 // eslint-disable-next-line
-const PAGE_SIZE = parseInt(process.env.DEPLOY_STACK_PAGE_SIZE ?? "") || 850;
+const PAGE_SIZE = parseInt(process.env.DEPLOY_STACK_PAGE_SIZE ?? '') || 850;
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
