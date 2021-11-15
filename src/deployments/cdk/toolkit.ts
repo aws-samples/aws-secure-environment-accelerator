@@ -28,8 +28,6 @@ import { fulfillAll } from './promise';
 import { promises as fsp } from 'fs';
 
 // Set microstats emitters
-const microstatsOptions = { frequency: '5s' };
-
 // Set debug logging
 setLogLevel(1);
 
@@ -74,7 +72,7 @@ export class CdkToolkit {
     const settings = this.props.configuration.settings;
     const env = process.env;
     // eslint-disable-next-line radix
-    this.deploymentPageSize = parseInt(env.DEPLOY_STACK_PAGE_SIZE) || 850;
+    this.deploymentPageSize = parseInt(env.DEPLOY_STACK_PAGE_SIZE ?? "") || 850;
     this.toolkitStackName = env.BOOTSTRAP_STACK_NAME || ToolkitInfo.determineName(settings.get(['toolkitStackName']));
     this.toolkitBucketName = settings.get(['toolkitBucket', 'bucketName']);
     this.toolkitKmsKey = settings.get(['toolkitBucket', 'kmsKeyId']);
@@ -85,10 +83,12 @@ export class CdkToolkit {
     const assemblies = apps.map(app => app.synth());
 
     const configuration = new Configuration({
-      _: [Command.BOOTSTRAP, ...[]],
-      pathMetadata: false,
-      assetMetadata: false,
-      versionReporting: false,
+      commandLineArguments: {
+        _: [Command.BOOTSTRAP, ...[]],
+        pathMetadata: true,
+        assetMetadata: true,
+        versionReporting: true,
+      },
     });
     await configuration.load();
 
@@ -142,7 +142,7 @@ export class CdkToolkit {
     const stacks = this.props.assemblies.flatMap(assembly => assembly.stacks);
     stacks.map(s => s.template);
     stacks.map(stack => {
-      const _ = stack.template; // Force synthesizing the template
+      stack.template; // Force synthesizing the template
       const templatePath = path.join(stack.assembly.directory, stack.templateFile);
       console.warn(
         `${stack.displayName} in account ${stack.environment.account} and region ${stack.environment.region} synthesized to ${templatePath}`,
@@ -193,7 +193,7 @@ export class CdkToolkit {
     console.log(JSON.stringify(stackLoggingInfo));
   }
 
-  async sleep(ms) {
+  async sleep(ms:number) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
@@ -223,7 +223,7 @@ export class CdkToolkit {
           StackName: stack.id,
         })
         .promise();
-      const stackStatus = existingStack.Stacks[0].StackStatus;
+      const stackStatus = (existingStack?.Stacks)?.[0]?.StackStatus ?? "";
       this.deploymentLog(stack, `Stack Status: ${stackStatus}`);
 
       try {
@@ -371,5 +371,5 @@ function toCloudFormationTags(tags: cxschema.Tag[]): Tag[] {
     if (t.key !== 'Accelerator') {
       return { Key: t.key, Value: t.value };
     }
-  });
+  }) as Tag[];
 }

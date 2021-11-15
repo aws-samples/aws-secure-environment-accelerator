@@ -1,12 +1,12 @@
 {
   "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "resolveJsonModule": true
+  },
   "include": [
     "src/**/*",
   ],
   "exclude": [
-    "src/deployments/cdk/cdk.ts",
-    "src/deployments/cdk/toolkit.ts",
-    "src/deployments/cdk/tools.ts",
     // TODO Add back tsc for the UI project at one point
     "src/ui/**/*",
   ]
