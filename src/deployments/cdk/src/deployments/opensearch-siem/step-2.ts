@@ -37,7 +37,7 @@ import {
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { Context } from '../../utils/context';
 import { EbsKmsOutput } from '@aws-accelerator/common-outputs/src/ebs';
-import { IamRoleNameOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import { IamRoleNameOutputFinder, IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { CentralBucketOutputFinder } from '@aws-accelerator/common-outputs/src/central-bucket';
 import { OpenSearchSiemConfigure } from '@aws-accelerator/custom-resource-opensearch-siem-configure';
 import { HostedZoneOutputFinder } from '@aws-accelerator/common-outputs/src/hosted-zone';
@@ -164,6 +164,18 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       return;
     }
     const openSearchSiemProcessingRoleArn = openSearchSiemProcessingRoleOutput[0].roleArn;
+   
+    const logGroupLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+      outputs,
+      accountKey,
+      roleKey: 'LogGroupRole',
+    });
+
+    if (!logGroupLambdaRoleOutput) {
+      console.warn(`Cannot find required LogGroupLambda role in account "${accountKey}"`);
+      return;
+    }
+  
 
     const logAccountKey = config.getMandatoryAccountKey('central-log');
     const logArchiveStack = accountStacks.getOrCreateAccountStack(logAccountKey);
@@ -211,6 +223,7 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       context.acceleratorPrefix,
       accountEbsEncryptionKeyId,
       openSearchAdminRoleArn,
+      logGroupLambdaRoleOutput.roleArn,
       domainSubnetIds,
       [securityGroupId],
       vpc,
@@ -309,6 +322,7 @@ export function createOpenSearchCluster(
   acceleratorPrefix: string,
   accountEbsEncryptionKeyId: string,
   adminRole: string,
+  logGroupLambdaRoleArn: string,
   domainSubnetIds: string[],
   securityGroupIds: string[],
   vpc: Vpc,
@@ -367,6 +381,7 @@ export function createOpenSearchCluster(
 
   const domainName = `${acceleratorPrefix}siem`.toLowerCase(); // [a-z][a-z0-9\-]+
   const domain = new OpenSearchDomain(accountStack, `OpenSearchSiemDomain${accountKey}`, {
+    acceleratorPrefix,
     domainName,
     subnetIds: domainSubnetIds,
     securityGroupIds,
@@ -377,6 +392,7 @@ export function createOpenSearchCluster(
     volumeSize: openSearchSIEMDeploymentConfig['opensearch-volume-size'],
     encryptionKeyId: accountEbsEncryptionKeyId,
     adminRole,
+    logGroupLambdaRoleArn,
     cognitoIdentityPoolId: cognitoIdentityPool.id,
     cognitoUserPoolId: cognitoUserPool.id,
     cognitoPermissionRoleForOpenSearchArn: cognitoRoleForOpenSearch.roleArn,
