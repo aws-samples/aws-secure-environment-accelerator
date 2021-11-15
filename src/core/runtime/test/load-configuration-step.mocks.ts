@@ -21,7 +21,8 @@ import { STS } from '@aws-accelerator/common/src/aws/sts';
 import * as path from 'path';
 import * as fs from 'fs';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
-import { ProvisionedProductAttributes, SearchProvisionedProductsOutput } from 'aws-sdk/clients/servicecatalog';
+import { ProvisionedProductAttributes} from 'aws-sdk/clients/servicecatalog';
+import { GetItemInput, GetItemOutput } from 'aws-sdk/clients/dynamodb';
 jest.mock('@aws-accelerator/common-config/src/load');
 aws.config.logger = console;
 
@@ -49,15 +50,15 @@ export const values: MockValues = {
   organizationalUnitAccounts: {},
   accounts: [],
   masterAccount: {},
+  provisionedProducts : []
 };
 
 export function install() {
-  // @ts-ignore
   jest
     .spyOn(Organizations.prototype, 'getOrganizationalUnit')
     .mockImplementation(async (ouId: string) => values.organizationalUnits.find(ou => ou.Id === ouId));
 
-  jest.spyOn(Organizations.prototype, 'listParents').mockImplementation(async (accountId: string) => []);
+  jest.spyOn(Organizations.prototype, 'listParents').mockImplementation(async () => []);
 
   jest
     .spyOn(Organizations.prototype, 'listOrganizationalUnits')
@@ -75,13 +76,15 @@ export function install() {
 
   jest
     .spyOn(Organizations.prototype, 'getAccount')
-    .mockImplementation(async (accountId: string) => values.masterAccount);
+    .mockImplementation(async () => values.masterAccount);
 
   jest.spyOn(Organizations.prototype, 'listPoliciesForTarget').mockImplementation(async () => []);
 
   jest
     .spyOn(DynamoDB.prototype, 'getItem')
-    .mockImplementation(async (tableName: string, client: DynamoDB) => Promise.resolve([]));
+    .mockImplementation(async () => {
+      return Promise.resolve([]) as GetItemOutput;
+    });
 
   jest.spyOn(ServiceCatalog.prototype, 'searchProvisionedProductsForAllAccounts').mockImplementation(async () => []);
 

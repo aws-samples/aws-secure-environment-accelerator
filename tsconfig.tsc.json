@@ -4,10 +4,10 @@
     "src/**/*",
   ],
   "exclude": [
-    // We ignore files at the root of the cdk folder and not subfolders here
-    "src/deployments/cdk/*",
+    "src/deployments/cdk/cdk.ts",
+    "src/deployments/cdk/toolkit.ts",
+    "src/deployments/cdk/tools.ts",
     // TODO Add back tsc for the UI project at one point
     "src/ui/**/*",
-    "src/core/runtime/test/*"
   ]
 }
