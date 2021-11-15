@@ -14,12 +14,14 @@
 import mri from 'mri';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { S3 } from '@aws-accelerator/common/src/aws/s3';
-import accounts from './accounts.json';
-import context from './context.json';
+import { loadAccounts } from './src/utils/accounts';
+import { loadContext } from './src/utils/context';
 
 const sts = new STS();
 
 async function cleanupCdkBuckets() {
+  const accounts = await loadAccounts();
+  const context = loadContext();
   for (const account of accounts) {
     if (account.key === 'master') {
       continue;
@@ -58,6 +60,8 @@ async function cleanupCdkBuckets() {
 }
 
 async function listEmptyCdkObjects() {
+  const accounts = await loadAccounts();
+  const context = loadContext();
   for (const account of accounts) {
     const creds = await sts.getCredentialsForAccountAndRole(account.id, context.acceleratorExecutionRoleName);
     const s3 = new S3(creds);
@@ -85,6 +89,9 @@ async function listEmptyCdkObjects() {
 }
 
 async function main() {
+  // Set development mode for tools script
+  process.env.CONFIG_MODE = 'development';
+
   const usage = `Usage: tools.ts <command>`;
   const args = mri(process.argv.slice(2));
 
