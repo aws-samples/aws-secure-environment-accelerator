@@ -25,21 +25,32 @@
 
 1. **Full configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.example.json) (`config.example.json`)
    - The full configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the deployed architecture solution.
+   - Default options:
+     - AWS Control Tower: No
+     - Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)
 2. **Lite weight configuration** files
    - Four variants with differing central ingress/egress firewalls
-     - _Recommended starting point_
+     - _Variant 1: Recommended starting point_
        - AWS Control Tower with AWS Network Firewall ([config.lite-CTNFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-CTNFW-example.json))
-     - _Recommended for new GC PBMM customers_ - requires 3rd party licensing (BYOL or PAYGO)
+       - Default Options:
+         - AWS Control Tower: Yes
+     - _Variant 2: Recommended for new GC PBMM customers_ - requires 3rd party licensing (BYOL or PAYGO)
        - IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP) ([config.lite-VPN-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json))
+       - Default Options:
+         - AWS Control Tower: No
      - _Variant 3_
        - AWS Network Firewall ([config.lite-NFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json))
+         - Same as _Variant 1_ config without AWS Control Tower 
      - _Variant 4_ - requires 3rd party licensing (BYOL or PAYGO)
        - Gateway Load Balancer with Checkpoint firewalls in an autoscaling group ([config.lite-GWLB-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-GWLB-example.json))
-   - To reduce solution costs and allow customers to grow into more advanced AWS capabilities, we created this lighter weight configuration that does not sacrifice functionality, but could limit performance. This config file:
+       - Default Options:
+         - AWS Control Tower: No
+   - To reduce solution costs and allow customers to grow into more advanced AWS capabilities, we created these lite weight configurations that does not sacrifice functionality, but could limit performance. These config files:
      - only deploys the 9 required centralized Interface Endpoints (removes 50). All services remain accessible using the AWS public endpoints, but require traversing the perimeter firewalls
      - removes the perimeter VPC Interface Endpoints
-     - reduces the Fortigate instance sizes from c5n.2xl to c5n.xl (VM08 to VM04) in VPN option
+     - reduces the Fortigate instance sizes from c5n.2xl to c5n.xl (VM08 to VM04) in _Variant 2: IPSec VPN with Active/Active Fortinet cluster_ option
      - removes the Unclass ou and VPC
+     - AWS Control Tower can be implemented in all sample configs based on the _Variant 1: AWS Control Tower with AWS Network Firewall_ sample config for new installs.
    - The Accelerator allows customers to easily add or change this functionality in future, as and when required without any impact
 3. **Ultra-Lite sample configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json) (`config.ultralite-example.json`)
    - This configuration file was created to represent an extremely minimalistic Accelerator deployment, simply to demonstrate the art of the possible for an extremely simple config. This example is NOT recommended as it violates many AWS best practices. This This config has:

@@ -51,7 +51,7 @@ These installation instructions assume one of the prescribed architectures is be
 - If required, a limit increase to support your desired number of new AWS sub-accounts (default limit is 10 sub-accounts)
 - Valid Accelerator configuration file, updated to reflect your requirements (see below)
 - Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
-- Government of Canada customers are still required to do a standalone installation at this time, please request standalone installation instructions from your Account SA or TAM
+- Government of Canada customers are still required to do a standalone installation at this time, see details in Section 2.3.1 step 3 to skip AWS Control Tower installation and use a sample config without AWS Control Tower. Additional information can be provided by your Account SA or TAM
 - The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in [section 4](#4-existing-organizations--accounts) below
 - Existing AWS Landing Zone Solution (ALZ) customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
 
