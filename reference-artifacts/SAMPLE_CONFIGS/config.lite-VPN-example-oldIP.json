@@ -1762,9 +1762,8 @@
         "xxfirewall-manager": {
           "name": "FirewallMgr",
           "image-id": "ami-0a0e17ee05506072e",
-          "instance-sizes": "m4.large",
+          "instance-sizes": "c5.xlarge",
           "block-device-mappings": ["/dev/sda1", "/dev/sdb"],
-          "version": "6.4.7",
           "region": "${HOME_REGION}",
           "vpc": "Perimeter",
           "security-group": "FirewallMgr",
