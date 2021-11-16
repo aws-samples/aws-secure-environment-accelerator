@@ -262,7 +262,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - Click on the product you want to subscribe, in this case `Fortinet FortiGate (BYOL) Next-Generation Firewall` and `Fortinet FortiManager (BYOL Centralized Security Management` **or** `CloudGuard Network Security for Gateway Load Balancer - BYOL` and `Check Point Security Management (BYOL)`
     - Click on "Continue to Subscribe"
     - Click on "Accept Terms" and wait for subscription to be completed
-    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (**Fortinet** `v6.4.6`, **Checkpoint Mgmt** `R81.10-335.883` and **CloudGuard** `R80.40-294.374` recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
+    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (**Fortinet** `v6.4.7`, **Checkpoint Mgmt** `R81.10-335.883` and **CloudGuard** `R80.40-294.374` recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
 
 ![New AMI ID](img/new-ami-id.png)
 
