@@ -15,6 +15,9 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as iam from '@aws-cdk/aws-iam';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as lambda from '@aws-cdk/aws-lambda';
+import * as events from '@aws-cdk/aws-events';
+import * as eventTargets from '@aws-cdk/aws-events-targets';
+
 import { OpenSearchDomain } from '@aws-accelerator/cdk-constructs/src/database';
 import {
   CognitoIdentityPoolRoleMapping,
@@ -41,6 +44,10 @@ import { IamRoleNameOutputFinder, IamRoleOutputFinder } from '@aws-accelerator/c
 import { CentralBucketOutputFinder } from '@aws-accelerator/common-outputs/src/central-bucket';
 import { OpenSearchSiemConfigure } from '@aws-accelerator/custom-resource-opensearch-siem-configure';
 import { HostedZoneOutputFinder } from '@aws-accelerator/common-outputs/src/hosted-zone';
+
+import path from 'path';
+import { IBucket } from '@aws-cdk/aws-s3';
+
 
 export interface OpenSearchSIEMStep2Props {
   accountStacks: AccountStacks;
@@ -233,61 +240,163 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       stsDnsEntries,
     );
 
+  
+    
+
+    const configBucket = s3.Bucket.fromBucketName(accountStack, 'ConfigBucket', centralBucketOutput.bucketName);
+    const cdkVpc = ec2.Vpc.fromVpcAttributes(accountStack, 'OpenSearchVPCLookupAttr', {
+      vpcId: vpc.id,
+      availabilityZones: [...azs],
+      privateSubnetIds: domainSubnetIds,
+    });
+
+    const vpcSecurityGroups: ec2.ISecurityGroup[] = [];
+    for (const sg of securityGroup.securityGroups) {
+      const tmp = ec2.SecurityGroup.fromSecurityGroupId(accountStack, `OpenSearchVPCLookup-${sg.name}`, sg.id);
+      vpcSecurityGroups.push(tmp);
+    }
+
+    const maxMindLicense = openSearchSIEMDeploymentConfig['maxmind-license'];
+    let geoUploadBucket: s3.IBucket | undefined  = undefined;
+    if (maxMindLicense) {
+    
+      geoUploadBucket = new s3.Bucket(accountStack,  `${context.acceleratorPrefix}OpenSearchSiem`, {
+        encryption: s3.BucketEncryption.S3_MANAGED,
+        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+        removalPolicy: cdk.RemovalPolicy.RETAIN,
+        enforceSSL: true
+      });
+      
+      geoUploadBucket.addToResourcePolicy(new iam.PolicyStatement({
+        actions: ['s3:GetObject*'],
+        resources: [geoUploadBucket.arnForObjects('*')],
+        principals: [lambdaRole]
+      }));
+
+      createGeoIpDownloader(
+        cdkVpc,
+        domainSubnetIds,
+        vpcSecurityGroups,
+        accountStack,
+        context.acceleratorPrefix,
+        configBucket,
+        maxMindLicense,
+        geoUploadBucket
+      );
+    }
+
+
     const lambdaProcessingFile = openSearchSIEMDeploymentConfig['event-processor-lambda-package'];
     createProcessingLambda(
-      vpc,
-      [...azs],
+      cdkVpc,      
       domainSubnetIds,
-      securityGroup,
+      vpcSecurityGroups,
       accountStack,
       context.acceleratorPrefix,
       processingTimeout,
       lambdaRole,
-      centralBucketOutput.bucketName,
+      configBucket,
       lambdaProcessingFile,
       domain.dns,
       logArchiveStack.accountId,
       [aesLogArchiveBucket, logArchiveBucket],
+      geoUploadBucket
     );
   }
 }
 
-export function createProcessingLambda(
-  vpc: Vpc,
-  azs: string[],
+export function createGeoIpDownloader(
+  vpc: ec2.IVpc,  
   domainSubnetIds: string[],
-  securityGroup: SecurityGroup,
+  vpcSecurityGroups: ec2.ISecurityGroup[],
+  accountStack: AcceleratorStack,
+  acceleratorPrefix: string,
+  configBucket: s3.IBucket,
+  licenseFile: string,
+  geoUploadBucket: s3.IBucket
+ 
+) {
+
+  const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
+  const lambdaDir = path.dirname(lambdaPath);
+  const lambdaCode = lambda.Code.fromAsset(lambdaDir);
+
+  const lambdaRoleName = `${acceleratorPrefix}OpenSearchGeoIpDownloaderRole`;
+  const lambdaRole = new iam.Role(accountStack, 'OpenSearchGeoIpDownloaderRole', {
+    roleName: lambdaRoleName,
+    assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    managedPolicies: [      
+      iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaVPCAccessExecutionRole')
+    ],
+  });
+
+  lambdaRole.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['kms:Decrypt'],
+      resources: ['*'],
+    }),
+  );
+
+  geoUploadBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      actions: ['s3:GetObject*', 's3:PutObject*', 's3:DeleteObject*', 's3:GetBucket*', 's3:List*'],
+      resources: [geoUploadBucket.arnForObjects('*'), geoUploadBucket.bucketArn],
+      principals: [lambdaRole],
+    }),
+  );
+  
+  const geoIpDownloader = new lambda.Function(accountStack, `${acceleratorPrefix}OpenSearchSiemGeoIpDownloaderLambda`, {
+    runtime: lambda.Runtime.NODEJS_14_X,
+    role: lambdaRole,
+    code: lambdaCode,
+    handler: 'index.geoIpDownloader',
+    timeout: cdk.Duration.minutes(5),
+    vpc: vpc,
+    vpcSubnets: {
+      subnetFilters: [ec2.SubnetFilter.byIds(domainSubnetIds)],
+    },
+    securityGroups: vpcSecurityGroups,
+    environment: {
+        CONFIG_BUCKET: configBucket.bucketName,
+        LICENSE: licenseFile,
+        UPLOAD_BUCKET: geoUploadBucket.bucketName,
+        S3KEY_PREFIX: 'GeoLite2/'
+    },
+  });
+  
+  const dailyRule = new events.Rule(accountStack, 'OpenSearchGeoIpDailyDownload', {
+    ruleName: `${acceleratorPrefix}OpenSearchSiem-GeoIp-DailyDownload`,
+    schedule: events.Schedule.rate(cdk.Duration.hours(12)),
+  });
+
+  dailyRule.addTarget(new eventTargets.LambdaFunction(geoIpDownloader));
+
+}
+
+export function createProcessingLambda(
+  vpc: ec2.IVpc,  
+  domainSubnetIds: string[],
+  vpcSecurityGroups: ec2.ISecurityGroup[],
   accountStack: AcceleratorStack,
   acceleratorPrefix: string,
   processingTimeout: number,
   lambdaRole: iam.IRole,
-  centralConfigBucketName: string,
+  configBucket: s3.IBucket,
   lambdaProcessingFile: string,
   osDomain: string,
   logArchiveAccountId: string,
   logBuckets: s3.IBucket[],
+  geoIpUploadBucket?: s3.IBucket,
 ) {
-  const cdkVpc = ec2.Vpc.fromVpcAttributes(accountStack, 'OpenSearchVPCLookupAttr', {
-    vpcId: vpc.id,
-    availabilityZones: [...azs],
-    privateSubnetIds: domainSubnetIds,
-  });
-
-  const vpcSecurityGroups = [];
-  for (const sg of securityGroup.securityGroups) {
-    const tmp = ec2.SecurityGroup.fromSecurityGroupId(accountStack, `OpenSearchVPCLookup-${sg.name}`, sg.id);
-    vpcSecurityGroups.push(tmp);
-  }
-
-  const configBucket = s3.Bucket.fromBucketName(accountStack, 'ConfigBucket', centralConfigBucketName);
-
+      
   const eventProcessingLambda = new lambda.Function(accountStack, `${acceleratorPrefix}OpenSearchSiemProcessEvents`, {
     runtime: lambda.Runtime.PYTHON_3_8,
     code: lambda.Code.fromBucket(configBucket, lambdaProcessingFile),
     role: lambdaRole,
     handler: 'index.lambda_handler',
     timeout: cdk.Duration.seconds(processingTimeout),
-    vpc: cdkVpc,
+    vpc: vpc,
     memorySize: 2048,
     vpcSubnets: {
       subnetFilters: [ec2.SubnetFilter.byIds(domainSubnetIds)],
@@ -299,6 +408,7 @@ export function createProcessingLambda(
       POWERTOOLS_SERVICE_NAME: 'os-loader',
       POWERTOOLS_METRICS_NAMESPACE: 'SIEM',
       ES_ENDPOINT: osDomain,
+      GEOIP_BUCKET: geoIpUploadBucket?.bucketName || ''
     },
   });
 

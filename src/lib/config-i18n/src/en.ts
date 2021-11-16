@@ -1530,6 +1530,10 @@ translate(c.OpenSearchSIEMConfig, {
       title: 'Lambda Package Zipfile S3 Key',
       description: 'The S3 key for the lambda package zip file',
     },
+    'maxmind-license': {
+      title: 'MaxMind license file',
+      description: 'The S3 key for the MaxMind license file. (optional)'
+    }
   },
 });
 

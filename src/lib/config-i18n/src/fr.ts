@@ -1402,6 +1402,10 @@ translate(c.OpenSearchSIEMConfig, {
       title: '',
       description: '',
     },
+    'maxmind-license': {
+      title: '',
+      description: ''
+    }
   },
 });
 

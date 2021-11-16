@@ -15,6 +15,6 @@ export { handler as createSnsPublishToCentralRegion } from './sns-publish-centra
 export { handler as createIgnoreAction } from './ignore-action';
 export { handler as albIpMonitor } from './alb-to-alb-target/alb-ip-monitor';
 export { handler as albTargetRecordMonitor } from './alb-to-alb-target/alb-target-record-monitor';
-export { handler as openSearchSiemEventProcessor } from './opensearch-siem-events-processor/events-processor';
+export { handler as geoIpDownloader } from './opensearch-siem/geo-ip-downloader';
 import * as ouValidationEvents from './ou-validation-events';
 export { ouValidationEvents };

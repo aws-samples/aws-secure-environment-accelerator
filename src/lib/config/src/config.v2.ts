@@ -464,6 +464,7 @@ export const OpenSearchSIEMConfig = t.interface({
   'app-subnets': t.array(RsyslogSubnetConfig),
   'lambda-log-processing-role': t.nonEmptyString,
   'cognito-domain-prefix': t.nonEmptyString,
+  'maxmind-license': t.optional(t.string),
   'opensearch-instance-type-main-nodes': t.nonEmptyString,
   'opensearch-instance-type-data-nodes': t.nonEmptyString,
   'opensearch-instance-role': t.nonEmptyString,
