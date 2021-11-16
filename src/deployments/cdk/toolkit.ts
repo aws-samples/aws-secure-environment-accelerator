@@ -15,10 +15,10 @@ import path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as cxschema from '@aws-cdk/cloud-assembly-schema';
 import { CloudAssembly, CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
-import { ToolkitInfo, Mode } from 'aws-cdk';
+import { Mode, ToolkitInfo } from 'aws-cdk';
 import { setLogLevel } from 'aws-cdk/lib/logging';
 import { Bootstrapper } from 'aws-cdk/lib/api/bootstrap';
-import { Configuration, Command } from 'aws-cdk/lib/settings';
+import { Command, Configuration } from 'aws-cdk/lib/settings';
 import { SdkProvider } from 'aws-cdk/lib/api/aws-auth';
 import { CloudFormationDeployments } from 'aws-cdk/lib/api/cloudformation-deployments';
 import { PluginHost } from 'aws-cdk/lib/plugin';
@@ -27,9 +27,7 @@ import { AssumeProfilePlugin } from '@aws-accelerator/cdk-plugin-assume-role/src
 import { fulfillAll } from './promise';
 import { promises as fsp } from 'fs';
 
-//Set microstats emitters
-const microstatsOptions = { frequency: '5s' };
-
+// Set microstats emitters
 // Set debug logging
 setLogLevel(1);
 
@@ -73,7 +71,8 @@ export class CdkToolkit {
     // TODO Remove configuration dependency
     const settings = this.props.configuration.settings;
     const env = process.env;
-    this.deploymentPageSize = parseInt(env.DEPLOY_STACK_PAGE_SIZE) || 850;
+    // eslint-disable-next-line radix
+    this.deploymentPageSize = parseInt(env.DEPLOY_STACK_PAGE_SIZE ?? '') || 850;
     this.toolkitStackName = env.BOOTSTRAP_STACK_NAME || ToolkitInfo.determineName(settings.get(['toolkitStackName']));
     this.toolkitBucketName = settings.get(['toolkitBucket', 'bucketName']);
     this.toolkitKmsKey = settings.get(['toolkitBucket', 'kmsKeyId']);
@@ -84,10 +83,12 @@ export class CdkToolkit {
     const assemblies = apps.map(app => app.synth());
 
     const configuration = new Configuration({
-      _: [Command.BOOTSTRAP, ...[]],
-      pathMetadata: false,
-      assetMetadata: false,
-      versionReporting: false,
+      commandLineArguments: {
+        _: [Command.BOOTSTRAP, ...[]],
+        pathMetadata: true,
+        assetMetadata: true,
+        versionReporting: true,
+      },
     });
     await configuration.load();
 
@@ -141,7 +142,7 @@ export class CdkToolkit {
     const stacks = this.props.assemblies.flatMap(assembly => assembly.stacks);
     stacks.map(s => s.template);
     stacks.map(stack => {
-      const _ = stack.template; // Force synthesizing the template
+      stack.template; // Force synthesizing the template
       const templatePath = path.join(stack.assembly.directory, stack.templateFile);
       console.warn(
         `${stack.displayName} in account ${stack.environment.account} and region ${stack.environment.region} synthesized to ${templatePath}`,
@@ -180,7 +181,7 @@ export class CdkToolkit {
     // Merge all stack outputs
     return combinedOutputs;
   }
-  async deploymentLog(stack: CloudFormationStackArtifact, message: string, messageType: string = 'INFO') {
+  deploymentLog(stack: CloudFormationStackArtifact, message: string, messageType: string = 'INFO') {
     const stackLoggingInfo = {
       stackName: stack.displayName,
       stackEnvironment: stack.environment,
@@ -192,7 +193,7 @@ export class CdkToolkit {
     console.log(JSON.stringify(stackLoggingInfo));
   }
 
-  async sleep(ms) {
+  async sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
@@ -207,7 +208,7 @@ export class CdkToolkit {
       this.deploymentLog(stack, 'Stack has no resources');
       if (stackExists) {
         this.deploymentLog(stack, 'Deleting existing stack');
-        this.destroyStack(stack);
+        await this.destroyStack(stack);
       }
       return [];
     } else if (stackExists) {
@@ -222,7 +223,7 @@ export class CdkToolkit {
           StackName: stack.id,
         })
         .promise();
-      const stackStatus = existingStack.Stacks[0].StackStatus;
+      const stackStatus = existingStack?.Stacks?.[0]?.StackStatus ?? '';
       this.deploymentLog(stack, `Stack Status: ${stackStatus}`);
 
       try {
@@ -266,7 +267,7 @@ export class CdkToolkit {
         this.deploymentLog(stack, 'Deployment Successful');
       }
       this.deploymentLog(stack, 'Deleting assembly directory');
-      this.deleteAssemblyDir(stack.assembly.directory);
+      await this.deleteAssemblyDir(stack.assembly.directory);
       this.deploymentLog(stack, 'Deleted assembly directory');
 
       return Object.entries(result.outputs).map(([name, value]) => ({
@@ -287,7 +288,7 @@ export class CdkToolkit {
         console.log(e);
         this.deploymentLog(stack, `Deployment failed because of error. Retrying deployment ${retries}`);
         await this.sleep(10000);
-        return await this.deployStack(stack, retries + 1);
+        return this.deployStack(stack, retries + 1);
       }
       throw e;
     }
@@ -370,5 +371,5 @@ function toCloudFormationTags(tags: cxschema.Tag[]): Tag[] {
     if (t.key !== 'Accelerator') {
       return { Key: t.key, Value: t.value };
     }
-  });
+  }) as Tag[];
 }

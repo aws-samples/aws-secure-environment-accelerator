@@ -50,26 +50,26 @@ test('no differences should be reported when the configuration file did not chan
   expect(differences).toBeUndefined();
 });
 
-test('validate account email should work', () => {
+test('validate account email should work', async () => {
   config2['mandatory-account-configs'].master.email = 'random@amazon.com';
 
   const differences = compareConfiguration(config1, config2);
   expect(differences).toBeDefined();
 
   const errors: string[] = [];
-  validate.validateAccountEmail(differences!, errors);
+  await validate.validateAccountEmail(differences!, errors);
 
   expect(errors).toHaveLength(1);
 });
 
-test('validate MAD dir-id should work', () => {
+test('validate MAD dir-id should work', async () => {
   config2['mandatory-account-configs'].operations.deployments!.mad!['dir-id'] = 666;
 
   const differences = compareConfiguration(config1, config2);
   expect(differences).toBeDefined();
 
   const errors: string[] = [];
-  validate.validateMad(differences!, errors);
+  await validate.validateMad(differences!, errors);
 
   expect(errors).toHaveLength(1);
 });

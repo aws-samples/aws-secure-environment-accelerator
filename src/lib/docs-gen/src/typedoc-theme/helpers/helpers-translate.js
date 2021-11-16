@@ -1,7 +1,7 @@
 
 
 module.exports = {
-    customLocalize: function (parent, property) {
+    customLocalize (parent, property) {
         const selectedLanguage = process.env.lang;
         const languageDictionary = require(`../../../output-translations/translation-${selectedLanguage}.json`);
         let parentCleansed = "";
@@ -17,13 +17,13 @@ module.exports = {
              * be retrieved. Below statements remove the last digit.
              */
             const isLastCharacterANumber = !isNaN(parentCleansed.charAt(parentCleansed.length - 1));
-            if (isLastCharacterANumber) parentCleansed = parentCleansed.slice(0, -1);
+            if (isLastCharacterANumber) {parentCleansed = parentCleansed.slice(0, -1);}
         }
 
         let translation = "";
         if (parentExists) {
             translation = languageDictionary[selectedLanguage][`i18n-${parentCleansed}-${property}`];
-        } else translation = englishDict.en[`i18n-${property}`];
+        } else {translation = englishDict.en[`i18n-${property}`];}
         return translation;
     }
 }

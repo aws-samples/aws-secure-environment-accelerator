@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "resolveJsonModule": true
+  },
+  "include": [
+    "src/**/*",
+  ],
+  "exclude": [
+    // TODO Add back tsc for the UI project at one point
+    "src/ui/**/*",
+  ]
+}

@@ -8,6 +8,31 @@ on:
       - main
 
 jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+      - name: Cache Node.js modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-node-
+            ${{ runner.OS }}-
+      - name: Install Node.js modules
+        run: |
+          npm install -g pnpm@6.2.3
+          pnpm install --frozen-lockfile
+      - name: Analyze TypeScript files
+        run: |
+          pnpm -w lint:typecheck
   linter:
     name: Linter
     runs-on: ubuntu-latest
@@ -33,7 +58,6 @@ jobs:
       - name: Analyze TypeScript files
         run: |
           pnpm -w lint:eslint
-          pnpm -w lint:typecheck
   prettier:
     name: Prettier
     runs-on: ubuntu-latest
