@@ -29,7 +29,7 @@ export interface OpenSearchDomainConfigurationProps {
   dataNodeInstanceType: string;
   volumeSize: number;
   encryptionKeyId: string;
-  adminRole: string;
+  adminRoleArn: string;
   logGroupLambdaRoleArn: string;
   cognitoUserPoolId: string;
   cognitoIdentityPoolId: string;
@@ -52,7 +52,7 @@ export class OpenSearchDomain extends cdk.Construct {
       mainNodeInstanceType,
       dataNodeInstanceType,
       volumeSize,
-      adminRole,
+      adminRoleArn,
       logGroupLambdaRoleArn,
       encryptionKeyId,
       cognitoUserPoolId,
@@ -62,12 +62,11 @@ export class OpenSearchDomain extends cdk.Construct {
 
     const acceleratorPrefixNoDash = acceleratorPrefix.slice(0, -1);
 
-
     const cwLogGroupApplicationLogs = new LogGroup(this, `OpenSearchApplicationLogGroup`, {
       logGroupName: `/${acceleratorPrefixNoDash}/${domainName}/opensearch-application-logs`,
       roleArn: logGroupLambdaRoleArn,
     });
-    
+
     const cwLogGroupSlowLogs = new LogGroup(this, `OpenSearchSlowLogGroup`, {
       logGroupName: `/${acceleratorPrefixNoDash}/${domainName}/opensearch-slow-logs`,
       roleArn: logGroupLambdaRoleArn,
@@ -92,7 +91,12 @@ export class OpenSearchDomain extends cdk.Construct {
         new iam.PolicyStatement({
           actions: ['logs:CreateLogStream', 'logs:PutLogEvents', 'logs:PutLogEventsBatch'],
           principals: [new iam.ServicePrincipal('es.amazonaws.com')],
-          resources: [cwLogGroupApplicationLogs.logGroupArn, cwLogGroupSlowLogs.logGroupArn, cwLogGroupIndexSlowLogs.logGroupArn, cwLogGroupAuditLogs.logGroupArn],
+          resources: [
+            cwLogGroupApplicationLogs.logGroupArn,
+            cwLogGroupSlowLogs.logGroupArn,
+            cwLogGroupIndexSlowLogs.logGroupArn,
+            cwLogGroupAuditLogs.logGroupArn,
+          ],
         }),
       ],
     });
@@ -123,7 +127,7 @@ export class OpenSearchDomain extends cdk.Construct {
         internalUserDatabaseEnabled: false,
         enabled: true,
         masterUserOptions: {
-          masterUserArn: adminRole,
+          masterUserArn: adminRoleArn,
         },
       },
       domainEndpointOptions: {
@@ -147,21 +151,21 @@ export class OpenSearchDomain extends cdk.Construct {
       logPublishingOptions: {
         ES_APPLICATION_LOGS: {
           enabled: true,
-          cloudWatchLogsLogGroupArn: cwLogGroupApplicationLogs.logGroupArn
+          cloudWatchLogsLogGroupArn: cwLogGroupApplicationLogs.logGroupArn,
         },
         SEARCH_SLOW_LOGS: {
           enabled: true,
-          cloudWatchLogsLogGroupArn: cwLogGroupSlowLogs.logGroupArn
+          cloudWatchLogsLogGroupArn: cwLogGroupSlowLogs.logGroupArn,
         },
         INDEX_SLOW_LOGS: {
           enabled: true,
-          cloudWatchLogsLogGroupArn: cwLogGroupIndexSlowLogs.logGroupArn
+          cloudWatchLogsLogGroupArn: cwLogGroupIndexSlowLogs.logGroupArn,
         },
         AUDIT_LOGS: {
           enabled: true,
-          cloudWatchLogsLogGroupArn: cwLogGroupAuditLogs.logGroupArn
-        }
-      }
+          cloudWatchLogsLogGroupArn: cwLogGroupAuditLogs.logGroupArn,
+        },
+      },
     });
 
     this.resource.cfnOptions.deletionPolicy = cdk.CfnDeletionPolicy.DELETE;

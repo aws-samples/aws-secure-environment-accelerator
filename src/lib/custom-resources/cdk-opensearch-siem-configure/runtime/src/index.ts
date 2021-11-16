@@ -28,11 +28,9 @@ const s3 = new AWS.S3();
 
 export interface HandlerProperties {
   openSearchDomain: string;
-  adminOpenSearchRoleArn: string;
   adminRoleMappingArn: string;
   openSearchConfigurationS3Bucket: string;
   openSearchConfigurationS3Key: string;
-  stsDns: string[];
   osProcesserRoleArn: string;
 }
 
@@ -86,11 +84,9 @@ async function onCreateOrUpdate(
   const {
     openSearchDomain,
     adminRoleMappingArn,
-    adminOpenSearchRoleArn,
     osProcesserRoleArn,
     openSearchConfigurationS3Bucket,
     openSearchConfigurationS3Key,
-    stsDns,
   } = properties;
 
   console.log('Opensearch Siem Events Processor');
@@ -104,32 +100,7 @@ async function onCreateOrUpdate(
   // const rawdata = fs.readFileSync('../../../../../reference-artifacts/siem/opensearch-config.json');
   // siemOpenSearchConfig = JSON.parse(rawdata.toString());
 
-  for (const stsEndpoint of stsDns) {
-    try {
-      console.log(`Assuming '${adminOpenSearchRoleArn}' using stsEndpoint ${stsEndpoint}`);
-      const sts = new AWS.STS({
-        endpoint: `https://${stsEndpoint}`,
-        httpOptions: {
-          connectTimeout: 15,
-        },
-      });
-
-      const assumeRoleResponse = await sts
-        .assumeRole({
-          RoleArn: adminOpenSearchRoleArn,
-          RoleSessionName: 'OpenSeardhSiemConfigureLambda',
-        })
-        .promise();
-
-      const { AccessKeyId, SecretAccessKey, SessionToken } = assumeRoleResponse.Credentials;
-      console.log(`Role assumed AccessKeId: ${AccessKeyId}`);
-      openSearchAdminCredentials = new AWS.Credentials(AccessKeyId, SecretAccessKey, SessionToken);
-
-      break;
-    } catch (err) {
-      console.log(err);
-    }
-  }
+  openSearchAdminCredentials = new AWS.EnvironmentCredentials('AWS');
 
   await configureOpenSearch(openSearchDomain, siemOpenSearchConfig, osProcesserRoleArn, adminRoleMappingArn);
 

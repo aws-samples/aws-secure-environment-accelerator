@@ -40,14 +40,11 @@ import {
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { Context } from '../../utils/context';
 import { EbsKmsOutput } from '@aws-accelerator/common-outputs/src/ebs';
-import { IamRoleNameOutputFinder, IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { CentralBucketOutputFinder } from '@aws-accelerator/common-outputs/src/central-bucket';
 import { OpenSearchSiemConfigure } from '@aws-accelerator/custom-resource-opensearch-siem-configure';
-import { HostedZoneOutputFinder } from '@aws-accelerator/common-outputs/src/hosted-zone';
 
 import path from 'path';
-import { IBucket } from '@aws-cdk/aws-s3';
-
 
 export interface OpenSearchSIEMStep2Props {
   accountStacks: AccountStacks;
@@ -82,7 +79,7 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
     console.log(`OpenSearchSiem-Step1: ${openSearchClusterExists}`);
 
     const openSearchSIEMDeploymentConfig = accountConfig.deployments?.siem;
-    if (!openSearchClusterExists && (!openSearchSIEMDeploymentConfig || !openSearchSIEMDeploymentConfig.deploy)) {
+    if (!openSearchSIEMDeploymentConfig || !openSearchSIEMDeploymentConfig.deploy) {
       // If cluster doesn't exist, based on data in output, and the SIEM section has been removed or marked deployed false
       // continue. ie, this would remove aws resources from the stack.
       continue;
@@ -106,18 +103,6 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
     }
-
-    const openSearchAdminRoleOutput = IamRoleNameOutputFinder.tryFindOneByName({
-      outputs,
-      accountKey,
-      roleName: openSearchSIEMDeploymentConfig['opensearch-instance-role'],
-      roleKey: 'IamAccountRole',
-    });
-    if (!openSearchAdminRoleOutput) {
-      console.warn(`Cannot find OpenSearch role ${openSearchSIEMDeploymentConfig['opensearch-instance-role']}`);
-      return;
-    }
-    const openSearchAdminRoleArn = openSearchAdminRoleOutput.roleArn;
 
     const accountEbsEncryptionKeys = StructuredOutput.fromOutputs(outputs, {
       accountKey,
@@ -148,20 +133,6 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       return;
     }
 
-    // Get STS Hosted Zones
-    const hostedZoneOutputs = HostedZoneOutputFinder.findAll({
-      outputs,
-    });
-    const stsHostedZoneDnsEntries = hostedZoneOutputs
-      .filter(hzo => hzo.serviceName === 'sts')
-      .map(hostedZone => hostedZone.aliasTargetDns);
-    const stsDnsEntries: string[] = [`sts.amazonaws.com`, `sts.${accountStack.region}.amazonaws.com`];
-    for (const dnsEntry of stsHostedZoneDnsEntries) {
-      if (dnsEntry) {
-        stsDnsEntries.push(dnsEntry);
-      }
-    }
-
     const openSearchSiemProcessingRoleOutput = StructuredOutput.fromOutputs(outputs, {
       accountKey,
       type: OpenSearchLambdaProcessingRoleOutput,
@@ -171,7 +142,7 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       return;
     }
     const openSearchSiemProcessingRoleArn = openSearchSiemProcessingRoleOutput[0].roleArn;
-   
+
     const logGroupLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
       outputs,
       accountKey,
@@ -182,7 +153,6 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       console.warn(`Cannot find required LogGroupLambda role in account "${accountKey}"`);
       return;
     }
-  
 
     const logAccountKey = config.getMandatoryAccountKey('central-log');
     const logArchiveStack = accountStacks.getOrCreateAccountStack(logAccountKey);
@@ -215,21 +185,12 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       },
     );
 
-    lambdaRole.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['sts:AssumeRole'],
-        resources: [openSearchAdminRoleArn],
-      }),
-    );
-
     const domain = createOpenSearchCluster(
       accountKey,
       openSearchSIEMDeploymentConfig,
       accountStack,
       context.acceleratorPrefix,
       accountEbsEncryptionKeyId,
-      openSearchAdminRoleArn,
       logGroupLambdaRoleOutput.roleArn,
       domainSubnetIds,
       [securityGroupId],
@@ -237,11 +198,7 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       [...azs],
       lambdaRole,
       centralBucketOutput.bucketName,
-      stsDnsEntries,
     );
-
-  
-    
 
     const configBucket = s3.Bucket.fromBucketName(accountStack, 'ConfigBucket', centralBucketOutput.bucketName);
     const cdkVpc = ec2.Vpc.fromVpcAttributes(accountStack, 'OpenSearchVPCLookupAttr', {
@@ -257,21 +214,22 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
     }
 
     const maxMindLicense = openSearchSIEMDeploymentConfig['maxmind-license'];
-    let geoUploadBucket: s3.IBucket | undefined  = undefined;
+    let geoUploadBucket: s3.IBucket;
     if (maxMindLicense) {
-    
-      geoUploadBucket = new s3.Bucket(accountStack,  `${context.acceleratorPrefix}OpenSearchSiem`, {
+      geoUploadBucket = new s3.Bucket(accountStack, `${context.acceleratorPrefix}OpenSearchSiem`, {
         encryption: s3.BucketEncryption.S3_MANAGED,
         blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
         removalPolicy: cdk.RemovalPolicy.RETAIN,
-        enforceSSL: true
+        enforceSSL: true,
       });
-      
-      geoUploadBucket.addToResourcePolicy(new iam.PolicyStatement({
-        actions: ['s3:GetObject*'],
-        resources: [geoUploadBucket.arnForObjects('*')],
-        principals: [lambdaRole]
-      }));
+
+      geoUploadBucket.addToResourcePolicy(
+        new iam.PolicyStatement({
+          actions: ['s3:GetObject*'],
+          resources: [geoUploadBucket.arnForObjects('*')],
+          principals: [lambdaRole],
+        }),
+      );
 
       createGeoIpDownloader(
         cdkVpc,
@@ -281,14 +239,13 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
         context.acceleratorPrefix,
         configBucket,
         maxMindLicense,
-        geoUploadBucket
+        geoUploadBucket,
       );
     }
 
-
     const lambdaProcessingFile = openSearchSIEMDeploymentConfig['event-processor-lambda-package'];
     createProcessingLambda(
-      cdkVpc,      
+      cdkVpc,
       domainSubnetIds,
       vpcSecurityGroups,
       accountStack,
@@ -300,23 +257,21 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
       domain.dns,
       logArchiveStack.accountId,
       [aesLogArchiveBucket, logArchiveBucket],
-      geoUploadBucket
+      geoUploadBucket,
     );
   }
 }
 
 export function createGeoIpDownloader(
-  vpc: ec2.IVpc,  
+  vpc: ec2.IVpc,
   domainSubnetIds: string[],
   vpcSecurityGroups: ec2.ISecurityGroup[],
   accountStack: AcceleratorStack,
   acceleratorPrefix: string,
   configBucket: s3.IBucket,
   licenseFile: string,
-  geoUploadBucket: s3.IBucket
- 
+  geoUploadBucket: s3.IBucket,
 ) {
-
   const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
   const lambdaDir = path.dirname(lambdaPath);
   const lambdaCode = lambda.Code.fromAsset(lambdaDir);
@@ -325,8 +280,9 @@ export function createGeoIpDownloader(
   const lambdaRole = new iam.Role(accountStack, 'OpenSearchGeoIpDownloaderRole', {
     roleName: lambdaRoleName,
     assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    managedPolicies: [      
-      iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaVPCAccessExecutionRole')
+    managedPolicies: [
+      iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaVPCAccessExecutionRole'),
+      iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess'),
     ],
   });
 
@@ -345,37 +301,36 @@ export function createGeoIpDownloader(
       principals: [lambdaRole],
     }),
   );
-  
+
   const geoIpDownloader = new lambda.Function(accountStack, `${acceleratorPrefix}OpenSearchSiemGeoIpDownloaderLambda`, {
     runtime: lambda.Runtime.NODEJS_14_X,
     role: lambdaRole,
     code: lambdaCode,
     handler: 'index.geoIpDownloader',
     timeout: cdk.Duration.minutes(5),
-    vpc: vpc,
+    vpc,
     vpcSubnets: {
       subnetFilters: [ec2.SubnetFilter.byIds(domainSubnetIds)],
     },
     securityGroups: vpcSecurityGroups,
     environment: {
-        CONFIG_BUCKET: configBucket.bucketName,
-        LICENSE: licenseFile,
-        UPLOAD_BUCKET: geoUploadBucket.bucketName,
-        S3KEY_PREFIX: 'GeoLite2/'
+      CONFIG_BUCKET: configBucket.bucketName,
+      LICENSE: licenseFile,
+      UPLOAD_BUCKET: geoUploadBucket.bucketName,
+      S3KEY_PREFIX: 'GeoLite2/',
     },
   });
-  
+
   const dailyRule = new events.Rule(accountStack, 'OpenSearchGeoIpDailyDownload', {
     ruleName: `${acceleratorPrefix}OpenSearchSiem-GeoIp-DailyDownload`,
     schedule: events.Schedule.rate(cdk.Duration.hours(12)),
   });
 
   dailyRule.addTarget(new eventTargets.LambdaFunction(geoIpDownloader));
-
 }
 
 export function createProcessingLambda(
-  vpc: ec2.IVpc,  
+  vpc: ec2.IVpc,
   domainSubnetIds: string[],
   vpcSecurityGroups: ec2.ISecurityGroup[],
   accountStack: AcceleratorStack,
@@ -389,14 +344,13 @@ export function createProcessingLambda(
   logBuckets: s3.IBucket[],
   geoIpUploadBucket?: s3.IBucket,
 ) {
-      
   const eventProcessingLambda = new lambda.Function(accountStack, `${acceleratorPrefix}OpenSearchSiemProcessEvents`, {
     runtime: lambda.Runtime.PYTHON_3_8,
     code: lambda.Code.fromBucket(configBucket, lambdaProcessingFile),
     role: lambdaRole,
     handler: 'index.lambda_handler',
     timeout: cdk.Duration.seconds(processingTimeout),
-    vpc: vpc,
+    vpc,
     memorySize: 2048,
     vpcSubnets: {
       subnetFilters: [ec2.SubnetFilter.byIds(domainSubnetIds)],
@@ -408,7 +362,7 @@ export function createProcessingLambda(
       POWERTOOLS_SERVICE_NAME: 'os-loader',
       POWERTOOLS_METRICS_NAMESPACE: 'SIEM',
       ES_ENDPOINT: osDomain,
-      GEOIP_BUCKET: geoIpUploadBucket?.bucketName || ''
+      GEOIP_BUCKET: geoIpUploadBucket?.bucketName || '',
     },
   });
 
@@ -431,7 +385,6 @@ export function createOpenSearchCluster(
   accountStack: AcceleratorStack,
   acceleratorPrefix: string,
   accountEbsEncryptionKeyId: string,
-  adminRole: string,
   logGroupLambdaRoleArn: string,
   domainSubnetIds: string[],
   securityGroupIds: string[],
@@ -439,7 +392,6 @@ export function createOpenSearchCluster(
   azs: string[],
   lambdaRole: iam.IRole,
   centralConfigBucketName: string,
-  stsHostedZoneDnsEntries: string[],
 ) {
   const cognitoUserPool = new CognitoUserPool(accountStack, `${acceleratorPrefix}OpenSearchSiemUserPool`, {
     userPoolName: 'OpenSearchSiemUserPool',
@@ -501,7 +453,7 @@ export function createOpenSearchCluster(
     dataNodeInstanceType: openSearchSIEMDeploymentConfig['opensearch-instance-type-data-nodes'],
     volumeSize: openSearchSIEMDeploymentConfig['opensearch-volume-size'],
     encryptionKeyId: accountEbsEncryptionKeyId,
-    adminRole,
+    adminRoleArn: lambdaRole.roleArn,
     logGroupLambdaRoleArn,
     cognitoIdentityPoolId: cognitoIdentityPool.id,
     cognitoUserPoolId: cognitoUserPool.id,
@@ -518,7 +470,6 @@ export function createOpenSearchCluster(
   const openSearchConfigure = new OpenSearchSiemConfigure(accountStack, `${acceleratorPrefix}OpenSearchConfigure`, {
     openSearchDomain: domain.dns,
     adminRoleMappingArn: authenticatedRole.roleArn,
-    adminOpenSearchRoleArn: adminRole,
     osProcesserRoleArn: lambdaRole.roleArn,
     openSearchConfigurationS3Bucket: centralConfigBucketName,
     openSearchConfigurationS3Key: openSearchSIEMDeploymentConfig['opensearch-configuration'],
@@ -527,7 +478,6 @@ export function createOpenSearchCluster(
     availablityZones: azs,
     domainSubnetIds,
     securityGroupIds,
-    stsDns: stsHostedZoneDnsEntries,
   });
 
   openSearchConfigure.node.addDependency(domain);

@@ -1506,10 +1506,6 @@ translate(c.OpenSearchSIEMConfig, {
       title: 'Data Node Instance Type',
       description: 'OpenSearch instance type and size for the data nodes.',
     },
-    'opensearch-instance-role': {
-      title: 'Admin Access Role',
-      description: 'Role for admin access in the cluster.',
-    },
     'opensearch-capacity-main-nodes': {
       title: 'Main Nodes',
       description: 'The number of main nodes to deploy. Must be a multiple of 3.',
@@ -1532,8 +1528,8 @@ translate(c.OpenSearchSIEMConfig, {
     },
     'maxmind-license': {
       title: 'MaxMind license file',
-      description: 'The S3 key for the MaxMind license file. (optional)'
-    }
+      description: 'The S3 key for the MaxMind license file. (optional)',
+    },
   },
 });
 

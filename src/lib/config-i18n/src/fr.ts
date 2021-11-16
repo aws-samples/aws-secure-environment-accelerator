@@ -1382,9 +1382,6 @@ translate(c.OpenSearchSIEMConfig, {
     'opensearch-instance-type-data-nodes': {
       title: '',
     },
-    'opensearch-instance-role': {
-      title: '',
-    },
     'opensearch-capacity-main-nodes': {
       title: '',
     },
@@ -1404,8 +1401,8 @@ translate(c.OpenSearchSIEMConfig, {
     },
     'maxmind-license': {
       title: '',
-      description: ''
-    }
+      description: '',
+    },
   },
 });
 

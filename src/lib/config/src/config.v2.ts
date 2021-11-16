@@ -467,7 +467,6 @@ export const OpenSearchSIEMConfig = t.interface({
   'maxmind-license': t.optional(t.string),
   'opensearch-instance-type-main-nodes': t.nonEmptyString,
   'opensearch-instance-type-data-nodes': t.nonEmptyString,
-  'opensearch-instance-role': t.nonEmptyString,
   'opensearch-capacity-main-nodes': t.number,
   'opensearch-capacity-data-nodes': t.number,
   'opensearch-volume-size': t.number,

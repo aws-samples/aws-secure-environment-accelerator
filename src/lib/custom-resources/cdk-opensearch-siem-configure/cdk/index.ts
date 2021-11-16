@@ -22,7 +22,6 @@ const resourceType = 'Custom::OpenSearchSiemConfigure';
 export interface OpenSearchSiemConfigureProps {
   openSearchDomain: string;
   adminRoleMappingArn: string;
-  adminOpenSearchRoleArn: string;
   osProcesserRoleArn: string;
   openSearchConfigurationS3Bucket: string;
   openSearchConfigurationS3Key: string;
@@ -31,7 +30,6 @@ export interface OpenSearchSiemConfigureProps {
   availablityZones: string[];
   domainSubnetIds: string[];
   securityGroupIds: string[];
-  stsDns: string[];
 }
 
 export type OpenSearchSiemRuntimeProps = Omit<
@@ -108,9 +106,7 @@ export class OpenSearchSiemConfigure extends cdk.Construct {
         subnetFilters: [ec2.SubnetFilter.byIds(this.props.domainSubnetIds)],
       },
       securityGroups: vpcSecurityGroups,
-      environment: {
-        OPEN_SEARCH_ADMIN_ROLE_ARN: this.props.adminOpenSearchRoleArn,
-      },
+      environment: {},
     });
   }
 }
