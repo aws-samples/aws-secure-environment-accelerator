@@ -41,7 +41,7 @@ It is anticipated we will offer multiple sample architectures with the AWS SEA s
     - [4.3.4. Operations](#434-operations)
     - [4.3.5. Log Archive](#435-log-archive)
     - [4.3.6. Security](#436-security)
-    - [4.3.7. DevOps account, Shared Team accounts](#437-devops-account-shared-team-accounts)
+    - [4.3.7. DevOps account and/or Shared Team accounts](#437-devops-account-andor-shared-team-accounts)
   - [4.4. Functional Accounts](#44-functional-accounts)
   - [4.5. Account Level Settings](#45-account-level-settings)
   - [4.6. Private Marketplace](#46-private-marketplace)
@@ -279,7 +279,7 @@ The shared network account hosts the vast majority of the AWS-side of the networ
 
 ### 4.3.4. Operations
 
-The operations account provides a central location for the cloud team to provide cloud operation services to other AWS accounts within the Organization or is where the organizations cloud operations team "hangs out" or delivers tooling applicable across all accounts in the organization. It provides ViewOnly access to CWL and metrics across the org. It's where centralized SSM documents are located. It's where you centralize backup jobs (if automated), SSM inventory and patch jobs, and where AWS Managed Active Directory would typically be deployed. Some customers think of this as a Shared Services account.
+The operations account provides a central location for the cloud team to provide cloud operation services to other AWS accounts within the Organization and is where an organizations cloud operations team "hangs out" or delivers tooling applicable across all accounts in the organization. It provides ViewOnly access to CloudWatch logs and metrics across the organization. It's where centralized Systems Manager Session Manager Automation (remediation) documents are located. It's where organizations centralize backup automation (if automated), SSM inventory and patch jobs, and where AWS Managed Active Directory would typically be deployed and accessible to all workloads in the organization. In some AWS documentation this is referred to as the Shared Services account.
 
 ### 4.3.5. Log Archive
 
@@ -291,9 +291,9 @@ The AWS CloudTrail service provides a full audit history of all actions taken ag
 
 The security account is restricted to authorized security and compliance personnel, and related security or audit tools. This is an aggregation point for security services, including AWS Security Hub, and serves as the Organization Management (root) for Amazon Guard Duty. A trust relationship with a readonly permission policy exists between every Organization account and the security account for audit and compliance purposes.
 
-### 4.3.7. DevOps account, Shared Team accounts
+### 4.3.7. DevOps account and/or Shared Team accounts
 
-Used to deliver CI/CD capabilities - two patterns are depicted in the architecture [diagrams](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/architectures/AWS_Diagrams_Account_Network_VPC.md) - The first has a single org wide central CI/CD tooling account, the other has a CI/CD tooling account per major application team/grouping of teams/applications. Which is used will depend entirely on the org size, maturity model, delegation model of the organization and their team structures. We would generally still recommend CI/CD tooling in each developer account (i.e. using Code Commit) and when certain branch names were leveraged, caused the branch/PR to be pulled to the centralized CI/CD tooling account and into the approvals and promotion process and would push the code through the SDLC cycle to Test and Prod, etc. Refer to [this](https://aws.amazon.com/blogs/devops/aws-building-a-secure-cross-account-continuous-delivery-pipeline/) blog for more details on this pattern.
+Used to deliver CI/CD capabilities - two patterns are depicted in the architecture [diagrams](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/architectures/AWS_Diagrams_Account_Network_VPC.md) - The first has a single org wide central CI/CD tooling account, the other has a CI/CD and shared tooling account per major application team/grouping of teams/applications. Which is used will depend entirely on the org size, maturity model, delegation model of the organization and their team structures. We would generally still recommend CI/CD tooling in each developer account (i.e. using Code Commit) and when certain branch names were leveraged, causes the branch/PR to be automatically pulled into the centralized CI/CD tooling account and the approvals and promotion process which will push the code through the SDLC cycle to Test and Prod accounts, etc. Refer to [this](https://aws.amazon.com/blogs/devops/aws-building-a-secure-cross-account-continuous-delivery-pipeline/) blog for more details on automating this pattern.
 
 ## 4.4. Functional Accounts
 
