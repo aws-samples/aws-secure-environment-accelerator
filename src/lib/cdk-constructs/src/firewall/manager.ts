@@ -15,9 +15,11 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { SecurityGroup, Subnet } from '../vpc';
 import { CfnSleep } from '@aws-accelerator/custom-resource-cfn-sleep';
+import { EC2DisableApiTermination } from '@aws-accelerator/custom-resource-ec2-disable-api-termination';
 
 export interface FirewallManagerProps {
   name: string;
+  configName: string;
   /**
    * Image ID of firewall.
    */
@@ -46,6 +48,11 @@ export class FirewallManager extends cdk.Construct {
       iamInstanceProfile: props.iamInstanceProfile,
     });
     cdk.Tags.of(this.resource).add('Name', this.props.name);
+
+    new EC2DisableApiTermination(this, `EC2-FWMNG${this.props.configName}DisableApiTermination`, {
+      ec2Id: this.resource.ref,
+      ec2Name: this.props.name,
+    });
   }
 
   addNetworkInterface(props: { securityGroup: SecurityGroup; subnet: Subnet; eipAllocationId?: string }) {

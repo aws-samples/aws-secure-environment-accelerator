@@ -487,6 +487,7 @@ importers:
   src/lib/cdk-constructs:
     specifiers:
       '@aws-accelerator/custom-resource-cfn-sleep': workspace:*
+      '@aws-accelerator/custom-resource-ec2-disable-api-termination': workspace:*
       '@aws-accelerator/custom-resource-elb-deletion-protection': workspace:*
       '@aws-accelerator/custom-resource-r53-dns-endpoint-ips': workspace:*
       '@aws-accelerator/custom-resource-s3-put-bucket-replication': workspace:*
@@ -520,6 +521,7 @@ importers:
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/custom-resource-cfn-sleep': link:../custom-resources/cdk-cfn-sleep
+      '@aws-accelerator/custom-resource-ec2-disable-api-termination': link:../custom-resources/cdk-ec2-disable-api-termination
       '@aws-accelerator/custom-resource-elb-deletion-protection': link:../custom-resources/cdk-elb-deletion-protection
       '@aws-accelerator/custom-resource-r53-dns-endpoint-ips': link:../custom-resources/cdk-r53-dns-endpoint-ips
       '@aws-accelerator/custom-resource-s3-put-bucket-replication': link:../custom-resources/cdk-s3-put-bucket-replication
@@ -1148,6 +1150,25 @@ importers:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       esbuild: 0.11.18
+      typescript: 4.2.4
+
+  src/lib/custom-resources/cdk-ec2-disable-api-termination:
+    specifiers:
+      '@aws-cdk/aws-iam': 1.113.0
+      '@aws-cdk/core': 1.113.0
+      '@aws-cdk/custom-resources': 1.113.0
+      '@types/node': 14.14.31
+      eslint: 7.25.0
+      ts-node: 9.1.1
+      typescript: 4.2.4
+    dependencies:
+      '@aws-cdk/aws-iam': 1.113.0
+      '@aws-cdk/core': 1.113.0
+      '@aws-cdk/custom-resources': 1.113.0
+    devDependencies:
+      '@types/node': 14.14.31
+      eslint: 7.25.0
+      ts-node: 9.1.1_typescript@4.2.4
       typescript: 4.2.4
 
   src/lib/custom-resources/cdk-ec2-ebs-default-encryption:
