@@ -169,6 +169,9 @@ Before installing, you must first:
      - be enabled in Control Tower (if supported)
      - added to the config file `control-tower-supported-regions` list (if supported)
      - added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`)
+     - While we highly recommend guardrail deployment for all AWS enabled by default regions, at minimum
+       - the home region MUST be enabled in Control Tower and must be listed in `control-tower-supported-regions`
+       - both the home-region and ${GBL_REGION} must be listed in `supported-regions`
    4. For the `Foundational OU`, leave the default value `Security`
    5. For the `Additional OU` provide the value `Infrastructure`, click `Next`
    6. Enter the email addresses for your `Log Archive` and `Audit` accounts, change the `Audit` account name to `Security`, click `Next`
