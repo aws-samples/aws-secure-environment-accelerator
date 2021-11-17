@@ -164,11 +164,11 @@ Before installing, you must first:
       - the Accelerator home region must match the Control Tower home region
    3. Select _all_ regions for `Additional AWS Regions for governance`, click `Next`
       - The Control Tower and Accelerator regions MUST be properly aligned
-	  - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions`
-	  - To manage a region requires the region:
-	    - be enabled in Control Tower (if supported)
-		- added to the config file `control-tower-supported-regions` list (if supported)
-		- added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`)
+   - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions`
+   - To manage a region requires the region:
+     - be enabled in Control Tower (if supported)
+     - added to the config file `control-tower-supported-regions` list (if supported)
+     - added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`)
    4. For the `Foundational OU`, leave the default value `Security`
    5. For the `Additional OU` provide the value `Infrastructure`, click `Next`
    6. Enter the email addresses for your `Log Archive` and `Audit` accounts, change the `Audit` account name to `Security`, click `Next`
@@ -383,7 +383,7 @@ Current Issues:
 
 - On larger deployments we are occassionally seeing state machine failures when `Creating Config Recorders`.
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
-- Applying new Control Tower Detective guardrails fails in v1.5.0.  This has already been fixed in the next release.
+- Applying new Control Tower Detective guardrails fails in v1.5.0. This has already been fixed in the next release.
 
 Issues in Older Releases:
 
@@ -538,11 +538,14 @@ The Accelerator installation is complete, but several manual steps remain:
 7. Customers are responsible for the ongoing management and rotation of all passwords on a regular basis per their organizational password policy. This includes the passwords of all IAM users, MAD users, firewall users, or other users, whether deployed by the Accelerator or not. We do NOT automatically rotate any passwords, but strongly encourage customers do so, on a regular basis.
 
 8. During the installation we request required limit increases, resources dependent on these limits will not be deployed
+
    1. Limit increase requests are controlled through the Accelerator configuration file `"limits":{}` setting
    2. The sample configuration file requests increases to your EIP count in the perimeter account and to the VPC count and Interface Endpoint count in the shared-network account
    3. You should receive emails from support confirming the limit increases
    4. On the next state machine execution, resources blocked by limits should be deployed (i.e. additional VPC's and Endpoints)
    5. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
+
+9. Note: After a successful install the Control Tower `Organizational units` dashboard will indicate `2 of 3` in the `Accounts enrolled` column for the Security OU, as it does not enable enrollment of the management account in guardrails. The Accelerator compliments Control Tower and enables guardrails in the management account which is important to high compliance customers.
 
 # 3. Upgrades
 

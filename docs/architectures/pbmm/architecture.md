@@ -4,7 +4,7 @@ The _AWS Secure Environment PBMM Architecture_ is a comprehensive, multi-account
 
 This document specifically does NOT talk about the tooling or mechanisms that can be used to deploy the architecture. While the AWS Secure Environment Accelerator (SEA) is one tool capable of deploying this architecture (along with many other architectures), customers can use whatever mechanism they deem appropriate to deploy it. This document does not discuss the AWS SEA tooling or architecture and is strictly focused on the resulting deployed solution created by using the provided sample PBMM Accelerator configuration file. This architecture document should stand on its own in depicting the `deployed` architecture. Users looking for information on the SEA tooling itself, should refer to the other SEA documents.
 
-It is anticipated we will offer multiple sample architectures with the AWS SEA solution, each having its own architecture document like this. As the SEA can produce hundreds of solutions, it does not make sense to repeate that content in this document.
+It is anticipated we will offer multiple sample architectures with the AWS SEA solution, each having its own architecture document like this. As the SEA can produce hundreds of solutions, it does not make sense to repeat that content in this document.
 
 # 2. Table of Contents
 
@@ -41,6 +41,7 @@ It is anticipated we will offer multiple sample architectures with the AWS SEA s
     - [4.3.4. Operations](#434-operations)
     - [4.3.5. Log Archive](#435-log-archive)
     - [4.3.6. Security](#436-security)
+    - [4.3.7. DevOps account, Shared Team accounts](#437-devops-account-shared-team-accounts)
   - [4.4. Functional Accounts](#44-functional-accounts)
   - [4.5. Account Level Settings](#45-account-level-settings)
   - [4.6. Private Marketplace](#46-private-marketplace)
@@ -278,7 +279,7 @@ The shared network account hosts the vast majority of the AWS-side of the networ
 
 ### 4.3.4. Operations
 
-The operations account provides a central location for the cloud team to provide cloud operation services to other AWS accounts within the Organization; for example CICD, developer tooling, and a managed Active Directory installation.
+The operations account provides a central location for the cloud team to provide cloud operation services to other AWS accounts within the Organization or is where the organizations cloud operations team "hangs out" or delivers tooling applicable across all accounts in the organization. It provides ViewOnly access to CWL and metrics across the org. It's where centralized SSM documents are located. It's where you centralize backup jobs (if automated), SSM inventory and patch jobs, and where AWS Managed Active Directory would typically be deployed. Some customers think of this as a Shared Services account.
 
 ### 4.3.5. Log Archive
 
@@ -289,6 +290,10 @@ The AWS CloudTrail service provides a full audit history of all actions taken ag
 ### 4.3.6. Security
 
 The security account is restricted to authorized security and compliance personnel, and related security or audit tools. This is an aggregation point for security services, including AWS Security Hub, and serves as the Organization Management (root) for Amazon Guard Duty. A trust relationship with a readonly permission policy exists between every Organization account and the security account for audit and compliance purposes.
+
+### 4.3.7. DevOps account, Shared Team accounts
+
+Used to deliver CI/CD capabilities - two patterns are depicted in the architecture [diagrams](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/architectures/AWS_Diagrams_Account_Network_VPC.md) - The first has a single org wide central CI/CD tooling account, the other has a CI/CD tooling account per major application team/grouping of teams/applications. Which is used will depend entirely on the org size, maturity model, delegation model of the organization and their team structures. We would generally still recommend CI/CD tooling in each developer account (i.e. using Code Commit) and when certain branch names were leveraged, caused the branch/PR to be pulled to the centralized CI/CD tooling account and into the approvals and promotion process and would push the code through the SDLC cycle to Test and Prod, etc. Refer to [this](https://aws.amazon.com/blogs/devops/aws-building-a-secure-cross-account-continuous-delivery-pipeline/) blog for more details on this pattern.
 
 ## 4.4. Functional Accounts
 
@@ -329,7 +334,7 @@ Note that this VPC is in its own isolated account, separate from Shared Network,
 
 ### 5.2.1. IP Ranges
 
-- **Primary Range**: The _AWS Secure Environment Architecture_ recommends that the perimeter VPC have a primary range in the [RFC1918][1918] block (e.g. `10.7.4.0/22`), used only for subnets dedicated to 'detonation' purposes. This primary range, in an otherwise-unused [RFC1918][1918] range, is not intended to be routeable outside of the VPC, and is reserved for future use with malware detonation capabilities of NGFW devices.
+- **Primary Range**: The _AWS Secure Environment Architecture_ recommends that the perimeter VPC have a primary range in the [RFC1918][1918] block (e.g. `10.7.4.0/22`), used only for subnets dedicated to 'detonation' purposes. This primary range, in an otherwise-unused [RFC1918][1918] range, is not intended to be routable outside of the VPC, and is reserved for future use with malware detonation capabilities of NGFW devices.
 - **Secondary Range**: This VPC should also have a secondary range in the [RFC6598][6598] block (e.g. `100.96.250.0/23`) used for the overlay network (NGFW devices inside VPN tunnel) for all other subnets. This secondary range is assigned by an external entity (e.g. Shared Services Canada), and should be carefully selected in order to co-exist with _AWS Secure Environment Architecture_ deployments that exist at peer organizations; for instance other government departments that maintain a relationship with the same shared entity in a carrier-grade NAT topology. Although this is a 'secondary' range in VPC parlance, this VPC CIDR should be interpreted as the more 'significant' of the two with respect to Transit Gateway routing; the Transit Gateway will only ever interact with this 'secondary' range.
 
 ![Endpoints](./images/perimeter.drawio.png)
@@ -433,7 +438,7 @@ In-cloud DNS resolution applies beyond the DNS infrastructure that is put in pla
 
 #### 5.3.4.2. From Cloud to On-Premises
 
-DNS Resolution from the cloud to on-premises is handled via the use of a Route 53 Outbound Endpoint, deployed in the Endpoint VPC, with an associated Resolver rule that fowards DNS traffic to the outbound endpoint. Each VPC is associated to this rule.
+DNS Resolution from the cloud to on-premises is handled via the use of a Route 53 Outbound Endpoint, deployed in the Endpoint VPC, with an associated Resolver rule that forwards DNS traffic to the outbound endpoint. Each VPC is associated to this rule.
 
 ![Endpoints](./images/resolver-rule.png)
 
@@ -504,7 +509,7 @@ The sandbox VPC should be used exclusively for time-limited experimentation, par
 
 # 6. Authorization and Authentication
 
-The _AWS Secure Environment Architecture_ makes extensive use of AWS authorization and authentication primitives from the Identity and Access Management (IAM) service as a means to enforce the guardrailing objectives of the _AWS Secure Environment Architecture_, and govern access to the set of accounts that makes up the Organization.
+The _AWS Secure Environment Architecture_ makes extensive use of AWS authorization and authentication primitives from the Identity and Access Management (IAM) service as a means to enforce the guardrail objectives of the _AWS Secure Environment Architecture_, and govern access to the set of accounts that makes up the Organization.
 
 ## 6.1. Relationship to the Organization Management (root) AWS Account
 
@@ -552,7 +557,7 @@ Via an AWS Directory Connector deployed in the Organization Management (root) ac
 
 ### 6.3.1. SSO User Roles
 
-AWS SSO creates an identity provider (IdP) in each account in the Organization. The roles used by end users have a trust policy to this IdP. When a user authenticates to AWS SSO (via the underlying AD Connector) and selects a role to assume based on their group memmership, the SSO service provides the user with temporary security credentials unique to the role session. In such a scenario, the user has no long term credentials (e.g. password, or access keys) and instead uses their temporary security credentials.
+AWS SSO creates an identity provider (IdP) in each account in the Organization. The roles used by end users have a trust policy to this IdP. When a user authenticates to AWS SSO (via the underlying AD Connector) and selects a role to assume based on their group membership, the SSO service provides the user with temporary security credentials unique to the role session. In such a scenario, the user has no long-term credentials (e.g. password, or access keys) and instead uses their temporary security credentials.
 
 Users, via their AD group membership, are ultimately assigned to SSO User Roles via the use of AWS SSO Permission Sets. A permission set is an assignment of a particular permission policy to a set of accounts. For example:
 
