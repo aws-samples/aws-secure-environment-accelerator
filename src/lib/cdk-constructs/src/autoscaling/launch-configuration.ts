@@ -23,7 +23,7 @@ export type LaunchConfigurationProps = autoscaling.CfnLaunchConfigurationProps;
 interface LaunchConfigurationCustomProps extends LaunchConfigurationProps {
   centralBucketName?: string;
   logGroupName?: string;
-  enforceIMDSv2? : boolean;
+  enforceIMDSv2?: boolean;
 }
 
 /**
