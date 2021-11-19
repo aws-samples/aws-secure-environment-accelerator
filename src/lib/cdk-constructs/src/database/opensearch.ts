@@ -83,7 +83,7 @@ export class OpenSearchDomain extends cdk.Construct {
 
     // Allow elasticsearch to write to the log group
     const logPolicy = new LogResourcePolicy(this, 'OpenSearchLogGroupPolicy', {
-      policyName: `${acceleratorPrefixNoDash}-opensearch-logging`,      
+      policyName: `${acceleratorPrefixNoDash}-opensearch-logging`,
       policyStatements: [
         new iam.PolicyStatement({
           actions: ['logs:CreateLogStream', 'logs:PutLogEvents', 'logs:PutLogEventsBatch'],
