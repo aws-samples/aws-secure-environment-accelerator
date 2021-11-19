@@ -43,6 +43,7 @@ import { EbsKmsOutput } from '@aws-accelerator/common-outputs/src/ebs';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { CentralBucketOutputFinder } from '@aws-accelerator/common-outputs/src/central-bucket';
 import { OpenSearchSiemConfigure } from '@aws-accelerator/custom-resource-opensearch-siem-configure';
+import { OpenSearchSiemGeoIpInit } from '@aws-accelerator/custom-resource-opensearch-siem-geoip-init';
 
 import path from 'path';
 
@@ -214,7 +215,7 @@ export async function step2(props: OpenSearchSIEMStep2Props) {
     }
 
     const maxMindLicense = openSearchSIEMDeploymentConfig['maxmind-license'];
-    let geoUploadBucket: s3.IBucket;
+    let geoUploadBucket: s3.IBucket | undefined;
     if (maxMindLicense) {
       geoUploadBucket = new s3.Bucket(accountStack, `${context.acceleratorPrefix}OpenSearchSiem`, {
         encryption: s3.BucketEncryption.S3_MANAGED,
@@ -308,6 +309,7 @@ export function createGeoIpDownloader(
     code: lambdaCode,
     handler: 'index.geoIpDownloader',
     timeout: cdk.Duration.minutes(5),
+    memorySize: 1048,
     vpc,
     vpcSubnets: {
       subnetFilters: [ec2.SubnetFilter.byIds(domainSubnetIds)],
@@ -327,6 +329,10 @@ export function createGeoIpDownloader(
   });
 
   dailyRule.addTarget(new eventTargets.LambdaFunction(geoIpDownloader));
+
+  new OpenSearchSiemGeoIpInit(accountStack, `${acceleratorPrefix}OpenSearchSiemGeoIpInitLambda`, {
+    geoIpLambdaRoleArn: geoIpDownloader.functionArn,
+  });
 }
 
 export function createProcessingLambda(

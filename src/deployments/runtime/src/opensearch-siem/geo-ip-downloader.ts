@@ -18,6 +18,9 @@ import { S3 } from '@aws-accelerator/common/src/aws/s3';
 import https from 'https';
 import querystring from 'querystring';
 import fs from 'fs';
+import zlib from 'zlib';
+
+const tar = require('tar-stream');
 
 const url: string = 'https://download.maxmind.com/app/geoip_download?';
 const downloadFiles: string[] = ['GeoLite2-City', 'GeoLite2-ASN', 'GeoLite2-Country'];
@@ -29,10 +32,9 @@ export const handler = async (input: ScheduledEvent) => {
   console.log(`GeoIpDownloader begin`);
   console.log(JSON.stringify(input, null, 2));
 
-  const configBucket: string = process.env.CONFIG_BUCKET || 'asea-management-phase0-configcacentral1-1g9ucir5s5ry0';
+  const configBucket: string = process.env.CONFIG_BUCKET || '';
   const licenseFile: string = process.env.LICENSE || 'siem/license.txt';
-  const uploadBucket: string =
-    process.env.UPLOAD_BUCKET || 'asea-operations-phase3-aseaopensearchsiem52db71b9-1k3ahg8exbjaw';
+  const uploadBucket: string = process.env.UPLOAD_BUCKET || '';
   const s3Prefix: string = process.env.S3KEY_PREFIX || 'GeoLite2/';
 
   const licenseKey = (
@@ -87,7 +89,11 @@ const download = async (fileName: string, licenseKey: string, uploadBucket: stri
 
       const uploadToS3 = async (src: string, bucket: string, key: string) => {
         return new Promise<AWS.S3.PutObjectOutput>((resolve, reject) => {
-          const file = fs.readFile(src, (err, data) => {
+          fs.readFile(src, (err: any, data: any) => {
+            if (err) {
+              console.log(err);
+              reject(err);
+            }
             const buffer = Buffer.from(data);
             console.log(`Uploading ${src} to S3...`);
             s3.putObject({
@@ -107,11 +113,60 @@ const download = async (fileName: string, licenseKey: string, uploadBucket: stri
         });
       };
 
-      const tmpFile: string = `/tmp/${fileName}${suffix}`;
+      const tmpFile: string = `/tmp/${fileName}.${suffix}`;
       await downloadData(tmpFile);
 
-      await uploadToS3(tmpFile, uploadBucket, `${s3Prefix}${fileName}${suffix}`);
+      if (suffix === 'tar.gz') {
+        console.log(`Extracting tar file '${tmpFile}''...`);
 
+        const extractedFileName = `/tmp/${fileName}.mmdb`;
+
+        const extractFile = async (src: string) => {
+          return new Promise((resolve, reject) => {
+            const extract = tar.extract();
+
+            const chunks: any = [];
+
+            extract.on('entry', (header: any, stream: fs.ReadStream, next: any) => {
+              console.log(header.name);
+              if (/.mmdb$/.test(header.name)) {
+                stream.on('data', chunk => {
+                  chunks.push(chunk);
+                });
+              }
+
+              stream.on('end', () => {
+                next();
+              });
+
+              stream.resume();
+            });
+
+            extract.on('finish', () => {
+              if (chunks.length) {
+                const data = Buffer.concat(chunks);
+                fs.writeFileSync(extractedFileName, data);
+              }
+
+              resolve(chunks.length);
+            });
+
+            extract.on('error', (err: any) => {
+              reject(err);
+            });
+
+            fs.createReadStream(src).pipe(zlib.createGunzip()).pipe(extract);
+          });
+        };
+
+        await extractFile(tmpFile);
+
+        if (fs.existsSync(extractedFileName)) {
+          await uploadToS3(extractedFileName, uploadBucket, `${s3Prefix}${fileName}.mmdb`);
+        } else {
+          console.log(`${extractedFileName} does not exist.`);
+        }
+      }
       console.log(`Downloaded file to ${tmpFile}`);
     } catch (err) {
       console.error(err);
