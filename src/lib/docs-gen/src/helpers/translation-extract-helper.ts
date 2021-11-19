@@ -10,6 +10,7 @@ export class TranslationExtractHelper {
   }
 
   public iterate(obj: any, parentProperty: string) {
+    // eslint-disable-next-line guard-for-in
     for (const property in obj.fields) {
       const propertyObject = obj.fields[property];
 
@@ -22,6 +23,7 @@ export class TranslationExtractHelper {
       ] = `<b>${titleTranslated}:</b> ${titleField}<br/><b>${descriptionTranslated}:</b> ${propertyObject.description}`;
     }
     if (obj.properties) {
+      // eslint-disable-next-line guard-for-in
       for (const property in obj.properties) {
         this.iterate(obj.properties[property], obj.properties[property].title);
       }
@@ -39,12 +41,14 @@ export class TranslationExtractHelper {
     }
   }
   private generateTitle(title: string, propertyName: string) {
-    if (title && title.trim().length > 0) return title;
+    if (title && title.trim().length > 0) {
+      return title;
+    }
 
     const newTitle = `${propertyName}`
-      .replace(new RegExp(/[^\w]/, 'g'), ' ') //Remove non-word characters such as '-'
+      .replace(new RegExp(/[^\w]/, 'g'), ' ') // Remove non-word characters such as '-'
       .replace(
-        new RegExp(/(\w)(\w*)/, 'g'), //Grab first character and remainder of the word so we can Pascale Case it
+        new RegExp(/(\w)(\w*)/, 'g'), // Grab first character and remainder of the word so we can Pascale Case it
         ($1, $2, $3) => {
           return `${$2.toUpperCase() + $3.toLowerCase()}`;
         },
@@ -52,13 +56,17 @@ export class TranslationExtractHelper {
     return newTitle;
   }
   private translate(key: string, selectedLanguage: string) {
-    if (selectedLanguage === 'fr') return frenchDict.fr[key];
-    else return englishDict.en[key];
+    if (selectedLanguage === 'fr') {
+      return frenchDict.fr[key];
+    } else {
+      return englishDict.en[key];
+    }
   }
   private generateProperty(property: string, parentProperty: string) {
     let i18nProperty = '';
-    if (!parentProperty) i18nProperty = `i18n-${property}`;
-    else {
+    if (!parentProperty) {
+      i18nProperty = `i18n-${property}`;
+    } else {
       const parentPropertyLowerCased = parentProperty.replace(/[\W_]+/g, '').toLowerCase(); // Replace non-alphanumeric
       i18nProperty = `i18n-${parentPropertyLowerCased}-${property}`;
     }

@@ -15,18 +15,19 @@ const outputFolder = path.dirname(outputFile);
 fs.mkdirSync(outputFolder, { recursive: true });
 
 // Get input json schema file
-let raw = fs.readFileSync(`${inputFile}`, 'utf8');
-let schemaParsed = JSON.parse(raw);
+const raw = fs.readFileSync(`${inputFile}`, 'utf8');
+const schemaParsed = JSON.parse(raw);
 
 // Get base translation
-let baseTranslationRaw = fs.readFileSync(`./src/i18n/base-${languageCode}.json`, 'utf8');
-let baseTranslationParsed = JSON.parse(baseTranslationRaw);
+const baseTranslationRaw = fs.readFileSync(`./src/i18n/base-${languageCode}.json`, 'utf8');
+const baseTranslationParsed = JSON.parse(baseTranslationRaw);
 
 // Extract translations
 const translationHelper = new TranslationExtractHelper(languageCode);
 translationHelper.iterate(schemaParsed, schemaParsed.title);
 
 // Merge base and extracted translations
+// eslint-disable-next-line guard-for-in
 for (const prop in baseTranslationParsed[languageCode]) {
   translationHelper.typeDocTranslation[languageCode][prop] = baseTranslationParsed[languageCode][prop];
 }
