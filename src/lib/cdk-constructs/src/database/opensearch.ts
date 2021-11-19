@@ -16,7 +16,6 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as opensearch from '@aws-cdk/aws-opensearchservice';
 import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
 import { LogResourcePolicy } from '@aws-accelerator/custom-resource-logs-resource-policy';
-import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 
 export interface OpenSearchDomainConfigurationProps {
   acceleratorPrefix: string;
@@ -84,9 +83,7 @@ export class OpenSearchDomain extends cdk.Construct {
 
     // Allow elasticsearch to write to the log group
     const logPolicy = new LogResourcePolicy(this, 'OpenSearchLogGroupPolicy', {
-      policyName: createName({
-        name: 'opensearch-logging',
-      }),
+      policyName: `${acceleratorPrefixNoDash}-opensearch-logging`,      
       policyStatements: [
         new iam.PolicyStatement({
           actions: ['logs:CreateLogStream', 'logs:PutLogEvents', 'logs:PutLogEventsBatch'],

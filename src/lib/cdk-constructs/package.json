@@ -17,6 +17,8 @@
     "testEnvironment": "node"
   },
   "dependencies": {
+    "@aws-accelerator/custom-resource-logs-log-group": "workspace:*",
+    "@aws-accelerator/custom-resource-logs-resource-policy": "workspace:*",    
     "@aws-accelerator/custom-resource-cfn-sleep": "workspace:*",
     "@aws-accelerator/custom-resource-elb-deletion-protection": "workspace:*",
     "@aws-accelerator/custom-resource-ec2-disable-api-termination": "workspace:*",
@@ -25,7 +27,7 @@
     "@aws-accelerator/custom-resource-s3-template": "workspace:*",
     "@aws-accelerator/custom-resource-security-hub-accept-invites": "workspace:*",
     "@aws-accelerator/custom-resource-security-hub-enable": "workspace:*",
-    "@aws-accelerator/custom-resource-security-hub-send-invites": "workspace:*",
+    "@aws-accelerator/custom-resource-security-hub-send-invites": "workspace:*",        
     "@aws-cdk/aws-autoscaling": "1.130.0",
     "@aws-cdk/aws-budgets": "1.130.0",
     "@aws-cdk/aws-cognito": "1.130.0",
