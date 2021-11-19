@@ -153,6 +153,7 @@ async function createFirewallManager(props: {
       name: config.name,
       suffixLength: 0,
     }),
+    configName: config.name,
     imageId: config['image-id'],
     instanceType: config['instance-sizes'],
     blockDeviceMappings,
