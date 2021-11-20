@@ -769,6 +769,13 @@ export const SecretConfig = t.interface({
   size: t.number,
 });
 
+export const S3LogPartitionType = t.interface({
+  logGroupPattern: t.nonEmptyString,
+  s3Prefix: t.nonEmptyString,
+});
+
+export type S3LogPartition = t.TypeOf<typeof S3LogPartitionType>;
+
 export const MandatoryAccountConfigType = t.interface({
   'gui-perm': t.optional(t.boolean),
   'account-name': t.nonEmptyString,
@@ -915,6 +922,7 @@ export const CentralServicesConfigType = t.interface({
   'fw-mgr-alert-level': t.defaulted(FirewallManagerAlertLevelType, 'Medium'),
   'security-hub-findings-sns': t.defaulted(SecurityHubFindingsSnsType, 'None'),
   'config-aggr': t.defaulted(t.boolean, false),
+  'dynamic-s3-log-partitioning': t.optional(t.array(S3LogPartitionType)),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
