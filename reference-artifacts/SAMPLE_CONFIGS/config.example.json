@@ -93,7 +93,21 @@
         "High": ["myemail+notifyT-high@example.com"],
         "Medium": ["myemail+notifyT-medium@example.com"],
         "Low": ["myemail+notifyT-low@example.com"]
-      }
+      },
+      "dynamic-s3-log-partitioning": [
+        {
+          "logGroupPattern": "MAD",
+          "s3Prefix": "managed-ad"
+        },
+        {
+          "logGroupPattern": "rql",
+          "s3Prefix": "rql"
+        },
+        {
+          "logGroupPattern": "SecurityHub",
+          "s3Prefix": "security-hub"
+        }        
+      ]
     },
     "additional-cwl-regions": {},
     "reports": {
