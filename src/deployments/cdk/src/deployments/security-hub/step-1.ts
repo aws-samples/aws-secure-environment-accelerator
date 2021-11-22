@@ -81,6 +81,7 @@ export async function step1(props: SecurityHubStep1Props) {
   }
   const logGroupLambdaRoleArn = logGroupLambdaRoleOutput.roleArn;
 
+  const securityHubLambdaSWLRole = createPublishingLambdaRole(accountStacks, securityAccountKey, acceleratorPrefix);
 
   const securityHubExclRegions = globalOptions['central-security-services']['security-hub-excl-regions'] || [];
   for (const region of regions) {
@@ -102,42 +103,21 @@ export async function step1(props: SecurityHubStep1Props) {
 
 
       if (acceleratorPrefix && logGroupLambdaRoleArn) {
-
-          configureSecurityHubCWLs(acceleratorPrefix, logGroupLambdaRoleArn, securityMasterAccountStack);
-
+          configureSecurityHubCWLs(acceleratorPrefix, logGroupLambdaRoleArn, securityMasterAccountStack, securityHubLambdaSWLRole);
       } 
     }
   } 
 }
 
-const configureSecurityHubCWLs = (acceleratorPrefix: string, logGroupLambdaRoleArn: string, securityMasterAccountStack: any) => {
-  const acceleratorPrefixNoDash = acceleratorPrefix.slice(0, -1);
-  const logGroupName = `/${acceleratorPrefixNoDash}/SecurityHub`;
-
-  const cwLogGroupSecurityGroupLogs = new LogGroup(securityMasterAccountStack, `SecurithHubLogGroup`, {
-    logGroupName: logGroupName,
-    roleArn: logGroupLambdaRoleArn,
-  });
-
-  const cloudwatchrule = new eventBridge.Rule(securityMasterAccountStack, `${acceleratorPrefix}SecurityHubEvents`, {
-    ruleName: `${acceleratorPrefix}SecurityHubFindingsImportToCWLs`,
-    description: 'Sends all Security Hub Findings to a Lambda that writes to CloudWatch Logs',
-    eventPattern: {
-      source: [
-        'aws.securityhub'
-      ],
-      detailType: [
-        'Security Hub Findings - Imported'
-      ]
-    }
-  });
-
-  const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
-  const lambdaDir = path.dirname(lambdaPath);
-  const lambdaCode = lambda.Code.fromAsset(lambdaDir);
+const createPublishingLambdaRole = (accountStacks: AccountStacks, securityAccountKey: string, acceleratorPrefix?: string): iam.Role | undefined => {
+  const securityMasterAccountStackDefaultRegion = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
+  if (!securityMasterAccountStackDefaultRegion) {
+    console.warn(`Cannot find security stack in default region`);
+    return;
+  }
 
   const lambdaRoleName = `${acceleratorPrefix}SecurityHubPublisherRole`;
-  const lambdaRole = new iam.Role(securityMasterAccountStack, 'SecurityHubPublisherRole', {
+  const lambdaRole = new iam.Role(securityMasterAccountStackDefaultRegion, 'SecurityHubPublisherRole', {
     roleName: lambdaRoleName,
     assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com')
   });
@@ -150,19 +130,55 @@ const configureSecurityHubCWLs = (acceleratorPrefix: string, logGroupLambdaRoleA
     }),
   );
 
-  const eventsToCwlLambda = new lambda.Function(securityMasterAccountStack, `${acceleratorPrefix}SecurityHubPublisher`, {
-    runtime: lambda.Runtime.NODEJS_14_X,
-    role: lambdaRole,
-    code: lambdaCode,
-    handler: 'index.eventToCWLPublisher',
-    timeout: cdk.Duration.minutes(5),
-    memorySize: 1048,
-    environment: {
-      LOG_GROUP_NAME: logGroupName
-    },
-  });
+  return lambdaRole;
+}
 
-  cloudwatchrule.addTarget(new targets.LambdaFunction(eventsToCwlLambda));
+const configureSecurityHubCWLs = (acceleratorPrefix: string, logGroupLambdaRoleArn: string, securityMasterAccountStack: any, securityHubLambdaSWLRole?: iam.Role) => {
+  const acceleratorPrefixNoDash = acceleratorPrefix.slice(0, -1);
+  const logGroupName = `/${acceleratorPrefixNoDash}/SecurityHub`;
+
+
+  if (securityHubLambdaSWLRole) {
+
+    const cwLogGroupSecurityGroupLogs = new LogGroup(securityMasterAccountStack, `SecurithHubLogGroup`, {
+      logGroupName: logGroupName,
+      roleArn: logGroupLambdaRoleArn,
+    });
+
+    const cloudwatchrule = new eventBridge.Rule(securityMasterAccountStack, `${acceleratorPrefix}SecurityHubEvents`, {
+      ruleName: `${acceleratorPrefix}SecurityHubFindingsImportToCWLs`,
+      description: 'Sends all Security Hub Findings to a Lambda that writes to CloudWatch Logs',
+      eventPattern: {
+        source: [
+          'aws.securityhub'
+        ],
+        detailType: [
+          'Security Hub Findings - Imported'
+        ]
+      }
+    });
+
+    const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
+    const lambdaDir = path.dirname(lambdaPath);
+    const lambdaCode = lambda.Code.fromAsset(lambdaDir);
+
+
+
+    const eventsToCwlLambda = new lambda.Function(securityMasterAccountStack, `${acceleratorPrefix}SecurityHubPublisher`, {
+      runtime: lambda.Runtime.NODEJS_14_X,
+      role: securityHubLambdaSWLRole,
+      code: lambdaCode,
+      handler: 'index.eventToCWLPublisher',
+      timeout: cdk.Duration.minutes(5),
+      memorySize: 1048,
+      environment: {
+        LOG_GROUP_NAME: logGroupName
+      },
+    });
+
+    cloudwatchrule.addTarget(new targets.LambdaFunction(eventsToCwlLambda));
+
+  }
 }
 
 
