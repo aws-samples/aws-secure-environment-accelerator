@@ -145,7 +145,7 @@ const configureSecurityHubCWLs = (acceleratorPrefix: string, logGroupLambdaRoleA
       roleArn: logGroupLambdaRoleArn,
     });
 
-    const cloudwatchrule = new eventBridge.Rule(securityMasterAccountStack, `${acceleratorPrefix}SecurityHubEvents`, {
+    const cloudwatchrule = new eventBridge.Rule(securityMasterAccountStack, `SecurityHubEvents`, {
       ruleName: `${acceleratorPrefix}SecurityHubFindingsImportToCWLs`,
       description: 'Sends all Security Hub Findings to a Lambda that writes to CloudWatch Logs',
       eventPattern: {
@@ -172,7 +172,7 @@ const configureSecurityHubCWLs = (acceleratorPrefix: string, logGroupLambdaRoleA
     );
 
 
-    const eventsToCwlLambda = new lambda.Function(securityMasterAccountStack, `${acceleratorPrefix}SecurityHubPublisher`, {
+    const eventsToCwlLambda = new lambda.Function(securityMasterAccountStack, `SecurityHubPublisher`, {
       runtime: lambda.Runtime.NODEJS_14_X,
       role: lambdaRole,
       code: lambdaCode,
