@@ -103,7 +103,7 @@ export async function step1(props: SecurityHubStep1Props) {
 
 
       if (acceleratorPrefix && logGroupLambdaRoleArn) {
-          configureSecurityHubCWLs(acceleratorPrefix, logGroupLambdaRoleArn, securityMasterAccountStack, securityHubLambdaSWLRole);
+          configureSecurityHubCWLs(acceleratorPrefix, logGroupLambdaRoleArn, securityMasterAccountStack, securityHubLambdaSWLRole?.roleArn);
       } 
     }
   } 
@@ -133,14 +133,14 @@ const createPublishingLambdaRole = (accountStacks: AccountStacks, securityAccoun
   return lambdaRole;
 }
 
-const configureSecurityHubCWLs = (acceleratorPrefix: string, logGroupLambdaRoleArn: string, securityMasterAccountStack: any, securityHubLambdaSWLRole?: iam.Role) => {
+const configureSecurityHubCWLs = (acceleratorPrefix: string, logGroupLambdaRoleArn: string, securityMasterAccountStack: any, securityHubLambdaSWLRoleArn?: string) => {
   const acceleratorPrefixNoDash = acceleratorPrefix.slice(0, -1);
   const logGroupName = `/${acceleratorPrefixNoDash}/SecurityHub`;
 
 
-  if (securityHubLambdaSWLRole) {
+  if (securityHubLambdaSWLRoleArn) {
 
-    const cwLogGroupSecurityGroupLogs = new LogGroup(securityMasterAccountStack, `SecurithHubLogGroup`, {
+    new LogGroup(securityMasterAccountStack, `SecurithHubLogGroup`, {
       logGroupName: logGroupName,
       roleArn: logGroupLambdaRoleArn,
     });
@@ -162,11 +162,19 @@ const configureSecurityHubCWLs = (acceleratorPrefix: string, logGroupLambdaRoleA
     const lambdaDir = path.dirname(lambdaPath);
     const lambdaCode = lambda.Code.fromAsset(lambdaDir);
 
+    const lambdaRole = iam.Role.fromRoleArn(
+      securityMasterAccountStack,
+      `SecurityHubPublisherLambdaRole`,
+      securityHubLambdaSWLRoleArn,
+      {
+        mutable: true,
+      },
+    );
 
 
     const eventsToCwlLambda = new lambda.Function(securityMasterAccountStack, `${acceleratorPrefix}SecurityHubPublisher`, {
       runtime: lambda.Runtime.NODEJS_14_X,
-      role: securityHubLambdaSWLRole,
+      role: lambdaRole,
       code: lambdaCode,
       handler: 'index.eventToCWLPublisher',
       timeout: cdk.Duration.minutes(5),
