@@ -338,6 +338,7 @@ export async function deploy({
     accounts,
     config: acceleratorConfig,
     outputs,
+    acceleratorPrefix: context.acceleratorPrefix
   });
 
   // Central Services step 2
