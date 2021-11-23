@@ -125,6 +125,9 @@ export class ADUsersAndGroups extends cdk.Construct {
 
     const launchConfig = new LaunchConfiguration(this, 'RDGWLaunchConfiguration', {
       launchConfigurationName: `${prefix}-RDGWLaunchConfiguration`,
+      metadataOptions: madDeploymentConfig['rdgw-enforce-imdsv2']
+        ? { httpEndpoint: 'enabled', httpTokens: 'required' }
+        : undefined,
       associatePublicIpAddress: false,
       imageId: latestRdgwAmiId,
       securityGroups: [securityGroup.securityGroups[0].id],
