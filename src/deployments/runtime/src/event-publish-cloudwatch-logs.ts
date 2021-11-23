@@ -11,61 +11,59 @@
  *  and limitations under the License.
  */
 
-
 import { Context } from 'aws-lambda';
 import * as AWS from 'aws-sdk';
 
-
-const logGroupName = process.env.LOG_GROUP_NAME || '/ASEA/SecurityHub';
+const logGroupName = process.env.LOG_GROUP_NAME || '';
 
 const cloudWatchLogs = new AWS.CloudWatchLogs();
 
 export const handler = async (input: any, context?: Context): Promise<void> => {
-    console.log('EventBridge CloudWatch Logs Publisher ....');
-    console.log(JSON.stringify(input, null, 2));
+  console.log('EventBridge CloudWatch Logs Publisher ....');
+  console.log(JSON.stringify(input, null, 2));
 
-    console.log(`Publishing to ${logGroupName}`);
-    if (logGroupName) {
-        const logStreamName = `${new Date().toISOString().slice(0, 10)}`;
+  console.log(`Publishing to ${logGroupName}`);
+  if (logGroupName) {
+    const logStreamName = `${new Date().toISOString().slice(0, 10)}`;
 
-        let uploadSequenceToken: string | undefined;
+    let uploadSequenceToken: string | undefined;
 
-        try {
+    try {
+      const existingLogStream = await cloudWatchLogs
+        .describeLogStreams({
+          logGroupName,
+          logStreamNamePrefix: logStreamName,
+        })
+        .promise();
 
-            const existingLogStream = await cloudWatchLogs.describeLogStreams({
-                logGroupName,
-                logStreamNamePrefix: logStreamName
-            }).promise();
-
-            if (existingLogStream.logStreams && existingLogStream.logStreams.length > 0) {
-                uploadSequenceToken = existingLogStream.logStreams[0].uploadSequenceToken;
-            } else {
-                await cloudWatchLogs.createLogStream({
-                    logGroupName,
-                    logStreamName
-                }).promise();
-            }
-
-        } catch (err: any) {
-            if (err.message !== "The specified log stream already exists") {
-                throw err;
-            }
-        }
-
-        await cloudWatchLogs.putLogEvents(
-            {
-                logGroupName,
-                logStreamName,
-                sequenceToken: uploadSequenceToken,
-                logEvents: [
-                    {
-                        timestamp: Date.now(),
-                        message: JSON.stringify(input),
-
-                    }
-                ]
-            }
-        ).promise();
+      if (existingLogStream.logStreams && existingLogStream.logStreams.length > 0) {
+        uploadSequenceToken = existingLogStream.logStreams[0].uploadSequenceToken;
+      } else {
+        await cloudWatchLogs
+          .createLogStream({
+            logGroupName,
+            logStreamName,
+          })
+          .promise();
+      }
+    } catch (err: any) {
+      if (err.message !== 'The specified log stream already exists') {
+        throw err;
+      }
     }
 
+    await cloudWatchLogs
+      .putLogEvents({
+        logGroupName,
+        logStreamName,
+        sequenceToken: uploadSequenceToken,
+        logEvents: [
+          {
+            timestamp: Date.now(),
+            message: JSON.stringify(input),
+          },
+        ],
+      })
+      .promise();
+  }
 };

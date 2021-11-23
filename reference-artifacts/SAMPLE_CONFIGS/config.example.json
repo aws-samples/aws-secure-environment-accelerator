@@ -104,7 +104,7 @@
           "s3Prefix": "rql"
         },
         {
-          "logGroupPattern": "SecurityHub",
+          "logGroupPattern": "/SecurityHub",
           "s3Prefix": "security-hub"
         }        
       ]

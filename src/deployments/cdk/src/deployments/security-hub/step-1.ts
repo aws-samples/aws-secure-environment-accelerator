@@ -13,7 +13,7 @@
 
 import { Account } from '../../utils/accounts';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
-import { AccountStacks } from '../../common/account-stacks';
+import { AccountStacks, AccountStack } from '../../common/account-stacks';
 import { SecurityHub } from '@aws-accelerator/cdk-constructs/src/security-hub';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
@@ -101,15 +101,23 @@ export async function step1(props: SecurityHubStep1Props) {
         roleArn: securityHubRoleOutput.roleArn,
       });
 
-
       if (acceleratorPrefix && logGroupLambdaRoleArn) {
-          configureSecurityHubCWLs(acceleratorPrefix, logGroupLambdaRoleArn, securityMasterAccountStack, securityHubLambdaSWLRole?.roleArn);
-      } 
+        configureSecurityHubCWLs(
+          acceleratorPrefix,
+          logGroupLambdaRoleArn,
+          securityMasterAccountStack,
+          securityHubLambdaSWLRole?.roleArn,
+        );
+      }
     }
-  } 
+  }
 }
 
-const createPublishingLambdaRole = (accountStacks: AccountStacks, securityAccountKey: string, acceleratorPrefix?: string): iam.Role | undefined => {
+const createPublishingLambdaRole = (
+  accountStacks: AccountStacks,
+  securityAccountKey: string,
+  acceleratorPrefix?: string,
+): iam.Role | undefined => {
   const securityMasterAccountStackDefaultRegion = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
   if (!securityMasterAccountStackDefaultRegion) {
     console.warn(`Cannot find security stack in default region`);
@@ -119,29 +127,32 @@ const createPublishingLambdaRole = (accountStacks: AccountStacks, securityAccoun
   const lambdaRoleName = `${acceleratorPrefix}SecurityHubPublisherRole`;
   const lambdaRole = new iam.Role(securityMasterAccountStackDefaultRegion, 'SecurityHubPublisherRole', {
     roleName: lambdaRoleName,
-    assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com')
+    assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
   });
 
   lambdaRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents', 'logs:DescribeLogStreams'],
-      resources: ['*']
+      resources: ['*'],
     }),
   );
 
   return lambdaRole;
-}
+};
 
-const configureSecurityHubCWLs = (acceleratorPrefix: string, logGroupLambdaRoleArn: string, securityMasterAccountStack: any, securityHubLambdaSWLRoleArn?: string) => {
+const configureSecurityHubCWLs = (
+  acceleratorPrefix: string,
+  logGroupLambdaRoleArn: string,
+  securityMasterAccountStack: AccountStack,
+  securityHubLambdaSWLRoleArn?: string,
+) => {
   const acceleratorPrefixNoDash = acceleratorPrefix.slice(0, -1);
   const logGroupName = `/${acceleratorPrefixNoDash}/SecurityHub`;
 
-
   if (securityHubLambdaSWLRoleArn) {
-
     new LogGroup(securityMasterAccountStack, `SecurithHubLogGroup`, {
-      logGroupName: logGroupName,
+      logGroupName,
       roleArn: logGroupLambdaRoleArn,
     });
 
@@ -149,13 +160,9 @@ const configureSecurityHubCWLs = (acceleratorPrefix: string, logGroupLambdaRoleA
       ruleName: `${acceleratorPrefix}SecurityHubFindingsImportToCWLs`,
       description: 'Sends all Security Hub Findings to a Lambda that writes to CloudWatch Logs',
       eventPattern: {
-        source: [
-          'aws.securityhub'
-        ],
-        detailType: [
-          'Security Hub Findings - Imported'
-        ]
-      }
+        source: ['aws.securityhub'],
+        detailType: ['Security Hub Findings - Imported'],
+      },
     });
 
     const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
@@ -171,7 +178,6 @@ const configureSecurityHubCWLs = (acceleratorPrefix: string, logGroupLambdaRoleA
       },
     );
 
-
     const eventsToCwlLambda = new lambda.Function(securityMasterAccountStack, `SecurityHubPublisher`, {
       runtime: lambda.Runtime.NODEJS_14_X,
       role: lambdaRole,
@@ -180,13 +186,10 @@ const configureSecurityHubCWLs = (acceleratorPrefix: string, logGroupLambdaRoleA
       timeout: cdk.Duration.minutes(5),
       memorySize: 1048,
       environment: {
-        LOG_GROUP_NAME: logGroupName
+        LOG_GROUP_NAME: logGroupName,
       },
     });
 
     cloudwatchrule.addTarget(new targets.LambdaFunction(eventsToCwlLambda));
-
   }
-}
-
-
+};
