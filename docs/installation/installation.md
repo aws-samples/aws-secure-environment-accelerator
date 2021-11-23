@@ -53,7 +53,8 @@ These installation instructions assume one of the prescribed architectures is be
 - Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
 - Government of Canada customers are still required to do a standalone installation at this time, please request standalone installation instructions from your Account SA or TAM
 - The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in [section 4](#4-existing-organizations--accounts) below
-- Existing AWS Landing Zone Solution (ALZ) customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
+- Existing AWS Landing Zone Solution (ALZ) customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process.
+- Changes to the Accelerator codebase are strongly discouraged unless they are contributed and accepted back to the solution. Code customization will block the ability to upgrade to the latest release and upgrades are encouraged to be done between quarterly to semi-annually. The solution was designed to be extremely customizable without changing code, existing customers following these guidelines have been able to upgrade across more than 50 Accelerator releases, while maintaining their customizations and gaining the latest bug fixes, features and enhancements without any developer or professional services based support. Please see [this](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/faq/faq.md#1112-how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes) FAQ for more details.
 
 ## 2.2. Production Deployment Planning
 
@@ -82,13 +83,19 @@ If deploying the prescriptive architecture using the Full or Lite sample config 
 - VPC CIDR blocks cannot be changed after installation, this is simply the way the AWS platform works, given everything is built on top of them. Carefully consider your address block selection.
 - one block for each OU, except Sandbox which is not routable (Sandbox OU will use a 7th non-routed address block)
 - the "core" Class B range will be split to support the Endpoint VPC and Perimeter VPC (with extra addresses remaining for future use)
+- Given a shared VPC architecture is leveraged (prevents stranded islands of CIDR blocks and reduces networking costs), we have assigned a class B address block to each VPC to future proof the deployment. Smaller customers can successfully deploy with a half class B CIDR block per shared VPC.
 
 2. Two (2) RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
 
 - Used for AWS Managed Active Directory (MAD) deployment and perimeter underlay network
-- non-GC customers can a) drop the extra GCWide subnets in the Central VPC and, b) replace the perimeter VPC address space with the extra unused addresses from the core CIDR range
+- non-GC customers can replace the RFC6598 address space with the extra unused addresses from the above RFC1918 CIDR range above (the App2 subnets in the Central VPC and the Perimeter VPC address space)
 
-3. Two (2) BGP ASN's (For the Transit Gateway and Firewall Cluster - note: a third is required if you are deploying a VGW for DirectConnect connectivity.)
+3. BGP ASN's for network routing, one for each of:
+   - Transit Gateway (one unique ASN per TGW, multi-region example requires a second ASN)
+   - IPSec VPN Firewall Cluster (if deployed)
+   - VGW for DirectConnect connectivity (only shown in the config.multi-region-example.json)
+
+- For example: the Control Tower with Network Firewall example config requires a single BGP ASN for the TGW, the IPSec VPN example requires two BGP ASN's, and the multi-region example requires five unique BGP ASN's.
 
 NOTE: Prior to v1.5.0 CIDR ranges were assigned to each VPC and subnet throughout the config file. This required customers to perform extensive updates across the config file when needing to move to specific IP ranges compatible with a customer's existing on-premise networks. While this is still supported for those wanting to control exactly what address is used on every subnet, the solution has added support for dynamic CIDR assignments and the sample config files have been updated to reflect. New installs will have CIDR's pulled from CIDR pools, defined in the global-options section of the config file with state maintained in DynamoDB. The v1.5.0 [custom upgrade guide](./v150-Upgrade.md) will provides details on the upgrade process and requirements to migrate to the new CIDR assignment system, if desired. A [script](../reference-artifacts/Custom-Scripts/Update-Scripts/v1.3.8_to_v1.5.0) was created to assist with this migration.
 
@@ -136,7 +143,7 @@ d) Customer gateway (CGW) creation, to enable connectivity to on-premises firewa
 
 Examples of each of the firewall options have been included as variants of the Lite config file [example](./customization-index.md#11-sample-accelerator-configuration-files).
 
-Note: While we only provide a single example for each 3rd party implementation today, the implementations are generic and should be usable by any 3rd party firewall vendor, assuming they support the required features and protocols. The two examples were driven by customer demand and heavy lifting by the 3rd party vendor. We look forward to additional vendors developing and contributing additional sample configurations.
+Note: While we only provide a single example for each 3rd party implementation today, the implementations are generic and should be usable by any 3rd party firewall vendor, assuming they support the required features and protocols. The two examples were driven by customer demand and heavy lifting by the 3rd party vendor. We look forward to additional vendors developing and contributing additional sample configurations. For new 3rd party integrations, we encourage the use of the GWLB approach.
 
 ### 2.2.7. Other
 
@@ -231,6 +238,7 @@ As of v1.5.0, the Accelerator offers deployment from either GitHub or CodeCommit
 
 1. In your AWS Organization Management account, open CodeCommit and create a new repository named `aws-secure-environment-accelerator`
 2. Go to GitHub and download the repository `Source code` zip or tarball for the [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) you wish to deploy
+   - Do NOT download the code off the main GitHub branch, this will leave you in a completely unsupported state (and with beta code)
 3. Push the extracted codebase into the newly created CodeCommit repository, maintaining the file/folder hierarchy
 4. Set the default CodeCommit branch for the new repository to main
 5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.0`)
