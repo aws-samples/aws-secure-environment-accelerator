@@ -1121,13 +1121,6 @@
             "ssm-log-archive-write-access": true,
             "policies": ["AmazonSSMManagedInstanceCore", "CloudWatchAgentServerPolicy", "AmazonS3ReadOnlyAccess"],
             "boundary-policy": "Default-Boundary-Policy"
-          },
-          {
-            "role": "ASEA-OpenSearch-Role",
-            "type": "other",
-            "policies": ["AmazonOpenSearchServiceFullAccess"],
-            "source-account": "operations",              
-            "boundary-policy": "Default-Boundary-Policy"
           }
         ]
       },
@@ -1259,7 +1252,7 @@
           "rsyslog-max-instance-age": 7
         },
         "opensearch-siem": {
-          "deploy": true,
+          "deploy": false,
           "vpc-name": "Central",
           "region": "${HOME_REGION}",          
           "security-groups": [
@@ -1291,15 +1284,14 @@
               "az": "b"
             }
           ],          
-          "lambda-log-processing-role": "ASEA-OpenSearch-ProcessingRole",
-          "cognito-domain-prefix": "asea-siem-1234",
+          "lambda-log-processing-role": "${ACCELERATOR_PREFIX_ND}-OpenSearch-ProcessingRole",
+          "cognito-domain-prefix": "${ACCELERATOR_PREFIX_LND}-siem-1234",
           "opensearch-instance-type-main-nodes": "c6g.xlarge.search",
           "opensearch-instance-type-data-nodes": "r6g.xlarge.search",
-          "opensearch-instance-role": "ASEA-OpenSearch-Role",
           "opensearch-capacity-main-nodes": 3,
           "opensearch-capacity-data-nodes": 4,
           "opensearch-volume-size": 100,
-          "opensearch-configuration": "siem/opensearch-config.json",          
+          "opensearch-configuration": "siem/opensearch-config.json",
           "event-processor-lambda-package": "siem/os-loader.zip"
         }
       }
