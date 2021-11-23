@@ -1146,6 +1146,7 @@
           "rdgw-instance-type": "t3.large",
           "image-path": "/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base",
           "rdgw-instance-role": "${ACCELERATOR_PREFIX_ND}-RDGW-Role",
+          "rdgw-enforce-imdsv2": true,
           "password-policies": {
             "history": 24,
             "max-age": 90,
@@ -1248,6 +1249,7 @@
           "ssm-image-id": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2",
           "rsyslog-instance-type": "t3.large",
           "rsyslog-instance-role": "${ACCELERATOR_PREFIX_ND}-Rsyslog-Role",
+          "rsyslog-enforce-imdsv2": true,
           "rsyslog-root-volume-size": 100,
           "rsyslog-max-instance-age": 7
         },

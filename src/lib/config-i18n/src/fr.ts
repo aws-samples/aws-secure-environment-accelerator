@@ -1279,6 +1279,10 @@ translate(c.MadConfigType, {
       title: '',
       description: '',
     },
+    'rdgw-enforce-imdsv2': {
+      title: '',
+      description: '',
+    },
     'rdgw-instance-role': {
       title: '',
       description: '',
@@ -1455,6 +1459,10 @@ translate(c.RsyslogConfig, {
       description: '',
     },
     'rsyslog-instance-type': {
+      title: '',
+      description: '',
+    },
+    'rsyslog-enforce-imdsv2': {
       title: '',
       description: '',
     },

@@ -3,8 +3,8 @@
 - [1. Accelerator Basic Operation and Frequently asked Questions](#1-accelerator-basic-operation-and-frequently-asked-questions)
   - [1.1. Operational Activities](#11-operational-activities)
     - [1.1.1. How do I add new AWS accounts to my AWS Organization?](#111-how-do-i-add-new-aws-accounts-to-my-aws-organization)
-    - [1.1.2. I tried to enroll a new account via Control Tower but it failed? The state machine failed during the `Load Organization Configuration` step with the error `The Control Tower account: ACCOUNT_NAME is in a failed state ERROR`?](#112-i-tried-to-enroll-a-new-account-via-control-tower-but-it-failed-the-state-machine-failed-during-the-load-organization-configuration-step-with-the-error-the-control-tower-account-account_name-is-in-a-failed-state-error)
-    - [1.1.3. Can I use AWS Organizations for all tasks I currently use AWS Organizations for? (Standalone Version Only)](#113-can-i-use-aws-organizations-for-all-tasks-i-currently-use-aws-organizations-for-standalone-version-only)
+    - [1.1.2. I tried to enroll a new account via Control Tower but it failed? The state machine failed during the "Load Organization Configuration" step with the error "The Control Tower account: ACCOUNT_NAME is in a failed state ERROR"?](#112-i-tried-to-enroll-a-new-account-via-control-tower-but-it-failed-the-state-machine-failed-during-the-load-organization-configuration-step-with-the-error-the-control-tower-account-account_name-is-in-a-failed-state-error)
+    - [1.1.3. Can I use AWS Organizations for all tasks I currently use AWS Organizations for?](#113-can-i-use-aws-organizations-for-all-tasks-i-currently-use-aws-organizations-for)
     - [1.1.4. How do I make changes to items I defined in the Accelerator configuration file during installation?](#114-how-do-i-make-changes-to-items-i-defined-in-the-accelerator-configuration-file-during-installation)
     - [1.1.5. Can I update the config file while the State Machine is running? When will those changes be applied?](#115-can-i-update-the-config-file-while-the-state-machine-is-running-when-will-those-changes-be-applied)
     - [1.1.6. What if I really mess up the configuration file?](#116-what-if-i-really-mess-up-the-configuration-file)
@@ -21,11 +21,11 @@
     - [1.2.2. Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?](#122-is-it-possible-to-deploy-the-accelerator-on-top-of-an-aws-organization-that-i-have-already-installed-the-aws-landing-zone-alz-solution-into)
     - [1.2.3. What if I want to move an account from an AWS Organization that has the ALZ deployed into an AWS Organization running the Accelerator?](#123-what-if-i-want-to-move-an-account-from-an-aws-organization-that-has-the-alz-deployed-into-an-aws-organization-running-the-accelerator)
   - [1.3. End User Environment](#13-end-user-environment)
-    - [1.3.1. Is there anything my end users need to be aware of?](#131-is-there-anything-my-end-users-need-to-be-aware-of)
+    - [1.3.1. Is there anything my end users need to be aware of? Why do some of my end users struggle with CloudWatch Log groups errors?](#131-is-there-anything-my-end-users-need-to-be-aware-of-why-do-some-of-my-end-users-struggle-with-cloudwatch-log-groups-errors)
     - [1.3.2. How can I leverage Accelerator deployed objects in my IaC? Do I need to manually determine the arn's and object id's of Accelerator deployed objects to leverage them in my IaC?](#132-how-can-i-leverage-accelerator-deployed-objects-in-my-iac-do-i-need-to-manually-determine-the-arns-and-object-ids-of-accelerator-deployed-objects-to-leverage-them-in-my-iac)
   - [1.4. Upgrades](#14-upgrades)
     - [1.4.1. Can I upgrade directly to the latest release, or must I perform upgrades sequentially?](#141-can-i-upgrade-directly-to-the-latest-release-or-must-i-perform-upgrades-sequentially)
-    - [1.4.2. After upgrading to v1.3.0, I get the error "There were errors while comparing the configuration changes:" when I update the config file?](#142-after-upgrading-to-v130-i-get-the-error-there-were-errors-while-comparing-the-configuration-changes-when-i-update-the-config-file)
+    - [1.4.2. Why do I get the error "There were errors while comparing the configuration changes:" when I update the config file?](#142-why-do-i-get-the-error-there-were-errors-while-comparing-the-configuration-changes-when-i-update-the-config-file)
   - [1.5. Support Concerns](#15-support-concerns)
     - [1.5.1. The Accelerator is written in CDK and deploys CloudFormation, does this restrict the Infrastructure as Code (IaC) tools that I can use?](#151-the-accelerator-is-written-in-cdk-and-deploys-cloudformation-does-this-restrict-the-infrastructure-as-code-iac-tools-that-i-can-use)
     - [1.5.2. What happens if AWS stops enhancing the Accelerator?](#152-what-happens-if-aws-stops-enhancing-the-accelerator)
@@ -44,6 +44,7 @@
     - [1.6.9. Is the Organizational Management root account monitored similarly to the other accounts in the organization?](#169-is-the-organizational-management-root-account-monitored-similarly-to-the-other-accounts-in-the-organization)
     - [1.6.10. How are the perimeter firewall configurations and licensing managed after deployment?](#1610-how-are-the-perimeter-firewall-configurations-and-licensing-managed-after-deployment)
     - [1.6.11. Can the Fortinet Firewall deployments use static private IP address assignments?](#1611-can-the-fortinet-firewall-deployments-use-static-private-ip-address-assignments)
+    - [1.6.12. I've noticed CloudTrail logs and in certain situation VPC flow logs are stored in the centralized log-archive account logging bucket twice?](#1612-ive-noticed-cloudtrail-logs-and-in-certain-situation-vpc-flow-logs-are-stored-in-the-centralized-log-archive-account-logging-bucket-twice)
 
 ## 1.1. Operational Activities
 
@@ -62,7 +63,7 @@
   }
   ```
 
-  2. We've heard consistent feedback that our customers wish to use native AWS services and do not want to do things differently once security controls, guardrails, or accelerators are applied to their environment. In this regard, simply create your new AWS account in AWS Organizations as you did before\*\*.
+  2. We've heard consistent feedback that our customers wish to use native AWS services and do not want to do things differently once security controls, guardrails, or accelerators are applied to their environment. In this regard, simply create your new AWS account in AWS Organizations as you did before\*\*, either by a) using the AWS Console or b) by using standard AWS account creation API's, CLI or 3rd party tools like Terraform.
 
      - \*\* **IMPORTANT:** When creating the new AWS account using AWS Organizations, you need to specify the role name provided in the Accelerator configuration file `global-options\organization-admin-role`, otherwise we cannot bootstrap the account. In Control Tower installations, this **MUST** be set to **_`AWSControlTowerExecution`_**, for customers who installed prior to v1.2.5 this value is **_`AWSCloudFormationStackSetExecutionRole`_** and after v1.2.5 we were recommending using the role **_`OrganizationAccountAccessRole`_** as this role is used by default by AWS Organizations if no role name is specified when creating AWS accounts through the AWS console or cli.
      - On account creation we will apply a quarantine SCP which prevents the account from being used by anyone until the Accelerator has applied the appropriate guardrails
@@ -74,11 +75,9 @@
 
   3. Create your account using Account Factory in the AWS Control Tower console.
 
-  4. Create your account using standard AWS account creation API's, CLI or 3rd party tools like Terraform.
-
   No matter the mechanism you choose, new accounts will automatically be blocked from use until fully guardrailed, the Accelerator will automatically execute, and accounts will automatically be ingested into AWS Control Tower.
 
-### 1.1.2. I tried to enroll a new account via Control Tower but it failed? The state machine failed during the `Load Organization Configuration` step with the error `The Control Tower account: ACCOUNT_NAME is in a failed state ERROR`?
+### 1.1.2. I tried to enroll a new account via Control Tower but it failed? The state machine failed during the "Load Organization Configuration" step with the error "The Control Tower account: ACCOUNT_NAME is in a failed state ERROR"?
 
 If account enrollment fails within Control Tower, you will need to follow the troubleshooting steps [here](https://docs.aws.amazon.com/controltower/latest/userguide/troubleshooting.html). A common reason for this is not having the `ControlTowerExectution` role created in the account you are trying to enroll. Even after you successfully enroll the account, it is possible the state machine will fail at `Load Organization Configuration`. If you look at the cloudwatch logs you will see the error message:
 
@@ -88,7 +87,7 @@ There were errors while loading the configuration: The Control Tower account: AC
 
 This is because the Accelerator checks that there are no errors with Control Tower before continuing. In some cases Control Tower can leave an orphaned Service Catalog product in an **Error** state. You need to cleanup Control Towers Service Catalogs Provisioned Products so there are no products remaining in an error or tainted state before you can successfully re-run the state machine.
 
-### 1.1.3. Can I use AWS Organizations for all tasks I currently use AWS Organizations for? (Standalone Version Only)
+### 1.1.3. Can I use AWS Organizations for all tasks I currently use AWS Organizations for?
 
 - In AWS Organizations you can continue to:
   - create and rename AWS accounts
@@ -321,9 +320,13 @@ For a detailed procedure, please review this [document](../operations/operations
 
 ## 1.3. End User Environment
 
-### 1.3.1. Is there anything my end users need to be aware of?
+### 1.3.1. Is there anything my end users need to be aware of? Why do some of my end users struggle with CloudWatch Log groups errors?
 
-CloudWatch Log group deletion is prevented for security purposes. Users of the Accelerator environment will need to ensure they set CFN stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack and your users will complain. The Accelerator also sets Log group retention for all log groups to value(s) specified by customers in the config file. End users are blocked from setting or changing Log group retention. End users must either not configure a retention period, or set it to the default `NEVER expire` or they will be blocked from creating objects.
+CloudWatch Log group deletion is prevented for security purposes and bypassing this rule would be a fundamental violation of security best practices. This protection does NOT exist solely to protect ASEA logs, but ALL log groups. Users of the Accelerator environment will need to ensure they set CloudFormation stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack (as deleting the log group will be blocked) and users will encounter errors. As repeated stack deployments will be prevented from recreating the same log group name (as it already exists), end users will either need to check for the existence of the log group before attempting creation, or include a random hash in the log group name. The Accelerator also sets log group retention for all log groups to value(s) specified by customers in the config file and prevents end users from setting or changing Log group retentions. When creating new log groups, end users must either _not_ configure a retention period, or set it to the default `NEVER expire` or they will also be blocked from creating the CloudWatch Log group. If applied by bypassing the guardrails, customer specified retention periods on log group creation will be overridden with the Accelerator specified retention period.
+
+While a security best practice, some end users continue to request this be changed, but you need to ask: Are end users allowed to go in and clean out logs from Windows Event Viewer (locally or on domain controllers) after testing? Clean out Linux kernel logs? Apache log histories? The fundamental principal is that all and as many logs as possible will be retained for a defined retention period (some longer). In the "old days", logs were hidden deep within OS directory structures or access restricted by IT from developers - now that we make them all centralized, visible, and accessible, end users seem to think they suddenly need to clean them up. Customers need to establish a usable and scalable log group naming standard/convention as the first step in moving past this concern, such that they can always find their active logs easily. As stated, to enable repeated install and removal of stacks during test cycles, end user CloudFormation stacks need to set log groups to RETAIN and leverage a random hash in log group naming (or check for existence, before creating).
+
+The Accelerator provided SCPs (guardrails/protections) are our recommendations, yet designed to be fully customizable, enabling any customer to carefully override these defaults to meet their individual requirements. If insistent, we'd suggest only bypassing the policy on the Sandbox OU, and only for log groups that start with a very specific prefix (not all log groups). When a customer wants to use the delete capability, they would need to name their log group with the designated prefix - i.e. opt-in to allow CloudWatch log group deletes.
 
 ### 1.3.2. How can I leverage Accelerator deployed objects in my IaC? Do I need to manually determine the arn's and object id's of Accelerator deployed objects to leverage them in my IaC?
 
@@ -341,7 +344,7 @@ Yes, currently customers can upgrade from whatever version they have deployed to
 
 Given the magnitude of the v1.5.0 release, we have added a one-time requirement that all customers upgrade to a minimum of v1.3.8 before attempting to upgrade to v1.5.0.
 
-### 1.4.2. After upgrading to v1.3.0, I get the error "There were errors while comparing the configuration changes:" when I update the config file?
+### 1.4.2. Why do I get the error "There were errors while comparing the configuration changes:" when I update the config file?
 
 In v1.3.0 we added protections to allow customers to verify the scope of impact of their intended changes to the configuration file. In v1.3.0 and above, the state machine does not allow changes to the config file (other than new accounts) without providing the `scope` parameter. Please refer to section 1.1 of the `State Machine behavior and inputs` [Guide](../installation/sm_inputs.md#11-state-machine-behavior) for more details.
 
@@ -581,6 +584,14 @@ Using the `config.example.json` as a reference, static IP Assignments would look
 
 Where `private-ips` are not present for the subnet or availability zone an address will be assigned automatically from available addresses when the firewall instance is created.
 
----
+### 1.6.12. I've noticed CloudTrail logs and in certain situation VPC flow logs are stored in the centralized log-archive account logging bucket twice?
+
+Yes. Cloudtrail is configured to send its logs directly to S3 for centralized immutable log retention. CloudTrail is also configured to send it's logs to a centralized Organizational CloudWatch Log group such that the trail can be a) easily queried online using CloudWatch Insights across all AWS accounts in the organization, and b) to enable alerting based on undesirable API activity using CloudWatch Metrics and Alarms. All CloudWatch Log groups are also configured to be sent, using Amazon Kinesis, to S3 for centralized immutable log retention.
+
+VPC flow log destinations can be configured in the config file. The example config files are set to send the VPC flow logs to both S3 and CloudWatch Logs by default for the same reasons as CloudTrail.
+
+To reduce the duplicate long-term storage of these two specific CloudWatch Log types, customers can set `cwl-glbl-exclusions` under `central-log-services` to: `["/${ACCELERATOR_PREFIX_ND}/flowlogs/*", "/${ACCELERATOR_PREFIX_ND}/CloudTrail*"]` to prevent these specifically named log groups from being stored on S3. This setting also prevents the Accelerator from setting the customer desired log group retention period defined in the config file, once implemented, for those log groups. Therfore, we do not recommend this exception be applied during the initial installation, as the retention setting on these CWL groups will remain the default (infinite). If `cwl-glbl-exclusions` is set after initial install, the defined retention will be configured during install and will remain set to the value present when the exception was applied to those log groups. This allows logs to be stored in CloudWatch Logs for quick and easy online access (short-retention only), and stored in S3 for long-term retention and access.
+
+Side note: CloudTrail S3 data plane logs are enabled at the Organizational level, meaning all S3 bucket access is logged. As CloudTrail is writing to a bucket within the Organization, Cloudtrail itself is accessing the bucket, seemingly creating a cyclical loop. As CloudTrail writes to S3 in 5-10min batches, Cloudtrail will actually only cause one extra log 'entry' every 5-10minutes and not per s3 event, mitigating major concerns. Today, with an Organization trail logging data plane events for all buckets - there is no way to exclude any one bucket. But - having clear view of who accessed/changed logs, including AWS services, is important.
 
 [...Return to Accelerator Table of Contents](../index.md)
