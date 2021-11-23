@@ -1135,13 +1135,6 @@
             "ssm-log-archive-write-access": true,
             "policies": ["AmazonSSMManagedInstanceCore", "CloudWatchAgentServerPolicy", "AmazonS3ReadOnlyAccess"],
             "boundary-policy": "Default-Boundary-Policy"
-          },
-          {
-            "role": "ASEA-OpenSearch-Role",
-            "type": "other",
-            "policies": ["AmazonOpenSearchServiceFullAccess"],
-            "source-account": "operations",              
-            "boundary-policy": "Default-Boundary-Policy"
           }
         ]
       },
@@ -1152,7 +1145,7 @@
           "deploy": true,
           "vpc-name": "Central",
           "region": "${HOME_REGION}",
-          "subnet": "GCWide",
+          "subnet": "App2",
           "size": "Enterprise",
           "dns-domain": "example.local",
           "netbios-domain": "example",
@@ -1275,7 +1268,7 @@
           "rsyslog-max-instance-age": 7
         },
         "opensearch-siem": {
-          "deploy": true,
+          "deploy": false,
           "vpc-name": "Central",
           "region": "${HOME_REGION}",          
           "security-groups": [
@@ -1307,15 +1300,14 @@
               "az": "b"
             }
           ],          
-          "lambda-log-processing-role": "ASEA-OpenSearch-ProcessingRole",
-          "cognito-domain-prefix": "asea-siem-1234",
+          "lambda-log-processing-role": "${ACCELERATOR_PREFIX_ND}-OpenSearch-ProcessingRole",
+          "cognito-domain-prefix": "${ACCELERATOR_PREFIX_LND}-siem-1234",
           "opensearch-instance-type-main-nodes": "c6g.xlarge.search",
           "opensearch-instance-type-data-nodes": "r6g.xlarge.search",
-          "opensearch-instance-role": "ASEA-OpenSearch-Role",
           "opensearch-capacity-main-nodes": 3,
           "opensearch-capacity-data-nodes": 4,
           "opensearch-volume-size": 100,
-          "opensearch-configuration": "siem/opensearch-config.json",          
+          "opensearch-configuration": "siem/opensearch-config.json",
           "event-processor-lambda-package": "siem/os-loader.zip"
         }
       }
@@ -1996,7 +1988,7 @@
                   "destination": {
                     "account": "shared-network",
                     "vpc": "Central",
-                    "subnet": "GCWide"
+                    "subnet": "App2"
                   },
                   "target": "pcx"
                 }
@@ -2316,7 +2308,7 @@
             "source": "management",
             "source-vpc": "ForSSO",
             "source-subnets": "ForSSO",
-            "local-subnets": "GCWide"
+            "local-subnets": "App2"
           },
           "subnets": [
             {
@@ -2524,13 +2516,13 @@
               ]
             },
             {
-              "name": "GCWide",
+              "name": "App2",
               "share-to-ou-accounts": false,
               "share-to-specific-accounts": ["operations"],
               "definitions": [
                 {
                   "az": "a",
-                  "route-table": "${CONFIG::VPC_NAME}VPC_GCWide",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_App2",
                   "cidr": {
                     "pool": "RFC6598a",
                     "size": 25
@@ -2538,7 +2530,7 @@
                 },
                 {
                   "az": "b",
-                  "route-table": "${CONFIG::VPC_NAME}VPC_GCWide",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_App2",
                   "cidr": {
                     "pool": "RFC6598a",
                     "size": 25
@@ -2546,7 +2538,7 @@
                 },
                 {
                   "az": "d",
-                  "route-table": "${CONFIG::VPC_NAME}VPC_GCWide",
+                  "route-table": "${CONFIG::VPC_NAME}VPC_App2",
                   "cidr": {
                     "pool": "RFC6598a",
                     "size": 25
@@ -2576,7 +2568,7 @@
               ]
             },
             {
-              "name": "${CONFIG::VPC_NAME}VPC_GCWide",
+              "name": "${CONFIG::VPC_NAME}VPC_App2",
               "routes": [
                 {
                   "destination": "0.0.0.0/0",
@@ -3156,7 +3148,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 }
@@ -3183,7 +3175,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 },
@@ -3214,7 +3206,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 },
@@ -3263,7 +3255,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 },
@@ -3736,7 +3728,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 }
@@ -3763,7 +3755,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 },
@@ -3794,7 +3786,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 },
@@ -3843,7 +3835,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 },
@@ -4316,7 +4308,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 }
@@ -4343,7 +4335,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 },
@@ -4374,7 +4366,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 },
@@ -4423,7 +4415,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 },
@@ -4864,7 +4856,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 }
@@ -4891,7 +4883,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 },
@@ -4922,7 +4914,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 },
@@ -4971,7 +4963,7 @@
                   "source": [
                     {
                       "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                      "subnet": ["Web", "App", "Mgmt", "App2"]
                     }
                   ]
                 },
