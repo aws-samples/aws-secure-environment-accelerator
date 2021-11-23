@@ -121,6 +121,8 @@ The logic of the script is the following:
 
    d. If you accidentally delete a cdk bucket (`cdktoolkit-stagingbucket-*`) in any region, you MUST remove the corresponding CDK bootstrap stack (`CDKToolkit`) from the corresponding regions before deploying.
 
+3. It has also been reported that the Firewall Manager organization admin account is not unset
+
 ## Requirements
 
 - boto3

@@ -436,6 +436,7 @@ export const MadConfigType = t.interface({
   restrict_srcips: t.array(t.cidr),
   'rdgw-instance-type': t.nonEmptyString,
   'rdgw-instance-role': t.nonEmptyString,
+  'rdgw-enforce-imdsv2': t.defaulted(t.boolean, false),
   'num-rdgw-hosts': t.number,
   'rdgw-max-instance-age': t.number,
   'min-rdgw-hosts': t.number,
@@ -490,6 +491,7 @@ export const RsyslogConfig = t.interface({
   'ssm-image-id': t.nonEmptyString,
   'rsyslog-instance-type': t.nonEmptyString,
   'rsyslog-instance-role': t.nonEmptyString,
+  'rsyslog-enforce-imdsv2': t.defaulted(t.boolean, false),
   'rsyslog-root-volume-size': t.number,
   'rsyslog-max-instance-age': t.number,
 });
