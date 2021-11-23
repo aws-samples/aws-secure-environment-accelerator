@@ -1394,6 +1394,10 @@ translate(c.MadConfigType, {
       title: 'Remote Desktop Gateway EC2 instance type',
       description: 'To manage the MAD the Accelerator deploys an EC2 instance to serve as a Remote Desktop Gateway',
     },
+    'rdgw-enforce-imdsv2': {
+      title: 'Enforce IMDSv2 on the EC instances launched for Remote Desktop Gateway',
+      description: 'If set to true, IMDSv2 will be mandatory on the instances. Default : false',
+    },
     'rdgw-instance-role': {
       title: 'Remote Desktop Gateway instance role',
       description: 'EC2 instance role assumed by the RDGW',
@@ -1585,6 +1589,10 @@ translate(c.RsyslogConfig, {
     'rsyslog-instance-type': {
       title: 'rsyslog Instance type',
       description: 'The EC2 instance type for the rsyslog instances (i.e. t3.large)',
+    },
+    'rsyslog-enforce-imdsv2': {
+      title: 'Enforce IMDSv2 on the EC instances launched for rsyslog',
+      description: 'If set to true, IMDSv2 will be mandatory on the instances. Default : false',
     },
     'rsyslog-instance-role': {
       title: 'Instance role',
