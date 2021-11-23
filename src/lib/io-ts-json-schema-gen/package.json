@@ -11,7 +11,7 @@
   "dependencies": {
     "@aws-accelerator/common-types": "workspace:*",
     "@aws-accelerator/io-ts-annotations": "workspace:*",
-    "json-schema": "0.3.0"
+    "json-schema": "0.4.0"
   },
   "devDependencies": {
     "ts-node": "9.1.1",
