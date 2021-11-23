@@ -164,11 +164,14 @@ Before installing, you must first:
       - the Accelerator home region must match the Control Tower home region
    3. Select _all_ regions for `Additional AWS Regions for governance`, click `Next`
       - The Control Tower and Accelerator regions MUST be properly aligned
-	  - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions`
-	  - To manage a region requires the region:
-	    - be enabled in Control Tower (if supported)
-		- added to the config file `control-tower-supported-regions` list (if supported)
-		- added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`)
+   - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions`
+   - To manage a region requires the region:
+     - be enabled in Control Tower (if supported)
+     - added to the config file `control-tower-supported-regions` list (if supported)
+     - added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`)
+     - While we highly recommend guardrail deployment for all AWS enabled by default regions, at minimum
+       - the home region MUST be enabled in Control Tower and must be listed in `control-tower-supported-regions`
+       - both the home-region and ${GBL_REGION} must be listed in `supported-regions`
    4. For the `Foundational OU`, leave the default value `Security`
    5. For the `Additional OU` provide the value `Infrastructure`, click `Next`
    6. Enter the email addresses for your `Log Archive` and `Audit` accounts, change the `Audit` account name to `Security`, click `Next`
@@ -348,7 +351,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - review the list of [Known Installation Issues](#251-known-installation-issues) in section 2.5.1 below
     - review the Accelerator Basic Operation and Frequently Asked Questions [(FAQ) Document](../faq/faq.md)
 11. Once the pipeline completes (~10 mins), the main state machine, named `ASEA-MainStateMachine_sm`, will start in Step Functions
-12. The state machine time is dependent on the quantity of resources being deployed. On an initial installation of a more complex sample configuration files, it takes approximately 1.5 hours to execute. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but often takes as little as 20 minutes.
+12. The state machine time is dependent on the quantity of resources being deployed. On an initial installation of a more complex sample configuration files, it takes approximately 2 hours to execute (depending on the configuration file). Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but often takes as little as 20 minutes.
     - While you can watch the state machine in Step Functions, you will also be notified via email when the State Machine completes (or fails). Successful state machine executions include a list of all accounts which were successfully processed by the Accelerator.
 13. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
 14. You will receive an email from the State Machine SNS topic and the 3 SNS alerting topics. Please confirm all four (4) email subscriptions to enable receipt of state machine status and security alert messages. Until completed, you will not receive any email messages (must be completed within 7-days).
@@ -381,9 +384,11 @@ If deploying to an internal AWS employee account and installing the solution wit
 
 Current Issues:
 
-- On larger deployments we are occassionally seeing state machine failures when `Creating Config Recorders`.
+- When a new installation includes AWS Network Firewall (NFW), we are seeing State Machine failures in Phase 1 in the Perimeter account. Timing issues are causing the first deployment of the underlying CloudFormation stack to fail and rollback, when we automatically retry the stacks deployment, we attempt to recreate the NFW CloudWatch Log groups which were retained, causing a failure. A fix is in the works. Manually delete the two NFW log groups from the perimeter account (`/ASEA/Nfw/Central-Firewall/Alert` and `/ASEA/Nfw/Central-Firewall/Flow`) using either the Accelerator Pipeline Role or the Org Admin Role and rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
+- If dns-resolver-logging is enabled, VPC names containing spaces are not supported at this time as the VPC name is used as part of the log group name and spaces are not supported in log group names. By default in many of the sample config files, the VPC name is auto-generated from the OU name using a variable. In this situation, spaces are also not permitted in OU names (i.e. if any account in the OU has a VPC with resolver logging enabled and the VPC is using the OU as part of its name).
+- On larger deployments we are occassionally seeing state machine failures when `Creating Config Recorders`. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
-- Applying new Control Tower Detective guardrails fails in v1.5.0.  This has already been fixed in the next release.
+- Applying new Control Tower Detective guardrails fails in v1.5.0. This is fixed in the next release.
 
 Issues in Older Releases:
 
@@ -538,11 +543,14 @@ The Accelerator installation is complete, but several manual steps remain:
 7. Customers are responsible for the ongoing management and rotation of all passwords on a regular basis per their organizational password policy. This includes the passwords of all IAM users, MAD users, firewall users, or other users, whether deployed by the Accelerator or not. We do NOT automatically rotate any passwords, but strongly encourage customers do so, on a regular basis.
 
 8. During the installation we request required limit increases, resources dependent on these limits will not be deployed
+
    1. Limit increase requests are controlled through the Accelerator configuration file `"limits":{}` setting
    2. The sample configuration file requests increases to your EIP count in the perimeter account and to the VPC count and Interface Endpoint count in the shared-network account
    3. You should receive emails from support confirming the limit increases
    4. On the next state machine execution, resources blocked by limits should be deployed (i.e. additional VPC's and Endpoints)
    5. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
+
+9. Note: After a successful install the Control Tower `Organizational units` dashboard will indicate `2 of 3` in the `Accounts enrolled` column for the Security OU, as it does not enable enrollment of the management account in guardrails. The Accelerator compliments Control Tower and enables guardrails in the management account which is important to high compliance customers.
 
 # 3. Upgrades
 
