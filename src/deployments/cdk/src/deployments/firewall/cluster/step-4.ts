@@ -192,7 +192,6 @@ async function createFirewallCluster(props: {
     },
   }));
 
-
   // Create LaunchConfiguration
   const launchConfig = new LaunchConfiguration(accountStack, `FirewallLaunchConfiguration-${firewallName}`, {
     launchConfigurationName,
