@@ -107,9 +107,44 @@ export class CognitoUserPool extends cdk.Construct {
 
     const { userPoolName, usernameAttributes } = props;
 
+    const externalId: string = Math.random().toString(11).slice(2);
+
+    const snsRole = new iam.Role(this, 'MfaSnsRole', {
+      assumedBy: new iam.ServicePrincipal('cognito-idp.amazonaws.com'),
+      externalIds: [externalId],
+      inlinePolicies: {
+        snspublish: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ['sns:Publish'],
+              resources: ['*'],
+            }),
+          ],
+        }),
+      },
+    });
+
     this.resource = new cognito.CfnUserPool(this, 'UserPool', {
       userPoolName,
       usernameAttributes,
+      userPoolAddOns: {
+        advancedSecurityMode: 'ENFORCED',
+      },
+      mfaConfiguration: 'OPTIONAL',
+      enabledMfas: ['SOFTWARE_TOKEN_MFA', 'SMS_MFA'],
+      smsConfiguration: {
+        externalId,
+        snsCallerArn: snsRole.roleArn,
+      },
+      accountRecoverySetting: {
+        recoveryMechanisms: [
+          {
+            name: 'verified_email',
+            priority: 1,
+          },
+        ],
+      },
     });
   }
 
