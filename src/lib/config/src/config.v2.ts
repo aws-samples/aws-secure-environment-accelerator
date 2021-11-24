@@ -631,6 +631,7 @@ export const FirewallAutoScaleConfigType = t.interface({
   vpc: t.nonEmptyString,
   subnet: t.nonEmptyString,
   'security-group': t.nonEmptyString,
+  'enforce-imdsv2': t.defaulted(t.boolean, false),
   'fw-instance-role': t.optional(t.string),
   'user-data': t.optional(t.string),
   bootstrap: t.optional(t.nonEmptyString),

@@ -2022,6 +2022,10 @@ translate(c.FirewallAutoScaleConfigType, {
       title: '',
       description: '',
     },
+    'enforce-imdsv2': {
+      title: 'Enforce IMDSv2 on the EC instances launched for firewalls',
+      description: 'If set to true, IMDSv2 will be mandatory on the instances. Default : false',
+    },
     'instance-sizes': {
       title: '',
       description: '',

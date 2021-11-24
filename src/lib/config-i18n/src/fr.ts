@@ -1883,6 +1883,10 @@ translate(c.FirewallAutoScaleConfigType, {
       title: '',
       description: '',
     },
+    'enforce-imdsv2': {
+      title: '',
+      description: '',
+    },
     'instance-sizes': {
       title: '',
       description: '',

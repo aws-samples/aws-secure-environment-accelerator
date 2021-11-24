@@ -158,6 +158,7 @@ async function createFirewallCluster(props: {
   const {
     name: firewallName,
     'security-group': securityGroupName,
+    'enforce-imdsv2': enforceImdsv2,
     'fw-instance-role': instanceRoleName,
     'image-id': imageId,
     'instance-sizes': instanceType,
@@ -191,11 +192,13 @@ async function createFirewallCluster(props: {
     },
   }));
 
+
   // Create LaunchConfiguration
   const launchConfig = new LaunchConfiguration(accountStack, `FirewallLaunchConfiguration-${firewallName}`, {
     launchConfigurationName,
     associatePublicIpAddress,
     imageId,
+    metadataOptions: enforceImdsv2 ? { httpEndpoint: 'enabled', httpTokens: 'required' } : undefined,
     securityGroups: [securityGroup.id],
     iamInstanceProfile: instanceRoleName ? createIamInstanceProfileName(instanceRoleName) : undefined,
     instanceType,
