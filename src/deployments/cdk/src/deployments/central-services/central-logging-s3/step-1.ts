@@ -12,8 +12,6 @@
  */
 
 import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import * as kinesis from '@aws-cdk/aws-kinesis';
 import * as s3 from '@aws-cdk/aws-s3';
@@ -27,8 +25,6 @@ import * as c from '@aws-accelerator/common-config';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { CfnLogDestinationOutput } from './outputs';
-
-import path from 'path';
 
 export interface CentralLoggingToS3Step1Props {
   accountStacks: AccountStacks;
@@ -142,41 +138,9 @@ async function cwlSettingsInLogArchive(props: {
     destinationPolicy: destinationPolicyStr,
   });
 
-
-  const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
-  const lambdaDir = path.dirname(lambdaPath);
-  const lambdaCode = lambda.Code.fromAsset(lambdaDir);
-
-  const firhosePrefixProcessingLambda = new lambda.Function(scope, `FirehosePrefixProcessingLambda`, {
-    runtime: lambda.Runtime.NODEJS_14_X,
-    code: lambdaCode,
-    handler: 'index.firehoseCustomPrefix',
-    memorySize: 2048,
-    timeout: cdk.Duration.minutes(5),
-    environment: {
-      LOG_PREFIX: CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX
-    },
-  });
-
-  const kinesisStreamRole = iam.Role.fromRoleArn(
-    scope,
-    'KinesisStreamRoleLookup',
-    kinesisStreamRoleArn,
-    {
-      mutable: true,
-    },
-  );
-
-  kinesisStreamRole.addToPrincipalPolicy(
-    new iam.PolicyStatement({
-      resources: [firhosePrefixProcessingLambda.functionArn],
-      actions: ["lambda:InvokeFunction"],
-    })
-  );
-
-  new kinesisfirehose.CfnDeliveryStream(scope, 'Kinesis-Firehouse-Stream-Dynamic-Partitioning', {
+  new kinesisfirehose.CfnDeliveryStream(scope, 'Kinesis-Firehouse-Stream', {
     deliveryStreamName: createName({
-      name: 'Firehose-Delivery-Stream-Partition',
+      name: 'Firehose-Delivery-Stream',
     }),
     deliveryStreamType: 'KinesisStreamAsSource',
     kinesisStreamSourceConfiguration: {
@@ -187,42 +151,12 @@ async function cwlSettingsInLogArchive(props: {
       bucketArn,
       bufferingHints: {
         intervalInSeconds: 60,
-        sizeInMBs: 64, // Minimum with dynamic partitioning
+        sizeInMBs: 50,
       },
       compressionFormat: 'UNCOMPRESSED',
       roleArn: kinesisStreamRoleArn,
-      dynamicPartitioningConfiguration: {
-        enabled: true
-      },
-      errorOutputPrefix: `${CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX}/processing-failed`,
-      prefix: '!{partitionKeyFromLambda:dynamicPrefix}',
-      processingConfiguration: {
-        enabled: true,
-        processors: [
-          {
-            type: 'Lambda',
-            parameters: [
-              {                
-                parameterName: 'LambdaArn',
-                parameterValue: firhosePrefixProcessingLambda.functionArn
-            },
-            {
-                parameterName: 'NumberOfRetries',
-                parameterValue: '3'
-            },            
-            // {
-            //     parameterName: 'BufferSizeInMBs',
-            //     parameterValue: '128'
-            // },
-            // {
-            //     parameterName: 'BufferIntervalInSeconds',
-            //     parameterValue: '60'
-            // }
-            ]
-          }
-        ]
-      }
-    },    
+      prefix: CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX,
+    },
   });
 
   // Store LogDestination ARN in output so that subsequent phases can access the output
