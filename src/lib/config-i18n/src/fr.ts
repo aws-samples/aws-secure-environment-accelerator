@@ -1737,6 +1737,10 @@ translate(c.FirewallEC2ConfigType, {
       title: '',
       description: '',
     },
+    'enforce-imdsv2': {
+      title: '',
+      description: '',
+    },
     region: {
       title: '',
       description: '',
@@ -1971,6 +1975,10 @@ translate(c.FirewallManagerConfigType, {
       description: '',
     },
     'image-id': {
+      title: '',
+      description: '',
+    },
+    'enforce-imdsv2': {
       title: '',
       description: '',
     },

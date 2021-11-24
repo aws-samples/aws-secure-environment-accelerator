@@ -21,7 +21,7 @@ export interface EC2DisableApiTerminationProps {
 }
 
 /**
- * Custom resource implementation that Enables Deletion Protection on LoadBalancer.
+ * Custom resource implementation that Enables/Disables Deletion Protection on EC instances.
  */
 export class EC2DisableApiTermination extends cdk.Construct {
   private readonly ec2Id: string;
