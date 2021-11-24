@@ -42,7 +42,7 @@ export const handler = async (event: any, _context: any) => {
 
         if (mappings) {
           for (const mapping of mappings) {
-            if (jsonVal.logGroup.indexOf(mapping.logGroupPattern) >= 0) {
+            if (jsonVal.logGroup.indexOf(mapping.logGroupPattern) > 0) {
               serviceName = mapping.s3Prefix;
               break; // Take the first match
             }
