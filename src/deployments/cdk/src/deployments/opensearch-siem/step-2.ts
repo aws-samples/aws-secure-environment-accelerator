@@ -420,17 +420,6 @@ export function createOpenSearchCluster(
     }),
   });
 
-  const unauthenticatedRole = new iam.Role(accountStack, `${acceleratorPrefix}OpenSearchSiemIdentityUnauthRole`, {
-    assumedBy: new iam.WebIdentityPrincipal('cognito-identity.amazonaws.com', {
-      StringEquals: {
-        'cognito-identity.amazonaws.com:aud': cognitoIdentityPool.id,
-      },
-      'ForAnyValue:StringLike': {
-        'cognito-identity.amazonaws.com:amr': 'unauthenticated',
-      },
-    }),
-  });
-
   const cognitoRoleForOpenSearch = new iam.Role(accountStack, `${acceleratorPrefix}OpenSearchSiemRoleForCognito`, {
     assumedBy: new iam.ServicePrincipal('es.amazonaws.com'),
     managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonOpenSearchServiceCognitoAccess')],
@@ -439,7 +428,6 @@ export function createOpenSearchCluster(
   new CognitoIdentityPoolRoleMapping(accountStack, `${acceleratorPrefix}OpenSearchSiemRoleMapping`, {
     identityPool: cognitoIdentityPool,
     authenticatedRole,
-    unauthenticatedRole,
   });
 
   new CognitoUserPoolDomain(accountStack, `${acceleratorPrefix}OpenSearchCognitoDomain`, {
