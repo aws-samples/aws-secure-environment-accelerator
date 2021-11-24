@@ -2774,22 +2774,6 @@ translate(c.CwlExclusions, {
   },
 });
 
-translate(c.S3LogPartitionType, {
-  title: 'S3 Log Partition Mapping',
-  description: 'Maps CloudWatch Log Groups to S3 prefixes.',
-  fields: {
-    logGroupPattern: {
-      title: 'Log Group Pattern',
-      description: 'Used to match a log group.',
-    },
-    s3Prefix: {
-      title: 'S3 Prefix',
-      description:
-        'CloudWatch log entries that match the logGroupPattern will be extracted and placed into a S3 prefix specified by this value.',
-    },
-  },
-});
-
 translate(c.CentralServicesConfigType, {
   title: 'Centralized Security Services Config',
   description:
@@ -2928,10 +2912,6 @@ translate(c.CentralServicesConfigType, {
     'config-aggr': {
       title: 'AWS Config Aggregator',
       description: 'Configures the AWS Account with an AWS Config Aggregator. [ALL]',
-    },
-    'dynamic-s3-log-partitioning': {
-      title: 'Dynamic S3 Log Partitioning',
-      description: 'Configures CWLogs to be extracted and placed into different S3 prefixes from Firehose.',
     },
   },
 });

@@ -19,7 +19,6 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@aws-accelerator/config": "workspace:*",
     "@aws-accelerator/common": "workspace:*",
     "@aws-accelerator/common-config": "workspace:*",
     "@aws-accelerator/common-outputs": "workspace:*",

@@ -87,7 +87,6 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
       shardCount: regionConfig['kinesis-stream-shard-count'],
       logStreamRoleArn: cwlLogStreamRoleOutput.roleArn,
       kinesisStreamRoleArn: cwlKinesisStreamRoleOutput.roleArn,
-      dynamicS3LogPartitioning: centralLogServices['dynamic-s3-log-partitioning'],
     });
   }
 }
@@ -103,17 +102,8 @@ async function cwlSettingsInLogArchive(props: {
   logStreamRoleArn: string;
   kinesisStreamRoleArn: string;
   shardCount?: number;
-  dynamicS3LogPartitioning?: c.S3LogPartition[];
 }) {
-  const {
-    scope,
-    accountIds,
-    bucketArn,
-    logStreamRoleArn,
-    kinesisStreamRoleArn,
-    shardCount,
-    dynamicS3LogPartitioning,
-  } = props;
+  const { scope, accountIds, bucketArn, logStreamRoleArn, kinesisStreamRoleArn, shardCount } = props;
 
   // Create Kinesis Stream for Logs streaming
   const logsStream = new kinesis.Stream(scope, 'Logs-Stream', {
@@ -152,6 +142,7 @@ async function cwlSettingsInLogArchive(props: {
     destinationPolicy: destinationPolicyStr,
   });
 
+
   const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
   const lambdaDir = path.dirname(lambdaPath);
   const lambdaCode = lambda.Code.fromAsset(lambdaDir);
@@ -163,20 +154,24 @@ async function cwlSettingsInLogArchive(props: {
     memorySize: 2048,
     timeout: cdk.Duration.minutes(5),
     environment: {
-      LOG_PREFIX: CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX,
-      DYNAMIC_S3_LOG_PARTITIONING_MAPPING: dynamicS3LogPartitioning ? JSON.stringify(dynamicS3LogPartitioning) : '',
+      LOG_PREFIX: CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX
     },
   });
 
-  const kinesisStreamRole = iam.Role.fromRoleArn(scope, 'KinesisStreamRoleLookup', kinesisStreamRoleArn, {
-    mutable: true,
-  });
+  const kinesisStreamRole = iam.Role.fromRoleArn(
+    scope,
+    'KinesisStreamRoleLookup',
+    kinesisStreamRoleArn,
+    {
+      mutable: true,
+    },
+  );
 
   kinesisStreamRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       resources: [firhosePrefixProcessingLambda.functionArn],
-      actions: ['lambda:InvokeFunction'],
-    }),
+      actions: ["lambda:InvokeFunction"],
+    })
   );
 
   new kinesisfirehose.CfnDeliveryStream(scope, 'Kinesis-Firehouse-Stream-Dynamic-Partitioning', {
@@ -197,7 +192,7 @@ async function cwlSettingsInLogArchive(props: {
       compressionFormat: 'UNCOMPRESSED',
       roleArn: kinesisStreamRoleArn,
       dynamicPartitioningConfiguration: {
-        enabled: true,
+        enabled: true
       },
       errorOutputPrefix: `${CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX}/processing-failed`,
       prefix: '!{partitionKeyFromLambda:dynamicPrefix}',
@@ -207,19 +202,27 @@ async function cwlSettingsInLogArchive(props: {
           {
             type: 'Lambda',
             parameters: [
-              {
+              {                
                 parameterName: 'LambdaArn',
-                parameterValue: firhosePrefixProcessingLambda.functionArn,
-              },
-              {
+                parameterValue: firhosePrefixProcessingLambda.functionArn
+            },
+            {
                 parameterName: 'NumberOfRetries',
-                parameterValue: '3',
-              },
-            ],
-          },
-        ],
-      },
-    },
+                parameterValue: '3'
+            },            
+            // {
+            //     parameterName: 'BufferSizeInMBs',
+            //     parameterValue: '128'
+            // },
+            // {
+            //     parameterName: 'BufferIntervalInSeconds',
+            //     parameterValue: '60'
+            // }
+            ]
+          }
+        ]
+      }
+    },    
   });
 
   // Store LogDestination ARN in output so that subsequent phases can access the output
