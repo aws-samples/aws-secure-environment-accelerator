@@ -96,29 +96,17 @@
       },
       "dynamic-s3-log-partitioning": [
         {
-          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/MAD",
+          "logGroupPattern": "MAD",
           "s3Prefix": "managed-ad"
         },
         {
-          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/rql",
+          "logGroupPattern": "rql",
           "s3Prefix": "rql"
         },
         {
-          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/SecurityHub",
+          "logGroupPattern": "SecurityHub",
           "s3Prefix": "security-hub"
-        },
-        {
-          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/Nfw",
-          "s3Prefix": "nfw"
-        },
-        {
-          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/rsyslog",
-          "s3Prefix": "rsyslog"
-        },
-        {
-          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/SSM",
-          "s3Prefix": "ssm"
-        }
+        }        
       ]
     },
     "additional-cwl-regions": {},
