@@ -12,7 +12,9 @@
  */
 
 import { Context } from 'aws-lambda';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 import * as AWS from 'aws-sdk';
+import { v4 as uuidv4 } from 'uuid';
 
 const logGroupName = process.env.LOG_GROUP_NAME || '';
 
@@ -24,46 +26,32 @@ export const handler = async (input: any, context?: Context): Promise<void> => {
 
   console.log(`Publishing to ${logGroupName}`);
   if (logGroupName) {
-    const logStreamName = `${new Date().toISOString().slice(0, 10)}`;
+    const logStreamName = `${new Date().toISOString().slice(0, 10)}-${uuidv4()}`;
 
-    let uploadSequenceToken: string | undefined;
-
-    try {
-      const existingLogStream = await cloudWatchLogs
-        .describeLogStreams({
+    await throttlingBackOff(() =>
+      cloudWatchLogs
+        .createLogStream({
           logGroupName,
-          logStreamNamePrefix: logStreamName,
+          logStreamName,
         })
-        .promise();
+        .promise(),
+    );
 
-      if (existingLogStream.logStreams && existingLogStream.logStreams.length > 0) {
-        uploadSequenceToken = existingLogStream.logStreams[0].uploadSequenceToken;
-      } else {
-        await cloudWatchLogs
-          .createLogStream({
-            logGroupName,
-            logStreamName,
-          })
-          .promise();
-      }
-    } catch (err: any) {
-      if (err.message !== 'The specified log stream already exists') {
-        throw err;
-      }
-    }
-
-    await cloudWatchLogs
-      .putLogEvents({
-        logGroupName,
-        logStreamName,
-        sequenceToken: uploadSequenceToken,
-        logEvents: [
-          {
-            timestamp: Date.now(),
-            message: JSON.stringify(input),
-          },
-        ],
-      })
-      .promise();
+    await throttlingBackOff(() =>
+      cloudWatchLogs
+        .putLogEvents({
+          logGroupName,
+          logStreamName,
+          logEvents: [
+            {
+              timestamp: Date.now(),
+              message: JSON.stringify(input),
+            },
+          ],
+        })
+        .promise(),
+    );
+  } else {
+    console.log(`LogGroupName not specified`);
   }
 };

@@ -19,15 +19,17 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@aws-accelerator/config": "workspace:*",
     "@aws-accelerator/common": "workspace:*",
     "@aws-accelerator/common-config": "workspace:*",
     "@aws-accelerator/common-outputs": "workspace:*",
+    "@aws-accelerator/config": "workspace:*",
+    "@aws-accelerator/custom-resource-cfn-utils": "workspace:*",
     "aws-lambda": "1.0.6",
     "aws-sdk": "2.944.0",
     "lodash": "^4.17.21",
     "pascal-case": "3.1.2",
-    "tar-stream": "^2.2.0"
+    "tar-stream": "^2.2.0",
+    "uuid": "8.3.2"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.76",
