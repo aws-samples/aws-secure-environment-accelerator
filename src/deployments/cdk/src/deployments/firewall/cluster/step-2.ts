@@ -224,6 +224,7 @@ async function createCustomerGateways(props: {
           subnet: port.subnetName,
           az: port.az,
           id: attachments.getTransitGatewayAttachmentId(0),
+          index
         });
       }
 
@@ -257,9 +258,11 @@ async function createCustomerGateways(props: {
       });
       // Make sure to add the tags to the VPN attachments
       addTagsDependencies.push(attachments);
+      const transitGatewayAttachmentId = attachments.getTransitGatewayAttachmentId(0); // one vpn connection should only have one attachment
+
       addTagsToResources.push({
         targetAccountIds: [cdk.Aws.ACCOUNT_ID],
-        resourceId: attachments.getTransitGatewayAttachmentId(0),
+        resourceId: transitGatewayAttachmentId,
         resourceType: 'tgw-attachment',
         tags: [
           {
@@ -278,17 +281,24 @@ async function createCustomerGateways(props: {
 
       for (const [routeIndex, route] of tgwRouteAssociates?.entries()) {
         new ec2.CfnTransitGatewayRouteTableAssociation(scope, `tgw_associate_${prefix}_${routeIndex}`, {
-          transitGatewayAttachmentId: attachments.getTransitGatewayAttachmentId(0), // one vpn connection should only have one attachment
+          transitGatewayAttachmentId, 
           transitGatewayRouteTableId: route,
         });
       }
 
       for (const [routeIndex, route] of tgwRoutePropagates?.entries()) {
         new ec2.CfnTransitGatewayRouteTablePropagation(scope, `tgw_propagate_${prefix}_${routeIndex}`, {
-          transitGatewayAttachmentId: attachments.getTransitGatewayAttachmentId(0), // one vpn connection should only have one attachment
+          transitGatewayAttachmentId,
           transitGatewayRouteTableId: route,
         });
       }
+
+      tgwAttachments.push({
+        id: transitGatewayAttachmentId,
+        index,
+        az: undefined,
+        subnet: undefined,
+      });
     }
   }
 

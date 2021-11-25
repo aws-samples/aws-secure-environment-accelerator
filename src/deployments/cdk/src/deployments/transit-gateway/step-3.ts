@@ -124,7 +124,7 @@ export async function step3(props: TransitGatewayStep3Props) {
               continue;
             }
             const tgwAttachmentId = vpnAttachments.attachments.find(
-              t => t.az === route['target-vpn']?.az && t.subnet === route['target-vpn'].subnet,
+              t => t.az === route['target-vpn']?.az && t.subnet === route['target-vpn']?.subnet,
             )?.id;
             if (!tgwAttachmentId) {
               continue;
