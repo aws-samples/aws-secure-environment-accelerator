@@ -295,7 +295,7 @@ async function createCustomerGateways(props: {
 
       tgwAttachments.push({
         id: transitGatewayAttachmentId,
-        index,
+        index : Number(index),
         az: undefined,
         subnet: undefined,
       });

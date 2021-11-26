@@ -98,7 +98,7 @@ export const FirewallVpnConnectionOutputFinder = createStructuredOutputFinder(Fi
 export const TgwVpnAttachment = t.interface({
   subnet: optional(t.string),
   az: optional(t.string),
-  index: optional(t.string),
+  index: optional(t.number),
   id: t.string,
 });
 
