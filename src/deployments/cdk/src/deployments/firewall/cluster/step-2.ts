@@ -224,7 +224,7 @@ async function createCustomerGateways(props: {
           subnet: port.subnetName,
           az: port.az,
           id: attachments.getTransitGatewayAttachmentId(0),
-          index
+          index: undefined // We don't  want to store the index because it is meaningless here.
         });
       }
 
