@@ -198,6 +198,12 @@ export const TransitGatewayRouteConfigType = t.interface({
       subnet: t.nonEmptyString,
     }),
   ),
+  'target-cgw': t.optional(
+    t.interface({
+      name: t.nonEmptyString,
+      index: t.number,
+    }),
+  ),
   'blackhole-route': t.optional(t.boolean),
 });
 

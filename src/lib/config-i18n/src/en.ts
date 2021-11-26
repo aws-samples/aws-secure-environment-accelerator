@@ -695,6 +695,10 @@ translate(c.TransitGatewayRouteConfigType, {
       title: 'Target VPC',
       description: 'The target of this route is a VPC.',
     },
+    'target-cgw': {
+      title: 'Target CGW',
+      description: 'The target of this route is a CGW.',
+    },
     'target-vpn': {
       title: 'Target VPN',
       description: 'The target of this route is a VPN attachment.',

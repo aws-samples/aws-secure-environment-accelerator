@@ -11,20 +11,28 @@
  *  and limitations under the License.
  */
 
-import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
+import {
+  AcceleratorConfig,
+  TgwDeploymentConfig,
+  TgwDeploymentConfigType,
+  TransitGatewayRouteConfig,
+  TransitGatewayRouteConfigType,
+  TransitGatewayRouteTablesConfig,
+  TransitGatewayRouteTablesConfigType,
+} from '@aws-accelerator/common-config/src';
 import {
   TransitGatewayPeeringAttachmentOutputFinder,
   TransitGatewayOutputFinder,
   TransitGatewayPeeringAttachmentOutput,
   TransitGatewayOutput,
 } from '@aws-accelerator/common-outputs/src/transit-gateway';
-import { AccountStacks } from '../../common/account-stacks';
+import { AccountStack, AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as cdk from '@aws-cdk/core';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
-import { TgwVpnAttachmentsOutputFinder } from '../firewall/cluster/outputs';
+import { FirewallVpnConnectionOutputFinder, TgwVpnAttachmentsOutputFinder } from '../firewall/cluster/outputs';
 
 export interface TransitGatewayStep3Props {
   accountStacks: AccountStacks;
@@ -92,6 +100,8 @@ export async function step3(props: TransitGatewayStep3Props) {
               attachmentId: tgwPeeringAttachment.tgwAttachmentId,
               blackhole: route['blackhole-route'],
             });
+          } else if (route['target-cgw']) {
+            createTargetCgwRoutes(outputs, route, accountKey, tgwConfig, accountStack, tgwRoute, transitGateway);
           } else if (route['target-vpc']) {
             const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
               outputs,
@@ -244,6 +254,40 @@ function CreateRoute(props: {
       blackhole,
     });
   }
+}
+
+function createTargetCgwRoutes(
+  outputs: StackOutput[],
+  route: TransitGatewayRouteConfig,
+  accountKey: string,
+  tgwConfig: TgwDeploymentConfig,
+  accountStack: AccountStack,
+  tgwRoute: TransitGatewayRouteTablesConfig,
+  transitGateway: TransitGatewayOutput,
+) {
+  const vpnAttachments = TgwVpnAttachmentsOutputFinder.tryFindOneByName({
+    outputs,
+    accountKey,
+    name: route['target-cgw']!.name,
+    region: tgwConfig.region,
+  });
+  if (!vpnAttachments) {
+    console.warn(`Cannot find VPN "${route['target-vpn']}" in outputs for CGW`);
+    return;
+  }
+
+  const tgwAttachmentId = vpnAttachments.attachments.find(t => t.index === route['target-cgw']?.index)?.id;
+  if (!tgwAttachmentId) {
+    return;
+  }
+  CreateRoutes({
+    scope: accountStack,
+    cidr: route.destination,
+    routeName: tgwRoute.name,
+    transitGateway,
+    attachmentIds: [tgwAttachmentId],
+    blackhole: route['blackhole-route'],
+  });
 }
 
 function CreateAssociations(

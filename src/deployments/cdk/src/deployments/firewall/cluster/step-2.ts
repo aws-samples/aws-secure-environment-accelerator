@@ -224,7 +224,7 @@ async function createCustomerGateways(props: {
           subnet: port.subnetName,
           az: port.az,
           id: attachments.getTransitGatewayAttachmentId(0),
-          index: undefined // We don't  want to store the index because it is meaningless here.
+          index: undefined, // We don't  want to store the index because it is meaningless here.
         });
       }
 
@@ -281,7 +281,7 @@ async function createCustomerGateways(props: {
 
       for (const [routeIndex, route] of tgwRouteAssociates?.entries()) {
         new ec2.CfnTransitGatewayRouteTableAssociation(scope, `tgw_associate_${prefix}_${routeIndex}`, {
-          transitGatewayAttachmentId, 
+          transitGatewayAttachmentId,
           transitGatewayRouteTableId: route,
         });
       }
@@ -295,7 +295,7 @@ async function createCustomerGateways(props: {
 
       tgwAttachments.push({
         id: transitGatewayAttachmentId,
-        index : Number(index),
+        index: Number(index),
         az: undefined,
         subnet: undefined,
       });

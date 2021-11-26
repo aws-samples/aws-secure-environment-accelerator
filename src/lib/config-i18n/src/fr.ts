@@ -607,6 +607,10 @@ translate(c.TransitGatewayRouteConfigType, {
       title: '',
       description: '',
     },
+    'target-cgw': {
+      title: '',
+      description: '',
+    },
     'target-vpn': {
       title: '',
       description: '',
