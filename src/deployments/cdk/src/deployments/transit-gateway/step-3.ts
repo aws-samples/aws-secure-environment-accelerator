@@ -276,7 +276,7 @@ function createTargetCgwRoutes(
     return;
   }
 
-  const tgwAttachmentId = vpnAttachments.attachments.find(t => t.index === route['target-cgw']?.index)?.id;
+  const tgwAttachmentId = vpnAttachments.attachments.find(t => t.index !== undefined && t.index === route['target-cgw']?.index)?.id;
   if (!tgwAttachmentId) {
     return;
   }
