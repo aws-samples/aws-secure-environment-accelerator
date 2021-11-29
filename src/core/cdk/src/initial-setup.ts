@@ -1095,6 +1095,7 @@ export namespace InitialSetup {
       const notificationTopic = new sns.Topic(this, 'MainStateMachineStatusTopic', {
         displayName: `${props.acceleratorPrefix}-MainStateMachine-Status_topic`,
         topicName: `${props.acceleratorPrefix}-MainStateMachine-Status_topic`,
+        masterKey: installerCmk,
       });
 
       new sns.Subscription(this, 'MainStateMachineStatusTopicSubscription', {

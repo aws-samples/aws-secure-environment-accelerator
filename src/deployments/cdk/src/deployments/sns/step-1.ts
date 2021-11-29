@@ -14,6 +14,7 @@
 import * as c from '@aws-accelerator/common-config';
 import { AccountStack, AccountStacks } from '../../common/account-stacks';
 import * as sns from '@aws-cdk/aws-sns';
+import * as kms from '@aws-cdk/aws-kms';
 import { createSnsTopicName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { SNS_NOTIFICATION_TYPES } from '@aws-accelerator/common/src/util/constants';
 import * as path from 'path';
@@ -22,8 +23,9 @@ import * as cdk from '@aws-cdk/core';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import * as iam from '@aws-cdk/aws-iam';
-import { CfnSnsTopicOutput } from './outputs';
+import { CfnSnsTopicOutput, SNS_ENCRYPTION_KEY_CDK_ID, SnsTopicEncryptionKeyOutputType } from './outputs';
 import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
+import { StructuredOutput } from '../../common/structured-output';
 
 export interface SnsStep1Props {
   accountStacks: AccountStacks;
@@ -41,11 +43,18 @@ export async function step1(props: SnsStep1Props) {
   const { accountStacks, config, outputs, accounts } = props;
   const globalOptions = config['global-options'];
   const centralLogServices = globalOptions['central-log-services'];
+  const managementAccount = globalOptions['aws-org-management'].account;
   const centralSecurityServices = globalOptions['central-security-services'];
   const supportedRegions = globalOptions['supported-regions'];
   const excludeRegions = centralLogServices['sns-excl-regions'];
   const managementAccountConfig = globalOptions['aws-org-management'];
   const regions = supportedRegions.filter(r => !excludeRegions?.includes(r));
+  const snsEncryptionKeyOutputs = StructuredOutput.fromOutputs(outputs, {
+    type: SnsTopicEncryptionKeyOutputType,
+    accountKey: managementAccount,
+  });
+  const snsEncryptionKeyOutput = snsEncryptionKeyOutputs[0];
+
   if (!regions.includes(centralLogServices.region)) {
     regions.push(centralLogServices.region);
   }
@@ -80,6 +89,7 @@ export async function step1(props: SnsStep1Props) {
         centralSecurityServices['fw-mgr-alert-level'] !== 'None' || centralSecurityServices['add-sns-topics']
           ? getAccountId(accounts, centralSecurityServices.account)
           : undefined,
+      snsTopicEncryptionKeyArn: snsEncryptionKeyOutput.encryptionKeyArn,
     });
   }
 
@@ -111,6 +121,7 @@ export async function step1(props: SnsStep1Props) {
       subscribeEmails,
       centralAccount: centralLogServicesAccount,
       orgManagementSns: true,
+      snsTopicEncryptionKeyArn: snsEncryptionKeyOutput.encryptionKeyArn,
     });
   }
 
@@ -138,6 +149,7 @@ export async function step1(props: SnsStep1Props) {
         subscribeEmails,
         centralAccount: centralLogServicesAccount,
         orgManagementSns: true,
+        snsTopicEncryptionKeyArn: snsEncryptionKeyOutput.encryptionKeyArn,
       });
     }
   }
@@ -168,6 +180,11 @@ function createSnsTopics(props: {
    * Org Security account for adding publish permissions
    */
   orgSecurityAccount?: string;
+  /**
+   * Topic KMS Encryption key
+   */
+  snsTopicEncryptionKeyArn?: string;
+
 }) {
   const {
     accountStack,
@@ -179,6 +196,7 @@ function createSnsTopics(props: {
     orgManagementSns,
     orgManagementAccount,
     orgSecurityAccount,
+    snsTopicEncryptionKeyArn
   } = props;
   const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
   const lambdaDir = path.dirname(lambdaPath);
@@ -217,11 +235,14 @@ function createSnsTopics(props: {
     principal: new iam.ServicePrincipal('sns.amazonaws.com'),
   });
 
+  const masterKey = kms.Key.fromKeyArn(accountStack, SNS_ENCRYPTION_KEY_CDK_ID, snsTopicEncryptionKeyArn as string);
+
   for (const notificationType of SNS_NOTIFICATION_TYPES) {
     const topicName = createSnsTopicName(notificationType);
     const topic = new sns.Topic(accountStack, `SnsNotificationTopic${notificationType}`, {
       displayName: topicName,
       topicName,
+      masterKey
     });
 
     // Allowing Publish from CloudWatch Service form any account
