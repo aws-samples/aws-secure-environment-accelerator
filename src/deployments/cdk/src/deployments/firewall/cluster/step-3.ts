@@ -344,6 +344,7 @@ async function createFirewallCluster(props: {
     for (const routeTable of routeTables) {
       const routeTableName: string = routeTable.name;
       const routes = routeTable.routes || [];
+      let numberOfRoutesCreated = 0
       for (const route of routes) {
         if (
           route.target !== 'firewall' ||
@@ -359,11 +360,22 @@ async function createFirewallCluster(props: {
           console.warn(`Cannot find route table with name "${routeTableName}" in VPC ${vpc.name}`);
           continue;
         }
-        new ec2.CfnRoute(accountStack, `${firewallName}${routeTableName}_eni_${vpnConnection.name}_${az}`, {
+
+        // This is the old way of created the construct name.
+        let constructName = `${firewallName}${routeTableName}_eni_${vpnConnection.name}_${az}`
+        // Since we want to continue to support old installation, we only add the suffix for the second routes since
+        // they probably don't exist (see https://github.com/aws-samples/aws-secure-environment-accelerator/issues/802)
+        // If we fixed the bug for all routes, the stack would fail on first run because it would try to create the
+        // new route without deleting the old one first and it is not possible to have multiple routes with the same destination
+        if (numberOfRoutesCreated > 0) {
+          constructName += `_${route.destination}`;
+        }
+        new ec2.CfnRoute(accountStack, constructName, {
           routeTableId,
           destinationCidrBlock: route.destination as string,
           networkInterfaceId: networkInterface.ref,
         });
+        numberOfRoutesCreated++
       }
     }
   }
