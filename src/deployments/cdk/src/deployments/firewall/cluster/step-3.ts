@@ -344,7 +344,7 @@ async function createFirewallCluster(props: {
     for (const routeTable of routeTables) {
       const routeTableName: string = routeTable.name;
       const routes = routeTable.routes || [];
-      let numberOfRoutesCreated = 0
+      let numberOfRoutesCreated = 0;
       for (const route of routes) {
         if (
           route.target !== 'firewall' ||
@@ -362,7 +362,7 @@ async function createFirewallCluster(props: {
         }
 
         // This is the old way of created the construct name.
-        let constructName = `${firewallName}${routeTableName}_eni_${vpnConnection.name}_${az}`
+        let constructName = `${firewallName}${routeTableName}_eni_${vpnConnection.name}_${az}`;
         // Since we want to continue to support old installation, we only add the suffix for the second routes since
         // they probably don't exist (see https://github.com/aws-samples/aws-secure-environment-accelerator/issues/802)
         // If we fixed the bug for all routes, the stack would fail on first run because it would try to create the
@@ -375,7 +375,7 @@ async function createFirewallCluster(props: {
           destinationCidrBlock: route.destination as string,
           networkInterfaceId: networkInterface.ref,
         });
-        numberOfRoutesCreated++
+        numberOfRoutesCreated++;
       }
     }
   }
