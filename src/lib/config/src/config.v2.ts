@@ -139,7 +139,7 @@ export type GatewayEndpointType = t.TypeOf<typeof GatewayEndpointType>;
 export const PcxRouteConfigType = t.interface({
   account: t.nonEmptyString,
   vpc: t.nonEmptyString,
-  subnet: t.nonEmptyString,
+  subnet: t.optional(t.nonEmptyString),
 });
 
 export type PcxRouteConfig = t.TypeOf<typeof PcxRouteConfigType>;

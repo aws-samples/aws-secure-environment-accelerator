@@ -84,11 +84,6 @@ export namespace PeeringConnection {
           console.warn(`No subnet Config Found for "${pcxRoute.subnet}" in VPC "${pcxRoute.vpc}"`);
           continue;
         }
-        const targetSubnet = targetVpcConfig?.subnets?.find(x => x.name === pcxRoute.subnet);
-        if (!targetSubnet) {
-          console.warn(`No subnet Config Found for "${pcxRoute.subnet}" in VPC "${pcxRoute.vpc}"`);
-          continue;
-        }
 
         const peerVpcOutputs: PcxOutput[] = StructuredOutput.fromOutputs(outputs, {
           type: PcxOutputType,
@@ -109,24 +104,43 @@ export namespace PeeringConnection {
           continue;
         }
         // Add Route to RouteTable
-        for (const [index, subnet] of targetSubnet.definitions.entries()) {
-          if (subnet.disabled) {
+        if (pcxRoute.subnet) {
+          const targetSubnet = targetVpcConfig?.subnets?.find(x => x.name === pcxRoute.subnet);
+          if (!targetSubnet) {
+            console.warn(`No subnet Config Found for "${pcxRoute.subnet}" in VPC "${pcxRoute.vpc}"`);
             continue;
           }
-          const destinationCidrBlock = targetVpcOutput.subnets.find(
-            s => s.subnetName === pcxRoute.subnet && s.az === subnet.az,
-          )?.cidrBlock;
-          if (!destinationCidrBlock) {
-            console.warn(
-              `Cidr for VPC: "${pcxRoute.vpc}", Subnet: "${pcxRoute.subnet}", AZ: "${subnet.az}" is not found in Outputs`,
-            );
-            continue;
+
+          for (const [index, subnet] of targetSubnet.definitions.entries()) {
+            if (subnet.disabled) {
+              continue;
+            }
+            const destinationCidrBlock = targetVpcOutput.subnets.find(
+              s => s.subnetName === pcxRoute.subnet && s.az === subnet.az,
+            )?.cidrBlock;
+            if (!destinationCidrBlock) {
+              console.warn(
+                `Cidr for VPC: "${pcxRoute.vpc}", Subnet: "${pcxRoute.subnet}", AZ: "${subnet.az}" is not found in Outputs`,
+              );
+              continue;
+            }
+            new ec2.CfnRoute(this, `${routeTable?.name}_pcx_${pcxRoute.vpc}_${index}`, {
+              routeTableId,
+              destinationCidrBlock,
+              vpcPeeringConnectionId: pcxId,
+            });
           }
-          new ec2.CfnRoute(this, `${routeTable?.name}_pcx_${pcxRoute.vpc}_${index}`, {
-            routeTableId,
-            destinationCidrBlock,
-            vpcPeeringConnectionId: pcxId,
-          });
+        } else {
+          // pcxRoute.subnet is undefined, we need to target the whole VPC
+          const destinationCidrBlocks: string[] = [targetVpcOutput.cidrBlock, ...targetVpcOutput.additionalCidrBlocks];
+
+          for (const destinationCidrBlock of destinationCidrBlocks) {
+            new ec2.CfnRoute(this, `${routeTable?.name}_pcx_${pcxRoute.vpc}_${destinationCidrBlock}`, {
+              routeTableId,
+              destinationCidrBlock,
+              vpcPeeringConnectionId: pcxId,
+            });
+          }
         }
       }
     }
