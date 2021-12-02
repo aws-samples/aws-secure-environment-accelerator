@@ -363,7 +363,7 @@ async function createFirewallCluster(props: {
 
         // This is the old way of created the construct name.
         let constructName = `${firewallName}${routeTableName}_eni_${vpnConnection.name}_${az}`;
-        // Since we want to continue to support old installation, we only add the suffix for the second routes since
+        // Since we want to continue to support old installation, we only add the suffix for the second routes and onward since
         // they probably don't exist (see https://github.com/aws-samples/aws-secure-environment-accelerator/issues/802)
         // If we fixed the bug for all routes, the stack would fail on first run because it would try to create the
         // new route without deleting the old one first and it is not possible to have multiple routes with the same destination
