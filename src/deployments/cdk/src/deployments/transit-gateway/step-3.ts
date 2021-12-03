@@ -47,7 +47,7 @@ export async function step3(props: TransitGatewayStep3Props) {
       continue;
     }
 
-    for (let i = 0; i < tgwConfigs.length; i++){
+    for (let i = 0; i < tgwConfigs.length; i++) {
       const tgwConfig = tgwConfigs[i];
       const transitGateway = TransitGatewayOutputFinder.tryFindOneByName({
         outputs,
@@ -172,7 +172,7 @@ export async function step3(props: TransitGatewayStep3Props) {
         accountKey,
         transitGateway,
         tgwAttachConfig['tgw-rt-associate-local'],
-        localTransitGatewayNameForConstructId
+        localTransitGatewayNameForConstructId,
       );
 
       const transitGatewayRemote = TransitGatewayOutputFinder.tryFindOneByName({
@@ -191,7 +191,7 @@ export async function step3(props: TransitGatewayStep3Props) {
         tgwAttachConfig.account,
         transitGatewayRemote,
         tgwAttachConfig['tgw-rt-associate-remote'],
-        localTransitGatewayNameForConstructId
+        localTransitGatewayNameForConstructId,
       );
     }
   }
@@ -259,7 +259,7 @@ function CreateAssociations(
   accountKey: string,
   transitGateway: TransitGatewayOutput,
   routes: string[],
-  localTransitGatewayName? : string, // We allow undefined because we might not want to include the name in the construct so that we don't break existing installation
+  localTransitGatewayName?: string, // We allow undefined because we might not want to include the name in the construct so that we don't break existing installation
 ) {
   const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
   if (!accountStack) {
@@ -271,7 +271,9 @@ function CreateAssociations(
     const routeId = transitGateway.tgwRouteTableNameToIdMap[route];
     const tgwPeeringAttachmentId = tgwPeeringAttachment.tgwAttachmentId;
 
-    const constructId = localTransitGatewayName ? `tgw_associate_${localTransitGatewayName}_${route}`: `tgw_associate_${route}`;
+    const constructId = localTransitGatewayName
+      ? `tgw_associate_${localTransitGatewayName}_${route}`
+      : `tgw_associate_${route}`;
     new ec2.CfnTransitGatewayRouteTableAssociation(accountStack, constructId, {
       transitGatewayAttachmentId: tgwPeeringAttachmentId,
       transitGatewayRouteTableId: routeId,
