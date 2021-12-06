@@ -158,20 +158,12 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
     const bootstrapAccountRegionMapperTask = new tasks.StepFunctionsStartExecution(this, 'Bootstrap Account Region Mapper', {
       stateMachine: this.createBootstrapAccountRegionMapperSM(lambdaCode, role, bootStrapStackName, s3BucketName, accountBootstrapObjectKey, assumeRoleName, acceleratorPrefix, props),
       integrationPattern: sfn.IntegrationPattern.RUN_JOB,
-      // TODO FB verify the input
       input: sfn.TaskInput.fromObject({
         stackName: bootStrapStackName,
-        stackParameters: {
-          'Qualifier.$': '$.acceleratorPrefix',
-        },
-        stackTemplate: {
-          s3BucketName,
-          s3ObjectKey: accountBootstrapObjectKey,
-        },
         'accountId.$': '$.accountId',
-        'region.$': '$.region',
-        ignoreAccountId: cdk.Aws.ACCOUNT_ID,
-        ignoreRegion: cdk.Aws.REGION,
+        'regions.$': '$.regions',
+        'acceleratorPrefix.$': '$.acceleratorPrefix',
+        'operationsAccountId.$': '$.operationsAccountId',
         assumeRoleName,
       }),
       resultPath: 'DISCARD',
