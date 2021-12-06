@@ -150,7 +150,6 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         acceleratorPrefix: acceleratorPrefix.endsWith('-')
           ? acceleratorPrefix.slice(0, -1).toLowerCase()
           : acceleratorPrefix.toLowerCase(),
-        'operationsAccountId.$': '$.operationsAccount.id',
       },
     });
 
@@ -163,8 +162,6 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         'accountId.$': '$.accountId',
         'regions.$': '$.regions',
         'acceleratorPrefix.$': '$.acceleratorPrefix',
-        'operationsAccountId.$': '$.operationsAccountId',
-        assumeRoleName,
       }),
       resultPath: 'DISCARD',
     });
@@ -223,7 +220,6 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         'accountId.$': '$.accountId',
         'region.$': '$$.Map.Item.Value',
         'acceleratorPrefix.$': '$.acceleratorPrefix',
-        'operationsAccountId.$': '$.operationsAccountId',
       },
     });
     createBootstrapInRegion.iterator(bootstrapTask);
