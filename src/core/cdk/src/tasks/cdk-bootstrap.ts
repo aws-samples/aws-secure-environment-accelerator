@@ -153,20 +153,31 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
       },
     });
 
-
-    const bootstrapAccountRegionMapperTask = new tasks.StepFunctionsStartExecution(this, 'Bootstrap Account Region Mapper', {
-      stateMachine: this.createBootstrapAccountRegionMapperSM(lambdaCode, role, bootStrapStackName, s3BucketName, accountBootstrapObjectKey, assumeRoleName, acceleratorPrefix, props),
-      integrationPattern: sfn.IntegrationPattern.RUN_JOB,
-      input: sfn.TaskInput.fromObject({
-        stackName: bootStrapStackName,
-        'accountId.$': '$.accountId',
-        'regions.$': '$.regions',
-        'acceleratorPrefix.$': '$.acceleratorPrefix',
-      }),
-      resultPath: 'DISCARD',
-    });
+    const bootstrapAccountRegionMapperTask = new tasks.StepFunctionsStartExecution(
+      this,
+      'Bootstrap Account Region Mapper',
+      {
+        stateMachine: this.createBootstrapAccountRegionMapperSM(
+          lambdaCode,
+          role,
+          bootStrapStackName,
+          s3BucketName,
+          accountBootstrapObjectKey,
+          assumeRoleName,
+          acceleratorPrefix,
+          props,
+        ),
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          stackName: bootStrapStackName,
+          'accountId.$': '$.accountId',
+          'regions.$': '$.regions',
+          'acceleratorPrefix.$': '$.acceleratorPrefix',
+        }),
+        resultPath: 'DISCARD',
+      },
+    );
     createBootstrapInAccount.iterator(bootstrapAccountRegionMapperTask);
-
 
     const chain = sfn.Chain.start(getAccountInfoTask)
       .next(createRootBootstrapInRegion)
@@ -177,7 +188,16 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
     this.endStates = chain.endStates;
   }
 
-  private createBootstrapAccountRegionMapperSM(lambdaCode: lambda.Code, role: iam.IRole, bootStrapStackName: string, s3BucketName: string, accountBootstrapObjectKey: string, assumeRoleName: string, acceleratorPrefix: string, props: CDKBootstrapTask.Props) {
+  private createBootstrapAccountRegionMapperSM(
+    lambdaCode: lambda.Code,
+    role: iam.IRole,
+    bootStrapStackName: string,
+    s3BucketName: string,
+    accountBootstrapObjectKey: string,
+    assumeRoleName: string,
+    acceleratorPrefix: string,
+    props: CDKBootstrapTask.Props,
+  ) {
     // Tasks that creates the account
     const bootstrapStateMachine = new sfn.StateMachine(this, `${acceleratorPrefix}BootstrapAccount_sm`, {
       stateMachineName: `${props.acceleratorPrefix}BootstrapAccount_sm`,
@@ -187,7 +207,6 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         suffix: 'Account Bootstrap Stack',
       }),
     });
-
 
     // State machine that creates the account using the task
     const bootstrapTask = new tasks.StepFunctionsStartExecution(this, 'Bootstrap Acccount', {
