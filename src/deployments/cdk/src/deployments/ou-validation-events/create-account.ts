@@ -102,7 +102,6 @@ export async function createAccount(input: CreateAccountProps) {
     .when(sfn.Condition.booleanEquals('$.acceleratorInvocation', true), accleratorInvocation)
     .otherwise(verifyCreateAccountTask);
 
-
   const createStateMachine = new sfn.StateMachine(scope, 'StateMachine', {
     stateMachineName: createName({
       name: 'CreateAccountEventTrigger_sm',

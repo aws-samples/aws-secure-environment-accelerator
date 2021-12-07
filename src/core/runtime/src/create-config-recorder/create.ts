@@ -175,7 +175,6 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
             errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
           }
         }
-
       }
       const createChannel = await createDeliveryChannel(
         configService,
