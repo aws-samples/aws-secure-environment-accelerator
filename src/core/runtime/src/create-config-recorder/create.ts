@@ -122,11 +122,6 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     return errors;
   }
 
-  const masterAccountConfig = acceleratorConfig.getAccountByKey(masterAccountKey);
-  const masterAccount = await organizations.getAccountByEmail(masterAccountConfig.email);
-
-  console.log(`Got Master AccountId: ${masterAccount?.Id}`);
-
   const ctSupportedRegions = acceleratorConfig['global-options']['control-tower-supported-regions'];
   const credentials = await sts.getCredentialsForAccountAndRole(
     accountId,
@@ -180,6 +175,7 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
             errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
           }
         }
+
       }
       const createChannel = await createDeliveryChannel(
         configService,
