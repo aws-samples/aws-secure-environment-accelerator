@@ -89,7 +89,7 @@ export async function deploy({
     });
   }
 
-  // Create defaults, e.g. S3 buckets, EBS encryption keys, SNS encryption keys
+  // Create defaults, e.g. S3 buckets, EBS encryption keys
   const defaultsResult = await defaults.step1({
     acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
