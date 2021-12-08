@@ -230,7 +230,7 @@ function createSnsTopics(props: {
   });
 
   const encryptionKey = centralServicesRegion !== region ?
-    createKeyWithPolicyForSns(accountStack) :
+    createDefaultKeyWithPolicyForSns(accountStack) :
     retrieveExistingKeyFromCentralRegion(outputs, accountStack);
 
   for (const notificationType of SNS_NOTIFICATION_TYPES) {
@@ -297,7 +297,7 @@ function createSnsTopics(props: {
 }
 
 
-const createKeyWithPolicyForSns = (accountStack: AccountStack) => {
+const createDefaultKeyWithPolicyForSns = (accountStack: AccountStack) => {
   const { encryptionKey } = createDefaultS3Key({
     accountStack,
   });
@@ -338,9 +338,9 @@ const retrieveExistingKeyFromCentralRegion = (outputs: StackOutput[], accountSta
   })
 
   if (!accountBucket?.encryptionKeyArn) {
-    return createKeyWithPolicyForSns(accountStack)
+    return createDefaultKeyWithPolicyForSns(accountStack)
   }
 
-  return kms.Key.fromKeyArn(accountStack, 'DefaultKey', accountBucket?.encryptionKeyArn);
+  return kms.Key.fromKeyArn(accountStack, `${accountStack.accountKey}-DefaultKey`, accountBucket?.encryptionKeyArn);
 }
 
