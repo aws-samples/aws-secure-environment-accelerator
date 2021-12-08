@@ -32,8 +32,6 @@ import { getAccountId } from '../utils/accounts';
 import * as rsyslogDeployment from '../deployments/rsyslog';
 import * as cleanup from '../deployments/cleanup';
 import * as keyPair from '../deployments/key-pair';
-import { StructuredOutput } from '../common/structured-output';
-import { SnsTopicEncryptionKeyOutput, SnsTopicEncryptionKeyOutputType } from '../deployments/sns';
 
 
 /**
@@ -245,7 +243,6 @@ export async function deploy({
   const logArchiveAccountKey = acceleratorConfig['global-options']['central-log-services'].account;
   const logArchiveStack = accountStacks.getOrCreateAccountStack(logArchiveAccountKey);
   const logArchiveBucket = defaultsResult.centralLogBucket;
-  const managementAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
   new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID, {
     value: logArchiveStack.accountId,
   });
@@ -257,13 +254,6 @@ export async function deploy({
   });
   new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN, {
     value: logArchiveBucket.encryptionKey!.keyArn,
-  });
-  new StructuredOutput<SnsTopicEncryptionKeyOutput>(managementAccountStack, 'SNSEncryptionKeyOutput', {
-    type: SnsTopicEncryptionKeyOutputType,
-    value: {
-      encryptionKeyId: defaultsResult.snsTopicsEncryptionKey.keyId,
-      encryptionKeyArn: defaultsResult.snsTopicsEncryptionKey.keyArn,
-    },
   });
 
 }

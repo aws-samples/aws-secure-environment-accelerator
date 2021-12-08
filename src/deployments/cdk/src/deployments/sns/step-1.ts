@@ -23,9 +23,10 @@ import * as cdk from '@aws-cdk/core';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import * as iam from '@aws-cdk/aws-iam';
-import { CfnSnsTopicOutput, SNS_ENCRYPTION_KEY_CDK_ID, SnsTopicEncryptionKeyOutputType } from './outputs';
+import { CfnSnsTopicOutput } from './outputs';
 import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
-import { StructuredOutput } from '../../common/structured-output';
+import { createDefaultS3Key } from '../defaults/shared';
+import { AccountBucketOutputFinder } from '../defaults';
 
 export interface SnsStep1Props {
   accountStacks: AccountStacks;
@@ -43,17 +44,11 @@ export async function step1(props: SnsStep1Props) {
   const { accountStacks, config, outputs, accounts } = props;
   const globalOptions = config['global-options'];
   const centralLogServices = globalOptions['central-log-services'];
-  const managementAccount = globalOptions['aws-org-management'].account;
   const centralSecurityServices = globalOptions['central-security-services'];
   const supportedRegions = globalOptions['supported-regions'];
   const excludeRegions = centralLogServices['sns-excl-regions'];
   const managementAccountConfig = globalOptions['aws-org-management'];
   const regions = supportedRegions.filter(r => !excludeRegions?.includes(r));
-  const snsEncryptionKeyOutputs = StructuredOutput.fromOutputs(outputs, {
-    type: SnsTopicEncryptionKeyOutputType,
-    accountKey: managementAccount,
-  });
-  const snsEncryptionKeyOutput = snsEncryptionKeyOutputs[0];
 
   if (!regions.includes(centralLogServices.region)) {
     regions.push(centralLogServices.region);
@@ -75,6 +70,7 @@ export async function step1(props: SnsStep1Props) {
       console.error(`Cannot find account stack ${centralLogServices.account}: ${region}, while deploying SNS`);
       continue;
     }
+
     createSnsTopics({
       accountStack,
       subscriberRoleArn: snsSubscriberLambdaRoleOutput.roleArn,
@@ -89,7 +85,7 @@ export async function step1(props: SnsStep1Props) {
         centralSecurityServices['fw-mgr-alert-level'] !== 'None' || centralSecurityServices['add-sns-topics']
           ? getAccountId(accounts, centralSecurityServices.account)
           : undefined,
-      snsTopicEncryptionKeyArn: snsEncryptionKeyOutput.encryptionKeyArn,
+      outputs,
     });
   }
 
@@ -121,7 +117,7 @@ export async function step1(props: SnsStep1Props) {
       subscribeEmails,
       centralAccount: centralLogServicesAccount,
       orgManagementSns: true,
-      snsTopicEncryptionKeyArn: snsEncryptionKeyOutput.encryptionKeyArn,
+      outputs,
     });
   }
 
@@ -149,7 +145,7 @@ export async function step1(props: SnsStep1Props) {
         subscribeEmails,
         centralAccount: centralLogServicesAccount,
         orgManagementSns: true,
-        snsTopicEncryptionKeyArn: snsEncryptionKeyOutput.encryptionKeyArn,
+        outputs,
       });
     }
   }
@@ -180,10 +176,8 @@ function createSnsTopics(props: {
    * Org Security account for adding publish permissions
    */
   orgSecurityAccount?: string;
-  /**
-   * Topic KMS Encryption key
-   */
-  snsTopicEncryptionKeyArn?: string;
+
+  outputs: StackOutput[];
 
 }) {
   const {
@@ -196,7 +190,7 @@ function createSnsTopics(props: {
     orgManagementSns,
     orgManagementAccount,
     orgSecurityAccount,
-    snsTopicEncryptionKeyArn
+    outputs
   } = props;
   const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
   const lambdaDir = path.dirname(lambdaPath);
@@ -235,14 +229,16 @@ function createSnsTopics(props: {
     principal: new iam.ServicePrincipal('sns.amazonaws.com'),
   });
 
-  const masterKey = kms.Key.fromKeyArn(accountStack, SNS_ENCRYPTION_KEY_CDK_ID, snsTopicEncryptionKeyArn as string);
+  const encryptionKey = centralServicesRegion !== region ?
+    createKeyWithPolicyForSns(accountStack) :
+    retrieveExistingKeyFromCentralRegion(outputs, accountStack);
 
   for (const notificationType of SNS_NOTIFICATION_TYPES) {
     const topicName = createSnsTopicName(notificationType);
     const topic = new sns.Topic(accountStack, `SnsNotificationTopic${notificationType}`, {
       displayName: topicName,
       topicName,
-      masterKey
+      masterKey: encryptionKey,
     });
 
     // Allowing Publish from CloudWatch Service form any account
@@ -299,3 +295,52 @@ function createSnsTopics(props: {
     });
   }
 }
+
+
+const createKeyWithPolicyForSns = (accountStack: AccountStack) => {
+  const { encryptionKey } = createDefaultS3Key({
+    accountStack,
+  });
+
+  encryptionKey.addToResourcePolicy(new iam.PolicyStatement({
+      sid: 'Allow SNS to use the encryption key',
+      principals: [new iam.ServicePrincipal('sns.amazonaws.com')],
+      actions: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
+      resources: ['*'],
+    }),
+  );
+
+  encryptionKey.addToResourcePolicy(
+    new iam.PolicyStatement({
+      sid: 'Allow Cloudwatch and Lambda to send to the topics with encryption',
+      effect: iam.Effect.ALLOW,
+      principals: [
+        new iam.ServicePrincipal('cloudwatch.amazonaws.com'),
+        new iam.ServicePrincipal('lambda.amazonaws.com'),
+      ],
+      actions: [
+        'kms:GenerateDataKey',
+        'kms:Decrypt',
+      ],
+      resources: ['*'],
+    }),
+  );
+
+  return encryptionKey;
+}
+
+const retrieveExistingKeyFromCentralRegion = (outputs: StackOutput[], accountStack: AccountStack) => {
+
+  const accountBucket = AccountBucketOutputFinder.tryFindOneByName({
+    outputs,
+    accountKey: accountStack.accountKey,
+    region: accountStack.region
+  })
+
+  if (!accountBucket?.encryptionKeyArn) {
+    return createKeyWithPolicyForSns(accountStack)
+  }
+
+  return kms.Key.fromKeyArn(accountStack, 'DefaultKey', accountBucket?.encryptionKeyArn);
+}
+

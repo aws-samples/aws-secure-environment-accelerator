@@ -11,20 +11,7 @@
  *  and limitations under the License.
  */
 
-import * as t from 'io-ts';
 import { createCfnStructuredOutput } from '../../common/structured-output';
 import { SnsTopicOutput } from '@aws-accelerator/common-outputs/src/sns-topic';
 
 export const CfnSnsTopicOutput = createCfnStructuredOutput(SnsTopicOutput);
-
-export const SnsTopicEncryptionKeyOutputType = t.interface(
-  {
-    encryptionKeyId: t.string,
-    encryptionKeyArn: t.string,
-  },
-  'SnsTopicEncryptionKeyOutput',
-);
-
-export type SnsTopicEncryptionKeyOutput = t.TypeOf<typeof SnsTopicEncryptionKeyOutputType>;
-
-export const SNS_ENCRYPTION_KEY_CDK_ID = 'SnsDefaultEncryptionKey';

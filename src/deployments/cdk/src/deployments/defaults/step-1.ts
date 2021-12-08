@@ -31,7 +31,6 @@ import { Account } from '../../utils/accounts';
 import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
 import { overrideLogicalId } from '../../utils/cdk';
 import { getVpcSharedAccountKeys } from '../../common/vpc-subnet-sharing';
-import { SNS_ENCRYPTION_KEY_CDK_ID } from '../sns';
 
 export type AccountRegionEbsEncryptionKeys = { [accountKey: string]: { [region: string]: kms.Key } | undefined };
 
@@ -47,7 +46,6 @@ export interface DefaultsStep1Result {
   centralLogBucket: s3.Bucket;
   aesLogBucket?: s3.Bucket;
   accountEbsEncryptionKeys: AccountRegionEbsEncryptionKeys;
-  snsTopicsEncryptionKey: kms.Key
 }
 
 export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Result> {
@@ -56,14 +54,12 @@ export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Res
   const centralBucketCopy = createCentralBucketCopy(props);
   const centralLogBucket = createCentralLogBucket(props);
   const accountEbsEncryptionKeys = createDefaultEbsEncryptionKey(props);
-  const snsTopicsEncryptionKey = createSnsTopicEncryptionKey(props);
   const aesLogBucket = createAesLogBucket(props);
   return {
     centralBucketCopy,
     centralLogBucket,
     aesLogBucket,
-    accountEbsEncryptionKeys,
-    snsTopicsEncryptionKey
+    accountEbsEncryptionKeys
   };
 }
 
@@ -487,54 +483,4 @@ function createDefaultEbsEncryptionKey(props: DefaultsStep1Props): AccountRegion
     }
   }
   return accountEbsEncryptionKeys;
-}
-
-function createSnsTopicEncryptionKey(props: DefaultsStep1Props): kms.Key {
-  const { config, accountStacks } = props;
-
-
-  const keyAlias = createEncryptionKeyName('SNS-Key');
-  const mainOrgRegion = config['global-options']['aws-org-management'].region
-  const accountStack = accountStacks.tryGetOrCreateAccountStack(
-    config.getMandatoryAccountKey('master'), mainOrgRegion);
-  const key = new kms.Key(accountStack, SNS_ENCRYPTION_KEY_CDK_ID, {
-    alias: `alias/${keyAlias}`,
-    description: 'Key used to encrypt/decrypt SNS Topics by default',
-    enableKeyRotation: true,
-  });
-
-  key.addToResourcePolicy(
-    new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      principals: [new iam.AccountPrincipal(cdk.Aws.ACCOUNT_ID)],
-      actions: ['kms:*'],
-      resources: ['*'],
-    }),
-  );
-
-  key.addToResourcePolicy(
-    new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      principals: [new iam.ServicePrincipal('sns.amazonaws.com')],
-      actions: ['kms:*'],
-      resources: ['*'],
-    }),
-  );
-
-  key.addToResourcePolicy(
-    new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      principals: [
-        new iam.ServicePrincipal('cloudwatch.amazonaws.com'),
-        new iam.ServicePrincipal('lambda.amazonaws.com'),
-      ],
-      actions: [
-        'kms:GenerateDataKey',
-        'kms:Decrypt',
-      ],
-      resources: ['*'],
-    }),
-  );
-
-  return key;
 }
