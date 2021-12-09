@@ -12,11 +12,8 @@
  */
 
 import * as cdk from '@aws-cdk/core';
-import { Construct } from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
-import { IRole } from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
-import { Code } from '@aws-cdk/aws-lambda';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-tasks';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
@@ -102,10 +99,10 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
   }
 
   private createStoreOututsRegionMapperSM(
-    lambdaCode: Code,
-    role: IRole,
+    lambdaCode: lambda.Code,
+    role: iam.IRole,
     functionPayload: { [p: string]: unknown } | undefined,
-    scope: Construct,
+    scope: cdk.Construct,
     acceleratorPrefix: string,
   ) {
     // Task that store the outputs
