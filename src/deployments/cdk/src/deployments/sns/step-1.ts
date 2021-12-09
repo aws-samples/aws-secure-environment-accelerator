@@ -27,6 +27,7 @@ import { CfnSnsTopicOutput } from './outputs';
 import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
 import { createDefaultS3Key } from '../defaults/shared';
 import { AccountBucketOutputFinder } from '../defaults';
+import { LogBucketOutputTypeOutputFinder } from '@aws-accelerator/common-outputs/src/buckets';
 
 export interface SnsStep1Props {
   accountStacks: AccountStacks;
@@ -231,7 +232,7 @@ function createSnsTopics(props: {
 
   const encryptionKey = centralServicesRegion !== region ?
     createDefaultKeyWithPolicyForSns(accountStack) :
-    retrieveExistingKeyFromCentralRegion(outputs, accountStack);
+    retrieveExistingKeyFromCentralRegion(outputs, accountStack, centralAccount);
 
   for (const notificationType of SNS_NOTIFICATION_TYPES) {
     const topicName = createSnsTopicName(notificationType);
@@ -329,7 +330,21 @@ const createDefaultKeyWithPolicyForSns = (accountStack: AccountStack) => {
   return encryptionKey;
 }
 
-const retrieveExistingKeyFromCentralRegion = (outputs: StackOutput[], accountStack: AccountStack) => {
+const retrieveExistingKeyFromCentralRegion = (outputs: StackOutput[], accountStack: AccountStack, centralAccount: string) => {
+
+  if (accountStack.accountId === centralAccount) {
+    const logBucket = LogBucketOutputTypeOutputFinder.findOneByName({
+      outputs,
+      accountKey: accountStack.accountKey,
+      region: accountStack.region
+    });
+
+    if (!logBucket?.encryptionKeyArn) {
+      return createDefaultKeyWithPolicyForSns(accountStack)
+    }
+
+    return kms.Key.fromKeyArn(accountStack, `${accountStack.accountKey}-DefaultKey`, logBucket?.encryptionKeyArn);
+  }
 
   const accountBucket = AccountBucketOutputFinder.tryFindOneByName({
     outputs,
