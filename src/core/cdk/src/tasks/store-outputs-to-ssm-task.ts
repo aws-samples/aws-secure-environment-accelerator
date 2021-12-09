@@ -16,11 +16,13 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-tasks';
+import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
 
 export namespace StoreOutputsToSSMTask {
   export interface Props {
     role: iam.IRole;
     lambdaCode: lambda.Code;
+    acceleratorPrefix: string;
     functionPayload?: { [key: string]: unknown };
     waitSeconds?: number;
   }
@@ -33,7 +35,7 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
   constructor(scope: cdk.Construct, id: string, props: StoreOutputsToSSMTask.Props) {
     super(scope, id);
 
-    const { role, lambdaCode, functionPayload, waitSeconds = 10 } = props;
+    const { role, lambdaCode, functionPayload, acceleratorPrefix } = props;
 
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -84,6 +86,65 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
       },
     });
 
+    fetchConfigData.next(storeAccountOutputs);
+
+    const storeOutputsToSSMTaskRegionMapperTask = new tasks.StepFunctionsStartExecution(
+      this,
+      'Store Outputs to SSM Region Mapper',
+      {
+        stateMachine: this.createStoreOututsSSMRegionMapperSM(
+          lambdaCode,
+          role,
+          functionPayload,
+          scope,
+          acceleratorPrefix,
+        ),
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          'account.$': '$.account',
+          'regions.$': '$.regions',
+          'acceleratorPrefix.$': '$.acceleratorPrefix',
+          'assumeRoleName.$': '$.assumeRoleName',
+          'outputsTableName.$': '$.outputsTableName',
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+          'outputUtilsTableName.$': '$.outputUtilsTableName',
+          'accountsTableName.$': '$.accountsTableName',
+          'configDetails.$': '$.configDetails',
+        }),
+        resultPath: 'DISCARD',
+      },
+    );
+    getAccountInfoTask.next(storeOutputsToSSMTaskRegionMapperTask);
+
+    const pass = new sfn.Pass(this, 'Store Outputs To SSM Success');
+    storeAccountOutputs.iterator(getAccountInfoTask);
+    const chain = sfn.Chain.start(storeAccountOutputs).next(pass);
+
+    this.startState = fetchConfigData.startState;
+    this.endStates = chain.endStates;
+  }
+
+  private createStoreOututsSSMRegionMapperSM(
+    lambdaCode: lambda.Code,
+    role: iam.IRole,
+    functionPayload: { [p: string]: unknown } | undefined,
+    scope: cdk.Construct,
+    acceleratorPrefix: string,
+  ) {
+    // Task that store the outputs
+    const storeOutputsTask = new CodeTask(scope, `Store Outputs To SSM`, {
+      resultPath: '$.storeOutputsOutput',
+      functionPayload,
+      functionProps: {
+        role,
+        code: lambdaCode,
+        handler: 'index.saveOutputsToSSM',
+      },
+    });
+
+    // Mapped by region
     const storeAccountRegionOutputs = new sfn.Map(this, `Store Account Region Outputs To SSM`, {
       itemsPath: `$.regions`,
       resultPath: 'DISCARD',
@@ -102,25 +163,12 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
         'configDetails.$': '$.configDetails',
       },
     });
-
-    fetchConfigData.next(storeAccountOutputs);
-    getAccountInfoTask.next(storeAccountRegionOutputs);
-    const storeOutputsTask = new CodeTask(scope, `Store Outputs To SSM`, {
-      resultPath: '$.storeOutputsOutput',
-      functionPayload,
-      functionProps: {
-        role,
-        code: lambdaCode,
-        handler: 'index.saveOutputsToSSM',
-      },
-    });
-
-    const pass = new sfn.Pass(this, 'Store Outputs To SSM Success');
-    storeAccountOutputs.iterator(getAccountInfoTask);
     storeAccountRegionOutputs.iterator(storeOutputsTask);
-    const chain = sfn.Chain.start(storeAccountOutputs).next(pass);
 
-    this.startState = fetchConfigData.startState;
-    this.endStates = chain.endStates;
+    // In its own state machine
+    return new sfn.StateMachine(this, `${acceleratorPrefix}StoreOutputsToSSMRegionMapper_sm`, {
+      stateMachineName: `${acceleratorPrefix}StoreOutputsToSSMRegionMapper_sm`,
+      definition: sfn.Chain.start(storeAccountRegionOutputs),
+    });
   }
 }

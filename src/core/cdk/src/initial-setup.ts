@@ -694,6 +694,7 @@ export namespace InitialSetup {
         {
           stateMachineName: `${props.acceleratorPrefix}StoreOutputsToSsm_sm`,
           definition: new StoreOutputsToSSMTask(this, 'StoreOutputsToSSM', {
+            acceleratorPrefix: props.acceleratorPrefix,
             lambdaCode,
             role: pipelineRole,
           }),
