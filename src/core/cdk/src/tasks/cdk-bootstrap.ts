@@ -187,7 +187,6 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
     this.endStates = chain.endStates;
   }
 
-
   private createBootstrapAccountRegionMapperSM(
     lambdaCode: lambda.Code,
     role: iam.IRole,
@@ -195,7 +194,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
     s3BucketName: string,
     accountBootstrapObjectKey: string,
     assumeRoleName: string,
-    acceleratorPrefix: string
+    acceleratorPrefix: string,
   ) {
     // Tasks that creates the account
     const bootstrapStateMachine = new sfn.StateMachine(this, `${acceleratorPrefix}BootstrapAccount_sm`, {

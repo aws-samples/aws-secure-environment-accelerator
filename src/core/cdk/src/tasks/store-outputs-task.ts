@@ -37,7 +37,7 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
   constructor(scope: cdk.Construct, id: string, props: StoreOutputsTask.Props) {
     super(scope, id);
 
-    const { role, lambdaCode, acceleratorPrefix, functionPayload} = props;
+    const { role, lambdaCode, acceleratorPrefix, functionPayload } = props;
 
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -78,13 +78,7 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
       this,
       'Store Outputs Region Mapper',
       {
-        stateMachine: this.createStoreOututsRegionMapperSM(
-          lambdaCode,
-          role,
-          functionPayload,
-          scope,
-          acceleratorPrefix
-        ),
+        stateMachine: this.createStoreOututsRegionMapperSM(lambdaCode, role, functionPayload, scope, acceleratorPrefix),
         integrationPattern: sfn.IntegrationPattern.RUN_JOB,
         input: sfn.TaskInput.fromObject({
           'account.$': '$.account',
@@ -112,7 +106,7 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
     role: IRole,
     functionPayload: { [p: string]: unknown } | undefined,
     scope: Construct,
-    acceleratorPrefix: string
+    acceleratorPrefix: string,
   ) {
     // Task that store the outputs
     const storeOutputsTask = new CodeTask(scope, `Store Outputs`, {
