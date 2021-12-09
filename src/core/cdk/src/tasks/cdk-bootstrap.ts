@@ -165,7 +165,6 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
           accountBootstrapObjectKey,
           assumeRoleName,
           acceleratorPrefix,
-          props,
         ),
         integrationPattern: sfn.IntegrationPattern.RUN_JOB,
         input: sfn.TaskInput.fromObject({
@@ -188,6 +187,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
     this.endStates = chain.endStates;
   }
 
+
   private createBootstrapAccountRegionMapperSM(
     lambdaCode: lambda.Code,
     role: iam.IRole,
@@ -195,12 +195,11 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
     s3BucketName: string,
     accountBootstrapObjectKey: string,
     assumeRoleName: string,
-    acceleratorPrefix: string,
-    props: CDKBootstrapTask.Props,
+    acceleratorPrefix: string
   ) {
     // Tasks that creates the account
     const bootstrapStateMachine = new sfn.StateMachine(this, `${acceleratorPrefix}BootstrapAccount_sm`, {
-      stateMachineName: `${props.acceleratorPrefix}BootstrapAccount_sm`,
+      stateMachineName: `${acceleratorPrefix}BootstrapAccount_sm`,
       definition: new CreateStackTask(this, 'Bootstrap Acccount Task', {
         lambdaCode,
         role,
@@ -245,7 +244,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
 
     // In its own state machine
     return new sfn.StateMachine(this, `${acceleratorPrefix}BootstrapAccountRegionMapper_sm`, {
-      stateMachineName: `${props.acceleratorPrefix}BootstrapAccountRegionMapper_sm`,
+      stateMachineName: `${acceleratorPrefix}BootstrapAccountRegionMapper_sm`,
       definition: sfn.Chain.start(createBootstrapInRegion),
     });
   }

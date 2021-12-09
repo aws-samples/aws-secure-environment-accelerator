@@ -813,6 +813,7 @@ export namespace InitialSetup {
       const storeOutputsStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}StoreOutputs_sm`, {
         stateMachineName: `${props.acceleratorPrefix}StoreOutputs_sm`,
         definition: new StoreOutputsTask(this, 'StoreOutputs', {
+          acceleratorPrefix: props.acceleratorPrefix,
           lambdaCode,
           role: pipelineRole,
         }),
