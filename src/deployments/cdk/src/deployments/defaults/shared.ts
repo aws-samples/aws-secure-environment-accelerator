@@ -78,7 +78,7 @@ export function createDefaultS3Bucket(props: {
         // TODO Isn't there a better way to grant to all AWS services through a condition?
         new iam.ServicePrincipal('ds.amazonaws.com'),
         new iam.ServicePrincipal('delivery.logs.amazonaws.com'),
-        new iam.ServicePrincipal('sns.amazon.com')
+        new iam.ServicePrincipal('sns.amazonaws.com')
       ],
       resources: ['*'],
     }),
