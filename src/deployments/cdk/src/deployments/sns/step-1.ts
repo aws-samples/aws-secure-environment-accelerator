@@ -24,6 +24,7 @@ import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import * as iam from '@aws-cdk/aws-iam';
 import { CfnSnsTopicOutput } from './outputs';
 import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
+import { Organizations } from '@aws-accelerator/custom-resource-organization';
 
 export interface SnsStep1Props {
   accountStacks: AccountStacks;
@@ -217,6 +218,7 @@ function createSnsTopics(props: {
     principal: new iam.ServicePrincipal('sns.amazonaws.com'),
   });
 
+  const organizations = new Organizations(accountStack, 'SnsOrganizationsLookup');
   for (const notificationType of SNS_NOTIFICATION_TYPES) {
     const topicName = createSnsTopicName(notificationType);
     const topic = new sns.Topic(accountStack, `SnsNotificationTopic${notificationType}`, {
@@ -233,6 +235,24 @@ function createSnsTopics(props: {
     topic.grantPublish({
       grantPrincipal: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
+
+    topic.addToResourcePolicy(
+      new iam.PolicyStatement({
+        principals: [new iam.AnyPrincipal()],
+        effect: iam.Effect.ALLOW,
+        actions: ['sns:ListSubscriptionsByTopic'],
+        resources: [topic.topicArn],
+        conditions: {
+          ['StringEquals']: {
+            'aws:PrincipalOrgID': organizations.organizationId,
+          },
+          ['StringLike']: {
+            'aws:PrincipalArn':
+              'arn:aws:iam:::role/aws-service-role/securityhub.amazonaws.com/AWSServiceRoleForSecurityHub',
+          },
+        },
+      }),
+    );
 
     if (orgManagementAccount) {
       topic.grantPublish({
