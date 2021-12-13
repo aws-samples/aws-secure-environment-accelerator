@@ -295,39 +295,6 @@ function createSnsTopics(props: {
   }
 }
 
-
-const createDefaultKeyWithPolicyForSns = (accountStack: AccountStack) => {
-  const { encryptionKey } = createDefaultS3Key({
-    accountStack,
-  });
-
-  encryptionKey.addToResourcePolicy(new iam.PolicyStatement({
-      sid: 'Allow SNS to use the encryption key',
-      principals: [new iam.ServicePrincipal('sns.amazonaws.com')],
-      actions: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
-      resources: ['*'],
-    }),
-  );
-
-  encryptionKey.addToResourcePolicy(
-    new iam.PolicyStatement({
-      sid: 'Allow Cloudwatch and Lambda to send to the topics with encryption',
-      effect: iam.Effect.ALLOW,
-      principals: [
-        new iam.ServicePrincipal('cloudwatch.amazonaws.com'),
-        new iam.ServicePrincipal('lambda.amazonaws.com'),
-      ],
-      actions: [
-        'kms:GenerateDataKey',
-        'kms:Decrypt',
-      ],
-      resources: ['*'],
-    }),
-  );
-
-  return encryptionKey;
-}
-
 const retrieveExistingKeyFromCentralRegion = (outputs: StackOutput[], accountStack: AccountStack, centralAccount: string) => {
 
   if (accountStack.accountId === centralAccount) {
