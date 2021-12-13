@@ -22,11 +22,11 @@ export interface CwlCentralLoggingRoleProps {
   acceleratorPrefix: string;
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
-  logBucket: s3.IBucket;
+  logBucketList: s3.IBucket[];
 }
 
 export async function createCwlCentralLoggingRoles(props: CwlCentralLoggingRoleProps): Promise<void> {
-  const { accountStacks, config, acceleratorPrefix, logBucket } = props;
+  const { accountStacks, config, acceleratorPrefix, logBucketList } = props;
   const centralLoggingServices = config['global-options']['central-log-services'];
 
   const cwlRegions = Object.entries(config['global-options']['additional-cwl-regions']).map(([region, _]) => region);
@@ -71,15 +71,16 @@ export async function createCwlCentralLoggingRoles(props: CwlCentralLoggingRoleP
     assumedBy: new iam.ServicePrincipal('firehose.amazonaws.com'),
   });
 
+  const logBucket = logBucketList.filter(bucket => bucket.bucketArn.includes(centralLoggingServices.region)).pop();
   new iam.Policy(accountStack, 'CWL-Kinesis-Stream-Policy', {
     roles: [kinesisStreamRole],
     statements: [
       new iam.PolicyStatement({
-        resources: [logBucket.encryptionKey?.keyArn!],
+        resources: [logBucket?.encryptionKey?.keyArn!],
         actions: ['kms:DescribeKey', 'kms:GenerateDataKey*', 'kms:Decrypt', 'kms:Encrypt', 'kms:ReEncrypt*'],
       }),
       new iam.PolicyStatement({
-        resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
+        resources: [logBucket?.bucketArn!, `${logBucket?.bucketArn}/*`],
         actions: [
           's3:PutObject',
           's3:PutObjectAcl',

@@ -43,7 +43,7 @@ export interface DefaultsStep1Props {
 
 export interface DefaultsStep1Result {
   centralBucketCopy: s3.Bucket;
-  centralLogBucket: s3.Bucket;
+  centralLogBucketList: s3.Bucket[];
   aesLogBucket?: s3.Bucket;
   accountEbsEncryptionKeys: AccountRegionEbsEncryptionKeys;
 }
@@ -52,12 +52,12 @@ export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Res
   blockS3PublicAccess(props);
 
   const centralBucketCopy = createCentralBucketCopy(props);
-  const centralLogBucket = createCentralLogBucket(props);
+  const centralLogBucketList = createCentralLogBucket(props);
   const accountEbsEncryptionKeys = createDefaultEbsEncryptionKey(props);
   const aesLogBucket = createAesLogBucket(props);
   return {
     centralBucketCopy,
-    centralLogBucket,
+    centralLogBucketList,
     aesLogBucket,
     accountEbsEncryptionKeys
   };
@@ -178,156 +178,166 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
 /**
  * Creates a bucket that contains copies of the files in the central bucket.
  */
-function createCentralLogBucket(props: DefaultsStep1Props) {
+function createCentralLogBucket(props: DefaultsStep1Props): s3.Bucket[] {
   const { accountStacks, config } = props;
-
-  const logAccountConfig = config['global-options']['central-log-services'];
+  const globalOptions = config['global-options'];
+  const centralLogServices = globalOptions['central-log-services'];
+  const logAccountConfig = globalOptions['central-log-services'];
   const logAccountStack = accountStacks.getOrCreateAccountStack(logAccountConfig.account);
 
   const organizations = new Organizations(logAccountStack, 'Organizations');
-
+  const excludeRegions = centralLogServices['sns-excl-regions'];
+  const supportedRegions = globalOptions['supported-regions'];
+  const regionsToPopulate = supportedRegions.filter(r => !excludeRegions?.includes(r));
   const anyAccountPrincipal = [new iam.AnyPrincipal()];
-  const logKey = createDefaultS3Key({
-    accountStack: logAccountStack,
-  });
 
-  const defaultLogRetention = config['global-options']['central-log-services']['s3-retention'];
+  const logBucketsList: s3.Bucket[] = []
 
-  const logBucket = createDefaultS3Bucket({
-    accountStack: logAccountStack,
-    encryptionKey: logKey.encryptionKey,
-    logRetention: defaultLogRetention!,
-    versioned: true,
-  });
+  for (const region of regionsToPopulate) {
+    const logKey = createDefaultS3Key({
+      accountStack: logAccountStack,
+    });
 
-  // Allow replication from all Accelerator accounts
-  logBucket.replicateFrom(anyAccountPrincipal, organizations.organizationId, props.acceleratorPrefix);
+    const defaultLogRetention = centralLogServices['s3-retention'];
 
-  logBucket.addToResourcePolicy(
-    new iam.PolicyStatement({
-      principals: anyAccountPrincipal,
-      actions: ['s3:GetEncryptionConfiguration', 's3:PutObject'],
-      resources: [logBucket.bucketArn, logBucket.arnForObjects('*')],
-      conditions: {
-        StringEquals: {
-          'aws:PrincipalOrgID': organizations.organizationId,
+    const logBucket = createDefaultS3Bucket({
+      accountStack: logAccountStack,
+      encryptionKey: logKey.encryptionKey,
+      logRetention: defaultLogRetention!,
+      versioned: true,
+    });
+
+    // Allow replication from all Accelerator accounts
+    logBucket.replicateFrom(anyAccountPrincipal, organizations.organizationId, props.acceleratorPrefix);
+
+    logBucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        principals: anyAccountPrincipal,
+        actions: ['s3:GetEncryptionConfiguration', 's3:PutObject'],
+        resources: [logBucket.bucketArn, logBucket.arnForObjects('*')],
+        conditions: {
+          StringEquals: {
+            'aws:PrincipalOrgID': organizations.organizationId,
+          },
         },
-      },
-    }),
-  );
+      }),
+    );
 
-  // Allow Kinesis access bucket
-  logBucket.addToResourcePolicy(
-    new iam.PolicyStatement({
-      principals: anyAccountPrincipal,
-      actions: [
-        's3:AbortMultipartUpload',
-        's3:GetBucketLocation',
-        's3:GetObject',
-        's3:ListBucket',
-        's3:ListBucketMultipartUploads',
-        's3:PutObject',
-        's3:PutObjectAcl',
-      ],
-      resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
-      conditions: {
-        StringEquals: {
-          'aws:PrincipalOrgID': organizations.organizationId,
+    // Allow Kinesis access bucket
+    logBucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        principals: anyAccountPrincipal,
+        actions: [
+          's3:AbortMultipartUpload',
+          's3:GetBucketLocation',
+          's3:GetObject',
+          's3:ListBucket',
+          's3:ListBucketMultipartUploads',
+          's3:PutObject',
+          's3:PutObjectAcl',
+        ],
+        resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
+        conditions: {
+          StringEquals: {
+            'aws:PrincipalOrgID': organizations.organizationId,
+          },
+          ArnLike: {
+            'aws:PrincipalARN': `arn:aws:iam::*:role/${props.acceleratorPrefix}Kinesis-*`,
+          },
         },
-        ArnLike: {
-          'aws:PrincipalARN': `arn:aws:iam::*:role/${props.acceleratorPrefix}Kinesis-*`,
+      }),
+    );
+
+    logBucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        principals: [
+          new iam.ServicePrincipal('delivery.logs.amazonaws.com'),
+          new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
+          new iam.ServicePrincipal('config.amazonaws.com'),
+        ],
+        actions: ['s3:PutObject'],
+        resources: [`${logBucket.bucketArn}/*`],
+        conditions: {
+          StringEquals: {
+            's3:x-amz-acl': 'bucket-owner-full-control',
+          },
         },
-      },
-    }),
-  );
+      }),
+    );
 
-  logBucket.addToResourcePolicy(
-    new iam.PolicyStatement({
-      principals: [
-        new iam.ServicePrincipal('delivery.logs.amazonaws.com'),
-        new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
-        new iam.ServicePrincipal('config.amazonaws.com'),
-      ],
-      actions: ['s3:PutObject'],
-      resources: [`${logBucket.bucketArn}/*`],
-      conditions: {
-        StringEquals: {
-          's3:x-amz-acl': 'bucket-owner-full-control',
+    logBucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        principals: [
+          new iam.ServicePrincipal('delivery.logs.amazonaws.com'),
+          new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
+          new iam.ServicePrincipal('config.amazonaws.com'),
+        ],
+        actions: ['s3:GetBucketAcl', 's3:ListBucket'],
+        resources: [`${logBucket.bucketArn}`],
+      }),
+    );
+
+    // Permission to allow checking existence of AWSConfig bucket
+    logBucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        principals: [new iam.ServicePrincipal('config.amazonaws.com')],
+        actions: ['s3:ListBucket'],
+        resources: [`${logBucket.bucketArn}`],
+      }),
+    );
+
+    // Allow cross account encrypt access for logArchive bucket
+    logBucket.encryptionKey?.addToResourcePolicy(
+      new iam.PolicyStatement({
+        sid: 'Enable cross account encrypt access for S3 Cross Region Replication',
+        actions: ['kms:Encrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
+        principals: anyAccountPrincipal,
+        resources: ['*'],
+        conditions: {
+          StringEquals: {
+            'aws:PrincipalOrgID': organizations.organizationId,
+          },
         },
-      },
-    }),
-  );
+      }),
+    );
 
-  logBucket.addToResourcePolicy(
-    new iam.PolicyStatement({
-      principals: [
-        new iam.ServicePrincipal('delivery.logs.amazonaws.com'),
-        new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
-        new iam.ServicePrincipal('config.amazonaws.com'),
-      ],
-      actions: ['s3:GetBucketAcl', 's3:ListBucket'],
-      resources: [`${logBucket.bucketArn}`],
-    }),
-  );
-
-  // Permission to allow checking existence of AWSConfig bucket
-  logBucket.addToResourcePolicy(
-    new iam.PolicyStatement({
-      principals: [new iam.ServicePrincipal('config.amazonaws.com')],
-      actions: ['s3:ListBucket'],
-      resources: [`${logBucket.bucketArn}`],
-    }),
-  );
-
-  // Allow cross account encrypt access for logArchive bucket
-  logBucket.encryptionKey?.addToResourcePolicy(
-    new iam.PolicyStatement({
-      sid: 'Enable cross account encrypt access for S3 Cross Region Replication',
-      actions: ['kms:Encrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
-      principals: anyAccountPrincipal,
-      resources: ['*'],
-      conditions: {
-        StringEquals: {
-          'aws:PrincipalOrgID': organizations.organizationId,
+    // Allow only https requests
+    logBucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        actions: ['s3:*'],
+        resources: [logBucket.bucketArn, logBucket.arnForObjects('*')],
+        principals: [new iam.AnyPrincipal()],
+        conditions: {
+          Bool: {
+            'aws:SecureTransport': 'false',
+          },
         },
-      },
-    }),
-  );
+        effect: iam.Effect.DENY,
+      }),
+    );
 
-  // Allow only https requests
-  logBucket.addToResourcePolicy(
-    new iam.PolicyStatement({
-      actions: ['s3:*'],
-      resources: [logBucket.bucketArn, logBucket.arnForObjects('*')],
-      principals: [new iam.AnyPrincipal()],
-      conditions: {
-        Bool: {
-          'aws:SecureTransport': 'false',
-        },
-      },
-      effect: iam.Effect.DENY,
-    }),
-  );
+    new CfnLogBucketOutput(logAccountStack, 'LogBucketOutput', {
+      bucketArn: logBucket.bucketArn,
+      bucketName: logBucket.bucketName,
+      encryptionKeyArn: logBucket.encryptionKey!.keyArn,
+      region,
+      encryptionKeyId: logBucket.encryptionKey!.keyId,
+      encryptionKeyName: logKey.alias,
+    });
 
-  new CfnLogBucketOutput(logAccountStack, 'LogBucketOutput', {
-    bucketArn: logBucket.bucketArn,
-    bucketName: logBucket.bucketName,
-    encryptionKeyArn: logBucket.encryptionKey!.keyArn,
-    region: cdk.Aws.REGION,
-    encryptionKeyId: logBucket.encryptionKey!.keyId,
-    encryptionKeyName: logKey.alias,
-  });
+    logBucket.encryptionKey?.addToResourcePolicy(
+      new iam.PolicyStatement({
+        sid: 'Allow CloudTrail to encrypt and describe logs',
+        actions: ['kms:GenerateDataKey*', 'kms:DescribeKey'],
+        principals: [new iam.ServicePrincipal('cloudtrail.amazonaws.com')],
+        resources: ['*'],
+      }),
+    );
 
-  logBucket.encryptionKey?.addToResourcePolicy(
-    new iam.PolicyStatement({
-      sid: 'Allow CloudTrail to encrypt and describe logs',
-      actions: ['kms:GenerateDataKey*', 'kms:DescribeKey'],
-      principals: [new iam.ServicePrincipal('cloudtrail.amazonaws.com')],
-      resources: ['*'],
-    }),
-  );
+    logBucketsList.push(logBucket);
+  }
 
-  return logBucket;
+  return logBucketsList;
 }
 
 /**

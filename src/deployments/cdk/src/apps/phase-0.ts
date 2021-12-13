@@ -32,6 +32,7 @@ import { getAccountId } from '../utils/accounts';
 import * as rsyslogDeployment from '../deployments/rsyslog';
 import * as cleanup from '../deployments/cleanup';
 import * as keyPair from '../deployments/key-pair';
+import { IBucket } from '@aws-cdk/aws-s3';
 
 
 /**
@@ -152,7 +153,10 @@ export async function deploy({
   }
 
   // Update Central bucket in log-archive to add as publisher to GuardDuty
-  const logBucket = defaultsResult.centralLogBucket;
+  const centralLoggingServices = acceleratorConfig['global-options']['central-log-services'];
+  const logBucketList = defaultsResult.centralLogBucketList
+  const logBucket = logBucketList
+    .find(bucket => bucket.bucketArn.includes(centralLoggingServices.region)) as IBucket;
   await guardDutyDeployment.enableGuardDutyPolicy({
     accountStacks,
     config: acceleratorConfig,
@@ -211,7 +215,7 @@ export async function deploy({
     acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
     config: acceleratorConfig,
-    logBucket,
+    logBucketList,
   });
 
   await cleanup.step1({
@@ -242,18 +246,18 @@ export async function deploy({
   // TODO Deprecate these outputs
   const logArchiveAccountKey = acceleratorConfig['global-options']['central-log-services'].account;
   const logArchiveStack = accountStacks.getOrCreateAccountStack(logArchiveAccountKey);
-  const logArchiveBucket = defaultsResult.centralLogBucket;
-  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID, {
-    value: logArchiveStack.accountId,
-  });
-  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN, {
-    value: logArchiveBucket.bucketArn,
-  });
-  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME, {
-    value: logArchiveBucket.bucketName,
-  });
-  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN, {
-    value: logArchiveBucket.encryptionKey!.keyArn,
-  });
-
+  for (const logArchiveBucket of logBucketList) {
+    new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID, {
+      value: logArchiveStack.accountId,
+    });
+    new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN, {
+      value: logArchiveBucket.bucketArn,
+    });
+    new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME, {
+      value: logArchiveBucket.bucketName,
+    });
+    new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN, {
+      value: logArchiveBucket.encryptionKey!.keyArn,
+    });
+  }
 }

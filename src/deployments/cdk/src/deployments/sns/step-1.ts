@@ -230,9 +230,7 @@ function createSnsTopics(props: {
     principal: new iam.ServicePrincipal('sns.amazonaws.com'),
   });
 
-  const encryptionKey = centralServicesRegion !== region ?
-    createDefaultKeyWithPolicyForSns(accountStack) :
-    retrieveExistingKeyFromCentralRegion(outputs, accountStack, centralAccount);
+  const encryptionKey = retrieveExistingKeyFromCentralRegion(outputs, accountStack, centralAccount);
 
   for (const notificationType of SNS_NOTIFICATION_TYPES) {
     const topicName = createSnsTopicName(notificationType);
@@ -339,11 +337,10 @@ const retrieveExistingKeyFromCentralRegion = (outputs: StackOutput[], accountSta
       region: accountStack.region
     });
 
-    if (!logBucket?.encryptionKeyArn) {
-      return createDefaultKeyWithPolicyForSns(accountStack)
+    if (logBucket?.encryptionKeyArn) {
+      return kms.Key.fromKeyArn(accountStack, `${accountStack.accountKey}-DefaultKey`, logBucket?.encryptionKeyArn)
     }
-
-    return kms.Key.fromKeyArn(accountStack, `${accountStack.accountKey}-DefaultKey`, logBucket?.encryptionKeyArn);
+    return;
   }
 
   const accountBucket = AccountBucketOutputFinder.tryFindOneByName({
@@ -352,10 +349,10 @@ const retrieveExistingKeyFromCentralRegion = (outputs: StackOutput[], accountSta
     region: accountStack.region
   })
 
-  if (!accountBucket?.encryptionKeyArn) {
-    return createDefaultKeyWithPolicyForSns(accountStack)
+  if (accountBucket?.encryptionKeyArn) {
+    return kms.Key.fromKeyArn(accountStack, `${accountStack.accountKey}-DefaultKey`, accountBucket?.encryptionKeyArn);
   }
+  return;
 
-  return kms.Key.fromKeyArn(accountStack, `${accountStack.accountKey}-DefaultKey`, accountBucket?.encryptionKeyArn);
 }
 
