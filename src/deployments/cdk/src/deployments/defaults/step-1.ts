@@ -25,7 +25,13 @@ import {
   createEncryptionKeyName,
   createRoleName,
 } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import { CfnLogBucketOutput, CfnAesBucketOutput, CfnCentralBucketOutput, CfnEbsKmsOutput } from './outputs';
+import {
+  CfnLogBucketOutput,
+  CfnAesBucketOutput,
+  CfnCentralBucketOutput,
+  CfnEbsKmsOutput,
+  CfnDefaultKmsOutput,
+} from './outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
 import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
@@ -33,6 +39,8 @@ import { overrideLogicalId } from '../../utils/cdk';
 import { getVpcSharedAccountKeys } from '../../common/vpc-subnet-sharing';
 
 export type AccountRegionEbsEncryptionKeys = { [accountKey: string]: { [region: string]: kms.Key } | undefined };
+
+export type LogAccountDefaultEncryptionKeys = { [accountKey: string]: { [region: string]: kms.Key } | undefined };
 
 export interface DefaultsStep1Props {
   acceleratorPrefix: string;
@@ -46,6 +54,7 @@ export interface DefaultsStep1Result {
   centralLogBucket: s3.Bucket;
   aesLogBucket?: s3.Bucket;
   accountEbsEncryptionKeys: AccountRegionEbsEncryptionKeys;
+  logAccountDefaultKeys: LogAccountDefaultEncryptionKeys;
 }
 
 export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Result> {
@@ -53,6 +62,7 @@ export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Res
 
   const centralBucketCopy = createCentralBucketCopy(props);
   const centralLogBucket = createCentralLogBucket(props);
+  const logAccountDefaultKeys = createLogAccountDefaultEncryptionKeys(props);
   const accountEbsEncryptionKeys = createDefaultEbsEncryptionKey(props);
   const aesLogBucket = createAesLogBucket(props);
   return {
@@ -60,6 +70,7 @@ export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Res
     centralLogBucket,
     aesLogBucket,
     accountEbsEncryptionKeys,
+    logAccountDefaultKeys,
   };
 }
 
@@ -483,4 +494,49 @@ function createDefaultEbsEncryptionKey(props: DefaultsStep1Props): AccountRegion
     }
   }
   return accountEbsEncryptionKeys;
+}
+
+
+function createLogAccountDefaultEncryptionKeys(props: DefaultsStep1Props): LogAccountDefaultEncryptionKeys {
+  const { accountStacks, config } = props;
+  const globalOptions = config['global-options'];
+  const centralLogServices = globalOptions['central-log-services'];
+  const logAccountConfig = globalOptions['central-log-services'];
+  const logAccountStack = accountStacks.getOrCreateAccountStack(logAccountConfig.account);
+  const excludeRegions = centralLogServices['sns-excl-regions'];
+  const supportedRegions = globalOptions['supported-regions'];
+  const regionsToPopulate = supportedRegions.filter(r => !excludeRegions?.includes(r));
+  const logAccountDefaultEncryptionKeys: LogAccountDefaultEncryptionKeys = {};
+  for (const region of regionsToPopulate) {
+      // Skip creation of default key in default region, created in createCentralLogBucket
+      if (region === logAccountStack.region) {
+        continue;
+      }
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(logAccountStack.accountKey, region);
+      if (!accountStack) {
+        console.warn(`Cannot find ${accountStack} stack in ${region}`);
+        continue;
+      }
+      // Create a default EBS encryption key for every other region of the log account
+      const keyAlias = createEncryptionKeyName('Default-Key');
+      // Default EBS encryption key
+      const key = new kms.Key(accountStack, 'DefaultEncryptionKey', {
+        alias: `alias/${keyAlias}`,
+        description: 'Default key for aws services to encrypt/decrypt',
+        enableKeyRotation: true,
+      });
+
+      logAccountDefaultEncryptionKeys[logAccountStack.accountKey] = {
+        ...logAccountDefaultEncryptionKeys[logAccountStack.accountKey],
+        [region]: key,
+      };
+
+      new CfnDefaultKmsOutput(accountStack, 'DefaultEncryptionKey', {
+        encryptionKeyName: keyAlias,
+        encryptionKeyId: key.keyId,
+        encryptionKeyArn: key.keyArn,
+      });
+  }
+
+  return logAccountDefaultEncryptionKeys;
 }
