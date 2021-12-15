@@ -42,7 +42,11 @@
           "iam:ResourceTag/Accelerator": "${ACCELERATOR_NAME}"
         },
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ORG_ADMIN_ROLE}", "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
+            "arn:aws:iam::*:role/aws-controltower-*"
+          ]
         }
       }
     },
@@ -75,7 +79,11 @@
       "Resource": ["arn:aws:cloudformation:*:*:stack/${ACCELERATOR_PREFIX}*"],
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ORG_ADMIN_ROLE}", "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
+            "arn:aws:iam::*:role/aws-controltower-*"
+          ]
         }
       }
     },
@@ -101,10 +109,14 @@
       "Sid": "ROL",
       "Effect": "Deny",
       "Action": ["iam:*"],
-      "Resource": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ACCELERATOR_NAME}Ops-*"],
+      "Resource": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ACCELERATOR_NAME}Ops-*", "arn:aws:iam::*:role/aws-controltower-*"],
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ORG_ADMIN_ROLE}", "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
+            "arn:aws:iam::*:role/aws-controltower-*"
+          ]
         }
       }
     },
@@ -148,7 +160,11 @@
       "Resource": "*",
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}"]
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
+            "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
+            "arn:aws:iam::*:role/aws-controltower-*"
+          ]
         }
       }
     },

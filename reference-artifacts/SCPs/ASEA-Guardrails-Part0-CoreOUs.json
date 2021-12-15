@@ -36,7 +36,11 @@
       "Resource": ["*"],
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}"]
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
+            "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
+            "arn:aws:iam::*:role/aws-controltower-*"
+          ]
         }
       }
     },
@@ -64,7 +68,11 @@
       "Resource": ["arn:aws:config:*:*:config-rule/*"],
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}"]
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
+            "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
+            "arn:aws:iam::*:role/aws-controltower-*"
+          ]
         }
       }
     },
