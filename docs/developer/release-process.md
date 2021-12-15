@@ -4,33 +4,20 @@
 
 1. Ensure `main` branch is in a suitable state
 2. Disable branch protection for both the `main` branch and for the `release/` branches
-3. Create a version branch with [SemVer](https://semver.org/) semantics and a `release/` prefix: e.g. `release/v1.0.5` or `release/v1.0.5-b`
-
+3. Create a version branch with [SemVer](https://semver.org/) semantics and a `release/` prefix: e.g. `release/v1.0.5` or `release/v1.0.5-b` using github UI or using the commands below
    - On latest `main`, run: `git checkout -b release/vX.Y.Z`
    - **Important:** Certain git operations are ambiguous if tags and branches have the same name. Using the `release/` prefix reserves the actual version name for the tag itself; i.e. every `release/vX.Y.Z` branch will have a corresponding `vX.Y.Z` tag.
+   - Push that branch to GitHub (if created locally)
+      - `git push origin release/vX.Y.Z`
 
-4. Push that branch to GitHub (if created locally)
-
-   - `git push origin release/vX.Y.Z`
-
-5. The release workflow will run, and create a **DRAFT** release if successful with all commits since the last tagged release.
-6. Prune the commits that have been added to the release notes (e.g. remove any low-information commits)
-7. Publish the release - this creates the git tag in the repo and marks the release as latest. It also bumps the `version` key in several project `package.json` files.
-8. Re-enable branch protection for both the `main` branch and for the `release/` branches
+4. The release workflow will run, and create a **DRAFT** release if successful with all commits since the last tagged release.
+5. Prune the commits that have been added to the release notes (e.g. remove any low-information commits)
+6. Publish the release - this creates the git tag in the repo and marks the release as latest. It also bumps the `version` key in several project `package.json` files.
+7. Re-enable branch protection for both the `main` branch and for the `release/` branches
 
    - Note: The `Publish` operation will run [the following GitHub Action][action], which merges the `release/vX.Y.Z` branch to `main`. **Branch Protection in GitHub will cause this to fail**, and why we are momentarily disabling branch protection.
 
    [action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/.github/workflows/publish.yml
-
-9. A successful run of this workflow will automatically kick off the "Generate Documentation" workflow. This workflow may also be initiated at any time manually via the GitHub Actions UI (since it is configured as a `workflow_dispatch` action).
-
-   - once the documentation is generated, add the ZIP file to the release assets, named `AWS-SEA-Documentation-vXXX.zip`
-
-10. Rename the `AcceleratorInstaller.template.json` to `AcceleratorInstaller`XXX`.template.json` replacing XXX with the version number without punctuation (i.e. `AcceleratorInstaller121b.template.json`).
-    - Repeat for `AcceleratorInstaller-CodeCommit.template-vXXX.json`.
-11. Add the Accelerator configuration file schema documentation ZIP to the release assets, named `AWS-SEA-Config-Schema-vXXX-DRAFT.zip`.
-
-12. Add the Accelerator **_Alpha_** GUI ZIP to the release assets, named `AWS-SEA-GUI-mockup-DoNotUse-vXXX-alpha.zip`.
 
 ---
 
