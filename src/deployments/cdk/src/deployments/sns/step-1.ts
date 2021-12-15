@@ -248,7 +248,7 @@ function createSnsTopics(props: {
           },
           ['StringLike']: {
             'aws:PrincipalArn':
-              'arn:aws:iam:::role/aws-service-role/securityhub.amazonaws.com/AWSServiceRoleForSecurityHub',
+              'arn:aws:iam::*:role/aws-service-role/securityhub.amazonaws.com/AWSServiceRoleForSecurityHub',
           },
         },
       }),
