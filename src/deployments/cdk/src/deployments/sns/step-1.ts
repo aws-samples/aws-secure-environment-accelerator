@@ -228,7 +228,7 @@ function createSnsTopics(props: {
 
   let keyArn = "";
 
-  if (region === centralServicesRegion && accountStack.accountKey === centralAccount) {
+  if (region === centralServicesRegion && accountStack.account === centralAccount) {
     // Retrieve Encryption keys from LogBucketOutPut for central log region
     const logBucket = LogBucketOutputTypeOutputFinder.findOneByName({
       outputs,
@@ -236,7 +236,7 @@ function createSnsTopics(props: {
       region: accountStack.region
     });
     keyArn = logBucket?.encryptionKeyArn!;
-  } else if (accountStack.accountKey === orgManagementAccount) {
+  } else if (accountStack.account === orgManagementAccount) {
     // AccountBucketOutPut for management account
     const accountBucket = AccountBucketOutputFinder.tryFindOneByName({
       outputs,
