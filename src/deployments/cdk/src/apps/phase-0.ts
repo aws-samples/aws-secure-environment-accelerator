@@ -124,6 +124,7 @@ export async function deploy({
     acceleratorPrefix: context.acceleratorPrefix,
     config: acceleratorConfig,
     accountStacks,
+    outputs
   });
 
   // Create MAD secrets
