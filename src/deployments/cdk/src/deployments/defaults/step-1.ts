@@ -520,11 +520,7 @@ function createLogAccountDefaultEncryptionKeys(props: DefaultsStep1Props): LogAc
       // Create a default EBS encryption key for every other region of the log account
       const keyAlias = createEncryptionKeyName('Default-Key');
       // Default EBS encryption key
-      const key = new kms.Key(accountStack, 'DefaultEncryptionKey', {
-        alias: `alias/${keyAlias}`,
-        description: 'Default key for aws services to encrypt/decrypt',
-        enableKeyRotation: true,
-      });
+      const key = createDefaultS3Key({ accountStack }).encryptionKey;
 
       logAccountDefaultEncryptionKeys[logAccountStack.accountKey] = {
         ...logAccountDefaultEncryptionKeys[logAccountStack.accountKey],
