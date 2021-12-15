@@ -28,6 +28,7 @@ import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accou
 import { LogBucketOutputTypeOutputFinder } from '@aws-accelerator/common-outputs/src/buckets';
 import { AccountBucketOutputFinder } from '../defaults';
 import { DefaultKmsOutputFinder } from '@aws-accelerator/common-outputs/src/kms';
+import { IKey } from '@aws-cdk/aws-kms';
 
 export interface SnsStep1Props {
   accountStacks: AccountStacks;
@@ -236,7 +237,7 @@ function createSnsTopics(props: {
       region: accountStack.region
     });
     keyArn = logBucket?.encryptionKeyArn!;
-  } else if (accountStack.account === orgManagementAccount) {
+  } else if (accountStack.accountKey === "management") {
     // AccountBucketOutPut for management account
     const accountBucket = AccountBucketOutputFinder.tryFindOneByName({
       outputs,
@@ -253,15 +254,19 @@ function createSnsTopics(props: {
     })
     keyArn = defaultEncryptionKey?.encryptionKeyArn!;
   }
-
-  const masterKey = kms.Key.fromKeyArn(accountStack, `DefaultKey`, keyArn);
-
+  let masterKey: IKey;
+  if (accountStack.accountKey !== "security") {
+    masterKey = kms.Key.fromKeyArn(accountStack, `DefaultKey-$${accountStack.accountKey}-${region}`, keyArn);
+  }
   for (const notificationType of SNS_NOTIFICATION_TYPES) {
     const topicName = createSnsTopicName(notificationType);
-    const topic = new sns.Topic(accountStack, `SnsNotificationTopic${notificationType}`, {
+    const topic = masterKey ? new sns.Topic(accountStack, `SnsNotificationTopic${notificationType}`, {
       displayName: topicName,
       topicName,
       masterKey,
+    }) : new sns.Topic(accountStack, `SnsNotificationTopic${notificationType}`, {
+      displayName: topicName,
+      topicName,
     });
 
     // Allowing Publish from CloudWatch Service form any account
