@@ -47,10 +47,13 @@ export function createDefaultS3Key(props: { accountStack: AccountStack }): KmsDe
       actions: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
       principals: [
         new iam.ServicePrincipal('sns.amazonaws.com'),
+        new iam.ServicePrincipal('cloudwatch.amazonaws.com'),
+        new iam.ServicePrincipal('lambda.amazonaws.com'),
       ],
       resources: ['*'],
     }),
   );
+
   return {
     encryptionKey,
     alias: keyAlias,
