@@ -21,7 +21,7 @@ export const DefaultKmsOutput = t.interface(
     encryptionKeyId: t.string,
     encryptionKeyArn: t.string,
   },
-  'EbsKms',
+  'DefaultKms',
 );
 
 export type EbsKmsOutput = t.TypeOf<typeof DefaultKmsOutput>;
