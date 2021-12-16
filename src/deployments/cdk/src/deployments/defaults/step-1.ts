@@ -241,6 +241,27 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     }),
   );
 
+  // Allow Kinesis access bucket
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      principals: anyAccountPrincipal,
+      actions: [
+        's3:GetBucketAcl',
+        's3:PutObject',
+        's3:PutObjectAcl',
+      ],
+      resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
+      conditions: {
+        StringEquals: {
+          'aws:PrincipalOrgID': organizations.organizationId,
+        },
+        ArnLike: {
+          'aws:PrincipalARN': `arn:aws:iam::*:role/${props.acceleratorPrefix}ConfigRecorderRole-*`,
+        },
+      },
+    }),
+  );
+
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
       principals: [

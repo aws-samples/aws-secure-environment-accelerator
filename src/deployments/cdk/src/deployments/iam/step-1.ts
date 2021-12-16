@@ -89,7 +89,7 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
      */
     configRecorderRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ['s3:PutObject'],
+        actions: ['s3:PutObject*', 's3:GetBucketAcl'],
         resources: ['*'],
       }),
     );
