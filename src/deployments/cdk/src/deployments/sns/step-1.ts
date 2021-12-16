@@ -28,7 +28,6 @@ import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accou
 import { LogBucketOutputTypeOutputFinder } from '@aws-accelerator/common-outputs/src/buckets';
 import { AccountBucketOutputFinder } from '../defaults';
 import { DefaultKmsOutputFinder } from '@aws-accelerator/common-outputs/src/kms';
-import { IKey } from '@aws-cdk/aws-kms';
 
 export interface SnsStep1Props {
   accountStacks: AccountStacks;
@@ -269,7 +268,7 @@ function createSnsTopics(props: {
     })
     keyArn = defaultEncryptionKey?.encryptionKeyArn!;
   }
-  let masterKey: IKey;
+  let masterKey: kms.IKey;
   if (keyArn !== undefined) {
     masterKey = kms.Key.fromKeyArn(accountStack, `DefaultKey-$${accountStack.accountKey}-${region}`, keyArn);
   }

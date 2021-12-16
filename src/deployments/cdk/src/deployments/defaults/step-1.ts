@@ -32,7 +32,7 @@ import {
   CfnEbsKmsOutput,
   CfnDefaultKmsOutput,
 } from './outputs';
-import { AccountStacks } from '../../common/account-stacks';
+import { AccountStack, AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
 import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
 import { overrideLogicalId } from '../../utils/cdk';
@@ -508,6 +508,7 @@ function createDefaultEncryptionKeys(props: DefaultsStep1Props): LogAccountDefau
   const regionsToPopulate = supportedRegions.filter(r => !excludeRegions?.includes(r));
   const defaultEncryptionKeys: LogAccountDefaultEncryptionKeys = {};
   const centralSecurityServices = globalOptions['central-security-services'];
+
   for (const region of regionsToPopulate) {
       // If add-sns-topic is set to true on the security account then create a kms key for that
       // Skip creation of default key in default region of log account, created in createCentralLogBucket
@@ -518,21 +519,7 @@ function createDefaultEncryptionKeys(props: DefaultsStep1Props): LogAccountDefau
             console.warn(`Cannot find ${accountStack} stack in ${region}`);
             continue;
           }
-          // Create a default EBS encryption key for every other region of the log account
-          const keyAlias = createEncryptionKeyName('Default-Key');
-          // Default EBS encryption key
-          const key = createDefaultS3Key({ accountStack }).encryptionKey;
-
-          defaultEncryptionKeys[logAccountStack.accountKey] = {
-            ...defaultEncryptionKeys[logAccountStack.accountKey],
-            [region]: key,
-          };
-
-          new CfnDefaultKmsOutput(accountStack, 'DefaultEncryptionKey', {
-            encryptionKeyName: keyAlias,
-            encryptionKeyId: key.keyId,
-            encryptionKeyArn: key.keyArn,
-          });
+          createKeyAndOutput(accountStack, region, defaultEncryptionKeys);
         }
         continue;
       }
@@ -541,22 +528,30 @@ function createDefaultEncryptionKeys(props: DefaultsStep1Props): LogAccountDefau
         console.warn(`Cannot find ${accountStack} stack in ${region}`);
         continue;
       }
-      // Create a default EBS encryption key for every other region of the log account
-      const keyAlias = createEncryptionKeyName('Default-Key');
-      // Default EBS encryption key
-      const key = createDefaultS3Key({ accountStack }).encryptionKey;
-
-      defaultEncryptionKeys[logAccountStack.accountKey] = {
-        ...defaultEncryptionKeys[logAccountStack.accountKey],
-        [region]: key,
-      };
-
-      new CfnDefaultKmsOutput(accountStack, 'DefaultEncryptionKey', {
-        encryptionKeyName: keyAlias,
-        encryptionKeyId: key.keyId,
-        encryptionKeyArn: key.keyArn,
-      });
+    createKeyAndOutput(accountStack, region, defaultEncryptionKeys);
   }
 
   return defaultEncryptionKeys;
+}
+
+
+function createKeyAndOutput(
+  accountStack: AccountStack,
+  region: string,
+  defaultEncryptionKeys: LogAccountDefaultEncryptionKeys) {
+  // Create a default EBS encryption key for every other region of the log account
+  const keyAlias = createEncryptionKeyName('Default-Key');
+  // Default EBS encryption key
+  const key = createDefaultS3Key({ accountStack }).encryptionKey;
+
+  defaultEncryptionKeys[accountStack.accountKey] = {
+    ...defaultEncryptionKeys[accountStack.accountKey],
+    [region]: key,
+  };
+
+  new CfnDefaultKmsOutput(accountStack, 'DefaultEncryptionKey', {
+    encryptionKeyName: keyAlias,
+    encryptionKeyId: key.keyId,
+    encryptionKeyArn: key.keyArn,
+  });
 }
