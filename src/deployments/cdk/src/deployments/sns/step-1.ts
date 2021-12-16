@@ -245,7 +245,14 @@ function createSnsTopics(props: {
       region: accountStack.region
     });
     keyArn = logBucket?.encryptionKeyArn!;
-  } else if (accountStack.accountKey === managementAccountKey) {
+  } else if (accountStack.accountKey === securityAccountKey && orgManagementSns){
+      const defaultEncryptionKey = DefaultKmsOutputFinder.tryFindOne({
+        outputs,
+        accountKey: accountStack.accountKey,
+        region: accountStack.region,
+      })
+      keyArn = defaultEncryptionKey?.encryptionKeyArn!;
+  } else if (accountStack.accountKey === managementAccountKey && orgManagementSns && accountStack.region === centralServicesRegion) {
     // AccountBucketOutPut for management account
     const accountBucket = AccountBucketOutputFinder.tryFindOneByName({
       outputs,
@@ -263,7 +270,7 @@ function createSnsTopics(props: {
     keyArn = defaultEncryptionKey?.encryptionKeyArn!;
   }
   let masterKey: IKey;
-  if (accountStack.accountKey !== securityAccountKey) {
+  if (keyArn !== undefined) {
     masterKey = kms.Key.fromKeyArn(accountStack, `DefaultKey-$${accountStack.accountKey}-${region}`, keyArn);
   }
   for (const notificationType of SNS_NOTIFICATION_TYPES) {
