@@ -230,44 +230,15 @@ function createSnsTopics(props: {
     action: 'lambda:InvokeFunction',
     principal: new iam.ServicePrincipal('sns.amazonaws.com'),
   });
-
-  let keyArn = "";
-
-  const managementAccountKey = config['global-options']['aws-org-management'].account;
-  const securityAccountKey = config['global-options']['central-security-services'].account;
-
-  if (region === centralServicesRegion && accountStack.account === centralAccount) {
-    // Retrieve Encryption keys from LogBucketOutPut for central log region
-    const logBucket = LogBucketOutputTypeOutputFinder.findOneByName({
-      outputs,
-      accountKey: accountStack.accountKey,
-      region: accountStack.region
-    });
-    keyArn = logBucket?.encryptionKeyArn!;
-  } else if (accountStack.accountKey === securityAccountKey && orgManagementSns){
-      const defaultEncryptionKey = DefaultKmsOutputFinder.tryFindOne({
-        outputs,
-        accountKey: accountStack.accountKey,
-        region: accountStack.region,
-      })
-      keyArn = defaultEncryptionKey?.encryptionKeyArn!;
-  } else if (accountStack.accountKey === managementAccountKey && orgManagementSns && accountStack.region === centralServicesRegion) {
-    // AccountBucketOutPut for management account
-    const accountBucket = AccountBucketOutputFinder.tryFindOneByName({
-      outputs,
-      accountKey: accountStack.accountKey,
-      region: accountStack.region
-    })
-    keyArn = accountBucket?.encryptionKeyArn!;
-  } else {
-    // From DefaultKmsEncryptionKeyOutput if its any other region in logs account
-    const defaultEncryptionKey = DefaultKmsOutputFinder.tryFindOne({
-      outputs,
-      accountKey: accountStack.accountKey,
-      region: accountStack.region,
-    })
-    keyArn = defaultEncryptionKey?.encryptionKeyArn!;
-  }
+  const keyArn = tryFindDefaultKeyArn(
+    config,
+    region,
+    centralServicesRegion,
+    accountStack,
+    centralAccount,
+    outputs,
+    orgManagementSns
+  );
   let masterKey: kms.IKey;
   if (keyArn !== undefined) {
     masterKey = kms.Key.fromKeyArn(accountStack, `DefaultKey-$${accountStack.accountKey}-${region}`, keyArn);
@@ -335,5 +306,47 @@ function createSnsTopics(props: {
       topicKey: notificationType,
       topicName: topic.topicName,
     });
+  }
+}
+
+function tryFindDefaultKeyArn(
+  config: c.AcceleratorConfig,
+  region: string,
+  centralServicesRegion: string,
+  accountStack: AccountStack,
+  centralAccount: string,
+  outputs: StackOutput[],
+  orgManagementSns?: boolean) {
+
+  const managementAccountKey = config['global-options']['aws-org-management'].account;
+  const securityAccountKey = config['global-options']['central-security-services'].account;
+
+  if (region === centralServicesRegion && accountStack.account === centralAccount) {
+    // Retrieve Encryption keys from LogBucketOutPut for central log region
+    const logBucket = LogBucketOutputTypeOutputFinder.findOneByName({
+      outputs,
+      accountKey: accountStack.accountKey,
+      region: accountStack.region,
+    });
+    return logBucket?.encryptionKeyArn!;
+  } else if ((accountStack.accountKey === securityAccountKey && orgManagementSns) ||
+    (accountStack.account === centralAccount && region !== centralServicesRegion)) {
+    const defaultEncryptionKey = DefaultKmsOutputFinder.tryFindOne({
+      outputs,
+      accountKey: accountStack.accountKey,
+      region: accountStack.region,
+    });
+    return defaultEncryptionKey?.encryptionKeyArn!;
+  } else if (accountStack.accountKey === managementAccountKey && orgManagementSns && accountStack.region === centralServicesRegion) {
+    // AccountBucketOutPut for management account
+    const accountBucket = AccountBucketOutputFinder.tryFindOneByName({
+      outputs,
+      accountKey: accountStack.accountKey,
+      region: accountStack.region,
+    });
+    return accountBucket?.encryptionKeyArn!;
+  } else {
+    // Any other case, return undefined
+    return undefined;
   }
 }
