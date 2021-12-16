@@ -232,7 +232,6 @@ function createSnsTopics(props: {
   });
   const keyArn = tryFindDefaultKeyArn(
     config,
-    region,
     centralServicesRegion,
     accountStack,
     centralAccount,
@@ -311,7 +310,6 @@ function createSnsTopics(props: {
 
 function tryFindDefaultKeyArn(
   config: c.AcceleratorConfig,
-  region: string,
   centralServicesRegion: string,
   accountStack: AccountStack,
   centralAccount: string,
@@ -321,7 +319,7 @@ function tryFindDefaultKeyArn(
   const managementAccountKey = config['global-options']['aws-org-management'].account;
   const securityAccountKey = config['global-options']['central-security-services'].account;
 
-  if (region === centralServicesRegion && accountStack.account === centralAccount) {
+  if (accountStack.region === centralServicesRegion && accountStack.account === centralAccount) {
     // Retrieve Encryption keys from LogBucketOutPut for central log region
     const logBucket = LogBucketOutputTypeOutputFinder.findOneByName({
       outputs,
