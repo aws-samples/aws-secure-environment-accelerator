@@ -85,7 +85,7 @@ export async function step1(props: SnsStep1Props) {
           ? getAccountId(accounts, centralSecurityServices.account)
           : undefined,
       outputs,
-      config
+      config,
     });
   }
 
@@ -118,7 +118,7 @@ export async function step1(props: SnsStep1Props) {
       centralAccount: centralLogServicesAccount,
       orgManagementSns: true,
       outputs,
-      config
+      config,
     });
   }
 
@@ -147,7 +147,7 @@ export async function step1(props: SnsStep1Props) {
         centralAccount: centralLogServicesAccount,
         orgManagementSns: true,
         outputs,
-        config
+        config,
       });
     }
   }
@@ -192,7 +192,7 @@ function createSnsTopics(props: {
     orgManagementAccount,
     orgSecurityAccount,
     outputs,
-    config
+    config,
   } = props;
   const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
   const lambdaDir = path.dirname(lambdaPath);
@@ -236,7 +236,7 @@ function createSnsTopics(props: {
     accountStack,
     centralAccount,
     outputs,
-    orgManagementSns
+    orgManagementSns,
   );
   let masterKey: kms.IKey;
   if (keyArn !== undefined) {
@@ -244,14 +244,16 @@ function createSnsTopics(props: {
   }
   for (const notificationType of SNS_NOTIFICATION_TYPES) {
     const topicName = createSnsTopicName(notificationType);
-    const topic = masterKey!! ? new sns.Topic(accountStack, `SnsNotificationTopic${notificationType}`, {
-      displayName: topicName,
-      topicName,
-      masterKey,
-    }) : new sns.Topic(accountStack, `SnsNotificationTopic${notificationType}`, {
-      displayName: topicName,
-      topicName,
-    });
+    const topic = masterKey!!
+      ? new sns.Topic(accountStack, `SnsNotificationTopic${notificationType}`, {
+          displayName: topicName,
+          topicName,
+          masterKey,
+        })
+      : new sns.Topic(accountStack, `SnsNotificationTopic${notificationType}`, {
+          displayName: topicName,
+          topicName,
+        });
 
     // Allowing Publish from CloudWatch Service form any account
     topic.grantPublish({
@@ -314,8 +316,8 @@ function tryFindDefaultKeyArn(
   accountStack: AccountStack,
   centralAccount: string,
   outputs: StackOutput[],
-  orgManagementSns?: boolean) {
-
+  orgManagementSns?: boolean,
+) {
   const managementAccountKey = config['global-options']['aws-org-management'].account;
   const securityAccountKey = config['global-options']['central-security-services'].account;
 
@@ -327,16 +329,21 @@ function tryFindDefaultKeyArn(
       region: accountStack.region,
     });
     return logBucket?.encryptionKeyArn!;
-  } else if ((accountStack.account === centralAccount || accountStack.accountKey === securityAccountKey)
-    && accountStack.region !== centralServicesRegion) {
+  } else if (
+    (accountStack.account === centralAccount || accountStack.accountKey === securityAccountKey) &&
+    accountStack.region !== centralServicesRegion
+  ) {
     const defaultEncryptionKey = DefaultKmsOutputFinder.tryFindOne({
       outputs,
       accountKey: accountStack.accountKey,
       region: accountStack.region,
     });
     return defaultEncryptionKey?.encryptionKeyArn!;
-  } else if ((accountStack.accountKey === managementAccountKey || accountStack.accountKey === securityAccountKey)
-    && orgManagementSns && accountStack.region === centralServicesRegion) {
+  } else if (
+    (accountStack.accountKey === managementAccountKey || accountStack.accountKey === securityAccountKey) &&
+    orgManagementSns &&
+    accountStack.region === centralServicesRegion
+  ) {
     // AccountBucketOutPut for management account
     const accountBucket = AccountBucketOutputFinder.tryFindOneByName({
       outputs,
