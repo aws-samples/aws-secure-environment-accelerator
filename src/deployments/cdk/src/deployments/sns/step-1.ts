@@ -329,15 +329,16 @@ function tryFindDefaultKeyArn(
       region: accountStack.region,
     });
     return logBucket?.encryptionKeyArn!;
-  } else if ((accountStack.accountKey === securityAccountKey && orgManagementSns) ||
-    (accountStack.account === centralAccount && region !== centralServicesRegion)) {
+  } else if ((accountStack.account === centralAccount || accountStack.accountKey === securityAccountKey)
+    && region !== centralServicesRegion) {
     const defaultEncryptionKey = DefaultKmsOutputFinder.tryFindOne({
       outputs,
       accountKey: accountStack.accountKey,
       region: accountStack.region,
     });
     return defaultEncryptionKey?.encryptionKeyArn!;
-  } else if (accountStack.accountKey === managementAccountKey && orgManagementSns && accountStack.region === centralServicesRegion) {
+  } else if ((accountStack.accountKey === managementAccountKey || accountStack.accountKey === securityAccountKey)
+    && orgManagementSns && accountStack.region === centralServicesRegion) {
     // AccountBucketOutPut for management account
     const accountBucket = AccountBucketOutputFinder.tryFindOneByName({
       outputs,

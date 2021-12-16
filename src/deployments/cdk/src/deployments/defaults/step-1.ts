@@ -513,14 +513,6 @@ function createDefaultEncryptionKeys(props: DefaultsStep1Props): LogAccountDefau
       // If add-sns-topic is set to true on the security account then create a kms key for that
       // Skip creation of default key in default region of log account, created in createCentralLogBucket
       if (region === logAccountStack.region) {
-        if (centralSecurityServices['add-sns-topics']) {
-          const accountStack = accountStacks.tryGetOrCreateAccountStack(centralSecurityServices.account, region);
-          if (!accountStack) {
-            console.warn(`Cannot find ${accountStack} stack in ${region}`);
-            continue;
-          }
-          createKeyAndOutput(accountStack, region, defaultEncryptionKeys);
-        }
         continue;
       }
       const accountStack = accountStacks.tryGetOrCreateAccountStack(logAccountStack.accountKey, region);
@@ -529,6 +521,15 @@ function createDefaultEncryptionKeys(props: DefaultsStep1Props): LogAccountDefau
         continue;
       }
     createKeyAndOutput(accountStack, region, defaultEncryptionKeys);
+      // If add-sns-topic is set true for the security account, create a default key in other regions there as well
+      if (centralSecurityServices['add-sns-topics']) {
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(centralSecurityServices.account, region);
+      if (!accountStack) {
+        console.warn(`Cannot find ${accountStack} stack in ${region}`);
+        continue;
+      }
+      createKeyAndOutput(accountStack, region, defaultEncryptionKeys);
+    }
   }
 
   return defaultEncryptionKeys;
