@@ -49,6 +49,8 @@ export function createDefaultS3Key(props: { accountStack: AccountStack }): KmsDe
         new iam.ServicePrincipal('sns.amazonaws.com'),
         new iam.ServicePrincipal('cloudwatch.amazonaws.com'),
         new iam.ServicePrincipal('lambda.amazonaws.com'),
+        // For macie usage in security account
+        new iam.ServicePrincipal('macie.amazonaws.com'),
       ],
       resources: ['*'],
     }),
