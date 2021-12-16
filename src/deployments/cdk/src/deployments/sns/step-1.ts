@@ -86,6 +86,7 @@ export async function step1(props: SnsStep1Props) {
           ? getAccountId(accounts, centralSecurityServices.account)
           : undefined,
       outputs,
+      config
     });
   }
 
@@ -118,6 +119,7 @@ export async function step1(props: SnsStep1Props) {
       centralAccount: centralLogServicesAccount,
       orgManagementSns: true,
       outputs,
+      config
     });
   }
 
@@ -146,6 +148,7 @@ export async function step1(props: SnsStep1Props) {
         centralAccount: centralLogServicesAccount,
         orgManagementSns: true,
         outputs,
+        config
       });
     }
   }
@@ -177,6 +180,7 @@ function createSnsTopics(props: {
    */
   orgSecurityAccount?: string;
   outputs: StackOutput[];
+  config: c.AcceleratorConfig;
 }) {
   const {
     accountStack,
@@ -188,7 +192,8 @@ function createSnsTopics(props: {
     orgManagementSns,
     orgManagementAccount,
     orgSecurityAccount,
-    outputs
+    outputs,
+    config
   } = props;
   const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
   const lambdaDir = path.dirname(lambdaPath);
@@ -229,6 +234,9 @@ function createSnsTopics(props: {
 
   let keyArn = "";
 
+  const managementAccountKey = config['global-options']['aws-org-management'].account;
+  const securityAccountKey = config['global-options']['central-security-services'].account;
+
   if (region === centralServicesRegion && accountStack.account === centralAccount) {
     // Retrieve Encryption keys from LogBucketOutPut for central log region
     const logBucket = LogBucketOutputTypeOutputFinder.findOneByName({
@@ -237,7 +245,7 @@ function createSnsTopics(props: {
       region: accountStack.region
     });
     keyArn = logBucket?.encryptionKeyArn!;
-  } else if (accountStack.accountKey === "management") {
+  } else if (accountStack.accountKey === managementAccountKey) {
     // AccountBucketOutPut for management account
     const accountBucket = AccountBucketOutputFinder.tryFindOneByName({
       outputs,
@@ -255,7 +263,7 @@ function createSnsTopics(props: {
     keyArn = defaultEncryptionKey?.encryptionKeyArn!;
   }
   let masterKey: IKey;
-  if (accountStack.accountKey !== "security") {
+  if (accountStack.accountKey !== securityAccountKey) {
     masterKey = kms.Key.fromKeyArn(accountStack, `DefaultKey-$${accountStack.accountKey}-${region}`, keyArn);
   }
   for (const notificationType of SNS_NOTIFICATION_TYPES) {
