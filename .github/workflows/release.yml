@@ -13,6 +13,8 @@ on:
 jobs:
   release:
     name: Create Release
+    # We don't want to do a release if the workflow was dispatched manually
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
       release-asset-url: ${{ steps.create_release.outputs.upload_url }}
@@ -512,6 +514,8 @@ jobs:
           path: ${{ steps.setup.outputs.dir }}/
 
   upload-documentation-archive:
+    # We don't want to do a release if the workflow was dispatched manually
+    if: github.event_name != 'workflow_dispatch'
     needs: [release, documentation]
     name: Upload Documentation Archive to Release Asset
     runs-on: ubuntu-latest
