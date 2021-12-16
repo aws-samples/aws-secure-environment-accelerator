@@ -330,7 +330,7 @@ function tryFindDefaultKeyArn(
     });
     return logBucket?.encryptionKeyArn!;
   } else if ((accountStack.account === centralAccount || accountStack.accountKey === securityAccountKey)
-    && region !== centralServicesRegion) {
+    && accountStack.region !== centralServicesRegion) {
     const defaultEncryptionKey = DefaultKmsOutputFinder.tryFindOne({
       outputs,
       accountKey: accountStack.accountKey,
