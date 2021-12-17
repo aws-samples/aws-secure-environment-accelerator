@@ -17,7 +17,7 @@ import { AccountStacks } from '../../common/account-stacks';
 import { createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CfnIamRoleOutput } from './outputs';
 import { LogBucketOutput, AccountBucketOutputFinder } from '../defaults/outputs';
-import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output'; 
+import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 
 export interface IamConfigServiceRoleProps {
   acceleratorPrefix: string;
@@ -41,7 +41,7 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
     config,
     outputs,
   });
-  
+
   for (const accountKey of accountKeys) {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
     if (!accountStack) {
@@ -98,8 +98,8 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
       configRecorderRole.addToPrincipalPolicy(
         new iam.PolicyStatement({
           actions: ['kms:Encrypt', 'kms:GenerateDataKey'],
-          resources: [logBucketDetails.encryptionKey.keyArn]
-        })
+          resources: [logBucketDetails.encryptionKey.keyArn],
+        }),
       );
     }
 

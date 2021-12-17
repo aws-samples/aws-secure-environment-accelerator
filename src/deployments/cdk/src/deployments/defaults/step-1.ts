@@ -245,11 +245,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
       principals: anyAccountPrincipal,
-      actions: [
-        's3:GetBucketAcl',
-        's3:PutObject',
-        's3:PutObjectAcl',
-      ],
+      actions: ['s3:GetBucketAcl', 's3:PutObject', 's3:PutObjectAcl'],
       resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
       conditions: {
         StringEquals: {
