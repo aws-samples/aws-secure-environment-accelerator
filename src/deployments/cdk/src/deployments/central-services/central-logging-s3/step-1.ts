@@ -183,10 +183,6 @@ async function cwlSettingsInLogArchive(props: {
         }
       }
     },
-    deliveryStreamEncryptionConfigurationInput: {
-      keyArn: encryptionKey.keyArn,
-      keyType: "CUSTOMER_MANAGED_CMK"
-    }
   });
 
   // Store LogDestination ARN in output so that subsequent phases can access the output
