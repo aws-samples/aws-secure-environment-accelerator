@@ -4,6 +4,7 @@
   "scripts": {
     "bootstrap": "pnpx cdk bootstrap",
     "deploy": "pnpx cdk deploy",
+    "deploy:noapproval": "pnpx cdk deploy --require-approval never",
     "synth": "pnpx cdk synth",
     "test": "pnpx jest",
     "lint:typecheck": "pnpx tsc --noEmit",
