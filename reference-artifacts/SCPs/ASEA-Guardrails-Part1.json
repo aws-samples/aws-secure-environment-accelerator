@@ -109,7 +109,11 @@
       "Sid": "ROL",
       "Effect": "Deny",
       "Action": ["iam:*"],
-      "Resource": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ACCELERATOR_NAME}Ops-*", "arn:aws:iam::*:role/aws-controltower-*"],
+      "Resource": [
+        "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
+        "arn:aws:iam::*:role/${ACCELERATOR_NAME}Ops-*",
+        "arn:aws:iam::*:role/aws-controltower-*"
+      ],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
