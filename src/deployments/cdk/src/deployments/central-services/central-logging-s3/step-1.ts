@@ -25,6 +25,9 @@ import * as c from '@aws-accelerator/common-config';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { CfnLogDestinationOutput } from './outputs';
+import * as kms from '@aws-cdk/aws-kms';
+import { LogBucketOutputTypeOutputFinder } from '@aws-accelerator/common-outputs/src/buckets';
+import { DefaultKmsOutputFinder } from '@aws-accelerator/common-outputs/src/kms';
 
 export interface CentralLoggingToS3Step1Props {
   accountStacks: AccountStacks;
@@ -76,6 +79,23 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
       );
       continue;
     }
+    let keyArn: string;
+    if (logAccountStack.region === centralLogServices.region) {
+      keyArn = LogBucketOutputTypeOutputFinder.findOneByName({
+        outputs,
+        accountKey: logAccountStack.accountKey,
+        region: logAccountStack.region,
+      })?.encryptionKeyArn!;
+    } else {
+      keyArn = DefaultKmsOutputFinder.findOneByName({
+        outputs,
+        accountKey: logAccountStack.accountKey,
+        region: logAccountStack.region,
+      })?.encryptionKeyArn!;
+    }
+
+    const encryptionKey = kms.Key.fromKeyArn(logAccountStack, "Default-Key-Phase-1", keyArn);
+
     await cwlSettingsInLogArchive({
       scope: logAccountStack,
       accountIds: allAccountIds,
@@ -83,6 +103,7 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
       shardCount: regionConfig['kinesis-stream-shard-count'],
       logStreamRoleArn: cwlLogStreamRoleOutput.roleArn,
       kinesisStreamRoleArn: cwlKinesisStreamRoleOutput.roleArn,
+      encryptionKey,
     });
   }
 }
@@ -97,17 +118,18 @@ async function cwlSettingsInLogArchive(props: {
   bucketArn: string;
   logStreamRoleArn: string;
   kinesisStreamRoleArn: string;
+  encryptionKey: kms.IKey;
   shardCount?: number;
 }) {
-  const { scope, accountIds, bucketArn, logStreamRoleArn, kinesisStreamRoleArn, shardCount } = props;
-
+  const { scope, accountIds, bucketArn, logStreamRoleArn, kinesisStreamRoleArn, shardCount, encryptionKey } = props;
   // Create Kinesis Stream for Logs streaming
   const logsStream = new kinesis.Stream(scope, 'Logs-Stream', {
     streamName: createName({
       name: 'Kinesis-Logs-Stream',
       suffixLength: 0,
     }),
-    encryption: kinesis.StreamEncryption.UNENCRYPTED,
+    encryption: kinesis.StreamEncryption.KMS,
+    encryptionKey,
     shardCount,
   });
 
@@ -157,6 +179,10 @@ async function cwlSettingsInLogArchive(props: {
       roleArn: kinesisStreamRoleArn,
       prefix: CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX,
     },
+    deliveryStreamEncryptionConfigurationInput: {
+      keyArn: encryptionKey.keyArn,
+      keyType: "CUSTOMER_MANAGED_CMK"
+    }
   });
 
   // Store LogDestination ARN in output so that subsequent phases can access the output
