@@ -80,20 +80,19 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
       continue;
     }
     let keyArn: string;
-    logAccountStack.region === centralLogServices.region ?
-      keyArn = LogBucketOutputTypeOutputFinder.findOneByName({
-        outputs,
-        accountKey: logAccountStack.accountKey,
-        region: logAccountStack.region,
-      })?.encryptionKeyArn!
-     :
-      keyArn = DefaultKmsOutputFinder.findOneByName({
-        outputs,
-        accountKey: logAccountStack.accountKey,
-        region: logAccountStack.region,
-      })?.encryptionKeyArn!;
+    logAccountStack.region === centralLogServices.region
+      ? (keyArn = LogBucketOutputTypeOutputFinder.findOneByName({
+          outputs,
+          accountKey: logAccountStack.accountKey,
+          region: logAccountStack.region,
+        })?.encryptionKeyArn!)
+      : (keyArn = DefaultKmsOutputFinder.findOneByName({
+          outputs,
+          accountKey: logAccountStack.accountKey,
+          region: logAccountStack.region,
+        })?.encryptionKeyArn!);
 
-    const encryptionKey = kms.Key.fromKeyArn(logAccountStack, "Default-Key-Phase-1", keyArn);
+    const encryptionKey = kms.Key.fromKeyArn(logAccountStack, 'Default-Key-Phase-1', keyArn);
 
     await cwlSettingsInLogArchive({
       scope: logAccountStack,
@@ -180,8 +179,8 @@ async function cwlSettingsInLogArchive(props: {
       encryptionConfiguration: {
         kmsEncryptionConfig: {
           awskmsKeyArn: encryptionKey.keyArn,
-        }
-      }
+        },
+      },
     },
   });
 
