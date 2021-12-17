@@ -80,19 +80,18 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
       continue;
     }
     let keyArn: string;
-    if (logAccountStack.region === centralLogServices.region) {
+    logAccountStack.region === centralLogServices.region ?
       keyArn = LogBucketOutputTypeOutputFinder.findOneByName({
         outputs,
         accountKey: logAccountStack.accountKey,
         region: logAccountStack.region,
-      })?.encryptionKeyArn!;
-    } else {
+      })?.encryptionKeyArn!
+     :
       keyArn = DefaultKmsOutputFinder.findOneByName({
         outputs,
         accountKey: logAccountStack.accountKey,
         region: logAccountStack.region,
       })?.encryptionKeyArn!;
-    }
 
     const encryptionKey = kms.Key.fromKeyArn(logAccountStack, "Default-Key-Phase-1", keyArn);
 
@@ -178,6 +177,11 @@ async function cwlSettingsInLogArchive(props: {
       compressionFormat: 'UNCOMPRESSED',
       roleArn: kinesisStreamRoleArn,
       prefix: CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX,
+      encryptionConfiguration: {
+        kmsEncryptionConfig: {
+          awskmsKeyArn: encryptionKey.keyArn,
+        }
+      }
     },
     deliveryStreamEncryptionConfigurationInput: {
       keyArn: encryptionKey.keyArn,
