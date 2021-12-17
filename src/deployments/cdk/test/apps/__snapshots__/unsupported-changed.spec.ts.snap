@@ -80,6 +80,36 @@ exports[`there should not be any unsupported resource changes for AWS::Budgets::
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0ApNortheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0ApNortheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0ApSouth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0ApSoutheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0ApSoutheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0EuCentral1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0EuNorth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0EuWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0EuWest2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0EuWest3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0SaEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0UsEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0UsEast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0UsWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0UsWest2 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase1 1`] = `
 Array [
   Object {
@@ -872,6 +902,36 @@ exports[`there should not be any unsupported resource changes for AWS::Directory
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0ApNortheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0ApNortheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0ApSouth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0ApSoutheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0ApSoutheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0EuCentral1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0EuNorth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0EuWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0EuWest2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0EuWest3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0SaEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0UsEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0UsEast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0UsWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0UsWest2 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase2 1`] = `Array []`;
@@ -1236,6 +1296,36 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: FunAcctPhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0ApNortheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0ApNortheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0ApSouth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0ApSoutheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0ApSoutheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0EuCentral1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0EuNorth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0EuWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0EuWest2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0EuWest3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0SaEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0UsEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0UsEast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0UsWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0UsWest2 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase1 1`] = `Array []`;
 
@@ -1726,6 +1816,36 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0ApNortheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0ApNortheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0ApSouth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0ApSoutheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0ApSoutheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0EuCentral1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0EuNorth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0EuWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0EuWest2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0EuWest3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0SaEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0UsEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0UsEast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0UsWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0UsWest2 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase2 1`] = `Array []`;
@@ -2081,6 +2201,36 @@ exports[`there should not be any unsupported resource changes for AWS::ElasticLo
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: FunAcctPhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0ApNortheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0ApNortheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0ApSouth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0ApSoutheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0ApSoutheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0EuCentral1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0EuNorth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0EuWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0EuWest2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0EuWest3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0SaEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0UsEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0UsEast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0UsWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0UsWest2 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase1 1`] = `Array []`;
 
@@ -2457,6 +2607,36 @@ Array [
   },
 ]
 `;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0ApNortheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0ApNortheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0ApSouth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0ApSoutheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0ApSoutheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0EuCentral1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0EuNorth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0EuWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0EuWest2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0EuWest3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0SaEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0UsEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0UsEast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0UsWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0UsWest2 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase1 1`] = `Array []`;
 
@@ -2858,6 +3038,36 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0ApNortheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0ApNortheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0ApSouth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0ApSoutheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0ApSoutheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0EuCentral1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0EuNorth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0EuWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0EuWest2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0EuWest3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0SaEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0UsEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0UsEast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0UsWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0UsWest2 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase2 1`] = `Array []`;
@@ -3254,6 +3464,36 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: FunAcctPhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0ApNortheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0ApNortheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0ApSouth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0ApSoutheast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0ApSoutheast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0EuCentral1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0EuNorth1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0EuWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0EuWest2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0EuWest3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0SaEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0UsEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0UsEast2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0UsWest1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0UsWest2 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase1 1`] = `Array []`;
 
