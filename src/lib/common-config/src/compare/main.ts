@@ -72,6 +72,7 @@ export async function compareAcceleratorConfig(props: {
     // Check for duplicate email entry
     const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
     checkForEmailDuplicates(acceleratorConfig, errors);
+    checkForMismatchedAccountKeys(modifiedConfig, errors);
     // Validate DDB Pool entries changes
     if (!overrideConfig['ov-cidr']) {
       await validate.validateDDBChanges(
@@ -87,6 +88,7 @@ export async function compareAcceleratorConfig(props: {
   // Check for duplicate email entry
   const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
   checkForEmailDuplicates(acceleratorConfig, errors);
+  checkForMismatchedAccountKeys(modifiedConfig, errors);
 
   scopeValidation(scope, configChanges, errors, targetAccounts || [], targetOus || []);
 
@@ -193,6 +195,22 @@ function checkForEmailDuplicates(acceleratorConfig: AcceleratorConfig, errors: s
       'Found duplicate entries for account emails under mandatory-account-configs / workload-account-configs',
     );
   }
+}
+
+function checkForMismatchedAccountKeys(modifiedConfig: any, errors: string[]) {
+  const mandatoryAccountKeys = [
+    'aws-org-management',
+    'central-security-services',
+    'central-operations-services',
+    'central-log-services',
+  ];
+  const globalAccountKeys = mandatoryAccountKeys.map(key => modifiedConfig['global-options'][key].account);
+  for (const accountKey of globalAccountKeys) {
+    if (!Object.keys(modifiedConfig['mandatory-accounts-config'].includes(accountKey))) {
+      errors.push(`Global mandatory account ${accountKey} was not found under mandatory-account-configs`);
+    }
+  }
+  return errors;
 }
 
 function scopeValidation(
