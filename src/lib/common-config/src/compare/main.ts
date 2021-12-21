@@ -209,8 +209,6 @@ function checkForMismatchedAccountKeys(acceleratorConfig: AcceleratorConfig, err
   for (const accountKey of globalAccountKeys) {
     if (
       !acceleratorConfig.getMandatoryAccountConfigs().find(accountConfig => {
-        console.log(`Mandatory Account Config Key: ${accountConfig[0]}`);
-        console.log(`Global Options Config Key: accountKey ${accountKey}`);
         return accountConfig[0] === accountKey;
       })
     ) {
