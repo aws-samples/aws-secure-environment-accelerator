@@ -69,9 +69,11 @@ export async function compareAcceleratorConfig(props: {
   const configChanges = compareConfiguration(previousConfig, modifiedConfig);
   if (!configChanges) {
     console.log('no differences found');
+    // Check for duplicate email entry
+    const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
+    checkForEmailDuplicates(acceleratorConfig, errors);
     // Validate DDB Pool entries changes
     if (!overrideConfig['ov-cidr']) {
-      const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
       await validate.validateDDBChanges(
         acceleratorConfig,
         vpcCidrPoolAssignedTable,
@@ -82,6 +84,9 @@ export async function compareAcceleratorConfig(props: {
     }
     return errors;
   }
+  // Check for duplicate email entry
+  const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
+  checkForEmailDuplicates(acceleratorConfig, errors);
 
   scopeValidation(scope, configChanges, errors, targetAccounts || [], targetOus || []);
 
@@ -178,6 +183,16 @@ export async function compareAcceleratorConfig(props: {
   }
 
   return errors;
+}
+
+function checkForEmailDuplicates(acceleratorConfig: AcceleratorConfig, errors: string[]) {
+  const emails = [...acceleratorConfig.getAccountConfigs().map(([_, accountConfig]) => accountConfig.email)];
+  const duplicateFilteredEmails = [...new Set(emails)];
+  if (emails.length !== duplicateFilteredEmails.length) {
+    errors.push(
+      'Found duplicate entries for account emails under mandatory-account-configs / workload-account-configs',
+    );
+  }
 }
 
 function scopeValidation(

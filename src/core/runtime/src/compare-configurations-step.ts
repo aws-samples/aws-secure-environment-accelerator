@@ -159,23 +159,20 @@ export const handler = async (input: StepInput) => {
     // Limiting query outputs from DDB only for validating cidr changes
     outputs.push(...(await loadOutputs(outputTableName, dynamodb)));
   }
-  errors = [
-    ...errors,
-    ...(await compareAcceleratorConfig({
-      repositoryName: configRepositoryName,
-      configFilePath,
-      commitId: configCommitId,
-      previousCommitId,
-      region,
-      overrideConfig,
-      scope: scope || 'NEW-ACCOUNTS',
-      targetAccounts: targetAccountKeys,
-      targetOus,
-      vpcCidrPoolAssignedTable,
-      subnetCidrPoolAssignedTable,
-      outputs,
-    })),
-  ];
+  errors = await compareAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    configFilePath,
+    commitId: configCommitId,
+    previousCommitId,
+    region,
+    overrideConfig,
+    scope: scope || 'NEW-ACCOUNTS',
+    targetAccounts: targetAccountKeys,
+    targetOus,
+    vpcCidrPoolAssignedTable,
+    subnetCidrPoolAssignedTable,
+    outputs,
+  });
 
   // Throw all errors at once
   if (errors.length > 0) {
