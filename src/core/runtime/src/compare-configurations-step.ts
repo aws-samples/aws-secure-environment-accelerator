@@ -18,6 +18,7 @@ import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { loadAccounts } from './utils/load-accounts';
 import { loadOutputs } from './utils/load-outputs';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import * as console from 'console';
 
 export interface StepInput extends ConfigurationInput {
   inputConfig: AcceleratorInput;
@@ -134,8 +135,9 @@ export const handler = async (input: StepInput) => {
 
   const accounts = await loadAccounts(parametersTableName, dynamodb);
   const accountEmails = accounts.map(account => account.email);
+  console.log(accountEmails);
   const emailDuplicatesFiltered = [...new Set(accountEmails)];
-
+  console.log(emailDuplicatesFiltered);
   if (emailDuplicatesFiltered.length !== accounts.length) {
     errors.push(`Account email duplicates found.`);
   }
