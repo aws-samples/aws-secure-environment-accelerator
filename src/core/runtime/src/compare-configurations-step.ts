@@ -134,13 +134,7 @@ export const handler = async (input: StepInput) => {
   const { scope, targetAccounts, targetOus } = inputConfig;
 
   const accounts = await loadAccounts(parametersTableName, dynamodb);
-  const accountEmails = accounts.map(account => account.email);
-  console.log(accountEmails);
-  const emailDuplicatesFiltered = [...new Set(accountEmails)];
-  console.log(emailDuplicatesFiltered);
-  if (emailDuplicatesFiltered.length !== accounts.length) {
-    errors.push(`Account email duplicates found.`);
-  }
+
   const targetAccountKeys: string[] = [];
   if (targetAccounts) {
     targetAccounts.map(targetAccount => {
