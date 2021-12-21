@@ -18,7 +18,6 @@ import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { loadAccounts } from './utils/load-accounts';
 import { loadOutputs } from './utils/load-outputs';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
-import * as console from 'console';
 
 export interface StepInput extends ConfigurationInput {
   inputConfig: AcceleratorInput;
