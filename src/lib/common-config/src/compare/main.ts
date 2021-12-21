@@ -207,11 +207,7 @@ function checkForMismatchedAccountKeys(acceleratorConfig: AcceleratorConfig, err
   // @ts-ignore
   const globalAccountKeys = mandatoryAccountKeys.map(key => acceleratorConfig['global-options'][key].account);
   for (const accountKey of globalAccountKeys) {
-    if (
-      !acceleratorConfig.getMandatoryAccountConfigs().find(accountConfig => {
-        return accountConfig[0] === accountKey;
-      })
-    ) {
+    if (!acceleratorConfig.getMandatoryAccountConfigs().find(accountConfig => accountConfig[0] === accountKey)) {
       errors.push(`Global mandatory account ${accountKey} was not found under mandatory-account-configs`);
     }
   }
