@@ -24,8 +24,6 @@ export const DefaultKmsOutput = t.interface(
   'DefaultKms',
 );
 
-export type EbsKmsOutput = t.TypeOf<typeof DefaultKmsOutput>;
-
 export const DefaultKmsOutputFinder = createStructuredOutputFinder(DefaultKmsOutput, finder => ({
   findOneByName: (props: { outputs: StackOutput[]; accountKey: string; region?: string }) =>
     finder.tryFindOne({
