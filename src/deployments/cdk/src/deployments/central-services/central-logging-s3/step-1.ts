@@ -25,22 +25,22 @@ import * as c from '@aws-accelerator/common-config';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { CfnLogDestinationOutput } from './outputs';
+import { Organizations } from '@aws-accelerator/custom-resource-organization';
 
 export interface CentralLoggingToS3Step1Props {
   accountStacks: AccountStacks;
-  accounts: Account[];
   logBucket: s3.IBucket;
   outputs: StackOutput[];
   config: c.AcceleratorConfig;
+  acceleratorPrefix: string;
 }
 
 /**
  * Enable Central Logging to S3 in "log-archive" account Step 1
  */
 export async function step1(props: CentralLoggingToS3Step1Props) {
-  const { accountStacks, accounts, logBucket, config, outputs } = props;
-  // Setup for CloudWatch logs storing in logs account
-  const allAccountIds = accounts.map(account => account.id);
+  const { accountStacks, logBucket, config, outputs, acceleratorPrefix } = props;
+  // Setup for CloudWatch logs storing in logs account for org
   const centralLogServices = config['global-options']['central-log-services'];
   const cwlRegionsConfig = config['global-options']['additional-cwl-regions'];
   if (!cwlRegionsConfig[centralLogServices.region]) {
@@ -66,6 +66,14 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
     return;
   }
 
+  const masterAccountKey = config.getMandatoryAccountKey('master');
+  const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
+  if (!masterAccountStack) {
+    throw new Error(`Cannot find account stack ${masterAccountKey}`);
+  }
+
+  const organizations = new Organizations(masterAccountStack, 'Organizations');
+
   // Setting up in default "central-log-services" and "additional-cwl-regions" region
   for (const [region, regionConfig] of Object.entries(cwlRegionsConfig)) {
     // Setup CWL Central logging in default region
@@ -78,11 +86,12 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
     }
     await cwlSettingsInLogArchive({
       scope: logAccountStack,
-      accountIds: allAccountIds,
       bucketArn: logBucket.bucketArn,
       shardCount: regionConfig['kinesis-stream-shard-count'],
       logStreamRoleArn: cwlLogStreamRoleOutput.roleArn,
       kinesisStreamRoleArn: cwlKinesisStreamRoleOutput.roleArn,
+      orgId: organizations.organizationId,
+      acceleratorPrefix,
     });
   }
 }
@@ -93,13 +102,14 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
  */
 async function cwlSettingsInLogArchive(props: {
   scope: cdk.Construct;
-  accountIds: string[];
   bucketArn: string;
   logStreamRoleArn: string;
   kinesisStreamRoleArn: string;
+  orgId: string;
+  acceleratorPrefix: string;
   shardCount?: number;
 }) {
-  const { scope, accountIds, bucketArn, logStreamRoleArn, kinesisStreamRoleArn, shardCount } = props;
+  const { scope, bucketArn, logStreamRoleArn, kinesisStreamRoleArn, shardCount, orgId, acceleratorPrefix } = props;
 
   // Create Kinesis Stream for Logs streaming
   const logsStream = new kinesis.Stream(scope, 'Logs-Stream', {
@@ -121,11 +131,17 @@ async function cwlSettingsInLogArchive(props: {
     Statement: [
       {
         Effect: 'Allow',
-        Principal: {
-          AWS: accountIds,
-        },
+        Principal: '*',
         Action: 'logs:PutSubscriptionFilter',
         Resource: `arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:destination:${destinationName}`,
+        Condition: {
+          StringEquals: {
+            'aws:PrincipalOrgID': orgId,
+          },
+          ArnLike: {
+            'aws:PrincipalARN': [`arn:aws:iam::*:role/${acceleratorPrefix}*`],
+          },
+        },
       },
     ],
   };
