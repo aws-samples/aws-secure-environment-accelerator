@@ -138,9 +138,6 @@ async function cwlSettingsInLogArchive(props: {
           StringEquals: {
             'aws:PrincipalOrgID': [orgId],
           },
-          ArnLike: {
-            'aws:PrincipalARN': [`arn:aws:iam::*:role/${acceleratorPrefix}*`],
-          },
         },
       }),
     ],
