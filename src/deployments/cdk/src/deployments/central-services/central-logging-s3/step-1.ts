@@ -63,7 +63,15 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
     console.error(`Skipping CWL Central logging setup due to unavailability of roles in output`);
     return;
   }
-  const logAccountStack = accountStacks.tryGetOrCreateAccountStack(centralLogServices.account)!;
+  const logAccountStack = accountStacks.tryGetOrCreateAccountStack(
+    centralLogServices.account,
+    centralLogServices.region,
+  );
+  if (!logAccountStack) {
+    throw new Error(
+      `Cannot find mandatory ${centralLogServices.account} account in home region ${centralLogServices.region}.`,
+    );
+  }
   const organizations = new Organizations(logAccountStack, 'Organizations');
 
   // Setting up in default "central-log-services" and "additional-cwl-regions" region
