@@ -18,8 +18,6 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as logs from '@aws-cdk/aws-logs';
 import * as kinesisfirehose from '@aws-cdk/aws-kinesisfirehose';
 import { AccountStacks } from '../../../common/account-stacks';
-import { Account } from '../../../utils/accounts';
-import { JsonOutputValue } from '../../../common/json-output';
 import { CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX } from '@aws-accelerator/common/src/util/constants';
 import * as c from '@aws-accelerator/common-config';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
@@ -65,14 +63,8 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
     console.error(`Skipping CWL Central logging setup due to unavailability of roles in output`);
     return;
   }
-
-  const masterAccountKey = config.getMandatoryAccountKey('master');
-  const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
-  if (!masterAccountStack) {
-    throw new Error(`Cannot find account stack ${masterAccountKey}`);
-  }
-
-  const organizations = new Organizations(masterAccountStack, 'Organizations');
+  const logAccountStack = accountStacks.tryGetOrCreateAccountStack(centralLogServices.account)!;
+  const organizations = new Organizations(logAccountStack, 'Organizations');
 
   // Setting up in default "central-log-services" and "additional-cwl-regions" region
   for (const [region, regionConfig] of Object.entries(cwlRegionsConfig)) {
