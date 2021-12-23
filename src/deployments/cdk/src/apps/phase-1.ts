@@ -571,7 +571,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     logBucket,
     outputs,
     config: acceleratorConfig,
-    acceleratorPrefix: context.acceleratorPrefix,
   });
 
   await vpcDeployment.step1({

@@ -31,14 +31,13 @@ export interface CentralLoggingToS3Step1Props {
   logBucket: s3.IBucket;
   outputs: StackOutput[];
   config: c.AcceleratorConfig;
-  acceleratorPrefix: string;
 }
 
 /**
  * Enable Central Logging to S3 in "log-archive" account Step 1
  */
 export async function step1(props: CentralLoggingToS3Step1Props) {
-  const { accountStacks, logBucket, config, outputs, acceleratorPrefix } = props;
+  const { accountStacks, logBucket, config, outputs } = props;
   // Setup for CloudWatch logs storing in logs account for org
   const centralLogServices = config['global-options']['central-log-services'];
   const cwlRegionsConfig = config['global-options']['additional-cwl-regions'];
@@ -92,7 +91,6 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
       logStreamRoleArn: cwlLogStreamRoleOutput.roleArn,
       kinesisStreamRoleArn: cwlKinesisStreamRoleOutput.roleArn,
       orgId: organizations.organizationId,
-      acceleratorPrefix,
     });
   }
 }
@@ -107,10 +105,9 @@ async function cwlSettingsInLogArchive(props: {
   logStreamRoleArn: string;
   kinesisStreamRoleArn: string;
   orgId: string;
-  acceleratorPrefix: string;
   shardCount?: number;
 }) {
-  const { scope, bucketArn, logStreamRoleArn, kinesisStreamRoleArn, shardCount, orgId, acceleratorPrefix } = props;
+  const { scope, bucketArn, logStreamRoleArn, kinesisStreamRoleArn, shardCount, orgId } = props;
 
   // Create Kinesis Stream for Logs streaming
   const logsStream = new kinesis.Stream(scope, 'Logs-Stream', {
@@ -142,7 +139,11 @@ async function cwlSettingsInLogArchive(props: {
       }),
     ],
   });
-  const destinationPolicyStr = JSON.stringify(destinationPolicy.toJSON());
+  const enforcedPolicy = new iam.Policy(scope, 'Log-Destination-Policy', {
+    force: true,
+    document: destinationPolicy,
+  });
+  const destinationPolicyStr = JSON.stringify(enforcedPolicy.document.toJSON());
   // Create AWS Logs Destination
   const logDestination = new logs.CfnDestination(scope, 'Log-Destination', {
     destinationName,
