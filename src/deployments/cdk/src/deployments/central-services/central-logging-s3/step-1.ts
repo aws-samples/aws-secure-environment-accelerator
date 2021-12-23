@@ -13,6 +13,7 @@
 
 import * as cdk from '@aws-cdk/core';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import * as iam from '@aws-cdk/aws-iam';
 import * as kinesis from '@aws-cdk/aws-kinesis';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as logs from '@aws-cdk/aws-logs';
@@ -126,15 +127,14 @@ async function cwlSettingsInLogArchive(props: {
     suffixLength: 0,
   });
 
-  const destinatinPolicy = {
-    Version: '2012-10-17',
-    Statement: [
-      {
-        Effect: 'Allow',
-        Principal: '*',
-        Action: 'logs:PutSubscriptionFilter',
-        Resource: `arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:destination:${destinationName}`,
-        Condition: {
+  const destinationPolicy = new iam.PolicyDocument({
+    statements: [
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.AnyPrincipal()],
+        actions: ['logs:PutSubscriptionFilter'],
+        resources: [`arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:destination:${destinationName}`],
+        conditions: {
           StringEquals: {
             'aws:PrincipalOrgID': orgId,
           },
@@ -142,10 +142,10 @@ async function cwlSettingsInLogArchive(props: {
             'aws:PrincipalARN': [`arn:aws:iam::*:role/${acceleratorPrefix}*`],
           },
         },
-      },
+      }),
     ],
-  };
-  const destinationPolicyStr = JSON.stringify(destinatinPolicy);
+  });
+  const destinationPolicyStr = JSON.stringify(destinationPolicy.toJSON());
   // Create AWS Logs Destination
   const logDestination = new logs.CfnDestination(scope, 'Log-Destination', {
     destinationName,
