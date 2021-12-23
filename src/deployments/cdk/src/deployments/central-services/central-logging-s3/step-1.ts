@@ -136,7 +136,7 @@ async function cwlSettingsInLogArchive(props: {
         resources: [`arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:destination:${destinationName}`],
         conditions: {
           StringEquals: {
-            'aws:PrincipalOrgID': orgId,
+            'aws:PrincipalOrgID': [orgId],
           },
           ArnLike: {
             'aws:PrincipalARN': [`arn:aws:iam::*:role/${acceleratorPrefix}*`],
