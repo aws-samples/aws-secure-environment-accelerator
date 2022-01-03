@@ -20,6 +20,7 @@ import { LoadConfigurationInput } from './load-configuration-step';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { loadAccounts } from './utils/load-accounts';
 import { SSM } from '@aws-accelerator/common/src/aws/ssm';
+import { AcceleratorConfig } from '@aws-accelerator/common-config';
 
 interface EnableTrustedAccessForServicesInput extends LoadConfigurationInput {
   parametersTableName: string;
@@ -41,14 +42,16 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
     commitId: configCommitId,
   });
 
-  const securityAccountKey = config['global-options']['central-security-services'].account;
-  const accounts = await loadAccounts(parametersTableName, dynamodb);
-  const securityAccount = accounts.find(a => a.key === securityAccountKey);
-  if (!securityAccount) {
-    console.warn('Cannot find account with type security');
+  
+  const securityAccountId: string|undefined = await getAccountId(config, parametersTableName, MandatoryAccountType.SecurityAccount);
+  if (!securityAccountId) {
     return;
   }
-  const securityAccountId: string = securityAccount.id;
+
+  const operationsAccountId: string|undefined = await getAccountId(config, parametersTableName, MandatoryAccountType.OperationsAccount);
+  if (!operationsAccountId) {
+    return;
+  }
 
   const ram = new aws.RAM();
   await ram.enableSharingWithAwsOrganization().promise();
@@ -76,6 +79,9 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   await org.enableAWSServiceAccess('config.amazonaws.com');
   console.log('Enabled Config service access within the Organization.');
 
+  await org.enableAWSServiceAccess('ssm.amazonaws.com');
+  console.log('Enabled SSM service access within the Organization');
+
   const iam = new IAM();
   // as access analyzer will be created in security account, creating service linked role specifically in master.
   try {
@@ -95,8 +101,11 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   await org.registerDelegatedAdministrator(securityAccountId, 'access-analyzer.amazonaws.com');
   console.log('Security account registered as delegated administrator for Access Analyzer in the organization.');
 
-  await org.registerDelegatedAdministrator(securityAccountId, 'guardduty.amazonaws.com');
+  await org.registerDelegatedAdministrator(securityAccountId, 'guardduty.amazonaws.com');  
   console.log('Security account registered as delegated administrator for Guard Duty in the organization.');
+
+  await org.registerDelegatedAdministrator(operationsAccountId, 'ssm.amazonaws.com');
+  console.log('Operations account registered as delegated administrator for SSM in the organization.');
 
   // Get all the parameter history versions from SSM parameter store
   try {
@@ -113,3 +122,20 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
     }
   }
 };
+
+enum MandatoryAccountType {
+  SecurityAccount = 'central-security-services',
+  OperationsAccount = 'central-operations-services',
+  LoggingAccount = 'central-log-services'
+}
+
+async function getAccountId(config: AcceleratorConfig, tableName: string, globalOptionsLookupKey: MandatoryAccountType) {
+  const accountKey = config['global-options'][globalOptionsLookupKey].account;
+  const accounts = await loadAccounts(tableName, dynamodb);
+  const account = accounts.find(a => a.key === accountKey);
+  if (!account) {
+    console.warn(`Cannot find account with type ${globalOptionsLookupKey}`);
+    return;
+  }
+  return account.id;
+}

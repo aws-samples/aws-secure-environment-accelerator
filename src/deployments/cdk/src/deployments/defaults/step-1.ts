@@ -247,6 +247,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
         new iam.ServicePrincipal('delivery.logs.amazonaws.com'),
         new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
         new iam.ServicePrincipal('config.amazonaws.com'),
+        new iam.ServicePrincipal('ssm.amazonaws.com'),
       ],
       actions: ['s3:PutObject'],
       resources: [`${logBucket.bucketArn}/*`],
@@ -260,10 +261,21 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
+      principals: [        
+        new iam.ServicePrincipal('ssm.amazonaws.com'),
+      ],
+      actions: ['s3:PutObjectTagging'],
+      resources: [`${logBucket.bucketArn}/*`]
+    }),
+  );
+
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
       principals: [
         new iam.ServicePrincipal('delivery.logs.amazonaws.com'),
         new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
         new iam.ServicePrincipal('config.amazonaws.com'),
+        new iam.ServicePrincipal('ssm.amazonaws.com'),
       ],
       actions: ['s3:GetBucketAcl', 's3:ListBucket'],
       resources: [`${logBucket.bucketArn}`],

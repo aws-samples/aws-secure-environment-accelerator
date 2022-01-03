@@ -2454,6 +2454,11 @@ translate(c.MandatoryAccountConfigType, {
       description:
         'A list of the SSM automation documents defined and created within `global-options` to be *shared* into this account, in addition to any OU level documents shared into this account.',
     },
+    'ssm-inventory-collection': {
+      title: 'SSM Inventory Collection',
+      description:
+        'When true, deploys and configures SSM Inventory Collection.',
+    },
     'aws-config': {
       title: 'AWS Config Rules',
       description:
@@ -2537,6 +2542,11 @@ translate(c.OrganizationalUnitConfigType, {
       title: 'SSM Automation Documents',
       description:
         'A list of the SSM automation documents defined and created within `global-options` to be *shared* into every account within this OU.',
+    },
+    'ssm-inventory-collection': {
+      title: 'SSM Inventory Collection',
+      description:
+        'When true, deploys and configures SSM Inventory Collection.',
     },
     'aws-config': {
       title: 'AWS Config Rules',
@@ -3369,7 +3379,7 @@ translate(c.GlobalOptionsConfigType, {
       title: 'SSM Automation',
       description:
         'This section within `global-options` is used to *defined* and *deploy* SSM automation documents into a limited number of central accounts.  These Automation documents are then shared into accounts within designated organizational units or to specific accounts based on settings at the organizational-unit or account level. SSM Automation documents can be invoked from AWS Config rules to remediate non-compliant rules.',
-    },
+    },    
     'aws-config': {
       title: 'AWS Config',
       description:

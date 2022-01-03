@@ -775,6 +775,7 @@ export const MandatoryAccountConfigType = t.interface({
   'keep-default-vpc-regions': t.defaulted(t.array(t.nonEmptyString), []),
   'populate-all-elbs-in-param-store': t.defaulted(t.boolean, false),
   'ssm-automation': t.defaulted(t.array(SsmShareAutomation), []),
+  'ssm-inventory-collection': t.optional(t.boolean),
   'aws-config': t.defaulted(t.array(AwsConfigAccountConfig), []),
   scps: t.optional(t.array(t.nonEmptyString)),
   'opt-in-vpcs': t.optional(t.array(t.nonEmptyString)),
@@ -803,6 +804,7 @@ export const OrganizationalUnitConfigType = t.interface({
   'default-budgets': t.optional(BudgetConfigType),
   'ssm-automation': t.defaulted(t.array(SsmShareAutomation), []),
   'aws-config': t.defaulted(t.array(AwsConfigRules), []),
+  'ssm-inventory-collection': t.optional(t.boolean),
 });
 
 export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;
