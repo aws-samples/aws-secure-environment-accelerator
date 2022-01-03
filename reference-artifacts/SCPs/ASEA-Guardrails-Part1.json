@@ -241,6 +241,21 @@
           "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
         }
       }
+    },
+    {
+      "Sid": "SSM",
+      "Effect": "Deny",
+      "Action": [
+        "ssm:DeleteResourceDataSync"
+      ],
+      "Resource": [        
+        "arn:aws:ssm::*:resource-data-sync/${ACCELERATOR_PREFIX}*"
+      ],
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        }
+      }
     }
   ]
 }

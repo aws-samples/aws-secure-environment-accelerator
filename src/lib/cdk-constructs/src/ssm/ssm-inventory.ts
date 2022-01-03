@@ -36,7 +36,7 @@ export class GatherInventory extends cdk.Construct {
 
     new ssm.CfnAssociation(this, 'GatherInventory', {
       name: `AWS-GatherSoftwareInventory`,
-      associationName: `${props.accountId}-InventoryCollection`,
+      associationName: `${props.prefix}${props.accountId}-InventoryCollection`,
       scheduleExpression: 'rate(12 hours)',
       targets: [
         {
