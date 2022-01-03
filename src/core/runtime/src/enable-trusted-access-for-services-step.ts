@@ -42,13 +42,20 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
     commitId: configCommitId,
   });
 
-  
-  const securityAccountId: string|undefined = await getAccountId(config, parametersTableName, MandatoryAccountType.SecurityAccount);
+  const securityAccountId: string | undefined = await getAccountId(
+    config,
+    parametersTableName,
+    MandatoryAccountType.SecurityAccount,
+  );
   if (!securityAccountId) {
     return;
   }
 
-  const operationsAccountId: string|undefined = await getAccountId(config, parametersTableName, MandatoryAccountType.OperationsAccount);
+  const operationsAccountId: string | undefined = await getAccountId(
+    config,
+    parametersTableName,
+    MandatoryAccountType.OperationsAccount,
+  );
   if (!operationsAccountId) {
     return;
   }
@@ -101,7 +108,7 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   await org.registerDelegatedAdministrator(securityAccountId, 'access-analyzer.amazonaws.com');
   console.log('Security account registered as delegated administrator for Access Analyzer in the organization.');
 
-  await org.registerDelegatedAdministrator(securityAccountId, 'guardduty.amazonaws.com');  
+  await org.registerDelegatedAdministrator(securityAccountId, 'guardduty.amazonaws.com');
   console.log('Security account registered as delegated administrator for Guard Duty in the organization.');
 
   await org.registerDelegatedAdministrator(operationsAccountId, 'ssm.amazonaws.com');
@@ -126,10 +133,14 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
 enum MandatoryAccountType {
   SecurityAccount = 'central-security-services',
   OperationsAccount = 'central-operations-services',
-  LoggingAccount = 'central-log-services'
+  LoggingAccount = 'central-log-services',
 }
 
-async function getAccountId(config: AcceleratorConfig, tableName: string, globalOptionsLookupKey: MandatoryAccountType) {
+async function getAccountId(
+  config: AcceleratorConfig,
+  tableName: string,
+  globalOptionsLookupKey: MandatoryAccountType,
+) {
   const accountKey = config['global-options'][globalOptionsLookupKey].account;
   const accounts = await loadAccounts(tableName, dynamodb);
   const account = accounts.find(a => a.key === accountKey);

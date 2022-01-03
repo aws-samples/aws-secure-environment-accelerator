@@ -14,7 +14,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as ssm from '@aws-cdk/aws-ssm';
 
-
 export interface InventoryProps {
   bucketName: string;
   bucketRegion: string;
@@ -25,26 +24,26 @@ export interface InventoryProps {
 export class GatherInventory extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, private readonly props: InventoryProps) {
     super(scope, id);
-    
-      new ssm.CfnResourceDataSync(this, 'ResourceDataSync', {
-        bucketName: props.bucketName,
-        bucketRegion: props.bucketRegion,
-        syncName: `${props.prefix}${props.accountId}-Inventory`,
-        syncFormat: 'JsonSerDe',
-        bucketPrefix: `ssm-inventory`,
-        syncType: 'SyncToDestination'
-      });
 
-      new ssm.CfnAssociation(this, 'GatherInventory', {
-          name: `AWS-GatherSoftwareInventory`,
-          associationName: `${props.accountId}-InventoryCollection`,
-          scheduleExpression: 'rate(12 hours)',
-          targets: [
-            {
-              key: 'InstanceIds',
-              values: ['*']
-            }
-          ]
-      });
+    new ssm.CfnResourceDataSync(this, 'ResourceDataSync', {
+      bucketName: props.bucketName,
+      bucketRegion: props.bucketRegion,
+      syncName: `${props.prefix}${props.accountId}-Inventory`,
+      syncFormat: 'JsonSerDe',
+      bucketPrefix: `ssm-inventory`,
+      syncType: 'SyncToDestination',
+    });
+
+    new ssm.CfnAssociation(this, 'GatherInventory', {
+      name: `AWS-GatherSoftwareInventory`,
+      associationName: `${props.accountId}-InventoryCollection`,
+      scheduleExpression: 'rate(12 hours)',
+      targets: [
+        {
+          key: 'InstanceIds',
+          values: ['*'],
+        },
+      ],
+    });
   }
 }

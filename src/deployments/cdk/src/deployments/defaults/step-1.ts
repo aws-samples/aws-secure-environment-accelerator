@@ -261,11 +261,9 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
-      principals: [        
-        new iam.ServicePrincipal('ssm.amazonaws.com'),
-      ],
+      principals: [new iam.ServicePrincipal('ssm.amazonaws.com')],
       actions: ['s3:PutObjectTagging'],
-      resources: [`${logBucket.bucketArn}/*`]
+      resources: [`${logBucket.bucketArn}/*`],
     }),
   );
 

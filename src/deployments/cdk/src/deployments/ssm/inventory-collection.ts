@@ -11,7 +11,6 @@
  *  and limitations under the License.
  */
 
-
 import * as c from '@aws-accelerator/common-config';
 import { AccountStacks } from '../../common/account-stacks';
 import { GatherInventory } from '@aws-accelerator/cdk-constructs/src/ssm';
@@ -20,25 +19,19 @@ export interface InventoryCollectionProps {
   logBucketName: string;
   acceleratorConfig: c.AcceleratorConfig;
   accountStacks: AccountStacks;
-
 }
 
 export async function inventoryCollection(props: InventoryCollectionProps) {
-  const {
-    acceleratorPrefix,
-    acceleratorConfig,
-    logBucketName,
-    accountStacks,
-  } = props;
+  const { acceleratorPrefix, acceleratorConfig, logBucketName, accountStacks } = props;
 
-  const ssmInventoryToAccounts: { accountKey: string; }[] = [];
+  const ssmInventoryToAccounts: { accountKey: string }[] = [];
 
   const accountConfigs = acceleratorConfig.getAccountConfigs();
 
   // Below code will find ssm inventory collection to specific accounts
   for (const [accountKey, mandatoryConfig] of Object.values(accountConfigs)) {
-    const sharedMadAccount = mandatoryConfig['ssm-inventory-collection'];
-    if (!sharedMadAccount) {
+    const ssmInventoryEnabledAccount = mandatoryConfig['ssm-inventory-collection'];
+    if (!ssmInventoryEnabledAccount) {
       continue;
     }
     ssmInventoryToAccounts.push({ accountKey });
@@ -61,14 +54,13 @@ export async function inventoryCollection(props: InventoryCollectionProps) {
   console.log('ssmInventoryToAccounts', ssmInventoryToAccounts);
 
   const regions = acceleratorConfig['global-options']['supported-regions'];
-  const logBucketRegion = acceleratorConfig['global-options']['central-log-services']['region'];
+  const logBucketRegion = acceleratorConfig['global-options']['central-log-services'].region;
 
   // enabling SSM Inventory on account settings
   for (const ssmInventoryToAccount of Object.values(ssmInventoryToAccounts)) {
     const accountKey = ssmInventoryToAccount.accountKey;
 
     for (const region of regions) {
-
       const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
       if (!accountStack) {
         console.warn(`Cannot find account stack ${accountKey}`);
@@ -79,10 +71,8 @@ export async function inventoryCollection(props: InventoryCollectionProps) {
         bucketName: logBucketName,
         bucketRegion: logBucketRegion,
         accountId: accountStack.accountId,
-        prefix: acceleratorPrefix
+        prefix: acceleratorPrefix,
       });
     }
   }
-
-
 }
