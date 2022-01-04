@@ -116,12 +116,14 @@
         "ssm:PutParameter",
         "ssm:DeleteDocument",
         "ssm:UpdateDocument",
-        "ssm:CreateDocument"
+        "ssm:CreateDocument",
+        "ssm:DeleteResourceDataSync"
       ],
       "Resource": [
         "arn:aws:ssm:*:*:parameter/${ACCELERATOR_PREFIX_ND}*",
         "arn:aws:ssm:*:*:document/${ACCELERATOR_PREFIX_ND}*",
-        "arn:aws:ssm:*:*:document/SSM-SessionManagerRunShell"
+        "arn:aws:ssm:*:*:document/SSM-SessionManagerRunShell",
+        "arn:aws:ssm:*:*:resource-data-sync/${ACCELERATOR_PREFIX}*"
       ],
       "Condition": {
         "ArnNotLike": {
@@ -235,21 +237,6 @@
       "Resource": [
         "arn:aws:network-firewall:*:*:firewal*/${ACCELERATOR_PREFIX_ND}*",
         "arn:aws:network-firewall:*:*:state*/${ACCELERATOR_PREFIX_ND}*"
-      ],
-      "Condition": {
-        "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
-        }
-      }
-    },
-    {
-      "Sid": "SSM",
-      "Effect": "Deny",
-      "Action": [
-        "ssm:DeleteResourceDataSync"
-      ],
-      "Resource": [        
-        "arn:aws:ssm::*:resource-data-sync/${ACCELERATOR_PREFIX}*"
       ],
       "Condition": {
         "ArnNotLike": {
