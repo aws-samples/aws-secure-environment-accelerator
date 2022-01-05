@@ -474,6 +474,7 @@ export const RsyslogConfig = t.interface({
   'rsyslog-enforce-imdsv2': t.defaulted(t.boolean, false),
   'rsyslog-root-volume-size': t.number,
   'rsyslog-max-instance-age': t.number,
+  'user-data': t.optional(t.nonEmptyString),
 });
 
 export type RsyslogConfig = t.TypeOf<typeof RsyslogConfig>;
