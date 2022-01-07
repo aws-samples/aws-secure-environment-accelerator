@@ -358,6 +358,7 @@ importers:
       '@aws-accelerator/common': workspace:*
       '@aws-accelerator/common-config': workspace:*
       '@aws-accelerator/common-outputs': workspace:*
+      '@aws-accelerator/config': workspace:*
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
       aws-lambda: 1.0.6
@@ -375,6 +376,7 @@ importers:
       '@aws-accelerator/common': link:../../lib/common
       '@aws-accelerator/common-config': link:../../lib/common-config
       '@aws-accelerator/common-outputs': link:../../lib/common-outputs
+      '@aws-accelerator/config': link:../../lib/config
       aws-lambda: 1.0.6
       aws-sdk: 2.944.0
       lodash: 4.17.21
