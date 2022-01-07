@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es2019",
+    "lib": ["es2019"],
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "typeRoots": ["node_modules/@types"]
+  },
+  "exclude": ["node_modules", "**/*.spec.ts"],
+  "include": ["cdk/**/*"]
+}

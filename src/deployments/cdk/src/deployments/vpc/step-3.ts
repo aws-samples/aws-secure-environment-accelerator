@@ -198,6 +198,7 @@ export async function step3(props: VpcStep3Props) {
         zoneType: 'PRIVATE',
         serviceName: endpoint,
         vpcName: vpcConfig.name,
+        aliasTargetDns: interfaceEndpoint.aliasTargetDns,
       });
 
       if (newResource) {

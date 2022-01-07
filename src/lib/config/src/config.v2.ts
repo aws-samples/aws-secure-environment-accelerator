@@ -457,6 +457,26 @@ export const RsyslogSubnetConfig = t.interface({
   az: t.nonEmptyString,
 });
 
+export const OpenSearchSIEMConfig = t.interface({
+  deploy: t.boolean,
+  'vpc-name': t.nonEmptyString,
+  region: t.nonEmptyString,
+  'security-groups': t.array(SecurityGroupConfigType),
+  'app-subnets': t.array(RsyslogSubnetConfig),
+  'lambda-log-processing-role': t.nonEmptyString,
+  'cognito-domain-prefix': t.nonEmptyString,
+  'maxmind-license': t.optional(t.string),
+  'opensearch-instance-type-main-nodes': t.nonEmptyString,
+  'opensearch-instance-type-data-nodes': t.nonEmptyString,
+  'opensearch-capacity-main-nodes': t.number,
+  'opensearch-capacity-data-nodes': t.number,
+  'opensearch-volume-size': t.number,
+  'opensearch-configuration': t.nonEmptyString,
+  'event-processor-lambda-package': t.nonEmptyString,
+});
+
+export type OpenSearchSIEMConfig = t.TypeOf<typeof OpenSearchSIEMConfig>;
+
 export const RsyslogConfig = t.interface({
   deploy: t.boolean,
   'vpc-name': t.nonEmptyString,
@@ -695,6 +715,7 @@ export const DeploymentConfigType = t.interface({
   adc: t.optional(AdcConfigType),
   firewalls: t.optional(t.array(t.union([FirewallEC2ConfigType, FirewallCGWConfigType, FirewallAutoScaleConfigType]))),
   'firewall-manager': t.optional(FirewallManagerConfigType),
+  siem: t.optional(OpenSearchSIEMConfig),
 });
 
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
