@@ -28,8 +28,8 @@ Accelerator v1.3.0 makes a significant change to the manner in which the state m
 5. Starting the state machine with `{"scope":"GLOBAL-OPTIONS","mode":"APPLY"}` restricts changes to the config file to the `global-options` section.
    - If any other portion of the config file was updated or changed, the state machine will fail;
    - The global options scope executes the state machine on the entire managed account footprint.
-6. Starting the state machine with `{"scope":"OU","targetOUs":[X],"mode":"APPLY"}` restricts changes to the config file to the specified `organizational-units` section(s) defined by `targetOus`.
-   - When `scope=OU`, `targetOUs` becomes a mandatory parameter;
+6. Starting the state machine with `{"scope":"OU","targetOus":[X],"mode":"APPLY"}` restricts changes to the config file to the specified `organizational-units` section(s) defined by `targetOus`.
+   - When `scope=OU`, `targetOus` becomes a mandatory parameter;
    - `X` can be any one or more valid OU names, or the value `"ALL"`;
    - When `["ALL"]` is specified, the state machine targets all AWS accounts, but only allows changes to the `organizational-units` section of the config file;
    - When OUs are specified (i.e. `["Dev","Test"]`), the state machine only targets mandatory accounts plus accounts in the specified OUs (Dev, Test), and only allows changes to the specified OUs sections (Dev, Test) of the config file;
@@ -126,7 +126,7 @@ Summary of inputs, per section 1.1 above:
 ```
 
 ```
-{"scope":"OU", "targetOUs":["ou-name", "ou-name"], "mode":"APPLY"}
+{"scope":"OU", "targetOus":["ou-name", "ou-name"], "mode":"APPLY"}
 ```
 
 ```
