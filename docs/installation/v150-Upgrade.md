@@ -158,18 +158,18 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
 
             ```
             {
-            "id": {
-              "S": "1"
-            },
-            "cidr": {
-              "S": "10.0.0.0/13"
-            },
-            "region": {
-              "S": "ca-central-1"
-            },
-            "pool": {
-              "S": "main"
-            }
+              "id": {
+                "S": "1"
+              },
+              "cidr": {
+                "S": "10.0.0.0/13"
+              },
+              "region": {
+                "S": "ca-central-1"
+              },
+              "pool": {
+                "S": "main"
+              }
             }
             ```
 
