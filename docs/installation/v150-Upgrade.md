@@ -140,45 +140,42 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
   - Using the converted version of your config file (update-config.json)
     - Validate you are happy with the `pool` names assigned to each vpc and subnet throughout the config file. Update as appropriate, pool names can be any alpha-numeric string, but a subnets pool must match one of its vpc's pools.
     - Locate the python conversion script and review its readme [here](../../reference-artifacts/Custom-Scripts/Update-Scripts/v1.3.8_to_v1.5.0)
+    - To load DynamoDB with your CIDR ranges, execute: (online, requires credentials to the Organization Management account)
 
-      - To load DynamoDB with your CIDR ranges, execute: (online, requires credentials to the Organization Management account)
+      `python update.py --Region ca-central-1 --LoadDB --ConfigFile update-config.json --AcceleratorPrefix PBMMAccel-`
 
-        `python update.py --Region ca-central-1 --LoadDB --ConfigFile update-config.json --AcceleratorPrefix PBMMAccel-`
+    - Note the use of the --LoadDB switch, the UPDATED config filename, and that the Accelerator prefix is specified
+      - If you run this command on your v1.3.8 or v1.3.9 config file, the cidr-pools will be improperly assigned in DynamoDB.
+    - In the Organization Management account, in DynamoDB, select Items, and Verify that the tables have been properly populated.
+      - the script creates and populates the following DynamoDB tables. Note that `PBMMAccel-` will be the accelerator prefix specified by `--AcceleratorPrefix`
+        - `PBMMAccel-cidr-vpc-assign` 
+        - `PBMMAccel-cidr-subnet-assign` 
+      - the script creates the following DynamoDB table but does NOT create entries in it
+        - `PBMMAccel-cidr-pool` which stores CIDR ranges to select from for new CIDR assignments.
+        - if you plan to dynamically assign CIDR ranges for new VPC out of pools defined by the upgrade scripts, you need to add new Item(s) to the DynamoDB Table `PBMMAccel-cidr-pool`. This is done manually. This table works together with the other two DynamoDB tables to track, assign and maintain non-overlapping CIDR ranges based on a pool name and region.
+        <details><summary>Sample DynamoDB JSON to add an entry to the `PBMMAccel-cidr-pool` table:</summary>
 
-      - Note the use of the --LoadDB switch, the UPDATED config filename, and that the Accelerator prefix is specified
-        - If you run this command on your v1.3.8 or v1.3.9 config file, the cidr-pools will be improperly assigned in DynamoDB.
-      - In the Organization Management account, in DynamoDB, select Items, and Verify that the tables have been properly populated.
-        - the script creates and populates the following DynamoDB tables. Note that `PBMMAccel-` will be the accelerator prefix specified by `--AcceleratorPrefix`
-          - `PBMMAccel-cidr-vpc-assign` 
-          - `PBMMAccel-cidr-subnet-assign` 
-        - the script creates the following DynamoDB table but does NOT create entries in it
-          - `PBMMAccel-cidr-pool` which stores CIDR ranges to select from for new CIDR assignments.
-          - if you plan to dynamically assign CIDR ranges for new VPC out of pools defined by the upgrade scripts, you need to add new Item(s) to the DynamoDB Table `PBMMAccel-cidr-pool`. This is done manually. This table works together with the other two DynamoDB tables to track, assign and maintain non-overlapping CIDR ranges based on a pool name and region.
-          <details><summary>Sample DynamoDB JSON to add an entry to the `PBMMAccel-cidr-pool` table:</summary>
-
-            ```
-            {
-              "id": {
-                "S": "1"
-              },
-              "cidr": {
-                "S": "10.0.0.0/13"
-              },
-              "region": {
-                "S": "ca-central-1"
-              },
-              "pool": {
-                "S": "main"
-              }
+          ```
+          {
+            "id": {
+              "S": "1"
+            },
+            "cidr": {
+              "S": "10.0.0.0/13"
+            },
+            "region": {
+              "S": "ca-central-1"
+            },
+            "pool": {
+              "S": "main"
             }
-            ```
+          }
+          ```
 
-            - where `id` is any unique text, `cidr` is the main cidr block from which VPC cidrs are taken. `region` is the AWS region where the pool is used. `pool` is the name of the pool
+          - where `id` is any unique text, `cidr` is the main cidr block from which VPC cidrs are taken. `region` is the AWS region where the pool is used. `pool` is the name of the pool
 
-            </details>  
-        - NOTE: You can populate the cidr-pools section of the config file/DynamoDB with values that overlap with the existing assigned ranges in your config file. In this situation, it is CRITICAL that you execute this step, to avoid issueing duplicate or overlapping CIDR ranges with those already issued. Alternatively, leverage new unique ranges when populating the cidr-pools. cidr-pools only needs to be populated when a vpc has a `cidr-src` set to `dynamic`.
-        - Optionally, change all the `cidr-src` values throughout your config file to `lookup`, and remove all the `cidr\value` fields. Once changed, CIDR values will be provided by DynamoDB. Switching to `lookup` requires completion of the previous optional step to first load DynamoDB.
-          - run the state machine with the input parameters `{"scope": "FULL","mode": "APPLY","verbose": "0"}`
-          - during the state machine execution, the Accelerator will compare the values returned by DynamoDB with the values from the previous successful state machine execution. If the DynamoDB values were incorrectly populated, the state machine will catch it with a comparison failure message and gracefully fail.
-
-  
+          </details>  
+      - NOTE: You can populate the cidr-pools section of the config file/DynamoDB with values that overlap with the existing assigned ranges in your config file. In this situation, it is CRITICAL that you execute this step, to avoid issueing duplicate or overlapping CIDR ranges with those already issued. Alternatively, leverage new unique ranges when populating the cidr-pools. cidr-pools only needs to be populated when a vpc has a `cidr-src` set to `dynamic`.
+      - Optionally, change all the `cidr-src` values throughout your config file to `lookup`, and remove all the `cidr\value` fields. Once changed, CIDR values will be provided by DynamoDB. Switching to `lookup` requires completion of the previous optional step to first load DynamoDB.
+        - run the state machine with the input parameters `{"scope": "FULL","mode": "APPLY","verbose": "0"}`
+        - during the state machine execution, the Accelerator will compare the values returned by DynamoDB with the values from the previous successful state machine execution. If the DynamoDB values were incorrectly populated, the state machine will catch it with a comparison failure message and gracefully fail.
