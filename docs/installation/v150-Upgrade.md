@@ -181,7 +181,8 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
 
       </details>
 
-- NOTES:
+  NOTES:
+
   - You can populate the `cidr-pools` section of the config file/DynamoDB with values that overlap with the existing assigned ranges in your config file. In this situation, it is CRITICAL that you execute this entire process, to avoid issueing duplicate or overlapping CIDR ranges with those already issued. Alternatively, leverage new unique ranges when populating the `cidr-pools`.
   - `cidr-pools` only needs to be populated when a vpc has a `cidr-src` set to `dynamic`.
   - Optionally, change all the `cidr-src` values throughout your config file to `lookup`, and remove all the `cidr\value` fields. Once changed, CIDR values will be provided by DynamoDB. Switching to `lookup` requires completion of the previous optional step to first load DynamoDB.
