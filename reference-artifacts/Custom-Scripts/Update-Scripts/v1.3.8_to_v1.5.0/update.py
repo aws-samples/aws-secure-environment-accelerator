@@ -11,6 +11,8 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument('--AcceleratorPrefix', default='ASEA-',
                     help='The value set in AcceleratorPrefix')
+parser.add_argument('--CoreOU', default='core',
+                    help='Optional parameter. Defaults to core. The name of the core OU')
 parser.add_argument('--ConfigFile', required=True, help='ConfigFile location')
 parser.add_argument('--Region', required=True,
                     help='Region in which SEA is deployed')
@@ -283,7 +285,7 @@ def load_to_ddb(accel_prefix, region, config):
                             j = j + 1
 
 
-def impl(accel_prefix, config_file, region, load_db, load_config):
+def impl(accel_prefix, config_file, region, load_db, load_config, core_ou):
     with open(config_file) as f:
         config = json.load(f)
 
@@ -482,7 +484,7 @@ def impl(accel_prefix, config_file, region, load_db, load_config):
                     if scps:
                         config[config_section][key_name]['scps'].remove('Guardrails-Part-2')
 
-                if key_name == 'core':
+                if key_name == core_ou:
                     print('Updating Core OU')
                     ## The core OU will be renamed to Security and copied to create the Infrastructure OU
                     config[config_section][key_name]['description'] = 'The Security OU is used to hold AWS accounts containing AWS security resources shared or utilized by the rest of the Organization.'
@@ -502,8 +504,8 @@ def impl(accel_prefix, config_file, region, load_db, load_config):
                             vpc['description'] = f'The {vpc["name"]} vpc in the {key_name} OU.'
 
             #create new infrastructure ou as a copy of core
-            if 'core' in config[config_section]:
-                infra_ou = config[config_section]['core']
+            if core_ou in config[config_section]:
+                infra_ou = config[config_section][core_ou]
                 infra_ou['default-budgets']['name'] = 'Default Infrastructure Budget'
                 infra_ou['description'] = 'The Infrastructure OU'
                 infra_ou['description'] = 'The infrastructure OU is used to hold AWS accounts containing AWS infrastructure resources shared or utilized by the rest of the Organization.'
@@ -614,7 +616,7 @@ def impl(accel_prefix, config_file, region, load_db, load_config):
         s = f.read()
 
     with open('update-config.json', 'w') as f:
-        s = s.replace('"core": {', '"Security": {')
+        s = s.replace('"' + core_ou + '": {', '"Security": {')
         s = s.replace('aws-org-master', 'aws-org-management')
         f.write(s)
 
@@ -626,4 +628,4 @@ if __name__ == '__main__':
     if (not args.LoadDB and not args.LoadConfig):
         print ("Both --LoadDB and --LoadConfig can't be null. Need an operation")
         exit(0)
-    impl(args.AcceleratorPrefix, args.ConfigFile, args.Region, args.LoadDB, args.LoadConfig)
+    impl(args.AcceleratorPrefix, args.ConfigFile, args.Region, args.LoadDB, args.LoadConfig, args.CoreOU)
