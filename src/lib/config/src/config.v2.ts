@@ -457,6 +457,26 @@ export const RsyslogSubnetConfig = t.interface({
   az: t.nonEmptyString,
 });
 
+export const OpenSearchSIEMConfig = t.interface({
+  deploy: t.boolean,
+  'vpc-name': t.nonEmptyString,
+  region: t.nonEmptyString,
+  'security-groups': t.array(SecurityGroupConfigType),
+  'app-subnets': t.array(RsyslogSubnetConfig),
+  'lambda-log-processing-role': t.nonEmptyString,
+  'cognito-domain-prefix': t.nonEmptyString,
+  'maxmind-license': t.optional(t.string),
+  'opensearch-instance-type-main-nodes': t.nonEmptyString,
+  'opensearch-instance-type-data-nodes': t.nonEmptyString,
+  'opensearch-capacity-main-nodes': t.number,
+  'opensearch-capacity-data-nodes': t.number,
+  'opensearch-volume-size': t.number,
+  'opensearch-configuration': t.nonEmptyString,
+  'event-processor-lambda-package': t.nonEmptyString,
+});
+
+export type OpenSearchSIEMConfig = t.TypeOf<typeof OpenSearchSIEMConfig>;
+
 export const RsyslogConfig = t.interface({
   deploy: t.boolean,
   'vpc-name': t.nonEmptyString,
@@ -695,6 +715,7 @@ export const DeploymentConfigType = t.interface({
   adc: t.optional(AdcConfigType),
   firewalls: t.optional(t.array(t.union([FirewallEC2ConfigType, FirewallCGWConfigType, FirewallAutoScaleConfigType]))),
   'firewall-manager': t.optional(FirewallManagerConfigType),
+  siem: t.optional(OpenSearchSIEMConfig),
 });
 
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
@@ -749,6 +770,13 @@ export const SecretConfig = t.interface({
   region: t.string,
   size: t.number,
 });
+
+export const S3LogPartitionType = t.interface({
+  logGroupPattern: t.nonEmptyString,
+  s3Prefix: t.nonEmptyString,
+});
+
+export type S3LogPartition = t.TypeOf<typeof S3LogPartitionType>;
 
 export const MandatoryAccountConfigType = t.interface({
   'gui-perm': t.optional(t.boolean),
@@ -896,6 +924,7 @@ export const CentralServicesConfigType = t.interface({
   'fw-mgr-alert-level': t.defaulted(FirewallManagerAlertLevelType, 'Medium'),
   'security-hub-findings-sns': t.defaulted(SecurityHubFindingsSnsType, 'None'),
   'config-aggr': t.defaulted(t.boolean, false),
+  'dynamic-s3-log-partitioning': t.optional(t.array(S3LogPartitionType)),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;

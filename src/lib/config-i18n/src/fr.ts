@@ -1349,6 +1349,67 @@ translate(c.RsyslogSubnetConfig, {
   },
 });
 
+translate(c.OpenSearchSIEMConfig, {
+  title: '',
+  description: '',
+  fields: {
+    deploy: {
+      title: '',
+      description: '',
+    },
+    'vpc-name': {
+      title: '',
+      description: '',
+    },
+    region: {
+      title: '',
+      description: '',
+    },
+    'security-groups': {
+      title: '',
+      description: '',
+    },
+    'app-subnets': {
+      title: '',
+      description: '',
+    },
+    'lambda-log-processing-role': {
+      title: '',
+      description: '',
+    },
+    'cognito-domain-prefix': {
+      title: '',
+    },
+    'opensearch-instance-type-main-nodes': {
+      title: '',
+    },
+    'opensearch-instance-type-data-nodes': {
+      title: '',
+    },
+    'opensearch-capacity-main-nodes': {
+      title: '',
+    },
+    'opensearch-capacity-data-nodes': {
+      title: '',
+    },
+    'opensearch-volume-size': {
+      title: '',
+    },
+    'opensearch-configuration': {
+      title: '',
+      description: '',
+    },
+    'event-processor-lambda-package': {
+      title: '',
+      description: '',
+    },
+    'maxmind-license': {
+      title: '',
+      description: '',
+    },
+  },
+});
+
 translate(c.RsyslogConfig, {
   title: '',
   description: '',
@@ -2066,6 +2127,10 @@ translate(c.DeploymentConfigType, {
       title: '',
       description: '',
     },
+    siem: {
+      title: '',
+      description: '',
+    },
   },
 });
 
@@ -2518,6 +2583,21 @@ translate(c.CwlExclusions, {
   },
 });
 
+translate(c.S3LogPartitionType, {
+  title: '',
+  description: '',
+  fields: {
+    logGroupPattern: {
+      title: '',
+      description: '',
+    },
+    s3Prefix: {
+      title: '',
+      description: '',
+    },
+  },
+});
+
 translate(c.CentralServicesConfigType, {
   title: '',
   description: '',
@@ -2635,6 +2715,10 @@ translate(c.CentralServicesConfigType, {
       description: '',
     },
     'config-aggr': {
+      title: '',
+      description: '',
+    },
+    'dynamic-s3-log-partitioning': {
       title: '',
       description: '',
     },
