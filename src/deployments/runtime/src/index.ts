@@ -17,5 +17,6 @@ export { handler as albIpMonitor } from './alb-to-alb-target/alb-ip-monitor';
 export { handler as albTargetRecordMonitor } from './alb-to-alb-target/alb-target-record-monitor';
 export { handler as geoIpDownloader } from './opensearch-siem/geo-ip-downloader';
 export { handler as firehoseCustomPrefix } from './firehose-custom-prefix/process-record';
+export { handler as eventToCWLPublisher } from './event-publish-cloudwatch-logs';
 import * as ouValidationEvents from './ou-validation-events';
 export { ouValidationEvents };
