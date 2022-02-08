@@ -88,6 +88,7 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
       logStreamRoleArn: cwlLogStreamRoleOutput.roleArn,
       kinesisStreamRoleArn: cwlKinesisStreamRoleOutput.roleArn,
       dynamicS3LogPartitioning: centralLogServices['dynamic-s3-log-partitioning'],
+      region,
     });
   }
 }
@@ -104,6 +105,7 @@ async function cwlSettingsInLogArchive(props: {
   kinesisStreamRoleArn: string;
   shardCount?: number;
   dynamicS3LogPartitioning?: c.S3LogPartition[];
+  region: string;
 }) {
   const {
     scope,
@@ -113,6 +115,7 @@ async function cwlSettingsInLogArchive(props: {
     kinesisStreamRoleArn,
     shardCount,
     dynamicS3LogPartitioning,
+    region,
   } = props;
 
   // Create Kinesis Stream for Logs streaming
@@ -168,7 +171,7 @@ async function cwlSettingsInLogArchive(props: {
     },
   });
 
-  const kinesisStreamRole = iam.Role.fromRoleArn(scope, 'KinesisStreamRoleLookup', kinesisStreamRoleArn, {
+  const kinesisStreamRole = iam.Role.fromRoleArn(scope, `KinesisStreamRoleLookup-${region}`, kinesisStreamRoleArn, {
     mutable: true,
   });
 
