@@ -182,8 +182,6 @@ exports[`there should not be any unsupported resource changes for AWS::Budgets::
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase3UsWest2 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase4 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: MasterPhase0 1`] = `
@@ -910,8 +908,6 @@ exports[`there should not be any unsupported resource changes for AWS::Directory
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase3UsWest2 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase4 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: MasterPhase0 1`] = `Array []`;
@@ -1276,8 +1272,6 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase3UsWest1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase3UsWest2 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase4 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase5 1`] = `Array []`;
 
@@ -1768,8 +1762,6 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase3UsWest2 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase4 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: MasterPhase0 1`] = `Array []`;
@@ -1990,7 +1982,23 @@ Array [
     "LogicalId": "TgwMain627BB489",
     "Properties": Object {
       "AmazonSideAsn": 65521,
+      "AutoAcceptSharedAttachments": "enable",
+      "DefaultRouteTableAssociation": "disable",
+      "DefaultRouteTablePropagation": "disable",
+      "Description": undefined,
+      "DnsSupport": "enable",
       "MulticastSupport": undefined,
+      "Tags": Array [
+        Object {
+          "Key": "Accelerator",
+          "Value": "PBMM",
+        },
+        Object {
+          "Key": "Name",
+          "Value": "Main_tgw",
+        },
+      ],
+      "VpnEcmpSupport": "enable",
     },
   },
 ]
@@ -2109,8 +2117,6 @@ exports[`there should not be any unsupported resource changes for AWS::ElasticLo
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase3UsWest1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase3UsWest2 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase4 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase5 1`] = `Array []`;
 
@@ -2487,8 +2493,6 @@ exports[`there should not be any unsupported resource changes for AWS::S3::Bucke
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase3UsWest1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase3UsWest2 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase4 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase5 1`] = `Array []`;
 
@@ -2890,8 +2894,6 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase3UsWest2 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase4 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: MasterPhase0 1`] = `
@@ -3288,8 +3290,6 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase3UsWest1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase3UsWest2 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase4 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase5 1`] = `Array []`;
 

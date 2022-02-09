@@ -9,7 +9,7 @@
     "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
   },
   "dependencies": {
-    "aws-cdk": "1.130.0",
+    "aws-cdk": "1.113.0",
     "aws-sdk": "2.944.0",
     "colors": "1.4.0",
     "exponential-backoff": "3.1.0"

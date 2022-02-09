@@ -1278,49 +1278,6 @@
           "rsyslog-enforce-imdsv2": true,
           "rsyslog-root-volume-size": 100,
           "rsyslog-max-instance-age": 7
-        },
-        "siem": {
-          "deploy": false,
-          "vpc-name": "Central",
-          "region": "${HOME_REGION}",          
-          "security-groups": [
-            {
-              "name": "opensearch-siem",
-              "inbound-rules": [
-                {
-                  "description": "Allow Traffic Inbound",
-                  "tcp-ports": [443],                  
-                  "source": "${RANGE-RESTRICT}"
-                }
-              ],
-              "outbound-rules": [
-                {
-                  "description": "All Outbound",
-                  "type": ["ALL"],
-                  "source": ["0.0.0.0/0"]
-                }
-              ]
-            }
-          ],
-          "app-subnets": [
-            {
-              "name": "App",
-              "az": "a"
-            },
-            {
-              "name": "App",
-              "az": "b"
-            }
-          ],          
-          "lambda-log-processing-role": "${ACCELERATOR_PREFIX_ND}-OpenSearch-ProcessingRole",
-          "cognito-domain-prefix": "${ACCELERATOR_PREFIX_LND}-siem----------------------REPLACE------------",
-          "opensearch-instance-type-main-nodes": "c6g.xlarge.search",
-          "opensearch-instance-type-data-nodes": "r6g.xlarge.search",
-          "opensearch-capacity-main-nodes": 3,
-          "opensearch-capacity-data-nodes": 4,
-          "opensearch-volume-size": 100,
-          "opensearch-configuration": "siem/opensearch-config.json",
-          "event-processor-lambda-package": "siem/os-loader.zip"
         }
       }
     },
