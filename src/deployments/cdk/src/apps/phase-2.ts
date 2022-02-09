@@ -447,6 +447,7 @@ export async function deploy({
     accountStacks,
     accounts,
     logBucket,
+    aesLogBucket: aesLogArchiveBucket,
     config: acceleratorConfig,
     acceleratorPrefix: context.acceleratorPrefix,
   });
