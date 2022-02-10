@@ -16,6 +16,7 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { expect, haveResource, haveResourceLike } from '@aws-cdk/assert';
 import { AcceleratorNameTagger } from '../../src/core';
+// eslint-disable-next-line
 import { Aspects } from '@aws-cdk/core';
 
 test('should add the Name tag with the correct suffix to ec2.Vpc', () => {
@@ -28,6 +29,7 @@ test('should add the Name tag with the correct suffix to ec2.Vpc', () => {
   Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
+  // eslint-disable-next-line deprecation/deprecation
   cdk.ConstructNode.prepare(stack.node);
 
   expect(stack).to(
@@ -52,6 +54,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnVpc', () => {
   Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
+  // eslint-disable-next-line deprecation/deprecation
   cdk.ConstructNode.prepare(stack.node);
 
   expect(stack).to(
@@ -78,6 +81,7 @@ test('should add the Name tag with the correct suffix to ec2.Subnet', () => {
   Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
+  // eslint-disable-next-line deprecation/deprecation
   cdk.ConstructNode.prepare(stack.node);
 
   expect(stack).to(
@@ -104,6 +108,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnSubnet', () => {
   Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
+  // eslint-disable-next-line deprecation/deprecation
   cdk.ConstructNode.prepare(stack.node);
 
   expect(stack).to(
@@ -128,6 +133,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnRouteTable', () 
   Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
+  // eslint-disable-next-line deprecation/deprecation
   cdk.ConstructNode.prepare(stack.node);
 
   expect(stack).to(
@@ -150,6 +156,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnTransitGateway',
   Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
+  // eslint-disable-next-line deprecation/deprecation
   cdk.ConstructNode.prepare(stack.node);
 
   expect(stack).to(
@@ -174,6 +181,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnTransitGatewayRo
   Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
+  // eslint-disable-next-line deprecation/deprecation
   cdk.ConstructNode.prepare(stack.node);
 
   expect(stack).to(
@@ -198,6 +206,7 @@ test('should not add suffix if the suffix is already there', () => {
   Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
+  // eslint-disable-next-line deprecation/deprecation
   cdk.ConstructNode.prepare(stack.node);
 
   expect(stack).to(

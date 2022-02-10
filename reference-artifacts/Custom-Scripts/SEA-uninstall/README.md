@@ -76,7 +76,7 @@ The logic of the script is the following:
 2. Start a CloudShell session.
 3. Copy the files from this folder and your `config.json` to the CloudShell session;
    - ensure the management account name is properly reflected in the config file, or the script will fail;
-   - the script does not handle the use of the {HOME_REGION} variable (at this time), replace all occurances with the actual name of the home region (i.e. ca-central-1).
+   - the script does not handle the use of the {HOME_REGION} variable (at this time), you can run the script with --HomeRegion <region> to replace the home region
 4. Create a virtual python environment. `python3 -m venv env`
 5. Activate the python environment. `source env/bin/activate`
 6. Install the python3 required libaries (ex: `pip install -r requirements.txt`).
@@ -120,6 +120,8 @@ The logic of the script is the following:
    c. GuardDuty and/or Macie will likely fail during a Phase deployment. If that happens, access the Security account and invite all accounts as members in all regions. Some accounts may be listed as non-members.
 
    d. If you accidentally delete a cdk bucket (`cdktoolkit-stagingbucket-*`) in any region, you MUST remove the corresponding CDK bootstrap stack (`CDKToolkit`) from the corresponding regions before deploying.
+
+3. It has also been reported that the Firewall Manager organization admin account is not unset
 
 ## Requirements
 

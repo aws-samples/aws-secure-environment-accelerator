@@ -225,6 +225,7 @@ export function createAsg(
     minInstanceHosts: rsyslogConfig['min-rsyslog-hosts'],
     maxInstanceHosts: rsyslogConfig['max-rsyslog-hosts'],
     maxInstanceAge: rsyslogConfig['rsyslog-max-instance-age'],
+    enforceImdsv2: rsyslogConfig['rsyslog-enforce-imdsv2'],
   });
 }
 

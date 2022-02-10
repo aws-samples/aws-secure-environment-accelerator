@@ -31,6 +31,7 @@ export interface RsysLogAutoScalingGroupProps extends cdk.StackProps {
   minInstanceHosts: number;
   maxInstanceHosts: number;
   maxInstanceAge: number;
+  enforceImdsv2: boolean;
 }
 
 export class RsysLogAutoScalingGroup extends cdk.Construct {
@@ -39,6 +40,7 @@ export class RsysLogAutoScalingGroup extends cdk.Construct {
 
     const launchConfig = new LaunchConfiguration(this, 'RsyslogLaunchConfiguration', {
       launchConfigurationName: `${props.acceleratorPrefix}RsyslogLaunchConfiguration`,
+      metadataOptions: props.enforceImdsv2 ? { httpEndpoint: 'enabled', httpTokens: 'required' } : undefined,
       associatePublicIpAddress: false,
       imageId: props.latestRsyslogAmiId,
       securityGroups: [props.securityGroupId],

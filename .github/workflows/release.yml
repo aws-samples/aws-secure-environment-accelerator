@@ -1,12 +1,24 @@
 name: Release
 on:
+  workflow_dispatch:
+    inputs:
+      generateDocOnly:
+        description: 'Generate documentation only. Unchecking this checkbox will have no impact, the documentation will still be only generated when the workflow is triggered manually.'
+        type: boolean
+        required: false
+        default: 'true'
   push:
     branches:
       - 'release/v*'
 jobs:
   release:
-    name: Release
+    name: Create Release
+    # We don't want to do a release if the workflow was dispatched manually
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
+    outputs:
+      release-asset-url: ${{ steps.create_release.outputs.upload_url }}
+      numeric-release-short: ${{ steps.format.outputs.numeric_release_short }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -22,6 +34,7 @@ jobs:
           echo ::set-output name=branch_name::$(echo "${GITHUB_REF}" | cut -d/ -f3-)
           echo ::set-output name=tag_name::$(echo "${GITHUB_REF}" | cut -d/ -f4-)
           echo ::set-output name=numeric_release::$(echo "${GITHUB_REF}" | cut -d/ -f4- | tr -d v)
+          echo ::set-output name=numeric_release_short::$(echo "${GITHUB_REF}" | cut -d/ -f4- | tr -d v.-)
           echo ::set-output name=release_name::"Release $(echo "${GITHUB_REF}" | cut -d/ -f4-)"
       - name: Use Node.js
         uses: actions/setup-node@v1
@@ -59,7 +72,7 @@ jobs:
       - name: Push Bumped Package Files
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.ACTION_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ steps.format.outputs.branch_name }}
       - name: Build Accelerator Installer
         id: build
@@ -68,13 +81,19 @@ jobs:
           GITHUB_DEFAULT_BRANCH: ${{ steps.format.outputs.branch_name }}
           INSTALLER_STACK_DIR: ./src/installer/cdk
           INSTALLER_STACK_NAME: AcceleratorInstaller
+          NUMERIC_RELEASE_SHORT: ${{ steps.format.outputs.numeric_release_short }}
           OUTPUT_DIR: templates
         run: |
           cd "${INSTALLER_STACK_DIR}"
           pnpm install --frozen-lockfile
           pnpx cdk synth --output "${OUTPUT_DIR}" "${INSTALLER_STACK_NAME}"
-          echo ::set-output name=template_name::${INSTALLER_STACK_NAME}.template.json
+
+          echo ::set-output name=template_name::${INSTALLER_STACK_NAME}-GitHub.template.json
+          echo ::set-output name=template_name_code_commit::${INSTALLER_STACK_NAME}-CodeCommit.template.json
+          echo ::set-output name=template_name_with_version::${INSTALLER_STACK_NAME}${NUMERIC_RELEASE_SHORT}-GitHub.template.json
+          echo ::set-output name=template_name_with_version_code_commit::${INSTALLER_STACK_NAME}${NUMERIC_RELEASE_SHORT}-CodeCommit.template.json
           echo ::set-output name=template_path::$(realpath "${OUTPUT_DIR}/${INSTALLER_STACK_NAME}.template.json")
+          echo ::set-output name=template_path_code_commit::$(realpath "${OUTPUT_DIR}/${INSTALLER_STACK_NAME}-CodeCommit.template.json")
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
@@ -87,18 +106,547 @@ jobs:
             ${{ steps.changelog.outputs.changelog }}
           draft: true
           prerelease: false
-      - name: Upload Release Asset
+      - name: Upload Artifact - AcceleratorInstaller-GitHub
+        uses: actions/upload-artifact@v2
+        with:
+          path: ${{ steps.build.outputs.template_path }}
+          name: ${{ steps.build.outputs.template_name }}
+      - name: Upload Artifact - AcceleratorInstaller-CodeCommit
+        uses: actions/upload-artifact@v2
+        with:
+          path: ${{ steps.build.outputs.template_path_code_commit }}
+          name: ${{ steps.build.outputs.template_name_code_commit }}
+      - name: Upload Release Asset - AcceleratorInstaller-GitHub
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TEMPLATE_PATH: ${{ steps.build.outputs.template_path }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ steps.build.outputs.template_path }}
-          asset_name: ${{ steps.build.outputs.template_name }}
+          asset_name: ${{ steps.build.outputs.template_name_with_version }}
+          asset_content_type: application/json
+      - name: Upload Release Asset - AcceleratorInstaller-CodeCommit
+        id: upload-release-asset-code-commmit
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.build.outputs.template_path_code_commit }}
+          asset_name: ${{ steps.build.outputs.template_name_with_version_code_commit }}
           asset_content_type: application/json
       - name: Get Draft Release Url
         id: release_url
         run: |
           echo "Draft release available at: ${{ steps.create_release.outputs.html_url}}"
+
+  build-sea-config-schema:
+    name: Build SEA-Config-Schema
+    runs-on: ubuntu-latest
+    outputs:
+      release-asset-name: ${{ steps.build.outputs.release-asset-name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        env:
+          RUNNER_TEMP: /tmp/runner
+        with:
+          node-version: 14
+      - name: Install pnpm
+        run: |
+          npm install -g pnpm@6.2.3
+      - name: Build SEA-Config-Schema project
+        id: build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_DIR: ./src/lib/docs-gen
+          OUTPUT_DIR: output-docs
+          BUILD_ASSET_NAME: AWS-SEA-Config-Schema-DRAFT.zip
+        run: |
+          pnpm install --frozen-lockfile
+          cd "${BUILD_DIR}"
+          pnpm build
+
+          echo ::set-output name=release-path::$(realpath "./${OUTPUT_DIR}")
+          echo ::set-output name=release-asset-name::${BUILD_ASSET_NAME}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.build.outputs.release-asset-name }}
+          path: ${{ steps.build.outputs.release-path }}
+
+  build-sea-gui:
+    name: Build SEA-GUI
+    runs-on: ubuntu-latest
+    outputs:
+      release-asset-name: ${{ steps.build.outputs.release-asset-name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        env:
+          RUNNER_TEMP: /tmp/runner
+        with:
+          node-version: 14
+      - name: Install pnpm
+        run: |
+          npm install -g pnpm@6.2.3
+      - name: Build SEA-GUI project
+        id: build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_DIR: ./src/ui
+          OUTPUT_DIR: build
+          BUILD_ASSET_NAME: AWS-SEA-GUI-mockup-DoNotUse-alpha.zip
+        run: |
+          pnpm install --frozen-lockfile
+          cd "${BUILD_DIR}"
+          pnpm build:ui
+
+          echo ::set-output name=release-path::$(realpath "./${OUTPUT_DIR}")
+          echo ::set-output name=release-asset-name::${BUILD_ASSET_NAME}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.build.outputs.release-asset-name }}
+          path: ${{ steps.build.outputs.release-path }}
+
+  build-documentation:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    outputs:
+      documentation-archive-name: ${{ steps.setup.outputs.dir }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install xetex
+        run: |
+          sudo apt-get install texlive-xetex
+          sudo apt install librsvg2-bin
+          sudo apt install 'fonts-dejavu*'
+
+      - name: Setup Env
+        id: setup
+        env:
+          PREFIX: AWS-SEA
+          SUFFIX: Documentation
+        run: |
+          mkdir ${PREFIX}-${SUFFIX}
+          echo ::set-output name=prefix::$(echo "${PREFIX}")
+          echo ::set-output name=suffix::$(echo "${SUFFIX}")
+          echo ::set-output name=dir::$(echo "${PREFIX}-${SUFFIX}")
+
+      - name: PDF output 0
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/0-${{ steps.setup.outputs.prefix }}-Solution-Summary.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            README.md
+
+      - name: PDF output 1
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/1-${{ steps.setup.outputs.prefix }}-Installation-Guide.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/installation.md
+
+      - name: PDF output 1a
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/1a-${{ steps.setup.outputs.prefix }}-v150-Upgrade-Guide.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/v150-Upgrade.md
+
+      - name: PDF output 2
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/2-${{ steps.setup.outputs.prefix }}-Ops-FAQ.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/faq/faq.md
+
+      - name: Copy file output 3
+        run: |
+          cp docs/architectures/AWS_Diagrams_Account_Network_VPC.pdf ${{ steps.setup.outputs.dir }}/3-${{ steps.setup.outputs.prefix }}-Diagrams_Account_Network_VPC.pdf
+
+      - name: PDF output 4a
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/4a-${{ steps.setup.outputs.prefix }}-Config-File-Customization.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/customization-index.md
+
+      - name: Copy file output 4b
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.example.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.example.json
+
+      - name: Copy file output 4b1
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.lite-VPN-example.json
+
+      - name: Copy file output 4b2
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.multi-region-example.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.multi-region-example.json
+
+      - name: Copy file output 4b3
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.ultralite-example.json
+
+      - name: Copy file output 4b4
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.example-oldIP.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.example-oldIP.json
+
+      - name: Copy file output 4b5
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.lite-CTNFW-example.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.lite-CTNFW-example.json
+
+      - name: Copy file output 4b6
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.lite-GWLB-example.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.lite-GWLB-example.json
+
+      - name: Copy file output 4b7
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.lite-NFW-example.json
+
+      - name: Copy file output 4b8
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example-oldIP.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.lite-VPN-example-oldIP.json
+
+      - name: Copy file output 4b9
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.test-example.json ${{ steps.setup.outputs.dir }}/4b-${{ steps.setup.outputs.prefix }}-config.test-example.json
+
+      - name: PDF output 4c
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/4c-${{ steps.setup.outputs.prefix }}-Multi-file-Config-Capabilities.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/multi-file-config-capabilities.md
+
+      - name: PDF output 4d
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/4d-${{ steps.setup.outputs.prefix }}-Config-Sample-Snippets.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            ./reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md
+
+      - name: Copy file output 4e
+        run: |
+          cp reference-artifacts/Third-Party/firewall-example-A-A-singletunnel.txt ${{ steps.setup.outputs.dir }}/4e-${{ steps.setup.outputs.prefix }}-firewall-example-A-A-singletunnel.txt
+
+      - name: Copy file output 4e1
+        run: |
+          cp reference-artifacts/Third-Party/firewall-example-A-A-multitunnel.txt ${{ steps.setup.outputs.dir }}/4e-${{ steps.setup.outputs.prefix }}-firewall-example-A-A-multitunnel.txt
+
+      - name: PDF output 4f
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/4f-${{ steps.setup.outputs.prefix }}-Firewall-config-Customizations.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            ./reference-artifacts/SAMPLE_CONFIGS/firewall_file_available_variables.md
+
+      - name: PDF output 4g
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/4g-${{ steps.setup.outputs.prefix }}-logging-locations.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=11in
+            -V geometry:paperheight=8.5in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/architectures/pbmm/log-file-locations.md
+
+      - name: PDF output 4h
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/4h-${{ steps.setup.outputs.prefix }}-What-Where.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=11in
+            -V geometry:paperheight=8.5in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/what-we-do-where.md
+
+      - name: PDF output 4i
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/4i-${{ steps.setup.outputs.prefix }}-Public-Workload-Fortigate.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/guides/public-facing-workload-via-fortigate.md
+
+      - name: PDF output 4j
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/4j-${{ steps.setup.outputs.prefix }}-State-Machine-Inputs.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/sm_inputs.md
+
+      - name: PDF output 4k
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/4k-${{ steps.setup.outputs.prefix }}-Object-Naming.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/object-naming.md
+
+      - name: PDF output 4l
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/4l-${{ steps.setup.outputs.prefix }}-ALZ-Import-Account.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/operations/operations-import-ALZAccount.md
+
+      - name: PDF output 5
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/5-${{ steps.setup.outputs.prefix }}-Operations-Troubleshooting-Guide.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/operations/operations-troubleshooting-guide.md
+
+      - name: PDF output 6
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/6-${{ steps.setup.outputs.prefix }}-Developer-Guide.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/developer/developer-guide.md
+
+      - name: PDF output 7
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/7-${{ steps.setup.outputs.prefix }}-PBMM-Architecture.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/architectures/pbmm/architecture.md
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.setup.outputs.dir }}
+          path: ${{ steps.setup.outputs.dir }}/
+
+  upload-archive-to-release:
+    # We don't want to upload artifact to the release if the workflow was dispatched manually
+    if: github.event_name != 'workflow_dispatch'
+    needs: [release, build-documentation, build-sea-gui, build-sea-config-schema]
+    name: Upload Archives to Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Documentation - Download Archive
+        uses: actions/download-artifact@v2
+        id: download-archive-documentation
+        with:
+          name: ${{ needs.build-documentation.outputs.documentation-archive-name }}
+          path: download-archive-documentation
+      - name: Documentation - Create Archive
+        id: create-archive-documentation
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUMERIC_RELEASE_SHORT: ${{ needs.release.outputs.numeric-release-short }}
+          OUTPUT_DIR: ${{ steps.download-archive-documentation.outputs.download-path }}
+        run: |
+          cd "${OUTPUT_DIR}"
+          zip -r  documentation.zip *
+
+          echo ::set-output name=release-path::$(realpath "./documentation.zip")
+          echo ::set-output name=release-asset-name::AWS-SEA-Documentation-v${NUMERIC_RELEASE_SHORT}.zip
+      - name: Documentation - Upload Release Asset
+        id: upload-release-asset-documentation
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.release-asset-url }}
+          asset_path: ${{ steps.create-archive-documentation.outputs.release-path }}
+          asset_name: ${{ steps.create-archive-documentation.outputs.release-asset-name }}
+          asset_content_type: application/zip
+      - name: SEA-GUI - Download Archive
+        uses: actions/download-artifact@v2
+        id: download-archive-sea-gui
+        with:
+          name: ${{ needs.build-sea-gui.outputs.release-asset-name }}
+          path: download-archive-sea-gui
+      - name: SEA-GUI - Create Archive
+        id: create-archive-sea-gui
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUMERIC_RELEASE_SHORT: ${{ needs.release.outputs.numeric-release-short }}
+          OUTPUT_DIR: ${{ steps.download-archive-sea-gui.outputs.download-path }}
+        run: |
+          cd "${OUTPUT_DIR}"
+          zip -r  archive.zip *
+
+          echo ::set-output name=release-path::$(realpath "./archive.zip")
+          echo ::set-output name=release-asset-name::AWS-SEA-GUI-mockup-DoNotUse-v${NUMERIC_RELEASE_SHORT}-alpha.zip
+      - name: SEA-GUI - Upload Release Asset
+        id: upload-release-asset-sea-gui
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.release-asset-url }}
+          asset_path: ${{ steps.create-archive-sea-gui.outputs.release-path }}
+          asset_name: ${{ steps.create-archive-sea-gui.outputs.release-asset-name }}
+          asset_content_type: application/zip
+      - name: SEA-Config-Schema - Download Archive
+        uses: actions/download-artifact@v2
+        id: download-archive-sea-config-schema
+        with:
+          name: ${{ needs.build-sea-config-schema.outputs.release-asset-name }}
+          path: download-archive-sea-config-schema
+      - name: SEA-GUI - Create Archive
+        id: create-archive-sea-config-schema
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUMERIC_RELEASE_SHORT: ${{ needs.release.outputs.numeric-release-short }}
+          OUTPUT_DIR: ${{ steps.download-archive-sea-config-schema.outputs.download-path }}
+        run: |
+          cd "${OUTPUT_DIR}"
+          zip -r  archive.zip *
+
+          echo ::set-output name=release-path::$(realpath "./archive.zip")
+          echo ::set-output name=release-asset-name::AWS-SEA-Config-Schema-v${NUMERIC_RELEASE_SHORT}-DRAFT.zip
+      - name: SEA-GUI - Upload Release Asset
+        id: upload-release-asset-sea-config-schema
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.release-asset-url }}
+          asset_path: ${{ steps.create-archive-sea-config-schema.outputs.release-path }}
+          asset_name: ${{ steps.create-archive-sea-config-schema.outputs.release-asset-name }}
+          asset_content_type: application/zip

@@ -53,13 +53,18 @@ These installation instructions assume one of the prescribed architectures is be
 - Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
 - Government of Canada customers are still required to do a standalone installation at this time, please request standalone installation instructions from your Account SA or TAM
 - The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in [section 4](#4-existing-organizations--accounts) below
-- Existing AWS Landing Zone Solution (ALZ) customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
+- Existing AWS Landing Zone Solution (ALZ) customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process.
+- Changes to the Accelerator codebase are strongly discouraged unless they are contributed and accepted back to the solution. Code customization will block the ability to upgrade to the latest release and upgrades are encouraged to be done between quarterly to semi-annually. The solution was designed to be extremely customizable without changing code, existing customers following these guidelines have been able to upgrade across more than 50 Accelerator releases, while maintaining their customizations and gaining the latest bug fixes, features and enhancements without any developer or professional services based support. Please see [this](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/faq/faq.md#1112-how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes) FAQ for more details.
 
 ## 2.2. Production Deployment Planning
 
 ### 2.2.1. General
 
 **For any deployment of the Accelerator which is intended to be used for production workloads, you must evaluate all these decisions carefully. Failure to understand these choices could cause challenges down the road. If this is a "test" or "internal" deployment of the Accelerator which will not be used for production workloads, you can leave the default config values.**
+
+**Config file [schema](https://github.com/aws-samples/aws-secure-environment-accelerator/releases/download/v1.5.0/AWS-SEA-Config-Schema-v150-DRAFT.zip) documentation now AVAILABLE** (Draft)
+
+- download, extract and open src\lib\docs-gen\output-docs\en\index.html in your browser
 
 ### 2.2.2. OU Structure Planning
 
@@ -82,13 +87,19 @@ If deploying the prescriptive architecture using the Full or Lite sample config 
 - VPC CIDR blocks cannot be changed after installation, this is simply the way the AWS platform works, given everything is built on top of them. Carefully consider your address block selection.
 - one block for each OU, except Sandbox which is not routable (Sandbox OU will use a 7th non-routed address block)
 - the "core" Class B range will be split to support the Endpoint VPC and Perimeter VPC (with extra addresses remaining for future use)
+- Given a shared VPC architecture is leveraged (prevents stranded islands of CIDR blocks and reduces networking costs), we have assigned a class B address block to each VPC to future proof the deployment. Smaller customers can successfully deploy with a half class B CIDR block per shared VPC.
 
 2. Two (2) RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
 
 - Used for AWS Managed Active Directory (MAD) deployment and perimeter underlay network
-- non-GC customers can a) drop the extra GCWide subnets in the Central VPC and, b) replace the perimeter VPC address space with the extra unused addresses from the core CIDR range
+- non-GC customers can replace the RFC6598 address space with the extra unused addresses from the above RFC1918 CIDR range above (the App2 subnets in the Central VPC and the Perimeter VPC address space)
 
-3. Two (2) BGP ASN's (For the Transit Gateway and Firewall Cluster - note: a third is required if you are deploying a VGW for DirectConnect connectivity.)
+3. BGP ASN's for network routing, one for each of:
+   - Transit Gateway (one unique ASN per TGW, multi-region example requires a second ASN)
+   - IPSec VPN Firewall Cluster (if deployed)
+   - VGW for DirectConnect connectivity (only shown in the config.multi-region-example.json)
+
+- For example: the Control Tower with Network Firewall example config requires a single BGP ASN for the TGW, the IPSec VPN example requires two BGP ASN's, and the multi-region example requires five unique BGP ASN's.
 
 NOTE: Prior to v1.5.0 CIDR ranges were assigned to each VPC and subnet throughout the config file. This required customers to perform extensive updates across the config file when needing to move to specific IP ranges compatible with a customer's existing on-premise networks. While this is still supported for those wanting to control exactly what address is used on every subnet, the solution has added support for dynamic CIDR assignments and the sample config files have been updated to reflect. New installs will have CIDR's pulled from CIDR pools, defined in the global-options section of the config file with state maintained in DynamoDB. The v1.5.0 [custom upgrade guide](./v150-Upgrade.md) will provides details on the upgrade process and requirements to migrate to the new CIDR assignment system, if desired. A [script](../reference-artifacts/Custom-Scripts/Update-Scripts/v1.3.8_to_v1.5.0) was created to assist with this migration.
 
@@ -136,7 +147,7 @@ d) Customer gateway (CGW) creation, to enable connectivity to on-premises firewa
 
 Examples of each of the firewall options have been included as variants of the Lite config file [example](./customization-index.md#11-sample-accelerator-configuration-files).
 
-Note: While we only provide a single example for each 3rd party implementation today, the implementations are generic and should be usable by any 3rd party firewall vendor, assuming they support the required features and protocols. The two examples were driven by customer demand and heavy lifting by the 3rd party vendor. We look forward to additional vendors developing and contributing additional sample configurations.
+Note: While we only provide a single example for each 3rd party implementation today, the implementations are generic and should be usable by any 3rd party firewall vendor, assuming they support the required features and protocols. The two examples were driven by customer demand and heavy lifting by the 3rd party vendor. We look forward to additional vendors developing and contributing additional sample configurations. For new 3rd party integrations, we encourage the use of the GWLB approach.
 
 ### 2.2.7. Other
 
@@ -164,11 +175,14 @@ Before installing, you must first:
       - the Accelerator home region must match the Control Tower home region
    3. Select _all_ regions for `Additional AWS Regions for governance`, click `Next`
       - The Control Tower and Accelerator regions MUST be properly aligned
-	  - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions`
-	  - To manage a region requires the region:
-	    - be enabled in Control Tower (if supported)
-		- added to the config file `control-tower-supported-regions` list (if supported)
-		- added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`)
+   - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions`
+   - To manage a region requires the region:
+     - be enabled in Control Tower (if supported)
+     - added to the config file `control-tower-supported-regions` list (if supported)
+     - added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`)
+     - While we highly recommend guardrail deployment for all AWS enabled by default regions, at minimum
+       - the home region MUST be enabled in Control Tower and must be listed in `control-tower-supported-regions`
+       - both the home-region and ${GBL_REGION} must be listed in `supported-regions`
    4. For the `Foundational OU`, leave the default value `Security`
    5. For the `Additional OU` provide the value `Infrastructure`, click `Next`
    6. Enter the email addresses for your `Log Archive` and `Audit` accounts, change the `Audit` account name to `Security`, click `Next`
@@ -228,6 +242,7 @@ As of v1.5.0, the Accelerator offers deployment from either GitHub or CodeCommit
 
 1. In your AWS Organization Management account, open CodeCommit and create a new repository named `aws-secure-environment-accelerator`
 2. Go to GitHub and download the repository `Source code` zip or tarball for the [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) you wish to deploy
+   - Do NOT download the code off the main GitHub branch, this will leave you in a completely unsupported state (and with beta code)
 3. Push the extracted codebase into the newly created CodeCommit repository, maintaining the file/folder hierarchy
 4. Set the default CodeCommit branch for the new repository to main
 5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.0`)
@@ -262,7 +277,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - Click on the product you want to subscribe, in this case `Fortinet FortiGate (BYOL) Next-Generation Firewall` and `Fortinet FortiManager (BYOL Centralized Security Management` **or** `CloudGuard Network Security for Gateway Load Balancer - BYOL` and `Check Point Security Management (BYOL)`
     - Click on "Continue to Subscribe"
     - Click on "Accept Terms" and wait for subscription to be completed
-    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (**Fortinet** `v6.4.6`, **Checkpoint Mgmt** `R81.10-335.883` and **CloudGuard** `R80.40-294.374` recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
+    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (**Fortinet** `v6.4.7`, **Checkpoint Mgmt** `R81.10-335.883` and **CloudGuard** `R80.40-294.374` recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
 
 ![New AMI ID](img/new-ami-id.png)
 
@@ -299,8 +314,8 @@ If deploying to an internal AWS employee account and installing the solution wit
 7. If required, place the firewall configuration and license files in the folder and path defined in the config file
    - For AWS Network Firewall: `nfw/nfw-example-policy.json`
    - For Fortinet: `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
-     - We have made several samples available [here](../../reference-artifacts/Third-Party): `./reference-artifacts/Third-Party/`
-     - Both samples comprise an active / active firewall pair. Until recently we only brought up one tunnel per firewall, you now also have an example which brings up both tunnels per firewall
+     - We have made a sample available [here](../../reference-artifacts/Third-Party): `./reference-artifacts/Third-Party/`
+     - the samples configures an active / active firewall pair with two tunnels per firewall
      - If you updated your perimeter VPC subnet names, you must also make these changes in your firewall-example.txt file
      - If you don't have any license files, update the config file with an empty array (`"license": []`). Do NOT use the following: `[""]`.
    - The basic Checkpoint configuration is stored directly in config.json
@@ -348,7 +363,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - review the list of [Known Installation Issues](#251-known-installation-issues) in section 2.5.1 below
     - review the Accelerator Basic Operation and Frequently Asked Questions [(FAQ) Document](../faq/faq.md)
 11. Once the pipeline completes (~10 mins), the main state machine, named `ASEA-MainStateMachine_sm`, will start in Step Functions
-12. The state machine time is dependent on the quantity of resources being deployed. On an initial installation of a more complex sample configuration files, it takes approximately 1.5 hours to execute. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but often takes as little as 20 minutes.
+12. The state machine time is dependent on the quantity of resources being deployed. On an initial installation of a more complex sample configuration files, it takes approximately 2 hours to execute (depending on the configuration file). Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but often takes as little as 20 minutes.
     - While you can watch the state machine in Step Functions, you will also be notified via email when the State Machine completes (or fails). Successful state machine executions include a list of all accounts which were successfully processed by the Accelerator.
 13. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
 14. You will receive an email from the State Machine SNS topic and the 3 SNS alerting topics. Please confirm all four (4) email subscriptions to enable receipt of state machine status and security alert messages. Until completed, you will not receive any email messages (must be completed within 7-days).
@@ -381,9 +396,11 @@ If deploying to an internal AWS employee account and installing the solution wit
 
 Current Issues:
 
-- On larger deployments we are occassionally seeing state machine failures when `Creating Config Recorders`.
+- When a new installation includes AWS Network Firewall (NFW), we are seeing State Machine failures in Phase 1 in the Perimeter account. Timing issues are causing the first deployment of the underlying CloudFormation stack to fail and rollback, when we automatically retry the stacks deployment, we attempt to recreate the NFW CloudWatch Log groups which were retained, causing a failure. A fix is in the works. Manually delete the two NFW log groups from the perimeter account (`/ASEA/Nfw/Central-Firewall/Alert` and `/ASEA/Nfw/Central-Firewall/Flow`) using either the Accelerator Pipeline Role or the Org Admin Role and rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
+- If dns-resolver-logging is enabled, VPC names containing spaces are not supported at this time as the VPC name is used as part of the log group name and spaces are not supported in log group names. By default in many of the sample config files, the VPC name is auto-generated from the OU name using a variable. In this situation, spaces are also not permitted in OU names (i.e. if any account in the OU has a VPC with resolver logging enabled and the VPC is using the OU as part of its name).
+- On larger deployments we are occassionally seeing state machine failures when `Creating Config Recorders`. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
-- Applying new Control Tower Detective guardrails fails in v1.5.0.  This has already been fixed in the next release.
+- Applying new Control Tower Detective guardrails fails in v1.5.0. This is fixed in the next release.
 
 Issues in Older Releases:
 
@@ -538,11 +555,14 @@ The Accelerator installation is complete, but several manual steps remain:
 7. Customers are responsible for the ongoing management and rotation of all passwords on a regular basis per their organizational password policy. This includes the passwords of all IAM users, MAD users, firewall users, or other users, whether deployed by the Accelerator or not. We do NOT automatically rotate any passwords, but strongly encourage customers do so, on a regular basis.
 
 8. During the installation we request required limit increases, resources dependent on these limits will not be deployed
+
    1. Limit increase requests are controlled through the Accelerator configuration file `"limits":{}` setting
    2. The sample configuration file requests increases to your EIP count in the perimeter account and to the VPC count and Interface Endpoint count in the shared-network account
    3. You should receive emails from support confirming the limit increases
    4. On the next state machine execution, resources blocked by limits should be deployed (i.e. additional VPC's and Endpoints)
    5. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
+
+9. Note: After a successful install the Control Tower `Organizational units` dashboard will indicate `2 of 3` in the `Accounts enrolled` column for the Security OU, as it does not enable enrollment of the management account in guardrails. The Accelerator compliments Control Tower and enables guardrails in the management account which is important to high compliance customers.
 
 # 3. Upgrades
 

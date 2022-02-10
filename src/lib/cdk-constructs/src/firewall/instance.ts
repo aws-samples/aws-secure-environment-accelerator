@@ -19,6 +19,7 @@ import { S3Template } from '@aws-accelerator/custom-resource-s3-template';
 import { IInstanceProfile } from '../iam';
 import { Subnet, SecurityGroup } from '../vpc';
 import { CfnSleep } from '@aws-accelerator/custom-resource-cfn-sleep';
+import { EC2DisableApiTermination } from '@aws-accelerator/custom-resource-ec2-disable-api-termination';
 
 export interface FirewallVpnTunnelOptions {
   cgwTunnelInsideAddress1: string;
@@ -123,6 +124,11 @@ export class FirewallInstance extends cdk.Construct {
     if (this.template) {
       this.resource.node.addDependency(this.template);
     }
+
+    new EC2DisableApiTermination(this, `EC2${this.props.name}DisableApiTermination`, {
+      ec2Id: this.resource.ref,
+      ec2Name: this.props.name,
+    });
   }
 
   addNetworkInterface(props: {

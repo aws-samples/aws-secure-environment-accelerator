@@ -39,5 +39,5 @@ test('structured output extensions should work', () => {
   });
 
   expect(artifactOutput).toBeDefined();
-  expect(artifactOutput!.bucketName).toBe('bucket-name');
+  expect(artifactOutput.bucketName).toBe('bucket-name');
 });
