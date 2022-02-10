@@ -174,6 +174,7 @@ Update the **SiemConfig.json**. Replace all sample values with desired values.
 ```
 4. Build the CDK solution and Lambdas
 ```
+ > npm run install:packages
  > npm run build
 ``` 
 5. Provision the OpenSearch Service Linked Role
