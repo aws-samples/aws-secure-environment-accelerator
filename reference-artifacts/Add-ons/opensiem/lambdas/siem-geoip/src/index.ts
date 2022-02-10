@@ -11,6 +11,5 @@
  *  and limitations under the License.
  */
 
- export { handler as geoIpDownloader } from './geo-ip-downloader';
- export { handler as geoIpInit } from './geo-ip-init';
- 
+export { handler as geoIpDownloader } from './geo-ip-downloader';
+export { handler as geoIpInit } from './geo-ip-init';

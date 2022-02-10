@@ -11,7 +11,6 @@
  *  and limitations under the License.
  */
 
- import * as aws from 'aws-sdk';
- aws.config.logger = console;
- export default aws;
- 
+import * as aws from 'aws-sdk';
+aws.config.logger = console;
+export default aws;

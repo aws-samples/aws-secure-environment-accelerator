@@ -81,14 +81,9 @@ export class OpenSearchSiemConfigure extends Construct {
       vpcSecurityGroups.push(tmp);
     }
 
-    const lambdaRole = iam.Role.fromRoleArn(
-      stack,
-      `ConfigureLambdaRole`,
-      this.props.lambdaExecutionRole,
-      {
-        mutable: true,
-      },
-    );
+    const lambdaRole = iam.Role.fromRoleArn(stack, `ConfigureLambdaRole`, this.props.lambdaExecutionRole, {
+      mutable: true,
+    });
 
     return new lambda.Function(stack, `ConfigureLambda`, {
       runtime: lambda.Runtime.NODEJS_14_X,

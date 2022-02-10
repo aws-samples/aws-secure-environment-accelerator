@@ -29,7 +29,6 @@ import * as opensearch from './open-search';
 import { OpenSearchSiemConfigure } from './siem-configure';
 import { OpenSearchSiemGeoIpInit } from './siem-geoip-download';
 
-
 export interface OpenSearchSiemStackProps extends StackProps {
   provisionServiceLinkedRole?: boolean;
   siemConfig: SiemConfig;
@@ -51,16 +50,16 @@ export class OpenSearchSiemStack extends Stack {
       osServiceLinkedRoleArn = `arn:aws:iam::${this.account}:role/aws-service-role/es.amazonaws.com/AWSServiceRoleForAmazonElasticsearchService`;
     }
 
-    const kmsEncryptionKey = new kms.Key(this, 'EncryptionKey', {     
+    const kmsEncryptionKey = new kms.Key(this, 'EncryptionKey', {
       enableKeyRotation: true,
-      removalPolicy: RemovalPolicy.RETAIN
+      removalPolicy: RemovalPolicy.RETAIN,
     });
 
     new kms.Alias(this, 'EncryptionKeyAlias', {
       aliasName: 'opensearch-siem',
       targetKey: kmsEncryptionKey,
-      removalPolicy: RemovalPolicy.RETAIN
-    })
+      removalPolicy: RemovalPolicy.RETAIN,
+    });
 
     if (osServiceLinkedRoleArn) {
       kmsEncryptionKey.addToResourcePolicy(
@@ -137,7 +136,7 @@ export class OpenSearchSiemStack extends Stack {
 
       securityGroups.push(securityGroup);
     }
- 
+
     // Cognito
     const cognitoUserPool = new cognito.CognitoUserPool(this, `UserPool`, {
       userPoolName: 'OpenSearchSiemUserPool',
@@ -257,13 +256,13 @@ export class OpenSearchSiemStack extends Stack {
   configureSnsAlerts(scope: Construct, kmsKey: kms.Key) {
     const snsAlertRole = new iam.Role(scope, 'SnsAlertRole', {
       roleName: 'opensearch-siem-sns-role',
-      assumedBy: new iam.ServicePrincipal('es.amazonaws.com')
+      assumedBy: new iam.ServicePrincipal('es.amazonaws.com'),
     });
 
     const snsAlertTopic = new sns.Topic(scope, 'SnsAlertTopic', {
       topicName: 'opensearch-siem-sns-alerts',
       displayName: 'OpenSearch SIEM Alert Topic',
-      masterKey: kmsKey
+      masterKey: kmsKey,
     });
 
     snsAlertTopic.grantPublish(snsAlertRole);
@@ -316,14 +315,14 @@ export class OpenSearchSiemStack extends Stack {
     // Dead Letter Queue
     const dql = new sqs.Queue(scope, 'DLQ', {
       queueName: 'opensearch-siem-dlq',
-      encryption: sqs.QueueEncryption.KMS_MANAGED
+      encryption: sqs.QueueEncryption.KMS_MANAGED,
     });
 
     const cfnLambda = eventProcessingLambda.node.defaultChild as lambda.CfnFunction;
 
     cfnLambda.deadLetterConfig = {
-      targetArn: dql.queueArn
-    }
+      targetArn: dql.queueArn,
+    };
 
     new CfnOutput(scope, 'LambdaProcessorArn', {
       value: eventProcessingLambda.functionArn,
