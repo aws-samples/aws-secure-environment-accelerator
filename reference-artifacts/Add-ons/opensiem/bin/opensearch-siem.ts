@@ -19,34 +19,31 @@ import { OpenSearchSiemStack } from '../lib/opensearch-siem-stack';
 import { OpenSearchSiemS3NotificationsStack } from '../lib/opensearch-siem-s3-notifications-stack';
 import * as sc from '../lib/siem-config';
 
-
 sc.loadSiemConfig().then(siemConfig => {
-
   console.log(siemConfig);
 
   const app = new cdk.App();
-  
+
   new OpenSearchSiemStack(app, 'OpenSearchSiemStack', {
     provisionServiceLinkedRole: false,
     siemConfig,
     env: {
       account: siemConfig.operationsAccountId,
-      region: siemConfig.region
+      region: siemConfig.region,
     },
     tags: {
-      Application: "OpenSearch SIEM"
-    }
+      Application: 'OpenSearch SIEM',
+    },
   });
 
   new OpenSearchSiemS3NotificationsStack(app, 'OpenSearchSiemS3NotificationsStack', {
     siemConfig,
     env: {
       account: siemConfig.logArchiveAccountId,
-      region: siemConfig.region
+      region: siemConfig.region,
     },
     tags: {
-      Application: "OpenSearch SIEM"
-    }
+      Application: 'OpenSearch SIEM',
+    },
   });
-
 });

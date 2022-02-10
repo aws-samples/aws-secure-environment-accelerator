@@ -12,18 +12,20 @@
  */
 
 declare module 'siem-common' {
-    function errorHandler(onEvent: (event: CloudFormationCustomResourceEvent) => Promise<ErrorHandlerResponse | undefined | void>);
-    function throttlingBackOff<T>(
-        request: () => Promise<T>,
-        options?: Partial<Omit<IBackOffOptions, 'retry'>>,
-      ): Promise<T>;
-    class S3 {
-        async getObjectBody(input: s3.GetObjectRequest): Promise<s3.Body>;
-        async getObjectBodyAsString(input: s3.GetObjectRequest): Promise<string>;
-        async putObject(input: s3.PutObjectRequest): Promise<s3.PutObjectOutput>;
-    }
+  function errorHandler(
+    onEvent: (event: CloudFormationCustomResourceEvent) => Promise<ErrorHandlerResponse | undefined | void>,
+  );
+  function throttlingBackOff<T>(
+    request: () => Promise<T>,
+    options?: Partial<Omit<IBackOffOptions, 'retry'>>,
+  ): Promise<T>;
+  class S3 {
+    async getObjectBody(input: s3.GetObjectRequest): Promise<s3.Body>;
+    async getObjectBodyAsString(input: s3.GetObjectRequest): Promise<string>;
+    async putObject(input: s3.PutObjectRequest): Promise<s3.PutObjectOutput>;
+  }
 }
 
 declare module 'querystring' {
-    function encode(string);
+  function encode(string);
 }

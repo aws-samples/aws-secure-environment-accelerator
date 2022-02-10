@@ -11,7 +11,7 @@
  *  and limitations under the License.
  */
 
- export * from './aws-client';
- export * from './backoff';
- export * from './s3';
- export * from './errorHandler';
+export * from './aws-client';
+export * from './backoff';
+export * from './s3';
+export * from './errorHandler';

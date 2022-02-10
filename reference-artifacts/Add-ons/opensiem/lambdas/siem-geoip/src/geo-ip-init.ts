@@ -15,10 +15,10 @@ const AWS = require('aws-sdk');
 
 AWS.config.logger = console;
 import {
-    CloudFormationCustomResourceEvent,
-    CloudFormationCustomResourceCreateEvent,
-    CloudFormationCustomResourceUpdateEvent,
-    CloudFormationCustomResourceDeleteEvent,
+  CloudFormationCustomResourceEvent,
+  CloudFormationCustomResourceCreateEvent,
+  CloudFormationCustomResourceUpdateEvent,
+  CloudFormationCustomResourceDeleteEvent,
 } from 'aws-lambda';
 
 import { errorHandler } from 'siem-common';
@@ -26,74 +26,74 @@ import { errorHandler } from 'siem-common';
 const lambdaClient = new AWS.Lambda();
 
 export interface HandlerProperties {
-    geoIpLambdaRoleArn: string;
+  geoIpLambdaRoleArn: string;
 }
 
 export const handler = errorHandler(onEvent);
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
-    console.log(`OpenSearch Siem GeoIp Init...`);
-    console.log(JSON.stringify(event, null, 2));
+  console.log(`OpenSearch Siem GeoIp Init...`);
+  console.log(JSON.stringify(event, null, 2));
 
-    // eslint-disable-next-line default-case
-    switch (event.RequestType) {
-        case 'Create':
-            return onCreateOrUpdate(event);
-        case 'Update':
-            return onCreateOrUpdate(event);
-        case 'Delete':
-            return onDelete(event);
-    }
+  // eslint-disable-next-line default-case
+  switch (event.RequestType) {
+    case 'Create':
+      return onCreateOrUpdate(event);
+    case 'Update':
+      return onCreateOrUpdate(event);
+    case 'Delete':
+      return onDelete(event);
+  }
 }
 
 function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
-    const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-    return `OpenSearchSiemGeoIpInit`;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  return `OpenSearchSiemGeoIpInit`;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function onCreateOrUpdate(
-    event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
+  event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
 ) {
-    const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
-    const { geoIpLambdaRoleArn } = properties;
+  const { geoIpLambdaRoleArn } = properties;
 
-    try {
-        const resp = await lambdaClient
-            .invoke({
-                FunctionName: geoIpLambdaRoleArn,
-                InvocationType: 'Event',
-            })
-            .promise();
+  try {
+    const resp = await lambdaClient
+      .invoke({
+        FunctionName: geoIpLambdaRoleArn,
+        InvocationType: 'Event',
+      })
+      .promise();
 
-        console.log(resp);
-    } catch (err) {
-        console.log(err);
-        // Don't fail lambda; it will retry later with the CloudWatch Event schedule.
-    }
+    console.log(resp);
+  } catch (err) {
+    console.log(err);
+    // Don't fail lambda; it will retry later with the CloudWatch Event schedule.
+  }
 
-    return {
-        physicalResourceId: getPhysicalId(event),
-        data: {},
-    };
+  return {
+    physicalResourceId: getPhysicalId(event),
+    data: {},
+  };
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-    const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
-    if (event.PhysicalResourceId !== getPhysicalId(event)) {
-        return;
-    }
+  if (event.PhysicalResourceId !== getPhysicalId(event)) {
+    return;
+  }
 
-    return {
-        physicalResourceId: getPhysicalId(event),
-        data: {},
-    };
+  return {
+    physicalResourceId: getPhysicalId(event),
+    data: {},
+  };
 }
 
 const sleep = async (ms: number) => {
-    return new Promise(resolve => {
-        setTimeout(resolve, ms);
-    });
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
 };
