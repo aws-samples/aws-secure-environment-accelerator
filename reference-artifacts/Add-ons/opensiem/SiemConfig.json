@@ -1,0 +1,53 @@
+{
+    "operationsAccountId": "----- REPLACE -----",
+    "logArchiveAccountId": "----- REPLACE -----",
+    "vpcId": "----- REPLACE -----",
+    "region": "ca-central-1",
+    "s3LogBuckets": [
+        "asea-logarchive-phase0-aescacentral1------ REPLACE -----",
+        "asea-logarchive-phase0-cacentral1------ REPLACE -----"
+    ],
+    "securityGroups": [
+        {
+            "name": "OpenSearch-SIEM-SG",
+            "inboundRules": [
+                {
+                    "description": "Allow Traffic Inbound",
+                    "tcpPorts": [
+                        443
+                    ],
+                    "source": [
+                        "10.0.0.0/8",
+                        "100.96.252.0/23",
+                        "100.96.250.0/23"
+                    ]
+                }
+            ],
+            "outboundRules": [
+                {
+                    "description": "All Outbound",
+                    "type": [
+                        "ALL"
+                    ],
+                    "source": [
+                        "0.0.0.0/0"
+                    ]
+                }
+            ]
+        }
+    ],
+    "appSubnets": [
+       "subnet------ REPLACE -----",
+       "subnet------ REPLACE -----"
+    ],
+    "lambdaLogProcessingRoleArn": "arn:aws:iam::----- REPLACE -----:role/SIEM-Lambda-Processor",
+    "cognitoDomainPrefix": "asea-siem------ REPLACE -----",
+    "openSearchDomainName": "siem",
+    "openSearchInstanceTypeMainNodes": "c6g.xlarge.search",
+    "openSearchInstanceTypeDataNodes": "r6g.xlarge.search",    
+    "openSearchCapacityMainNodes": 3,
+    "openSearchCapacityDataNodes": 4,
+    "openSearchVolumeSize": 100,
+    "openSearchConfiguration": "opensearch-config.json",    
+    "maxmindLicense": "license.txt"
+}
