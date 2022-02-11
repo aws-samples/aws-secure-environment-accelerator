@@ -168,6 +168,7 @@ async function getEnabledStandards() {
 
 async function describeStandardsControls(subscriptionArn: string | undefined) {
   let token: string | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const standardControls: any[] = [];
   if (!subscriptionArn) {
     return standardControls;

@@ -325,6 +325,7 @@ export class CdkToolkit {
         force: true,
       });
       this.deploymentLog(stack, 'Successfully destroyed stack');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       this.deploymentLog(stack, 'Could not destroy stack');
       console.log(e);

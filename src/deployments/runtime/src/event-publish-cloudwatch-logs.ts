@@ -20,6 +20,7 @@ const logGroupName = process.env.LOG_GROUP_NAME || '';
 
 const cloudWatchLogs = new AWS.CloudWatchLogs();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const handler = async (input: any, context?: Context): Promise<void> => {
   console.log('EventBridge CloudWatch Logs Publisher ....');
   console.log(JSON.stringify(input, null, 2));
