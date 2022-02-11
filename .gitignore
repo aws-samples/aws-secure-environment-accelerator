@@ -6,3 +6,4 @@ config.json
 aws-landing-zone-configuration.zip
 **/dist
 .idea
+.vscode
