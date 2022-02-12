@@ -14,12 +14,15 @@ The total deployment time takes approximately 30 minutes (+ ASEA State Machine e
 ## Prerequisites
 
 1. Permissions:
-    1. Administrator Access to the Root AWS Account
-    2. Administrator Access to the Operations AWS Account
-    3. Administrator Access to the Log Archive AWS Account
+    1. Organization Management Account - ability to update ASEA config file and run ASEA state machine
+    2. Operations Account - Administrator Access *
+    3. Log Archive Account - Administrator Access *
 
-1. Node v14
-1. AWS CLI installed
+        \* does NOT require the use of a special role which bypasses ASEA SCP's. An AWS SSO based role is preferable.
+
+2. Node > v14.5.0 (install using nvm is recommended)
+3. AWS CLI installed
+4. git
 
 
 
@@ -160,6 +163,12 @@ Update the **SiemConfig.json**. Replace all sample values with desired values.
 * You can add country information as well as latitude/longitude location information to each IP address. To get location information, SIEM on OpenSearch Service downloads and uses GeoLite2 Free by [MaxMind](https://www.maxmind.com/). If you want to add location information, get your free license from MaxMind. If you get a license key, create a file called **license.txt** and place it in the **config** folder. There must be outbound internet connectivity from the VPC in the operations account for this feature to work.
 
 ## 3. Deploy the OpenSearch Stack
+
+1. Clone the github repo locally
+1. Change directory to **reference-artifacts/Add-ons/opensiem**
+
+--- 
+
 1. Apply AWS credentials for the **operations** AWS account to a command terminal. Set the default region example: 
 ```
   > export AWS_DEFAULT_REGION=ca-central-1
@@ -173,11 +182,20 @@ Update the **SiemConfig.json**. Replace all sample values with desired values.
  > npm install
 ```
 4. Build the CDK solution and Lambdas
+
+**mac/linux**
 ```
  > npm run install:packages
  > npm run build
 ``` 
-5. Provision the OpenSearch Service Linked Role
+**windows (command window)**
+```
+> cd lambdas/common && npm install && npm run build && cd ..\..
+> cd lambdas/siem-geoip && npm install && npm run build && cd ..\..
+> cd lambdas/siem-config && npm install && npm run build && cd ..\..
+```
+
+1. Provision the OpenSearch Service Linked Role
 ```
  > aws iam create-service-linked-role --aws-service-name es.amazonaws.com
 ```
@@ -244,6 +262,7 @@ Upload the preconfigured visualizations. For convenience, **dashboard.ndjson.zip
 The following AWS resources are retained when deleting the stack:
 - Cloudwatch Log Groups
 - KMS Key and Alias
+- CDK Bootstrap stacks (Operations and Log Archive accounts)
 
 1. In the log archive account
    1. navigate to CloudFormation and delete the **OpenSearchSiemS3NotificationsStack** stack
