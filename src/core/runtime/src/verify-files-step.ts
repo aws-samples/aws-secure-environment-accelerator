@@ -64,7 +64,6 @@ export const handler = async (input: VerifyFilesInput) => {
   await verifySsmDocumentFiles(outputs, acceleratorConfig, errors);
   await verifyConfigRuleFiles(outputs, acceleratorConfig, errors);
   await verifyNfwFiles(masterAccountKey, outputs, acceleratorConfig, errors);
-  await verifySiemFiles(masterAccountKey, outputs, acceleratorConfig, errors);
 
   if (errors.length > 0) {
     throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
@@ -184,32 +183,6 @@ async function verifyNfwFiles(
     }
   }
   await verifyFiles(centralBucketOutput.bucketName, nfwFiles, errors);
-}
-
-async function verifySiemFiles(
-  masterAccountKey: string,
-  outputs: StackOutput[],
-  config: c.AcceleratorConfig,
-  errors: string[],
-): Promise<void> {
-  const centralBucketOutput = CentralBucketOutputFinder.findOneByName({
-    outputs,
-    accountKey: masterAccountKey,
-  });
-
-  const siemFiles: string[] = [];
-  for (const [_, accountConfig] of config.getAccountConfigs()) {
-    const siemConfig = accountConfig.deployments?.siem;
-    if (!siemConfig) {
-      continue;
-    }
-    if (!siemConfig.deploy) {
-      continue;
-    }
-
-    siemFiles.push(siemConfig['event-processor-lambda-package'], siemConfig['opensearch-configuration']);
-  }
-  await verifyFiles(centralBucketOutput.bucketName, siemFiles, errors);
 }
 
 async function verifyCertificates(

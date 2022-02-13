@@ -24,7 +24,6 @@ import * as securityHub from '../deployments/security-hub';
 import * as macie from '../deployments/macie';
 import * as transitGateway from '../deployments/transit-gateway';
 import * as awsConfig from '../deployments/config';
-import * as openSearchSiemDeployment from '../deployments/opensearch-siem';
 
 /**
  * This is the main entry point to deploy phase 3
@@ -36,7 +35,6 @@ import * as openSearchSiemDeployment from '../deployments/opensearch-siem';
  * - Enable Security Hub and Invite Sub accounts as members
  * - Macie update Session
  * - TransitGateway Peering attachment and routes
- * - create OpenSearch SIEM Domain
  */
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
@@ -168,18 +166,5 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accounts,
     outputs,
     defaultRegion: context.defaultRegion,
-  });
-
-  // Find the central bucket in the outputs
-  const logArchiveBucket = accountBuckets[acceleratorConfig['global-options']['central-log-services'].account];
-
-  await openSearchSiemDeployment.step2({
-    accountStacks,
-    config: acceleratorConfig,
-    outputs,
-    vpcs: allVpcs,
-    logArchiveBucket,
-    context,
-    aesLogArchiveBucket,
   });
 }
