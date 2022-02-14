@@ -61,7 +61,7 @@ We picked a single example configuration file to provide detailed pricing per se
 
 The following table provides the estimated monthly pricing per AWS services provisioned by the Accelerator, across all accounts, for the Lite – IPSec VPN configuration.
 
-| AWS service                               | Quantity                                                                                                                                                                                                                   | Estimated Monthly Pricing |
+| AWS service                               | Quantity                                                                                                                                                                                                                   | Estimated<br> Monthly<br> Pricing |
 | :---------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------- |
 | CloudTrail (All Regions)                  |                                                                                                                                                                                                                            | $28                               |
 | CloudWatch (All Regions)                  |                                                                                                                                                                                                                            | $35                               |
