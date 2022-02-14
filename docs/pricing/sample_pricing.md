@@ -1,6 +1,6 @@
 # 1. AWS Secure Environment Accelerator Pricing
 
-The AWS Secure Environment Accelerator (ASEA) is available free of charge as an open source solution on GitHub. **You are responsible for the cost of the AWS services enabled, configured, and deployed by this solution.**
+The AWS Secure Environment Accelerator (ASEA) is available free of charge as an open source solution on GitHub. **You are responsible for the cost of the AWS services enabled, configured, and deployed by the solution.**
 
 The ASEA solution enables, configures and deploys two types of AWS [services](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/installation/services-list.md): services leveraged by the ASEA itself to deliver its capabilities; and services orchestrated by the ASEA to help create a secure multi-account AWS foundation for your users and workloads.
 
