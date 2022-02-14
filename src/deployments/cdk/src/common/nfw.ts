@@ -16,6 +16,7 @@ import { Construct, Fn } from '@aws-cdk/core';
 import { AzSubnet } from './vpc';
 import * as defaults from '../deployments/defaults';
 import * as logs from '@aws-cdk/aws-logs';
+import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
 
 export interface NfwProps {
   subnets: AzSubnet[];
@@ -31,6 +32,7 @@ export interface NfwProps {
   nfwFlowLogging: 'S3' | 'CloudWatch' | 'None';
   nfwAlertLogging: 'S3' | 'CloudWatch' | 'None';
   nfwFlowCWLDestination?: string;
+  logGroupRoleArn: string;
   logBucket?: defaults.RegionalBucket;
 }
 
@@ -67,12 +69,14 @@ export class Nfw extends Construct {
     const acceleratorPrefixNoDash = props.acceleratorPrefix.slice(0, -1);
     const logGroupName = `/${prefix}/Nfw`;
 
-    const cwFlowGroup = new logs.LogGroup(this, `${this.nfwName}NFWCWLFlowLogging`, {
+    const cwFlowGroup = new LogGroup(this, `${this.nfwName}NFWCWLFlowLogs`, {
       logGroupName: `/${acceleratorPrefixNoDash}/Nfw/${this.nfwName}/Flow`,
+      roleArn: props.logGroupRoleArn,
     });
 
-    const cwAlertGroup = new logs.LogGroup(this, `${this.nfwName}NFWCWLAlertLogging`, {
+    const cwAlertGroup = new LogGroup(this, `${this.nfwName}NFWCWLAlertLogs`, {
       logGroupName: `/${acceleratorPrefixNoDash}/Nfw/${this.nfwName}/Alert`,
+      roleArn: props.logGroupRoleArn,
     });
 
     if (this.nfwPolicy.statelessRuleGroup) {
