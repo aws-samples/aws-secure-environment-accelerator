@@ -2,6 +2,7 @@ const englishDict = require('../i18n/base-en.json');
 const frenchDict = require('../i18n/base-fr.json');
 
 export class TranslationExtractHelper {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   typeDocTranslation: any = {};
   selectedLanguage: string;
   constructor(selectedLanguage: string) {
@@ -9,6 +10,7 @@ export class TranslationExtractHelper {
     this.typeDocTranslation[`${selectedLanguage}`] = {};
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public iterate(obj: any, parentProperty: string) {
     // eslint-disable-next-line guard-for-in
     for (const property in obj.fields) {
