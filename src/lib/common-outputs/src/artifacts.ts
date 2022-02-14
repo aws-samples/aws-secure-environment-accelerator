@@ -24,7 +24,6 @@ export const ArtifactNameType = enums('ArtifactName', [
   'SsmDocument',
   'ConfigRules',
   'NFW',
-  'Siem',
 ]);
 
 export type ArtifactName = t.TypeOf<typeof ArtifactNameType>;

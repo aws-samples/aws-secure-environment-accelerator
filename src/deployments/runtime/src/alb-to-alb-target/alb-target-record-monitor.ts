@@ -213,14 +213,14 @@ const listernerRulesChange = (oldRecord: any, newRecord: any) => {
 
   return !_.isEqual(oldListenerRules, newListenerRules);
 };
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const priorityChange = (oldRecord: any, newRecord: any) => {
   const oldPriority = oldRecord.rule.condition.priority;
   const newPriority = newRecord.rule.condition.priority;
 
   return !(oldPriority === newPriority);
 };
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createRecordHandler = async (record: any) => {
   console.log('Record creation detected.');
   try {
@@ -295,6 +295,7 @@ const deleteRecordHandler = async (record: any) => {
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const updateRecordHandler = async (newRecord: any, oldRecord: any) => {
   try {
     console.log(`The record with id ${newRecord.id} was updated. Performing comparison.`);
