@@ -125,6 +125,7 @@ export class IamAssets extends cdk.Construct {
 
         if (trustPolicy) {
           const newRoleTrustPolicy = newRole.assumeRolePolicy;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const statements = JSON.parse(trustPolicy).Statement as any[];
           statements.map(statement => {
             if (!Array.isArray(statement.Principal.AWS)) {

@@ -1470,73 +1470,6 @@ translate(c.RsyslogSubnetConfig, {
   },
 });
 
-translate(c.OpenSearchSIEMConfig, {
-  title: 'OpenSearch SIEM Config',
-  description: 'The Accelerator deploys an OpenSearch cluster that will be configured as a SIEM.',
-  fields: {
-    deploy: {
-      title: 'Deploy',
-      description: 'Set to true to deploy this Rsyslog configuration',
-    },
-    'vpc-name': {
-      title: 'VPC name',
-      description: 'Name of the VPC for the Rsyslog',
-    },
-    region: {
-      title: ' ',
-      description: 'Region name for the Rsyslog',
-    },
-    'security-groups': {
-      title: ' ',
-      description: 'Security group configuration for the Rsyslog',
-    },
-    'app-subnets': {
-      title: 'Application subnets',
-      description: 'Subnet used to deploy the rsyslog instances.',
-    },
-    'lambda-log-processing-role': {
-      title: 'Lambda Log Processing Role',
-      description: 'The role that lambda will assume to do log processing',
-    },
-    'cognito-domain-prefix': {
-      title: 'Cognito Domain Prefix',
-      description: 'Domain prefix for Cognito UserPool domains, must be unique regionally',
-    },
-    'opensearch-instance-type-main-nodes': {
-      title: 'Main Node Instance Type',
-      description: 'OpenSearch instance type and size for the main nodes.',
-    },
-    'opensearch-instance-type-data-nodes': {
-      title: 'Data Node Instance Type',
-      description: 'OpenSearch instance type and size for the data nodes.',
-    },
-    'opensearch-capacity-main-nodes': {
-      title: 'Main Nodes',
-      description: 'The number of main nodes to deploy. Must be a multiple of 3.',
-    },
-    'opensearch-capacity-data-nodes': {
-      title: 'Data Nodes',
-      description: 'The number of data nodes to deploy. Must be a multiple of the number of AZs deployed into.',
-    },
-    'opensearch-volume-size': {
-      title: 'Volume Size',
-      description: 'The number of GB to provision the data node EBS volumes.',
-    },
-    'opensearch-configuration': {
-      title: 'Configuration File S3 Key',
-      description: 'The S3 Key for the configuration file',
-    },
-    'event-processor-lambda-package': {
-      title: 'Lambda Package Zipfile S3 Key',
-      description: 'The S3 key for the lambda package zip file',
-    },
-    'maxmind-license': {
-      title: 'MaxMind license file',
-      description: 'The S3 key for the MaxMind license file. (optional)',
-    },
-  },
-});
-
 translate(c.RsyslogConfig, {
   title: 'Rsyslog Config',
   description:
@@ -2272,10 +2205,6 @@ translate(c.DeploymentConfigType, {
     'firewall-manager': {
       title: '',
       description: 'Deploy a 3rd party Firewall Management Appliance',
-    },
-    siem: {
-      title: 'OpenSearch SIEM',
-      description: 'Deploys OpenSearch as a SIEM that will ingest logs in the log-archive account.',
     },
   },
 });

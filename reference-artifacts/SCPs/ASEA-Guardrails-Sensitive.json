@@ -106,20 +106,18 @@
       "Sid": "OTHS",
       "Effect": "Deny",
       "Action": [
-        "organizations:LeaveOrganization",
-        "aws-portal:ModifyAccount",
+        "organizations:LeaveOrg*",
+        "aws-portal:Modify*",
         "aws-portal:ViewAccount",
-        "aws-portal:ModifyBilling",
-        "aws-portal:ModifyPaymentMethods",
         "aws-portal:ViewPaymentMethods",
-        "ds:AcceptSharedDirectory",
-        "ds:ShareDirectory",
+        "ds:AcceptSharedDir*",
+        "ds:ShareDir*",
         "ds:EnableSso",
         "ds:DisableSso",
-        "ram:AcceptResourceShareInvitation",
+        "ram:AcceptResourceShareInv*",
         "ram:AssociateResourceShare",
         "ram:CreateResourceShare",
-        "ram:EnableSharingWithAwsOrganization",
+        "ram:EnableSharingWithAwsOrg*",
         "lightsail:*",
         "sumerian:*",
         "gamelift:*",
@@ -201,7 +199,7 @@
     {
       "Sid": "GBL2",
       "Effect": "Deny",
-      "Action": ["acm:*", "kms:*"],
+      "Action": ["acm:*", "kms:*", "sns:Publish"],
       "Resource": "*",
       "Condition": {
         "StringNotEquals": {
@@ -211,7 +209,7 @@
           "aws:PrincipalARN": [
             "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
             "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
-            "arn:aws:iam::*:role/aws-controltower-*"
+            "arn:aws:iam::*:role/AWSServiceRoleFor*"
           ]
         }
       }
@@ -265,7 +263,8 @@
         "s3:DescribeMultiR*",
         "s3:GetMultiR*",
         "s3:ListMultiR*",
-        "s3:PutMultiR*"
+        "s3:PutMultiR*",
+        "sns:Publish"
       ],
       "Resource": "*",
       "Condition": {
@@ -276,7 +275,7 @@
           "aws:PrincipalARN": [
             "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
             "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
-            "arn:aws:iam::*:role/aws-controltower-*"
+            "arn:aws:iam::*:role/AWSServiceRoleFor*"
           ]
         }
       }

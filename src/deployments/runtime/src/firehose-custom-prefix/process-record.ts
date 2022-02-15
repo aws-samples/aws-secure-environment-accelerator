@@ -18,7 +18,7 @@ const zlib = require('zlib');
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const handler = async (event: any, _context: any) => {
   console.log(`Processing firehose records...`);
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const firehoseRecordsOutput: any = {};
   // Create result object.
   firehoseRecordsOutput.records = [];

@@ -20,8 +20,6 @@ import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import * as firewallCluster from '../deployments/firewall/cluster';
 import * as vpcDeployment from '../deployments/vpc';
 import * as alb from '../deployments/alb';
-import * as openSearchSiemDeployment from '../deployments/opensearch-siem';
-import { LogBucketOutput, AesBucketOutput } from '../deployments/defaults';
 
 export interface RdgwArtifactsOutput {
   accountKey: string;
@@ -37,7 +35,6 @@ export interface RdgwArtifactsOutput {
  * - Creates CloudWatch Metrics on LogGroups
  * - Associate Shared Resolver Rules to VPC
  * - Associate Hosted Zones to VPC
- * - Configure OpenSearch SIEM S3 Notifications to Queue
  */
 
 export async function deploy({ acceleratorConfig, accounts, accountStacks, outputs, context }: PhaseInput) {
@@ -116,27 +113,5 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
     accountStacks,
     config: acceleratorConfig,
     outputs,
-  });
-
-  // Find the central bucket in the outputs
-  const logArchiveBucket = LogBucketOutput.getBucket({
-    accountStacks,
-    config: acceleratorConfig,
-    outputs,
-  });
-
-  const aesLogArchiveBucket = AesBucketOutput.getBucket({
-    accountStacks,
-    config: acceleratorConfig,
-    outputs,
-  });
-
-  await openSearchSiemDeployment.step3({
-    accountStacks,
-    config: acceleratorConfig,
-    outputs,
-    logArchiveBucket,
-    aesLogArchiveBucket,
-    acceleratorPrefix: context.acceleratorPrefix,
   });
 }
