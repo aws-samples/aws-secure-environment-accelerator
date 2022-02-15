@@ -26,6 +26,8 @@ export interface HandlerProperties {
   logBucketArn: string;
   logBucketName: string;
   logBucketKmsKeyArn: string | undefined;
+  aesLogBucketArn: string;
+  aesLogBucketName: string;
 }
 
 export const handler = errorHandler(onEvent);
@@ -156,7 +158,12 @@ async function constructPolicy(policy: Policy, statement: PolicyStatement, props
   return policy;
 }
 
-async function updateBucketPolicy(props: HandlerProperties, bucketPolicy: Policy) {
+async function updateBucketPolicy(
+  props: HandlerProperties,
+  logBucketArn: string,
+  logBucketName: string,
+  bucketPolicy: Policy,
+) {
   const readOnlyStatement = {
     Sid: logArchiveReadOnlySid,
     Effect: 'Allow',
@@ -164,10 +171,10 @@ async function updateBucketPolicy(props: HandlerProperties, bucketPolicy: Policy
     Principal: {
       AWS: props.roles,
     },
-    Resource: [`${props.logBucketArn}`, `${props.logBucketArn}/*`],
+    Resource: [`${logBucketArn}`, `${logBucketArn}/*`],
   };
   const updatedBucketPolicy = await constructPolicy(bucketPolicy, readOnlyStatement, props);
-  await putBucketPolicy(props.logBucketName, JSON.stringify(updatedBucketPolicy));
+  await putBucketPolicy(logBucketName, JSON.stringify(updatedBucketPolicy));
 }
 
 async function updateKeyPolicy(props: HandlerProperties, keyPolicy: Policy) {
@@ -187,12 +194,17 @@ async function updateKeyPolicy(props: HandlerProperties, keyPolicy: Policy) {
 async function createOrUpdateBucketPolicy(props: HandlerProperties) {
   const bucketPolicy = await getBucketPolicy(props.logBucketName);
   if (Object.keys(bucketPolicy).length > 0 || props.roles.length > 0) {
-    await updateBucketPolicy(props, bucketPolicy);
+    await updateBucketPolicy(props, props.logBucketArn, props.logBucketName, bucketPolicy);
   }
 
   const keyPolicy = await getKmsKeyPolicy(props.logBucketKmsKeyArn);
   if (Object.keys(keyPolicy).length > 0 || props.roles.length > 0) {
     await updateKeyPolicy(props, keyPolicy);
+  }
+
+  const aesBucketPolicy = await getBucketPolicy(props.aesLogBucketName);
+  if (Object.keys(aesBucketPolicy).length > 0 || props.roles.length > 0) {
+    await updateBucketPolicy(props, props.aesLogBucketArn, props.aesLogBucketName, aesBucketPolicy);
   }
 }
 
@@ -211,6 +223,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const props = getPropertiesFromEvent(event);
   let bucketPolicy = await getBucketPolicy(props.logBucketName);
   let keyPolicy = await getKmsKeyPolicy(props.logBucketKmsKeyArn);
+  let aesBucketPolicy = await getBucketPolicy(props.aesLogBucketName);
 
   if (Object.keys(bucketPolicy).length > 0) {
     bucketPolicy = removeExistingReadOnlyStatement(bucketPolicy);
@@ -221,6 +234,12 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     keyPolicy = removeExistingReadOnlyStatement(keyPolicy);
     const response = await putKmsKeyPolicy(props.logBucketKmsKeyArn, JSON.stringify(keyPolicy));
   }
+
+  if (Object.keys(aesBucketPolicy).length > 0) {
+    aesBucketPolicy = removeExistingReadOnlyStatement(aesBucketPolicy);
+    const response = await putBucketPolicy(props.aesLogBucketName, JSON.stringify(aesBucketPolicy));
+  }
+
   return {};
 }
 

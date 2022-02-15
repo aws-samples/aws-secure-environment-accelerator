@@ -32,12 +32,13 @@ export interface IamAssetsProps {
   accounts: Account[];
   userPasswords: { [userId: string]: cdk.SecretValue };
   logBucket: IBucket;
+  aesLogBucket: IBucket;
 }
 
 export class IamAssets extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: IamAssetsProps) {
     super(scope, id);
-    const { accountKey, iamConfig, iamPoliciesDefinition, accounts, userPasswords, logBucket } = props;
+    const { accountKey, iamConfig, iamPoliciesDefinition, accounts, userPasswords, logBucket, aesLogBucket } = props;
 
     const customerManagedPolicies: { [policyName: string]: iam.ManagedPolicy } = {};
     // method to create IAM Policy
@@ -226,6 +227,12 @@ export class IamAssets extends cdk.Construct {
           effect: iam.Effect.ALLOW,
           actions: ['s3:GetObject', 's3:ListBucket'],
           resources: [logBucket.bucketArn, logBucket.arnForObjects('*')],
+        }),
+
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['s3:GetObject', 's3:ListBucket'],
+          resources: [aesLogBucket.bucketArn, aesLogBucket.arnForObjects('*')],
         }),
       );
       new CfnIamPolicyOutput(this, `IamSsmReadOnlyPolicyOutput`, {
