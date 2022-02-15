@@ -38,15 +38,6 @@ export async function step1(props: ArtifactsStep1Props) {
   const centralConfigBucket = s3.Bucket.fromBucketAttributes(masterAccountStack, 'CentralBucket', {
     bucketName: centralConfigBucketName,
   });
-  // upload OpenSearch SIEM Artifacts
-  const openSearchSiemUpload = uploadArtifacts({
-    accountStack: masterAccountStack,
-    artifactName: 'Siem',
-    artifactFolderName: 'siem',
-    artifactKeyPrefix: 'siem',
-    centralBucket,
-    destinationKeyPrefix: 'siem',
-  });
   // upload AWS NFW Artifacts
   const nfwUpload = uploadArtifacts({
     accountStack: masterAccountStack,
@@ -134,7 +125,6 @@ export async function step1(props: ArtifactsStep1Props) {
   copyFiles.node.addDependency(scpUpload);
   copyFiles.node.addDependency(configRulesUpload);
   copyFiles.node.addDependency(nfwUpload);
-  copyFiles.node.addDependency(openSearchSiemUpload);
 }
 
 function uploadArtifacts(props: {

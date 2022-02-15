@@ -119,6 +119,7 @@ export async function deploy({
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const nfwNameToIdMap = vpcOutput.nfw?.reduce((acc: any, nfwConfig) => {
       const vpcEndpointAz = nfwConfig.az.substr(-1);
       const vpcEndpointId = nfwConfig.vpcEndpoint;
@@ -447,6 +448,7 @@ export async function deploy({
     accountStacks,
     accounts,
     logBucket,
+    aesLogBucket: aesLogArchiveBucket,
     config: acceleratorConfig,
     acceleratorPrefix: context.acceleratorPrefix,
   });

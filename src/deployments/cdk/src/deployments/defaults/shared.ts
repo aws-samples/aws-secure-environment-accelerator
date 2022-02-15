@@ -41,6 +41,21 @@ export function createDefaultS3Key(props: { accountStack: AccountStack }): KmsDe
       resources: ['*'],
     }),
   );
+  encryptionKey.addToResourcePolicy(
+    new iam.PolicyStatement({
+      sid: 'Allow AWS services to use the encryption key',
+      actions: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
+      principals: [
+        new iam.ServicePrincipal('sns.amazonaws.com'),
+        new iam.ServicePrincipal('cloudwatch.amazonaws.com'),
+        new iam.ServicePrincipal('lambda.amazonaws.com'),
+        // For macie usage in security account
+        new iam.ServicePrincipal('macie.amazonaws.com'),
+      ],
+      resources: ['*'],
+    }),
+  );
+
   return {
     encryptionKey,
     alias: keyAlias,

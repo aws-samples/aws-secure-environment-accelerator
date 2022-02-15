@@ -16,6 +16,7 @@ import { Construct, Fn } from '@aws-cdk/core';
 import { AzSubnet } from './vpc';
 import * as defaults from '../deployments/defaults';
 import * as logs from '@aws-cdk/aws-logs';
+import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
 
 export interface NfwProps {
   subnets: AzSubnet[];
@@ -24,12 +25,14 @@ export interface NfwProps {
     name: string;
     path: string;
   };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   nfwPolicy: any;
   nfwName: string;
   acceleratorPrefix: string;
   nfwFlowLogging: 'S3' | 'CloudWatch' | 'None';
   nfwAlertLogging: 'S3' | 'CloudWatch' | 'None';
   nfwFlowCWLDestination?: string;
+  logGroupRoleArn: string;
   logBucket?: defaults.RegionalBucket;
 }
 
@@ -45,7 +48,9 @@ export interface NfwOutput {
 }
 export class Nfw extends Construct {
   private vpcId: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private nfwPolicyConfig: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private nfwPolicy: any;
   private nfwName: string;
   readonly firewall: nfw.CfnFirewall;
@@ -58,21 +63,24 @@ export class Nfw extends Construct {
     this.nfwPolicy = JSON.parse(props.nfwPolicy);
     this.nfwPolicyConfig = props.nfwPolicyConfig;
     this.nfwName = props.nfwName;
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const policy: any = {};
     const prefix = props.acceleratorPrefix;
     const acceleratorPrefixNoDash = props.acceleratorPrefix.slice(0, -1);
     const logGroupName = `/${prefix}/Nfw`;
 
-    const cwFlowGroup = new logs.LogGroup(this, `${this.nfwName}NFWCWLFlowLogging`, {
+    const cwFlowGroup = new LogGroup(this, `${this.nfwName}NFWCWLFlowLogs`, {
       logGroupName: `/${acceleratorPrefixNoDash}/Nfw/${this.nfwName}/Flow`,
+      roleArn: props.logGroupRoleArn,
     });
 
-    const cwAlertGroup = new logs.LogGroup(this, `${this.nfwName}NFWCWLAlertLogging`, {
+    const cwAlertGroup = new LogGroup(this, `${this.nfwName}NFWCWLAlertLogs`, {
       logGroupName: `/${acceleratorPrefixNoDash}/Nfw/${this.nfwName}/Alert`,
+      roleArn: props.logGroupRoleArn,
     });
 
     if (this.nfwPolicy.statelessRuleGroup) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const statelessRuleGroup: any[] = this.nfwPolicy.statelessRuleGroup.map((ruleGroup: any) => {
         ruleGroup.ruleGroupName = `${prefix}${this.nfwName}-${ruleGroup.ruleGroupName}`;
         return {
@@ -80,11 +88,13 @@ export class Nfw extends Construct {
           priority: ruleGroup.priority,
         };
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       policy.statelessRuleGroupReferences = statelessRuleGroup.map((ruleGroup: any) => {
         return { resourceArn: ruleGroup.group.ref, priority: ruleGroup.priority };
       });
     }
     if (this.nfwPolicy.statefulRuleGroup) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const statefulRuleGroup: nfw.CfnRuleGroup[] = this.nfwPolicy.statefulRuleGroup.map((ruleGroup: any) => {
         ruleGroup.ruleGroupName = `${prefix}${this.nfwName}-${ruleGroup.ruleGroupName}`;
         return new nfw.CfnRuleGroup(this, ruleGroup.ruleGroupName, ruleGroup);
