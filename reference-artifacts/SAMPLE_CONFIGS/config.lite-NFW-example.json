@@ -88,7 +88,33 @@
         "High": ["myemail+notifyT-high@example.com"],
         "Medium": ["myemail+notifyT-medium@example.com"],
         "Low": ["myemail+notifyT-low@example.com"]
-      }
+      },
+      "dynamic-s3-log-partitioning": [
+        {
+          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/MAD",
+          "s3Prefix": "managed-ad"
+        },
+        {
+          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/rql",
+          "s3Prefix": "rql"
+        },
+        {
+          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/SecurityHub",
+          "s3Prefix": "security-hub"
+        },
+        {
+          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/Nfw",
+          "s3Prefix": "nfw"
+        },
+        {
+          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/rsyslog",
+          "s3Prefix": "rsyslog"
+        },
+        {
+          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/SSM",
+          "s3Prefix": "ssm"
+        }
+      ]
     },
     "additional-cwl-regions": {},
     "reports": {

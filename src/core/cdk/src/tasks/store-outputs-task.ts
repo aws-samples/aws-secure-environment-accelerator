@@ -16,13 +16,14 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-tasks';
+import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
 
 export namespace StoreOutputsTask {
   export interface Props {
     role: iam.IRole;
     lambdaCode: lambda.Code;
+    acceleratorPrefix: string;
     functionPayload?: { [key: string]: unknown };
-    waitSeconds?: number;
   }
 }
 
@@ -33,7 +34,7 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
   constructor(scope: cdk.Construct, id: string, props: StoreOutputsTask.Props) {
     super(scope, id);
 
-    const { role, lambdaCode, functionPayload, waitSeconds = 10 } = props;
+    const { role, lambdaCode, acceleratorPrefix, functionPayload } = props;
 
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -46,7 +47,7 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
     const storeAccountOutputs = new sfn.Map(this, `Store Account Outputs`, {
       itemsPath: `$.accounts`,
       resultPath: 'DISCARD',
-      maxConcurrency: 10,
+      maxConcurrency: 50,
       parameters: {
         'accountId.$': '$$.Map.Item.Value',
         'regions.$': '$.regions',
@@ -70,21 +71,41 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
       },
     });
 
-    const storeAccountRegionOutputs = new sfn.Map(this, `Store Account Region Outputs`, {
-      itemsPath: `$.regions`,
-      resultPath: 'DISCARD',
-      maxConcurrency: 10,
-      parameters: {
-        'account.$': '$.account',
-        'region.$': '$$.Map.Item.Value',
-        'acceleratorPrefix.$': '$.acceleratorPrefix',
-        'assumeRoleName.$': '$.assumeRoleName',
-        'outputsTable.$': '$.outputsTable',
-        'phaseNumber.$': '$.phaseNumber',
+    const storeOutputsTaskRegionMapperTask = new tasks.StepFunctionsStartExecution(
+      this,
+      'Store Outputs Region Mapper',
+      {
+        stateMachine: this.createStoreOututsRegionMapperSM(lambdaCode, role, functionPayload, scope, acceleratorPrefix),
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          'account.$': '$.account',
+          'regions.$': '$.regions',
+          'acceleratorPrefix.$': '$.acceleratorPrefix',
+          'assumeRoleName.$': '$.assumeRoleName',
+          'outputsTable.$': '$.outputsTable',
+          'phaseNumber.$': '$.phaseNumber',
+        }),
+        resultPath: 'DISCARD',
       },
-    });
+    );
+    getAccountInfoTask.next(storeOutputsTaskRegionMapperTask);
 
-    getAccountInfoTask.next(storeAccountRegionOutputs);
+    const pass = new sfn.Pass(this, 'Store Outputs Success');
+    storeAccountOutputs.iterator(getAccountInfoTask);
+    const chain = sfn.Chain.start(storeAccountOutputs).next(pass);
+
+    this.startState = chain.startState;
+    this.endStates = chain.endStates;
+  }
+
+  private createStoreOututsRegionMapperSM(
+    lambdaCode: lambda.Code,
+    role: iam.IRole,
+    functionPayload: { [p: string]: unknown } | undefined,
+    scope: cdk.Construct,
+    acceleratorPrefix: string,
+  ) {
+    // Task that store the outputs
     const storeOutputsTask = new CodeTask(scope, `Store Outputs`, {
       resultPath: '$.storeOutputsOutput',
       functionPayload,
@@ -95,12 +116,26 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
       },
     });
 
-    const pass = new sfn.Pass(this, 'Store Outputs Success');
-    storeAccountOutputs.iterator(getAccountInfoTask);
+    // Mapped by region
+    const storeAccountRegionOutputs = new sfn.Map(this, `Store Account Region Outputs`, {
+      itemsPath: `$.regions`,
+      resultPath: 'DISCARD',
+      maxConcurrency: 20,
+      parameters: {
+        'account.$': '$.account',
+        'region.$': '$$.Map.Item.Value',
+        'acceleratorPrefix.$': '$.acceleratorPrefix',
+        'assumeRoleName.$': '$.assumeRoleName',
+        'outputsTable.$': '$.outputsTable',
+        'phaseNumber.$': '$.phaseNumber',
+      },
+    });
     storeAccountRegionOutputs.iterator(storeOutputsTask);
-    const chain = sfn.Chain.start(storeAccountOutputs).next(pass);
 
-    this.startState = chain.startState;
-    this.endStates = chain.endStates;
+    // In its own state machine
+    return new sfn.StateMachine(this, `${acceleratorPrefix}StoreOutputsRegionMapper_sm`, {
+      stateMachineName: `${acceleratorPrefix}StoreOutputsRegionMapper_sm`,
+      definition: sfn.Chain.start(storeAccountRegionOutputs),
+    });
   }
 }
