@@ -1394,6 +1394,10 @@ translate(c.MadConfigType, {
       title: 'Remote Desktop Gateway EC2 instance type',
       description: 'To manage the MAD the Accelerator deploys an EC2 instance to serve as a Remote Desktop Gateway',
     },
+    'rdgw-enforce-imdsv2': {
+      title: 'Enforce IMDSv2 on the EC instances launched for Remote Desktop Gateway',
+      description: 'If set to true, IMDSv2 will be mandatory on the instances. Default : false',
+    },
     'rdgw-instance-role': {
       title: 'Remote Desktop Gateway instance role',
       description: 'EC2 instance role assumed by the RDGW',
@@ -1518,6 +1522,10 @@ translate(c.RsyslogConfig, {
     'rsyslog-instance-type': {
       title: 'rsyslog Instance type',
       description: 'The EC2 instance type for the rsyslog instances (i.e. t3.large)',
+    },
+    'rsyslog-enforce-imdsv2': {
+      title: 'Enforce IMDSv2 on the EC instances launched for rsyslog',
+      description: 'If set to true, IMDSv2 will be mandatory on the instances. Default : false',
     },
     'rsyslog-instance-role': {
       title: 'Instance role',
@@ -2695,6 +2703,22 @@ translate(c.CwlExclusions, {
   },
 });
 
+translate(c.S3LogPartitionType, {
+  title: 'S3 Log Partition Mapping',
+  description: 'Maps CloudWatch Log Groups to S3 prefixes.',
+  fields: {
+    logGroupPattern: {
+      title: 'Log Group Pattern',
+      description: 'Used to match a log group.',
+    },
+    s3Prefix: {
+      title: 'S3 Prefix',
+      description:
+        'CloudWatch log entries that match the logGroupPattern will be extracted and placed into a S3 prefix specified by this value.',
+    },
+  },
+});
+
 translate(c.CentralServicesConfigType, {
   title: 'Centralized Security Services Config',
   description:
@@ -2833,6 +2857,10 @@ translate(c.CentralServicesConfigType, {
     'config-aggr': {
       title: 'AWS Config Aggregator',
       description: 'Configures the AWS Account with an AWS Config Aggregator. [ALL]',
+    },
+    'dynamic-s3-log-partitioning': {
+      title: 'Dynamic S3 Log Partitioning',
+      description: 'Configures CWLogs to be extracted and placed into different S3 prefixes from Firehose.',
     },
   },
 });

@@ -23,10 +23,10 @@
       "Action": [
         "config:DeleteConfigurationRecorder",
         "config:DeleteDeliveryChannel",
-        "config:DeleteRetentionConfiguration",
+        "config:DeleteRetentionConfig*",
         "config:PutConfigurationRecorder",
         "config:PutDeliveryChannel",
-        "config:PutRetentionConfiguration",
+        "config:PutRetentionConfig*",
         "config:StopConfigurationRecorder",
         "config:DeleteAggregationAuthorization",
         "config:DeleteConfigurationAggregator",
@@ -64,7 +64,7 @@
       "Resource": ["arn:aws:config:*:*:config-rule/*"],
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}"]
         }
       }
     },
@@ -88,13 +88,7 @@
     {
       "Sid": "IAM",
       "Effect": "Deny",
-      "Action": [
-        "iam:CreatePolicy",
-        "iam:DeletePolicy",
-        "iam:DeletePolicyVersion",
-        "iam:SetDefaultPolicyVersion",
-        "iam:CreatePolicyVersion"
-      ],
+      "Action": ["iam:CreatePolicy", "iam:DeletePolic*", "iam:SetDefaultPolicyVersion", "iam:CreatePolicyVersion"],
       "Resource": "arn:aws:iam::*:policy/${ACCELERATOR_PREFIX}*",
       "Condition": {
         "ArnNotLike": {
@@ -105,7 +99,13 @@
     {
       "Sid": "ACM",
       "Effect": "Deny",
-      "Action": ["acm:DeleteCertificate", "acm:ExportCertificate", "acm:RemoveTagsFromCertificate"],
+      "Action": [
+        "acm:DeleteCert*",
+        "acm:ExportCert*",
+        "acm:RemoveTagsFromCert*",
+        "elasticloadbalancing:DeleteLoadBal*",
+        "elasticloadbalancing:DeleteTargetG*"
+      ],
       "Resource": "*",
       "Condition": {
         "StringEquals": {

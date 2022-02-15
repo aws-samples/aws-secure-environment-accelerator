@@ -3,7 +3,7 @@
 Usage:
 
 ```
-update.py [-h] [--AcceleratorPrefix ACCELERATORPREFIX] --ConfigFile
+update.py [-h] [--AcceleratorPrefix ACCELERATORPREFIX] [--CoreOU COREOUNAME]--ConfigFile
                  CONFIGFILE --Region REGION [--LoadDB] [--LoadConfig]
 ```
 
@@ -16,6 +16,7 @@ Optional arguments:
   -h, --help            show this help message and exit
   --AcceleratorPrefix ACCELERATORPREFIX
                         The value set in AcceleratorPrefix
+  --CoreOU COREOUNAME   Optional parameter. Defaults to core. The name of the core OU.
   --ConfigFile CONFIGFILE
                         ConfigFile location
   --Region REGION       Region in which SEA is deployed

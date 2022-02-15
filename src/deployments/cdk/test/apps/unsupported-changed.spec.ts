@@ -89,6 +89,7 @@ beforeAll(async () => {
     for (const stack of stacks) {
       const artifact = assembly.getStackArtifact(stack.artifactId);
       const template = artifact.template;
+      // eslint-disable-next-line deprecation/deprecation
       stackResources[stack.node.uniqueId] = resourcesToList(template.Resources);
 
       // Render all nested stacks
@@ -97,6 +98,7 @@ beforeAll(async () => {
       for (const nestedStack of nestedStacks) {
         const nestedTemplateFile = path.join(assembly.directory, nestedStack.templateFile);
         const nestedTemplate = JSON.parse(fs.readFileSync(nestedTemplateFile).toString('utf-8'));
+        // eslint-disable-next-line deprecation/deprecation
         stackResources[nestedStack.node.uniqueId] = resourcesToList(nestedTemplate.Resources);
       }
     }

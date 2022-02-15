@@ -388,13 +388,20 @@ async function validateScpsCount(
       Filter: 'SERVICE_CONTROL_POLICY',
       TargetId: ouObject.Id!,
     });
-    const accelScps = ouConfig.scps.map(policyName =>
+    const accelOuScps = ouConfig.scps.map(policyName =>
       ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
     );
+    const configScps = config['global-options'].scps;
+    const accelScps = configScps.map(scp =>
+      ServiceControlPolicy.policyNameToAcceleratorPolicyName({
+        acceleratorPrefix,
+        policyName: scp.name,
+      }),
+    );
     const nonAccelScps = attachedScps.filter(as => !accelScps.includes(as.Name!));
-    if (nonAccelScps.length + accelScps.length > MAX_SCPS_ALLOWED) {
+    if (nonAccelScps.length + accelOuScps.length > MAX_SCPS_ALLOWED) {
       errors.push(
-        `Max Allowed SCPs for OU "${oukey}" is ${MAX_SCPS_ALLOWED}, found already attached scps count ${nonAccelScps.length} and Accelerator scps ${accelScps.length} => ${accelScps}`,
+        `Max Allowed SCPs for OU "${oukey}" is ${MAX_SCPS_ALLOWED}, found already attached scps count ${nonAccelScps.length} and Accelerator OU scps ${accelOuScps.length} => ${accelOuScps}`,
       );
     }
   }
@@ -409,14 +416,21 @@ async function validateScpsCount(
       Filter: 'SERVICE_CONTROL_POLICY',
       TargetId: accountObject.accountId,
     });
-    const accelScps: string[] =
+    const configScps = config['global-options'].scps;
+    const accelScps = configScps.map(scp =>
+      ServiceControlPolicy.policyNameToAcceleratorPolicyName({
+        acceleratorPrefix,
+        policyName: scp.name,
+      }),
+    );
+    const accelAccountScps: string[] =
       accountConfig.scps?.map(policyName =>
         ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
       ) || [];
     const nonAccelScps = attachedScps.filter(as => !accelScps.includes(as.Name!));
-    if (nonAccelScps.length + accelScps.length > MAX_SCPS_ALLOWED) {
+    if (nonAccelScps.length + accelAccountScps.length > MAX_SCPS_ALLOWED) {
       errors.push(
-        `Max Allowed SCPs for Account "${accountKey}" is ${MAX_SCPS_ALLOWED}, found already attached scps count ${nonAccelScps.length} and Accelerator scps ${accelScps.length} => ${accelScps}`,
+        `Max Allowed SCPs for Account "${accountKey}" is ${MAX_SCPS_ALLOWED}, found already attached scps count ${nonAccelScps.length} and Accelerator scps ${accelAccountScps.length} => ${accelAccountScps}`,
       );
     }
   }

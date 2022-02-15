@@ -29,15 +29,10 @@ jobs:
       - name: Install Node.js modules
         run: |
           npm install -g pnpm@6.2.3
-          pnpm install --unsafe-perm --frozen-lockfile
-      - name: Fix nasty bug in CDK
-        run: |
-          # This fix is needed in order to run initial-setup/templates tests
-          # Without the fix, SynthUtils.toCloudFormation fails
-          find node_modules -name runtime-info.js -exec sed -i 's/mod.paths/(mod.paths || [])/g' {} \;
+          pnpm recursive install --frozen-lockfile
       - name: Build all workspaces
         run: |
-          pnpm recursive run build
+          pnpm -w build
       - name: Run tests in all workspaces
         run: |
-          pnpm recursive run test -- --pass-with-no-tests --silent
+          pnpm -w test

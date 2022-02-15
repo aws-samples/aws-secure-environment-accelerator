@@ -4,8 +4,8 @@
   "scripts": {
     "build": "pnpm recursive run --no-bail build",
     "test": "pnpm recursive run --no-bail --workspace-concurrency 1 test -- --pass-with-no-tests --silent --max-workers 1",
-    "lint:typecheck": "pnpm recursive run --no-bail lint:typecheck",
-    "lint:eslint": "pnpm recursive run --no-bail lint:eslint"
+    "lint:typecheck": "pnpx tsc -p tsconfig.tsc.json ",
+    "lint:eslint": "pnpx eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "devDependencies": {
     "@types/node": "14.14.31",

@@ -6,22 +6,26 @@ import { debugModeEnabled } from '@aws-cdk/core/lib/debug';
 import * as v8 from 'v8';
 const fs = require('fs').promises;
 
-const PAGE_SIZE = parseInt(process.env.DEPLOY_STACK_PAGE_SIZE) || 850;
+// eslint-disable-next-line
+const PAGE_SIZE = parseInt(process.env.DEPLOY_STACK_PAGE_SIZE ?? '') || 850;
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
 });
-microstats.on('memory', function (value) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+microstats.on('memory', function (value: any) {
   console.log('MEMORY:', value);
 });
-microstats.on('disk', function (value) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+microstats.on('disk', function (value: any) {
   console.log('DISK:', value);
 });
-microstats.on('cpu', function (value) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+microstats.on('cpu', function (value: any) {
   console.log('CPU:', value);
 });
-let microstatsOptions = {
+const microstatsOptions = {
   frequency: 'onalert',
   memoryalert: { used: '>80%' },
   cpualert: { load: '>90%' },
@@ -57,7 +61,8 @@ const getHeapStatistics = () => {
 async function main() {
   await fs.writeFile('/tmp/buildStatus.txt', 'started', 'utf8');
   if (debugModeEnabled()) {
-    microstats.start(microstatsOptions, err => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    microstats.start(microstatsOptions, (err: any) => {
       console.log(err);
     });
     console.log(getHeapStatistics());
@@ -76,7 +81,7 @@ async function main() {
     },
   });
 
-  const commands = args['_'];
+  const commands = args._;
   const phase = args.phase;
   const parallel = args.parallel;
   if (phase === undefined || commands.length === 0) {

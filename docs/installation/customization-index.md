@@ -20,28 +20,54 @@
   - Most of the examples reflect a Medium Security profile (NIST, ITSG, FEDRAMP)
 - Unsure where to start, use the [config.lite-CTNFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-CTNFW-example.json) file (the CT w/NFW variant of option 2)
 - Frugal and want something comprehensive to experiment with, use the [config.test-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.test-example.json) file (option 5)
-
+- **Config file [schema](https://github.com/aws-samples/aws-secure-environment-accelerator/releases/download/v1.5.0/AWS-SEA-Config-Schema-v150-DRAFT.zip) documentation** (Draft)
+  - download, extract and open src\lib\docs-gen\output-docs\en\index.html in your browser
+- Estimated monthly [pricing](../pricing/sample_pricing.md) of example configurations
+  
 **Samples with Descriptions**
 
 1. **Full configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.example.json) (`config.example.json`)
    - The full configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the deployed architecture solution.
+   - Default settings:
+     - AWS Control Tower: No
+     - Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)
 2. **Lite weight configuration** files
    - Four variants with differing central ingress/egress firewalls
-     - _Recommended starting point_
-       - AWS Control Tower with AWS Network Firewall ([config.lite-CTNFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-CTNFW-example.json))
-     - _Recommended for new GC PBMM customers_ - requires 3rd party licensing (BYOL or PAYGO)
-       - IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP) ([config.lite-VPN-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json))
-     - _Variant 3_
-       - AWS Network Firewall ([config.lite-NFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json))
-     - _Variant 4_ - requires 3rd party licensing (BYOL or PAYGO)
-       - Gateway Load Balancer with Checkpoint firewalls in an autoscaling group ([config.lite-GWLB-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-GWLB-example.json))
-   - To reduce solution costs and allow customers to grow into more advanced AWS capabilities, we created this lighter weight configuration that does not sacrifice functionality, but could limit performance. This config file:
-     - only deploys the 9 required centralized Interface Endpoints (removes 50). All services remain accessible using the AWS public endpoints, but require traversing the perimeter firewalls
+     - _Variant 1: **Recommended starting point**_ ([config.lite-CTNFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-CTNFW-example.json))
+       - Default Settings:
+         - AWS Control Tower: Yes
+         - Firewall: AWS Network Firewall
+     - _Variant 2: **Recommended for new GC PBMM customers**_ ([config.lite-VPN-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json))
+       - requires 3rd party licensing (BYOL or PAYGO)
+       - Default Settings:
+         - AWS Control Tower: No
+         - Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)
+     - _Variant 3:_ ([config.lite-NFW-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json))
+       - Same as _Variant 1_ config without AWS Control Tower
+       - Default Settings:
+         - AWS Control Tower: No
+         - Firewall: AWS Network Firewall
+     - _Variant 4:_ ([config.lite-GWLB-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-GWLB-example.json))
+       - requires 3rd party licensing (BYOL or PAYGO)
+       - Default Settings:
+         - AWS Control Tower: No
+         - Firewall: Gateway Load Balancer with Checkpoint firewalls in an autoscaling group
+   - To reduce solution costs and allow customers to grow into more advanced AWS capabilities, we created these lite weight configurations that does not sacrifice functionality, but could limit performance. These config files:
+     - only deploys the 9 required centralized Interface Endpoints (removes 50 from full config). All services remain accessible using the AWS public endpoints, but require traversing the perimeter firewalls
      - removes the perimeter VPC Interface Endpoints
-     - reduces the Fortigate instance sizes from c5n.2xl to c5n.xl (VM08 to VM04) in VPN option
+     - reduces the Fortigate instance sizes from c5n.2xl to c5n.xl (VM08 to VM04) in _Variant 2: IPSec VPN with Active/Active Fortinet cluster_ option
      - removes the Unclass ou and VPC
+     - AWS Control Tower can be implemented in all sample configs using _Variant 1: AWS Control Tower with AWS Network Firewall_ as an example (new installs only).
    - The Accelerator allows customers to easily add or change this functionality in future, as and when required without any impact
-3. **Ultra-Lite sample configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json) (`config.ultralite-example.json`)
+3. **Ultra-Lite sample configuration**
+   - Variant 1: ([config.ultralite-CT-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.ultralite-CT-example.json))
+     - AWS Control Tower: Yes
+     - Firewall: None
+     - Networking: None
+   - Variant 2 : ([config.ultralite-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json))
+     - AWS Control Tower: No
+     - Firewall: None
+     - Networking: None
    - This configuration file was created to represent an extremely minimalistic Accelerator deployment, simply to demonstrate the art of the possible for an extremely simple config. This example is NOT recommended as it violates many AWS best practices. This This config has:
      - no `shared-network` or `perimeter` accounts
      - no networking (VPC, TGW, ELB, SG, NACL, endpoints) or route53 (zones, resolvers) objects
@@ -62,6 +88,9 @@
        - local account VPC set to use central endpoints, associates appropriate centralized hosted zones to VPC (also creates 5 local endpoints)
      - adds a VGW for DirectConnect to the perimeter VPC
      - adds the 3rd AZ in ca-central-1 (MAD & ADC in AZ a & b)
+   - Default Settings:
+     - AWS Control Tower: No
+     - Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)
 5. **Test configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.test-example.json) (`config.test-example.json`) **(Use for testing Full/Lite configurations or Low Security Profiles)**
    - Further reduces solution costs, while demonstrating full solution functionality (NOT recommendend for production). This config file:
      - uses the Lite weight configuration as the starting point (NFW variant)
@@ -75,6 +104,9 @@
      - reduced various log retention periods and the VPCFlow log interval
      - removes the two example workload accounts
      - adds AWS Network Firewall (NFW) and AWS NATGW for centralized ingress/egress (per NFW variant)
+   - Default Settings:
+     - AWS Control Tower: No
+     - Firewall: AWS Network Firewall
 
 ## 1.2. **Deployment Customizations**
 
@@ -94,6 +126,8 @@
 ## 1.3. Other Configuration File Hints and Tips
 
 - It is critical that all accounts that are leveraged by other accounts (i.e. accounts that any workload accounts are dependant on), are included in the mandatory-accounts section of the config file (i.e. shared-network, log-archive, operations)
+- Account pointers within the config file point to the account key (i.e. (`mandatory-account-configs\account-key`) and NOT the account name field (`mandatory-account-configs\account-key\account-name: "account name"`). This allows for easy account names, duplicate account names, and no requirement to update account pointers during account renames.
+- If any of the account pointers within `global-options` does not point to a valid mandatory account key, the State Machine will fail with the error `EnvironmentVariable value cannot be null` before starting CodeBuild Phase -1
 - You cannot supply (or change) configuration file values to something not supported by the AWS platform
   - For example, CWL retention only supports specific retention values (not any number)
   - Shard count - can only increase/reduce by half the current limit. i.e. you can change from `1`-`2`, `2`-`3`, `4`-`6`

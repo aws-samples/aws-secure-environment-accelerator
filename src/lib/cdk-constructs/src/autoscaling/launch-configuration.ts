@@ -23,11 +23,12 @@ export type LaunchConfigurationProps = autoscaling.CfnLaunchConfigurationProps;
 interface LaunchConfigurationCustomProps extends LaunchConfigurationProps {
   centralBucketName?: string;
   logGroupName?: string;
+  enforceIMDSv2?: boolean;
 }
 
 /**
  * Wrapper around CfnLaunchConfiguration. The construct adds a hash to the launch configuration name that is based on
- * the launch configuration properties. The hash makes sure the budget gets replaced correctly by CloudFormation.
+ * the launch configuration properties. The hash makes sure the launch configuration gets replaced correctly by CloudFormation.
  */
 export class LaunchConfiguration extends autoscaling.CfnLaunchConfiguration {
   constructor(scope: cdk.Construct, id: string, props: LaunchConfigurationCustomProps) {

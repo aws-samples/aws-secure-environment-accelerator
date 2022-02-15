@@ -13,6 +13,7 @@ const outputFile = process.argv[3];
 const outputFolder = path.dirname(outputFile);
 fs.mkdirSync(outputFolder, { recursive: true });
 
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 compileFromFile(`${inputFile}`, {
   bannerComment: '',
 }).then(ts => {

@@ -1279,6 +1279,10 @@ translate(c.MadConfigType, {
       title: '',
       description: '',
     },
+    'rdgw-enforce-imdsv2': {
+      title: '',
+      description: '',
+    },
     'rdgw-instance-role': {
       title: '',
       description: '',
@@ -1394,6 +1398,10 @@ translate(c.RsyslogConfig, {
       description: '',
     },
     'rsyslog-instance-type': {
+      title: '',
+      description: '',
+    },
+    'rsyslog-enforce-imdsv2': {
       title: '',
       description: '',
     },
@@ -2510,6 +2518,21 @@ translate(c.CwlExclusions, {
   },
 });
 
+translate(c.S3LogPartitionType, {
+  title: '',
+  description: '',
+  fields: {
+    logGroupPattern: {
+      title: '',
+      description: '',
+    },
+    s3Prefix: {
+      title: '',
+      description: '',
+    },
+  },
+});
+
 translate(c.CentralServicesConfigType, {
   title: '',
   description: '',
@@ -2627,6 +2650,10 @@ translate(c.CentralServicesConfigType, {
       description: '',
     },
     'config-aggr': {
+      title: '',
+      description: '',
+    },
+    'dynamic-s3-log-partitioning': {
       title: '',
       description: '',
     },

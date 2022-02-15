@@ -13,16 +13,25 @@
 
 import { Account } from '../../utils/accounts';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
-import { AccountStacks } from '../../common/account-stacks';
+import { AccountStacks, AccountStack } from '../../common/account-stacks';
 import { SecurityHub } from '@aws-accelerator/cdk-constructs/src/security-hub';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
+import * as cdk from '@aws-cdk/core';
+import * as eventBridge from '@aws-cdk/aws-events';
+import * as targets from '@aws-cdk/aws-events-targets';
+import * as lambda from '@aws-cdk/aws-lambda';
+import * as iam from '@aws-cdk/aws-iam';
+
+import path from 'path';
 
 export interface SecurityHubStep1Props {
   accounts: Account[];
   config: AcceleratorConfig;
   accountStacks: AccountStacks;
   outputs: StackOutput[];
+  acceleratorPrefix?: string;
 }
 
 /**
@@ -34,7 +43,7 @@ export interface SecurityHubStep1Props {
  * to sub accounts in all regions excluding security-hub-excl-regions
  */
 export async function step1(props: SecurityHubStep1Props) {
-  const { accounts, accountStacks, config, outputs } = props;
+  const { accounts, accountStacks, config, outputs, acceleratorPrefix } = props;
   const globalOptions = config['global-options'];
   if (!globalOptions['central-security-services']['security-hub']) {
     return;
@@ -60,6 +69,20 @@ export async function step1(props: SecurityHubStep1Props) {
     return;
   }
 
+  const logGroupLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+    outputs,
+    accountKey: securityAccountKey,
+    roleKey: 'LogGroupRole',
+  });
+
+  if (!logGroupLambdaRoleOutput) {
+    console.warn(`Cannot find required LogGroupLambda role in account "${securityAccountKey}"`);
+    return;
+  }
+  const logGroupLambdaRoleArn = logGroupLambdaRoleOutput.roleArn;
+
+  const securityHubLambdaSWLRole = createPublishingLambdaRole(accountStacks, securityAccountKey, acceleratorPrefix);
+
   const securityHubExclRegions = globalOptions['central-security-services']['security-hub-excl-regions'] || [];
   for (const region of regions) {
     if (securityHubExclRegions.includes(region)) {
@@ -77,6 +100,96 @@ export async function step1(props: SecurityHubStep1Props) {
         subAccountIds,
         roleArn: securityHubRoleOutput.roleArn,
       });
+
+      if (acceleratorPrefix && logGroupLambdaRoleArn) {
+        configureSecurityHubCWLs(
+          acceleratorPrefix,
+          logGroupLambdaRoleArn,
+          securityMasterAccountStack,
+          securityHubLambdaSWLRole?.roleArn,
+        );
+      }
     }
   }
 }
+
+const createPublishingLambdaRole = (
+  accountStacks: AccountStacks,
+  securityAccountKey: string,
+  acceleratorPrefix?: string,
+): iam.Role | undefined => {
+  const securityMasterAccountStackDefaultRegion = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
+  if (!securityMasterAccountStackDefaultRegion) {
+    console.warn(`Cannot find security stack in default region`);
+    return;
+  }
+
+  const lambdaRoleName = `${acceleratorPrefix}SecurityHubPublisherRole`;
+  const lambdaRole = new iam.Role(securityMasterAccountStackDefaultRegion, 'SecurityHubPublisherRole', {
+    roleName: lambdaRoleName,
+    assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+  });
+
+  lambdaRole.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents', 'logs:DescribeLogStreams'],
+      resources: ['*'],
+    }),
+  );
+
+  return lambdaRole;
+};
+
+const configureSecurityHubCWLs = (
+  acceleratorPrefix: string,
+  logGroupLambdaRoleArn: string,
+  securityMasterAccountStack: AccountStack,
+  securityHubLambdaSWLRoleArn?: string,
+) => {
+  const acceleratorPrefixNoDash = acceleratorPrefix.slice(0, -1);
+  const logGroupName = `/${acceleratorPrefixNoDash}/SecurityHub`;
+
+  if (securityHubLambdaSWLRoleArn) {
+    new LogGroup(securityMasterAccountStack, `SecurithHubLogGroup`, {
+      logGroupName,
+      roleArn: logGroupLambdaRoleArn,
+    });
+
+    const cloudwatchrule = new eventBridge.Rule(securityMasterAccountStack, `SecurityHubEvents`, {
+      ruleName: `${acceleratorPrefix}SecurityHubFindingsImportToCWLs`,
+      description: 'Sends all Security Hub Findings to a Lambda that writes to CloudWatch Logs',
+      eventPattern: {
+        source: ['aws.securityhub'],
+        detailType: ['Security Hub Findings - Imported'],
+      },
+    });
+
+    const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
+    const lambdaDir = path.dirname(lambdaPath);
+    const lambdaCode = lambda.Code.fromAsset(lambdaDir);
+
+    const lambdaRole = iam.Role.fromRoleArn(
+      securityMasterAccountStack,
+      `SecurityHubPublisherLambdaRole`,
+      securityHubLambdaSWLRoleArn,
+      {
+        mutable: true,
+      },
+    );
+
+    const eventsToCwlLambda = new lambda.Function(securityMasterAccountStack, `SecurityHubPublisher`, {
+      runtime: lambda.Runtime.NODEJS_14_X,
+      role: lambdaRole,
+      code: lambdaCode,
+      handler: 'index.eventToCWLPublisher',
+      timeout: cdk.Duration.minutes(5),
+      memorySize: 1048,
+      environment: {
+        LOG_GROUP_NAME: logGroupName,
+      },
+    });
+
+    cloudwatchrule.addTarget(new targets.LambdaFunction(eventsToCwlLambda));
+  }
+};

@@ -1,4 +1,5 @@
 module.exports = {
+  root: true,
   env: {
     es6: 'error',
     node: 'error',
@@ -6,7 +7,7 @@ module.exports = {
   extends: ['prettier'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: ['./tsconfig.base.json'],
+    project: ['./tsconfig.eslint.json'],
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },

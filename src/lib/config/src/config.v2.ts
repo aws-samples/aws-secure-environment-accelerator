@@ -436,6 +436,7 @@ export const MadConfigType = t.interface({
   restrict_srcips: t.array(t.cidr),
   'rdgw-instance-type': t.nonEmptyString,
   'rdgw-instance-role': t.nonEmptyString,
+  'rdgw-enforce-imdsv2': t.defaulted(t.boolean, false),
   'num-rdgw-hosts': t.number,
   'rdgw-max-instance-age': t.number,
   'min-rdgw-hosts': t.number,
@@ -470,6 +471,7 @@ export const RsyslogConfig = t.interface({
   'ssm-image-id': t.nonEmptyString,
   'rsyslog-instance-type': t.nonEmptyString,
   'rsyslog-instance-role': t.nonEmptyString,
+  'rsyslog-enforce-imdsv2': t.defaulted(t.boolean, false),
   'rsyslog-root-volume-size': t.number,
   'rsyslog-max-instance-age': t.number,
 });
@@ -748,6 +750,13 @@ export const SecretConfig = t.interface({
   size: t.number,
 });
 
+export const S3LogPartitionType = t.interface({
+  logGroupPattern: t.nonEmptyString,
+  s3Prefix: t.nonEmptyString,
+});
+
+export type S3LogPartition = t.TypeOf<typeof S3LogPartitionType>;
+
 export const MandatoryAccountConfigType = t.interface({
   'gui-perm': t.optional(t.boolean),
   'account-name': t.nonEmptyString,
@@ -894,6 +903,7 @@ export const CentralServicesConfigType = t.interface({
   'fw-mgr-alert-level': t.defaulted(FirewallManagerAlertLevelType, 'Medium'),
   'security-hub-findings-sns': t.defaulted(SecurityHubFindingsSnsType, 'None'),
   'config-aggr': t.defaulted(t.boolean, false),
+  'dynamic-s3-log-partitioning': t.optional(t.array(S3LogPartitionType)),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
