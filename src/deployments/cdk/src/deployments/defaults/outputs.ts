@@ -24,8 +24,10 @@ import { EbsKmsOutput } from '@aws-accelerator/common-outputs/src/ebs';
 import { SsmKmsOutput } from '@aws-accelerator/common-outputs/src/ssm';
 import { optional } from '@aws-accelerator/common-types';
 import { createStructuredOutputFinder } from '@aws-accelerator/common-outputs/src/structured-output';
+import { DefaultKmsOutput } from '@aws-accelerator/common-outputs/src/kms';
 
 export const CfnEbsKmsOutput = createCfnStructuredOutput(EbsKmsOutput);
+export const CfnDefaultKmsOutput = createCfnStructuredOutput(DefaultKmsOutput);
 
 export const CfnSsmKmsOutput = createCfnStructuredOutput(SsmKmsOutput);
 
