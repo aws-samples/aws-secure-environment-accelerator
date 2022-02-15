@@ -209,7 +209,7 @@
           "aws:PrincipalARN": [
             "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
             "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
-            "arn:aws:iam::*:role/aws-controltower-*"
+            "arn:aws:iam::*:role/AWSServiceRoleFor*"
           ]
         }
       }
@@ -275,7 +275,7 @@
           "aws:PrincipalARN": [
             "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
             "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
-            "arn:aws:iam::*:role/aws-controltower-*"
+            "arn:aws:iam::*:role/AWSServiceRoleFor*"
           ]
         }
       }
