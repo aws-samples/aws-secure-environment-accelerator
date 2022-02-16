@@ -15,7 +15,8 @@ The total deployment time takes approximately 30 minutes (+ ASEA State Machine e
 ## Prerequisites
 
 1. ASEA v1.5.1 or above
-   - prior versions do not have access to the ELB log bucket, CloudWatch Log sources were not easily consumed, Security Hub logs were not published to S3, and a COgnito API call was blocked
+   - prior versions do not have access to the ELB log bucket, CloudWatch Log sources were not easily consumed, Security Hub logs were not published to S3, and a Cognito API call was blocked
+  
 2. Permissions:
 
    1. Organization Management Account - ability to update ASEA config file and run ASEA state machine
@@ -84,7 +85,8 @@ The **SiemConfig.json** file is used to configure how this solution is deployed 
     "openSearchCapacityDataNodes": 4,
     "openSearchVolumeSize": 100,
     "openSearchConfiguration": "opensearch-config.json",
-    "maxmindLicense": "license.txt"
+    "maxmindLicense": "license.txt",
+    "siemVersion": "v2.6.1a"
 }
 ```
 
@@ -107,6 +109,7 @@ The **SiemConfig.json** file is used to configure how this solution is deployed 
 | openSearchVolumeSize            | This specifies the amount of storage (GB) provisioned for the data nodes. This impacts the amount of available storage for the Domain. Note there are [limits](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/limits.html) for EBS size for instance types.   |
 | openSearchConfiguration         | This is the file name of the SIEM search configuration. This file should reside in the _config_ folder. This json file mirrors the content found in the _SIEM on Amazon OpenSearch Service_ corresponding INI file.                                                                 |
 | maxmindLicense                  | This is the file name of the MaxMind license file. This file should reside in the _config_ folder. This is an optional configuration that enables IP to Geo which enables map visualizations. Leave blank ("") to skip the deployment of this functionality.                        |
+| siemVersion | This is a label used to identitfy the _SIEM on Amazon OpenSearch Service_ or your own version/configuration of the Lambdas. This applies an environment variable to the Lambdas and a change to this value will execute the lambdas on CDK deployment.  
 
 ---
 
@@ -217,7 +220,7 @@ arn:aws:sqs:<region>:<operations account id>:opensearch-siem-dlq
 > cd lambdas/siem-config && npm install && npm run build && cd ..\..
 ```
 
-1. Provision the OpenSearch Service Linked Role
+5. Provision the OpenSearch Service Linked Role
 
 ```
  > aws iam create-service-linked-role --aws-service-name es.amazonaws.com
@@ -257,19 +260,19 @@ arn:aws:sqs:<region>:<operations account id>:opensearch-siem-dlq
   > set AWS_DEFAULT_REGION=ca-central-1
 ```
 
-2. Confirm AWS credentials are applied for the working command terminal. The output should show credentials for the log archive AWS account.
+4. Confirm AWS credentials are applied for the working command terminal. The output should show credentials for the log archive AWS account.
 
 ```
  > aws sts get-caller-identity
 ```
 
-3. Deploy the CDK Bootstrap. This will deploy a cdkbootstrap CloudFormation stack. Reminder: This is being deployed in the log archive AWS Account.
+5. Deploy the CDK Bootstrap. This will deploy a cdkbootstrap CloudFormation stack. Reminder: This is being deployed in the log archive AWS Account.
 
 ```
 > npx cdk bootstrap --toolkit-stack-name orgcdktoolkit
 ```
 
-3. Deploy the CDK S3 Notifications Stack. Replace **<OpenSearchSiemStack.LambdaProcessorArn-CfnOutput>** with the output value from the first CloudFormation Stack.
+6. Deploy the CDK S3 Notifications Stack. Replace **<OpenSearchSiemStack.LambdaProcessorArn-CfnOutput>** with the output value from the first CloudFormation Stack.
 
 ```
 > npx cdk deploy --toolkit-stack-name orgcdktoolkit --parameters lambdaProcessorArn="<OpenSearchSiemStack.LambdaProcessorArn-CfnOutput>" OpenSearchSiemS3NotificationsStack
@@ -322,10 +325,52 @@ In OpenSearch:
 - click Import, click Done
 - Log out of the OpenSearch console (click circle icon on the top right, click Log out) to enable the imported configurations take effect
 
-2. Log back into the OpenSearch Console
+3. Log back into the OpenSearch Console
    - Select OpenSearch Dashboards, Dashboard to see a list of the preconfigured SIEM visualizations
 
-## 6. Cleaning up
+## 7. Log Ingestion
+The _SIEM on Amazon OpenSearch Service_ log ingestion to OpenSearch is driven by logs uploaded/put to S3. The S3 object key is used to determine what type of log file and what type of OpenSearch mapping should be applied. ASEA v1.5.1 introduces a new feature to place log files into different folders based on a string match in the S3 object key. Here's the v1.5.1 new configuration that should be applied:
+```
+"dynamic-s3-log-partitioning": [
+        {
+          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/MAD",
+          "s3Prefix": "managed-ad"
+        },
+        {
+          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/rql",
+          "s3Prefix": "rql"
+        },
+        {
+          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/SecurityHub",
+          "s3Prefix": "security-hub"
+        },
+        {
+          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/Nfw",
+          "s3Prefix": "nfw"
+        },
+        {
+          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/rsyslog",
+          "s3Prefix": "rsyslog"
+        },
+        {
+          "logGroupPattern": "/${ACCELERATOR_PREFIX_ND}/SSM",
+          "s3Prefix": "ssm"
+        }
+      ]
+```
+As an example, if the Amazon Data Kinesis Firehose, that centrally processes CloudWatch Logs, is processing logs that came from a log group with a name containing'ASEA/rql', then it will add the 's3Prefix' value 'rql' to the S3 object. In other words, rql logs will be placed into a 'rql' folder in the central log archive S3 bucket.
+
+The **Log Processor** needs to be configured to know what keyword in the S3 object key maps to which known log type. This has already been done based on the above sample confguration. However, if you are adding something new and want to have it ingested into OpenSearch, it must be configured (in addition to index mapping creation). The _os-loader.zip_ contains a configuration file _aws.ini_. Here is an example of a snippet showing just the rql S3 configuration defined in that file:
+```
+[route53resolver]
+s3_key = /rql/
+file_format = json
+via_cwl = True
+``` 
+
+Note that the _s3_key_ has a value of _/rql/_. This matches the above _dynamic-s3-log-partitioning_ for rql files. The **Log Processor** will process that S3 log file expecting it to be a rql file, in the file format of JSON, and was written to CloudWatch Logs first (opposed to directly written to the S3 bucket).
+
+## 8. Cleaning up
 
 ---
 
