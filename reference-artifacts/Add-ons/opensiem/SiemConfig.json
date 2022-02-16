@@ -49,5 +49,6 @@
     "openSearchCapacityDataNodes": 4,
     "openSearchVolumeSize": 100,
     "openSearchConfiguration": "opensearch-config.json",    
-    "maxmindLicense": "license.txt"
+    "maxmindLicense": "license.txt",
+    "siemVersion": "v2.6.1a"
 }

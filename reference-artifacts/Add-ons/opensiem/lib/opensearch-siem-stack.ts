@@ -224,6 +224,7 @@ export class OpenSearchSiemStack extends Stack {
       vpcId: siemConfig.vpcId,
       domainSubnetIds: siemConfig.appSubnets,
       securityGroupIds,
+      siemVersion: siemConfig.siemVersion
     });
 
     siemConfigure.node.addDependency(fileUpload);
@@ -234,6 +235,7 @@ export class OpenSearchSiemStack extends Stack {
       vpc,
       siemConfig.appSubnets,
       securityGroups,
+      siemConfig.siemVersion,
       siemConfig.maxmindLicense,
     );
 
@@ -246,7 +248,7 @@ export class OpenSearchSiemStack extends Stack {
       domain.dns,
       siemConfig.logArchiveAccountId,
       siemConfig.s3LogBuckets,
-      siemConfig.region,
+      siemConfig.siemVersion,
       siemBucket,
     );
 
@@ -277,7 +279,7 @@ export class OpenSearchSiemStack extends Stack {
     osDomain: string,
     logArchiveAccountId: string,
     s3LogBuckets: string[],
-    region: string,
+    siemVersion: string,
     geoIpUploadBucket?: s3.Bucket,
   ) {
     const lambdaRole = iam.Role.fromRoleArn(scope, 'LambdaProcessorRole', lambdaProcessingRoleArn);
@@ -301,6 +303,7 @@ export class OpenSearchSiemStack extends Stack {
         POWERTOOLS_METRICS_NAMESPACE: 'SIEM',
         ES_ENDPOINT: osDomain,
         GEOIP_BUCKET: geoIpUploadBucket?.bucketName || '',
+        SIEM_VERSION: siemVersion
       },
     });
 
@@ -335,6 +338,7 @@ export class OpenSearchSiemStack extends Stack {
     vpc: ec2.IVpc,
     domainSubnetIds: string[],
     securityGroups: ec2.SecurityGroup[],
+    siemVersion: string,
     licenseFile?: string,
   ) {
     if (licenseFile) {
@@ -390,6 +394,7 @@ export class OpenSearchSiemStack extends Stack {
 
       new OpenSearchSiemGeoIpInit(scope, 'GeoIpInit', {
         geoIpLambdaRoleArn: geoIpDownloader.functionArn,
+        siemVersion
       });
     }
   }

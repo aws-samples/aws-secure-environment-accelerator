@@ -166,6 +166,9 @@
                         "event": {
                             "type": "object"
                         },
+                        "event.category": {
+                            "type": "keyword"
+                        },
                         "event.code": {
                             "type": "keyword"
                         },
@@ -185,6 +188,9 @@
                             "type": "date"
                         },
                         "event.kind": {
+                            "type": "keyword"
+                        },
+                        "event.outcome": {
                             "type": "keyword"
                         },
                         "event.risk_score": {
@@ -541,6 +547,9 @@
                         },
                         "source": {
                             "type": "object"
+                        },
+                        "source.address": {
+                            "type": "keyword"
                         },
                         "source.as.number": {
                             "type": "integer"
@@ -1060,6 +1069,87 @@
                 }
             }
         },
+        "component_template_log-aws-config": {
+            "template": {
+              "settings": {
+                "index.mapping.total_fields.limit": 3000,
+                "index.max_docvalue_fields_search": 150,
+                "number_of_shards": "1"
+              },
+              "mappings" : {
+                "properties": {
+                  "awsRegion": {"type": "keyword"},
+                  "configuration.AWS:AWSComponent.Content": {"type": "nested", "properties": {
+                    "InstalledTime": {"type": "date"}}},
+                  "configuration.AWS:Application.Content": {"type": "nested", "properties": {
+                    "InstalledTime": {"type": "date"}}},
+                  "configuration.AWS:ComplianceItem.Content.Association": {"type": "nested", "properties": {
+                    "InstalledTime": {"type": "date"}}},
+                  "configuration.AWS:ComplianceItem.Content.Patch": {"type": "nested", "properties": {
+                    "InstalledTime": {"type": "date"}}},
+                  "configuration.AWS:Network.Content": {"type": "nested"},
+                  "configuration.AWS:WindowsUpdate.Content": {"type": "nested", "properties": {
+                    "InstalledTime": {"type": "date"}}},
+                  "configuration.CreatedTimestamp": {"type": "date"},
+                  "configuration.LastModifiedTimestamp": {"type": "date"},
+                  "configuration.Owner": {"type": "keyword"},
+                  "configuration.alarmConfigurationUpdatedTimestamp": {"type": "date"},
+                  "configuration.billingModeSummary.lastUpdateToPayPerRequestDateTime": {"type": "date"},
+                  "configuration.createTime": {"type": "date"},
+                  "configuration.createdDate": {"type": "date"},
+                  "configuration.createdTime": {"type": "date"},
+                  "configuration.creationDate": {"type": "date"},
+                  "configuration.creationDateTime": {"type": "date"},
+                  "configuration.creationTime": {"type": "date"},
+                  "configuration.creationTimestamp": {"type": "date"},
+                  "configuration.clusterCreateTime": {"type": "date"},
+                  "configuration.dateCreated": {"type": "date"},
+                  "configuration.dateModified": {"type": "date"},
+                  "configuration.dateUpdated": {"type": "date"},
+                  "configuration.deleteTime": {"type": "date"},
+                  "configuration.deletionDate": {"type": "date"},
+                  "configuration.deletionTime": {"type": "date"},
+                  "configuration.lastUpdatedDate": {"type": "date"},
+                  "configuration.lastUpdatedTime": {"type": "date"},
+                  "configuration.metadata.created": {"type": "date"},
+                  "configuration.provisionedThroughput.lastIncreaseDateTime": {"type": "date"},
+                  "configuration.rules.statement": {"type": "text"},
+                  "configuration.serviceSoftwareOptions.automatedUpdateDate": {"type": "date"},
+                  "configuration.snapshotCreateTime": {"type": "date"},
+                  "configuration.state": {"type": "keyword"},
+                  "configuration.state_code": {"type": "keyword"},
+                  "configurationStateId": {"type": "keyword"},
+                  "newEvaluationResult.configRuleInvokedTime": {"type": "date"},
+                  "newEvaluationResult.evaluationResultIdentifier.orderingTimestamp": {"type": "date"},
+                  "newEvaluationResult.resultRecordedTime": {"type": "date"},
+                  "notificationCreationTime": {"type": "date"},
+                  "oldEvaluationResult.configRuleInvokedTime": {"type": "date"},
+                  "oldEvaluationResult.evaluationResultIdentifier.orderingTimestamp": {"type": "date"},
+                  "oldEvaluationResult.resultRecordedTime": {"type": "date"},
+                  "supplementaryConfiguration.StackResourceSummaries": {"type": "nested", "properties": {
+                    "lastUpdatedTimestamp": {"type": "date"}}},
+                  "supplementaryConfiguration.BucketNotificationConfiguration.configurations": {"type": "nested"},
+                  "supplementaryConfiguration.BucketReplicationConfiguration.rules": {"type": "nested"}
+                }
+              }
+            }
+           },          
+          "component_template_log-aws-elasticache": {
+            "template": {
+              "mappings" : {
+                "properties": {
+                  "elasticache.CacheClusterId": {"type": "keyword"},
+                  "elasticache.CacheNodeId": {"type": "keyword"},
+                  "elasticache.Id": {"type": "keyword"},
+                  "elasticache.Timestamp": {"type": "date", "format": "epoch_second"},
+                  "elasticache.Duration_us": {"type": "long"},
+                  "elasticache.Command": {"type": "keyword"},
+                  "elasticache.ClientAddress": {"type": "keyword"},
+                  "elasticache.ClientName": {"type": "keyword"}
+                }
+              }
+            }
+           },
         "component_template_log-aws-elb": {
             "template": {
                 "mappings": {
@@ -1308,6 +1398,19 @@
                 }
             }
         },
+        "component_template_log-aws-opensearch": {
+            "template": {
+              "mappings" : {
+                "properties": {
+                  "opensearch.audit_format_version": {"type": "keyword"},
+                  "opensearch.audit_request_body": {"type": "text"},
+                  "opensearch.audit_request_remote_address": {"type": "ip"},
+                  "opensearch.audit_trace_shard_id": {"type": "keyword"},
+                  "opensearch.timestamp": {"type": "date"}
+                }
+              }
+            }
+           },
         "component_template_log-aws-r53resolver": {
             "template": {
                 "mappings": {
@@ -1445,7 +1548,14 @@
         "component_template_log-aws-securityhub": {
             "template": {
                 "mappings": {
-                    "properties": {}
+                    "properties": {
+                        "ProductFields.aws/inspector/inspectorScore": {"type": "float"},
+                        "ProductFields.aws/inspector/ProductVersion": {"type": "keyword"},
+                        "Vulnerabilities.Cvss.BaseScore": {"type": "float"},
+                        "Vulnerabilities.VulnerablePackages.Epoch": {"type": "date", "format": "epoch_second"},
+                        "Vulnerabilities.VulnerablePackages.Release": {"type": "keyword"},
+                        "Vulnerabilities.VulnerablePackages.Version": {"type": "keyword"}                      
+                    }
                 }
             }
         },
@@ -1580,6 +1690,8 @@
             "template": {
                 "mappings": {
                     "properties": {
+                        "ConnectionStateCheckTimestamp": {"type": "date"},
+                        "LastKnownUserConnectionTimestamp": {"type": "date"},
                         "clientIpAddress": {
                             "type": "ip"
                         },
@@ -1695,6 +1807,61 @@
         }
     },
     "index-templates": {
+        "log-aws-config_aws": {
+            "index_patterns": ["log-aws-config-*"],
+            "priority": 2,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-config"
+            ],
+            "version": 1
+           },          
+          "log-aws-elasticache_aws": {
+            "index_patterns": ["log-aws-elasticache-*"],
+            "priority": 2,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-elasticache"
+            ],
+            "version": 1
+           },          
+          "log-aws-guardduty_aws": {
+            "index_patterns": ["log-aws-guardduty-*"],
+            "priority": 2,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-guardduty"
+            ],
+            "version": 1
+           },          
+          "log-aws-opensearch_aws":{
+            "index_patterns": ["log-aws-opensearch-*"],
+            "priority": 2,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-opensearch"
+            ],
+            "version": 1
+           },          
+          "log-aws-securityhub_aws": {
+            "index_patterns": ["log-aws-securityhub-*"],
+            "template": {
+              "settings": {
+                "index.mapping.total_fields.limit": 2000
+              }
+            },
+            "priority": 2,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-securityhub"
+            ],
+            "version": 1
+           },
         "log-aws-workspaces_aws": {
             "index_patterns": [
                 "log-aws-workspaces-*"
@@ -1815,6 +1982,21 @@
             },
             "version": 1
         },
+        "log-aws-elasticache_rollover": {
+            "index_patterns": ["log-aws-elasticache-0*"],
+            "priority": 5,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-elasticache"
+            ],
+            "template": {
+              "settings": {
+                "opendistro.index_state_management.rollover_alias": "log-aws-elasticache"
+              }
+            },
+            "version": 1
+           },
         "log-aws-elb_rollover": {
             "index_patterns": [
                 "log-aws-elb-0*"
@@ -1854,6 +2036,21 @@
             },
             "version": 1
         },
+        "log-aws-config_rollover": {
+            "index_patterns": ["log-aws-config-0*"],
+            "priority": 5,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-config"
+            ],
+            "template": {
+              "settings": {
+                "opendistro.index_state_management.rollover_alias": "log-aws-config"
+              }
+            },
+            "version": 1
+           },
         "log-aws-guardduty_rollover": {
             "index_patterns": [
                 "log-aws-guardduty-0*"
@@ -1905,6 +2102,21 @@
             },
             "version": 1
         },
+        "log-aws-opensearch_rollover": {
+            "index_patterns": ["log-aws-opensearch-0*"],
+            "priority": 5,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-opensearch"
+            ],
+            "template": {
+              "settings": {
+                "opendistro.index_state_management.rollover_alias": "log-aws-opensearch"
+              }
+            },
+            "version": 1
+           },          
         "log-aws-r53resolver_rollover": {
             "index_patterns": [
                 "log-aws-r53resolver-0*"
@@ -2079,6 +2291,8 @@
     "deleted-old-index-template": {
         "log-aws-directory-service_aws": null,
         "log-aws-fsx-win_aws": null,
+        "log-aws-guardduty_aws": null,
+        "log-aws-securityhub_aws": null,
         "log-aws-workspaces_aws": null,
         "log-win_aws": null,
         "log-aws-directory-service_rollover": null,
@@ -2225,6 +2439,9 @@
                     "event": {
                         "type": "object"
                     },
+                    "event.category": {
+                        "type": "keyword"
+                    },
                     "event.code": {
                         "type": "keyword"
                     },
@@ -2244,6 +2461,9 @@
                         "type": "date"
                     },
                     "event.kind": {
+                        "type": "keyword"
+                    },
+                    "event.outcome": {
                         "type": "keyword"
                     },
                     "event.risk_score": {
@@ -2600,6 +2820,9 @@
                     },
                     "source": {
                         "type": "object"
+                    },
+                    "source.address": {
+                        "type": "keyword"
                     },
                     "source.as.number": {
                         "type": "integer"
@@ -3185,118 +3408,6 @@
                     },
                     "event.tcp.tcp_flag": {
                         "type": "keyword"
-                    }
-                }
-            }
-        },
-        "log-aws-securityhub_aws": {
-            "index_patterns": [
-                "log-aws-securityhub-*"
-            ],
-            "order": 0,
-            "mappings": {
-                "properties": {}
-            }
-        },
-        "log-aws-guardduty_aws": {
-            "index_patterns": [
-                "log-aws-guardduty-*"
-            ],
-            "order": 0,
-            "settings": {
-                "number_of_shards": "1"
-            },
-            "mappings": {
-                "properties": {
-                    "description": {
-                        "type": "text"
-                    },
-                    "resource.instanceDetails.launchTime": {
-                        "type": "date"
-                    },
-                    "resource.instanceDetails.networkInterfaces.privateIpAddress": {
-                        "type": "ip"
-                    },
-                    "resource.instanceDetails.networkInterfaces.privateIpAddresses.privateIpAddress": {
-                        "type": "ip"
-                    },
-                    "resource.instanceDetails.networkInterfaces.publicIp": {
-                        "type": "ip"
-                    },
-                    "service.action.awsApiCallAction.remoteIpDetails.geoLocation": {
-                        "type": "geo_point"
-                    },
-                    "service.action.awsApiCallAction.remoteIpDetails.ipAddressV4": {
-                        "type": "ip"
-                    },
-                    "service.action.awsApiCallAction.remoteIpDetails.ipAddressV6": {
-                        "type": "ip"
-                    },
-                    "service.action.awsApiCallAction.remoteIpDetails.organization.asn": {
-                        "type": "integer"
-                    },
-                    "service.action.networkConnectionAction.localIpDetails.ipAddressV4": {
-                        "type": "ip"
-                    },
-                    "service.action.networkConnectionAction.localPortDetails.port": {
-                        "type": "integer"
-                    },
-                    "service.action.networkConnectionAction.remoteIpDetails.geoLocation": {
-                        "type": "geo_point"
-                    },
-                    "service.action.networkConnectionAction.remoteIpDetails.ipAddressV4": {
-                        "type": "ip"
-                    },
-                    "service.action.networkConnectionAction.remoteIpDetails.organization.asn": {
-                        "type": "integer"
-                    },
-                    "service.action.portProbeAction.portProbeDetails.localIpDetails.ipAddressV4": {
-                        "type": "ip"
-                    },
-                    "service.action.portProbeAction.portProbeDetails.remoteIpDetails.geoLocation": {
-                        "type": "geo_point"
-                    },
-                    "service.action.portProbeAction.portProbeDetails.remoteIpDetails.ipAddressV4": {
-                        "type": "ip"
-                    },
-                    "service.additionalInfo.inBytes": {
-                        "type": "long"
-                    },
-                    "service.additionalInfo.apiCalls.firstSeen": {
-                        "type": "date"
-                    },
-                    "service.additionalInfo.apiCalls.lastSeen": {
-                        "type": "date"
-                    },
-                    "service.additionalInfo.localPort": {
-                        "type": "integer"
-                    },
-                    "service.additionalInfo.newPolicy.maxPasswordAge": {
-                        "type": "short"
-                    },
-                    "service.additionalInfo.newPolicy.minimumPasswordLength": {
-                        "type": "short"
-                    },
-                    "service.additionalInfo.newPolicy.passwordReusePrevention": {
-                        "type": "short"
-                    },
-                    "service.additionalInfo.oldPolicy.maxPasswordAge": {
-                        "type": "short"
-                    },
-                    "service.additionalInfo.oldPolicy.minimumPasswordLength": {
-                        "type": "short"
-                    },
-                    "service.additionalInfo.oldPolicy.passwordReusePrevention": {
-                        "type": "short"
-                    },
-                    "service.additionalInfo.outBytes": {
-                        "type": "long"
-                    },
-                    "service.additionalInfo.recentCredentials.ipAddressV4": {
-                        "type": "ip"
-                    },
-                    "service.additionalInfo.unusual": {
-                        "type": "text"
                     }
                 }
             }

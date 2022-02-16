@@ -21,6 +21,7 @@ const resourceType = 'Custom::OpenSearchSiemGeoIpInit';
 
 export interface OpenSearchSiemGeoIpInitProps {
   geoIpLambdaRoleArn: string;
+  siemVersion: string;
 }
 
 /**
@@ -74,7 +75,9 @@ export class OpenSearchSiemGeoIpInit extends Construct {
       handler: 'index.geoIpInit',
       timeout: Duration.minutes(5),
       memorySize: 2048,
-      environment: {},
+      environment: {
+        SIEM_VERSION: this.props.siemVersion
+      },
     });
   }
 }

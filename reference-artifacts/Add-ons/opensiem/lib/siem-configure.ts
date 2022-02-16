@@ -29,6 +29,7 @@ export interface OpenSearchSiemConfigureProps {
   vpcId: string;
   domainSubnetIds: string[];
   securityGroupIds: string[];
+  siemVersion: string;
 }
 
 export type OpenSearchSiemRuntimeProps = Omit<
@@ -97,7 +98,9 @@ export class OpenSearchSiemConfigure extends Construct {
         subnetFilters: [ec2.SubnetFilter.byIds(this.props.domainSubnetIds)],
       },
       securityGroups: vpcSecurityGroups,
-      environment: {},
+      environment: {
+        SIEM_VERSION: this.props.siemVersion
+      }
     });
   }
 }

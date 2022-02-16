@@ -52,6 +52,7 @@ export interface SiemConfig {
   openSearchConfiguration: string;
   lambdaLogProcessingRoleArn: string;
   s3LogBuckets: string[];
+  siemVersion: string;
 }
 
 export async function loadSiemConfig(): Promise<SiemConfig> {

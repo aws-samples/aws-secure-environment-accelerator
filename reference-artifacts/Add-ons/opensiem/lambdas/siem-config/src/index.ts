@@ -339,6 +339,7 @@ const upsertRoleMapping = async (
         'indices:admin/template/put',
         'cluster:admin/ingest/pipeline/put',
         'cluster:admin/ingest/pipeline/get',
+        'cluster:admin/cold/indices/search',
       ],
       index_permissions: [
         {
