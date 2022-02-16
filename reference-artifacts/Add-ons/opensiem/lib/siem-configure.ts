@@ -99,8 +99,8 @@ export class OpenSearchSiemConfigure extends Construct {
       },
       securityGroups: vpcSecurityGroups,
       environment: {
-        SIEM_VERSION: this.props.siemVersion
-      }
+        SIEM_VERSION: this.props.siemVersion,
+      },
     });
   }
 }

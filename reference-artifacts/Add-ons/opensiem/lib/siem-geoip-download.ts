@@ -76,7 +76,7 @@ export class OpenSearchSiemGeoIpInit extends Construct {
       timeout: Duration.minutes(5),
       memorySize: 2048,
       environment: {
-        SIEM_VERSION: this.props.siemVersion
+        SIEM_VERSION: this.props.siemVersion,
       },
     });
   }

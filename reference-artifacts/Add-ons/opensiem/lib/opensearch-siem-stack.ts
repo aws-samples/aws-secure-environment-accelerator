@@ -224,7 +224,7 @@ export class OpenSearchSiemStack extends Stack {
       vpcId: siemConfig.vpcId,
       domainSubnetIds: siemConfig.appSubnets,
       securityGroupIds,
-      siemVersion: siemConfig.siemVersion
+      siemVersion: siemConfig.siemVersion,
     });
 
     siemConfigure.node.addDependency(fileUpload);
@@ -303,7 +303,7 @@ export class OpenSearchSiemStack extends Stack {
         POWERTOOLS_METRICS_NAMESPACE: 'SIEM',
         ES_ENDPOINT: osDomain,
         GEOIP_BUCKET: geoIpUploadBucket?.bucketName || '',
-        SIEM_VERSION: siemVersion
+        SIEM_VERSION: siemVersion,
       },
     });
 
@@ -394,7 +394,7 @@ export class OpenSearchSiemStack extends Stack {
 
       new OpenSearchSiemGeoIpInit(scope, 'GeoIpInit', {
         geoIpLambdaRoleArn: geoIpDownloader.functionArn,
-        siemVersion
+        siemVersion,
       });
     }
   }
