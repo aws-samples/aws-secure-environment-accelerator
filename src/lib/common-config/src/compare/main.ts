@@ -16,6 +16,7 @@ import { AcceleratorConfig } from '..';
 import { compareConfiguration, Diff, getAccountNames } from './config-diff';
 import * as validate from './validate';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { number } from '@aws-accelerator/common-types';
 
 /**
  * Retrieve and compare previous and the current configuration from CodeCommit
@@ -182,34 +183,41 @@ export async function compareAcceleratorConfig(props: {
 }
 
 function checkForEmailDuplicates(acceleratorConfig: AcceleratorConfig, errors: string[]) {
+  console.log('checking for duplicate emails');
   const manditoryAccounts = Object.entries(acceleratorConfig['mandatory-account-configs']);
-  const workloadAccounts = Object.entries(acceleratorConfig['workload-account-configs']).filter(
-    ([_, value]) => !value.deleted,
-  );
+  const workloadAccounts = Object.entries(acceleratorConfig['workload-account-configs']);
   const emails = [];
-  for (const [key, obj] of [...manditoryAccounts, ...workloadAccounts]) {
+
+  for (const [_key, obj] of manditoryAccounts) {
     emails.push(obj.email);
   }
-  const emailCounts = emails.reduce((acc: any, email) => {
+
+  for (const [_key, obj] of workloadAccounts) {
+    emails.push(obj.email);
+  }
+
+  const emailCounts = emails.reduce((acc: { [key: string]: number }, email) => {
     if (!acc[email]) {
       acc[email] = 1;
     } else {
       acc[email]++;
     }
-
     return acc;
   }, {});
-  for (const [key, val] of emailCounts) {
+
+  for (const [key, val] of Object.entries(emailCounts)) {
     if (val > 1) {
       errors.push(
         `found duplicate entries for key ${key} under manditory-account-configs or workload-account-configs. Please use unique email addresses for each account.`,
       );
     }
   }
+
   return errors;
 }
 
 function checkForMismatchedAccountKeys(acceleratorConfig: AcceleratorConfig, errors: string[]) {
+  console.log('Checking for mismatched account keys');
   const mandatoryAccountKeys = [
     'aws-org-management',
     'central-security-services',
