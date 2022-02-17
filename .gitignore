@@ -7,3 +7,4 @@ aws-landing-zone-configuration.zip
 **/dist
 .idea
 .envrc
+.vscode

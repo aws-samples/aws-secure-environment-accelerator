@@ -21,7 +21,7 @@ import { SynthUtils } from '@aws-cdk/assert';
 export interface Template {
   Resources: Record<string, Resource>;
 }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ResourceProperties = { [key: string]: any };
 
 /**

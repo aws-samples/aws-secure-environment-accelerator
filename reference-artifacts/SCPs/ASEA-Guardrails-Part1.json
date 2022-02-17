@@ -42,7 +42,11 @@
           "iam:ResourceTag/Accelerator": "${ACCELERATOR_NAME}"
         },
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ORG_ADMIN_ROLE}", "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
+            "arn:aws:iam::*:role/AWSServiceRoleForConfig"
+          ]
         }
       }
     },
@@ -52,9 +56,9 @@
       "Action": [
         "s3:Delete*",
         "s3:PutBucketVersioning",
-        "s3:PutEncryptionConfiguration",
-        "s3:PutLifecycleConfiguration",
-        "s3:PutReplicationConfiguration",
+        "s3:PutEncryptionConfig*",
+        "s3:PutLifecycleConfig*",
+        "s3:PutReplicationConfig*",
         "s3:PutBucketLogging",
         "s3:PutBucketPolicy",
         "s3:ReplicateDelete",
@@ -75,7 +79,11 @@
       "Resource": ["arn:aws:cloudformation:*:*:stack/${ACCELERATOR_PREFIX}*"],
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ORG_ADMIN_ROLE}", "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
+            "arn:aws:iam::*:role/AWSServiceRoleForConfig"
+          ]
         }
       }
     },
@@ -104,7 +112,11 @@
       "Resource": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ACCELERATOR_NAME}Ops-*"],
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ORG_ADMIN_ROLE}", "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
+            "arn:aws:iam::*:role/AWSServiceRoleForConfig"
+          ]
         }
       }
     },

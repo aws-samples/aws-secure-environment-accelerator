@@ -99,7 +99,9 @@ export function getResourceLastUpdateTime(mapping: AWS.ResourceGroupsTaggingAPI.
   if (tag?.Value) {
     try {
       return +tag.Value;
-    } catch (e) {}
+    } catch (e) {
+      console.log(e);
+    }
   }
   return 0;
 }

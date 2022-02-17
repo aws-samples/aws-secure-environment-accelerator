@@ -794,6 +794,7 @@ edit FG-traffic
         set remote-as ${PublicVpnBgpAsn1}
 		set route-map-in "RMAP-IN-DENY-ALL"
         set route-map-out "rmap-outbound"
+        set default-originate-routemap rmap-outbound
         set link-down-failover enable
       next
       edit ${PublicVpnTunnelInsideAddress2}
@@ -801,6 +802,7 @@ edit FG-traffic
         set remote-as ${PublicVpnBgpAsn1}
 		set route-map-in "RMAP-IN-DENY-ALL"
         set route-map-out "rmap-outbound-prepend"
+        set default-originate-routemap rmap-outbound-prepend
         set link-down-failover enable
       next
     end

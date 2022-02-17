@@ -313,7 +313,7 @@ function scopeValidation(
         );
       }
     } else {
-      throw new Error('"loadOus" is mandatory if scope="OU"');
+      throw new Error('"targetOus" is mandatory if scope="OU"');
     }
   };
   if (scope === 'NEW-ACCOUNTS') {

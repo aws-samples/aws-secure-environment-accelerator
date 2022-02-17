@@ -16,15 +16,18 @@ import * as iam from '@aws-cdk/aws-iam';
 import { AccountStacks } from '../../common/account-stacks';
 import { createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CfnIamRoleOutput } from './outputs';
+import { LogBucketOutput, AccountBucketOutputFinder } from '../defaults/outputs';
+import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 
 export interface IamConfigServiceRoleProps {
   acceleratorPrefix: string;
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
+  outputs: StackOutput[];
 }
 
 export async function createConfigServiceRoles(props: IamConfigServiceRoleProps): Promise<void> {
-  const { accountStacks, config, acceleratorPrefix } = props;
+  const { accountStacks, config, acceleratorPrefix, outputs } = props;
   const accountKeys = config.getAccountConfigs().map(([accountKey, _]) => accountKey);
 
   const globalOptions = config['global-options'];
@@ -32,6 +35,12 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
   const securityAccountKey = config.getMandatoryAccountKey('central-security');
   const centralOperationsKey = config.getMandatoryAccountKey('central-operations');
   const centralLogKey = config.getMandatoryAccountKey('central-log');
+
+  const logBucketDetails = LogBucketOutput.getBucket({
+    accountStacks,
+    config,
+    outputs,
+  });
 
   for (const accountKey of accountKeys) {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
@@ -80,10 +89,19 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
      */
     configRecorderRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ['s3:PutObject'],
+        actions: ['s3:PutObject*', 's3:GetBucketAcl'],
         resources: ['*'],
       }),
     );
+
+    if (logBucketDetails && logBucketDetails.encryptionKey) {
+      configRecorderRole.addToPrincipalPolicy(
+        new iam.PolicyStatement({
+          actions: ['kms:Encrypt', 'kms:GenerateDataKey'],
+          resources: [logBucketDetails.encryptionKey.keyArn],
+        }),
+      );
+    }
 
     new CfnIamRoleOutput(accountStack, `ConfigRecorderRoleOutput`, {
       roleName: configRecorderRole.roleName,
