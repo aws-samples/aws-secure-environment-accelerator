@@ -62,17 +62,16 @@ export async function compareAcceleratorConfig(props: {
 
   const previousConfig = JSON.parse(previousContent);
   const modifiedConfig = JSON.parse(modifiedContent);
-
+  const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
   const errors: string[] = [];
 
+  // Check for duplicate email entry
+  checkForEmailDuplicates(acceleratorConfig, errors);
+  checkForMismatchedAccountKeys(modifiedConfig, errors);
   // compare both the configurations
   const configChanges = compareConfiguration(previousConfig, modifiedConfig);
   if (!configChanges) {
     console.log('no differences found');
-    // Check for duplicate email entry
-    const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
-    checkForEmailDuplicates(acceleratorConfig, errors);
-    checkForMismatchedAccountKeys(modifiedConfig, errors);
     // Validate DDB Pool entries changes
     if (!overrideConfig['ov-cidr']) {
       await validate.validateDDBChanges(
@@ -85,10 +84,6 @@ export async function compareAcceleratorConfig(props: {
     }
     return errors;
   }
-  // Check for duplicate email entry
-  const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
-  checkForEmailDuplicates(acceleratorConfig, errors);
-  checkForMismatchedAccountKeys(acceleratorConfig, errors);
 
   scopeValidation(scope, configChanges, errors, targetAccounts || [], targetOus || []);
 
@@ -174,7 +169,6 @@ export async function compareAcceleratorConfig(props: {
   // Validate DDB Pool entries changes
   if (!overrideConfig['ov-cidr']) {
     console.log(`Validating Cidr Changes`);
-    const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
     await validate.validateDDBChanges(
       acceleratorConfig,
       vpcCidrPoolAssignedTable,
@@ -188,13 +182,31 @@ export async function compareAcceleratorConfig(props: {
 }
 
 function checkForEmailDuplicates(acceleratorConfig: AcceleratorConfig, errors: string[]) {
-  const emails = [...acceleratorConfig.getAccountConfigs().map(([_, accountConfig]) => accountConfig.email)];
-  const duplicateFilteredEmails = [...new Set(emails)];
-  if (emails.length !== duplicateFilteredEmails.length) {
-    errors.push(
-      'Found duplicate entries for account emails under mandatory-account-configs / workload-account-configs',
-    );
+  const manditoryAccounts = Object.entries(acceleratorConfig['mandatory-account-configs']);
+  const workloadAccounts = Object.entries(acceleratorConfig['workload-account-configs']).filter(
+    ([_, value]) => !value.deleted,
+  );
+  const emails = [];
+  for (const [key, obj] of [...manditoryAccounts, ...workloadAccounts]) {
+    emails.push(obj.email);
   }
+  const emailCounts = emails.reduce((acc: any, email) => {
+    if (!acc[email]) {
+      acc[email] = 1;
+    } else {
+      acc[email]++;
+    }
+
+    return acc;
+  }, {});
+  for (const [key, val] of emailCounts) {
+    if (val > 1) {
+      errors.push(
+        `found duplicate entries for key ${key} under manditory-account-configs or workload-account-configs. Please use unique email addresses for each account.`,
+      );
+    }
+  }
+  return errors;
 }
 
 function checkForMismatchedAccountKeys(acceleratorConfig: AcceleratorConfig, errors: string[]) {
@@ -206,11 +218,12 @@ function checkForMismatchedAccountKeys(acceleratorConfig: AcceleratorConfig, err
   ];
   // @ts-ignore
   const globalAccountKeys = mandatoryAccountKeys.map(key => acceleratorConfig['global-options'][key].account);
-  for (const accountKey of globalAccountKeys) {
-    if (!acceleratorConfig.getMandatoryAccountConfigs().find(accountConfig => accountConfig[0] === accountKey)) {
-      errors.push(`Global mandatory account ${accountKey} was not found under mandatory-account-configs`);
+  const manditoryAccountKeys = Object.keys(acceleratorConfig['mandatory-account-configs']);
+  globalAccountKeys.forEach(globalKey => {
+    if (!manditoryAccountKeys.includes(globalKey)) {
+      errors.push(`The account key ${globalKey} is not defined in manditory-account-configs.`);
     }
-  }
+  });
   return errors;
 }
 
