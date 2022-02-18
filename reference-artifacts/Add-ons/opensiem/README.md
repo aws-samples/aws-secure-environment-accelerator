@@ -15,8 +15,9 @@ The total deployment time takes approximately 30 minutes (+ ASEA State Machine e
 ## Prerequisites
 
 1. ASEA v1.5.1 or above
+
    - prior versions do not have access to the ELB log bucket, CloudWatch Log sources were not easily consumed, Security Hub logs were not published to S3, and a Cognito API call was blocked
-  
+
 2. Permissions:
 
    1. Organization Management Account - ability to update ASEA config file and run ASEA state machine
@@ -109,7 +110,7 @@ The **SiemConfig.json** file is used to configure how this solution is deployed 
 | openSearchVolumeSize            | This specifies the amount of storage (GB) provisioned for the data nodes. This impacts the amount of available storage for the Domain. Note there are [limits](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/limits.html) for EBS size for instance types.   |
 | openSearchConfiguration         | This is the file name of the SIEM search configuration. This file should reside in the _config_ folder. This json file mirrors the content found in the _SIEM on Amazon OpenSearch Service_ corresponding INI file.                                                                 |
 | maxmindLicense                  | This is the file name of the MaxMind license file. This file should reside in the _config_ folder. This is an optional configuration that enables IP to Geo which enables map visualizations. Leave blank ("") to skip the deployment of this functionality.                        |
-| siemVersion | This is a label used to identitfy the _SIEM on Amazon OpenSearch Service_ or your own version/configuration of the Lambdas. This applies an environment variable to the Lambdas and a change to this value will execute the lambdas on CDK deployment.  
+| siemVersion                     | This is a label used to identitfy the _SIEM on Amazon OpenSearch Service_ or your own version/configuration of the Lambdas. This applies an environment variable to the Lambdas and a change to this value will execute the lambdas on CDK deployment.                              |
 
 ---
 
@@ -168,7 +169,9 @@ arn:aws:sqs:<region>:<operations account id>:opensearch-siem-dlq
 1. Change directory to **reference-artifacts/Add-ons/opensiem**.
 1. Update the **SiemConfig.json** file, replacing all sample values with desired values.
 1. You can add country information as well as latitude/longitude location information to each IP address. To get location information, SIEM on OpenSearch Service downloads and uses GeoLite2 Free by [MaxMind](https://www.maxmind.com/). You must either:
-   1. If you want to add location information, get your free license from MaxMind and place the license file named **license.txt** in the **config** sub-folder. There must be outbound internet connectivity from the VPC in the operations account for this feature to work; or
+   1. If you want to add location information, get your free license from MaxMind and place the license file named **license.txt** in the **config** sub-folder.
+      - The license file must only contain a single line containing the license key (approx. 16 characters) (no key value pairs)
+      - There must be outbound internet connectivity from the VPC in the operations account for this feature to work; or
    2. Set the `maxmindLicense` field to blank ("") to skip the deployment of this functionality.
 
 ### 3. Deploy the OpenSearch Stack (Operations account)
@@ -288,6 +291,11 @@ Amazon Cognito is used to add authentication and protection to the OpenSearch Se
 
 1. Login to the Operations account
 2. Create an MFA enabled user in the Cognito OpenSearchSiemUserPool
+   - This solution enables MFA on the Cognito user pool, but, account limits for SMS and SNS may prevent MFA from functioning. You can temporarily change the user pool to "Optional" MFA enforcement, and set each user to "Do not require MFA". Once you raise limits, these changes should be reverted.
+   - GUI generated users have a forced password reset on first login, if this causes login challenges, the following command will force a permanent password reset:
+   ```
+   > aws cognito-idp admin-set-user-password --user-pool-id <your-user-pool-id> --username <username> --password "<password>" --permanent
+   ```
 
 ### 6. OpenSearch Dashboards
 
@@ -329,7 +337,9 @@ In OpenSearch:
    - Select OpenSearch Dashboards, Dashboard to see a list of the preconfigured SIEM visualizations
 
 ## 7. Log Ingestion
+
 The _SIEM on Amazon OpenSearch Service_ log ingestion to OpenSearch is driven by logs uploaded/put to S3. The S3 object key is used to determine what type of log file and what type of OpenSearch mapping should be applied. ASEA v1.5.1 introduces a new feature to place log files into different folders based on a string match in the S3 object key. Here's the v1.5.1 new configuration that should be applied:
+
 ```
 "dynamic-s3-log-partitioning": [
         {
@@ -358,15 +368,17 @@ The _SIEM on Amazon OpenSearch Service_ log ingestion to OpenSearch is driven by
         }
       ]
 ```
+
 As an example, if the Amazon Data Kinesis Firehose, that centrally processes CloudWatch Logs, is processing logs that came from a log group with a name containing'ASEA/rql', then it will add the 's3Prefix' value 'rql' to the S3 object. In other words, rql logs will be placed into a 'rql' folder in the central log archive S3 bucket.
 
 The **Log Processor** needs to be configured to know what keyword in the S3 object key maps to which known log type. This has already been done based on the above sample confguration. However, if you are adding something new and want to have it ingested into OpenSearch, it must be configured (in addition to index mapping creation). The _os-loader.zip_ contains a configuration file _aws.ini_. Here is an example of a snippet showing just the rql S3 configuration defined in that file:
+
 ```
 [route53resolver]
 s3_key = /rql/
 file_format = json
 via_cwl = True
-``` 
+```
 
 Note that the _s3_key_ has a value of _/rql/_. This matches the above _dynamic-s3-log-partitioning_ for rql files. The **Log Processor** will process that S3 log file expecting it to be a rql file, in the file format of JSON, and was written to CloudWatch Logs first (opposed to directly written to the S3 bucket).
 
