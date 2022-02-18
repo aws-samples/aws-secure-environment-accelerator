@@ -223,7 +223,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   } else {
     console.log('onUpdate skipped');
   }
-    
+
   return { physicalResourceId: event.PhysicalResourceId };
 }
 
