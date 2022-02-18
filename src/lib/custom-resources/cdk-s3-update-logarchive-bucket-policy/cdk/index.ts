@@ -26,6 +26,7 @@ export interface LogArchiveReadAccessProps {
   aesLogBucket: s3.IBucket;
   removalPolicy?: cdk.RemovalPolicy;
   acceleratorPrefix: string;
+  forceUpdate?: boolean;
 }
 
 /**
@@ -53,6 +54,12 @@ export class S3UpdateLogArchivePolicy extends cdk.Construct {
       aesLogBucketArn: this.props.aesLogBucket.bucketArn,
       aesLogBucketName: this.props.aesLogBucket.bucketName,
     };
+
+    const forceUpdate = this.props.forceUpdate ?? true;
+    if (forceUpdate) {
+      // Add a dummy value that is a random number to update the resource every time
+      handlerProperties.forceUpdate = Math.round(Math.random() * 1000000);
+    }
 
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
