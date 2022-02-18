@@ -28,6 +28,7 @@ export interface HandlerProperties {
   logBucketKmsKeyArn: string | undefined;
   aesLogBucketArn: string;
   aesLogBucketName: string;
+  forceUpdate?: number;
 }
 
 export const handler = errorHandler(onEvent);
@@ -215,7 +216,14 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   const props = getPropertiesFromEvent(event);
-  await createOrUpdateBucketPolicy(props);
+
+  if (props.forceUpdate !== undefined) {
+    console.log('onUpdate forceUpdate true');
+    await createOrUpdateBucketPolicy(props);
+  } else {
+    console.log('onUpdate skipped');
+  }
+
   return { physicalResourceId: event.PhysicalResourceId };
 }
 
