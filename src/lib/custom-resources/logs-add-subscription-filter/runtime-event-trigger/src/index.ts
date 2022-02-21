@@ -22,7 +22,7 @@ export const handler = async (input: any): Promise<string> => {
   console.log(JSON.stringify(input, null, 2));
 
   const logGroupName = input.detail.requestParameters.logGroupName as string;
-  const roleArn = process.env.ROLE_ARN;
+  const roleArn = process.env.ROLE_ARN || '';
   const logDestinationArn = process.env.LOG_DESTINATION;
   if (!logDestinationArn) {
     console.warn(`Log Destination is not parent in env for this account`);
