@@ -1,0 +1,3787 @@
+{
+    "cluster-settings": {
+        "opensearch-alert": {
+            "persistent": {
+                "opendistro.alerting.alert_history_max_age": "30d",
+                "opendistro.alerting.alert_history_retention_period": "120d"
+            }
+        }
+    },
+    "index_state_management_policies": {
+        "rollover100gb": {
+            "policy": {
+                "description": "rollover by 100gb",
+                "default_state": "rollover",
+                "states": [
+                    {
+                        "name": "rollover",
+                        "actions": [
+                            {
+                                "rollover": {
+                                    "min_size": "100gb"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "ism_template": [
+                    {
+                        "index_patterns": [
+                            "log-*-00*"
+                        ],
+                        "priority": 0
+                    }
+                ]
+            }
+        }
+    },
+    "component-templates": {
+        "component_template_log": {
+            "template": {
+                "settings": {
+                    "index.mapping.ignore_malformed": true,
+                    "number_of_shards": "3"
+                },
+                "mappings": {
+                    "dynamic_templates": [
+                        {
+                            "strings": {
+                                "match_mapping_type": "string",
+                                "mapping": {
+                                    "type": "keyword"
+                                }
+                            }
+                        }
+                    ],
+                    "properties": {
+                        "@timestamp": {
+                            "type": "date"
+                        },
+                        "@message": {
+                            "type": "text"
+                        },
+                        "cwl_timestamp": {
+                            "type": "date",
+                            "format": "epoch_millis"
+                        },
+                        "cwe_timestamp": {
+                            "type": "date"
+                        },
+                        "base": {
+                            "type": "object"
+                        },
+                        "base.tags": {
+                            "type": "keyword"
+                        },
+                        "base.labels": {
+                            "type": "object"
+                        },
+                        "agent": {
+                            "type": "object"
+                        },
+                        "as": {
+                            "type": "object"
+                        },
+                        "client": {
+                            "type": "object"
+                        },
+                        "cloud": {
+                            "type": "object"
+                        },
+                        "code_signature": {
+                            "type": "object"
+                        },
+                        "container": {
+                            "type": "object"
+                        },
+                        "container.image.tag": {
+                            "type": "keyword"
+                        },
+                        "container.labels": {
+                            "type": "object"
+                        },
+                        "data_stream": {
+                            "type": "object"
+                        },
+                        "destination": {
+                            "type": "object"
+                        },
+                        "destination.as.number": {
+                            "type": "integer"
+                        },
+                        "destination.bytes": {
+                            "type": "long"
+                        },
+                        "destination.geo.location": {
+                            "type": "geo_point"
+                        },
+                        "destination.ip": {
+                            "type": "ip"
+                        },
+                        "destination.nat.ip": {
+                            "type": "ip"
+                        },
+                        "destination.nat.port": {
+                            "type": "integer"
+                        },
+                        "destination.packets": {
+                            "type": "long"
+                        },
+                        "destination.port": {
+                            "type": "integer"
+                        },
+                        "dll": {
+                            "type": "object"
+                        },
+                        "dns": {
+                            "type": "object"
+                        },
+                        "dns.answers": {
+                            "type": "object"
+                        },
+                        "dns.answers.ttl": {
+                            "type": "long"
+                        },
+                        "dns.id": {
+                            "type": "keyword"
+                        },
+                        "dns.header_flags": {
+                            "type": "keyword"
+                        },
+                        "dns.resolved_ip": {
+                            "type": "ip"
+                        },
+                        "ecs": {
+                            "type": "object"
+                        },
+                        "elf": {
+                            "type": "object"
+                        },
+                        "error": {
+                            "type": "object"
+                        },
+                        "error.message": {
+                            "type": "text"
+                        },
+                        "event": {
+                            "type": "object"
+                        },
+                        "event.category": {
+                            "type": "keyword"
+                        },
+                        "event.code": {
+                            "type": "keyword"
+                        },
+                        "event.created": {
+                            "type": "date"
+                        },
+                        "event.duration": {
+                            "type": "long"
+                        },
+                        "event.end": {
+                            "type": "date"
+                        },
+                        "event.id": {
+                            "type": "keyword"
+                        },
+                        "event.ingested": {
+                            "type": "date"
+                        },
+                        "event.kind": {
+                            "type": "keyword"
+                        },
+                        "event.outcome": {
+                            "type": "keyword"
+                        },
+                        "event.risk_score": {
+                            "type": "float"
+                        },
+                        "event.risk_score_norm": {
+                            "type": "float"
+                        },
+                        "event.sequence": {
+                            "type": "long"
+                        },
+                        "event.severity": {
+                            "type": "long"
+                        },
+                        "event.start": {
+                            "type": "date"
+                        },
+                        "event.timezone": {
+                            "type": "keyword"
+                        },
+                        "event.type": {
+                            "type": "keyword"
+                        },
+                        "file": {
+                            "type": "object"
+                        },
+                        "file.accessed": {
+                            "type": "date"
+                        },
+                        "file.attributes": {
+                            "type": "keyword"
+                        },
+                        "file.created": {
+                            "type": "date"
+                        },
+                        "file.ctime": {
+                            "type": "date"
+                        },
+                        "file.gid": {
+                            "type": "keyword"
+                        },
+                        "file.inode": {
+                            "type": "keyword"
+                        },
+                        "file.mode": {
+                            "type": "keyword"
+                        },
+                        "file.mtime": {
+                            "type": "date"
+                        },
+                        "file.size": {
+                            "type": "long"
+                        },
+                        "file.uid": {
+                            "type": "keyword"
+                        },
+                        "geo": {
+                            "type": "object"
+                        },
+                        "group": {
+                            "type": "object"
+                        },
+                        "group.id": {
+                            "type": "keyword"
+                        },
+                        "hash": {
+                            "type": "object"
+                        },
+                        "host": {
+                            "type": "object"
+                        },
+                        "host.disk.read.bytes": {
+                            "type": "long"
+                        },
+                        "host.disk.write.bytes": {
+                            "type": "long"
+                        },
+                        "host.hostname": {
+                            "type": "keyword"
+                        },
+                        "host.id": {
+                            "type": "keyword"
+                        },
+                        "host.ip": {
+                            "type": "ip"
+                        },
+                        "host.mac": {
+                            "type": "keyword"
+                        },
+                        "host.network.egress.bytes": {
+                            "type": "long"
+                        },
+                        "host.network.egress.packets": {
+                            "type": "long"
+                        },
+                        "host.network.ingress.bytes": {
+                            "type": "long"
+                        },
+                        "host.network.ingress.packets": {
+                            "type": "long"
+                        },
+                        "host.uptime": {
+                            "type": "long"
+                        },
+                        "http": {
+                            "type": "object"
+                        },
+                        "http.request.body.bytes": {
+                            "type": "long"
+                        },
+                        "http.request.body.content": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "http.request.bytes": {
+                            "type": "long"
+                        },
+                        "http.response.body.bytes": {
+                            "type": "long"
+                        },
+                        "http.response.body.content": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "http.response.bytes": {
+                            "type": "long"
+                        },
+                        "http.response.status_code": {
+                            "type": "short"
+                        },
+                        "http.version": {
+                            "type": "keyword"
+                        },
+                        "interface": {
+                            "type": "object"
+                        },
+                        "interface.alias": {
+                            "type": "keyword"
+                        },
+                        "interface.id": {
+                            "type": "keyword"
+                        },
+                        "interface.name": {
+                            "type": "keyword"
+                        },
+                        "log": {
+                            "type": "object"
+                        },
+                        "log.level": {
+                            "type": "keyword"
+                        },
+                        "log.origin.file.line": {
+                            "type": "long"
+                        },
+                        "log.syslog": {
+                            "type": "object"
+                        },
+                        "log.syslog.facility.code": {
+                            "type": "long"
+                        },
+                        "log.syslog.priority": {
+                            "type": "long"
+                        },
+                        "log.syslog.severity.code": {
+                            "type": "long"
+                        },
+                        "network": {
+                            "type": "object"
+                        },
+                        "network.bytes": {
+                            "type": "integer"
+                        },
+                        "network.community_id": {
+                            "type": "keyword"
+                        },
+                        "network.forwarded_ip": {
+                            "type": "ip"
+                        },
+                        "network.iana_number": {
+                            "type": "short"
+                        },
+                        "network.inner": {
+                            "type": "object"
+                        },
+                        "network.packets": {
+                            "type": "long"
+                        },
+                        "observer": {
+                            "type": "object"
+                        },
+                        "observer.ip": {
+                            "type": "ip"
+                        },
+                        "observer.mac": {
+                            "type": "keyword"
+                        },
+                        "observer.serial_number": {
+                            "type": "keyword"
+                        },
+                        "observer.version": {
+                            "type": "keyword"
+                        },
+                        "orchestrator": {
+                            "type": "object"
+                        },
+                        "organization": {
+                            "type": "object"
+                        },
+                        "organization.id": {
+                            "type": "keyword"
+                        },
+                        "os": {
+                            "type": "object"
+                        },
+                        "os.family": {
+                            "type": "keyword"
+                        },
+                        "os.full": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "os.kernel": {
+                            "type": "keyword"
+                        },
+                        "os.name": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "os.platform": {
+                            "type": "keyword"
+                        },
+                        "os.type": {
+                            "type": "keyword"
+                        },
+                        "os.version": {
+                            "type": "keyword"
+                        },
+                        "package": {
+                            "type": "object"
+                        },
+                        "pe": {
+                            "type": "object"
+                        },
+                        "process": {
+                            "type": "object"
+                        },
+                        "process.args": {
+                            "type": "keyword"
+                        },
+                        "process.args_count": {
+                            "type": "long"
+                        },
+                        "process.command_line": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "process.entity_id": {
+                            "type": "keyword"
+                        },
+                        "process.exit_code": {
+                            "type": "long"
+                        },
+                        "process.pgid": {
+                            "type": "long"
+                        },
+                        "process.pid": {
+                            "type": "long"
+                        },
+                        "process.ppid": {
+                            "type": "long"
+                        },
+                        "process.start": {
+                            "type": "date"
+                        },
+                        "process.thread.id": {
+                            "type": "long"
+                        },
+                        "process.uptime": {
+                            "type": "long"
+                        },
+                        "registry": {
+                            "type": "object"
+                        },
+                        "related": {
+                            "type": "object"
+                        },
+                        "related.hash": {
+                            "type": "keyword"
+                        },
+                        "related.hosts": {
+                            "type": "keyword"
+                        },
+                        "related.ip": {
+                            "type": "ip"
+                        },
+                        "related.user": {
+                            "type": "keyword"
+                        },
+                        "rule": {
+                            "type": "object"
+                        },
+                        "rule.author": {
+                            "type": "keyword"
+                        },
+                        "rule.category": {
+                            "type": "keyword"
+                        },
+                        "rule.description": {
+                            "type": "keyword"
+                        },
+                        "rule.id": {
+                            "type": "keyword"
+                        },
+                        "rule.uuid": {
+                            "type": "keyword"
+                        },
+                        "rule.version": {
+                            "type": "keyword"
+                        },
+                        "server": {
+                            "type": "object"
+                        },
+                        "service": {
+                            "type": "object"
+                        },
+                        "service.ephemeral_id": {
+                            "type": "keyword"
+                        },
+                        "service.id": {
+                            "type": "keyword"
+                        },
+                        "service.version": {
+                            "type": "keyword"
+                        },
+                        "source": {
+                            "type": "object"
+                        },
+                        "source.address": {
+                            "type": "keyword"
+                        },
+                        "source.as.number": {
+                            "type": "integer"
+                        },
+                        "source.bytes": {
+                            "type": "long"
+                        },
+                        "source.geo.location": {
+                            "type": "geo_point"
+                        },
+                        "source.ip": {
+                            "type": "ip"
+                        },
+                        "source.nat.ip": {
+                            "type": "ip"
+                        },
+                        "source.nat.port": {
+                            "type": "integer"
+                        },
+                        "source.packets": {
+                            "type": "long"
+                        },
+                        "source.port": {
+                            "type": "integer"
+                        },
+                        "threat": {
+                            "type": "object"
+                        },
+                        "tls": {
+                            "type": "object"
+                        },
+                        "span.id": {
+                            "type": "keyword"
+                        },
+                        "trace.id": {
+                            "type": "keyword"
+                        },
+                        "transaction.id": {
+                            "type": "keyword"
+                        },
+                        "url": {
+                            "type": "object"
+                        },
+                        "url.full": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "url.original": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "url.port": {
+                            "type": "long"
+                        },
+                        "user": {
+                            "type": "object"
+                        },
+                        "user.name": {
+                            "type": "keyword"
+                        },
+                        "user.roles": {
+                            "type": "keyword"
+                        },
+                        "user_agent": {
+                            "type": "object"
+                        },
+                        "user_agent.original": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "user_agent.version": {
+                            "type": "keyword"
+                        },
+                        "vlan": {
+                            "type": "object"
+                        },
+                        "vlan.id": {
+                            "type": "keyword"
+                        },
+                        "vulnerability": {
+                            "type": "object"
+                        },
+                        "x509": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-aws": {
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "SchemaVersion": {
+                            "type": "keyword"
+                        },
+                        "apiVersion": {
+                            "type": "keyword"
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-aws-cloudfront": {
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "c_ip": {
+                            "type": "ip"
+                        },
+                        "c_port": {
+                            "type": "integer"
+                        },
+                        "cs_bytes": {
+                            "type": "long"
+                        },
+                        "cs_headers_count": {
+                            "type": "short"
+                        },
+                        "date_time": {
+                            "type": "date"
+                        },
+                        "sc-range-end": {
+                            "type": "long"
+                        },
+                        "sc-range-start": {
+                            "type": "long"
+                        },
+                        "sc_bytes": {
+                            "type": "long"
+                        },
+                        "sc_content_len": {
+                            "type": "long"
+                        },
+                        "sc_status": {
+                            "type": "keyword"
+                        },
+                        "time_taken": {
+                            "type": "half_float"
+                        },
+                        "time_to_first_byte": {
+                            "type": "half_float"
+                        },
+                        "timestamp": {
+                            "type": "date",
+                            "format": "epoch_second"
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-aws-cloudtrail": {
+            "template": {
+                "settings": {
+                    "index.mapping.total_fields.limit": 6000,
+                    "index.mapping.ignore_malformed": true
+                },
+                "mappings": {
+                    "properties": {
+                        "additionalEventData.bytesTransferredIn": {
+                            "type": "float"
+                        },
+                        "additionalEventData.bytesTransferredOut": {
+                            "type": "float"
+                        },
+                        "additionalEventData.vpcEndpointId": {
+                            "type": "keyword"
+                        },
+                        "awsRegion": {
+                            "type": "keyword"
+                        },
+                        "errorCode": {
+                            "type": "keyword"
+                        },
+                        "eventID": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.CreateFleetRequest.TagSpecification.Tag.Value": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.CreateLaunchTemplateVersionRequest.LaunchTemplateData.TagSpecification.Tag.Value": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.CreateSnapshotsRequest.TagSpecification.Tag.Value": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.CreateVpcEndpointRequest.TagSpecification.Tag.Value": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.DescribeFlowLogsRequest": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.DescribeLaunchTemplateVersionsRequest.LaunchTemplateVersion.content": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.FilterValues": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.MaxResults": {
+                            "type": "integer"
+                        },
+                        "requestParameters.NotificationConfiguration.QueueConfiguration.Id": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.Tagging.TagSet.Tag.Value": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.attribute": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.authParameters": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.bucketPolicy.Statement": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.configuration.text": {
+                            "type": "text"
+                        },
+                        "requestParameters.containerOverrides.environment.value": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.content": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.disableApiTermination": {
+                            "type": "boolean"
+                        },
+                        "requestParameters.ebsOptimized": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.endTime": {
+                            "type": "date",
+                            "format": "MMM d, yyyy h:mm:ss a||epoch_millis"
+                        },
+                        "requestParameters.filter": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.groupDescription": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.iamInstanceProfile": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.instanceType": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.logStreamNamePrefix": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.maxItems": {
+                            "type": "integer"
+                        },
+                        "requestParameters.maxResults": {
+                            "type": "integer"
+                        },
+                        "requestParameters.overrides.containerOverrides.environment.value": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.partitionInputList": {
+                            "type": "text"
+                        },
+                        "requestParameters.principal": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.result": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.searchExpression.subExpressions.subExpressions.filters.value": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.size": {
+                            "type": "integer"
+                        },
+                        "requestParameters.sort": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.sortBy": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.source": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.startTime": {
+                            "type": "date",
+                            "format": "MMM d, yyyy h:mm:ss a||epoch_millis"
+                        },
+                        "requestParameters.status": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.subnets": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.tableInput.parameters": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.tags.value": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.target": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "requestParameters.value": {
+                            "type": "keyword"
+                        },
+                        "requestParameters.vpc": {
+                            "type": "keyword"
+                        },
+                        "responseElements.CreateLaunchTemplateVersionResponse.launchTemplateVersion.launchTemplateData.tagSpecificationSet.item.tagSet.item.value": {
+                            "type": "keyword"
+                        },
+                        "responseElements.CreateSnapshotsResponse.snapshotSet.item.tagSet.item.value": {
+                            "type": "keyword"
+                        },
+                        "responseElements.CreateVpcEndpointResponse.vpcEndpoint.tagSet.item.value": {
+                            "type": "keyword"
+                        },
+                        "responseElements.availabilityZones": {
+                            "type": "keyword"
+                        },
+                        "responseElements.createTime": {
+                            "type": "date",
+                            "format": "epoch_millis||MMM d, yyyy h:mm:ss a"
+                        },
+                        "responseElements.createdDate": {
+                            "type": "date",
+                            "format": "strict_date_optional_time||MMM d, yyyy h:mm:ss a"
+                        },
+                        "responseElements.dBSubnetGroup": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "responseElements.description": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "responseElements.endpoint": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "responseElements.errors.partitionValues": {
+                            "type": "keyword"
+                        },
+                        "responseElements.lastModified": {
+                            "type": "date",
+                            "format": "strict_date_optional_time||MMM d, yyyy h:mm:ss a"
+                        },
+                        "responseElements.lastUpdatedDate": {
+                            "type": "date",
+                            "format": "strict_date_optional_time||MMM d, yyyy h:mm:ss a"
+                        },
+                        "responseElements.multiAZ": {
+                            "type": "keyword"
+                        },
+                        "responseElements.policy.value": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "responseElements.responseParameters.method.response.header.Access-Control-Allow-Headers": {
+                            "type": "keyword"
+                        },
+                        "responseElements.responseParameters.method.response.header.Access-Control-Allow-Methods": {
+                            "type": "keyword"
+                        },
+                        "responseElements.responseParameters.method.response.header.Access-Control-Allow-Origin": {
+                            "type": "keyword"
+                        },
+                        "responseElements.role": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "responseElements.subnets": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        },
+                        "responseElements.tasks.overrides.containerOverrides.environment.value": {
+                            "type": "keyword"
+                        },
+                        "responseElements.version": {
+                            "type": "keyword"
+                        },
+                        "serviceEventDetails.eventRequestDetails": {
+                            "type": "keyword",
+                            "fields": {
+                                "text": {
+                                    "type": "text"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-aws-config": {
+            "template": {
+              "settings": {
+                "index.mapping.total_fields.limit": 3000,
+                "index.max_docvalue_fields_search": 150,
+                "number_of_shards": "1"
+              },
+              "mappings" : {
+                "properties": {
+                  "awsRegion": {"type": "keyword"},
+                  "configuration.AWS:AWSComponent.Content": {"type": "nested", "properties": {
+                    "InstalledTime": {"type": "date"}}},
+                  "configuration.AWS:Application.Content": {"type": "nested", "properties": {
+                    "InstalledTime": {"type": "date"}}},
+                  "configuration.AWS:ComplianceItem.Content.Association": {"type": "nested", "properties": {
+                    "InstalledTime": {"type": "date"}}},
+                  "configuration.AWS:ComplianceItem.Content.Patch": {"type": "nested", "properties": {
+                    "InstalledTime": {"type": "date"}}},
+                  "configuration.AWS:Network.Content": {"type": "nested"},
+                  "configuration.AWS:WindowsUpdate.Content": {"type": "nested", "properties": {
+                    "InstalledTime": {"type": "date"}}},
+                  "configuration.CreatedTimestamp": {"type": "date"},
+                  "configuration.LastModifiedTimestamp": {"type": "date"},
+                  "configuration.Owner": {"type": "keyword"},
+                  "configuration.alarmConfigurationUpdatedTimestamp": {"type": "date"},
+                  "configuration.billingModeSummary.lastUpdateToPayPerRequestDateTime": {"type": "date"},
+                  "configuration.createTime": {"type": "date"},
+                  "configuration.createdDate": {"type": "date"},
+                  "configuration.createdTime": {"type": "date"},
+                  "configuration.creationDate": {"type": "date"},
+                  "configuration.creationDateTime": {"type": "date"},
+                  "configuration.creationTime": {"type": "date"},
+                  "configuration.creationTimestamp": {"type": "date"},
+                  "configuration.clusterCreateTime": {"type": "date"},
+                  "configuration.dateCreated": {"type": "date"},
+                  "configuration.dateModified": {"type": "date"},
+                  "configuration.dateUpdated": {"type": "date"},
+                  "configuration.deleteTime": {"type": "date"},
+                  "configuration.deletionDate": {"type": "date"},
+                  "configuration.deletionTime": {"type": "date"},
+                  "configuration.lastUpdatedDate": {"type": "date"},
+                  "configuration.lastUpdatedTime": {"type": "date"},
+                  "configuration.metadata.created": {"type": "date"},
+                  "configuration.provisionedThroughput.lastIncreaseDateTime": {"type": "date"},
+                  "configuration.rules.statement": {"type": "text"},
+                  "configuration.serviceSoftwareOptions.automatedUpdateDate": {"type": "date"},
+                  "configuration.snapshotCreateTime": {"type": "date"},
+                  "configuration.state": {"type": "keyword"},
+                  "configuration.state_code": {"type": "keyword"},
+                  "configurationStateId": {"type": "keyword"},
+                  "newEvaluationResult.configRuleInvokedTime": {"type": "date"},
+                  "newEvaluationResult.evaluationResultIdentifier.orderingTimestamp": {"type": "date"},
+                  "newEvaluationResult.resultRecordedTime": {"type": "date"},
+                  "notificationCreationTime": {"type": "date"},
+                  "oldEvaluationResult.configRuleInvokedTime": {"type": "date"},
+                  "oldEvaluationResult.evaluationResultIdentifier.orderingTimestamp": {"type": "date"},
+                  "oldEvaluationResult.resultRecordedTime": {"type": "date"},
+                  "supplementaryConfiguration.StackResourceSummaries": {"type": "nested", "properties": {
+                    "lastUpdatedTimestamp": {"type": "date"}}},
+                  "supplementaryConfiguration.BucketNotificationConfiguration.configurations": {"type": "nested"},
+                  "supplementaryConfiguration.BucketReplicationConfiguration.rules": {"type": "nested"}
+                }
+              }
+            }
+           },          
+          "component_template_log-aws-elasticache": {
+            "template": {
+              "mappings" : {
+                "properties": {
+                  "elasticache.CacheClusterId": {"type": "keyword"},
+                  "elasticache.CacheNodeId": {"type": "keyword"},
+                  "elasticache.Id": {"type": "keyword"},
+                  "elasticache.Timestamp": {"type": "date", "format": "epoch_second"},
+                  "elasticache.Duration_us": {"type": "long"},
+                  "elasticache.Command": {"type": "keyword"},
+                  "elasticache.ClientAddress": {"type": "keyword"},
+                  "elasticache.ClientName": {"type": "keyword"}
+                }
+              }
+            }
+           },
+        "component_template_log-aws-elb": {
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "backend_ip": {
+                            "type": "ip"
+                        },
+                        "backend_port": {
+                            "type": "integer"
+                        },
+                        "backend_processing_time": {
+                            "type": "half_float"
+                        },
+                        "backend_status_code": {
+                            "type": "short"
+                        },
+                        "client_ip": {
+                            "type": "ip"
+                        },
+                        "client_port": {
+                            "type": "integer"
+                        },
+                        "connection_time": {
+                            "type": "integer"
+                        },
+                        "destination_ip": {
+                            "type": "ip"
+                        },
+                        "destination_port": {
+                            "type": "integer"
+                        },
+                        "elb_status_code": {
+                            "type": "short"
+                        },
+                        "http_port": {
+                            "type": "integer"
+                        },
+                        "http_version": {
+                            "type": "keyword"
+                        },
+                        "matched_rule_priority": {
+                            "type": "integer"
+                        },
+                        "received_bytes": {
+                            "type": "integer"
+                        },
+                        "request_creation_time": {
+                            "type": "date"
+                        },
+                        "request_processing_time": {
+                            "type": "half_float"
+                        },
+                        "response_processing_time": {
+                            "type": "half_float"
+                        },
+                        "sent_bytes": {
+                            "type": "integer"
+                        },
+                        "target_ip": {
+                            "type": "ip"
+                        },
+                        "target_port": {
+                            "type": "integer"
+                        },
+                        "target_processing_time": {
+                            "type": "half_float"
+                        },
+                        "target_status_code": {
+                            "type": "short"
+                        },
+                        "timestamp": {
+                            "type": "date"
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-aws-guardduty": {
+            "template": {
+                "settings": {
+                    "number_of_shards": "1"
+                },
+                "mappings": {
+                    "properties": {
+                        "description": {
+                            "type": "text"
+                        },
+                        "resource.instanceDetails.launchTime": {
+                            "type": "date"
+                        },
+                        "resource.instanceDetails.networkInterfaces.privateIpAddress": {
+                            "type": "ip"
+                        },
+                        "resource.instanceDetails.networkInterfaces.privateIpAddresses.privateIpAddress": {
+                            "type": "ip"
+                        },
+                        "resource.instanceDetails.networkInterfaces.publicIp": {
+                            "type": "ip"
+                        },
+                        "service.action.awsApiCallAction.remoteIpDetails.geoLocation": {
+                            "type": "geo_point"
+                        },
+                        "service.action.awsApiCallAction.remoteIpDetails.ipAddressV4": {
+                            "type": "ip"
+                        },
+                        "service.action.awsApiCallAction.remoteIpDetails.ipAddressV6": {
+                            "type": "ip"
+                        },
+                        "service.action.awsApiCallAction.remoteIpDetails.organization.asn": {
+                            "type": "integer"
+                        },
+                        "service.action.networkConnectionAction.localIpDetails.ipAddressV4": {
+                            "type": "ip"
+                        },
+                        "service.action.networkConnectionAction.localPortDetails.port": {
+                            "type": "integer"
+                        },
+                        "service.action.networkConnectionAction.remoteIpDetails.geoLocation": {
+                            "type": "geo_point"
+                        },
+                        "service.action.networkConnectionAction.remoteIpDetails.ipAddressV4": {
+                            "type": "ip"
+                        },
+                        "service.action.networkConnectionAction.remoteIpDetails.organization.asn": {
+                            "type": "integer"
+                        },
+                        "service.action.portProbeAction.portProbeDetails.localIpDetails.ipAddressV4": {
+                            "type": "ip"
+                        },
+                        "service.action.portProbeAction.portProbeDetails.remoteIpDetails.geoLocation": {
+                            "type": "geo_point"
+                        },
+                        "service.action.portProbeAction.portProbeDetails.remoteIpDetails.ipAddressV4": {
+                            "type": "ip"
+                        },
+                        "service.additionalInfo.apiCalls.firstSeen": {
+                            "type": "date"
+                        },
+                        "service.additionalInfo.apiCalls.lastSeen": {
+                            "type": "date"
+                        },
+                        "service.additionalInfo.inBytes": {
+                            "type": "long"
+                        },
+                        "service.additionalInfo.localPort": {
+                            "type": "integer"
+                        },
+                        "service.additionalInfo.newPolicy.maxPasswordAge": {
+                            "type": "short"
+                        },
+                        "service.additionalInfo.newPolicy.minimumPasswordLength": {
+                            "type": "short"
+                        },
+                        "service.additionalInfo.newPolicy.passwordReusePrevention": {
+                            "type": "short"
+                        },
+                        "service.additionalInfo.oldPolicy.maxPasswordAge": {
+                            "type": "short"
+                        },
+                        "service.additionalInfo.oldPolicy.minimumPasswordLength": {
+                            "type": "short"
+                        },
+                        "service.additionalInfo.oldPolicy.passwordReusePrevention": {
+                            "type": "short"
+                        },
+                        "service.additionalInfo.outBytes": {
+                            "type": "long"
+                        },
+                        "service.additionalInfo.recentCredentials.ipAddressV4": {
+                            "type": "ip"
+                        },
+                        "service.additionalInfo.unusual": {
+                            "type": "text"
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-aws-msk": {
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "msk.broker_id": {
+                            "type": "keyword"
+                        },
+                        "msk.max_lag": {
+                            "type": "long"
+                        },
+                        "msk.message": {
+                            "type": "text"
+                        },
+                        "msk.sum_lag": {
+                            "type": "long"
+                        },
+                        "msk.time_lag": {
+                            "type": "long"
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-aws-networkfirewall": {
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "event.alert.rev": {
+                            "type": "keyword"
+                        },
+                        "event.alert.severity": {
+                            "type": "long"
+                        },
+                        "event.alert.signature_id": {
+                            "type": "keyword"
+                        },
+                        "event.dest_ip": {
+                            "type": "ip"
+                        },
+                        "event.dest_port": {
+                            "type": "long"
+                        },
+                        "event.http.length": {
+                            "type": "long"
+                        },
+                        "event.netflow.bytes": {
+                            "type": "long"
+                        },
+                        "event.netflow.max_ttl": {
+                            "type": "long"
+                        },
+                        "event.netflow.min_ttl": {
+                            "type": "long"
+                        },
+                        "event.netflow.pkts": {
+                            "type": "long"
+                        },
+                        "event.src_ip": {
+                            "type": "ip"
+                        },
+                        "event.src_port": {
+                            "type": "long"
+                        },
+                        "event.tcp.tcp_flag": {
+                            "type": "keyword"
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-aws-opensearch": {
+            "template": {
+              "mappings" : {
+                "properties": {
+                  "opensearch.audit_format_version": {"type": "keyword"},
+                  "opensearch.audit_request_body": {"type": "text"},
+                  "opensearch.audit_request_remote_address": {"type": "ip"},
+                  "opensearch.audit_trace_shard_id": {"type": "keyword"},
+                  "opensearch.timestamp": {"type": "date"}
+                }
+              }
+            }
+           },
+        "component_template_log-aws-r53resolver": {
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "answers": {
+                            "type": "object"
+                        },
+                        "query_timestamp": {
+                            "type": "date"
+                        },
+                        "srcaddr": {
+                            "type": "ip"
+                        },
+                        "srcport": {
+                            "type": "integer"
+                        },
+                        "version": {
+                            "type": "keyword"
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-aws-rds": {
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "mysql.lock_time": {
+                            "type": "float"
+                        },
+                        "mysql.message": {
+                            "type": "text"
+                        },
+                        "mysql.object": {
+                            "type": "keyword"
+                        },
+                        "mysql.query": {
+                            "type": "text"
+                        },
+                        "mysql.query_id": {
+                            "type": "long"
+                        },
+                        "mysql.query_time": {
+                            "type": "float"
+                        },
+                        "mysql.retcode": {
+                            "type": "keyword"
+                        },
+                        "mysql.source_ip": {
+                            "type": "ip"
+                        },
+                        "mysql.thread_id": {
+                            "type": "long"
+                        },
+                        "mysql.timestamp": {
+                            "type": "date",
+                            "format": "date_optional_time||uMMdd [ ]H:m:s||epoch_second||u-MM-dd [ ]H:m:s"
+                        },
+                        "postgresql.duration_ms": {
+                            "type": "float"
+                        },
+                        "postgresql.message": {
+                            "type": "text"
+                        },
+                        "postgresql.pid": {
+                            "type": "integer"
+                        },
+                        "postgresql.query": {
+                            "type": "text"
+                        },
+                        "postgresql.session_time_seconds": {
+                            "type": "float"
+                        },
+                        "postgresql.source_port": {
+                            "type": "integer"
+                        },
+                        "postgresql.thread_id": {
+                            "type": "integer"
+                        },
+                        "postgresql.timestamp": {
+                            "type": "date"
+                        },
+                        "rds.cluster_identifier": {
+                            "type": "keyword"
+                        },
+                        "rds.database_name": {
+                            "type": "keyword"
+                        },
+                        "rds.instance_identifier": {
+                            "type": "keyword"
+                        },
+                        "rds.message": {
+                            "type": "text"
+                        },
+                        "rds.query": {
+                            "type": "text"
+                        },
+                        "rds.query_time": {
+                            "type": "float"
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-aws-s3accesslog": {
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "BytesSent": {
+                            "type": "integer"
+                        },
+                        "HTTPstatus": {
+                            "type": "short"
+                        },
+                        "ObjectSize": {
+                            "type": "integer"
+                        },
+                        "RemoteIP": {
+                            "type": "ip"
+                        },
+                        "RequestDateTime": {
+                            "type": "date",
+                            "format": "dd/MMM/yyyy:hh:mm:ss a"
+                        },
+                        "TotalTime": {
+                            "type": "integer"
+                        },
+                        "TurnAroundTime": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-aws-securityhub": {
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "ProductFields.aws/inspector/inspectorScore": {"type": "float"},
+                        "ProductFields.aws/inspector/ProductVersion": {"type": "keyword"},
+                        "Vulnerabilities.Cvss.BaseScore": {"type": "float"},
+                        "Vulnerabilities.VulnerablePackages.Epoch": {"type": "date", "format": "epoch_second"},
+                        "Vulnerabilities.VulnerablePackages.Release": {"type": "keyword"},
+                        "Vulnerabilities.VulnerablePackages.Version": {"type": "keyword"}                      
+                    }
+                }
+            }
+        },
+        "component_template_log-aws-vpcflowlogs": {
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "account_id": {
+                            "type": "keyword"
+                        },
+                        "action": {
+                            "type": "keyword"
+                        },
+                        "bytes": {
+                            "type": "integer"
+                        },
+                        "dstaddr": {
+                            "type": "ip"
+                        },
+                        "dstport": {
+                            "type": "integer"
+                        },
+                        "end": {
+                            "type": "date",
+                            "format": "epoch_second"
+                        },
+                        "instance_id": {
+                            "type": "keyword"
+                        },
+                        "interface_id": {
+                            "type": "keyword"
+                        },
+                        "log_status": {
+                            "type": "keyword"
+                        },
+                        "packets": {
+                            "type": "integer"
+                        },
+                        "protocol": {
+                            "type": "short"
+                        },
+                        "srcaddr": {
+                            "type": "ip"
+                        },
+                        "srcport": {
+                            "type": "integer"
+                        },
+                        "start": {
+                            "type": "date",
+                            "format": "epoch_second"
+                        },
+                        "subnet_id": {
+                            "type": "keyword"
+                        },
+                        "tcp_flags": {
+                            "type": "byte"
+                        },
+                        "version": {
+                            "type": "keyword"
+                        },
+                        "vpc_id": {
+                            "type": "keyword"
+                        },
+                        "type": {
+                            "type": "keyword"
+                        },
+                        "pkt_srcaddr": {
+                            "type": "keyword"
+                        },
+                        "pkt_dstaddr": {
+                            "type": "keyword"
+                        },
+                        "region": {
+                            "type": "keyword"
+                        },
+                        "az_id": {
+                            "type": "keyword"
+                        },
+                        "pkt_src_aws_service": {
+                            "type": "keyword"
+                        },
+                        "pkt_dst_aws_service": {
+                            "type": "keyword"
+                        },
+                        "flow_direction": {
+                            "type": "keyword"
+                        },
+                        "traffic_path": {
+                            "type": "keyword"
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-aws-waf": {
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "formatVersion": {
+                            "type": "keyword"
+                        },
+                        "httpRequest.clientIp": {
+                            "type": "ip"
+                        },
+                        "httpRequest.header.cache_control": {
+                            "type": "keyword"
+                        },
+                        "httpRequest.header.content_length": {
+                            "type": "keyword"
+                        },
+                        "httpRequest.header.dnt": {
+                            "type": "keyword"
+                        },
+                        "httpRequest.header.host": {
+                            "type": "keyword"
+                        },
+                        "httpRequest.header.upgrade_insecure_requests": {
+                            "type": "keyword"
+                        },
+                        "httpRequest.header.user_agent": {
+                            "type": "keyword"
+                        },
+                        "timestamp": {
+                            "type": "date",
+                            "format": "epoch_millis"
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-aws-workspaces": {
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "ConnectionStateCheckTimestamp": {"type": "date"},
+                        "LastKnownUserConnectionTimestamp": {"type": "date"},
+                        "clientIpAddress": {
+                            "type": "ip"
+                        },
+                        "loginTime": {
+                            "type": "date"
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-linux": {
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "syslog_message": {
+                            "type": "text"
+                        },
+                        "syslog_timestamp": {
+                            "type": "keyword"
+                        },
+                        "pid": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "component_template_log-win": {
+            "template": {
+                "mappings": {
+                    "properties": {
+                        "Event.EventData.Data.AccountExpires": {
+                            "type": "keyword"
+                        },
+                        "Event.EventData.Data.BitlockerUserInputTime": {
+                            "type": "keyword"
+                        },
+                        "Event.EventData.Data.ClientCreationTime": {
+                            "type": "keyword"
+                        },
+                        "Event.EventData.Data.CreationUtcTime": {
+                            "type": "keyword"
+                        },
+                        "Event.EventData.Data.DestAddress": {
+                            "type": "ip"
+                        },
+                        "Event.EventData.Data.DestPort": {
+                            "type": "integer"
+                        },
+                        "Event.EventData.Data.DeviceTime": {
+                            "type": "keyword"
+                        },
+                        "Event.EventData.Data.IpAddress": {
+                            "type": "ip"
+                        },
+                        "Event.EventData.Data.IpPort": {
+                            "type": "integer"
+                        },
+                        "Event.EventData.Data.NewTime": {
+                            "type": "keyword"
+                        },
+                        "Event.EventData.Data.OldTime": {
+                            "type": "keyword"
+                        },
+                        "Event.EventData.Data.PasswordLastSet": {
+                            "type": "keyword"
+                        },
+                        "Event.EventData.Data.PreviousCreationUtcTime": {
+                            "type": "keyword"
+                        },
+                        "Event.EventData.Data.PreviousTime": {
+                            "type": "keyword"
+                        },
+                        "Event.EventData.Data.ProcessingTimeInMilliseconds": {
+                            "type": "keyword"
+                        },
+                        "Event.EventData.Data.SourceAddress": {
+                            "type": "ip"
+                        },
+                        "Event.EventData.Data.SourcePort": {
+                            "type": "integer"
+                        },
+                        "Event.EventData.Data.StartTime": {
+                            "type": "keyword"
+                        },
+                        "Event.EventData.Data.StopTime": {
+                            "type": "keyword"
+                        },
+                        "Event.EventData.Data.TimeSource": {
+                            "type": "keyword"
+                        },
+                        "Event.EventData.Data.TimeSourceRefId": {
+                            "type": "keyword"
+                        },
+                        "Event.RenderingInfo.Message": {
+                            "type": "text"
+                        },
+                        "Event.System.EventID": {
+                            "type": "keyword"
+                        },
+                        "Event.System.Execution.ProcessID": {
+                            "type": "long"
+                        },
+                        "Event.System.Execution.ThreadID": {
+                            "type": "long"
+                        },
+                        "Event.System.TimeCreated.SystemTime": {
+                            "type": "date"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "index-templates": {
+        "log-aws-config_aws": {
+            "index_patterns": ["log-aws-config-*"],
+            "priority": 2,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-config"
+            ],
+            "version": 1
+           },          
+          "log-aws-elasticache_aws": {
+            "index_patterns": ["log-aws-elasticache-*"],
+            "priority": 2,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-elasticache"
+            ],
+            "version": 1
+           },          
+          "log-aws-guardduty_aws": {
+            "index_patterns": ["log-aws-guardduty-*"],
+            "priority": 2,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-guardduty"
+            ],
+            "version": 1
+           },          
+          "log-aws-opensearch_aws":{
+            "index_patterns": ["log-aws-opensearch-*"],
+            "priority": 2,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-opensearch"
+            ],
+            "version": 1
+           },          
+          "log-aws-securityhub_aws": {
+            "index_patterns": ["log-aws-securityhub-*"],
+            "template": {
+              "settings": {
+                "index.mapping.total_fields.limit": 2000
+              }
+            },
+            "priority": 2,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-securityhub"
+            ],
+            "version": 1
+           },
+        "log-aws-workspaces_aws": {
+            "index_patterns": [
+                "log-aws-workspaces-*"
+            ],
+            "priority": 2,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-aws-workspaces"
+            ],
+            "version": 1
+        },
+        "log-aws-directory-service_aws": {
+            "index_patterns": [
+                "log-aws-directory-service-*"
+            ],
+            "priority": 2,
+            "template": {
+                "aliases": {
+                    "log-win-aws-directory-service": {
+                        "is_write_index": false
+                    }
+                }
+            },
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-win"
+            ],
+            "version": 1
+        },
+        "log-aws-fsx-win_aws": {
+            "index_patterns": [
+                "log-aws-fsx-win-*"
+            ],
+            "priority": 2,
+            "template": {
+                "aliases": {
+                    "log-win-aws-fsx-win": {
+                        "is_write_index": false
+                    }
+                }
+            },
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-win"
+            ],
+            "version": 1
+        },
+        "log-win_aws": {
+            "index_patterns": [
+                "log-win-*"
+            ],
+            "priority": 2,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-win"
+            ],
+            "version": 1
+        }
+    },
+    "index-rollover": {
+        "log-aws-cloudfront_rollover": {
+            "index_patterns": [
+                "log-aws-cloudfront-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-aws-cloudfront"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-cloudfront"
+                }
+            },
+            "version": 1
+        },
+        "log-aws-cloudtrail_rollover": {
+            "index_patterns": [
+                "log-aws-cloudtrail-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-aws-cloudtrail"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-cloudtrail"
+                }
+            },
+            "version": 1
+        },
+        "log-aws-directory-service_rollover": {
+            "index_patterns": [
+                "log-aws-directory-service-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-win"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-directory-service"
+                },
+                "aliases": {
+                    "log-win-aws-directory-service": {
+                        "is_write_index": false
+                    }
+                }
+            },
+            "version": 1
+        },
+        "log-aws-elasticache_rollover": {
+            "index_patterns": ["log-aws-elasticache-0*"],
+            "priority": 5,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-elasticache"
+            ],
+            "template": {
+              "settings": {
+                "opendistro.index_state_management.rollover_alias": "log-aws-elasticache"
+              }
+            },
+            "version": 1
+           },
+        "log-aws-elb_rollover": {
+            "index_patterns": [
+                "log-aws-elb-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-aws-elb"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-elb"
+                }
+            },
+            "version": 1
+        },
+        "log-aws-fsx-win_rollover": {
+            "index_patterns": [
+                "log-aws-fsx-win-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-win"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-fsx-win"
+                },
+                "aliases": {
+                    "log-win-aws-fsx-win": {
+                        "is_write_index": false
+                    }
+                }
+            },
+            "version": 1
+        },
+        "log-aws-config_rollover": {
+            "index_patterns": ["log-aws-config-0*"],
+            "priority": 5,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-config"
+            ],
+            "template": {
+              "settings": {
+                "opendistro.index_state_management.rollover_alias": "log-aws-config"
+              }
+            },
+            "version": 1
+           },
+        "log-aws-guardduty_rollover": {
+            "index_patterns": [
+                "log-aws-guardduty-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-aws-guardduty"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-guardduty"
+                }
+            },
+            "version": 1
+        },
+        "log-aws-msk_rollover": {
+            "index_patterns": [
+                "log-aws-msk-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-aws-msk"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-msk"
+                }
+            },
+            "version": 1
+        },
+        "log-aws-networkfirewall_rollover": {
+            "index_patterns": [
+                "log-aws-networkfirewall-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-aws-networkfirewall"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-networkfirewall"
+                }
+            },
+            "version": 1
+        },
+        "log-aws-opensearch_rollover": {
+            "index_patterns": ["log-aws-opensearch-0*"],
+            "priority": 5,
+            "composed_of": [
+              "component_template_log",
+              "component_template_log-aws",
+              "component_template_log-aws-opensearch"
+            ],
+            "template": {
+              "settings": {
+                "opendistro.index_state_management.rollover_alias": "log-aws-opensearch"
+              }
+            },
+            "version": 1
+           },          
+        "log-aws-r53resolver_rollover": {
+            "index_patterns": [
+                "log-aws-r53resolver-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-aws-r53resolver"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-r53resolver"
+                }
+            },
+            "version": 1
+        },
+        "log-aws-rds_rollover": {
+            "index_patterns": [
+                "log-aws-rds-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-aws-rds"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-rds"
+                }
+            },
+            "version": 1
+        },
+        "log-aws-s3accesslog_rollover": {
+            "index_patterns": [
+                "log-aws-s3accesslog-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-aws-s3accesslog"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-s3accesslog"
+                }
+            },
+            "version": 1
+        },
+        "log-aws-securityhub_rollover": {
+            "index_patterns": [
+                "log-aws-securityhub-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-aws-securityhub"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-securityhub"
+                }
+            },
+            "version": 1
+        },
+        "log-aws-vpcflowlogs_rollover": {
+            "index_patterns": [
+                "log-aws-vpcflowlogs-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-aws-vpcflowlogs"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-vpcflowlogs"
+                }
+            },
+            "version": 1
+        },
+        "log-aws-waf_rollover": {
+            "index_patterns": [
+                "log-aws-waf-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-aws-waf"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-waf"
+                }
+            },
+            "version": 1
+        },
+        "log-aws-workspaces_rollover": {
+            "index_patterns": [
+                "log-aws-workspaces-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-aws-workspaces"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-aws-workspaces"
+                }
+            },
+            "version": 1
+        },
+        "log-linux-secure_rollover": {
+            "index_patterns": [
+                "log-linux-secure-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-linux"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-linux-secure"
+                }
+            },
+            "version": 1
+        },
+        "log-linux-os_rollover": {
+            "index_patterns": [
+                "log-linux-os-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-linux"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-linux-os"
+                }
+            },
+            "version": 1
+        },
+        "log-win-event_rollover": {
+            "index_patterns": [
+                "log-win-event-0*"
+            ],
+            "priority": 5,
+            "composed_of": [
+                "component_template_log",
+                "component_template_log-aws",
+                "component_template_log-win"
+            ],
+            "template": {
+                "settings": {
+                    "opendistro.index_state_management.rollover_alias": "log-win-event"
+                }
+            },
+            "version": 1
+        }
+    },
+    "deleted-old-index-template": {
+        "log-aws-directory-service_aws": null,
+        "log-aws-fsx-win_aws": null,
+        "log-aws-guardduty_aws": null,
+        "log-aws-securityhub_aws": null,
+        "log-aws-workspaces_aws": null,
+        "log-win_aws": null,
+        "log-aws-directory-service_rollover": null,
+        "log-aws-elb_rollover": null,
+        "log-aws-fsx-win_rollover": null,
+        "log-aws-guardduty_rollover": null,
+        "log-aws-msk_rollover": null,
+        "log-aws-r53resolver_rollover": null,
+        "log-aws-s3accesslog_rollover": null,
+        "log-aws-securityhub_rollover": null,
+        "log-aws-vpcflowlogs_rollover": null,
+        "log-aws-waf_rollover": null,
+        "log-aws-workspaces_rollover": null,
+        "log-linux-os_rollover": null,
+        "log-linux-secure_rollover": null,
+        "log-win-event_rollover": null
+    },
+    "legacy-index-template": {
+        "log_aws": {
+            "index_patterns": [
+                "log-*"
+            ],            
+            "mappings": {
+                "dynamic_templates": [
+                    {
+                        "strings": {
+                            "match_mapping_type": "string",
+                            "mapping": {
+                                "type": "keyword"
+                            }
+                        }
+                    }
+                ],
+                "properties": {
+                    "@timestamp": {
+                        "type": "date"
+                    },
+                    "@message": {
+                        "type": "text"
+                    },
+                    "cwl_timestamp": {
+                        "type": "date",
+                        "format": "epoch_millis"
+                    },
+                    "cwe_timestamp": {
+                        "type": "date"
+                    },
+                    "base": {
+                        "type": "object"
+                    },
+                    "base.tags": {
+                        "type": "keyword"
+                    },
+                    "base.labels": {
+                        "type": "object"
+                    },
+                    "agent": {
+                        "type": "object"
+                    },
+                    "as": {
+                        "type": "object"
+                    },
+                    "client": {
+                        "type": "object"
+                    },
+                    "cloud": {
+                        "type": "object"
+                    },
+                    "code_signature": {
+                        "type": "object"
+                    },
+                    "container": {
+                        "type": "object"
+                    },
+                    "container.image.tag": {
+                        "type": "keyword"
+                    },
+                    "container.labels": {
+                        "type": "object"
+                    },
+                    "data_stream": {
+                        "type": "object"
+                    },
+                    "destination": {
+                        "type": "object"
+                    },
+                    "destination.as.number": {
+                        "type": "integer"
+                    },
+                    "destination.bytes": {
+                        "type": "long"
+                    },
+                    "destination.geo.location": {
+                        "type": "geo_point"
+                    },
+                    "destination.ip": {
+                        "type": "ip"
+                    },
+                    "destination.nat.ip": {
+                        "type": "ip"
+                    },
+                    "destination.nat.port": {
+                        "type": "integer"
+                    },
+                    "destination.packets": {
+                        "type": "long"
+                    },
+                    "destination.port": {
+                        "type": "integer"
+                    },
+                    "dll": {
+                        "type": "object"
+                    },
+                    "dns": {
+                        "type": "object"
+                    },
+                    "dns.answers": {
+                        "type": "object"
+                    },
+                    "dns.answers.ttl": {
+                        "type": "long"
+                    },
+                    "dns.id": {
+                        "type": "keyword"
+                    },
+                    "dns.header_flags": {
+                        "type": "keyword"
+                    },
+                    "dns.resolved_ip": {
+                        "type": "ip"
+                    },
+                    "ecs": {
+                        "type": "object"
+                    },
+                    "elf": {
+                        "type": "object"
+                    },
+                    "error": {
+                        "type": "object"
+                    },
+                    "error.message": {
+                        "type": "text"
+                    },
+                    "event": {
+                        "type": "object"
+                    },
+                    "event.category": {
+                        "type": "keyword"
+                    },
+                    "event.code": {
+                        "type": "keyword"
+                    },
+                    "event.created": {
+                        "type": "date"
+                    },
+                    "event.duration": {
+                        "type": "long"
+                    },
+                    "event.end": {
+                        "type": "date"
+                    },
+                    "event.id": {
+                        "type": "keyword"
+                    },
+                    "event.ingested": {
+                        "type": "date"
+                    },
+                    "event.kind": {
+                        "type": "keyword"
+                    },
+                    "event.outcome": {
+                        "type": "keyword"
+                    },
+                    "event.risk_score": {
+                        "type": "float"
+                    },
+                    "event.risk_score_norm": {
+                        "type": "float"
+                    },
+                    "event.sequence": {
+                        "type": "long"
+                    },
+                    "event.severity": {
+                        "type": "long"
+                    },
+                    "event.start": {
+                        "type": "date"
+                    },
+                    "event.timezone": {
+                        "type": "keyword"
+                    },
+                    "event.type": {
+                        "type": "keyword"
+                    },
+                    "file": {
+                        "type": "object"
+                    },
+                    "file.accessed": {
+                        "type": "date"
+                    },
+                    "file.attributes": {
+                        "type": "keyword"
+                    },
+                    "file.created": {
+                        "type": "date"
+                    },
+                    "file.ctime": {
+                        "type": "date"
+                    },
+                    "file.gid": {
+                        "type": "keyword"
+                    },
+                    "file.inode": {
+                        "type": "keyword"
+                    },
+                    "file.mode": {
+                        "type": "keyword"
+                    },
+                    "file.mtime": {
+                        "type": "date"
+                    },
+                    "file.size": {
+                        "type": "long"
+                    },
+                    "file.uid": {
+                        "type": "keyword"
+                    },
+                    "geo": {
+                        "type": "object"
+                    },
+                    "group": {
+                        "type": "object"
+                    },
+                    "group.id": {
+                        "type": "keyword"
+                    },
+                    "hash": {
+                        "type": "object"
+                    },
+                    "host": {
+                        "type": "object"
+                    },
+                    "host.disk.read.bytes": {
+                        "type": "long"
+                    },
+                    "host.disk.write.bytes": {
+                        "type": "long"
+                    },
+                    "host.hostname": {
+                        "type": "keyword"
+                    },
+                    "host.id": {
+                        "type": "keyword"
+                    },
+                    "host.ip": {
+                        "type": "ip"
+                    },
+                    "host.mac": {
+                        "type": "keyword"
+                    },
+                    "host.network.egress.bytes": {
+                        "type": "long"
+                    },
+                    "host.network.egress.packets": {
+                        "type": "long"
+                    },
+                    "host.network.ingress.bytes": {
+                        "type": "long"
+                    },
+                    "host.network.ingress.packets": {
+                        "type": "long"
+                    },
+                    "host.uptime": {
+                        "type": "long"
+                    },
+                    "http": {
+                        "type": "object"
+                    },
+                    "http.request.body.bytes": {
+                        "type": "long"
+                    },
+                    "http.request.body.content": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "http.request.bytes": {
+                        "type": "long"
+                    },
+                    "http.response.body.bytes": {
+                        "type": "long"
+                    },
+                    "http.response.body.content": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "http.response.bytes": {
+                        "type": "long"
+                    },
+                    "http.response.status_code": {
+                        "type": "short"
+                    },
+                    "http.version": {
+                        "type": "keyword"
+                    },
+                    "interface": {
+                        "type": "object"
+                    },
+                    "interface.alias": {
+                        "type": "keyword"
+                    },
+                    "interface.id": {
+                        "type": "keyword"
+                    },
+                    "interface.name": {
+                        "type": "keyword"
+                    },
+                    "log": {
+                        "type": "object"
+                    },
+                    "log.level": {
+                        "type": "keyword"
+                    },
+                    "log.origin.file.line": {
+                        "type": "long"
+                    },
+                    "log.syslog": {
+                        "type": "object"
+                    },
+                    "log.syslog.facility.code": {
+                        "type": "long"
+                    },
+                    "log.syslog.priority": {
+                        "type": "long"
+                    },
+                    "log.syslog.severity.code": {
+                        "type": "long"
+                    },
+                    "network": {
+                        "type": "object"
+                    },
+                    "network.bytes": {
+                        "type": "integer"
+                    },
+                    "network.community_id": {
+                        "type": "keyword"
+                    },
+                    "network.forwarded_ip": {
+                        "type": "ip"
+                    },
+                    "network.iana_number": {
+                        "type": "short"
+                    },
+                    "network.inner": {
+                        "type": "object"
+                    },
+                    "network.packets": {
+                        "type": "long"
+                    },
+                    "observer": {
+                        "type": "object"
+                    },
+                    "observer.ip": {
+                        "type": "ip"
+                    },
+                    "observer.mac": {
+                        "type": "keyword"
+                    },
+                    "observer.serial_number": {
+                        "type": "keyword"
+                    },
+                    "observer.version": {
+                        "type": "keyword"
+                    },
+                    "orchestrator": {
+                        "type": "object"
+                    },
+                    "organization": {
+                        "type": "object"
+                    },
+                    "organization.id": {
+                        "type": "keyword"
+                    },
+                    "os": {
+                        "type": "object"
+                    },
+                    "os.family": {
+                        "type": "keyword"
+                    },
+                    "os.full": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "os.kernel": {
+                        "type": "keyword"
+                    },
+                    "os.name": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "os.platform": {
+                        "type": "keyword"
+                    },
+                    "os.type": {
+                        "type": "keyword"
+                    },
+                    "os.version": {
+                        "type": "keyword"
+                    },
+                    "package": {
+                        "type": "object"
+                    },
+                    "pe": {
+                        "type": "object"
+                    },
+                    "process": {
+                        "type": "object"
+                    },
+                    "process.args": {
+                        "type": "keyword"
+                    },
+                    "process.args_count": {
+                        "type": "long"
+                    },
+                    "process.command_line": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "process.entity_id": {
+                        "type": "keyword"
+                    },
+                    "process.exit_code": {
+                        "type": "long"
+                    },
+                    "process.pgid": {
+                        "type": "long"
+                    },
+                    "process.pid": {
+                        "type": "long"
+                    },
+                    "process.ppid": {
+                        "type": "long"
+                    },
+                    "process.start": {
+                        "type": "date"
+                    },
+                    "process.thread.id": {
+                        "type": "long"
+                    },
+                    "process.uptime": {
+                        "type": "long"
+                    },
+                    "registry": {
+                        "type": "object"
+                    },
+                    "related": {
+                        "type": "object"
+                    },
+                    "related.hash": {
+                        "type": "keyword"
+                    },
+                    "related.hosts": {
+                        "type": "keyword"
+                    },
+                    "related.ip": {
+                        "type": "ip"
+                    },
+                    "related.user": {
+                        "type": "keyword"
+                    },
+                    "rule": {
+                        "type": "object"
+                    },
+                    "rule.author": {
+                        "type": "keyword"
+                    },
+                    "rule.category": {
+                        "type": "keyword"
+                    },
+                    "rule.description": {
+                        "type": "keyword"
+                    },
+                    "rule.id": {
+                        "type": "keyword"
+                    },
+                    "rule.uuid": {
+                        "type": "keyword"
+                    },
+                    "rule.version": {
+                        "type": "keyword"
+                    },
+                    "server": {
+                        "type": "object"
+                    },
+                    "service": {
+                        "type": "object"
+                    },
+                    "service.ephemeral_id": {
+                        "type": "keyword"
+                    },
+                    "service.id": {
+                        "type": "keyword"
+                    },
+                    "service.version": {
+                        "type": "keyword"
+                    },
+                    "source": {
+                        "type": "object"
+                    },
+                    "source.address": {
+                        "type": "keyword"
+                    },
+                    "source.as.number": {
+                        "type": "integer"
+                    },
+                    "source.bytes": {
+                        "type": "long"
+                    },
+                    "source.geo.location": {
+                        "type": "geo_point"
+                    },
+                    "source.ip": {
+                        "type": "ip"
+                    },
+                    "source.nat.ip": {
+                        "type": "ip"
+                    },
+                    "source.nat.port": {
+                        "type": "integer"
+                    },
+                    "source.packets": {
+                        "type": "long"
+                    },
+                    "source.port": {
+                        "type": "integer"
+                    },
+                    "threat": {
+                        "type": "object"
+                    },
+                    "tls": {
+                        "type": "object"
+                    },
+                    "span.id": {
+                        "type": "keyword"
+                    },
+                    "trace.id": {
+                        "type": "keyword"
+                    },
+                    "transaction.id": {
+                        "type": "keyword"
+                    },
+                    "url": {
+                        "type": "object"
+                    },
+                    "url.full": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "url.original": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "url.port": {
+                        "type": "long"
+                    },
+                    "user": {
+                        "type": "object"
+                    },
+                    "user.name": {
+                        "type": "keyword"
+                    },
+                    "user.roles": {
+                        "type": "keyword"
+                    },
+                    "user_agent": {
+                        "type": "object"
+                    },
+                    "user_agent.original": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "user_agent.version": {
+                        "type": "keyword"
+                    },
+                    "vlan": {
+                        "type": "object"
+                    },
+                    "vlan.id": {
+                        "type": "keyword"
+                    },
+                    "vulnerability": {
+                        "type": "object"
+                    },
+                    "x509": {
+                        "type": "object"
+                    }
+                }
+            }
+        },
+        "log-aws_aws": {
+            "index_patterns": [
+                "log-aws-*"
+            ],
+            "order": 0,
+            "mappings": {
+                "properties": {
+                    "apiVersion": {
+                        "type": "keyword"
+                    },
+                    "SchemaVersion": {
+                        "type": "keyword"
+                    }
+                }
+            }
+        },
+        "log-aws-cloudtrail_aws": {
+            "index_patterns": [
+                "log-aws-cloudtrail-*"
+            ],
+            "order": 0,
+            "settings": {
+                "index.mapping.total_fields.limit": 8000,
+                "index.mapping.ignore_malformed": true
+            },
+            "mappings": {
+                "properties": {
+                    "awsRegion": {
+                        "type": "keyword"
+                    },
+                    "errorCode": {
+                        "type": "keyword"
+                    },
+                    "eventID": {
+                        "type": "keyword"
+                    },
+                    "additionalEventData.bytesTransferredIn": {
+                        "type": "float"
+                    },
+                    "additionalEventData.bytesTransferredOut": {
+                        "type": "float"
+                    },
+                    "additionalEventData.vpcEndpointId": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.authParameters": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.endTime": {
+                        "type": "date",
+                        "format": "MMM d, yyyy h:mm:ss a||epoch_millis"
+                    },
+                    "requestParameters.MaxResults": {
+                        "type": "integer"
+                    },
+                    "requestParameters.instanceType": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.maxItems": {
+                        "type": "integer"
+                    },
+                    "requestParameters.maxResults": {
+                        "type": "integer"
+                    },
+                    "requestParameters.NotificationConfiguration.QueueConfiguration.Id": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.attribute": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.bucketPolicy.Statement": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.CreateFleetRequest.TagSpecification.Tag.Value": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.CreateLaunchTemplateVersionRequest.LaunchTemplateData.TagSpecification.Tag.Value": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.CreateSnapshotsRequest.TagSpecification.Tag.Value": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.CreateVpcEndpointRequest.TagSpecification.Tag.Value": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.DescribeFlowLogsRequest": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.DescribeLaunchTemplateVersionsRequest.LaunchTemplateVersion.content": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.FilterValues": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.Tagging.TagSet.Tag.Value": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.configuration.text": {
+                        "type": "text"
+                    },
+                    "requestParameters.containerOverrides.environment.value": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.content": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.disableApiTermination": {
+                        "type": "boolean"
+                    },
+                    "requestParameters.ebsOptimized": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.filter": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.groupDescription": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.iamInstanceProfile": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.logStreamNamePrefix": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.overrides.containerOverrides.environment.value": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.partitionInputList": {
+                        "type": "text"
+                    },
+                    "requestParameters.principal": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.result": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.searchExpression.subExpressions.subExpressions.filters.value": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.size": {
+                        "type": "integer"
+                    },
+                    "requestParameters.source": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.sort": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.sortBy": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.startTime": {
+                        "type": "date",
+                        "format": "MMM d, yyyy h:mm:ss a||epoch_millis"
+                    },
+                    "requestParameters.status": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.tableInput.parameters": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.tags.value": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.target": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.subnets": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "requestParameters.value": {
+                        "type": "keyword"
+                    },
+                    "requestParameters.vpc": {
+                        "type": "keyword"
+                    },
+                    "responseElements.CreateLaunchTemplateVersionResponse.launchTemplateVersion.launchTemplateData.tagSpecificationSet.item.tagSet.item.value": {
+                        "type": "keyword"
+                    },
+                    "responseElements.CreateSnapshotsResponse.snapshotSet.item.tagSet.item.value": {
+                        "type": "keyword"
+                    },
+                    "responseElements.CreateVpcEndpointResponse.vpcEndpoint.tagSet.item.value": {
+                        "type": "keyword"
+                    },
+                    "responseElements.availabilityZones": {
+                        "type": "keyword"
+                    },
+                    "responseElements.dBSubnetGroup": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "responseElements.description": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "responseElements.endpoint": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "responseElements.errors.partitionValues": {
+                        "type": "keyword"
+                    },
+                    "responseElements.multiAZ": {
+                        "type": "keyword"
+                    },
+                    "responseElements.policy.value": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "responseElements.responseParameters.method.response.header.Access-Control-Allow-Headers": {
+                        "type": "keyword"
+                    },
+                    "responseElements.responseParameters.method.response.header.Access-Control-Allow-Methods": {
+                        "type": "keyword"
+                    },
+                    "responseElements.responseParameters.method.response.header.Access-Control-Allow-Origin": {
+                        "type": "keyword"
+                    },
+                    "responseElements.role": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "responseElements.subnets": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    },
+                    "responseElements.tasks.overrides.containerOverrides.environment.value": {
+                        "type": "keyword"
+                    },
+                    "responseElements.version": {
+                        "type": "keyword"
+                    },
+                    "responseElements.createTime": {
+                        "type": "date",
+                        "format": "epoch_millis||MMM d, yyyy h:mm:ss a"
+                    },
+                    "responseElements.createdDate": {
+                        "type": "date",
+                        "format": "strict_date_optional_time||MMM d, yyyy h:mm:ss a"
+                    },
+                    "responseElements.lastModified": {
+                        "type": "date",
+                        "format": "strict_date_optional_time||MMM d, yyyy h:mm:ss a"
+                    },
+                    "responseElements.lastUpdatedDate": {
+                        "type": "date",
+                        "format": "strict_date_optional_time||MMM d, yyyy h:mm:ss a"
+                    },
+                    "serviceEventDetails.eventRequestDetails": {
+                        "type": "keyword",
+                        "fields": {
+                            "text": {
+                                "type": "text"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "log-aws-vpcflowlogs_aws": {
+            "index_patterns": [
+                "log-aws-vpcflowlogs-*"
+            ],
+            "order": 0,
+            "mappings": {
+                "properties": {
+                    "version": {
+                        "type": "keyword"
+                    },
+                    "account_id": {
+                        "type": "keyword"
+                    },
+                    "interface_id": {
+                        "type": "keyword"
+                    },
+                    "srcaddr": {
+                        "type": "ip"
+                    },
+                    "dstaddr": {
+                        "type": "ip"
+                    },
+                    "srcport": {
+                        "type": "integer"
+                    },
+                    "dstport": {
+                        "type": "integer"
+                    },
+                    "protocol": {
+                        "type": "short"
+                    },
+                    "packets": {
+                        "type": "integer"
+                    },
+                    "bytes": {
+                        "type": "integer"
+                    },
+                    "start": {
+                        "type": "date",
+                        "format": "epoch_second"
+                    },
+                    "end": {
+                        "type": "date",
+                        "format": "epoch_second"
+                    },
+                    "action": {
+                        "type": "keyword"
+                    },
+                    "log_status": {
+                        "type": "keyword"
+                    },
+                    "vpc_id": {
+                        "type": "keyword"
+                    },
+                    "subnet_id": {
+                        "type": "keyword"
+                    },
+                    "instance_id": {
+                        "type": "keyword"
+                    },
+                    "tcp_flags": {
+                        "type": "byte"
+                    }
+                }
+            }
+        },
+        "log-aws-networkfirewall_aws": {
+            "index_patterns": [
+                "log-aws-networkfirewall-*"
+            ],
+            "order": 0,
+            "mappings": {
+                "properties": {
+                    "event.alert.severity": {
+                        "type": "long"
+                    },
+                    "event.alert.signature_id": {
+                        "type": "keyword"
+                    },
+                    "event.alert.rev": {
+                        "type": "keyword"
+                    },
+                    "event.dest_ip": {
+                        "type": "ip"
+                    },
+                    "event.dest_port": {
+                        "type": "long"
+                    },
+                    "event.http.length": {
+                        "type": "long"
+                    },
+                    "event.netflow.bytes": {
+                        "type": "long"
+                    },
+                    "event.netflow.max_ttl": {
+                        "type": "long"
+                    },
+                    "event.netflow.min_ttl": {
+                        "type": "long"
+                    },
+                    "event.netflow.pkts": {
+                        "type": "long"
+                    },
+                    "event.src_ip": {
+                        "type": "ip"
+                    },
+                    "event.src_port": {
+                        "type": "long"
+                    },
+                    "event.tcp.tcp_flag": {
+                        "type": "keyword"
+                    }
+                }
+            }
+        },
+        "log-aws-elb_aws": {
+            "index_patterns": [
+                "log-aws-elb-*"
+            ],
+            "order": 0,
+            "mappings": {
+                "properties": {
+                    "timestamp": {
+                        "type": "date"
+                    },
+                    "backend_ip": {
+                        "type": "ip"
+                    },
+                    "backend_port": {
+                        "type": "integer"
+                    },
+                    "backend_processing_time": {
+                        "type": "half_float"
+                    },
+                    "backend_status_code": {
+                        "type": "short"
+                    },
+                    "client_ip": {
+                        "type": "ip"
+                    },
+                    "client_port": {
+                        "type": "integer"
+                    },
+                    "connection_time": {
+                        "type": "integer"
+                    },
+                    "destination_ip": {
+                        "type": "ip"
+                    },
+                    "destination_port": {
+                        "type": "integer"
+                    },
+                    "elb_status_code": {
+                        "type": "short"
+                    },
+                    "http_port": {
+                        "type": "integer"
+                    },
+                    "http_version": {
+                        "type": "keyword"
+                    },
+                    "matched_rule_priority": {
+                        "type": "integer"
+                    },
+                    "received_bytes": {
+                        "type": "integer"
+                    },
+                    "request_processing_time": {
+                        "type": "half_float"
+                    },
+                    "response_processing_time": {
+                        "type": "half_float"
+                    },
+                    "request_creation_time": {
+                        "type": "date"
+                    },
+                    "sent_bytes": {
+                        "type": "integer"
+                    },
+                    "target_ip": {
+                        "type": "ip"
+                    },
+                    "target_port": {
+                        "type": "integer"
+                    },
+                    "target_status_code": {
+                        "type": "short"
+                    },
+                    "target_processing_time": {
+                        "type": "half_float"
+                    }
+                }
+            }
+        },
+        "log-aws-s3accesslog_aws": {
+            "index_patterns": [
+                "log-aws-s3accesslog-*"
+            ],
+            "order": 0,
+            "mappings": {
+                "properties": {
+                    "BytesSent": {
+                        "type": "integer"
+                    },
+                    "HTTPstatus": {
+                        "type": "short"
+                    },
+                    "ObjectSize": {
+                        "type": "integer"
+                    },
+                    "RemoteIP": {
+                        "type": "ip"
+                    },
+                    "RequestDateTime": {
+                        "type": "date",
+                        "format": "dd/MMM/yyyy:hh:mm:ss a"
+                    },
+                    "TotalTime": {
+                        "type": "integer"
+                    },
+                    "TurnAroundTime": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "log-aws-waf_aws": {
+            "index_patterns": [
+                "log-aws-waf-*"
+            ],
+            "order": 0,
+            "mappings": {
+                "properties": {
+                    "formatVersion": {
+                        "type": "keyword"
+                    },
+                    "httpRequest.clientIp": {
+                        "type": "ip"
+                    },
+                    "httpRequest.header.cache_control": {
+                        "type": "keyword"
+                    },
+                    "httpRequest.header.content_length": {
+                        "type": "keyword"
+                    },
+                    "httpRequest.header.dnt": {
+                        "type": "keyword"
+                    },
+                    "httpRequest.header.host": {
+                        "type": "keyword"
+                    },
+                    "httpRequest.header.upgrade_insecure_requests": {
+                        "type": "keyword"
+                    },
+                    "httpRequest.header.user_agent": {
+                        "type": "keyword"
+                    },
+                    "timestamp": {
+                        "type": "date",
+                        "format": "epoch_millis"
+                    }
+                }
+            }
+        },
+        "log-aws-cloudfront_aws": {
+            "index_patterns": [
+                "log-aws-cloudfront-*"
+            ],
+            "order": 0,
+            "mappings": {
+                "properties": {
+                    "c_ip": {
+                        "type": "ip"
+                    },
+                    "c_port": {
+                        "type": "integer"
+                    },
+                    "cs_bytes": {
+                        "type": "long"
+                    },
+                    "cs_headers_count": {
+                        "type": "short"
+                    },
+                    "date_time": {
+                        "type": "date"
+                    },
+                    "sc_bytes": {
+                        "type": "long"
+                    },
+                    "sc_content_len": {
+                        "type": "long"
+                    },
+                    "sc-range-start": {
+                        "type": "long"
+                    },
+                    "sc-range-end": {
+                        "type": "long"
+                    },
+                    "sc_status": {
+                        "type": "keyword"
+                    },
+                    "time_taken": {
+                        "type": "half_float"
+                    },
+                    "time_to_first_byte": {
+                        "type": "half_float"
+                    },
+                    "timestamp": {
+                        "type": "date",
+                        "format": "epoch_second"
+                    }
+                }
+            }
+        },
+        "log-aws-r53resolver_aws": {
+            "index_patterns": [
+                "log-aws-r53resolver-*"
+            ],
+            "order": 0,
+            "mappings": {
+                "properties": {
+                    "answers": {
+                        "type": "object"
+                    },
+                    "query_timestamp": {
+                        "type": "date"
+                    },
+                    "srcaddr": {
+                        "type": "ip"
+                    },
+                    "srcport": {
+                        "type": "integer"
+                    },
+                    "version": {
+                        "type": "keyword"
+                    }
+                }
+            }
+        },
+        "log-linux_aws": {
+            "index_patterns": [
+                "log-linux-*"
+            ],
+            "order": 0,
+            "mappings": {
+                "properties": {
+                    "syslog_timestamp": {
+                        "type": "keyword"
+                    },
+                    "syslog_message": {
+                        "type": "text"
+                    },
+                    "pid": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "log-aws-rds_aws": {
+            "index_patterns": [
+                "log-aws-rds-*"
+            ],
+            "order": 0,
+            "mappings": {
+                "properties": {
+                    "rds.cluster_identifier": {
+                        "type": "keyword"
+                    },
+                    "rds.instance_identifier": {
+                        "type": "keyword"
+                    },
+                    "rds.database_name": {
+                        "type": "keyword"
+                    },
+                    "rds.message": {
+                        "type": "text"
+                    },
+                    "rds.query": {
+                        "type": "text"
+                    },
+                    "rds.query_time": {
+                        "type": "float"
+                    },
+                    "mysql.lock_time": {
+                        "type": "float"
+                    },
+                    "mysql.message": {
+                        "type": "text"
+                    },
+                    "mysql.object": {
+                        "type": "keyword"
+                    },
+                    "mysql.query": {
+                        "type": "text"
+                    },
+                    "mysql.query_id": {
+                        "type": "long"
+                    },
+                    "mysql.query_time": {
+                        "type": "float"
+                    },
+                    "mysql.retcode": {
+                        "type": "keyword"
+                    },
+                    "mysql.source_ip": {
+                        "type": "ip"
+                    },
+                    "mysql.thread_id": {
+                        "type": "long"
+                    },
+                    "mysql.timestamp": {
+                        "type": "date",
+                        "format": "date_optional_time||uMMdd [ ]H:m:s||epoch_second||u-MM-dd [ ]H:m:s"
+                    },
+                    "postgresql.duration_ms": {
+                        "type": "float"
+                    },
+                    "postgresql.message": {
+                        "type": "text"
+                    },
+                    "postgresql.query": {
+                        "type": "text"
+                    },
+                    "postgresql.session_time_seconds": {
+                        "type": "float"
+                    },
+                    "postgresql.source_port": {
+                        "type": "integer"
+                    },
+                    "postgresql.pid": {
+                        "type": "integer"
+                    },
+                    "postgresql.thread_id": {
+                        "type": "integer"
+                    },
+                    "postgresql.timestamp": {
+                        "type": "date"
+                    }
+                }
+            }
+        },
+        "log-aws-msk_aws": {
+            "index_patterns": [
+                "log-aws-msk-*"
+            ],
+            "order": 0,
+            "mappings": {
+                "properties": {
+                    "msk.broker_id": {
+                        "type": "keyword"
+                    },
+                    "msk.max_lag": {
+                        "type": "long"
+                    },
+                    "msk.message": {
+                        "type": "text"
+                    },
+                    "msk.sum_lag": {
+                        "type": "long"
+                    },
+                    "msk.time_lag": {
+                        "type": "long"
+                    }
+                }
+            }
+        },
+        "ism-history-indices_aws": {
+            "index_patterns": [
+                ".opendistro-ism-managed-index-history-*"
+            ],
+            "order": 0,
+            "settings": {
+                "number_of_shards": 1,
+                "number_of_replicas": 0
+            }
+        },
+        "alert-history-indices_aws": {
+            "index_patterns": [
+                ".opendistro-alerting-alert-history-*"
+            ],
+            "order": 0,
+            "settings": {
+                "number_of_shards": 1,
+                "number_of_replicas": 1
+            }
+        }
+    }
+}

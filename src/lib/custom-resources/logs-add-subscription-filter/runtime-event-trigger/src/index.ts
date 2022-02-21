@@ -17,6 +17,7 @@ import { throttlingBackOff, CloudWatchRulePrefix } from '@aws-accelerator/custom
 
 const logs = new AWS.CloudWatchLogs();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const handler = async (input: any): Promise<string> => {
   console.log(`Add Subscription to point LogDestination in log-archive account...`);
   console.log(JSON.stringify(input, null, 2));

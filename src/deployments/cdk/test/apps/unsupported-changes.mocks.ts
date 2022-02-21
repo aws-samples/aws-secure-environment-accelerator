@@ -717,8 +717,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AccountBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET',
-          bucketName: 'DOC-EXAMPLE-BUCKET',
+          bucketArn: 'arn:aws:s3:::doc-example-bucket',
+          bucketName: 'doc-example-bucket',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:555555555555:key/d54a8acb-694c-4fc5-9afe-ca2b263cd0b3',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
@@ -963,8 +963,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AccountBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET1',
-          bucketName: 'DOC-EXAMPLE-BUCKET1',
+          bucketArn: 'arn:aws:s3:::doc-example-bucket1',
+          bucketName: 'doc-example-bucket1',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:111111111111:key/4e0a5d05-a3ba-4b19-b60e-5f26631d874a',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
@@ -1047,8 +1047,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AccountBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET2',
-          bucketName: 'DOC-EXAMPLE-BUCKET2',
+          bucketArn: 'arn:aws:s3:::doc-example-bucket2',
+          bucketName: 'doc-example-bucket2',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:777777777777:key/ccff8373-96f9-4ced-a167-38476316b235',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
@@ -1136,8 +1136,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AccountBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET3',
-          bucketName: 'DOC-EXAMPLE-BUCKET3',
+          bucketArn: 'arn:aws:s3:::doc-example-bucket3',
+          bucketName: 'doc-example-bucket3',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:111111111111:key/e147a41e-7ada-427f-9b6b-75cdd706e313',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
@@ -1153,8 +1153,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         type: 'IamPolicyArtifactsOutput',
         value: {
           accountKey: 'master',
-          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET',
-          bucketName: 'DOC-EXAMPLE-BUCKET',
+          bucketArn: 'arn:aws:s3:::doc-example-bucket',
+          bucketName: 'doc-example-bucket',
           keyPrefix: 'iam-policy',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1168,8 +1168,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'CentralBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET',
-          bucketName: 'DOC-EXAMPLE-BUCKET',
+          bucketArn: 'arn:aws:s3:::doc-example-bucket',
+          bucketName: 'doc-example-bucket',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:111111111111:key/c94a571b-25da-44a1-ac85-366d333ffb2a',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
@@ -1185,8 +1185,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         type: 'RdgwArtifactsOutput',
         value: {
           accountKey: 'master',
-          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET',
-          bucketName: 'DOC-EXAMPLE-BUCKET',
+          bucketArn: 'arn:aws:s3:::doc-example-bucket',
+          bucketName: 'doc-example-bucket',
           keyPrefix: 'config/scripts/',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1200,8 +1200,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'LogBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET1',
-          bucketName: 'DOC-EXAMPLE-BUCKET1',
+          bucketArn: 'arn:aws:s3:::doc-example-bucket1',
+          bucketName: 'doc-example-bucket1',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:222222222222:key/18f7a4af-2fbb-4a4f-a597-7b0bae016c36',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
@@ -1216,8 +1216,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AesBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET1',
-          bucketName: 'DOC-EXAMPLE-BUCKET1',
+          bucketArn: 'arn:aws:s3:::doc-example-bucket1',
+          bucketName: 'doc-example-bucket1',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1231,8 +1231,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AccountBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET2',
-          bucketName: 'DOC-EXAMPLE-BUCKET2',
+          bucketArn: 'arn:aws:s3:::doc-example-bucket2',
+          bucketName: 'doc-example-bucket2',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:333333333333:key/ba5d50a0-e25d-4d7e-b15e-bad6d4054310',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
@@ -1247,8 +1247,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AccountBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET3',
-          bucketName: 'DOC-EXAMPLE-BUCKET3',
+          bucketArn: 'arn:aws:s3:::doc-example-bucket3',
+          bucketName: 'doc-example-bucket3',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:666666666666:key/f6c1ec02-e1cb-4ace-8abf-25574551cf32',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
@@ -1297,8 +1297,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AccountBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET3',
-          bucketName: 'DOC-EXAMPLE-BUCKET3',
+          bucketArn: 'arn:aws:s3:::doc-example-bucket3',
+          bucketName: 'doc-example-bucket3',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:888888888888:key/7592bb9b-43d1-45d3-be51-bbc59cb06471',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
@@ -1315,8 +1315,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           accountKey: 'master',
           artifactName: 'SCP',
-          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET',
-          bucketName: 'DOC-EXAMPLE-BUCKET',
+          bucketArn: 'arn:aws:s3:::doc-example-bucket',
+          bucketName: 'doc-example-bucket',
           keyPrefix: 'scp',
         },
       }),

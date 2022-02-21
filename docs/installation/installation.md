@@ -62,6 +62,10 @@ These installation instructions assume one of the prescribed architectures is be
 
 **For any deployment of the Accelerator which is intended to be used for production workloads, you must evaluate all these decisions carefully. Failure to understand these choices could cause challenges down the road. If this is a "test" or "internal" deployment of the Accelerator which will not be used for production workloads, you can leave the default config values.**
 
+**Config file [schema](https://github.com/aws-samples/aws-secure-environment-accelerator/releases/download/v1.5.0/AWS-SEA-Config-Schema-v150-DRAFT.zip) documentation now AVAILABLE** (Draft)
+
+- download, extract and open src\lib\docs-gen\output-docs\en\index.html in your browser
+
 ### 2.2.2. OU Structure Planning
 
 Plan your OU and core account structure carefully. By default, we suggest: `Security, Infrastructure, Central, Sandbox, Dev, Test, Prod`.
@@ -310,8 +314,8 @@ If deploying to an internal AWS employee account and installing the solution wit
 7. If required, place the firewall configuration and license files in the folder and path defined in the config file
    - For AWS Network Firewall: `nfw/nfw-example-policy.json`
    - For Fortinet: `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
-     - We have made several samples available [here](../../reference-artifacts/Third-Party): `./reference-artifacts/Third-Party/`
-     - Both samples comprise an active / active firewall pair. Until recently we only brought up one tunnel per firewall, you now also have an example which brings up both tunnels per firewall
+     - We have made a sample available [here](../../reference-artifacts/Third-Party): `./reference-artifacts/Third-Party/`
+     - the samples configures an active / active firewall pair with two tunnels per firewall
      - If you updated your perimeter VPC subnet names, you must also make these changes in your firewall-example.txt file
      - If you don't have any license files, update the config file with an empty array (`"license": []`). Do NOT use the following: `[""]`.
    - The basic Checkpoint configuration is stored directly in config.json

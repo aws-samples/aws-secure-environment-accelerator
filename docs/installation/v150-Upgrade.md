@@ -30,15 +30,18 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
 1. **While an upgrade path is planned, customers with a Standalone Accelerator installation can upgrade to v1.5.0 but need to continue with a Standalone installation until the Control Tower upgrade option becomes available.**
 
 2. The script to assist with config file conversion and DynamoDB population only supports single file json based config files, customers that leverage YAML and/or multi-part config files, have several options:
-   a) manually update your yaml or multi-part json config file to reflect the config file format for the latest release (similiar to all previous upgrades)
-   b) use the config.json file found in the `raw` folder of your codecommit repo to run the conversion script
 
-- this version of the config file has resolved all variables with their final values, all variables will be removed from config.json in this scenario
-- the new config file can be converted back to json/multi-part format before being placed back into your CodeComit repository
-- or it could be used to simply validate the changes you made using option a
-- NOTE: do not manually update the config file in the `raw` folder, as it will be overwritten based on the json or yaml file in the root of your repository
-  c) use a 3rd party tool to manually convert your yaml / multi-part config files to a single file json file to run the conversion script
-- the new config file can be converted back to json/multi-part format before being placed back into your CodeComit repository
+   - manually update your yaml or multi-part json config file to reflect the config file format for the latest release (similar to all previous upgrades)
+   - use the config.json file found in the `raw` folder of your codecommit repo to run the conversion script
+     - this version of the config file has resolved all variables with their final values, all variables will be removed from config.json in this scenario
+     - the new config file can be converted back to json/multi-part format before being placed back into your CodeComit repository
+     - or it could be used to simply validate the changes you made using option a
+     - do not manually update the config file in the `raw` folder, as it will be overwritten based on the json or yaml file in the root of your repository
+   - use a 3rd party tool to manually convert your yaml / multi-part config files to a single file json file to run the conversion script
+     - the new config file can be converted back to json/multi-part format before being placed back into your CodeComit repository
+
+3. Config files which are significantly different than the example config files may not be properly converted. This includes config files which use different mandatory account keys or renamed the core OU.
+4. This guide and its examples assume the existing accelerator deployment uses the `PBMMAccel-` accelerator prefix, if a different prefix is used on the existing installation, it is important it is specified when execution section 1.6 below.
 
 ## 1.3. Config File Conversion
 
@@ -60,13 +63,13 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
   - If you use a relatively standard config file you MAY not need to make any changes manually
   - Ensure the value of `account-name` for the Organization Management account matches the actual account name of the Organization management account (the account key is generally either `management` or `master`).
 
-  - we recommend you change your `rdgw-instance-type` and `rsyslog-instance-type` from t2._ to t3._ (they will auto-replace on the next instance refresh) (Optional)
+  - we recommend you change your `rdgw-instance-type` and `rsyslog-instance-type` from t2._ to t3._ (they will auto-replace on the next instance refresh) (Optional).
   - optionally remove the `"API_GW_EXECUTION_LOGGING_ENABLED"` config rule throughout, as it overlaps with an identical Security Hub config rule.
-  - we added the capability to deploy a Config aggregator in any of the central services accounts (i.e. Log-archive, Security, Operations), by adding `"config-aggr": true` to either: `central-security-services`, `central-operations-services`, or `central-log-services`. The existing aggregator in the Org management account will remain.
-  - the DynamoDB tables (`PBMMAccel-cidr-vpc-assign` and `PBMMAccel-cidr-subnet-assign`) can be populated with your EXISTING utilized CIDR ranges using the upgrade script _after_ the upgrade is complete. If you want to dynamically assign CIDR ranges for new VPC's, you need to add a new `cidr-pools` section to your config file. This new section of the config file should not be added during an upgrade.
-    - this populates a third new DynamoDB table named `PBMMAccel-cidr-pool` which stores CIDR ranges to select from for new CIDR assignments. This table works together with the other two DynamoDB tables to track, assign and maintain non-overlapping CIDR ranges based on a pool name and region.
+  - we added the capability to deploy a Config aggregator in any of the central services accounts (i.e. Log-archive, Security, Operations), by adding `"config-aggr": true` to _either_: `central-security-services`, `central-operations-services`, or `central-log-services`. The existing aggregator in the Org management account will remain. Do **not** set it in all 3 sections, as AWS only supports a maximum of 3 config aggregators.
+  - the optional attribute `endpoint-port-orverides` has been properly renamed to `endpoint-port-overrides`. If you have the `endpoint-port-orverides` in your config file you must rename it to `endpoint-port-overrides`.
   - the new example config files also introduced several new internally resolvable variables (`${CONFIG::OU_NAME}` and `${CONFIG::VPC_NAME}`), which when used thoughtfully along with the new dynamic CIDR feature, enables multi-part config file customers to define the VPCs for multiple OU's in a single shared nested config file. These new variables should be ignored during an upgrade.
   - the accelerator supports 3 types of CIDR ranges `provided`, `lookup`, and `dynamic`. The upgrade script sets the `cidr-src` to `provided`, meaning it uses the CIDR ranges provided in the config file, as per the previous release. The upgrade script also adds the additional required fields (`pool` and `size`) to every CIDR range defined in the config file to leverage the `lookup` type, but when set to `provided` these fields are NOT required and could be removed. They were added by the script for the sole purpose of making it easy to switch from `provided` to `lookup` in future. Once a customer switches to `lookup`, the `cidr\value` field is no longer used and can be removed from the config file. The `cidr-src` for should remain set at `provided` during upgrade.
+  - do **not** add the `cidr-pools` section to the config file during or before the upgrade, this section is only used for new installations.
   - New description fields have been added to the config file to help provide context to certain objects. These will be used by a future GUI that is under development, and serve no functional purpose at this time. Customers can alter this text as they please.
   - Most of the example config files have been converted to `dynamic` cidr-src as it provides simplier CIDR management for new customers. Two example config files ending in `-oldIP.json` have been maintained to aid upgrading customers in config file comparison.
   - Be advised - in v1.5.0 we restructured the SCPs based on a) customer requests, and b) the addition of Control Tower support for new installs.
@@ -115,42 +118,73 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
    - Review the `Config file changes` section of the [release notes](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) for **all** Accelerator versions since your current deployed release
 5. If you customized any of the other Accelerator default config files by overriding them in your S3 input bucket, merge the latest defaults with your customizations before beginning your upgrade
 6. Download the latest installer template (`AcceleratorInstallerXYZ.template.json` or `AcceleratorInstallerXXX-CodeCommit.template.json`) from the `Assets` section of the latest [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
-7. Do **_NOT_** accidentally select the `ASEA-InitialSetup` CloudFormation stack **below**
+7. Do **_NOT_** accidentally select the `PBMMAccel-InitialSetup` CloudFormation stack **below**
 8. If you are replacing your GitHub Token:
-   - Take note of the `AcceleratorName`, `AcceleratorPrefix`, `ConfigS3Bucket` and `NotificationEmail` values from the Parameters tab of your deployed Installer CloudFormation stack (`ASEA-what-you-provided`)
-   - Delete the Installer CloudFormation stack (`ASEA-what-you-provided`)
+   - Take note of the `AcceleratorName`, `AcceleratorPrefix`, `ConfigS3Bucket` and `NotificationEmail` values from the Parameters tab of your deployed Installer CloudFormation stack (`PBMMAccel-what-you-provided`)
+   - Delete the Installer CloudFormation stack (`PBMMAccel-what-you-provided`)
    - Redeploy the Installer CloudFormation stack using the template downloaded in step 6, providing the values you just documented (changes to `AcceleratorName` or `AcceleratorPrefix` are not supported)
    - The pipeline will automatically run and trigger the upgraded state machine
 9. If you are using a pre-existing GitHub token, or installing from CodeCommit:
 
 - Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.5.0`)
-  - Go to AWS CloudFormation and select the stack: `ASEA-what-you-provided`
+  - Go to AWS CloudFormation and select the stack: `PBMMAccel-what-you-provided`
   - Select Update, select Replace current template, Select Upload a template file
   - Select Choose File and select the template you downloaded in step 6 (`AcceleratorInstallerXYZ.template.json` or `AcceleratorInstallerXXX-CodeCommit.template.json`)
   - Select Next, Update `GithubBranch` parameter to `release/vX.Y.Z` where X.Y.Z represents the latest release
   - Click Next, Next, I acknowledge, Update
   - Wait for the CloudFormation stack to update (`Update_Complete` status) (Requires manual refresh)
-- Go To Code Pipeline and Release the ASEA-InstallerPipeline
+- Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
 ## 1.6. Post Upgrade Follow-up Tasks for v1.5.0 Upgrade
 
 - Once the State Machine finishes in AWS Organizations, delete the `PBMMAccel-Guardrails-Part-2` SCP, as we do not remove policies from Organizations given they could be used by customers for other purposes.
 - Optionally, populate DynamoDB with your allocated CIDR ranges:
 
+  - You _must_ perform the following steps if you plan to:
+    - move from `"cidr-src": "provided"` to `"cidr-src": "lookup"` for your existing cidr blocks; or
+    - dynamically assign CIDR ranges to new VPCs using pools that overlap with existing VPC's currently defined in your config file.
+  - this step populates the DynamoDB tables (`PBMMAccel-cidr-vpc-assign` and `PBMMAccel-cidr-subnet-assign`) with your EXISTING utilized CIDR ranges using the upgrade script a second time _after_ the upgrade is complete.
   - Using the converted version of your config file (update-config.json)
-    - Validate you are happy with the `pool` names assigned to each vpc and subnet throughout the config file. Update as appropriate, pool names can be any alpha-numeric string, but a subnets pool must match one of its vpc's pools.
-  - Locate the python conversion script and review its readme [here](../../reference-artifacts/Custom-Scripts/Update-Scripts/v1.3.8_to_v1.5.0)
 
+    - Validate you are happy with the `pool` names assigned to each vpc and subnet throughout the config file. Update as appropriate, pool names can be any alpha-numeric string, but a subnets pool must match one of its VPCs pools.
+    - Locate the python conversion script and review its readme [here](../../reference-artifacts/Custom-Scripts/Update-Scripts/v1.3.8_to_v1.5.0)
     - To load DynamoDB with your CIDR ranges, execute: (online, requires credentials to the Organization Management account)
 
       `python update.py --Region ca-central-1 --LoadDB --ConfigFile update-config.json --AcceleratorPrefix PBMMAccel-`
 
-    - Note the use of the --LoadDB switch, the UPDATED config.json filename, and that the Accelerator prefix is specified
-    - If you run this command on your v1.3.8 config file, the cidr-pools will be improperly assigned in DynamoDB.
+    - Note the use of the --LoadDB switch, the UPDATED config filename, and that the Accelerator prefix is specified
+      - If you run this command using your v1.3.8 or v1.3.9 config file, the `\cidr\pool:` values will be improperly assigned in DynamoDB.
     - In the Organization Management account, in DynamoDB, select Items, and Verify that the tables have been properly populated.
+      - the script should have populated the following two DynamoDB tables: `PBMMAccel-cidr-vpc-assign` and `PBMMAccel-cidr-subnet-assign` with all your existing vpc and subnet assignments.
 
-  - NOTE: You can populate the cidr-pools section of the config file/DynamoDB with values that overlap with the existing assigned ranges in your config file. In this situation, it is CRITICAL that you execute this step, to avoid issueing duplicate or overlapping CIDR ranges with those already issued. Alternatively, leverage new unique ranges when populating the cidr-pools. cidr-pools only needs to be populated when a vpc has a `cidr-src` set to `dynamic`.
+  - if you plan to dynamically assign CIDR ranges for any new VPCs, you need to manually create the CIDR pools by adding new item(s) to the DynamoDB Table `PBMMAccel-cidr-pool`. The `PBMMAccel-cidr-pool` table stores CIDR ranges to select from for new CIDR assignments. This table works together with the other two DynamoDB tables to track, assign and maintain non-overlapping CIDR ranges based on a pool name and region.
+    <details><summary>Sample DynamoDB JSON to add an entry to the `PBMMAccel-cidr-pool` table:</summary>
 
-- Optionally, change all the `cidr-src` values throughout your config file to `lookup`, and remove all the `cidr\value` fields. Once changed, CIDR values will be provided by DynamoDB. Switching to `lookup` requires completion of the previous optional step to first load DynamoDB.
-  - run the state machine with the input parameters `{"scope": "FULL","mode": "APPLY","verbose": "0"}`
-  - during the state machine execution, the Accelerator will compare the values returned by DynamoDB with the values from the previous successful state machine execution. If the DynamoDB values were incorrectly populated, the state machine will catch it with a comparison failure message and gracefully fail.
+    ```
+      {
+        "id": {
+          "S": "1"
+        },
+        "cidr": {
+          "S": "10.0.0.0/13"
+        },
+        "region": {
+          "S": "ca-central-1"
+        },
+        "pool": {
+          "S": "main"
+        }
+      }
+    ```
+
+    - where `id` is any unique text, `cidr` is the main cidr block from which VPC cidrs are taken. `region` is the AWS region where the pool is used. `pool` is the name of the pool
+
+      </details>
+
+  NOTES:
+
+  - You can populate the `cidr-pools` section of the config file/DynamoDB with values that overlap with the existing assigned ranges in your config file. In this situation, it is CRITICAL that you execute this entire process, to avoid issueing duplicate or overlapping CIDR ranges with those already issued. Alternatively, leverage new unique ranges when populating the `cidr-pools`.
+  - `cidr-pools` only needs to be populated when a vpc has a `cidr-src` set to `dynamic`.
+  - Optionally, change all the `cidr-src` values throughout your config file to `lookup`, and remove all the `cidr\value` fields. Once changed, CIDR values will be provided by DynamoDB. Switching to `lookup` requires completion of the previous optional step to first load DynamoDB.
+    - run the state machine with the input parameters `{"scope": "FULL","mode": "APPLY","verbose": "0"}`
+    - during the state machine execution, the Accelerator will compare the values returned by DynamoDB with the values from the previous successful state machine execution. If the DynamoDB values were incorrectly populated, the state machine will catch it with a comparison failure message and gracefully fail.

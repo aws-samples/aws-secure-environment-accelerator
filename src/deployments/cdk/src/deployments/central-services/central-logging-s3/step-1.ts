@@ -12,6 +12,8 @@
  */
 
 import * as cdk from '@aws-cdk/core';
+import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kinesis from '@aws-cdk/aws-kinesis';
@@ -25,6 +27,8 @@ import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { CfnLogDestinationOutput } from './outputs';
 import { Organizations } from '@aws-accelerator/custom-resource-organization';
+
+import path from 'path';
 
 export interface CentralLoggingToS3Step1Props {
   accountStacks: AccountStacks;
@@ -91,6 +95,8 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
       logStreamRoleArn: cwlLogStreamRoleOutput.roleArn,
       kinesisStreamRoleArn: cwlKinesisStreamRoleOutput.roleArn,
       orgId: organizations.organizationId,
+      dynamicS3LogPartitioning: centralLogServices['dynamic-s3-log-partitioning'],
+      region,
     });
   }
 }
@@ -106,8 +112,20 @@ async function cwlSettingsInLogArchive(props: {
   kinesisStreamRoleArn: string;
   orgId: string;
   shardCount?: number;
+  dynamicS3LogPartitioning?: c.S3LogPartition[];
+  region: string;
 }) {
-  const { scope, bucketArn, logStreamRoleArn, kinesisStreamRoleArn, shardCount, orgId } = props;
+  
+  const {
+    scope,
+    orgId,
+    bucketArn,
+    logStreamRoleArn,
+    kinesisStreamRoleArn,
+    shardCount,
+    dynamicS3LogPartitioning,
+    region,
+  } = props;
 
   // Create Kinesis Stream for Logs streaming
   const logsStream = new kinesis.Stream(scope, 'Logs-Stream', {
@@ -152,9 +170,36 @@ async function cwlSettingsInLogArchive(props: {
     destinationPolicy: destinationPolicyStr,
   });
 
-  new kinesisfirehose.CfnDeliveryStream(scope, 'Kinesis-Firehouse-Stream', {
+  const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
+  const lambdaDir = path.dirname(lambdaPath);
+  const lambdaCode = lambda.Code.fromAsset(lambdaDir);
+
+  const firhosePrefixProcessingLambda = new lambda.Function(scope, `FirehosePrefixProcessingLambda`, {
+    runtime: lambda.Runtime.NODEJS_14_X,
+    code: lambdaCode,
+    handler: 'index.firehoseCustomPrefix',
+    memorySize: 2048,
+    timeout: cdk.Duration.minutes(5),
+    environment: {
+      LOG_PREFIX: CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX,
+      DYNAMIC_S3_LOG_PARTITIONING_MAPPING: dynamicS3LogPartitioning ? JSON.stringify(dynamicS3LogPartitioning) : '',
+    },
+  });
+
+  const kinesisStreamRole = iam.Role.fromRoleArn(scope, `KinesisStreamRoleLookup-${region}`, kinesisStreamRoleArn, {
+    mutable: true,
+  });
+
+  kinesisStreamRole.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      resources: [firhosePrefixProcessingLambda.functionArn],
+      actions: ['lambda:InvokeFunction'],
+    }),
+  );
+
+  new kinesisfirehose.CfnDeliveryStream(scope, 'Kinesis-Firehouse-Stream-Dynamic-Partitioning', {
     deliveryStreamName: createName({
-      name: 'Firehose-Delivery-Stream',
+      name: 'Firehose-Delivery-Stream-Partition',
     }),
     deliveryStreamType: 'KinesisStreamAsSource',
     kinesisStreamSourceConfiguration: {
@@ -165,11 +210,33 @@ async function cwlSettingsInLogArchive(props: {
       bucketArn,
       bufferingHints: {
         intervalInSeconds: 60,
-        sizeInMBs: 50,
+        sizeInMBs: 64, // Minimum with dynamic partitioning
       },
       compressionFormat: 'UNCOMPRESSED',
       roleArn: kinesisStreamRoleArn,
-      prefix: CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX,
+      dynamicPartitioningConfiguration: {
+        enabled: true,
+      },
+      errorOutputPrefix: `${CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX}/processing-failed`,
+      prefix: '!{partitionKeyFromLambda:dynamicPrefix}',
+      processingConfiguration: {
+        enabled: true,
+        processors: [
+          {
+            type: 'Lambda',
+            parameters: [
+              {
+                parameterName: 'LambdaArn',
+                parameterValue: firhosePrefixProcessingLambda.functionArn,
+              },
+              {
+                parameterName: 'NumberOfRetries',
+                parameterValue: '3',
+              },
+            ],
+          },
+        ],
+      },
     },
   });
 

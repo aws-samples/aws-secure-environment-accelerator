@@ -192,7 +192,7 @@ export async function step3(props: VpcStep3Props) {
 
       new CfnHostedZoneOutput(accountStack, `HostedZoneOutput-${vpcConfig.name}-${pascalCase(endpoint)}`, {
         accountKey,
-        domain: interfaceEndpoint.hostedZone.name,
+        domain: interfaceEndpoint.hostedZone.name!,
         hostedZoneId: interfaceEndpoint.hostedZone.ref,
         region: vpcConfig.region,
         zoneType: 'PRIVATE',
