@@ -25,14 +25,22 @@ import {
   createEncryptionKeyName,
   createRoleName,
 } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import { CfnLogBucketOutput, CfnAesBucketOutput, CfnCentralBucketOutput, CfnEbsKmsOutput } from './outputs';
-import { AccountStacks } from '../../common/account-stacks';
+import {
+  CfnLogBucketOutput,
+  CfnAesBucketOutput,
+  CfnCentralBucketOutput,
+  CfnEbsKmsOutput,
+  CfnDefaultKmsOutput,
+} from './outputs';
+import { AccountStack, AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
 import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
 import { overrideLogicalId } from '../../utils/cdk';
 import { getVpcSharedAccountKeys } from '../../common/vpc-subnet-sharing';
 
 export type AccountRegionEbsEncryptionKeys = { [accountKey: string]: { [region: string]: kms.Key } | undefined };
+
+export type LogAccountDefaultEncryptionKeys = { [accountKey: string]: { [region: string]: kms.Key } | undefined };
 
 export interface DefaultsStep1Props {
   acceleratorPrefix: string;
@@ -46,6 +54,7 @@ export interface DefaultsStep1Result {
   centralLogBucket: s3.Bucket;
   aesLogBucket?: s3.Bucket;
   accountEbsEncryptionKeys: AccountRegionEbsEncryptionKeys;
+  logAccountDefaultKeys: LogAccountDefaultEncryptionKeys;
 }
 
 export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Result> {
@@ -53,6 +62,7 @@ export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Res
 
   const centralBucketCopy = createCentralBucketCopy(props);
   const centralLogBucket = createCentralLogBucket(props);
+  const logAccountDefaultKeys = createDefaultEncryptionKeys(props);
   const accountEbsEncryptionKeys = createDefaultEbsEncryptionKey(props);
   const aesLogBucket = createAesLogBucket(props);
   return {
@@ -60,6 +70,7 @@ export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Res
     centralLogBucket,
     aesLogBucket,
     accountEbsEncryptionKeys,
+    logAccountDefaultKeys,
   };
 }
 
@@ -236,6 +247,23 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
         },
         ArnLike: {
           'aws:PrincipalARN': `arn:aws:iam::*:role/${props.acceleratorPrefix}Kinesis-*`,
+        },
+      },
+    }),
+  );
+
+  // Allow Kinesis access bucket
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      principals: anyAccountPrincipal,
+      actions: ['s3:GetBucketAcl', 's3:PutObject', 's3:PutObjectAcl'],
+      resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
+      conditions: {
+        StringEquals: {
+          'aws:PrincipalOrgID': organizations.organizationId,
+        },
+        ArnLike: {
+          'aws:PrincipalARN': `arn:aws:iam::*:role/${props.acceleratorPrefix}ConfigRecorderRole-*`,
         },
       },
     }),
@@ -493,4 +521,64 @@ function createDefaultEbsEncryptionKey(props: DefaultsStep1Props): AccountRegion
     }
   }
   return accountEbsEncryptionKeys;
+}
+
+function createDefaultEncryptionKeys(props: DefaultsStep1Props): LogAccountDefaultEncryptionKeys {
+  const { accountStacks, config } = props;
+  const globalOptions = config['global-options'];
+  const centralLogServices = globalOptions['central-log-services'];
+  const logAccountConfig = globalOptions['central-log-services'];
+  const logAccountStack = accountStacks.getOrCreateAccountStack(logAccountConfig.account);
+  const excludeRegions = centralLogServices['sns-excl-regions'];
+  const supportedRegions = globalOptions['supported-regions'];
+  const regionsToPopulate = supportedRegions.filter(r => !excludeRegions?.includes(r));
+  const defaultEncryptionKeys: LogAccountDefaultEncryptionKeys = {};
+  const centralSecurityServices = globalOptions['central-security-services'];
+
+  for (const region of regionsToPopulate) {
+    // If add-sns-topic is set to true on the security account then create a kms key for that
+    // Skip creation of default key in default region of log account, created in createCentralLogBucket
+    if (region === logAccountStack.region) {
+      continue;
+    }
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(logAccountStack.accountKey, region);
+    if (!accountStack) {
+      console.warn(`Cannot find ${accountStack} stack in ${region}`);
+      continue;
+    }
+    createKeyAndOutput(accountStack, region, defaultEncryptionKeys);
+    // If add-sns-topic is set true for the security account, create a default key in other regions there as well
+    if (centralSecurityServices['add-sns-topics']) {
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(centralSecurityServices.account, region);
+      if (!accountStack) {
+        console.warn(`Cannot find ${accountStack} stack in ${region}`);
+        continue;
+      }
+      createKeyAndOutput(accountStack, region, defaultEncryptionKeys);
+    }
+  }
+
+  return defaultEncryptionKeys;
+}
+
+function createKeyAndOutput(
+  accountStack: AccountStack,
+  region: string,
+  defaultEncryptionKeys: LogAccountDefaultEncryptionKeys,
+) {
+  // Create a default EBS encryption key for every other region of the log account
+  const keyAlias = createEncryptionKeyName('Default-Key');
+  // Default EBS encryption key
+  const key = createDefaultS3Key({ accountStack }).encryptionKey;
+
+  defaultEncryptionKeys[accountStack.accountKey] = {
+    ...defaultEncryptionKeys[accountStack.accountKey],
+    [region]: key,
+  };
+
+  new CfnDefaultKmsOutput(accountStack, 'DefaultEncryptionKey', {
+    encryptionKeyName: keyAlias,
+    encryptionKeyId: key.keyId,
+    encryptionKeyArn: key.keyArn,
+  });
 }

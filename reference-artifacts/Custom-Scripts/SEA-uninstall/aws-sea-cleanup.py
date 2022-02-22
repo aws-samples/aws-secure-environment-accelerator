@@ -18,6 +18,23 @@ parser = argparse.ArgumentParser(
         description="A development script that cleans up resources deployed by the accelerator. Use Administrator AWS credentials in the root account when running this script."
 )
 parser.add_argument('--AcceleratorPrefix', default='ASEA', help='The value set in AcceleratorPrefix')
+parser.add_argument('--HomeRegion', help='The home region you deployed ASEA to')
+parser.add_argument('--GblRegion', default='us-east-1', help='The home region you deployed ASEA to')
+
+def replacements(params):
+    with open('config.json', 'r') as config:
+        configData = config.read()
+        if 'HomeRegion' in params:
+            configData = configData.replace('${HOME_REGION}', params['HomeRegion'])
+        else:
+            print('You need to set --HomeRegion')
+            sys.exit(1)
+        if 'GblRegion' in params:
+            configData = configData.replace('${GBL_REGION}', params['GblRegion'])
+        config.close()
+
+    with open('config.json', 'w') as config:
+        config.write(configData)
 
 organizations = boto3.client("organizations")
 sts = boto3.client("sts")
@@ -454,10 +471,10 @@ def cleanup():
         root_account_name = config["mandatory-account-configs"][config_root_account_name]["account-name"]
         security_account_name = config["mandatory-account-configs"][config_security_account_name]["account-name"]
 
-        isALZorCT = config["global-options"]["ct-baseline"] or ("alz-baseline" in config["global-options"] and config["global-options"]["alz-baseline"])
+        isALZ = ("alz-baseline" in config["global-options"] and config["global-options"]["alz-baseline"])
 
 
-    if isALZorCT:
+    if isALZ:
         print("This cleanup script is designed to retract all components deployed in the accelerator and is intended for development use. It isn't tested for cleanup with baseline configurations.")
         return
 
@@ -969,6 +986,8 @@ def cleanup_directory_sharing_load_config():
 
         mad_account_name = config["global-options"]["central-operations-services"]["account"]
         mad_account =  config["mandatory-account-configs"][mad_account_name]["account-name"]
+        if "deployments" not in config["mandatory-account-configs"][mad_account_name]:
+            return "no deployments section configured"
         if "mad" not in config["mandatory-account-configs"][mad_account_name]["deployments"]:
             return "mad not configured"
         elif config["mandatory-account-configs"][mad_account_name]["deployments"]["mad"] == False:
@@ -1026,6 +1045,8 @@ def cleanup_route53_resolver_load_config():
         root_region = config["global-options"]["aws-org-management"]["region"]
 
         central_account_name = config["global-options"]["central-operations-services"]["account"]
+        if "deployments" not in config["mandatory-account-configs"][central_account_name]:
+            return "no deployments section configured"
         if "mad" not in config["mandatory-account-configs"][central_account_name]["deployments"]:
             return "mad not configured"
         elif config["mandatory-account-configs"][central_account_name]["deployments"]["mad"] == False:
@@ -1134,9 +1155,17 @@ def configure_args():
     parser.parse_args()
     args = parser.parse_args()
     AcceleratorPrefix = re.sub('-$', '', args.AcceleratorPrefix)
-    return AcceleratorPrefix
+    params = {}
+    params['AcceleratorPrefix'] = AcceleratorPrefix
+    if args.GblRegion:
+        params['GblRegion'] = args.GblRegion
+    if args.HomeRegion:
+        params['HomeRegion'] = args.HomeRegion
+    return params
 
 if __name__ == "__main__":
-    AcceleratorPrefix = configure_args()
+    params = configure_args()
+    AcceleratorPrefix = params['AcceleratorPrefix']
     backup_config()
+    replacements(params)
     cleanup()

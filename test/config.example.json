@@ -3,7 +3,7 @@
     "alz-minimum-version": "v2.3.1",
     "ct-baseline": false,
     "default-s3-retention": 90,
-    "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
+    "central-bucket": "awsdoc-example-bucket",
     "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
     "default-cwl-retention": 731,
     "workloadaccounts-suffix": 1,
