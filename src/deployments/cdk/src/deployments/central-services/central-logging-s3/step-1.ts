@@ -15,7 +15,6 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import * as iam from '@aws-cdk/aws-iam';
 import * as kinesis from '@aws-cdk/aws-kinesis';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as logs from '@aws-cdk/aws-logs';
@@ -115,7 +114,6 @@ async function cwlSettingsInLogArchive(props: {
   dynamicS3LogPartitioning?: c.S3LogPartition[];
   region: string;
 }) {
-  
   const {
     scope,
     orgId,
