@@ -47,10 +47,10 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
     const subscriptionRoleOutput = IamRoleOutputFinder.tryFindOneByName({
       accountKey,
       outputs,
-      roleKey: 'CWLSubscriptionFilter',
+      roleKey: 'CWLAddSubscriptionFilter',
     });
     if (!subscriptionRoleOutput) {
-      console.error(`Can't find "CWLSubscriptionFilter" Role in account ${accountKey} outputs`);
+      console.error(`Can't find "CWLAddSubscriptionFilter" Role in account ${accountKey} outputs`);
       continue;
     }
     for (const region of cwlRegions) {

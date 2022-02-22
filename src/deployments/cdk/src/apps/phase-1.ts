@@ -575,6 +575,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   // Central Services step 1
   await cwlCentralLoggingToS3.step1({
     accountStacks,
+    accounts,
     logBucket,
     outputs,
     config: acceleratorConfig,
