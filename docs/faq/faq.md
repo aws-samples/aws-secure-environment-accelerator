@@ -45,6 +45,12 @@
     - [1.6.10. How are the perimeter firewall configurations and licensing managed after deployment?](#1610-how-are-the-perimeter-firewall-configurations-and-licensing-managed-after-deployment)
     - [1.6.11. Can the Fortinet Firewall deployments use static private IP address assignments?](#1611-can-the-fortinet-firewall-deployments-use-static-private-ip-address-assignments)
     - [1.6.12. I've noticed CloudTrail logs and in certain situation VPC flow logs are stored in the centralized log-archive account logging bucket twice?](#1612-ive-noticed-cloudtrail-logs-and-in-certain-situation-vpc-flow-logs-are-stored-in-the-centralized-log-archive-account-logging-bucket-twice)
+    - [1.6.13. I need a Route53 Private Hosted Zone in my workload account. How shall I proceed?](#1613-i-need-a-route53-private-hosted-zone-in-my-workload-account-how-shall-i-proceed)
+      - [Create in workload account VPC](#create-in-workload-account-vpc)
+      - [Create in workload account Private Hosted Zone](#create-in-workload-account-private-hosted-zone)
+      - [Create an authorization to associate with this new zone](#create-an-authorization-to-associate-with-this-new-zone)
+      - [Associate Hosted zone](#associate-hosted-zone)
+      - [Validate Association and clean-up](#validate-association-and-clean-up)
 
 ## 1.1. Operational Activities
 
@@ -595,3 +601,111 @@ To reduce the duplicate long-term storage of these two specific CloudWatch Log t
 Side note: CloudTrail S3 data plane logs are enabled at the Organizational level, meaning all S3 bucket access is logged. As CloudTrail is writing to a bucket within the Organization, Cloudtrail itself is accessing the bucket, seemingly creating a cyclical loop. As CloudTrail writes to S3 in 5-10min batches, Cloudtrail will actually only cause one extra log 'entry' every 5-10minutes and not per s3 event, mitigating major concerns. Today, with an Organization trail logging data plane events for all buckets - there is no way to exclude any one bucket. But - having clear view of who accessed/changed logs, including AWS services, is important.
 
 [...Return to Accelerator Table of Contents](../index.md)
+
+### 1.6.13. I need a Route53 Private Hosted Zone in my workload account. How shall I proceed?
+The workload account requires a temporary local VPC in order to create the Private Hosted Zone (PHZ)
+
+#### Create in workload account VPC
+
+You can create the temporary VPC at account creation via ASEA config (prefered way) by adding a config similar to this one on the workload account definition.
+If you don't use the ASEA config you will need to assume the proper ASEA elevated role in the workload account in order to create the VPC.
+
+```
+"mydevacct": {
+    "account-name": "MyDev1",
+    "email": "dev1-main@super-corp.co",
+    "src-filename": "config.json",
+    "ou": "dev",
+    "vpc": [
+        {
+            "deploy": "local",
+            "name": "Local",
+            "description": "This VPC Temp VPC to create the local hosted zone.",
+            "cidr-src": "provided",
+            "cidr": [
+                {
+                    "value": "192.168.100.0/24"
+                }
+            ],
+            "region": "${HOME_REGION}"
+        }
+    ]
+}
+```
+#### Create in workload account Private Hosted Zone
+From the workload account:
+
+List the VPCs.
+```
+ aws ec2 describe-vpcs
+```
+Then retrieve the VpcId attribute for the newly created VPC as well as the Id for the shared VPC.
+
+Create the Private Hosted Zone
+```
+aws route53 create-hosted-zone --name <MY_DOMAIN> --hosted-zone-config PrivateZone=true --vpc VPCRegion=<VPC_REGION>,VPCId=<VPC_ID> --caller-reference <YOUR_REFERENCE_ID>
+```
+Insert the proper values for (Your reference can be any value): 
+* `<MY_DOMAIN>`
+* `<VPC_REGION>`
+* `<VPC_ID>` (Id of new the local VPC)
+* `<YOUR_REFERENCE_ID>`
+
+Take note of the newly created hosted zone id by looking at the output of the command. 
+The Id is the value after `/hostedzone/` from the Id attribute.
+For example, the value is `Z0123456NWOWQ4HNN40U` from `"Id": "/hostedzone/Z0123456NWOWQ4HNN40U"`.
+
+#### Create an authorization to associate with this new zone
+Still in the workload account; create an association request authorization to allow the shared VPC to associate with this new zone.
+
+```
+aws route53 create-vpc-association-authorization --hosted-zone-id <ZONE_ID> --vpc VPCRegion=<SHARED_VPC_REGION>,VPCId=<SHARED_VPC_ID>
+```
+Insert the proper values for: 
+* `<ZONE_ID>`
+* `<SHARED_VPC_REGiON>`
+* `<SHARED_VPC_ID>`
+
+#### Associate Hosted zone
+In the SharedNetwork account associate the Private Hosted Zone from the workload account.
+
+```
+aws route53 associate-vpc-with-hosted-zone --hosted-zone-id <ZONE_ID> --vpc VPCRegion=<SHARED_VPC_REGION>,VPCId=<SHARED_VPC_ID>
+```
+Insert the proper values for: 
+* `<ZONE_ID>`
+* `<SHARED_VPC_REGiON>`
+* `<SHARED_VPC_ID>`
+
+#### Validate Association and clean-up
+In the workload account, validate the association using the below command. You should see two VPCs attache. The local vpc and the shared vpc.
+```
+aws route53 get-hosted-zone --id <ZONE_ID>
+```
+Insert the proper values for: 
+* `<ZONE_ID>`
+
+You can now dissociate the local vpc from the zone.
+```
+aws route53 disassociate-vpc-from-hosted-zone --hosted-zone-id <ZONE_ID> --vpc VPCRegion=<VPC_REGION>,VPCId=<VPC_ID>
+```
+Insert the proper values for: 
+* `<ZONE_ID>`
+* `<VPC_REGiON>`
+* `<VPC_ID>`
+
+You can now delete the local VPC. We recommand you leverage the ASEA configuration file.
+Simply the remove the `vpc` section from the workload account:
+
+```
+"mydevacct": {
+    "account-name": "MyDev1",
+    "email": "dev1-main@super-corp.co",
+    "src-filename": "config.json",
+    "ou": "dev"
+}
+```
+
+and redeploy using the Main State Machine.
+
+
