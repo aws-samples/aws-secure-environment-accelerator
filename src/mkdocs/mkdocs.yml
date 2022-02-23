@@ -1,7 +1,8 @@
 site_name: AWS Secure Environment Accelerator
-site_url: https://awssea.github.io
+site_url: https://aws-samples.github.io/aws-secure-environment-accelerator/
 site_author: Amazon Web Services
 site_description: Documentation for the AWS Secure Environment Accelerator
+site_dir: ../../docs
 
 nav:
   - Home: index.md
@@ -9,6 +10,7 @@ nav:
   - About:
       - about/index.md
       - Pricing: pricing/sample_pricing.md
+      - Contributing & Governance: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md
   - Installation & Upgrades:
       - installation/index.md
       - Installation: installation/install.md
@@ -45,8 +47,6 @@ nav:
       - workshops/index.md
   - Configuration File Schema:
       - schema/index.md
-  - Contributing & Governance:
-      - https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md
 
 theme:
   name: material
