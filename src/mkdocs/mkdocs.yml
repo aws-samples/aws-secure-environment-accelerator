@@ -1,0 +1,99 @@
+site_name: AWS Secure Environment Accelerator
+site_url: https://awssea.github.io
+site_author: Amazon Web Services
+site_description: Documentation for the AWS Secure Environment Accelerator
+
+nav:
+  - Home: index.md
+  - FAQ: faq/index.md
+  - About:
+      - about/index.md
+      - Pricing: pricing/sample_pricing.md
+  - Installation & Upgrades:
+      - installation/index.md
+      - Installation: installation/install.md
+      - Upgrades: installation/upgrades.md
+      - Existing Orgs & Accounts: installation/existing-orgs.md
+      - Design Decisions: installation/design.md
+      - Deployed Services List: installation/services-list.md
+  - Operations & Troubleshooting:
+      - operations/index.md
+      - System Overview: operations/system-overview.md
+      - Troubleshooting: operations/troubleshooting.md
+      - Common Tasks: operations/common-tasks.md
+      - Import Existing ALZ: operations/operations-import-ALZAccount.md
+  - Guides:
+      - Fortigate:
+          - guides/fortigate/index.md
+          - Expose Public Facing Workload: guides/fortigate/public-facing-workload-via-fortigate.md
+  - Developer Guide:
+      - developer/index.md
+      - Development Guide: developer/development.md
+      - Tech Stack: developer/tech-stack.md
+      - Best Practices: developer/best-practices.md
+      - How to Contribute: developer/contributing-guidelines.md
+      - Release Process: developer/release-process.md
+  - Architectures:
+      - PBMM:
+          - architectures/pbmm/index.md
+          - Account Structure: architectures/pbmm/accounts.md
+          - Networking: architectures/pbmm/network.md
+          - Authentication & Authorization: architectures/pbmm/auth.md
+          - Logging and Monitoring: architectures/pbmm/logging.md
+          - Architecture Diagrams: architectures/pbmm/diagrams.md
+  - Workshops:
+      - workshops/index.md
+  - Configuration File Schema:
+      - schema/index.md
+  - Contributing & Governance:
+      - https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md
+
+theme:
+  name: material
+  highlightjs: true
+  hljs_languages:
+    - yaml
+  features:
+    - navigation.tracking
+    - navigation.sections
+    - navigation.instant
+    - navigation.indexes
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  generator: false
+
+extra_css:
+  - css/pdf-print.css
+
+markdown_extensions:
+  - toc:
+      toc_depth: 3
+      permalink: true
+
+repo_url: https://github.com/aws-samples/aws-secure-environment-accelerator
+repo_name: aws-samples/asea
+
+plugins:
+  - search
+  - with-pdf:
+      #cover_title:
+      author: Amazon Web Services
+      cover_subtitle: Amazon Web Services
+      #cover_logo: assets/images/banner.png
+      #back_cover: true
+      toc_level: 3
+      #excludes_children:
+      #  - 'releases/changelog/:upgrading'
+      #convert_iframe:
+      #  - src: https://streamable.com/e/zmtb00
+      #   img: https://cdn-cf-east.streamable.com/image/zmtb00-screenshot75403.jpg
+      #two_columns_level: 3
+      #render_js: true
+      #headless_chrome_path: "chrome"
+      #output_path: ../document.pdf
+      #debug_html: true
+      #verbose: true
+      #show_anchors: true
+      #enabled_if_env: ENABLE_PDF_EXPORT
