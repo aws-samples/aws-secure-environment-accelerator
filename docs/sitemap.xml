@@ -1,197 +1,197 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://awssea.github.io/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/toc-generation/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/toc-generation/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/about/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/about/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/architectures/pbmm/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/architectures/pbmm/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/architectures/pbmm/accounts/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/architectures/pbmm/accounts/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/architectures/pbmm/auth/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/architectures/pbmm/auth/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/architectures/pbmm/diagrams/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/architectures/pbmm/diagrams/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/architectures/pbmm/log-file-locations/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/architectures/pbmm/log-file-locations/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/architectures/pbmm/logging/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/architectures/pbmm/logging/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/architectures/pbmm/network/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/architectures/pbmm/network/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/developer/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/developer/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/developer/best-practices/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/developer/best-practices/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/developer/contributing-guidelines/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/developer/contributing-guidelines/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/developer/development/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/developer/development/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/developer/release-process/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/developer/release-process/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/developer/tech-stack/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/developer/tech-stack/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/faq/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/faq/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/guides/fortigate/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/guides/fortigate/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/guides/fortigate/public-facing-workload-via-fortigate/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/guides/fortigate/public-facing-workload-via-fortigate/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/installation/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/installation/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/installation/customization-index/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/installation/customization-index/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/installation/design/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/installation/design/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/installation/existing-orgs/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/installation/existing-orgs/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/installation/install/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/installation/install/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/installation/multi-file-config-capabilities/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/installation/multi-file-config-capabilities/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/installation/object-naming/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/installation/object-naming/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/installation/services-list/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/installation/services-list/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/installation/sm_inputs/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/installation/sm_inputs/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/installation/upgrades/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/installation/upgrades/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/installation/v150-Upgrade/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/installation/v150-Upgrade/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/installation/what-we-do-where/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/installation/what-we-do-where/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/operations/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/operations/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/operations/common-tasks/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/operations/common-tasks/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/operations/operations-import-ALZAccount/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/operations/operations-import-ALZAccount/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/operations/system-overview/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/operations/system-overview/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/operations/troubleshooting/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/operations/troubleshooting/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/pricing/sample_pricing/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/pricing/sample_pricing/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/schema/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/schema/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://awssea.github.io/workshops/</loc>
+         <loc>https://aws-samples.github.io/aws-secure-environment-accelerator/workshops/</loc>
          <lastmod>2022-02-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
