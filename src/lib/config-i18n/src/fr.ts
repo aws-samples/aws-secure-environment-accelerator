@@ -2284,6 +2284,10 @@ translate(c.MandatoryAccountConfigType, {
       title: '',
       description: '',
     },
+    'ssm-inventory-collection': {
+      title: '',
+      description: '',
+    },
     'aws-config': {
       title: '',
       description: '',
@@ -2357,6 +2361,10 @@ translate(c.OrganizationalUnitConfigType, {
       description: '',
     },
     'ssm-automation': {
+      title: '',
+      description: '',
+    },
+    'ssm-inventory-collection': {
       title: '',
       description: '',
     },
