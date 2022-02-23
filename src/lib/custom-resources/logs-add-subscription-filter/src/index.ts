@@ -56,7 +56,6 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
       EXCLUSIONS: JSON.stringify(props.globalExclusions),
       LOG_DESTINATION: props.logDestinationArn,
       LOG_RETENTION: props.logRetention.toString(),
-      ROLE_ARN: props.roleArn,
     };
     const addSubscriptionLambda = this.ensureLambdaFunction(
       this.cloudWatchEnventLambdaPath,

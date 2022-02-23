@@ -77,13 +77,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
     config: acceleratorConfig,
   });
 
-  // Creates roles for cloud watch logs group subscriptions
-  await globalRoles.createCwlSubscriptionFilterRoles({
-    accountStacks,
-    accounts,
-    config: acceleratorConfig,
-  });
-
   // Creates role for SnsSubscriberLambda function
   await globalRoles.createSnsSubscriberLambdaRole({
     accountStacks,
