@@ -1,0 +1,2392 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the AWS Secure Environment Accelerator">
+      
+      
+        <meta name="author" content="Amazon Web Services">
+      
+      
+        <link rel="canonical" href="https://awssea.github.io/faq/">
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.9">
+    
+    
+      
+        <title>FAQ - AWS Secure Environment Accelerator</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.2b4465f4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../css/pdf-print.css">
+    
+    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#accelerator-basic-operation-and-frequently-asked-questions" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AWS Secure Environment Accelerator" class="md-header__button md-logo" aria-label="AWS Secure Environment Accelerator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AWS Secure Environment Accelerator
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              FAQ
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws-samples/asea
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AWS Secure Environment Accelerator" class="md-nav__button md-logo" aria-label="AWS Secure Environment Accelerator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    AWS Secure Environment Accelerator
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws-samples/asea
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          FAQ
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        FAQ
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#operational-activities" class="md-nav__link">
+    Operational Activities
+  </a>
+  
+    <nav class="md-nav" aria-label="Operational Activities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-add-new-aws-accounts-to-my-aws-organization" class="md-nav__link">
+    How do I add new AWS accounts to my AWS Organization?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#i-tried-to-enroll-a-new-account-via-control-tower-but-it-failed-the-state-machine-failed-during-the-load-organization-configuration-step-with-the-error-the-control-tower-account-account_name-is-in-a-failed-state-error" class="md-nav__link">
+    I tried to enroll a new account via Control Tower but it failed? The state machine failed during the "Load Organization Configuration" step with the error "The Control Tower account: ACCOUNT_NAME is in a failed state ERROR"?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-i-use-aws-organizations-for-all-tasks-i-currently-use-aws-organizations-for" class="md-nav__link">
+    Can I use AWS Organizations for all tasks I currently use AWS Organizations for?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-make-changes-to-items-i-defined-in-the-accelerator-configuration-file-during-installation" class="md-nav__link">
+    How do I make changes to items I defined in the Accelerator configuration file during installation?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-i-update-the-config-file-while-the-state-machine-is-running-when-will-those-changes-be-applied" class="md-nav__link">
+    Can I update the config file while the State Machine is running? When will those changes be applied?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-if-i-really-mess-up-the-configuration-file" class="md-nav__link">
+    What if I really mess up the configuration file?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-if-my-state-machine-fails-why-previous-solutions-had-complex-recovery-processes-whats-involved" class="md-nav__link">
+    What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-update-some-of-the-supplied-sample-configuration-items-found-in-reference-artifact-like-scps-and-iam-policies" class="md-nav__link">
+    How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#i-deployed-aws-managed-active-directory-mad-as-part-of-my-deployment-how-do-i-manage-active-directory-domain-users-groups-and-domain-policies-after-deployment" class="md-nav__link">
+    I deployed AWS Managed Active Directory (MAD) as part of my deployment, how do I manage Active Directory domain users, groups, and domain policies after deployment?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-suspend-an-aws-account" class="md-nav__link">
+    How do I suspend an AWS account?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#i-need-a-new-vpc-where-shall-i-define-it" class="md-nav__link">
+    I need a new VPC, where shall I define it?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes" class="md-nav__link">
+    How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-can-i-easily-access-my-virtual-machines-or-ec2-instances" class="md-nav__link">
+    How can I easily access my virtual machines or EC2 instances?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#i-ran-the-state-machine-but-it-failed-when-it-tried-to-delete-the-default-vpc-the-state-machine-cannot-delete-the-default-vpc-error-vpc-has-dependencies-and-cannot-be-deleted" class="md-nav__link">
+    I ran the state machine but it failed when it tried to delete the default VPC? The state machine cannot delete the default VPC (Error: VPC has dependencies and cannot be deleted)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#existing-accountsorganizations" class="md-nav__link">
+    Existing Accounts/Organizations
+  </a>
+  
+    <nav class="md-nav" aria-label="Existing Accounts/Organizations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-import-an-existing-aws-account-into-my-accelerator-managed-aws-organization-or-what-if-i-created-a-new-aws-account-with-a-different-organization-trust-role" class="md-nav__link">
+    How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is-it-possible-to-deploy-the-accelerator-on-top-of-an-aws-organization-that-i-have-already-installed-the-aws-landing-zone-alz-solution-into" class="md-nav__link">
+    Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-if-i-want-to-move-an-account-from-an-aws-organization-that-has-the-alz-deployed-into-an-aws-organization-running-the-accelerator" class="md-nav__link">
+    What if I want to move an account from an AWS Organization that has the ALZ deployed into an AWS Organization running the Accelerator?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#end-user-environment" class="md-nav__link">
+    End User Environment
+  </a>
+  
+    <nav class="md-nav" aria-label="End User Environment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#is-there-anything-my-end-users-need-to-be-aware-of-why-do-some-of-my-end-users-struggle-with-cloudwatch-log-groups-errors" class="md-nav__link">
+    Is there anything my end users need to be aware of? Why do some of my end users struggle with CloudWatch Log groups errors?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-can-i-leverage-accelerator-deployed-objects-in-my-iac-do-i-need-to-manually-determine-the-arns-and-object-ids-of-accelerator-deployed-objects-to-leverage-them-in-my-iac" class="md-nav__link">
+    How can I leverage Accelerator deployed objects in my IaC? Do I need to manually determine the arn's and object id's of Accelerator deployed objects to leverage them in my IaC?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upgrades" class="md-nav__link">
+    Upgrades
+  </a>
+  
+    <nav class="md-nav" aria-label="Upgrades">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#can-i-upgrade-directly-to-the-latest-release-or-must-i-perform-upgrades-sequentially" class="md-nav__link">
+    Can I upgrade directly to the latest release, or must I perform upgrades sequentially?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-do-i-get-the-error-there-were-errors-while-comparing-the-configuration-changes-when-i-update-the-config-file" class="md-nav__link">
+    Why do I get the error "There were errors while comparing the configuration changes:" when I update the config file?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-concerns" class="md-nav__link">
+    Support Concerns
+  </a>
+  
+    <nav class="md-nav" aria-label="Support Concerns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-accelerator-is-written-in-cdk-and-deploys-cloudformation-does-this-restrict-the-infrastructure-as-code-iac-tools-that-i-can-use" class="md-nav__link">
+    The Accelerator is written in CDK and deploys CloudFormation, does this restrict the Infrastructure as Code (IaC) tools that I can use?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-if-aws-stops-enhancing-the-accelerator" class="md-nav__link">
+    What happens if AWS stops enhancing the Accelerator?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-level-of-support-will-the-asea-have-from-aws-support" class="md-nav__link">
+    What level of Support will the ASEA have from AWS Support?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-does-it-take-to-support-the-accelerator" class="md-nav__link">
+    What does it take to support the Accelerator?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is-the-accelerator-only-designed-and-suitable-for-government-of-canada-or-pbmm-customers" class="md-nav__link">
+    Is the Accelerator only designed and suitable for Government of Canada or PBMM customers?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployed-functionality" class="md-nav__link">
+    Deployed Functionality
+  </a>
+  
+    <nav class="md-nav" aria-label="Deployed Functionality">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#i-wish-to-be-in-compliance-with-the-12-gc-tbs-guardrails-what-dont-you-cover-with-the-provided-sample-architecture" class="md-nav__link">
+    I wish to be in compliance with the 12 GC TBS Guardrails, what don't you cover with the provided sample architecture?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#does-the-alb-perform-ssl-offloading" class="md-nav__link">
+    Does the ALB perform SSL offloading?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-is-the-recommended-approach-to-manage-the-alb-certificates-deployed-by-the-accelerator" class="md-nav__link">
+    What is the recommended approach to manage the ALB certificates deployed by the Accelerator?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-do-we-have-rsyslog-servers-i-thought-everything-was-sent-to-cloudwatch" class="md-nav__link">
+    Why do we have rsyslog servers? I thought everything was sent to CloudWatch?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-you-deploy-the-solution-without-fortinet-firewall-licenses" class="md-nav__link">
+    Can you deploy the solution without Fortinet Firewall Licenses?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#i-installed-additional-software-on-my-accelerator-deployed-rdgw-rsyslog-host-where-did-it-go" class="md-nav__link">
+    I installed additional software on my Accelerator deployed RDGW / rsyslog host, where did it go?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#some-sample-configurations-provide-nacls-and-security-groups-is-that-enough" class="md-nav__link">
+    Some sample configurations provide NACLs and Security Groups. Is that enough?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-i-deploy-the-solution-as-the-account-root-user" class="md-nav__link">
+    Can I deploy the solution as the account root user?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is-the-organizational-management-root-account-monitored-similarly-to-the-other-accounts-in-the-organization" class="md-nav__link">
+    Is the Organizational Management root account monitored similarly to the other accounts in the organization?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-are-the-perimeter-firewall-configurations-and-licensing-managed-after-deployment" class="md-nav__link">
+    How are the perimeter firewall configurations and licensing managed after deployment?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-the-fortinet-firewall-deployments-use-static-private-ip-address-assignments" class="md-nav__link">
+    Can the Fortinet Firewall deployments use static private IP address assignments?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ive-noticed-cloudtrail-logs-and-in-certain-situation-vpc-flow-logs-are-stored-in-the-centralized-log-archive-account-logging-bucket-twice" class="md-nav__link">
+    I've noticed CloudTrail logs and in certain situation VPC flow logs are stored in the centralized log-archive account logging bucket twice?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../about/">About</a>
+          
+            <label for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="About" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          About
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pricing/sample_pricing/" class="md-nav__link">
+        Pricing
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../installation/">Installation & Upgrades</a>
+          
+            <label for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Installation & Upgrades" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Installation & Upgrades
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/install/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/upgrades/" class="md-nav__link">
+        Upgrades
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/existing-orgs/" class="md-nav__link">
+        Existing Orgs & Accounts
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/design/" class="md-nav__link">
+        Design Decisions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/services-list/" class="md-nav__link">
+        Deployed Services List
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../operations/">Operations & Troubleshooting</a>
+          
+            <label for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Operations & Troubleshooting" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Operations & Troubleshooting
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations/system-overview/" class="md-nav__link">
+        System Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations/troubleshooting/" class="md-nav__link">
+        Troubleshooting
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations/common-tasks/" class="md-nav__link">
+        Common Tasks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations/operations-import-ALZAccount/" class="md-nav__link">
+        Import Existing ALZ
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
+      
+      
+      
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_6">
+          Guides
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Guides" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Guides
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6_1" type="checkbox" id="__nav_6_1" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../guides/fortigate/">Fortigate</a>
+          
+            <label for="__nav_6_1">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Fortigate" data-md-level="2">
+        <label class="md-nav__title" for="__nav_6_1">
+          <span class="md-nav__icon md-icon"></span>
+          Fortigate
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/fortigate/public-facing-workload-via-fortigate/" class="md-nav__link">
+        Expose Public Facing Workload
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../developer/">Developer Guide</a>
+          
+            <label for="__nav_7">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Developer Guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Developer Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer/development/" class="md-nav__link">
+        Development Guide
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer/tech-stack/" class="md-nav__link">
+        Tech Stack
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer/best-practices/" class="md-nav__link">
+        Best Practices
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer/contributing-guidelines/" class="md-nav__link">
+        How to Contribute
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer/release-process/" class="md-nav__link">
+        Release Process
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      
+      
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_8">
+          Architectures
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Architectures" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Architectures
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8_1" type="checkbox" id="__nav_8_1" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../architectures/pbmm/">PBMM</a>
+          
+            <label for="__nav_8_1">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="PBMM" data-md-level="2">
+        <label class="md-nav__title" for="__nav_8_1">
+          <span class="md-nav__icon md-icon"></span>
+          PBMM
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architectures/pbmm/accounts/" class="md-nav__link">
+        Account Structure
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architectures/pbmm/network/" class="md-nav__link">
+        Networking
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architectures/pbmm/auth/" class="md-nav__link">
+        Authentication & Authorization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architectures/pbmm/logging/" class="md-nav__link">
+        Logging and Monitoring
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architectures/pbmm/diagrams/" class="md-nav__link">
+        Architecture Diagrams
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9" type="checkbox" id="__nav_9" >
+      
+      
+      
+        
+          
+            
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../workshops/">Workshops</a>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Workshops" data-md-level="1">
+        <label class="md-nav__title" for="__nav_9">
+          <span class="md-nav__icon md-icon"></span>
+          Workshops
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_10" type="checkbox" id="__nav_10" >
+      
+      
+      
+        
+          
+            
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../schema/">Configuration File Schema</a>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Configuration File Schema" data-md-level="1">
+        <label class="md-nav__title" for="__nav_10">
+          <span class="md-nav__icon md-icon"></span>
+          Configuration File Schema
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_11" type="checkbox" id="__nav_11" >
+      
+      
+      
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_11">
+          Contributing & Governance
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Contributing & Governance" data-md-level="1">
+        <label class="md-nav__title" for="__nav_11">
+          <span class="md-nav__icon md-icon"></span>
+          Contributing & Governance
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md" class="md-nav__link">
+        None
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#operational-activities" class="md-nav__link">
+    Operational Activities
+  </a>
+  
+    <nav class="md-nav" aria-label="Operational Activities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-add-new-aws-accounts-to-my-aws-organization" class="md-nav__link">
+    How do I add new AWS accounts to my AWS Organization?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#i-tried-to-enroll-a-new-account-via-control-tower-but-it-failed-the-state-machine-failed-during-the-load-organization-configuration-step-with-the-error-the-control-tower-account-account_name-is-in-a-failed-state-error" class="md-nav__link">
+    I tried to enroll a new account via Control Tower but it failed? The state machine failed during the "Load Organization Configuration" step with the error "The Control Tower account: ACCOUNT_NAME is in a failed state ERROR"?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-i-use-aws-organizations-for-all-tasks-i-currently-use-aws-organizations-for" class="md-nav__link">
+    Can I use AWS Organizations for all tasks I currently use AWS Organizations for?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-make-changes-to-items-i-defined-in-the-accelerator-configuration-file-during-installation" class="md-nav__link">
+    How do I make changes to items I defined in the Accelerator configuration file during installation?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-i-update-the-config-file-while-the-state-machine-is-running-when-will-those-changes-be-applied" class="md-nav__link">
+    Can I update the config file while the State Machine is running? When will those changes be applied?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-if-i-really-mess-up-the-configuration-file" class="md-nav__link">
+    What if I really mess up the configuration file?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-if-my-state-machine-fails-why-previous-solutions-had-complex-recovery-processes-whats-involved" class="md-nav__link">
+    What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-update-some-of-the-supplied-sample-configuration-items-found-in-reference-artifact-like-scps-and-iam-policies" class="md-nav__link">
+    How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#i-deployed-aws-managed-active-directory-mad-as-part-of-my-deployment-how-do-i-manage-active-directory-domain-users-groups-and-domain-policies-after-deployment" class="md-nav__link">
+    I deployed AWS Managed Active Directory (MAD) as part of my deployment, how do I manage Active Directory domain users, groups, and domain policies after deployment?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-suspend-an-aws-account" class="md-nav__link">
+    How do I suspend an AWS account?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#i-need-a-new-vpc-where-shall-i-define-it" class="md-nav__link">
+    I need a new VPC, where shall I define it?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes" class="md-nav__link">
+    How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-can-i-easily-access-my-virtual-machines-or-ec2-instances" class="md-nav__link">
+    How can I easily access my virtual machines or EC2 instances?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#i-ran-the-state-machine-but-it-failed-when-it-tried-to-delete-the-default-vpc-the-state-machine-cannot-delete-the-default-vpc-error-vpc-has-dependencies-and-cannot-be-deleted" class="md-nav__link">
+    I ran the state machine but it failed when it tried to delete the default VPC? The state machine cannot delete the default VPC (Error: VPC has dependencies and cannot be deleted)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#existing-accountsorganizations" class="md-nav__link">
+    Existing Accounts/Organizations
+  </a>
+  
+    <nav class="md-nav" aria-label="Existing Accounts/Organizations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-import-an-existing-aws-account-into-my-accelerator-managed-aws-organization-or-what-if-i-created-a-new-aws-account-with-a-different-organization-trust-role" class="md-nav__link">
+    How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is-it-possible-to-deploy-the-accelerator-on-top-of-an-aws-organization-that-i-have-already-installed-the-aws-landing-zone-alz-solution-into" class="md-nav__link">
+    Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-if-i-want-to-move-an-account-from-an-aws-organization-that-has-the-alz-deployed-into-an-aws-organization-running-the-accelerator" class="md-nav__link">
+    What if I want to move an account from an AWS Organization that has the ALZ deployed into an AWS Organization running the Accelerator?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#end-user-environment" class="md-nav__link">
+    End User Environment
+  </a>
+  
+    <nav class="md-nav" aria-label="End User Environment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#is-there-anything-my-end-users-need-to-be-aware-of-why-do-some-of-my-end-users-struggle-with-cloudwatch-log-groups-errors" class="md-nav__link">
+    Is there anything my end users need to be aware of? Why do some of my end users struggle with CloudWatch Log groups errors?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-can-i-leverage-accelerator-deployed-objects-in-my-iac-do-i-need-to-manually-determine-the-arns-and-object-ids-of-accelerator-deployed-objects-to-leverage-them-in-my-iac" class="md-nav__link">
+    How can I leverage Accelerator deployed objects in my IaC? Do I need to manually determine the arn's and object id's of Accelerator deployed objects to leverage them in my IaC?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upgrades" class="md-nav__link">
+    Upgrades
+  </a>
+  
+    <nav class="md-nav" aria-label="Upgrades">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#can-i-upgrade-directly-to-the-latest-release-or-must-i-perform-upgrades-sequentially" class="md-nav__link">
+    Can I upgrade directly to the latest release, or must I perform upgrades sequentially?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-do-i-get-the-error-there-were-errors-while-comparing-the-configuration-changes-when-i-update-the-config-file" class="md-nav__link">
+    Why do I get the error "There were errors while comparing the configuration changes:" when I update the config file?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-concerns" class="md-nav__link">
+    Support Concerns
+  </a>
+  
+    <nav class="md-nav" aria-label="Support Concerns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-accelerator-is-written-in-cdk-and-deploys-cloudformation-does-this-restrict-the-infrastructure-as-code-iac-tools-that-i-can-use" class="md-nav__link">
+    The Accelerator is written in CDK and deploys CloudFormation, does this restrict the Infrastructure as Code (IaC) tools that I can use?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-happens-if-aws-stops-enhancing-the-accelerator" class="md-nav__link">
+    What happens if AWS stops enhancing the Accelerator?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-level-of-support-will-the-asea-have-from-aws-support" class="md-nav__link">
+    What level of Support will the ASEA have from AWS Support?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-does-it-take-to-support-the-accelerator" class="md-nav__link">
+    What does it take to support the Accelerator?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is-the-accelerator-only-designed-and-suitable-for-government-of-canada-or-pbmm-customers" class="md-nav__link">
+    Is the Accelerator only designed and suitable for Government of Canada or PBMM customers?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployed-functionality" class="md-nav__link">
+    Deployed Functionality
+  </a>
+  
+    <nav class="md-nav" aria-label="Deployed Functionality">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#i-wish-to-be-in-compliance-with-the-12-gc-tbs-guardrails-what-dont-you-cover-with-the-provided-sample-architecture" class="md-nav__link">
+    I wish to be in compliance with the 12 GC TBS Guardrails, what don't you cover with the provided sample architecture?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#does-the-alb-perform-ssl-offloading" class="md-nav__link">
+    Does the ALB perform SSL offloading?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-is-the-recommended-approach-to-manage-the-alb-certificates-deployed-by-the-accelerator" class="md-nav__link">
+    What is the recommended approach to manage the ALB certificates deployed by the Accelerator?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-do-we-have-rsyslog-servers-i-thought-everything-was-sent-to-cloudwatch" class="md-nav__link">
+    Why do we have rsyslog servers? I thought everything was sent to CloudWatch?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-you-deploy-the-solution-without-fortinet-firewall-licenses" class="md-nav__link">
+    Can you deploy the solution without Fortinet Firewall Licenses?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#i-installed-additional-software-on-my-accelerator-deployed-rdgw-rsyslog-host-where-did-it-go" class="md-nav__link">
+    I installed additional software on my Accelerator deployed RDGW / rsyslog host, where did it go?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#some-sample-configurations-provide-nacls-and-security-groups-is-that-enough" class="md-nav__link">
+    Some sample configurations provide NACLs and Security Groups. Is that enough?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-i-deploy-the-solution-as-the-account-root-user" class="md-nav__link">
+    Can I deploy the solution as the account root user?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is-the-organizational-management-root-account-monitored-similarly-to-the-other-accounts-in-the-organization" class="md-nav__link">
+    Is the Organizational Management root account monitored similarly to the other accounts in the organization?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-are-the-perimeter-firewall-configurations-and-licensing-managed-after-deployment" class="md-nav__link">
+    How are the perimeter firewall configurations and licensing managed after deployment?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-the-fortinet-firewall-deployments-use-static-private-ip-address-assignments" class="md-nav__link">
+    Can the Fortinet Firewall deployments use static private IP address assignments?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ive-noticed-cloudtrail-logs-and-in-certain-situation-vpc-flow-logs-are-stored-in-the-centralized-log-archive-account-logging-bucket-twice" class="md-nav__link">
+    I've noticed CloudTrail logs and in certain situation VPC flow logs are stored in the centralized log-archive account logging bucket twice?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+<a href="https://github.com/aws-samples/aws-secure-environment-accelerator/edit/master/docs/faq/index.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+<h1 id="accelerator-basic-operation-and-frequently-asked-questions">Accelerator Basic Operation and Frequently asked Questions<a class="headerlink" href="#accelerator-basic-operation-and-frequently-asked-questions" title="Permanent link">&para;</a></h1>
+<h2 id="operational-activities">Operational Activities<a class="headerlink" href="#operational-activities" title="Permanent link">&para;</a></h2>
+<h3 id="how-do-i-add-new-aws-accounts-to-my-aws-organization">How do I add new AWS accounts to my AWS Organization?<a class="headerlink" href="#how-do-i-add-new-aws-accounts-to-my-aws-organization" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>We offer four options and all can be used in the same Accelerator deployment. All options work with AWS Control Tower, ensuring the account is both ingested into Control Tower and all Accelerator guardrails are automatically applied:</p>
+</li>
+<li>
+<p>Users can simply add the following five lines to the configuration file <code>workload-account-configs</code> section and rerun the state machine. The majority of the account configuration will be picked up from the ou the AWS account has been assigned. You can also add additional account specific configuration, or override items like the default ou budget with an account specific budget. This mechanism is often used by customers that wish to programmatically create AWS accounts using the Accelerator and allows for adding many new accounts at one time.</p>
+</li>
+</ul>
+<p><code>json
+  "fun-acct": {
+    "account-name": "TheFunAccount",
+    "email": "myemail+aseaT-funacct@example.com",
+    "src-filename": "config.json",
+    "ou": "Sandbox"
+  }</code></p>
+<ol>
+<li>
+<p>We've heard consistent feedback that our customers wish to use native AWS services and do not want to do things differently once security controls, guardrails, or accelerators are applied to their environment. In this regard, simply create your new AWS account in AWS Organizations as you did before**, either by a) using the AWS Console or b) by using standard AWS account creation API's, CLI or 3rd party tools like Terraform.</p>
+<ul>
+<li>** <strong>IMPORTANT:</strong> When creating the new AWS account using AWS Organizations, you need to specify the role name provided in the Accelerator configuration file <code>global-options\organization-admin-role</code>, otherwise we cannot bootstrap the account. In Control Tower installations, this <strong>MUST</strong> be set to <strong><em><code>AWSControlTowerExecution</code></em></strong>, for customers who installed prior to v1.2.5 this value is <strong><em><code>AWSCloudFormationStackSetExecutionRole</code></em></strong> and after v1.2.5 we were recommending using the role <strong><em><code>OrganizationAccountAccessRole</code></em></strong> as this role is used by default by AWS Organizations if no role name is specified when creating AWS accounts through the AWS console or cli.</li>
+<li>On account creation we will apply a quarantine SCP which prevents the account from being used by anyone until the Accelerator has applied the appropriate guardrails</li>
+<li>Moving the account into the appropriate OU triggers the state machine and the application of the guardrails to the account, once complete, we will remove the quarantine SCP.</li>
+<li><strong>NOTE:</strong> Accounts CANNOT be moved between OU's to maintain compliance, so select the proper top-level OU with care</li>
+<li>In AWS Organizations, select ALL the newly created AWS accounts and move them all (preferably at once) to the correct destination OU (assuming the same OU for all accounts)</li>
+<li>In case you need to move accounts to multiple OU's we have added a 2 minute delay before triggering the State Machine</li>
+<li>Any accounts moved after the 2 minute window will NOT be properly ingested, and will need to be ingested on a subsequent State Machine Execution.</li>
+</ul>
+</li>
+<li>
+<p>Create your account using Account Factory in the AWS Control Tower console.</p>
+</li>
+</ol>
+<p>No matter the mechanism you choose, new accounts will automatically be blocked from use until fully guardrailed, the Accelerator will automatically execute, and accounts will automatically be ingested into AWS Control Tower.</p>
+<h3 id="i-tried-to-enroll-a-new-account-via-control-tower-but-it-failed-the-state-machine-failed-during-the-load-organization-configuration-step-with-the-error-the-control-tower-account-account_name-is-in-a-failed-state-error">I tried to enroll a new account via Control Tower but it failed? The state machine failed during the "Load Organization Configuration" step with the error "The Control Tower account: ACCOUNT_NAME is in a failed state ERROR"?<a class="headerlink" href="#i-tried-to-enroll-a-new-account-via-control-tower-but-it-failed-the-state-machine-failed-during-the-load-organization-configuration-step-with-the-error-the-control-tower-account-account_name-is-in-a-failed-state-error" title="Permanent link">&para;</a></h3>
+<p>If account enrollment fails within Control Tower, you will need to follow the troubleshooting steps <a href="https://docs.aws.amazon.com/controltower/latest/userguide/troubleshooting.html">here</a>. A common reason for this is not having the <code>ControlTowerExectution</code> role created in the account you are trying to enroll. Even after you successfully enroll the account, it is possible the state machine will fail at <code>Load Organization Configuration</code>. If you look at the cloudwatch logs you will see the error message:</p>
+<pre><code class="language-text">There were errors while loading the configuration: The Control Tower account: ACCOUNT_NAME is in a failed state ERROR.
+</code></pre>
+<p>This is because the Accelerator checks that there are no errors with Control Tower before continuing. In some cases Control Tower can leave an orphaned Service Catalog product in an <strong>Error</strong> state. You need to cleanup Control Towers Service Catalogs Provisioned Products so there are no products remaining in an error or tainted state before you can successfully re-run the state machine.</p>
+<h3 id="can-i-use-aws-organizations-for-all-tasks-i-currently-use-aws-organizations-for">Can I use AWS Organizations for all tasks I currently use AWS Organizations for?<a class="headerlink" href="#can-i-use-aws-organizations-for-all-tasks-i-currently-use-aws-organizations-for" title="Permanent link">&para;</a></h3>
+<ul>
+<li>In AWS Organizations you can continue to:</li>
+<li>create and rename AWS accounts</li>
+<li>move AWS accounts between ou's</li>
+<li>create, delete and rename ou's, including support for nested ou's</li>
+<li>create, rename, modify, apply and remove SCP's</li>
+<li>What can't I do:</li>
+<li>modify Accelerator or Control Tower controlled SCP's</li>
+<li>add/remove SCP's on top-level OU's (these are Accelerator and/or Control Tower controlled)<ul>
+<li>users can change SCP's on non-top-level ou's and non-Accelerator controlled accounts as they please</li>
+</ul>
+</li>
+<li>add/remove SCP's on specific accounts that have Accelerator controlled SCPs</li>
+<li>move an AWS account between top-level ou's (i.e. <code>Sandbox</code> to <code>Prod</code> is a security violation)<ul>
+<li>moving between <code>Prod/sub-ou-1</code> to <code>Prod/sub-ou2</code> or <code>Prod/sub-ou2/sub-ou2a/sub-ou2ab</code> is fully supported</li>
+</ul>
+</li>
+<li>create a top-level ou (need to validate, as they require config file entries)</li>
+<li>remove quarantine SCP from newly created accounts</li>
+<li>we do not support forward slashes (<code>/</code>) in ou names, even though the AWS platform does</li>
+<li>More details:</li>
+<li>If an AWS account is renamed, an account email is changed, or an OU is renamed, on the next state machine execution, the config file will automatically be updated.</li>
+<li>If you edit an Accelerator controlled SCP through Organizations, we will reset it per what is defined in the Accelerator configuration files.</li>
+<li>If you add/remove an SCP from a top-level ou or Accelerator controlled account, we will put them back as defined in the Accelerator configuration file.</li>
+<li>If you move an account between top-level ou's, we will put it back to its original designated top-level ou.</li>
+<li>The Accelerator fully supports nested ou's, customers can create any depth ou structure in AWS Organizations and add/remove/change SCP's <em>below</em> the top-level as they desire or move accounts between these ou's without restriction. Users can create ou's to the full AWS ou structure/depth</li>
+<li>Except for the Quarantine SCP applied to specific accounts, we do not 'control' SCP's below the top level, customers can add/create/customize SCP's<ul>
+<li>as of v1.3.3 customers can optionally control account level SCP's through the configuration file</li>
+</ul>
+</li>
+</ul>
+<h3 id="how-do-i-make-changes-to-items-i-defined-in-the-accelerator-configuration-file-during-installation">How do I make changes to items I defined in the Accelerator configuration file during installation?<a class="headerlink" href="#how-do-i-make-changes-to-items-i-defined-in-the-accelerator-configuration-file-during-installation" title="Permanent link">&para;</a></h3>
+<p>Simply update your configuration file in CodeCommit and rerun the state machine! In most cases, it is that simple.</p>
+<p>If you ask the Accelerator to do something that is not supported by the AWS platform, the state machine will fail, so it needs to be a supported capability. For example, the platform does not allow you to change the CIDR block on a VPC, but you can accomplish this as you would today by using the Accelerator to deploy a new second VPC, manually migrating workloads, and then removing the deprecated VPC from the Accelerator configuration.</p>
+<p>Below we have also documented additional considerations when creating or updating the configuration file.</p>
+<p>It should be noted that we have added code to the Accelerator to block customers from making many 'breaking' or impactful changes to their configuration files. If someone is positive they want to make these changes, we also provide override switches to allow these changes to be attempted forcefully.</p>
+<h3 id="can-i-update-the-config-file-while-the-state-machine-is-running-when-will-those-changes-be-applied">Can I update the config file while the State Machine is running? When will those changes be applied?<a class="headerlink" href="#can-i-update-the-config-file-while-the-state-machine-is-running-when-will-those-changes-be-applied" title="Permanent link">&para;</a></h3>
+<p>Yes. The state machine captures a consistent input state of the requested configuration when it starts. The running Accelerator instance does not see or consider any configuration changes that occur after it has started. All configuration changes occurring after the state machine is running will only be leveraged on the <em>next</em> state machine execution.</p>
+<h3 id="what-if-i-really-mess-up-the-configuration-file">What if I really mess up the configuration file?<a class="headerlink" href="#what-if-i-really-mess-up-the-configuration-file" title="Permanent link">&para;</a></h3>
+<p>The Accelerator is designed with checks to compare your current configuration file with the version of the config file from the previous successful execution of the state machine. If we believe you are making major or breaking changes to the config file, we will purposefully fail the state machine. See <a href="../installation/customization-index/#14-config-file-and-deployment-protections">1.4. Config file and Deployment Protections</a> for more details.</p>
+<p>With the release of v1.3.0 we introduced state machine scoping capabilities to further protect customers, detailed <a href="../installation/sm_inputs/#11-state-machine-behavior">here</a></p>
+<h3 id="what-if-my-state-machine-fails-why-previous-solutions-had-complex-recovery-processes-whats-involved">What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?<a class="headerlink" href="#what-if-my-state-machine-fails-why-previous-solutions-had-complex-recovery-processes-whats-involved" title="Permanent link">&para;</a></h3>
+<p>If your main state machine fails, review the error(s), resolve the problem and simply re-run the state machine. We've put a huge focus on ensuring the solution is idempotent and to ensure recovery is a smooth and easy process.</p>
+<p>Ensuring the integrity of deployed guardrails is critical in operating and maintaining an environment hosting protected data. Based on customer feedback and security best practices, we purposely fail the state machine if we cannot successfully deploy guardrails.</p>
+<p>Additionally, with millions of active customers each supporting different and diverse use cases and with the rapid rate of evolution of the AWS platform, sometimes we will encounter unexpected circumstances and the state machine might fail.</p>
+<p>We've spent a lot of time over the course of the Accelerator development process ensuring the solution can roll forward, roll backward, be stopped, restarted, and rerun without issues. A huge focus was placed on dealing with and writing custom code to manage and deal with non-idempotent resources (like S3 buckets, log groups, KMS keys, etc.). We've spent a lot of time ensuring that any failed artifacts are automatically cleaned up and don't cause subsequent executions to fail. We've put a strong focus on ensuring you do not need to go into your various AWS sub-accounts and manually remove or cleanup resources or deployment failures. We've also tried to provide usable error messages that are easy to understand and troubleshoot. As new scenario's are brought to our attention, we continue to adjust the codebase to better handle these situations.</p>
+<p>Will your state machine fail at some point in time, likely. Will you be able to easily recover and move forward without extensive time and effort, YES!</p>
+<h3 id="how-do-i-update-some-of-the-supplied-sample-configuration-items-found-in-reference-artifact-like-scps-and-iam-policies">How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?<a class="headerlink" href="#how-do-i-update-some-of-the-supplied-sample-configuration-items-found-in-reference-artifact-like-scps-and-iam-policies" title="Permanent link">&para;</a></h3>
+<p>To override items like SCP's or IAM policies, customers simply need to provide the identically named file in there input bucket. As long as the file exists in the correct folder in the customers input bucket, the Accelerator will use the customers supplied version of the configuration item, rather than the Accelerator version. Customer SCP's need to be placed into a folder named <code>scp</code> and iam policies in a folder named <code>iam-policy</code> (case sensitive).</p>
+<p>The Accelerator was designed to allow customers complete customization capabilities without any requirement to update code or fork the GitHub repo. Additionally, rather than forcing customers to provide a multitude of config files for a standard or prescriptive installation, we provide and auto-deploy with Accelerator versions of most required configuration items from the reference-artifacts folder of the repo. If a customer provides the required configuration file in their Accelerator S3 input bucket, we will use the customer supplied version of the configuration file rather than the Accelerator version. At any time, either before initial installation, or in future, a customer can place new or updated SCPs, policies, or other supported file types into their input bucket and we will use those instead of or in addition to Accelerator supplied versions. Customer only need to provide the specific files they wish to override, not all files.</p>
+<p>Customers can also define additional SCPs (or modify existing SCPs) using the name, description and filename of their choosing, and deploy them by referencing them on the appropriate organizational unit in the config file.</p>
+<p>Prior to v1.2.5, if we updated the default files, we overwrote customers customizations during upgrade. Simply updating the timestamp <em>after</em> upgrade on the customized versions and then rerunning the state machine re-instates customer customizations. In v1.2.5 we always use the customer customized version from the S3 bucket. It's important customers assess newly provided defaults during an upgrade process to ensure they are incorporating all the latest fixes and improvements. If a customer wants to revert to Accelerator provided default files, they will need to manually copy it from the repo into their input bucket.</p>
+<p>NOTE: Most of the provided SCPs are designed to protect the Accelerator deployed resources from modification and ensure the integrity of the Accelerator. Extreme caution must be exercised if the provided SCPs are modified. In v1.5.0 we restructured the SCPs based on a) customer requests, and b) the addition of Control Tower support for new installs.</p>
+<ul>
+<li>we reorganized and optimized our SCP's from 4 SCP files down to 3 SCP files, without removing any protections or guardrails;</li>
+<li>these optimizations have resulted in minor enhancements to the SCP protections and in some cases better scoping;</li>
+<li>the first two SCP files (Part-0 and Part-1) contain the controls which protect the integrity of the Accelerator itself;</li>
+<li>the third file (Sensitive, Unclass, Sandbox) contains customer data protection specific guardrails, which may change based on workload data classification or customer profiles and requirements;</li>
+<li>this freed the fourth SCP for use by Control Tower. As Control Tower leverages 2 SCP files on the Security OU, we have moved some of our SCP's to the account level.</li>
+</ul>
+<h3 id="i-deployed-aws-managed-active-directory-mad-as-part-of-my-deployment-how-do-i-manage-active-directory-domain-users-groups-and-domain-policies-after-deployment">I deployed AWS Managed Active Directory (MAD) as part of my deployment, how do I manage Active Directory domain users, groups, and domain policies after deployment?<a class="headerlink" href="#i-deployed-aws-managed-active-directory-mad-as-part-of-my-deployment-how-do-i-manage-active-directory-domain-users-groups-and-domain-policies-after-deployment" title="Permanent link">&para;</a></h3>
+<p>Customers have clearly indicated they do NOT want to use the Accelerator to manage their Active Directory domain or change the way they manage Active Directory on an ongoing basis. Customer have also indicated, they need help getting up and running quickly. For these reasons, the Accelerator only sets the domain password policy, and creates AD users and groups on the initial installation of MAD. After the initial installation, customers must manage Windows users and groups using their traditional tools. A bastion Windows host is deployed as a mechanism to support these capabilities. Passwords for all newly created MAD users have been stored, encrypted, in AWS Secrets Manager in the Management (root) Organization AWS account.</p>
+<p>To create new users and groups:</p>
+<ul>
+<li>RDP into the ASEA-RDGW bastion host in the Ops account</li>
+<li>Run ADUC and create users and groups as you please under the NETBIOSDOMAIN (example) tree</li>
+<li>Or run the appropriate powershell command</li>
+<li>Go to AWS SSO and map the Active Directory group to the appropriate AWS account and permission set</li>
+</ul>
+<p>The Accelerator will not create/update/delete new AD users or groups, nor will it update the domain password policy after the initial installation of Managed Active Directory. It is your responsibility to rotate these passwords on a regular basis per your organizations password policy. (NOTE: After updating the admin password it needs to be stored back in secrets manager).</p>
+<h3 id="how-do-i-suspend-an-aws-account">How do I suspend an AWS account?<a class="headerlink" href="#how-do-i-suspend-an-aws-account" title="Permanent link">&para;</a></h3>
+<p>Suspending accounts is blocked via SCP and purposely difficult, two options exist:</p>
+<ol>
+<li>Modify SCP method (not desired)</li>
+<li>Leverage the UnManaged OU</li>
+<li>validate your config file contains the value: <code>"ignored-ous": ["UnManaged"]</code><ul>
+<li>the state machine must be executed at least once after this value is added to the config file</li>
+</ul>
+</li>
+<li>In AWS Organizations create an OU named <code>UnManaged</code> in the root of the OU tree, if it does not exist</li>
+<li>Change to the <code>us-east-1</code> region and open CloudWatch and navigate to Rules<ul>
+<li>Select the <code>PBMMAccel-MoveAccount_rule</code>, select actions, select <code>Disable</code></li>
+</ul>
+</li>
+<li>In Organizations move the account to be suspended to the <code>UnManaged</code> OU</li>
+<li>Change to the <code>us-east-1</code> region and open CloudWatch and navigate to Rules<ul>
+<li>Select the <code>PBMMAccel-MoveAccount_rule</code>, select actions, select <code>Enable</code></li>
+</ul>
+</li>
+<li>login to the account to be suspended as the account root user</li>
+<li>suspend the account through <code>My Account</code></li>
+<li>Run the state machine (from the Organization management account), the account will:<ul>
+<li>have a deleted=true value added to the config file</li>
+<li>be moved to the suspended OU (OU value and path stays the same in the config file)</li>
+<li>deleted=true causes OU validation to be skipped on this account on subsequent SM executions</li>
+</ul>
+</li>
+<li>If the AWS account was listed in the mandatory-accounts section of the config file the SM will fail (expected)<ul>
+<li>after the above tasks have been completed, remove all references to the suspended mandatory account from the config file</li>
+<li>rerun the state machine, specifying: <code>{ "overrideComparison": true }</code></li>
+</ul>
+</li>
+<li>Deleted accounts will continue to appear under the <code>Suspended</code> OU for 90-days</li>
+</ol>
+<h3 id="i-need-a-new-vpc-where-shall-i-define-it">I need a new VPC, where shall I define it?<a class="headerlink" href="#i-need-a-new-vpc-where-shall-i-define-it" title="Permanent link">&para;</a></h3>
+<p>You can define a VPC in one of four major sections of the Accelerator configuration file:</p>
+<ul>
+<li>within an organization unit (this is the recommended and preferred method);</li>
+<li>within an account in mandatory-account-configs;</li>
+<li>within an account in workload-account-configs;</li>
+<li>defined within an organization unit, but opted-in within the account config.</li>
+</ul>
+<p>We generally recommend most items be defined within organizational units, such that all workload accounts pickup their persona from the OU they are associated and minimize per account configuration. Both a local account based VPC (as deployed in the Sandbox OU accounts), or a central shared VPC (as deployed in the Dev/Test/Prod OU accounts in many of the example configs) can be defined at the OU level.</p>
+<p>As mandatory accounts often have unique configuration requirements, for example the centralized Endpoint VPC, they must be configured within the accounts configuration. Customers can define VPC's or other account specific settings within any accounts configuration, but this requires editing the configuration file for each account configuration.</p>
+<p>Prior to v1.5.0, local VPC's defined at the OU level were each deployed with the same CIDR ranges and therefor could not be connected to a TGW. Local VPC's requiring centralized networking (i.e. TGW connectivity) were required to be defined in each account config, adding manual effort and bloating the configuration file.</p>
+<p>The addition of <code>dynamic</code> and <code>lookup</code> CIDR sources in v1.5.0 resolves this problem. Local VPCs can be defined in an OU, and each VPC will be dynamically assigned a unique CIDR range from the assigned CIDR pool, or looked up from the DynamoDB database. Customers can now ensure connected, templated VPCs are consistently deployed to every account in an OU, each with unique IP addresses.</p>
+<p>v1.5.0 also added a new opt-in VPC capability. A VPC is defined in an OU and a new config file variable is added to this VPC <code>opt-in: true</code>. When opt-in is set to true, the state machine does NOT create the VPC for the accounts in the OU, essentially ignoring the VPC definition. Select accounts in the OU can then be opted-in to the VPC(s) definition, by adding the value <code>accountname\opt-in-vpcs: [“opt-in-vpc-name1”, “opt-in-vpc-name2”, “opt-in-vpc-nameN”]</code> to the specific accounts which need the VPC(s). A vpc definition with the specified name (i.e. <code>opt-in-vpc-name1</code>) and the value <code>opt-in: true</code>, must exist in the ou config for the specified account. When these conditions apply, the VPC will be created in the account per the OU definition. Additional opt-in VPCs can be added to an account, but VPC's cannot be removed from the opt-in-vpcs array. VPC's can be TGW attached, assuming <code>dynamic</code> cidr-src is utilized, or DynamoDB is prepopulated with the required CIDR ranges using <code>lookup</code> mode. <code>cidr-src</code> provided is suitable for disconnected Sandbox type accounts.</p>
+<p>The Future: While Opt-In VPCs are powerful, we want to take this further. Why not deploy an AWS Service Catalog template which contains the names of all the available opt-in VPCs for the accounts OU, inside each account. An account end user could then request a new VPC for their account from the list of available opt-in patterns. A users selection would be sent to a centralized queue for approval (w/auto-approval options), which would result in the opt-in-vpc entry in that account being updated with the end users requested vpc pattern and the personalized VPC being created in the account and attached to the centralized TGW (if part of the pattern). This would ensure all VPC's conformed to a set of desirable design patterns, but also allow the end-user community choices based on their desired development and app patterns. If you like this idea, please +1 <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/issues/738">this</a> feature request.</p>
+<h3 id="how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes">How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?<a class="headerlink" href="#how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes" title="Permanent link">&para;</a></h3>
+<p>Flexibility:</p>
+<ul>
+<li>The AWS Secure Environment Accelerator was developed to enable extreme flexibility without requiring a single line of code to be changed. One of our primary goals throughout the development process was to avoid making any decisions that would result in users needing to fork or branch the Accelerator codebase. This would help ensure we had a sustainable and upgradable solution for a broad customer base over time.</li>
+<li>Functionality provided by the Accelerator can generally be controlled by modifying the main Accelerator configuration file.</li>
+<li>Items like SCP's, rsyslog config, Powershell scripts, and iam-policies have config files provided and auto-deployed as part of the Accelerator to deliver on the prescriptive architecture (these are located in the \reference-artifacts folder of the Github repo for reference). If you want to alter the functionality delivered by any of these additional config files, you can simply provide your own by placing it in your specified Accelerator bucket in the appropriate sub-folder. The Accelerator will use your provided version instead of the supplied repo reference version.</li>
+<li>As SCP's and IAM policies are defined in the main config file, you can simply define new policies, pointing to new policy files, and provide these new files in your bucket, and they will be used.</li>
+<li>While a sample firewall config file is provided in the \reference-artifacts folder, it must be manually placed in your s3 bucket/folder on new Accelerator deployments</li>
+<li>Any/all of these files can be updated at any time and will be used on the next execution of the state machine</li>
+<li>Over time, we predict we will provide several sample or reference architectures and not just the current single PBMM architecture (all located in the \reference-artifacts\SAMPLE_CONFIGS folder).</li>
+</ul>
+<p>Extensibility:</p>
+<ul>
+<li>Every execution of the state machine sends a state machine status event to a state machine SNS topic</li>
+<li>These status events include the Success/Failure status of the state machine, and on success, a list of all successfully processed AWS accounts</li>
+<li>While this SNS topic is automatically subscribed to a user provided email address for user notification, users can also create additional SNS subscriptions to enable triggering their own subsequent workflows, state machines, or custom code using any supported SNS subscription type (Lambda, SQS, Email, HTTPS, HTTPS)</li>
+<li>Additionally, objects deployed within an account have been populated in Parameter Store, see answer 1.3.2 for details</li>
+</ul>
+<p>Example:</p>
+<ul>
+<li>One of our early adopter customers has developed a custom user interface which allows their clients to request new AWS environments. Clients provide items like cost center, budget, and select their environment requirements (i.e. Sandbox, Unclass or full sensitive SDLC account set). On appropriate approval, this pushes the changes to the Accelerator configuration file and triggers the state machine.</li>
+<li>Once the state machine completes, the SNS topic triggers their follow-up workflow, validates the requested accounts were provisioned, updates the customer's account database, and then executes a collection of customer specific follow-up workflow actions on any newly provisioned accounts.</li>
+</ul>
+<h3 id="how-can-i-easily-access-my-virtual-machines-or-ec2-instances">How can I easily access my virtual machines or EC2 instances?<a class="headerlink" href="#how-can-i-easily-access-my-virtual-machines-or-ec2-instances" title="Permanent link">&para;</a></h3>
+<p>The preferred and recommended method to connect to instances within the Accelerator is by using AWS Systems Manager Session Manager. Session Manager allows access to instances without the need to have any open firewall ports. Session Manager allows for Command line access to instances (both Windows and Linux) directly through the AWS console, with all activity logged to CloudWatch Logs. Session Manager enables customers to connect to Windows instances with a native RDP client and Linux instances with a native SSH client, if desired. Customers can gain quick access to instances through the AWS consolve, or using their preferred clients.</p>
+<p><strong>General</strong></p>
+<ul>
+<li>Both the RDGW and rsyslog instances deployed in the Ops account are properly configured for Systems Manager Session Manager</li>
+<li>We have implemented automation such that all instances are also automatically configured for Session Manager (i.e. configured with the appropriate launch role, has a recent session manager agent installed (most amazon ami's do), has access to an SSM endpoint)</li>
+</ul>
+<p><strong>Connecting to an Instance</strong></p>
+<ul>
+<li>From the AWS Console</li>
+<li>Go to: EC2, Instances, select the instance (i.e. ASEA-RDGW), click “Connect”, select Session Manager, Connect</li>
+<li>Ideal for Linux or Windows Powershell users</li>
+<li>Everything is fully logged for future reference</li>
+<li>Directly through local RDP client using Session Managers tunnel capability:</li>
+<li>Provides direct access to your instances/host without any open internet ports on the RDGW instance, using a local/fat client tool</li>
+<li>Install AWS CLI v2 on your PC - available <a href="https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html">here</a> (uninstall CLIv1 first, if installed)</li>
+<li>Install the SSM plugin on your PC - available <a href="https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html">here</a></li>
+<li>Get AWS temporary credentials from AWS SSO for the account your workload resides (i.e. Ops account when accessing the ASEA-RDGW instance) by selecting “Command line or programmatic access” instead of “Management Console” and paste them into a command prompt<ul>
+<li>i.e. via logging in here: https://xxxxxxx.awsapps.com/start or</li>
+<li>This <a href="https://aws.amazon.com/blogs/developer/aws-cli-v2-now-supports-aws-single-sign-on/">blog</a> describes the process to use SSO to get credentials for the AWS CLI directly without the GUI</li>
+</ul>
+</li>
+<li>Then enter: aws ssm start-session --target "i-12345678901234567" --document-name AWS-StartPortForwardingSession --parameters portNumber="3389",localPortNumber="56789"--region ca-central-1<ul>
+<li>Command syntax is slightly different on Linux/Mac</li>
+<li>Replace i-1111adddce582b23c with the instance id of your RDGW instance</li>
+<li>A tunnel will open</li>
+<li>As these are tunnels to proprietary protocols (i.e. RDP/screen scraping) session content is not logged.</li>
+</ul>
+</li>
+<li>Run mstsc/rdp client and connect to 127.0.0.1:56789<ul>
+<li>By replacing 3389 with a new port for another applications (i.e. SSH running on a Linux instance), you can connect to a different application type</li>
+<li>You can change the local port by changing 56789 to any other valid port number (i.e. connecting to multiple instances at the same time)</li>
+</ul>
+</li>
+<li>Login with the windows credentials discussed above in the format NETBIOSDOMAIN\User1 (i.e. example\user1)<ul>
+<li>Your netbios domain is found here in your config file: "netbios-domain": "example",</li>
+</ul>
+</li>
+<li>Connect to your desktop command line to command line interface of remote Windows or Linux servers, instead of through console (i.e. no tunnel):</li>
+<li>aws ssm start-session --target "i-090c25e64c2d9d276""--region ca-central-1</li>
+<li>Replace i-xxx with your instance ID</li>
+<li>Everything is fully logged for future reference</li>
+<li>If you want to remove the region from your command line, you can:</li>
+<li>Type: “aws configure” from command prompt, hit {enter} (key), {enter} (secret), enter: ca-central-1, {enter}</li>
+</ul>
+<h3 id="i-ran-the-state-machine-but-it-failed-when-it-tried-to-delete-the-default-vpc-the-state-machine-cannot-delete-the-default-vpc-error-vpc-has-dependencies-and-cannot-be-deleted">I ran the state machine but it failed when it tried to delete the default VPC? The state machine cannot delete the default VPC (Error: VPC has dependencies and cannot be deleted)<a class="headerlink" href="#i-ran-the-state-machine-but-it-failed-when-it-tried-to-delete-the-default-vpc-the-state-machine-cannot-delete-the-default-vpc-error-vpc-has-dependencies-and-cannot-be-deleted" title="Permanent link">&para;</a></h3>
+<ul>
+<li>You need to ensure that resources don’t exist in the default VPC or else the state machine won't be able to delete it. If you encounter this error, you can either delete the resources within the VPC or delete the default VPC manually and run the state machine again.</li>
+</ul>
+<h2 id="existing-accountsorganizations">Existing Accounts/Organizations<a class="headerlink" href="#existing-accountsorganizations" title="Permanent link">&para;</a></h2>
+<h3 id="how-do-i-import-an-existing-aws-account-into-my-accelerator-managed-aws-organization-or-what-if-i-created-a-new-aws-account-with-a-different-organization-trust-role">How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?<a class="headerlink" href="#how-do-i-import-an-existing-aws-account-into-my-accelerator-managed-aws-organization-or-what-if-i-created-a-new-aws-account-with-a-different-organization-trust-role" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Ensure you have valid administrative privileges for the account to be invited/added</li>
+<li>Add the account to your AWS Organization using standard processes (i.e. Invite/Accept)</li>
+<li>this process does NOT create an organization trust role</li>
+<li>imported accounts do NOT have the quarantine SCP applied as we don't want to break existing workloads</li>
+<li>Login to the account using the existing administrative credentials</li>
+<li>Execute the Accelerator provided CloudFormation template to create the required Accelerator bootstrapping role - in the Github repo here: <code>reference-artifacts\Custom-Scripts\Import-Account-CFN-Role-Template.yml</code></li>
+<li>add the account to the Accelerator config file and run the state machine</li>
+<li>If you simply created the account with an incorrect role name, you likely need to take extra steps:</li>
+<li>Update the Accelerator config file to add the parameter: <code>global-options\ignored-ous</code> = <code>["UnManagedAccounts"]</code></li>
+<li>In AWS Organizations, create a new OU named <code>UnManagedAccounts</code> (case sensitive)</li>
+<li>Move the account to the <code>UnManagedAccounts</code> ou</li>
+<li>You can now remove the Quarantine SCP from the account</li>
+<li>Assume an administrative role into the account</li>
+<li>Execute the Accelerator provided CloudFormation template to create the required Accelerator bootstrapping role</li>
+</ul>
+<h3 id="is-it-possible-to-deploy-the-accelerator-on-top-of-an-aws-organization-that-i-have-already-installed-the-aws-landing-zone-alz-solution-into">Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?<a class="headerlink" href="#is-it-possible-to-deploy-the-accelerator-on-top-of-an-aws-organization-that-i-have-already-installed-the-aws-landing-zone-alz-solution-into" title="Permanent link">&para;</a></h3>
+<p>Existing ALZ customers are required to uninstall their ALZ deployment before deploying the Accelerator. Please work with your AWS account team to find the best mechanism to uninstall the ALZ solution (procedures and scripts exist). Additionally, please reference section 4 of the Instation and Upgrade Guide. It may be easier to migrate AWS accounts to a new Accelerator Organization, per the process detailed in FAQ #1.2.3.</p>
+<h3 id="what-if-i-want-to-move-an-account-from-an-aws-organization-that-has-the-alz-deployed-into-an-aws-organization-running-the-accelerator">What if I want to move an account from an AWS Organization that has the ALZ deployed into an AWS Organization running the Accelerator?<a class="headerlink" href="#what-if-i-want-to-move-an-account-from-an-aws-organization-that-has-the-alz-deployed-into-an-aws-organization-running-the-accelerator" title="Permanent link">&para;</a></h3>
+<p>Before removing the AWS account from the source organization, terminate the AWS Service Catalog product associated with the member account that you're interested in moving. Ensuring the product terminates successfully and that there aren't any remaining CloudFormation stacks in the account that were deployed by the ALZ. You can then remove the account from the existing Organization and invite it into the new organization. Accounts invited into the Organization do NOT get the <code>Deny All</code> SCP applied, as we do not want to break existing running workloads. Moving the newly invited account into its destination OU will trigger the state machine and result in the account being ingested into the Accelerator and having the guardrails applied per the target OU persona.</p>
+<p>For a detailed procedure, please review this <a href="../operations/operations-import-ALZAccount/">document</a>.</p>
+<h2 id="end-user-environment">End User Environment<a class="headerlink" href="#end-user-environment" title="Permanent link">&para;</a></h2>
+<h3 id="is-there-anything-my-end-users-need-to-be-aware-of-why-do-some-of-my-end-users-struggle-with-cloudwatch-log-groups-errors">Is there anything my end users need to be aware of? Why do some of my end users struggle with CloudWatch Log groups errors?<a class="headerlink" href="#is-there-anything-my-end-users-need-to-be-aware-of-why-do-some-of-my-end-users-struggle-with-cloudwatch-log-groups-errors" title="Permanent link">&para;</a></h3>
+<p>CloudWatch Log group deletion is prevented for security purposes and bypassing this rule would be a fundamental violation of security best practices. This protection does NOT exist solely to protect ASEA logs, but ALL log groups. Users of the Accelerator environment will need to ensure they set CloudFormation stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack (as deleting the log group will be blocked) and users will encounter errors. As repeated stack deployments will be prevented from recreating the same log group name (as it already exists), end users will either need to check for the existence of the log group before attempting creation, or include a random hash in the log group name. The Accelerator also sets log group retention for all log groups to value(s) specified by customers in the config file and prevents end users from setting or changing Log group retentions. When creating new log groups, end users must either <em>not</em> configure a retention period, or set it to the default <code>NEVER expire</code> or they will also be blocked from creating the CloudWatch Log group. If applied by bypassing the guardrails, customer specified retention periods on log group creation will be overridden with the Accelerator specified retention period.</p>
+<p>While a security best practice, some end users continue to request this be changed, but you need to ask: Are end users allowed to go in and clean out logs from Windows Event Viewer (locally or on domain controllers) after testing? Clean out Linux kernel logs? Apache log histories? The fundamental principal is that all and as many logs as possible will be retained for a defined retention period (some longer). In the "old days", logs were hidden deep within OS directory structures or access restricted by IT from developers - now that we make them all centralized, visible, and accessible, end users seem to think they suddenly need to clean them up. Customers need to establish a usable and scalable log group naming standard/convention as the first step in moving past this concern, such that they can always find their active logs easily. As stated, to enable repeated install and removal of stacks during test cycles, end user CloudFormation stacks need to set log groups to RETAIN and leverage a random hash in log group naming (or check for existence, before creating).</p>
+<p>The Accelerator provided SCPs (guardrails/protections) are our recommendations, yet designed to be fully customizable, enabling any customer to carefully override these defaults to meet their individual requirements. If insistent, we'd suggest only bypassing the policy on the Sandbox OU, and only for log groups that start with a very specific prefix (not all log groups). When a customer wants to use the delete capability, they would need to name their log group with the designated prefix - i.e. opt-in to allow CloudWatch log group deletes.</p>
+<h3 id="how-can-i-leverage-accelerator-deployed-objects-in-my-iac-do-i-need-to-manually-determine-the-arns-and-object-ids-of-accelerator-deployed-objects-to-leverage-them-in-my-iac">How can I leverage Accelerator deployed objects in my IaC? Do I need to manually determine the arn's and object id's of Accelerator deployed objects to leverage them in my IaC?<a class="headerlink" href="#how-can-i-leverage-accelerator-deployed-objects-in-my-iac-do-i-need-to-manually-determine-the-arns-and-object-ids-of-accelerator-deployed-objects-to-leverage-them-in-my-iac" title="Permanent link">&para;</a></h3>
+<p>Objects deployed by the Accelerator which customers may need to leverage in their own IaC have been populated in parameters in AWS parameter store for use by the IaC tooling of choice. The Accelerator ensures parameters are deployed consistently across accounts and OUs, such that a customers code does not need to be updated when it is moved between accounts or promoted from Dev to Test to Prod.</p>
+<p>Objects of the following types and their associated values are stored in parameter store: vpc, subnet, security group, elb (alb/nlb w/DNS address), IAM policy, IAM role, KMS key, ACM cert, SNS topic, and the firewall replacement variables.</p>
+<p>Additionally, setting "populate-all-elbs-in-param-store": true for an account will populates all Accelerator wide ELB information into parameter store within that account. The sample PBMM configuration files set this value on the perimeter account, such that ELB information is available to configure centralized ingress capabilities.</p>
+<h2 id="upgrades">Upgrades<a class="headerlink" href="#upgrades" title="Permanent link">&para;</a></h2>
+<h3 id="can-i-upgrade-directly-to-the-latest-release-or-must-i-perform-upgrades-sequentially">Can I upgrade directly to the latest release, or must I perform upgrades sequentially?<a class="headerlink" href="#can-i-upgrade-directly-to-the-latest-release-or-must-i-perform-upgrades-sequentially" title="Permanent link">&para;</a></h3>
+<p>Yes, currently customers can upgrade from whatever version they have deployed to the latest Accelerator version. There is no requirement to perform sequential upgrades. In fact, we strongly discourage sequential upgrades.</p>
+<p>Given the magnitude of the v1.5.0 release, we have added a one-time requirement that all customers upgrade to a minimum of v1.3.8 before attempting to upgrade to v1.5.0.</p>
+<h3 id="why-do-i-get-the-error-there-were-errors-while-comparing-the-configuration-changes-when-i-update-the-config-file">Why do I get the error "There were errors while comparing the configuration changes:" when I update the config file?<a class="headerlink" href="#why-do-i-get-the-error-there-were-errors-while-comparing-the-configuration-changes-when-i-update-the-config-file" title="Permanent link">&para;</a></h3>
+<p>In v1.3.0 we added protections to allow customers to verify the scope of impact of their intended changes to the configuration file. In v1.3.0 and above, the state machine does not allow changes to the config file (other than new accounts) without providing the <code>scope</code> parameter. Please refer to section 1.1 of the <code>State Machine behavior and inputs</code> <a href="../installation/sm_inputs/#11-state-machine-behavior">Guide</a> for more details.</p>
+<h2 id="support-concerns">Support Concerns<a class="headerlink" href="#support-concerns" title="Permanent link">&para;</a></h2>
+<h3 id="the-accelerator-is-written-in-cdk-and-deploys-cloudformation-does-this-restrict-the-infrastructure-as-code-iac-tools-that-i-can-use">The Accelerator is written in CDK and deploys CloudFormation, does this restrict the Infrastructure as Code (IaC) tools that I can use?<a class="headerlink" href="#the-accelerator-is-written-in-cdk-and-deploys-cloudformation-does-this-restrict-the-infrastructure-as-code-iac-tools-that-i-can-use" title="Permanent link">&para;</a></h3>
+<p>No. Customers can choose the IaC framework or tooling of their choice. The tooling used to deploy the Accelerator has no impact on the automation framework customers use to deploy their applications within the Accelerator environment. It should be noted that the functionality deployed by the Accelerator is extremely platform specific and would not benefit from multi-platform IaC frameworks or tooling.</p>
+<h3 id="what-happens-if-aws-stops-enhancing-the-accelerator">What happens if AWS stops enhancing the Accelerator?<a class="headerlink" href="#what-happens-if-aws-stops-enhancing-the-accelerator" title="Permanent link">&para;</a></h3>
+<p>The Accelerator is an open source project, should AWS stop enhancing the solution for any reason, the community has access to the full codebase, its roadmap and history. The community can enhance, update, fork and take ownership of the project, as appropriate.</p>
+<p>The Accelerator is an AWS CDK based project and synthesizes to native AWS CloudFormation. AWS sub-accounts simply contain native CloudFormation stacks and associated custom resources, when required. The Accelerator architecture is such that all CloudFormation stacks are native to each AWS account with no links or ties to code in other AWS accounts or even other stacks within the same AWS account. This was an important initial design decision.</p>
+<p>The Accelerator codebase can be completely uninstalled from the organization management (root) account, without any impact to the deployed functionality or guardrails. In this situation, guardrail updates and new account provisioning reverts to a manual process. Should a customer decide they no longer wish to utilize the solution, they can remove the Accelerator codebase without any impact to deployed resources and go back to doing things natively in AWS as they did before they deployed the Accelerator. By adopting the Accelerator, customers are not locking themselves in or making a one-way door decision.</p>
+<h3 id="what-level-of-support-will-the-asea-have-from-aws-support">What level of Support will the ASEA have from AWS Support?<a class="headerlink" href="#what-level-of-support-will-the-asea-have-from-aws-support" title="Permanent link">&para;</a></h3>
+<p>The majority of the solution leverages native AWS services which are fully supported by AWS Support. Additionally, the Accelerator is an AWS CDK based project and synthesizes to native AWS CloudFormation. AWS sub-accounts simply contain native CloudFormation stacks and associated custom resources (when required). The Accelerator architecture is such that all CloudFormation stacks are native to each AWS account with no direct links or ties to code in other AWS accounts (no stacksets, no local CDK). This was an important project design decision, keeping deployed functionality in independent local CloudFormation stacks and decoupled from solution code, which allows AWS support to effectively troubleshoot and diagnose issues local to the sub-account.</p>
+<p>As the Accelerator also includes code, anything specifically related to the Accelerator codebase will be only supported on a "best effort" basis by AWS support, as AWS support does not support custom code. The first line of support for the codebase is typically your local AWS team (your SA, TAM, Proserve and/or AWS Partner). As an open source project, customers can file requests using GitHub Issues against the Accelerator repository or open a discussion in GitHub discussions. Most customer issues arise during installation and are related to configuration customization or during the upgrade process.</p>
+<h3 id="what-does-it-take-to-support-the-accelerator">What does it take to support the Accelerator?<a class="headerlink" href="#what-does-it-take-to-support-the-accelerator" title="Permanent link">&para;</a></h3>
+<p>We advise customers to allocate a 1/2 day per quarter to upgrade to the latest Accelerator release.</p>
+<p>Customers have indicated that deploying the Accelerator reduces their ongoing operational burden over operating in native AWS, saving hours of effort every time a new account is provisioned by automating the deployment of the persona associated with new accounts (guardrails, networking and security). The Accelerator does NOT alleviate a customers requirement to learn to effectively operate in the cloud (like monitoring security tooling/carrying out Security Operation Center (SOC) duties). This effort exists regardless of the existence of the Accelerator.</p>
+<h3 id="is-the-accelerator-only-designed-and-suitable-for-government-of-canada-or-pbmm-customers">Is the Accelerator only designed and suitable for Government of Canada or PBMM customers?<a class="headerlink" href="#is-the-accelerator-only-designed-and-suitable-for-government-of-canada-or-pbmm-customers" title="Permanent link">&para;</a></h3>
+<p>No. The Accelerator is targeted at <strong><em>any AWS customer</em></strong> that is looking to automate the deployment and management of a comprehensive end-to-end multi-account environment in AWS. It is ideally suited for customers interested in achieving a high security posture in AWS.</p>
+<p>The Accelerator is a sophisticated deployment framework that allows for the deployment and management of virtually any AWS multi-account "Landing Zone" architecture without any code modifications. The Accelerator is actually delivering two separate and distinct products which can each be used on their own:</p>
+<ol>
+<li>the Accelerator the tool, which can deploy virtually any architecture based on a provided config file (no code changes), and;</li>
+<li>the Government of Canada (GC) prescriptive PBMM architecture which is delivered as a sample configuration file and documentation.</li>
+</ol>
+<p>The tooling was purposely built to be extremely flexible, as we realized that some customers may not like some of the opinionated and prescriptive design decisions we made in the GC architecture. Virtually every feature being deployed can be turned on/off, not be used or can have its configuration adjusted to meet your specific design requirements.</p>
+<p>We are working on building a library of sample config files to support additional customer needs and better demonstrate product capabilities and different architecture patterns. In no way is it required that the prescriptive GC architecture be used or deployed. Just because we can deploy, for example, an AWS Managed Active Directory, does not mean you need to use that feature of the solution. Disabling or changing these capabilities also requires zero code changes.</p>
+<p>While the prescriptive sample configuration files were originally developed based on GC requirements, they were also developed following AWS Best Practices. Additionally, many security frameworks around the world have similar and overlapping security requirements (you can only do security so many ways). The provided architecture is applicable to many security compliance regimes around the world and not just the GC.</p>
+<h2 id="deployed-functionality">Deployed Functionality<a class="headerlink" href="#deployed-functionality" title="Permanent link">&para;</a></h2>
+<h3 id="i-wish-to-be-in-compliance-with-the-12-gc-tbs-guardrails-what-dont-you-cover-with-the-provided-sample-architecture">I wish to be in compliance with the 12 GC TBS Guardrails, what don't you cover with the provided sample architecture?<a class="headerlink" href="#i-wish-to-be-in-compliance-with-the-12-gc-tbs-guardrails-what-dont-you-cover-with-the-provided-sample-architecture" title="Permanent link">&para;</a></h3>
+<p>The AWS SEA allows for a lot of flexibility in deployed architectures. If used, the provided PBMM sample architecture was designed to help deliver on the technical portion of <em>all</em> 12 of the GC guardrails, when automation was possible.</p>
+<p>What don't we cover? Assigning MFA to users is a manual process. Specifically you need to procure Yubikeys for your root/break glass users, and enable a suitable form of MFA for <em>all</em> other users (i.e. virtual, email, other). The guardrails also include some organizational processes (i.e. break glass procedures, or signing an MOU with CCCS) which customers will need to work through independently.</p>
+<p>While AWS is providing the tools to help customer be compliant with the 12 PBMM guardrails (which were developed in collaboration with the GC) - it's up to each customers ITSec organization to assess and determine if the deployed controls actually meet their security requirements.</p>
+<p>Finally, while we started with a goal of delivering on the 12 guardrails, we believe we have extended well beyond those security controls, to further help customers move towards meeting the full PBMM technical control profile (official documentation is weak in this area at this time).</p>
+<h3 id="does-the-alb-perform-ssl-offloading">Does the ALB perform SSL offloading?<a class="headerlink" href="#does-the-alb-perform-ssl-offloading" title="Permanent link">&para;</a></h3>
+<p>As configured - the perimeter ALB decrypts incoming traffic using its certificate and then re-encrypts it with the certificate for the back-end ALB. The front-end and back-end ALB's can use the same or different certs. If the Firewall needs to inspect the traffic, it also needs the backend certificate be manually installed.</p>
+<h3 id="what-is-the-recommended-approach-to-manage-the-alb-certificates-deployed-by-the-accelerator">What is the recommended approach to manage the ALB certificates deployed by the Accelerator?<a class="headerlink" href="#what-is-the-recommended-approach-to-manage-the-alb-certificates-deployed-by-the-accelerator" title="Permanent link">&para;</a></h3>
+<p>The Accelerator installation process allows customers to provide their own certificates (either self-signed or generated by a CA), to enable quick and easy installation and allowing customers to test end-to-end traffic flows. After the initial installation, we recommend customers leverage AWS Certificate Manager (ACM) to easily provision, manage, and deploy public and private SSL/TLS certificates. ACM helps manage the challenges of maintaining certificates, including certificate rotation and renewal, so you don’t have to worry about expiring certificates.</p>
+<p>The Accelerator provides 3 mechanisms to enable utilizing certificates with ALB's:</p>
+<ul>
+<li>
+<p><strong>Method 1</strong> - IMPORT a certificate into AWS Certificate Manager from a 3rd party product</p>
+</li>
+<li>
+<p>When using a certificate that does not have a certificate chain (usually this is the case with Self-Signed)</p>
+</li>
+</ul>
+<p><code>json
+    "certificates": [
+        {
+          "name": "My-Cert",
+          "type": "import",
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt"
+        }
+      ]</code></p>
+<ul>
+<li>When using a certificate that has a certificate chain (usually this is the case when signed by a Certificate Authority with a CA Bundle)</li>
+</ul>
+<p><code>json
+    "certificates": [
+        {
+          "name": "My-Cert",
+          "type": "import",
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt",
+          "chain": "certs/example1-cert.chain"
+        }
+      ]</code></p>
+<ul>
+<li>this mechanism allows a customer to generate certificates using their existing tools and processes and import 3rd party certificates into AWS Certificate Manager for use in AWS</li>
+<li>Self-Signed certificates should NOT be used for production (samples were provided simply to demonstrate functionality)</li>
+<li>both a <code>.key</code> and a <code>.crt</code> file must be supplied in the customers S3 input bucket</li>
+<li>"cert" must contain only the certificate and not the full chain</li>
+<li>"chain" is an optional attribute that contains the certificate chain. This is generally used when importing a CA signed certificate</li>
+<li>
+<p>this will create a certificate in ACM and a secret in secrets manager named <code>accelerator/certificates/My-Cert</code> in the specified AWS account(s), which points to the newly imported certificates ARN</p>
+</li>
+<li>
+<p><strong>Method 2</strong> - REQUEST AWS Certificate Manager generate a certificate</p>
+</li>
+</ul>
+<p><code>json
+  "certificates": [
+    {
+      "name": "My-Cert",
+      "type": "request",
+      "domain": "*.example.com",
+      "validation": "DNS",
+      "san": ["www.example.com"]
+    }
+  ]</code></p>
+<ul>
+<li>this mechanism allows a customer to generate new public certificates directly in ACM</li>
+<li>both <code>DNS</code> and <code>EMAIL</code> validation mechanisms are supported (DNS recommended)</li>
+<li>this requires a <strong><em>Public</em></strong> DNS zone be properly configured to validate you are legally entitled to issue certificates for the domain</li>
+<li>this will also create a certificate in ACM and a secret in secrets manager named <code>accelerator/certificates/My-Cert</code> in the specified AWS account(s), which points to the newly imported certificates ARN</li>
+<li>this mechanism should NOT be used on new installs, skip certificate and ALB deployment during initial deployment (removing them from the config file) and simply add on a subsequent state machine execution</li>
+<li>
+<p>Process:</p>
+<ul>
+<li>you need a public DNS domain properly registered and configured to publicly resolve the domain(s) you will be generating certificates for (i.e. example.com)</li>
+<li>domains can be purchased and configured in Amazon Route53 or through any 3rd party registrar and DNS service provider</li>
+<li>in Accelerator phase 1, the cert is generated, but the stack does NOT complete deploying (i.e. it waits) until certificate validation is complete</li>
+<li>during deployment, go to the AWS account in question, open ACM and the newly requested certificate. Document the authorization CNAME record required to validate certificate generation</li>
+<li>add the CNAME record to the zone in bullet 1 (in Route53 or 3rd party DNS provider) (documented <a href="https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-validate-dns.html">here</a>)</li>
+<li>after a few minutes the certificate will validate and switch to <code>Issued</code> status</li>
+<li>Accelerator phase 1 will finish (as long as the certificate is validated before the Phase 1 credentials time-out after 60-minutes)</li>
+<li>the ALB will deploy in a later phase with the specified certificate</li>
+</ul>
+</li>
+<li>
+<p><strong>Method 3</strong> - Manually generate a certificate in ACM</p>
+</li>
+<li>
+<p>this mechanism allows a customer to manually generate certificates directly in the ACM interface for use by the Accelerator</p>
+</li>
+<li>this mechanism should NOT be used on new installs, skip certificate and ALB deployment during initial deployment (removing them from the config file) and simply add on a subsequent state machine execution</li>
+<li>
+<p>Process:</p>
+<ul>
+<li>go to the AWS account for which you plan to deploy an ALB and open ACM</li>
+<li>generate a certificate, documenting the certificates ARN</li>
+<li>open Secrets manager and generate a new secret of the format <code>accelerator/certificates/My-Cert</code> (of type <code>Plaintext</code> under <code>Other type of secrets</code>), where <code>My-Cert</code> is the unique name you will use to reference this certificate</li>
+</ul>
+</li>
+<li>
+<p>In all three mechanisms a secret will exist in Secrets Manager named <code>accelerator/certificates/My-Cert</code> which contains the ARN of the certificate to be used.</p>
+</li>
+<li>In the Accelerator config file, find the definition of the ALB for that AWS account and specify <code>My-Cert</code> for the ALB <code>cert-name</code></li>
+</ul>
+<pre><code class="language-json">&quot;alb&quot;: [
+  {
+    &quot;cert-name&quot;: &quot;My-Cert&quot;
+  }
+]
+</code></pre>
+<ul>
+<li>The state machine will fail if you specify a certificate in any ALB which is not defined in Secrets Manager in the local account.</li>
+</ul>
+<p>We suggest the most effective mechanism for leveraging ACM is by adding CNAME authorization records to the relevant DNS domains using Method 2, but may not appropriate right for all customers.</p>
+<h3 id="why-do-we-have-rsyslog-servers-i-thought-everything-was-sent-to-cloudwatch">Why do we have rsyslog servers? I thought everything was sent to CloudWatch?<a class="headerlink" href="#why-do-we-have-rsyslog-servers-i-thought-everything-was-sent-to-cloudwatch" title="Permanent link">&para;</a></h3>
+<p>The rsyslog servers are included to accept logs for appliances and third party applications that do not natively support the CloudWatch Agent from any account within a customers Organization. These logs are then immediately forwarded to CloudWatch Logs within the account the rsyslog servers are deployed (Operations) and are also copied to the S3 immutable bucket in the log-archive account. Logs are only persisted on the rsyslog hosts for 24 hours. The rsyslog servers are required to centralize the 3rd party firewall logs (Fortinet Fortigate).</p>
+<h3 id="can-you-deploy-the-solution-without-fortinet-firewall-licenses">Can you deploy the solution without Fortinet Firewall Licenses?<a class="headerlink" href="#can-you-deploy-the-solution-without-fortinet-firewall-licenses" title="Permanent link">&para;</a></h3>
+<p>Yes, if license files are not provided, the firewalls will come up configured and route traffic, but customers will have no mechanism to manage the firewalls/change the configuration until a valid license file is added. If invalid licence files are provided, the firewalls will fail to load the provided configuration, will not enable routing, will not bring up the VPN tunnels and will not be manageable. Customers will need to either remove and redeploy the firewalls, or manually configure them. If performing a test deployment, please work with your local Fortinet account team to discuss any options for temporary evaluation licenses.</p>
+<p>Additionally, several additional firewall options are now available, including using AWS Network Firewall, a native AWS service.</p>
+<h3 id="i-installed-additional-software-on-my-accelerator-deployed-rdgw-rsyslog-host-where-did-it-go">I installed additional software on my Accelerator deployed RDGW / rsyslog host, where did it go?<a class="headerlink" href="#i-installed-additional-software-on-my-accelerator-deployed-rdgw-rsyslog-host-where-did-it-go" title="Permanent link">&para;</a></h3>
+<p>The RDGW and rsyslog hosts are members of auto-scaling groups. These auto-scaling groups have been configured to refresh instances in the pool on a regular basis (7-days in the current sample config files). This ensures these instances are always clean. Additionally, on every execution of the Accelerator state machine the ASG are updated to the latest AWS AMI for the instances. When the auto-scaling group refreshes its instances, they will be redeployed with the latest patch release of the AMI/OS. It is recommended that the state machine be executed monthly to ensure the latest AMI's are always in use.</p>
+<p>Customers wanting to install additional software on these instances should either a) update the automated deployment scripts to install the new software on new instance launch, or b) create and specify a custom AMI in the Accelerator configuration file which has the software pre-installed ensuring they are also managing patch compliance on the instance through some other mechanism.</p>
+<p>At any time, customers can terminate the RDGW or rsyslog hosts and they will automatically be re-created from the base images with the latest patch available at the time of the last Accelerator State Machine execution.</p>
+<h3 id="some-sample-configurations-provide-nacls-and-security-groups-is-that-enough">Some sample configurations provide NACLs and Security Groups. Is that enough?<a class="headerlink" href="#some-sample-configurations-provide-nacls-and-security-groups-is-that-enough" title="Permanent link">&para;</a></h3>
+<p>Security group egress rules are often used in 'allow all' mode (<code>0.0.0.0/0</code>), with the focus primarily being on consistently allow listing required ingress traffic (centralized ingress/egress controls are in-place using the perimeter firewalls). This ensures day to day activities like patching, access to DNS, or to directory services access can function on instances without friction.</p>
+<p>The Accelerator provided sample security groups in the workload accounts offer a good balance that considers both security, ease of operations, and frictionless development. They allow developers to focus on developing, enabling them to simply use the pre-created security constructs for their workloads, and avoid the creation of wide-open security groups. Developers can equally choose to create more appropriate least-privilege security groups more suitable for their application, if they are skilled in this area. It is expected as an application is promoted through the SDLC cycle from Dev through Test to Prod, these security groups will be further refined by the extended customers teams to further reduce privilege, as appropriate. It is expected that each customer will review and tailor their Security Groups based on their own security requirements. The provided security groups ensures day to day activities like patching, access to DNS, or to directory services access can function on instances without friction, with the understanding further protections are providing by the central ingress/egress firewalls.</p>
+<p>The use of NACLs are general discouraged, but leveraged in this architecture as a defense-in-depth mechanism. Security groups should be used as the primary access control mechanism. As with security groups, we encourage customers to review and tailor their NACLs based on their own security requirements.</p>
+<h3 id="can-i-deploy-the-solution-as-the-account-root-user">Can I deploy the solution as the account root user?<a class="headerlink" href="#can-i-deploy-the-solution-as-the-account-root-user" title="Permanent link">&para;</a></h3>
+<p>No, you cannot install as the root user. The root user has no ability to assume roles which is a requirement to configure the sub-accounts and will prevent the deployment. As per the <a href="../installation/#231-general">installation instructions</a>, you require an IAM user with the <code>AdministratorAccess</code> policy attached.</p>
+<h3 id="is-the-organizational-management-root-account-monitored-similarly-to-the-other-accounts-in-the-organization">Is the Organizational Management root account monitored similarly to the other accounts in the organization?<a class="headerlink" href="#is-the-organizational-management-root-account-monitored-similarly-to-the-other-accounts-in-the-organization" title="Permanent link">&para;</a></h3>
+<p>Yes, all accounts including the Organization Management or root account have the same monitoring and logging services enabled. When supported, AWS security services like GuardDuty, Macie, and Security Hub have their delegated administrator account configured as the "security" account. These tools can be used within each local account (including the Organization Management account) within the organization to gain account level visibility or within the Security account for Organization wide visibility. For more information about monitoring and logging refer to <a href="../architectures/pbmm/#7-logging-and-monitoring">architecture documentation</a>.</p>
+<h3 id="how-are-the-perimeter-firewall-configurations-and-licensing-managed-after-deployment">How are the perimeter firewall configurations and licensing managed after deployment?<a class="headerlink" href="#how-are-the-perimeter-firewall-configurations-and-licensing-managed-after-deployment" title="Permanent link">&para;</a></h3>
+<p>While you deploy the perimeter firewalls with the Accelerator you will continue to manage firewall updates, configuration changes, and license renewals from the respective firewall management interface and not from the Accelerator config file. As these changes are not managed by the Accelerator you do not need to rerun the state machine to implement or track any of these changes. You can update the AMI of the 3rd party firewalls using the Accelerator, you must first remove the existing firewalls and redeploy them (as the Elastic IP's (EIP's) will block a parallel deployment) or deploy a second parallel firewall cluster and de-provision the first cluster when ready.</p>
+<h3 id="can-the-fortinet-firewall-deployments-use-static-private-ip-address-assignments">Can the Fortinet Firewall deployments use static private IP address assignments?<a class="headerlink" href="#can-the-fortinet-firewall-deployments-use-static-private-ip-address-assignments" title="Permanent link">&para;</a></h3>
+<p>Yes, the <code>"port"</code> stanza in the configuration file can support a private static IP address assignment from the az and subnet. Care must be exercised to assure the assigned IP address is within the correct subnet and availability zone. Consideration must also be given to the Amazon reserved IP addresses (first three addresses, and the last) within subnets when choosing an IP Address to assign.</p>
+<p>Using the <code>config.example.json</code> as a reference, static IP Assignments would look like this in the <code>ports:</code> stanza of the firewall deployment.</p>
+<pre><code class="language-json">&quot;ports&quot;: [
+  {
+    &quot;name&quot;: &quot;Public&quot;,
+    &quot;subnet&quot;: &quot;Public&quot;,
+    &quot;create-eip&quot;: true,
+    &quot;create-cgw&quot;: true,
+    &quot;private-ips&quot;: [
+      {
+        &quot;az&quot;: &quot;a&quot;,
+        &quot;ip&quot;: &quot;100.96.250.4&quot;
+      },
+      {
+        &quot;az&quot;: &quot;b&quot;,
+        &quot;ip&quot;: &quot;100.96.250.132&quot;
+      }
+    ]
+  },
+  {
+    &quot;name&quot;: &quot;OnPremise&quot;,
+    &quot;subnet&quot;: &quot;OnPremise&quot;,
+    &quot;create-eip&quot;: false,
+    &quot;create-cgw&quot;: false,
+    &quot;private-ips&quot;: [
+      {
+        &quot;az&quot;: &quot;a&quot;,
+        &quot;ip&quot;: &quot;100.96.250.68&quot;
+      },
+      {
+        &quot;az&quot;: &quot;b&quot;,
+        &quot;ip&quot;: &quot;100.96.250.196&quot;
+      }
+    ]
+  }
+  ...
+],
+</code></pre>
+<p>Where <code>private-ips</code> are not present for the subnet or availability zone an address will be assigned automatically from available addresses when the firewall instance is created.</p>
+<h3 id="ive-noticed-cloudtrail-logs-and-in-certain-situation-vpc-flow-logs-are-stored-in-the-centralized-log-archive-account-logging-bucket-twice">I've noticed CloudTrail logs and in certain situation VPC flow logs are stored in the centralized log-archive account logging bucket twice?<a class="headerlink" href="#ive-noticed-cloudtrail-logs-and-in-certain-situation-vpc-flow-logs-are-stored-in-the-centralized-log-archive-account-logging-bucket-twice" title="Permanent link">&para;</a></h3>
+<p>Yes. Cloudtrail is configured to send its logs directly to S3 for centralized immutable log retention. CloudTrail is also configured to send it's logs to a centralized Organizational CloudWatch Log group such that the trail can be a) easily queried online using CloudWatch Insights across all AWS accounts in the organization, and b) to enable alerting based on undesirable API activity using CloudWatch Metrics and Alarms. All CloudWatch Log groups are also configured to be sent, using Amazon Kinesis, to S3 for centralized immutable log retention.</p>
+<p>VPC flow log destinations can be configured in the config file. The example config files are set to send the VPC flow logs to both S3 and CloudWatch Logs by default for the same reasons as CloudTrail.</p>
+<p>To reduce the duplicate long-term storage of these two specific CloudWatch Log types, customers can set <code>cwl-glbl-exclusions</code> under <code>central-log-services</code> to: <code>["/${ACCELERATOR_PREFIX_ND}/flowlogs/*", "/${ACCELERATOR_PREFIX_ND}/CloudTrail*"]</code> to prevent these specifically named log groups from being stored on S3. This setting also prevents the Accelerator from setting the customer desired log group retention period defined in the config file, once implemented, for those log groups. Therfore, we do not recommend this exception be applied during the initial installation, as the retention setting on these CWL groups will remain the default (infinite). If <code>cwl-glbl-exclusions</code> is set after initial install, the defined retention will be configured during install and will remain set to the value present when the exception was applied to those log groups. This allows logs to be stored in CloudWatch Logs for quick and easy online access (short-retention only), and stored in S3 for long-term retention and access.</p>
+<p>Side note: CloudTrail S3 data plane logs are enabled at the Organizational level, meaning all S3 bucket access is logged. As CloudTrail is writing to a bucket within the Organization, Cloudtrail itself is accessing the bucket, seemingly creating a cyclical loop. As CloudTrail writes to S3 in 5-10min batches, Cloudtrail will actually only cause one extra log 'entry' every 5-10minutes and not per s3 event, mitigating major concerns. Today, with an Organization trail logging data plane events for all buckets - there is no way to exclude any one bucket. But - having clear view of who accessed/changed logs, including AWS services, is important.</p>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href=".." class="md-footer__link md-footer__link--prev" aria-label="Previous: Home" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Home
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../about/" class="md-footer__link md-footer__link--next" aria-label="Next: AWS Secure Environment Accelerator" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              AWS Secure Environment Accelerator
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tracking", "navigation.sections", "navigation.instant", "navigation.indexes"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.22074ed6.min.js"}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.960e086b.min.js"></script>
+      
+    
+  </body>
+</html>

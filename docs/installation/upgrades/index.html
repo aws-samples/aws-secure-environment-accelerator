@@ -1,0 +1,1363 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the AWS Secure Environment Accelerator">
+      
+      
+        <meta name="author" content="Amazon Web Services">
+      
+      
+        <link rel="canonical" href="https://awssea.github.io/installation/upgrades/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.9">
+    
+    
+      
+        <title>Upgrades - AWS Secure Environment Accelerator</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.2b4465f4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../css/pdf-print.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#upgrades" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AWS Secure Environment Accelerator" class="md-header__button md-logo" aria-label="AWS Secure Environment Accelerator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AWS Secure Environment Accelerator
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Upgrades
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws-samples/asea
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AWS Secure Environment Accelerator" class="md-nav__button md-logo" aria-label="AWS Secure Environment Accelerator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    AWS Secure Environment Accelerator
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws-samples/asea
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        FAQ
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../about/">About</a>
+          
+            <label for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="About" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          About
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pricing/sample_pricing/" class="md-nav__link">
+        Pricing
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../">Installation & Upgrades</a>
+          
+            <label for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Installation & Upgrades" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Installation & Upgrades
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Upgrades
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Upgrades
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#considerations" class="md-nav__link">
+    Considerations
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-upgrade-steps-all-versions" class="md-nav__link">
+    Summary of Upgrade Steps (all versions)
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../existing-orgs/" class="md-nav__link">
+        Existing Orgs & Accounts
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design/" class="md-nav__link">
+        Design Decisions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services-list/" class="md-nav__link">
+        Deployed Services List
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../operations/">Operations & Troubleshooting</a>
+          
+            <label for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Operations & Troubleshooting" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Operations & Troubleshooting
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/system-overview/" class="md-nav__link">
+        System Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/troubleshooting/" class="md-nav__link">
+        Troubleshooting
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/common-tasks/" class="md-nav__link">
+        Common Tasks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/operations-import-ALZAccount/" class="md-nav__link">
+        Import Existing ALZ
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
+      
+      
+      
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_6">
+          Guides
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Guides" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Guides
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6_1" type="checkbox" id="__nav_6_1" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../guides/fortigate/">Fortigate</a>
+          
+            <label for="__nav_6_1">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Fortigate" data-md-level="2">
+        <label class="md-nav__title" for="__nav_6_1">
+          <span class="md-nav__icon md-icon"></span>
+          Fortigate
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/fortigate/public-facing-workload-via-fortigate/" class="md-nav__link">
+        Expose Public Facing Workload
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../developer/">Developer Guide</a>
+          
+            <label for="__nav_7">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Developer Guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Developer Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/development/" class="md-nav__link">
+        Development Guide
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/tech-stack/" class="md-nav__link">
+        Tech Stack
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/best-practices/" class="md-nav__link">
+        Best Practices
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/contributing-guidelines/" class="md-nav__link">
+        How to Contribute
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/release-process/" class="md-nav__link">
+        Release Process
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      
+      
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_8">
+          Architectures
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Architectures" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Architectures
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8_1" type="checkbox" id="__nav_8_1" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../architectures/pbmm/">PBMM</a>
+          
+            <label for="__nav_8_1">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="PBMM" data-md-level="2">
+        <label class="md-nav__title" for="__nav_8_1">
+          <span class="md-nav__icon md-icon"></span>
+          PBMM
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/accounts/" class="md-nav__link">
+        Account Structure
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/network/" class="md-nav__link">
+        Networking
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/auth/" class="md-nav__link">
+        Authentication & Authorization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/logging/" class="md-nav__link">
+        Logging and Monitoring
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/diagrams/" class="md-nav__link">
+        Architecture Diagrams
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9" type="checkbox" id="__nav_9" >
+      
+      
+      
+        
+          
+            
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../workshops/">Workshops</a>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Workshops" data-md-level="1">
+        <label class="md-nav__title" for="__nav_9">
+          <span class="md-nav__icon md-icon"></span>
+          Workshops
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_10" type="checkbox" id="__nav_10" >
+      
+      
+      
+        
+          
+            
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../schema/">Configuration File Schema</a>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Configuration File Schema" data-md-level="1">
+        <label class="md-nav__title" for="__nav_10">
+          <span class="md-nav__icon md-icon"></span>
+          Configuration File Schema
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_11" type="checkbox" id="__nav_11" >
+      
+      
+      
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_11">
+          Contributing & Governance
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Contributing & Governance" data-md-level="1">
+        <label class="md-nav__title" for="__nav_11">
+          <span class="md-nav__icon md-icon"></span>
+          Contributing & Governance
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md" class="md-nav__link">
+        None
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#considerations" class="md-nav__link">
+    Considerations
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-upgrade-steps-all-versions" class="md-nav__link">
+    Summary of Upgrade Steps (all versions)
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+<a href="https://github.com/aws-samples/aws-secure-environment-accelerator/edit/master/docs/installation/upgrades.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+<h1 id="upgrades">Upgrades<a class="headerlink" href="#upgrades" title="Permanent link">&para;</a></h1>
+<h2 id="considerations">Considerations<a class="headerlink" href="#considerations" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Due to some breaking dependency issues, customers can only upgrade to v1.3.8 or above (older releases continue to function, but cannot be installed).</li>
+<li>While an upgrade path is planned, customers with a standalone Accelerator installation can upgrade to v1.5.0 but need to continue with a standalone installation until the Control Tower upgrade option becomes available.</li>
+<li>Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.</li>
+<li>do NOT update to the latest firewall AMI - see the the last bullet in section <a href="#51-accelerator-design-constraints--decisions">5.1. Accelerator Design Constraints / Decisions</a></li>
+<li>do NOT update the <code>organization-admin-role</code> - see bullet 2 in section <a href="#226-other">2.2.7. Other</a></li>
+<li>do NOT update account-keys (i.e. existing installations cannot change the internal values to <code>management</code> from <code>master</code>)</li>
+<li>do NOT make changes outside those required for the upgrade (those stated in the release notes or found through the comparison with the sample config file(s)). Customers wishing to change existing Accelerator configuration should either do so before their upgrade, ensuring a clean/successful state machine execution, or after a successful upgrade.</li>
+<li>The Accelerator name and prefix <strong><em>CANNOT</em></strong> be changed after the initial installation</li>
+<li>Customers which customized any of the Accelerator provided default configuration files (SCPs, rsyslog config, ssm-documents, iam-policies, etc.) must manually merge the latest Accelerator provided updates with deployed customizations:</li>
+<li>it is important customers assess the new defaults and integrate them into their custom configuration, or Accelerator functionality could break or Accelerator deployed features may be unprotected from modification</li>
+<li>if customers don't take action, we continue to utilize the deployed customized files (without the latest updates)</li>
+<li>The below release specific considerations need to be cumulatively applied (an upgrade from v1.2.3 to v1.2.5 requires you to follow both v1.2.4 and v1.2.5 considerations)</li>
+</ul>
+<p><strong>Release Specific Upgrade Considerations:</strong></p>
+<ul>
+<li>Upgrades to <code>v1.5.0</code>:</li>
+<li>Due to the size and complexity of this upgrade, we require all customers to upgrade to <code>v1.3.8 or above</code> before beginning this upgrade</li>
+<li>While v1.5.0 supports Control Tower for <em>NEW</em> installs, existing Accelerator customers <em>CANNOT</em> add Control Tower to their existing installations at this time (planned enhancement for 22H1)<ul>
+<li>Attempts to install Control Tower on top of the Accelerator will corrupt your environment (both Control Tower and the Accelerator need minor enhancements to enable)</li>
+</ul>
+</li>
+<li><strong>The v1.5.0 custom upgrade guide can be found <a href="../v150-Upgrade/">here</a></strong></li>
+<li>Upgrades to <code>v1.3.9 and above</code> from <code>v1.3.8-b and below</code>:</li>
+<li>All interface endpoints containing a period must be removed from the config.json file either before or during the upgrade process<ul>
+<li>i.e. ecr.dkr, ecr.api, transfer.server, sagemaker.api, sagemaker.runtime in the full config.json example</li>
+<li>If you remove them on a pre-upgrade State Machine execution, you can put them back during the upgrade, if you remove them during the upgrade, you can put them back post upgrade.</li>
+</ul>
+</li>
+<li>Upgrades to <code>v1.3.3 and above</code> from <code>v1.3.2 and below</code>:</li>
+<li>Requires mandatory config file schema changes as documented in the <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/releases">release notes</a>.<ul>
+<li>These updates cause the config file change validation to fail and require running the state machine with the following input to override the validation checks on impacted fields: <code>{"scope": "FULL", "mode": "APPLY", "configOverrides": {"ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }}</code></li>
+<li>Tightens VPC interface endpoint security group permissions and enables customization. If you use VPC interface endpoints that requires ports/protocols other than TCP/443 (such as email-smtp), you must customize your config file as described <a href="/reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md">here</a></li>
+</ul>
+</li>
+<li>Upgrades to <code>v1.3.0 and above</code> from <code>v1.2.6 and below</code>:</li>
+<li><strong>Please note MAJOR changes to state machine behavior, as documented <a href="../sm_inputs/#11-state-machine-behavior">here</a></strong>.</li>
+<li>Upgrades to <code>v1.2.6 and above</code> from <code>v1.2.5 and below</code> - Ensure you apply the config file changes described in the release notes:</li>
+<li>Cut-paste the new <code>"replacements": {},</code> section at the top of the example config file into your config file, as-is<ul>
+<li>Enables customers to leverage the repo provided SCP's without customization, simplifying upgrades, while allowing SCP region customization</li>
+<li>the cloud-cidrX/cloud-maskX variables are examples of customer provided values that can be used to consistently auto-replace values throughout config files, these 4 specific variables are <strong><em>all</em></strong> required for the firewalls to successfully deploy</li>
+</ul>
+</li>
+<li>The new ${variable} are auto-replaced across your config files, SCP's and firewall config files.<ul>
+<li>as the variables should resolve to their existing values, you can leave your config file using hardcoded region and Accelerator prefix naming, or you can update them to make subsequent file comparisons easier for future upgrades. These are most useful for new installations in non ca-central-1 regions</li>
+</ul>
+</li>
+<li>Some repo provide filenames have changed, where they are referenced within the config file, you must update them to their new filenames</li>
+<li>We do not delete/cleanup old/unused SCP's, in case they were also used by customers for unmanaged OUs or sub-ou's. After the upgrade, you should manually delete any old/extra SCP's which are no longer required</li>
+<li>Upgrades to <code>v1.2.5 and above</code> from <code>v1.2.4 and below</code> requires the manual removal of the <code>PBMMAccel-PipelineRole</code> StackSet before beginning your upgrade (we have eliminated all use of StackSets in this release)</li>
+<li>In the root AWS account, go to: CloudFormation, StackSets</li>
+<li>Find: <code>ASEA-PipelineRole</code>, and Select the: <code>Stack Instances</code> tab</li>
+<li>Document all the account numbers, comma separated i.e. 123456789012, 234567890123, 345678901234</li>
+<li>Select: Actions, Delete Stacks from StackSets</li>
+<li>Paste the above account numbers (comma separated) in the Account numbers box</li>
+<li>Select the Accelerator installation/home region from the Specify Regions Box (should be the only region in the dropdown)</li>
+<li>Change: Concurrency to: 8, Next, Submit</li>
+<li>Wait for operation to complete (refresh the browser several times)</li>
+<li>Select Actions, Delete StackSet, click Delete StackSet</li>
+<li>Wait for the operation to complete</li>
+<li>Upgrades to <code>v1.2.4 and above</code> from <code>v1.2.3 and below</code> - Ensure you apply the config file changes described in the release notes:</li>
+<li>failure to set <code>"central-endpoint": true</code> directly on the endpoint VPC (instead of in global-options), will result in the removal of your VPC endpoints</li>
+<li>failure to move your zone definitions to the endpoint VPC, will result in the removal of you Public and Private hosted zones</li>
+</ul>
+<h2 id="summary-of-upgrade-steps-all-versions">Summary of Upgrade Steps (all versions)<a class="headerlink" href="#summary-of-upgrade-steps-all-versions" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Login to your Organization Management (root) AWS account with administrative privileges</li>
+<li>Either:
+   a) Ensure a valid Github token is stored in secrets manager <a href="#232-create-github-personal-access-token-and-store-in-secrets-manager">(section 2.3.2)</a>
+   b) Ensure the latest release is in a valid branch of CodeCommit in the Organization Management account</li>
+<li>Review and implement any relevant tasks noted in the upgrade considerations in <a href="#31-considerations">section 3.1</a></li>
+<li>Update the config file in CodeCommit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)</li>
+<li>An automated script is available to help convert config files to the new v1.5.0 format</li>
+<li>Compare your running config file with the sample config file from the latest release</li>
+<li>Review the <code>Config file changes</code> section of the <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/releases">release notes</a> for <strong>all</strong> Accelerator versions since your current deployed release</li>
+<li>If you customized any of the other Accelerator default config files by overriding them in your S3 input bucket, merge the latest defaults with your customizations before beginning your upgrade</li>
+<li>Download the latest installer template (<code>AcceleratorInstallerXYZ.template.json</code> or <code>AcceleratorInstallerXXX-CodeCommit.template.json</code>) from the <code>Assets</code> section of the latest <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/releases">release</a></li>
+<li>Do <strong><em>NOT</em></strong> accidentally select the <code>ASEA-InitialSetup</code> CloudFormation stack <strong>below</strong></li>
+<li>If you are replacing your GitHub Token:</li>
+<li>Take note of the <code>AcceleratorName</code>, <code>AcceleratorPrefix</code>, <code>ConfigS3Bucket</code> and <code>NotificationEmail</code> values from the Parameters tab of your deployed Installer CloudFormation stack (<code>ASEA-what-you-provided</code>)</li>
+<li>Delete the Installer CloudFormation stack (<code>ASEA-what-you-provided</code>)</li>
+<li>Redeploy the Installer CloudFormation stack using the template downloaded in step 6, providing the values you just documented (changes to <code>AcceleratorName</code> or <code>AcceleratorPrefix</code> are not supported)</li>
+<li>The pipeline will automatically run and trigger the upgraded state machine</li>
+<li>
+<p>If you are using a pre-existing GitHub token, or installing from CodeCommit:</p>
+</li>
+<li>
+<p>Update the Installer CloudFormation stack using the template downloaded in step 5, updating the <code>GithubBranch</code> to the latest release (eg. <code>release/v1.5.0</code>)</p>
+</li>
+<li>Go to AWS CloudFormation and select the stack: <code>ASEA-what-you-provided</code></li>
+<li>Select Update, select Replace current template, Select Upload a template file</li>
+<li>Select Choose File and select the template you downloaded in step 6 (<code>AcceleratorInstallerXYZ.template.json</code> or <code>AcceleratorInstallerXXX-CodeCommit.template.json</code>)</li>
+<li>Select Next, Update <code>GithubBranch</code> parameter to <code>release/vX.Y.Z</code> where X.Y.Z represents the latest release</li>
+<li>Click Next, Next, I acknowledge, Update</li>
+<li>Wait for the CloudFormation stack to update (<code>Update_Complete</code> status) (Requires manual refresh)</li>
+<li>Go To Code Pipeline and Release the ASEA-InstallerPipeline</li>
+</ol>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../install/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Installation
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../existing-orgs/" class="md-footer__link md-footer__link--next" aria-label="Next: Existing Orgs &amp; Accounts" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Existing Orgs & Accounts
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tracking", "navigation.sections", "navigation.instant", "navigation.indexes"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.22074ed6.min.js"}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.960e086b.min.js"></script>
+      
+    
+  </body>
+</html>

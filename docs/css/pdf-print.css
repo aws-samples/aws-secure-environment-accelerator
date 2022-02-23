@@ -1,0 +1,57 @@
+/*
+** for PDF Printing
+*/
+
+@media print {
+    html,
+    body,
+    section {
+        background: none !important;
+        font-family: Arial, sans-serif;
+    }
+    * {
+        box-shadow: none !important;
+        text-shadow: none !important;
+        filter: none !important;
+        -ms-filter: none !important;
+        font-family: Arial, sans-serif
+    }
+    a,
+    a:visited {
+        text-decoration: underline;
+    }
+    .ir a:after,
+    a[href^="javascript:"]:after,
+    a[href^="#"]:after {
+        content: ""
+    }
+    pre,
+    blockquote {
+        page-break-inside: avoid
+    }
+    thead {
+        display: table-header-group
+    }
+    tr,
+    img {
+        page-break-inside: avoid
+    }
+    img {
+        max-width: 100% !important
+    }
+    @page {
+        margin: 1cm
+    }
+    p,
+    h2,
+    .rst-content .toctree-wrapper p.caption,
+    h3 {
+        orphans: 3;
+        widows: 3
+    }
+    h2,
+    .rst-content .toctree-wrapper p.caption,
+    h3 {
+        page-break-after: avoid
+    }
+}

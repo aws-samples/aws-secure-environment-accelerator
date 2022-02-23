@@ -1,0 +1,1558 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the AWS Secure Environment Accelerator">
+      
+      
+        <meta name="author" content="Amazon Web Services">
+      
+      
+        <link rel="canonical" href="https://awssea.github.io/architectures/pbmm/network/">
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.9">
+    
+    
+      
+        <title>Networking - AWS Secure Environment Accelerator</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.2b4465f4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../css/pdf-print.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#networking" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="AWS Secure Environment Accelerator" class="md-header__button md-logo" aria-label="AWS Secure Environment Accelerator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AWS Secure Environment Accelerator
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Networking
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws-samples/asea
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="AWS Secure Environment Accelerator" class="md-nav__button md-logo" aria-label="AWS Secure Environment Accelerator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    AWS Secure Environment Accelerator
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws-samples/asea
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        FAQ
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../../about/">About</a>
+          
+            <label for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="About" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          About
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../pricing/sample_pricing/" class="md-nav__link">
+        Pricing
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../../installation/">Installation & Upgrades</a>
+          
+            <label for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Installation & Upgrades" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Installation & Upgrades
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../installation/install/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../installation/upgrades/" class="md-nav__link">
+        Upgrades
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../installation/existing-orgs/" class="md-nav__link">
+        Existing Orgs & Accounts
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../installation/design/" class="md-nav__link">
+        Design Decisions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../installation/services-list/" class="md-nav__link">
+        Deployed Services List
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../../operations/">Operations & Troubleshooting</a>
+          
+            <label for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Operations & Troubleshooting" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Operations & Troubleshooting
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../operations/system-overview/" class="md-nav__link">
+        System Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../operations/troubleshooting/" class="md-nav__link">
+        Troubleshooting
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../operations/common-tasks/" class="md-nav__link">
+        Common Tasks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../operations/operations-import-ALZAccount/" class="md-nav__link">
+        Import Existing ALZ
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
+      
+      
+      
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_6">
+          Guides
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Guides" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Guides
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6_1" type="checkbox" id="__nav_6_1" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../../guides/fortigate/">Fortigate</a>
+          
+            <label for="__nav_6_1">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Fortigate" data-md-level="2">
+        <label class="md-nav__title" for="__nav_6_1">
+          <span class="md-nav__icon md-icon"></span>
+          Fortigate
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/fortigate/public-facing-workload-via-fortigate/" class="md-nav__link">
+        Expose Public Facing Workload
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../../developer/">Developer Guide</a>
+          
+            <label for="__nav_7">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Developer Guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Developer Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/development/" class="md-nav__link">
+        Development Guide
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/tech-stack/" class="md-nav__link">
+        Tech Stack
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/best-practices/" class="md-nav__link">
+        Best Practices
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/contributing-guidelines/" class="md-nav__link">
+        How to Contribute
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/release-process/" class="md-nav__link">
+        Release Process
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" checked>
+      
+      
+      
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_8">
+          Architectures
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Architectures" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Architectures
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8_1" type="checkbox" id="__nav_8_1" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../">PBMM</a>
+          
+            <label for="__nav_8_1">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="PBMM" data-md-level="2">
+        <label class="md-nav__title" for="__nav_8_1">
+          <span class="md-nav__icon md-icon"></span>
+          PBMM
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../accounts/" class="md-nav__link">
+        Account Structure
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Networking
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Networking
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perimeter" class="md-nav__link">
+    Perimeter
+  </a>
+  
+    <nav class="md-nav" aria-label="Perimeter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ip-ranges" class="md-nav__link">
+    IP Ranges
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shared-network" class="md-nav__link">
+    Shared Network
+  </a>
+  
+    <nav class="md-nav" aria-label="Shared Network">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transit-gateway" class="md-nav__link">
+    Transit Gateway
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#endpoint-vpc" class="md-nav__link">
+    Endpoint VPC
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#endpoint-vpc-interface-endpoints" class="md-nav__link">
+    Endpoint VPC: Interface Endpoints
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#endpoint-vpc-hybrid-dns" class="md-nav__link">
+    Endpoint VPC: Hybrid DNS
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workload-vpcs" class="md-nav__link">
+    Workload VPCs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#central-vpc" class="md-nav__link">
+    Central VPC
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sandbox-vpc" class="md-nav__link">
+    Sandbox VPC
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../auth/" class="md-nav__link">
+        Authentication & Authorization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging/" class="md-nav__link">
+        Logging and Monitoring
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diagrams/" class="md-nav__link">
+        Architecture Diagrams
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9" type="checkbox" id="__nav_9" >
+      
+      
+      
+        
+          
+            
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../../workshops/">Workshops</a>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Workshops" data-md-level="1">
+        <label class="md-nav__title" for="__nav_9">
+          <span class="md-nav__icon md-icon"></span>
+          Workshops
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_10" type="checkbox" id="__nav_10" >
+      
+      
+      
+        
+          
+            
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../../schema/">Configuration File Schema</a>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Configuration File Schema" data-md-level="1">
+        <label class="md-nav__title" for="__nav_10">
+          <span class="md-nav__icon md-icon"></span>
+          Configuration File Schema
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_11" type="checkbox" id="__nav_11" >
+      
+      
+      
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_11">
+          Contributing & Governance
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Contributing & Governance" data-md-level="1">
+        <label class="md-nav__title" for="__nav_11">
+          <span class="md-nav__icon md-icon"></span>
+          Contributing & Governance
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md" class="md-nav__link">
+        None
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perimeter" class="md-nav__link">
+    Perimeter
+  </a>
+  
+    <nav class="md-nav" aria-label="Perimeter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ip-ranges" class="md-nav__link">
+    IP Ranges
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shared-network" class="md-nav__link">
+    Shared Network
+  </a>
+  
+    <nav class="md-nav" aria-label="Shared Network">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transit-gateway" class="md-nav__link">
+    Transit Gateway
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#endpoint-vpc" class="md-nav__link">
+    Endpoint VPC
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#endpoint-vpc-interface-endpoints" class="md-nav__link">
+    Endpoint VPC: Interface Endpoints
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#endpoint-vpc-hybrid-dns" class="md-nav__link">
+    Endpoint VPC: Hybrid DNS
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workload-vpcs" class="md-nav__link">
+    Workload VPCs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#central-vpc" class="md-nav__link">
+    Central VPC
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sandbox-vpc" class="md-nav__link">
+    Sandbox VPC
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+<a href="https://github.com/aws-samples/aws-secure-environment-accelerator/edit/master/docs/architectures/pbmm/network.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+<h1 id="networking">Networking<a class="headerlink" href="#networking" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The <em>AWS Secure Environment Architecture</em> networking is built on a principle of centralized on-premises and Internet ingress/egress, while enforcing data plane isolation between workloads in different environments. Connectivity to on-prem environments, internet egress, shared resources and AWS APIs are mediated at a central point of ingress/egress via the use of a <a href="https://aws.amazon.com/transit-gateway/">Transit Gateway</a>. Consider the following overall network diagram:</p>
+<p><img alt="Mandatory Accounts" src="../images/network_architecture.drawio.png" /></p>
+<p>All functional accounts use RAM-shared networking infrastructure as depicted above. The workload VPCs (Dev, Test, Prod, etc) are hosted in the Shared Network account and made available to the appropriate OU in the Organization.</p>
+<h2 id="perimeter">Perimeter<a class="headerlink" href="#perimeter" title="Permanent link">&para;</a></h2>
+<p>The perimeter VPC hosts the Organization's perimeter security services. The Perimeter VPC is used to control the flow of traffic between AWS Accounts and external networks for IaaS workloads: both public (internet) and in some cases private (access to on-premises datacenters). This VPC hosts Next Generation Firewalls (NGFW) that provide perimeter security services including virus scanning / malware protection, Intrusion Protection services, TLS Inspection and Web Application Firewall protection. If applicable, this VPC also hosts reverse proxy servers.</p>
+<p>Note that this VPC is in its own isolated account, separate from Shared Network, in order to facilitate networking and security 'separation of duties'. Internal networking teams may administer the cloud networks in Shared Network without being granted permission to administer the security perimeter itself.</p>
+<h3 id="ip-ranges">IP Ranges<a class="headerlink" href="#ip-ranges" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Primary Range</strong>: The <em>AWS Secure Environment Architecture</em> recommends that the perimeter VPC have a primary range in the <a href="https://tools.ietf.org/html/rfc1918">RFC1918</a> block (e.g. <code>10.7.4.0/22</code>), used only for subnets dedicated to 'detonation' purposes. This primary range, in an otherwise-unused <a href="https://tools.ietf.org/html/rfc1918">RFC1918</a> range, is not intended to be routable outside of the VPC, and is reserved for future use with malware detonation capabilities of NGFW devices.</li>
+<li><strong>Secondary Range</strong>: This VPC should also have a secondary range in the <a href="https://tools.ietf.org/html/rfc6598">RFC6598</a> block (e.g. <code>100.96.250.0/23</code>) used for the overlay network (NGFW devices inside VPN tunnel) for all other subnets. This secondary range is assigned by an external entity (e.g. Shared Services Canada), and should be carefully selected in order to co-exist with <em>AWS Secure Environment Architecture</em> deployments that exist at peer organizations; for instance other government departments that maintain a relationship with the same shared entity in a carrier-grade NAT topology. Although this is a 'secondary' range in VPC parlance, this VPC CIDR should be interpreted as the more 'significant' of the two with respect to Transit Gateway routing; the Transit Gateway will only ever interact with this 'secondary' range.</li>
+</ul>
+<p><img alt="Endpoints" src="../images/perimeter.drawio.png" /></p>
+<p>This VPC has four subnets per AZ, each of which hosts a port used by the NGFW devices, which are deployed in an HA pair. The purpose of these subnets is as follows.</p>
+<ul>
+<li><strong>Detonation</strong>: This is an unused subnet reserved for future use with malware detonation capabilities of the NGFW devices.</li>
+<li>e.g. <code>10.7.4.0/24</code> - not routable except local.</li>
+<li><strong>Proxy</strong>: This subnet hosts reverse proxy services for web and other protocols. It also contains the <a href="https://aws.amazon.com/premiumsupport/knowledge-center/ec2-systems-manager-vpc-endpoints/">three interface endpoints</a> necessary for AWS Systems Manager Session Manager, which enables SSH-less CLI access to authorized and authenticated principals in the perimeter account.</li>
+<li>e.g. <code>100.96.251.64/26</code></li>
+<li><strong>On-Premises</strong>: This subnet hosts the private interfaces of the firewalls, corresponding to connections from the on-premises network.</li>
+<li>e.g. <code>100.96.250.192/26</code></li>
+<li><strong>FW-Management</strong>: This subnet is used to host management tools and the management of the Firewalls itself.</li>
+<li>e.g. <code>100.96.251.160/27</code> - a smaller subnet is permissible due to modest IP requirements for management instances.</li>
+<li><strong>Public</strong>: This subnet is the public-access zone for the perimeter VPC. It hosts the public interface of the firewalls, as well as application load balancers that are used to balance traffic across the firewall pair. There is one Elastic IPv4 address per public subnet that corresponds to the IPSec Customer Gateway (CGW) for the VPN connections into the Transit Gateway in Shared Networking.</li>
+<li>e.g. <code>100.96.250.0/26</code></li>
+</ul>
+<p>Outbound internet connections (for software updates, etc.) can be initiated from within the workload VPCs, and use the transparent proxy feature of the next-gen Firewalls.</p>
+<p><strong>Note on VPN Tunnel Redundancy</strong>: Each NGFW device manifests as a unique CGW on the AWS side (shared network account) of the IPSec VPNs. Moreover, there are <strong>two</strong> <em>Site-to-Site VPNs</em> in this architecture, each with one active tunnel (and one inactive tunnel); taken together, the pair is redundant. In many hybrid networking configurations, a single <em>Site-to-Site VPN</em> resource is used with dual active tunnels. Customers may receive the following email notification from the AWS VPC service team:</p>
+<blockquote>
+<p>You're receiving this message because you have at least one VPN Connection in the ca-central-1 Region, for which your VPN Customer Gateway is not using both tunnels. This mode of operation is not recommended as you may experience connectivity issues if your active tunnel fails.</p>
+</blockquote>
+<p>This message may be disregarded, as it is premised on a traditional hybrid configuration with dual tunnels. Customers may create a VPN support case (in shared network account) requesting that these informational emails are disabled.</p>
+<h2 id="shared-network">Shared Network<a class="headerlink" href="#shared-network" title="Permanent link">&para;</a></h2>
+<p>The shared network account, and the AWS networking resources therein, form the core of the cloud networking infrastructure across the account structure. Rather than the individual accounts defining their own networks, these are instead centralized here and shared out to the relevant OUs. Principals in a Dev OU will have access to a Dev VPC, Test OU will have access to a Test VPC and so on - all of which are owned by this account.</p>
+<p>You can share AWS Transit Gateways, Subnets, AWS License Manager configurations, and Amazon Route 53 Resolver rules resources with AWS Resource Access Manager (RAM). The RAM service eliminates the need to create duplicate resources in multiple accounts, reducing the operational overhead of managing those resources in every single account.</p>
+<h3 id="transit-gateway">Transit Gateway<a class="headerlink" href="#transit-gateway" title="Permanent link">&para;</a></h3>
+<p>The Transit Gateway is a central hub that performs several core functions within the Shared Network account.</p>
+<ol>
+<li>Routing of permitted flows; for example a Workload to On-premises via the Perimeter VPC.</li>
+<li>All routing tables in SharedNetwork VPCs send <code>0.0.0.0/0</code> traffic to the TGW, where its handling will be determined by the TGW Route Table (TGW-RT) that its attachment is associated with. For example:<ul>
+<li>an HTTP request to <code>registry.hub.docker.com</code> from the Test VPC will go to the TGW</li>
+<li>The Segregated TGW RT will direct that traffic to the Perimeter VPC via the IPsec VPNs</li>
+<li>The request will be proxied to the internet, via GC-CAP if appropriate</li>
+<li>The return traffic will again transit the IPsec VPNs</li>
+<li>The <code>10.3.0.0/16</code> bound response traffic will arrive at the Core TGW RT, where a propagation in that TGW RT will direct the response back to the Test VPC.</li>
+</ul>
+</li>
+<li>Defining separate routing domains that prohibit undesired east-west flows at the network level; for example, by prohibiting Dev to Prod traffic. For example:</li>
+<li>All routing tables in SharedNetwork VPCs send <code>0.0.0.0/0</code> traffic to the TGW, which defines where the next permissible hop is. For example, <code>10.2.0.0/16</code> Dev traffic destined for the <code>10.0.4.0/16</code> Prod VPC will be blocked by the blackhole route in the Segregated TGW RT.</li>
+<li>Enabling centralization of shared resources; namely a shared Microsoft AD installation in the Central VPC, and access to shared VPC Endpoints in the Endpoint VPC.</li>
+<li>The Central VPC, and the Endpoint VPC are routable from Workload VPCs. This provides an economical way to share Organization wide resources that are nonetheless isolated into their own VPCs. For example:<ul>
+<li>a <code>git</code> request in the <code>Dev</code> VPC to <code>git.private-domain.ca</code> resolves to a <code>10.1.0.0/16</code> address in the <code>Central</code> VPC.</li>
+<li>The request from the <code>Dev</code> VPC will go to the TGW due to the VPC routing table associated with that subnet</li>
+<li>The TGW will send the request to the <code>Central</code> VPC via an entry in the Segregated TGW RT</li>
+<li>The <code>git</code> response will go to the TGW due to the VPC routing table associated with that subnet</li>
+<li>The Shared TGW RT will direct the response back to the <code>Dev</code> VPC</li>
+</ul>
+</li>
+</ol>
+<p>The four TGW RTs exist to serve the following main functions:</p>
+<ul>
+<li><strong>Segregated TGW RT</strong>: Used as the association table for the workload VPCs; prevents east-west traffic, except to shared resources.</li>
+<li><strong>Core TGW RT</strong>: Used for internet/on-premises response traffic, and Endpoint VPC egress.</li>
+<li><strong>Shared TGW RT</strong>: Used to provide <code>Central</code> VPC access east-west for the purposes of response traffic to shared workloads</li>
+<li><strong>Standalone TGW RT</strong>: Reserved for future use. Prevents TGW routing except to the Endpoint VPC.</li>
+</ul>
+<p>Note that a unique BGP ASN will need to be available for the TGW.</p>
+<h3 id="endpoint-vpc">Endpoint VPC<a class="headerlink" href="#endpoint-vpc" title="Permanent link">&para;</a></h3>
+<p>DNS functionality for the network architecture is centralized in the Endpoint VPC. It is recommended that the Endpoint VPC use a <a href="https://tools.ietf.org/html/rfc1918">RFC1918</a> range - e.g. <code>10.7.0.0/22</code> with sufficient capacity to support 60+ AWS services and future endpoint expansion, and inbound and outbound resolvers (all figures per AZ).</p>
+<p><img alt="Endpoints" src="../images/dns.drawio.png" /></p>
+<h3 id="endpoint-vpc-interface-endpoints">Endpoint VPC: Interface Endpoints<a class="headerlink" href="#endpoint-vpc-interface-endpoints" title="Permanent link">&para;</a></h3>
+<p>The endpoint VPC hosts VPC Interface Endpoints (VPCEs) and associated Route 53 private hosted zones for all applicable services in the <code>ca-central-1</code> region. This permits traffic destined for an eligible AWS service; for example SQS, to remain entirely within the SharedNetwork account rather than transiting via the IPv4 public endpoint for the service:</p>
+<p><img alt="Endpoints" src="../images/endpoints.png" /></p>
+<p>From within an associated workload VPC such as <code>Dev</code>, the service endpoint (e.g. <code>sqs.ca-central-1.amazonaws.com</code>) will resolve to an IP in the <code>Endpoint</code> VPC:</p>
+<pre><code class="language-bash">sh-4.2$ nslookup sqs.ca-central-1.amazonaws.com
+Server:         10.2.0.2                  # Dev VPC's .2 resolver.
+Address:        10.2.0.2#53
+
+Non-authoritative answer:
+Name:   sqs.ca-central-1.amazonaws.com
+Address: 10.7.1.190                       # IP in Endpoint VPC - AZ-a.
+Name:   sqs.ca-central-1.amazonaws.com
+Address: 10.7.0.135                       # IP in Endpoint VPC - AZ-b.
+</code></pre>
+<p>This cross-VPC resolution of the service-specific private hosted zone functions via the association of each VPC to each private hosted zone, as depicted above.</p>
+<h3 id="endpoint-vpc-hybrid-dns">Endpoint VPC: Hybrid DNS<a class="headerlink" href="#endpoint-vpc-hybrid-dns" title="Permanent link">&para;</a></h3>
+<p>The Endpoint VPC also hosts the common DNS infrastructure used to resolve DNS queries:</p>
+<ul>
+<li>within the cloud</li>
+<li>from the cloud to on-premises</li>
+<li>from on-premises to the cloud</li>
+</ul>
+<h4 id="within-the-cloud">Within The Cloud<a class="headerlink" href="#within-the-cloud" title="Permanent link">&para;</a></h4>
+<p>In-cloud DNS resolution applies beyond the DNS infrastructure that is put in place to support the Interface Endpoints for the AWS services in-region. Other DNS zones, associated with the Endpoint VPC, are resolvable the same way via an association to workload VPCs.</p>
+<h4 id="from-cloud-to-on-premises">From Cloud to On-Premises<a class="headerlink" href="#from-cloud-to-on-premises" title="Permanent link">&para;</a></h4>
+<p>DNS Resolution from the cloud to on-premises is handled via the use of a Route 53 Outbound Endpoint, deployed in the Endpoint VPC, with an associated Resolver rule that forwards DNS traffic to the outbound endpoint. Each VPC is associated to this rule.</p>
+<p><img alt="Endpoints" src="../images/resolver-rule.png" /></p>
+<h4 id="from-on-premises-to-cloud">From On-Premises to Cloud<a class="headerlink" href="#from-on-premises-to-cloud" title="Permanent link">&para;</a></h4>
+<p>Conditional forwarding from on-premises networks is made possible via the use of a Route 53 Inbound Endpoint. On-prem networks send resolution requests for relevant domains to the endpoints deployed in the Endpoint VPC:</p>
+<p><img alt="Endpoints" src="../images/inbound-resolver.png" /></p>
+<h3 id="workload-vpcs">Workload VPCs<a class="headerlink" href="#workload-vpcs" title="Permanent link">&para;</a></h3>
+<p>The workload VPCs are where line of business applications ultimately reside, segmented by environment (<code>Dev</code>, <code>Test</code>, <code>Prod</code>, etc). It is recommended that the Workload VPC use a <a href="https://tools.ietf.org/html/rfc1918">RFC1918</a> range (e.g. <code>10.2.0.0/16</code> for <code>Dev</code>, <code>10.3.0.0/16</code> for <code>Test</code>, etc).</p>
+<p><img alt="Endpoints" src="../images/workload.drawio.png" /></p>
+<p>Note that security groups are recommended as the primary data-plane isolation mechanism between applications that may coexist in the same VPC. It is anticipated that unrelated applications would coexist in their respective tiers without ever permitting east-west traffic flows.</p>
+<p>The following subnets are defined by the <em>AWS Secure Environment Architecture</em>:</p>
+<ul>
+<li><strong>TGW subnet</strong>: This subnet hosts the elastic-network interfaces for the TGW attachment. A <code>/27</code> subnet is sufficient.</li>
+<li><strong>Web subnet</strong>: This subnet hosts front-end or otherwise 'client' facing infrastructure. A <code>/20</code> or larger subnet is recommended to facilitate auto-scaling.</li>
+<li><strong>App subnet</strong>: This subnet hosts app-tier code (EC2, containers, etc). A <code>/19</code> or larger subnet is recommended to facilitate auto-scaling.</li>
+<li><strong>Data subnet</strong>: This subnet hosts data-tier code (RDS instances, ElastiCache instances). A <code>/21</code> or larger subnet is recommended.</li>
+<li><strong>Mgmt subnet</strong>: This subnet hosts bastion or other management instances. A <code>/21</code> or larger subnet is recommended.</li>
+</ul>
+<p>Each subnet is associated with a Common VPC Route Table, as depicted above. Gateway Endpoints for relevant services (Amazon S3, Amazon DynamoDB) are installed in the Common route tables of all Workload VPCs. Aside from local traffic or gateway-bound traffic, <code>0.0.0.0/0</code> is always destined for the TGW.</p>
+<h4 id="security-groups">Security Groups<a class="headerlink" href="#security-groups" title="Permanent link">&para;</a></h4>
+<p>Security Groups are instance level firewalls, and represent a foundational unit of network segmentation across AWS networking. Security groups are stateful, and support ingress/egress rules based on protocols and source/destinations. While CIDR ranges are supported by the latter, it is preferable to instead use other security groups as source/destinations. This permits a higher level of expressiveness that is not coupled to particular CIDR choices and works well with autoscaling; e.g.</p>
+<blockquote>
+<p>"permit port 3306 traffic from the <code>App</code> tier to the <code>Data</code> tier"</p>
+</blockquote>
+<p>versus</p>
+<blockquote>
+<p>"permit port 3306 traffic from <code>10.0.1.0/24</code> to <code>10.0.2.0/24</code>.</p>
+</blockquote>
+<p>Security group egress rules are often used in 'allow all' mode (<code>0.0.0.0/0</code>), with the focus primarily being on consistently whitelisting required ingress traffic. This ensures day to day activities like patching, access to DNS, or to directory services access can function on instances without friction. The provided sample security groups in the workload accounts offers a good balance that considers both security, ease of operations, and frictionless development. They allow developers to focus on developing, enabling them to simply use the pre-created security constructs for their workloads, and avoid the creation of wide-open security groups. Developers can equally choose to create more appropriate least-privilege security groups more suitable for their application, if they are skilled in this area. It is expected as an application is promoted through the SDLC cycle from Dev through Test to Prod, these security groups will be further refined by the extended customers teams to further reduce privilege, as appropriate. It is expected that each customer will review and tailor their Security Groups based on their own security requirements.</p>
+<h4 id="nacls">NACLs<a class="headerlink" href="#nacls" title="Permanent link">&para;</a></h4>
+<p>Network Access-Control Lists (NACLs) are stateless constructs used sparingly as a defense-in-depth measure in this architecture. AWS generally discourages the use of NACLs given the added complexity and management burden, given the availability and ease of use provided by security groups. Each network flow often requires four NACL entries (egress from ephemeral, ingress to destination, egress from destination, ingress to ephemeral). The architecture recommends NACLs as a segmentation mechanism for <code>Data</code> subnets; i.e. <code>DENY</code> all inbound traffic to such a subnet except that which originates in the <code>App</code> subnet for the same VPC. As with security groups, we encourage customers to review and tailor their NACLs based on their own security requirements.</p>
+<h3 id="central-vpc">Central VPC<a class="headerlink" href="#central-vpc" title="Permanent link">&para;</a></h3>
+<p>The Central VPC is a network for localizing operational infrastructure that may be needed across the Organization, such as code repositories, artifact repositories, and notably, the managed Directory Service (Microsoft AD). Instances that are domain joined will connect to this AD domain - a network flow that is made possible from anywhere in the network structure due to the inclusion of the Central VPC in all relevant association TGW RTs.</p>
+<p>It is recommended that the Central VPC use a <a href="https://tools.ietf.org/html/rfc1918">RFC1918</a> range (e.g. <code>10.1.0.0/16</code>) for the purposes of routing from the workload VPCs, and a secondary range from the <a href="https://tools.ietf.org/html/rfc6598">RFC6598</a> block (e.g. <code>100.96.252.0/23</code>) to support the Microsoft AD workload.</p>
+<p>Note that this VPC also contains a peering relationship to the <code>ForSSO</code> VPC in the Organization Management (root) account. This exists purely to support connectivity from an AD-Connector instance in the Organization Management (root) account, which in turn enables AWS SSO for federated login to the AWS control plane.</p>
+<p><img alt="Central" src="../images/central.drawio.png" /></p>
+<h4 id="domain-joining">Domain Joining<a class="headerlink" href="#domain-joining" title="Permanent link">&para;</a></h4>
+<p>An EC2 instance deployed in the Workload VPCs can join the domain corresponding to the Microsoft AD in <code>Central</code> provided the following conditions are all true:</p>
+<ol>
+<li>The instance needs a network path to the Central VPC (given by the Segregated TGW RT), and appropriate security group assignment</li>
+<li>The Microsoft AD should be 'shared' with the account the EC2 instance resides in (The <em>AWS Secure Environment Architecture</em> recommends these directories are shared to workload accounts)</li>
+<li>The instance has the AWS managed policies <code>AmazonSSMManagedInstanceCore</code> and <code>AmazonSSMDirectoryServiceAccess</code> attached to its IAM role, or runs under a role with at least the permission policies given by the combination of these two managed policies.</li>
+<li>The EC2's VPC has an associated resolver rule that directs DNS queries for the AD domain to the Central VPC.</li>
+</ol>
+<h3 id="sandbox-vpc">Sandbox VPC<a class="headerlink" href="#sandbox-vpc" title="Permanent link">&para;</a></h3>
+<p>A sandbox VPC, not depicted, may be included in the <em>AWS Secure Environment Architecture</em>. This is <strong>not</strong> connected to the Transit Gateway, Perimeter VPC, on-premises network, or other common infrastructure. It contains its own Internet Gateway, and is an entirely separate VPC with respect to the rest of the <em>AWS Secure Environment Architecture</em>.</p>
+<p>The sandbox VPC should be used exclusively for time-limited experimentation, particularly with out-of-region services, and never used for any line of business workload or data.</p>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../accounts/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Account Structure" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Account Structure
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../auth/" class="md-footer__link md-footer__link--next" aria-label="Next: Authentication &amp; Authorization" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Authentication & Authorization
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tracking", "navigation.sections", "navigation.instant", "navigation.indexes"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../../assets/javascripts/workers/search.22074ed6.min.js"}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.960e086b.min.js"></script>
+      
+    
+  </body>
+</html>
