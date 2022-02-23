@@ -1,12 +1,14 @@
 import * as fs from 'fs';
 import * as aws from 'aws-sdk';
 import * as dynamodb from 'aws-sdk/clients/dynamodb';
-import { resourceLimits } from 'node:worker_threads';
+import * as camelCase from 'camelcase';
 const DEV_FILE_PATH = '../../../src/deployments/cdk/';
 const DEV_OUTPUTS_FILE_PATH = `${DEV_FILE_PATH}outputs.json`;
 
 const env = process.env;
 const acceleratorPrefix = env.ACCELERATOR_PREFIX || 'ASEA-';
+const installerStackName = process.env.INSTALLER_STACK_NAME;
+const cfn = new aws.CloudFormation();
 const documentClient = new aws.DynamoDB.DocumentClient();
 
 export const scanDDBTable = async (tableName: string) => {
@@ -49,6 +51,48 @@ export const writeConfigs = (configList: any) => {
     }
   }
 };
+
+export const describeStack = async (cfnClient: AWS.CloudFormation, stackName: string | undefined) => {
+  if (!stackName) {
+    throw new Error('Please set the environment variable for INSTALLER_STACK_NAME');
+  }
+
+  try {
+    const describeStackParams = {
+      StackName: stackName,
+    };
+    return cfnClient.describeStacks(describeStackParams).promise();
+  } catch (err) {
+    console.log(`Check to make sure the stack ${stackName} exists`);
+    throw err;
+  }
+};
+
+const context: any = {};
+
+describeStack(cfn, installerStackName)
+  .then(stackInfo => {
+    const params = stackInfo.Stacks![0].Parameters;
+    if (params) {
+      for (const param of params) {
+        const key = camelCase(param.ParameterKey!);
+        const value = param.ParameterValue!;
+        context[key] = value;
+      }
+    }
+    context['acceleratorExecutionRoleName'] = `${context.acceleratorPrefix}PipelineRole`;
+    context['defaultRegion'] = process.env.AWS_REGION || 'us-west-2';
+    context['acceleratorPipelineRoleName'] = `${context.acceleratorPrefix}PipelineRole`;
+    context['acceleratorStateMachineName'] = `${context.acceleratorPrefix}MainStateMachine_sm`;
+    context['installerVersion'] = '1.5.0';
+    context['vpcCidrPoolAssignedTable'] = `${context.acceleratorPrefix}cidr-vpc-assign`;
+    context['subnetCidrPoolAssignedTable'] = `${context.acceleratorPrefix}cidr-subnet-assign`;
+    context['cidrPoolTable'] = `${context.acceleratorPrefix}cidr-pool`;
+    console.log(JSON.stringify(context, null, 2));
+    return context;
+  })
+  .then(context => fs.writeFileSync(`${DEV_FILE_PATH}context.json`, JSON.stringify(context, null, 2)));
+
 scanDDBTable(`${acceleratorPrefix}Outputs`)
   .then(outputs => loadOutputs(outputs))
   .then(parsedOutputs => fs.writeFileSync(DEV_OUTPUTS_FILE_PATH, JSON.stringify(parsedOutputs, null, 2)));
