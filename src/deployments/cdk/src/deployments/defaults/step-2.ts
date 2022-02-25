@@ -26,6 +26,7 @@ export interface DefaultsStep2Props {
   accounts: Account[];
   config: AcceleratorConfig;
   centralLogBucket: s3.IBucket;
+  prefix: string;
 }
 
 export type DefaultsStep2Result = AccountBuckets;
@@ -59,6 +60,7 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
 
     const key = createDefaultS3Key({
       accountStack,
+      prefix: props.prefix,
     });
 
     const defaultLogRetention = config['global-options']['default-s3-retention'];

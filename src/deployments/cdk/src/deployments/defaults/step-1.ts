@@ -571,7 +571,7 @@ function createKeyAndOutput(
   // Default EBS encryption key
   const key = createDefaultS3Key({
     accountStack,
-    prefix: prefix,
+    prefix,
   }).encryptionKey;
 
   defaultEncryptionKeys[accountStack.accountKey] = {
