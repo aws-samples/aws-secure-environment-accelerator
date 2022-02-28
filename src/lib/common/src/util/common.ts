@@ -338,8 +338,8 @@ function randomString(length: number, charSet?: string) {
 }
 
 function enableGlobalRegion(config: string, rawConfig: string, format: FormatType) {
-  const rawConfigObj = getFormattedObject(config, format);
-  const configObj = getFormattedObject(rawConfig, format);
+  const rawConfigObj = getFormattedObject(rawConfig, format);
+  const configObj = getFormattedObject(config, format);
   if (!rawConfigObj['global-options']['supported-regions'].includes('us-east-1')) {
     console.log('us-east-1 is not inlcuded in supported-regions. Adding.');
     configObj['global-options']['supported-regions'].push('us-east-1');
