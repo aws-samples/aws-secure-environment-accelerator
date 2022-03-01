@@ -43,7 +43,16 @@ export const handler = async (input: CreateMasterExecutionRoleInput): Promise<Cr
       return controlTowerAccountStatus;
     }
   }
-
+  console.log(`Validating email address "${account.emailAddress}"`);
+   const re = /@?(amazon.com|amazon.co.uk)/;
+ 
+   if (!re.test(account.emailAddress)) {
+     console.log(`Account with email address "${account.emailAddress}" cannot be created as it is not an Amazon domain!`);
+     return {
+       status: 'FAILED',
+       statusReason: `Account with email address "${account.emailAddress}" cannot be created as it is not an Amazon domain!`,
+     };
+   } 
   // create account using account-vending-machine
   const createAccountOutput = await avm.createAccount({
     avmPortfolioName,

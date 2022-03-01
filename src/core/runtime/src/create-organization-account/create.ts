@@ -45,6 +45,17 @@ export const handler = async (input: CreateOrganizationAccountInput): Promise<Cr
   console.log(
     `Account Creation initiated for Email "${emailAddress}", Account Name "${accountName}, Role Name ${roleName}"`,
   );
+  console.log(`Validating email address "${emailAddress}"`);
+  const re = /@?(amazon.com|amazon.co.uk)/;
+
+  if (!re.test(emailAddress)) {
+    console.log(`Account with email address "${emailAddress}" cannot be created as it is not an Amazon domain!`);
+    return {
+      status: 'FAILED',
+      statusReason: `Account with email address "${emailAddress}" cannot be created as it is not an Amazon domain!`,
+    };
+  }
+  
   const accountResponse = await org.createAccount(emailAddress, accountName, roleName);
   const response = accountResponse;
   // TODO Handle more failure cases
