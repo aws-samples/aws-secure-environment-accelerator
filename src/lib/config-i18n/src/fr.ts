@@ -2284,6 +2284,10 @@ translate(c.MandatoryAccountConfigType, {
       title: '',
       description: '',
     },
+    'ssm-inventory-collection': {
+      title: '',
+      description: '',
+    },
     'aws-config': {
       title: '',
       description: '',
@@ -2357,6 +2361,10 @@ translate(c.OrganizationalUnitConfigType, {
       description: '',
     },
     'ssm-automation': {
+      title: '',
+      description: '',
+    },
+    'ssm-inventory-collection': {
       title: '',
       description: '',
     },
@@ -2518,6 +2526,21 @@ translate(c.CwlExclusions, {
   },
 });
 
+translate(c.S3LogPartitionType, {
+  title: '',
+  description: '',
+  fields: {
+    logGroupPattern: {
+      title: '',
+      description: '',
+    },
+    s3Prefix: {
+      title: '',
+      description: '',
+    },
+  },
+});
+
 translate(c.CentralServicesConfigType, {
   title: '',
   description: '',
@@ -2635,6 +2658,10 @@ translate(c.CentralServicesConfigType, {
       description: '',
     },
     'config-aggr': {
+      title: '',
+      description: '',
+    },
+    'dynamic-s3-log-partitioning': {
       title: '',
       description: '',
     },

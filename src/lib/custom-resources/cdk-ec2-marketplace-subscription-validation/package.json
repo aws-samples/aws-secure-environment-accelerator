@@ -13,9 +13,9 @@
   },
   "dependencies": {
     "@aws-accelerator/custom-resource-ec2-marketplace-subscription-validation-runtime": "workspace:*",
-    "@aws-cdk/aws-iam": "1.113.0",
-    "@aws-cdk/aws-lambda": "1.113.0",
-    "@aws-cdk/core": "1.113.0"
+    "@aws-cdk/aws-iam": "1.144.0",
+    "@aws-cdk/aws-lambda": "1.144.0",
+    "@aws-cdk/core": "1.144.0"
   },
   "devDependencies": {
     "@types/node": "14.14.31",
@@ -26,8 +26,8 @@
   },
   "peerDependencies": {
     "@aws-accelerator/custom-resource-ec2-marketplace-subscription-validation-runtime": "workspace:*",
-    "@aws-cdk/aws-iam": "1.101.0",
-    "@aws-cdk/aws-lambda": "1.101.0",
-    "@aws-cdk/core": "1.101.0"
+    "@aws-cdk/aws-iam": "1.144.0",
+    "@aws-cdk/aws-lambda": "1.144.0",
+    "@aws-cdk/core": "1.144.0"
   }
 }

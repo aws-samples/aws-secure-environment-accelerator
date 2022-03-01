@@ -119,6 +119,7 @@ export async function deploy({
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const nfwNameToIdMap = vpcOutput.nfw?.reduce((acc: any, nfwConfig) => {
       const vpcEndpointAz = nfwConfig.az.substr(-1);
       const vpcEndpointId = nfwConfig.vpcEndpoint;
@@ -338,6 +339,7 @@ export async function deploy({
     accounts,
     config: acceleratorConfig,
     outputs,
+    acceleratorPrefix: context.acceleratorPrefix,
   });
 
   // Central Services step 2
@@ -446,6 +448,7 @@ export async function deploy({
     accountStacks,
     accounts,
     logBucket,
+    aesLogBucket: aesLogArchiveBucket,
     config: acceleratorConfig,
     acceleratorPrefix: context.acceleratorPrefix,
   });
@@ -475,6 +478,13 @@ export async function deploy({
     accountStacks,
     accounts,
     outputs,
+  });
+
+  await ssmDeployment.inventoryCollection({
+    acceleratorPrefix: context.acceleratorPrefix,
+    logBucketName: logBucket.bucketName,
+    acceleratorConfig,
+    accountStacks,
   });
 
   await alb.step1({

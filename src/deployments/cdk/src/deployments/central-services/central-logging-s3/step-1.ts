@@ -12,6 +12,8 @@
  */
 
 import * as cdk from '@aws-cdk/core';
+import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import * as kinesis from '@aws-cdk/aws-kinesis';
 import * as s3 from '@aws-cdk/aws-s3';
@@ -28,6 +30,8 @@ import { CfnLogDestinationOutput } from './outputs';
 import * as kms from '@aws-cdk/aws-kms';
 import { LogBucketOutputTypeOutputFinder } from '@aws-accelerator/common-outputs/src/buckets';
 import { DefaultKmsOutputFinder } from '@aws-accelerator/common-outputs/src/kms';
+
+import path from 'path';
 
 export interface CentralLoggingToS3Step1Props {
   accountStacks: AccountStacks;
@@ -46,6 +50,7 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
   const allAccountIds = accounts.map(account => account.id);
   const centralLogServices = config['global-options']['central-log-services'];
   const cwlRegionsConfig = config['global-options']['additional-cwl-regions'];
+  const homeRegion = config['global-options']['central-log-services']['region'];
   if (!cwlRegionsConfig[centralLogServices.region]) {
     cwlRegionsConfig[centralLogServices.region] = {
       'kinesis-stream-shard-count': centralLogServices['kinesis-stream-shard-count'],
@@ -92,6 +97,17 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
           region: logAccountStack.region,
         })?.encryptionKeyArn!);
 
+    const homeRegionEncryptionKeyArn = LogBucketOutputTypeOutputFinder.findOneByName({
+      outputs,
+      accountKey: logAccountStack.accountKey,
+      region: homeRegion,
+    })?.encryptionKeyArn!;
+
+    const homeRegionEncryptionKey = kms.Key.fromKeyArn(
+      logAccountStack,
+      'Default-Home-Region-Key-Phase-1',
+      homeRegionEncryptionKeyArn,
+    );
     const encryptionKey = kms.Key.fromKeyArn(logAccountStack, 'Default-Key-Phase-1', keyArn);
 
     await cwlSettingsInLogArchive({
@@ -101,7 +117,10 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
       shardCount: regionConfig['kinesis-stream-shard-count'],
       logStreamRoleArn: cwlLogStreamRoleOutput.roleArn,
       kinesisStreamRoleArn: cwlKinesisStreamRoleOutput.roleArn,
+      dynamicS3LogPartitioning: centralLogServices['dynamic-s3-log-partitioning'],
+      region,
       encryptionKey,
+      homeRegionEncryptionKey,
     });
   }
 }
@@ -117,9 +136,24 @@ async function cwlSettingsInLogArchive(props: {
   logStreamRoleArn: string;
   kinesisStreamRoleArn: string;
   encryptionKey: kms.IKey;
+  homeRegionEncryptionKey: kms.IKey;
   shardCount?: number;
+  dynamicS3LogPartitioning?: c.S3LogPartition[];
+  region: string;
 }) {
-  const { scope, accountIds, bucketArn, logStreamRoleArn, kinesisStreamRoleArn, shardCount, encryptionKey } = props;
+  const {
+    scope,
+    accountIds,
+    bucketArn,
+    logStreamRoleArn,
+    kinesisStreamRoleArn,
+    shardCount,
+    dynamicS3LogPartitioning,
+    region,
+    encryptionKey,
+    homeRegionEncryptionKey,
+  } = props;
+
   // Create Kinesis Stream for Logs streaming
   const logsStream = new kinesis.Stream(scope, 'Logs-Stream', {
     streamName: createName({
@@ -158,10 +192,38 @@ async function cwlSettingsInLogArchive(props: {
     destinationPolicy: destinationPolicyStr,
   });
 
-  new kinesisfirehose.CfnDeliveryStream(scope, 'Kinesis-Firehouse-Stream', {
-    deliveryStreamName: createName({
-      name: 'Firehose-Delivery-Stream',
+  const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
+  const lambdaDir = path.dirname(lambdaPath);
+  const lambdaCode = lambda.Code.fromAsset(lambdaDir);
+
+  const firhosePrefixProcessingLambda = new lambda.Function(scope, `FirehosePrefixProcessingLambda`, {
+    runtime: lambda.Runtime.NODEJS_14_X,
+    code: lambdaCode,
+    handler: 'index.firehoseCustomPrefix',
+    memorySize: 2048,
+    timeout: cdk.Duration.minutes(5),
+    environment: {
+      LOG_PREFIX: CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX,
+      DYNAMIC_S3_LOG_PARTITIONING_MAPPING: dynamicS3LogPartitioning ? JSON.stringify(dynamicS3LogPartitioning) : '',
+    },
+  });
+
+  const kinesisStreamRole = iam.Role.fromRoleArn(scope, `KinesisStreamRoleLookup-${region}`, kinesisStreamRoleArn, {
+    mutable: true,
+  });
+
+  kinesisStreamRole.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      resources: [firhosePrefixProcessingLambda.functionArn],
+      actions: ['lambda:InvokeFunction'],
     }),
+  );
+
+  new kinesisfirehose.CfnDeliveryStream(scope, 'Kinesis-Firehouse-Stream-Dynamic-Partitioning', {
+    deliveryStreamName: createName({
+      name: 'Firehose-Delivery-Stream-Partition',
+    }),
+
     deliveryStreamType: 'KinesisStreamAsSource',
     kinesisStreamSourceConfiguration: {
       kinesisStreamArn: logsStream.streamArn,
@@ -171,15 +233,37 @@ async function cwlSettingsInLogArchive(props: {
       bucketArn,
       bufferingHints: {
         intervalInSeconds: 60,
-        sizeInMBs: 50,
+        sizeInMBs: 64, // Minimum with dynamic partitioning
       },
       compressionFormat: 'UNCOMPRESSED',
       roleArn: kinesisStreamRoleArn,
-      prefix: CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX,
+      dynamicPartitioningConfiguration: {
+        enabled: true,
+      },
+      errorOutputPrefix: `${CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX}/processing-failed`,
       encryptionConfiguration: {
         kmsEncryptionConfig: {
-          awskmsKeyArn: encryptionKey.keyArn,
+          awskmsKeyArn: homeRegionEncryptionKey.keyArn,
         },
+      },
+      prefix: '!{partitionKeyFromLambda:dynamicPrefix}',
+      processingConfiguration: {
+        enabled: true,
+        processors: [
+          {
+            type: 'Lambda',
+            parameters: [
+              {
+                parameterName: 'LambdaArn',
+                parameterValue: firhosePrefixProcessingLambda.functionArn,
+              },
+              {
+                parameterName: 'NumberOfRetries',
+                parameterValue: '3',
+              },
+            ],
+          },
+        ],
       },
     },
   });

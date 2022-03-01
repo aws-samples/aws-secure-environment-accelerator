@@ -594,6 +594,13 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         nfwSubnets.push(...this.azSubnets.getAzSubnetsForSubnetName(subnetConfig.name));
       }
 
+      // Find the role that will create the loggroup for the NFW
+      const logGroupRole = IamRoleOutputFinder.tryFindOneByName({
+        outputs: props.vpcProps.outputs,
+        accountKey,
+        roleKey: 'LogGroupRole',
+      });
+
       this.nfw = new Nfw(this, `${nfwProps['firewall-name']}`, {
         nfwPolicy: nfwProps.policyString,
         nfwPolicyConfig: nfwProps.policy || { name: 'Sample-Firewall-Policy', path: 'nfw/nfw-example-policy.json' },
@@ -603,6 +610,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         acceleratorPrefix: vpcProps.acceleratorPrefix || '',
         nfwFlowLogging: nfwProps['flow-dest'] || 'None',
         nfwAlertLogging: nfwProps['alert-dest'] || 'None',
+        logGroupRoleArn: logGroupRole?.roleArn ?? '', // Make the state machine fails for the firewall, something is wrong we did not find a loggroup role and we should
         logBucket: vpcProps.logBucket,
       });
     }

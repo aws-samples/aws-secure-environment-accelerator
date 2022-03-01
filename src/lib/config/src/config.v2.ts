@@ -750,6 +750,13 @@ export const SecretConfig = t.interface({
   size: t.number,
 });
 
+export const S3LogPartitionType = t.interface({
+  logGroupPattern: t.nonEmptyString,
+  s3Prefix: t.nonEmptyString,
+});
+
+export type S3LogPartition = t.TypeOf<typeof S3LogPartitionType>;
+
 export const MandatoryAccountConfigType = t.interface({
   'gui-perm': t.optional(t.boolean),
   'account-name': t.nonEmptyString,
@@ -775,6 +782,7 @@ export const MandatoryAccountConfigType = t.interface({
   'keep-default-vpc-regions': t.defaulted(t.array(t.nonEmptyString), []),
   'populate-all-elbs-in-param-store': t.defaulted(t.boolean, false),
   'ssm-automation': t.defaulted(t.array(SsmShareAutomation), []),
+  'ssm-inventory-collection': t.optional(t.boolean),
   'aws-config': t.defaulted(t.array(AwsConfigAccountConfig), []),
   scps: t.optional(t.array(t.nonEmptyString)),
   'opt-in-vpcs': t.optional(t.array(t.nonEmptyString)),
@@ -803,6 +811,7 @@ export const OrganizationalUnitConfigType = t.interface({
   'default-budgets': t.optional(BudgetConfigType),
   'ssm-automation': t.defaulted(t.array(SsmShareAutomation), []),
   'aws-config': t.defaulted(t.array(AwsConfigRules), []),
+  'ssm-inventory-collection': t.optional(t.boolean),
 });
 
 export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;
@@ -896,6 +905,7 @@ export const CentralServicesConfigType = t.interface({
   'fw-mgr-alert-level': t.defaulted(FirewallManagerAlertLevelType, 'Medium'),
   'security-hub-findings-sns': t.defaulted(SecurityHubFindingsSnsType, 'None'),
   'config-aggr': t.defaulted(t.boolean, false),
+  'dynamic-s3-log-partitioning': t.optional(t.array(S3LogPartitionType)),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;

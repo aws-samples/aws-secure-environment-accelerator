@@ -150,24 +150,55 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         acceleratorPrefix: acceleratorPrefix.endsWith('-')
           ? acceleratorPrefix.slice(0, -1).toLowerCase()
           : acceleratorPrefix.toLowerCase(),
-        'operationsAccountId.$': '$.operationsAccount.id',
       },
     });
 
-    const createBootstrapInRegion = new sfn.Map(this, `Bootstrap Account Region Map`, {
-      itemsPath: `$.regions`,
-      resultPath: 'DISCARD',
-      maxConcurrency: 17,
-      parameters: {
-        'accountId.$': '$.accountId',
-        'region.$': '$$.Map.Item.Value',
-        'acceleratorPrefix.$': '$.acceleratorPrefix',
-        'operationsAccountId.$': '$.operationsAccountId',
+    const bootstrapAccountRegionMapperTask = new tasks.StepFunctionsStartExecution(
+      this,
+      'Bootstrap Account Region Mapper',
+      {
+        stateMachine: this.createBootstrapAccountRegionMapperSM(
+          lambdaCode,
+          role,
+          bootStrapStackName,
+          s3BucketName,
+          accountBootstrapObjectKey,
+          assumeRoleName,
+          acceleratorPrefix,
+        ),
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          stackName: bootStrapStackName,
+          'accountId.$': '$.accountId',
+          'regions.$': '$.regions',
+          'acceleratorPrefix.$': '$.acceleratorPrefix',
+        }),
+        resultPath: 'DISCARD',
       },
-    });
+    );
+    createBootstrapInAccount.iterator(bootstrapAccountRegionMapperTask);
 
+    const chain = sfn.Chain.start(getAccountInfoTask)
+      .next(createRootBootstrapInRegion)
+      .next(getBootstrapOutput)
+      .next(createBootstrapInAccount);
+
+    this.startState = chain.startState;
+    this.endStates = chain.endStates;
+  }
+
+  private createBootstrapAccountRegionMapperSM(
+    lambdaCode: lambda.Code,
+    role: iam.IRole,
+    bootStrapStackName: string,
+    s3BucketName: string,
+    accountBootstrapObjectKey: string,
+    assumeRoleName: string,
+    acceleratorPrefix: string,
+  ) {
+    // Tasks that creates the account
     const bootstrapStateMachine = new sfn.StateMachine(this, `${acceleratorPrefix}BootstrapAccount_sm`, {
-      stateMachineName: `${props.acceleratorPrefix}BootstrapAccount_sm`,
+      stateMachineName: `${acceleratorPrefix}BootstrapAccount_sm`,
       definition: new CreateStackTask(this, 'Bootstrap Acccount Task', {
         lambdaCode,
         role,
@@ -175,6 +206,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
       }),
     });
 
+    // State machine that creates the account using the task
     const bootstrapTask = new tasks.StepFunctionsStartExecution(this, 'Bootstrap Acccount', {
       stateMachine: bootstrapStateMachine,
       integrationPattern: sfn.IntegrationPattern.RUN_JOB,
@@ -196,15 +228,23 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
       resultPath: 'DISCARD',
     });
 
-    createBootstrapInAccount.iterator(createBootstrapInRegion);
+    // Mapped by region
+    const createBootstrapInRegion = new sfn.Map(this, `Bootstrap Account Region Map`, {
+      itemsPath: `$.regions`,
+      resultPath: 'DISCARD',
+      maxConcurrency: 17,
+      parameters: {
+        'accountId.$': '$.accountId',
+        'region.$': '$$.Map.Item.Value',
+        'acceleratorPrefix.$': '$.acceleratorPrefix',
+      },
+    });
     createBootstrapInRegion.iterator(bootstrapTask);
 
-    const chain = sfn.Chain.start(getAccountInfoTask)
-      .next(createRootBootstrapInRegion)
-      .next(getBootstrapOutput)
-      .next(createBootstrapInAccount);
-
-    this.startState = chain.startState;
-    this.endStates = chain.endStates;
+    // In its own state machine
+    return new sfn.StateMachine(this, `${acceleratorPrefix}BootstrapAccountRegionMapper_sm`, {
+      stateMachineName: `${acceleratorPrefix}BootstrapAccountRegionMapper_sm`,
+      definition: sfn.Chain.start(createBootstrapInRegion),
+    });
   }
 }
