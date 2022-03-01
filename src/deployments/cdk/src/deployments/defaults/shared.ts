@@ -44,7 +44,7 @@ export function createDefaultS3Key(props: { accountStack: AccountStack; prefix: 
   );
   encryptionKey.addToResourcePolicy(
     new iam.PolicyStatement({
-      sid: 'Allow ASEA Roles to use the encryption key',
+      sid: 'Allow AWS services to use the encryption key',
       actions: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
       principals: [
         new iam.ServicePrincipal('sns.amazonaws.com'),
@@ -52,13 +52,15 @@ export function createDefaultS3Key(props: { accountStack: AccountStack; prefix: 
         new iam.ServicePrincipal('lambda.amazonaws.com'),
         // For macie usage in security account
         new iam.ServicePrincipal('macie.amazonaws.com'),
+        // Kinesis for usage in the log account
+        new iam.ServicePrincipal('kinesis.amazonaws.com'),
       ],
       resources: ['*'],
     }),
   );
   encryptionKey.addToResourcePolicy(
     new iam.PolicyStatement({
-      sid: 'Allow AWS services to use the encryption key',
+      sid: 'Allow Accelerator Role to use the encryption key',
       actions: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
       principals: [new iam.AnyPrincipal()],
       resources: ['*'],
