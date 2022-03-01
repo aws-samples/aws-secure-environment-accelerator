@@ -50,7 +50,7 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
   const allAccountIds = accounts.map(account => account.id);
   const centralLogServices = config['global-options']['central-log-services'];
   const cwlRegionsConfig = config['global-options']['additional-cwl-regions'];
-  const homeRegion = config['global-options']['central-log-services']['region'];
+  const homeRegion = config['global-options']['central-log-services'].region;
   if (!cwlRegionsConfig[centralLogServices.region]) {
     cwlRegionsConfig[centralLogServices.region] = {
       'kinesis-stream-shard-count': centralLogServices['kinesis-stream-shard-count'],
