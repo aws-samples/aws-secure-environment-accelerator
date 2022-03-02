@@ -694,6 +694,7 @@ export namespace InitialSetup {
         {
           stateMachineName: `${props.acceleratorPrefix}StoreOutputsToSsm_sm`,
           definition: new StoreOutputsToSSMTask(this, 'StoreOutputsToSSM', {
+            acceleratorPrefix: props.acceleratorPrefix,
             lambdaCode,
             role: pipelineRole,
           }),
@@ -813,6 +814,7 @@ export namespace InitialSetup {
       const storeOutputsStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}StoreOutputs_sm`, {
         stateMachineName: `${props.acceleratorPrefix}StoreOutputs_sm`,
         definition: new StoreOutputsTask(this, 'StoreOutputs', {
+          acceleratorPrefix: props.acceleratorPrefix,
           lambdaCode,
           role: pipelineRole,
         }),
@@ -1095,6 +1097,7 @@ export namespace InitialSetup {
       const notificationTopic = new sns.Topic(this, 'MainStateMachineStatusTopic', {
         displayName: `${props.acceleratorPrefix}-MainStateMachine-Status_topic`,
         topicName: `${props.acceleratorPrefix}-MainStateMachine-Status_topic`,
+        masterKey: installerCmk,
       });
 
       new sns.Subscription(this, 'MainStateMachineStatusTopicSubscription', {

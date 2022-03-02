@@ -213,7 +213,7 @@ export class CdkToolkit {
       return [];
     } else if (stackExists) {
       const sdk = await this.props.sdkProvider.forEnvironment(stack.environment, Mode.ForWriting);
-      const cfn = sdk.cloudFormation();
+      const cfn = sdk.sdk.cloudFormation();
       if (debugModeEnabled()) {
         cfn.config.logger = console;
       }
@@ -304,7 +304,7 @@ export class CdkToolkit {
     );
     try {
       const sdk = await this.props.sdkProvider.forEnvironment(stack.environment, Mode.ForWriting);
-      const cfn = sdk.cloudFormation();
+      const cfn = sdk.sdk.cloudFormation();
       this.deploymentLog(stack, 'Disabling termination protection');
       await cfn
         .updateTerminationProtection({
@@ -325,7 +325,8 @@ export class CdkToolkit {
         force: true,
       });
       this.deploymentLog(stack, 'Successfully destroyed stack');
-    } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
       this.deploymentLog(stack, 'Could not destroy stack');
       console.log(e);
       if (e.errorMessage.includes('it may need to be manually deleted')) {

@@ -5,17 +5,15 @@
       "Sid": "PMP",
       "Effect": "Deny",
       "Action": [
-        "aws-marketplace:CreatePrivateMarketplace",
-        "aws-marketplace:AssociateProductsWithPrivateMarketplace",
-        "aws-marketplace:CreatePrivateMarketplaceProfile",
-        "aws-marketplace:DescribePrivateMarketplaceProducts",
-        "aws-marketplace:DescribePrivateMarketplaceProfile",
-        "aws-marketplace:DescribePrivateMarketplaceStatus",
+        "aws-marketplace:CreatePrivate*",
+        "aws-marketplace:AssociateProductsWithPrivate*",
+        "aws-marketplace:CreatePrivate*",
+        "aws-marketplace:DescribePrivate*",
         "aws-marketplace:DisassociateProducts*",
-        "aws-marketplace:ListPrivateMarketplaceProducts",
-        "aws-marketplace:StartPrivateMarketplace",
-        "aws-marketplace:StopPrivateMarketplace",
-        "aws-marketplace:UpdatePrivateMarketplaceProfile"
+        "aws-marketplace:ListPrivate*",
+        "aws-marketplace:StartPrivate*",
+        "aws-marketplace:StopPrivate*",
+        "aws-marketplace:UpdatePrivate*"
       ],
       "Resource": "*",
       "Condition": {}
@@ -108,23 +106,20 @@
       "Sid": "OTHS",
       "Effect": "Deny",
       "Action": [
-        "organizations:LeaveOrganization",
-        "aws-portal:ModifyAccount",
+        "organizations:LeaveOrg*",
+        "aws-portal:Modify*",
         "aws-portal:ViewAccount",
-        "aws-portal:ModifyBilling",
-        "aws-portal:ModifyPaymentMethods",
         "aws-portal:ViewPaymentMethods",
-        "ds:AcceptSharedDirectory",
-        "ds:ShareDirectory",
+        "ds:AcceptSharedDir*",
+        "ds:ShareDir*",
         "ds:EnableSso",
         "ds:DisableSso",
-        "ram:AcceptResourceShareInvitation",
+        "ram:AcceptResourceShareInv*",
         "ram:AssociateResourceShare",
         "ram:CreateResourceShare",
-        "ram:EnableSharingWithAwsOrganization",
+        "ram:EnableSharingWithAwsOrg*",
         "lightsail:*",
         "sumerian:*",
-        "cloud9:*",
         "gamelift:*",
         "appflow:*",
         "iq:*"
@@ -141,12 +136,10 @@
       "Effect": "Deny",
       "NotAction": [
         "a4b:*",
-        "access-analyzer:ValidatePolicy",
-        "access-analyzer:ListPolicyGenerations",
+        "access-analyzer:*",
         "aws-marketplace-management:*",
         "aws-marketplace:*",
         "aws-portal:*",
-        "awsbillingconsole:*",
         "budgets:*",
         "ce:*",
         "chime:*",
@@ -169,14 +162,23 @@
         "s3:GetAccountPublic*",
         "s3:GetBucketLocation",
         "s3:ListAllMyBuckets",
-        "s3:ListBuckets",
         "shield:*",
         "sts:*",
         "support:*",
         "trustedadvisor:*",
         "waf-regional:*",
         "waf:*",
-        "wafv2:*"
+        "wafv2:*",
+        "route53-recovery-readiness:*",
+        "route53-recovery-control-config:*",
+        "s3:GetStorageLens*",
+        "s3:ListStorageLens*",
+        "s3:CreateMultiR*",
+        "s3:DeleteMultiR*",
+        "s3:DescribeMultiR*",
+        "s3:GetMultiR*",
+        "s3:ListMultiR*",
+        "s3:PutMultiR*"
       ],
       "Resource": "*",
       "Condition": {
@@ -184,7 +186,11 @@
           "aws:RequestedRegion": "${ADDL_REGIONS_C}"
         },
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}"]
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
+            "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
+            "arn:aws:iam::*:role/AWSServiceRoleFor*"
+          ]
         }
       }
     }

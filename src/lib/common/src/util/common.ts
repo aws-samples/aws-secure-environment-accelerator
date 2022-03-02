@@ -75,13 +75,8 @@ export class RawConfig {
     const configString = await this.getFromFile(configFilePath);
     const config = getFormattedObject(configString, format);
     const loadConfigResponse = await this.load(config, loadFiles);
-    // Sending Root Config back
-    loadConfigResponse.loadFiles.push({
-      filePath: configFilePath,
-      fileContent: pretty(configString, format),
-    });
 
-    let updatedRawconfig = replaceDefaults({
+    let updatedRawConfig = replaceDefaults({
       config: getStringFromObject(loadConfigResponse.config, JSON_FORMAT),
       acceleratorName: this.props.acceleratorName,
       acceleratorPrefix: this.props.acceleratorPrefix,
@@ -89,16 +84,22 @@ export class RawConfig {
       additionalReplacements: additionalReplacements(loadConfigResponse.config.replacements || {}),
     });
 
-    updatedRawconfig = await vpcReplacements({
-      rawConfigStr: updatedRawconfig,
+    updatedRawConfig = await vpcReplacements({
+      rawConfigStr: updatedRawConfig,
     });
 
+    const updatedConfigs = enableGlobalRegion(configString, updatedRawConfig, format);
     // Sending Raw Config back
     loadConfigResponse.loadFiles.push({
       filePath: RAW_CONFIG_FILE,
-      fileContent: pretty(updatedRawconfig, JSON_FORMAT),
+      fileContent: pretty(updatedConfigs.rawConfigStr, JSON_FORMAT),
     });
 
+    // Sending Root Config back
+    loadConfigResponse.loadFiles.push({
+      filePath: configFilePath,
+      fileContent: pretty(updatedConfigs.configStr, format),
+    });
     return {
       config: JSON.stringify(loadConfigResponse.config),
       loadFiles: loadConfigResponse.loadFiles,
@@ -334,4 +335,20 @@ function randomString(length: number, charSet?: string) {
     randomString += charSet.charAt(Math.floor(Math.random() * charSet.length));
   }
   return randomString;
+}
+
+function enableGlobalRegion(config: string, rawConfig: string, format: FormatType) {
+  const rawConfigObj = getFormattedObject(rawConfig, format);
+  const configObj = getFormattedObject(config, format);
+  if (!rawConfigObj['global-options']['supported-regions'].includes('us-east-1')) {
+    console.log('us-east-1 is not inlcuded in supported-regions. Adding.');
+    configObj['global-options']['supported-regions'].push('us-east-1');
+    rawConfigObj['global-options']['supported-regions'].push('us-east-1');
+  } else {
+    console.log('Global region is added.');
+  }
+
+  const configStr = getStringFromObject(configObj, format);
+  const rawConfigStr = getStringFromObject(rawConfigObj, format);
+  return { configStr, rawConfigStr };
 }

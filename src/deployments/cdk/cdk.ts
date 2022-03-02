@@ -13,12 +13,15 @@ process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
 });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 microstats.on('memory', function (value: any) {
   console.log('MEMORY:', value);
 });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 microstats.on('disk', function (value: any) {
   console.log('DISK:', value);
 });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 microstats.on('cpu', function (value: any) {
   console.log('CPU:', value);
 });
@@ -58,6 +61,7 @@ const getHeapStatistics = () => {
 async function main() {
   await fs.writeFile('/tmp/buildStatus.txt', 'started', 'utf8');
   if (debugModeEnabled()) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     microstats.start(microstatsOptions, (err: any) => {
       console.log(err);
     });
