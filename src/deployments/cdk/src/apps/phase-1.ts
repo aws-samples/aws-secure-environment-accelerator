@@ -29,7 +29,7 @@ import { IamAssets } from '../common/iam-assets';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { S3 } from '@aws-accelerator/common/src/aws/s3';
 import { createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import { CentralBucketOutput, LogBucketOutput } from '../deployments/defaults/outputs';
+import { CentralBucketOutput, LogBucketOutput, AesBucketOutput } from '../deployments/defaults/outputs';
 import * as budget from '../deployments/billing/budget';
 import * as certificates from '../deployments/certificates';
 import * as defaults from '../deployments/defaults';
@@ -108,12 +108,19 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
+  const aesLogBucket = AesBucketOutput.getBucket({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
   // Find the account buckets in the outputs
   const accountBuckets = await defaults.step2({
     accounts,
     accountStacks,
     centralLogBucket: logBucket,
     config: acceleratorConfig,
+    prefix: context.acceleratorPrefix,
   });
 
   /**
@@ -477,6 +484,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         accounts,
         userPasswords,
         logBucket,
+        aesLogBucket,
       });
     }
   };

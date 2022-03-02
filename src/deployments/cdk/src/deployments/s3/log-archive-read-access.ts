@@ -22,12 +22,13 @@ export interface LogArchiveReadAccessProps {
   accountStacks: AccountStacks;
   accounts: Account[];
   logBucket: s3.IBucket;
+  aesLogBucket: s3.IBucket;
   config: AcceleratorConfig;
   acceleratorPrefix: string;
 }
 
 export async function logArchiveReadOnlyAccess(props: LogArchiveReadAccessProps) {
-  const { accountStacks, accounts, logBucket, config, acceleratorPrefix } = props;
+  const { accountStacks, accounts, logBucket, aesLogBucket, config, acceleratorPrefix } = props;
   const logArchiveAccountKey = config['global-options']['central-log-services'].account;
   const logArchiveStack = accountStacks.getOrCreateAccountStack(logArchiveAccountKey);
   const logArchiveReadOnlyRoles = [];
@@ -46,6 +47,7 @@ export async function logArchiveReadOnlyAccess(props: LogArchiveReadAccessProps)
   const LogBucketPolicy = new S3UpdateLogArchivePolicy(logArchiveStack, 'UpdateLogArchivePolicy', {
     roles: logArchiveReadOnlyRoles,
     logBucket,
+    aesLogBucket,
     acceleratorPrefix,
   });
 }

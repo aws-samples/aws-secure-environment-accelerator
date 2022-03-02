@@ -18,15 +18,16 @@ import { Bucket } from '@aws-accelerator/cdk-constructs/src/s3';
 import { createEncryptionKeyName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { AccountStack } from '../../common/account-stacks';
 import { overrideLogicalId } from '../../utils/cdk';
+import { Organizations } from '@aws-accelerator/custom-resource-organization';
 
 export interface KmsDetails {
   encryptionKey: kms.Key;
   alias: string;
 }
 
-export function createDefaultS3Key(props: { accountStack: AccountStack }): KmsDetails {
+export function createDefaultS3Key(props: { accountStack: AccountStack; prefix: string }): KmsDetails {
   const { accountStack } = props;
-
+  const organization = new Organizations(accountStack, 'Organization');
   const keyAlias = createEncryptionKeyName('Bucket-Key');
   const encryptionKey = new kms.Key(accountStack, 'DefaultKey', {
     alias: `alias/${keyAlias}`,
@@ -41,6 +42,39 @@ export function createDefaultS3Key(props: { accountStack: AccountStack }): KmsDe
       resources: ['*'],
     }),
   );
+  encryptionKey.addToResourcePolicy(
+    new iam.PolicyStatement({
+      sid: 'Allow AWS services to use the encryption key',
+      actions: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
+      principals: [
+        new iam.ServicePrincipal('sns.amazonaws.com'),
+        new iam.ServicePrincipal('cloudwatch.amazonaws.com'),
+        new iam.ServicePrincipal('lambda.amazonaws.com'),
+        // For macie usage in security account
+        new iam.ServicePrincipal('macie.amazonaws.com'),
+        // Kinesis for usage in the log account
+        new iam.ServicePrincipal('kinesis.amazonaws.com'),
+      ],
+      resources: ['*'],
+    }),
+  );
+  encryptionKey.addToResourcePolicy(
+    new iam.PolicyStatement({
+      sid: 'Allow Accelerator Role to use the encryption key',
+      actions: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
+      principals: [new iam.AnyPrincipal()],
+      resources: ['*'],
+      conditions: {
+        StringEquals: {
+          'aws:PrincipalOrgID': organization.organizationId,
+        },
+        StringLike: {
+          'aws:PrincipalArn': `arn:aws:iam::*:role/${props.prefix}*`,
+        },
+      },
+    }),
+  );
+
   return {
     encryptionKey,
     alias: keyAlias,

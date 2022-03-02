@@ -2458,6 +2458,10 @@ translate(c.MandatoryAccountConfigType, {
       description:
         'A list of the SSM automation documents defined and created within `global-options` to be *shared* into this account, in addition to any OU level documents shared into this account.',
     },
+    'ssm-inventory-collection': {
+      title: 'SSM Inventory Collection',
+      description: 'When true, deploys and configures SSM Inventory Collection.',
+    },
     'aws-config': {
       title: 'AWS Config Rules',
       description:
@@ -2541,6 +2545,10 @@ translate(c.OrganizationalUnitConfigType, {
       title: 'SSM Automation Documents',
       description:
         'A list of the SSM automation documents defined and created within `global-options` to be *shared* into every account within this OU.',
+    },
+    'ssm-inventory-collection': {
+      title: 'SSM Inventory Collection',
+      description: 'When true, deploys and configures SSM Inventory Collection.',
     },
     'aws-config': {
       title: 'AWS Config Rules',
@@ -2707,6 +2715,22 @@ translate(c.CwlExclusions, {
   },
 });
 
+translate(c.S3LogPartitionType, {
+  title: 'S3 Log Partition Mapping',
+  description: 'Maps CloudWatch Log Groups to S3 prefixes.',
+  fields: {
+    logGroupPattern: {
+      title: 'Log Group Pattern',
+      description: 'Used to match a log group.',
+    },
+    s3Prefix: {
+      title: 'S3 Prefix',
+      description:
+        'CloudWatch log entries that match the logGroupPattern will be extracted and placed into a S3 prefix specified by this value.',
+    },
+  },
+});
+
 translate(c.CentralServicesConfigType, {
   title: 'Centralized Security Services Config',
   description:
@@ -2845,6 +2869,10 @@ translate(c.CentralServicesConfigType, {
     'config-aggr': {
       title: 'AWS Config Aggregator',
       description: 'Configures the AWS Account with an AWS Config Aggregator. [ALL]',
+    },
+    'dynamic-s3-log-partitioning': {
+      title: 'Dynamic S3 Log Partitioning',
+      description: 'Configures CWLogs to be extracted and placed into different S3 prefixes from Firehose.',
     },
   },
 });

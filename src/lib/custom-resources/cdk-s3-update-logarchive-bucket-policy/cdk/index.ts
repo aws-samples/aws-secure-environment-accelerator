@@ -23,8 +23,10 @@ const resourceType = 'Custom::S3UpdateLogArchivePolicy';
 export interface LogArchiveReadAccessProps {
   roles: string[];
   logBucket: s3.IBucket;
+  aesLogBucket: s3.IBucket;
   removalPolicy?: cdk.RemovalPolicy;
   acceleratorPrefix: string;
+  forceUpdate?: boolean;
 }
 
 /**
@@ -36,7 +38,7 @@ export class S3UpdateLogArchivePolicy extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, private readonly props: LogArchiveReadAccessProps) {
     super(scope, id);
 
-    const { roles, logBucket, acceleratorPrefix } = props;
+    const { roles, logBucket, aesLogBucket, acceleratorPrefix } = props;
   }
 
   get role(): iam.IRole {
@@ -49,7 +51,15 @@ export class S3UpdateLogArchivePolicy extends cdk.Construct {
       logBucketArn: this.props.logBucket.bucketArn,
       logBucketName: this.props.logBucket.bucketName,
       logBucketKmsKeyArn: this.props.logBucket.encryptionKey?.keyArn,
+      aesLogBucketArn: this.props.aesLogBucket.bucketArn,
+      aesLogBucketName: this.props.aesLogBucket.bucketName,
     };
+
+    const forceUpdate = this.props.forceUpdate ?? true;
+    if (forceUpdate) {
+      // Add a dummy value that is a random number to update the resource every time
+      handlerProperties.forceUpdate = Math.round(Math.random() * 1000000);
+    }
 
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
