@@ -16,6 +16,7 @@ import { AcceleratorConfig } from '..';
 import { compareConfiguration, Diff, getAccountNames } from './config-diff';
 import * as validate from './validate';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { number } from '@aws-accelerator/common-types';
 
 /**
  * Retrieve and compare previous and the current configuration from CodeCommit
@@ -62,16 +63,18 @@ export async function compareAcceleratorConfig(props: {
 
   const previousConfig = JSON.parse(previousContent);
   const modifiedConfig = JSON.parse(modifiedContent);
-
+  const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
   const errors: string[] = [];
 
+  // Check for duplicate email entry
+  checkForEmailDuplicates(acceleratorConfig, errors);
+  checkForMismatchedAccountKeys(modifiedConfig, errors);
   // compare both the configurations
   const configChanges = compareConfiguration(previousConfig, modifiedConfig);
   if (!configChanges) {
     console.log('no differences found');
     // Validate DDB Pool entries changes
     if (!overrideConfig['ov-cidr']) {
-      const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
       await validate.validateDDBChanges(
         acceleratorConfig,
         vpcCidrPoolAssignedTable,
@@ -167,7 +170,6 @@ export async function compareAcceleratorConfig(props: {
   // Validate DDB Pool entries changes
   if (!overrideConfig['ov-cidr']) {
     console.log(`Validating Cidr Changes`);
-    const acceleratorConfig = AcceleratorConfig.fromObject(modifiedConfig);
     await validate.validateDDBChanges(
       acceleratorConfig,
       vpcCidrPoolAssignedTable,
@@ -177,6 +179,59 @@ export async function compareAcceleratorConfig(props: {
     );
   }
 
+  return errors;
+}
+
+function checkForEmailDuplicates(acceleratorConfig: AcceleratorConfig, errors: string[]) {
+  console.log('checking for duplicate emails');
+  const manditoryAccounts = Object.entries(acceleratorConfig['mandatory-account-configs']);
+  const workloadAccounts = Object.entries(acceleratorConfig['workload-account-configs']);
+  const emails = [];
+
+  for (const [_key, obj] of manditoryAccounts) {
+    emails.push(obj.email);
+  }
+
+  for (const [_key, obj] of workloadAccounts) {
+    emails.push(obj.email);
+  }
+
+  const emailCounts = emails.reduce((acc: { [key: string]: number }, email) => {
+    if (!acc[email]) {
+      acc[email] = 1;
+    } else {
+      acc[email]++;
+    }
+    return acc;
+  }, {});
+
+  for (const [key, val] of Object.entries(emailCounts)) {
+    if (val > 1) {
+      errors.push(
+        `found duplicate entries for key ${key} under manditory-account-configs or workload-account-configs. Please use unique email addresses for each account.`,
+      );
+    }
+  }
+
+  return errors;
+}
+
+function checkForMismatchedAccountKeys(acceleratorConfig: AcceleratorConfig, errors: string[]) {
+  console.log('Checking for mismatched account keys');
+  const mandatoryAccountKeys = [
+    'aws-org-management',
+    'central-security-services',
+    'central-operations-services',
+    'central-log-services',
+  ];
+  // @ts-ignore
+  const globalAccountKeys = mandatoryAccountKeys.map(key => acceleratorConfig['global-options'][key].account);
+  const manditoryAccountKeys = Object.keys(acceleratorConfig['mandatory-account-configs']);
+  globalAccountKeys.forEach(globalKey => {
+    if (!manditoryAccountKeys.includes(globalKey)) {
+      errors.push(`The account key ${globalKey} is not defined in manditory-account-configs.`);
+    }
+  });
   return errors;
 }
 

@@ -17,7 +17,6 @@ import * as kms from '@aws-cdk/aws-kms';
 import * as s3 from '@aws-cdk/aws-s3';
 import { RegionInfo } from '@aws-cdk/region-info';
 import { EbsDefaultEncryption } from '@aws-accelerator/custom-resource-ec2-ebs-default-encryption';
-import { S3CopyFiles } from '@aws-accelerator/custom-resource-s3-copy-files';
 import { S3PublicAccessBlock } from '@aws-accelerator/custom-resource-s3-public-access-block';
 import { Organizations } from '@aws-accelerator/custom-resource-organization';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
@@ -191,7 +190,6 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
  */
 function createCentralLogBucket(props: DefaultsStep1Props) {
   const { accountStacks, config } = props;
-
   const logAccountConfig = config['global-options']['central-log-services'];
   const logAccountStack = accountStacks.getOrCreateAccountStack(logAccountConfig.account);
 
@@ -200,6 +198,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
   const anyAccountPrincipal = [new iam.AnyPrincipal()];
   const logKey = createDefaultS3Key({
     accountStack: logAccountStack,
+    prefix: props.acceleratorPrefix,
   });
 
   const defaultLogRetention = config['global-options']['central-log-services']['s3-retention'];
@@ -275,6 +274,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
         new iam.ServicePrincipal('delivery.logs.amazonaws.com'),
         new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
         new iam.ServicePrincipal('config.amazonaws.com'),
+        new iam.ServicePrincipal('ssm.amazonaws.com'),
       ],
       actions: ['s3:PutObject'],
       resources: [`${logBucket.bucketArn}/*`],
@@ -288,10 +288,19 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
+      principals: [new iam.ServicePrincipal('ssm.amazonaws.com')],
+      actions: ['s3:PutObjectTagging'],
+      resources: [`${logBucket.bucketArn}/*`],
+    }),
+  );
+
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
       principals: [
         new iam.ServicePrincipal('delivery.logs.amazonaws.com'),
         new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
         new iam.ServicePrincipal('config.amazonaws.com'),
+        new iam.ServicePrincipal('ssm.amazonaws.com'),
       ],
       actions: ['s3:GetBucketAcl', 's3:ListBucket'],
       resources: [`${logBucket.bucketArn}`],
@@ -536,7 +545,7 @@ function createDefaultEncryptionKeys(props: DefaultsStep1Props): LogAccountDefau
       console.warn(`Cannot find ${accountStack} stack in ${region}`);
       continue;
     }
-    createKeyAndOutput(accountStack, region, defaultEncryptionKeys);
+    createKeyAndOutput(accountStack, region, defaultEncryptionKeys, props.acceleratorPrefix);
     // If add-sns-topic is set true for the security account, create a default key in other regions there as well
     if (centralSecurityServices['add-sns-topics']) {
       const accountStack = accountStacks.tryGetOrCreateAccountStack(centralSecurityServices.account, region);
@@ -544,7 +553,7 @@ function createDefaultEncryptionKeys(props: DefaultsStep1Props): LogAccountDefau
         console.warn(`Cannot find ${accountStack} stack in ${region}`);
         continue;
       }
-      createKeyAndOutput(accountStack, region, defaultEncryptionKeys);
+      createKeyAndOutput(accountStack, region, defaultEncryptionKeys, props.acceleratorPrefix);
     }
   }
 
@@ -555,11 +564,15 @@ function createKeyAndOutput(
   accountStack: AccountStack,
   region: string,
   defaultEncryptionKeys: LogAccountDefaultEncryptionKeys,
+  prefix: string,
 ) {
   // Create a default EBS encryption key for every other region of the log account
   const keyAlias = createEncryptionKeyName('Default-Key');
   // Default EBS encryption key
-  const key = createDefaultS3Key({ accountStack }).encryptionKey;
+  const key = createDefaultS3Key({
+    accountStack,
+    prefix,
+  }).encryptionKey;
 
   defaultEncryptionKeys[accountStack.accountKey] = {
     ...defaultEncryptionKeys[accountStack.accountKey],

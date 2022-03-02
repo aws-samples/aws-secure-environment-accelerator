@@ -12,3 +12,4 @@
  */
 
 export * from './ssm-document';
+export * from './ssm-inventory';

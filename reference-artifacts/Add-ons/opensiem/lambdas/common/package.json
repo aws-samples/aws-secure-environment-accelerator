@@ -1,0 +1,26 @@
+{
+    "name": "siem-common",
+    "version": "0.0.1",
+    "private": true,
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "npx esbuild --minify --bundle --platform=node --target=node14 --external:aws-sdk --outfile=./dist/index.js src/index.ts",
+        "watch": "tsc -w",
+        "test": "jest",
+        "cdk": "cdk"
+      },
+    "devDependencies": {
+        "@types/aws-lambda": "8.10.76",
+        "@types/node": "14.14.31",
+        "ts-node": "9.1.1",
+        "typescript": "4.2.4"
+    },
+    "dependencies": {
+        "aws-lambda": "1.0.6",
+        "aws-sdk": "2.944.0",
+        "lodash": "^4.17.21",
+        "pascal-case": "3.1.2",
+        "tar-stream": "^2.2.0",
+        "exponential-backoff": "3.1.0"
+    }
+}

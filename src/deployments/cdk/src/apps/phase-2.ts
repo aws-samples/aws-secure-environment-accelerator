@@ -480,6 +480,13 @@ export async function deploy({
     outputs,
   });
 
+  await ssmDeployment.inventoryCollection({
+    acceleratorPrefix: context.acceleratorPrefix,
+    logBucketName: logBucket.bucketName,
+    acceleratorConfig,
+    accountStacks,
+  });
+
   await alb.step1({
     accountStacks,
     config: acceleratorConfig,

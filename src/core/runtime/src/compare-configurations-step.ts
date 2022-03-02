@@ -133,6 +133,7 @@ export const handler = async (input: StepInput) => {
   const { scope, targetAccounts, targetOus } = inputConfig;
 
   const accounts = await loadAccounts(parametersTableName, dynamodb);
+
   const targetAccountKeys: string[] = [];
   if (targetAccounts) {
     targetAccounts.map(targetAccount => {
