@@ -1540,6 +1540,10 @@ translate(c.RsyslogConfig, {
       description:
         'The number of days before the auto-scaling group replaces any instance. This ensures a clean image is always deployed and if the state machine has been executed, will deploy the most recent patch release of the AMI.',
     },
+    'user-data': {
+      title: 'user data',
+      description: 'Override the default user data EC2 init script.',
+    },
   },
 });
 

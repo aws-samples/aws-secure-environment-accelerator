@@ -1417,6 +1417,10 @@ translate(c.RsyslogConfig, {
       title: '',
       description: '',
     },
+    'user-data': {
+      title: '',
+      description: '',
+    },
   },
 });
 
