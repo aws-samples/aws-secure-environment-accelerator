@@ -87,10 +87,16 @@ export class RsysLogAutoScalingGroup extends cdk.Construct {
 
     if (props.userData) {
       /* eslint-disable no-template-curly-in-string */
-      launchConfigUserData = props.userData.replace(
-        new RegExp('\\${SEA:CUSTOM::RsyslogLogGroupName}', 'g'),
-        props.logGroupName,
-      );
+      const replaceTokens = new Map([
+        ['\\${SEA:CUSTOM::RsyslogLogGroupName}', props.logGroupName],
+        ['\\${SEA:CUSTOM::Region}', cdk.Aws.REGION],
+        ['\\${SEA:CUSTOM::CentralBucket}', props.centralBucketName],
+      ]);
+
+      launchConfigUserData = props.userData;
+      for (const replaceToken of replaceTokens.entries()) {
+        launchConfigUserData = launchConfigUserData.replace(new RegExp(replaceToken[0], 'g'), replaceToken[1]);
+      }
     }
 
     launchConfig.userData = cdk.Fn.base64(launchConfigUserData);
