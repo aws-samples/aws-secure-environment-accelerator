@@ -1878,6 +1878,10 @@ translate(c.FirewallEC2ConfigType, {
       title: '',
       description: 'AMI image ID',
     },
+    'enforce-imdsv2': {
+      title: 'Enforce IMDSv2 on the EC instances launched for firewalls',
+      description: 'If set to true, IMDSv2 will be mandatory on the firewall instances. Default : false',
+    },
     region: {
       title: '',
       description: 'Region to deploy the firewall',
@@ -2026,6 +2030,10 @@ translate(c.FirewallAutoScaleConfigType, {
       title: '',
       description: '',
     },
+    'enforce-imdsv2': {
+      title: 'Enforce IMDSv2 on the EC instances launched for firewalls',
+      description: 'If set to true, IMDSv2 will be mandatory on the instances. Default : false',
+    },
     'instance-sizes': {
       title: '',
       description: '',
@@ -2112,6 +2120,10 @@ translate(c.FirewallManagerConfigType, {
     'image-id': {
       title: 'Image ID',
       description: '',
+    },
+    'enforce-imdsv2': {
+      title: 'Enforce IMDSv2 on the EC instance launched for firewall manager',
+      description: 'If set to true, IMDSv2 will be mandatory on the instance. Default : false',
     },
     region: {
       title: '',

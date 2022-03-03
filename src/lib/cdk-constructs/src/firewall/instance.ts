@@ -20,6 +20,7 @@ import { IInstanceProfile } from '../iam';
 import { Subnet, SecurityGroup } from '../vpc';
 import { CfnSleep } from '@aws-accelerator/custom-resource-cfn-sleep';
 import { EC2DisableApiTermination } from '@aws-accelerator/custom-resource-ec2-disable-api-termination';
+import { EC2ModifyMetadataOptions } from '@aws-accelerator/custom-resource-ec2-modify-metadata-options';
 
 export interface FirewallVpnTunnelOptions {
   cgwTunnelInsideAddress1: string;
@@ -51,6 +52,7 @@ export interface FirewallInstanceProps {
   name: string;
   hostname: string;
   vpcCidrBlock: string;
+  enforceImdsV2: boolean;
   additionalCidrBlocks: string[];
   licensePath?: string;
   licenseBucket?: s3.IBucket;
@@ -124,6 +126,13 @@ export class FirewallInstance extends cdk.Construct {
     if (this.template) {
       this.resource.node.addDependency(this.template);
     }
+
+    new EC2ModifyMetadataOptions(this, `EC2${this.props.name}ModifyMetadataOptions`, {
+      ec2Id: this.resource.ref,
+      ec2Name: this.props.name,
+      httpEndpoint: 'enabled',
+      httpTokens: this.props.enforceImdsV2 ? 'required' : 'optional',
+    });
 
     new EC2DisableApiTermination(this, `EC2${this.props.name}DisableApiTermination`, {
       ec2Id: this.resource.ref,
