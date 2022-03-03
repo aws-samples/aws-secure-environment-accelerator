@@ -49,12 +49,7 @@ export class EC2ModifyMetadataOptions extends cdk.Construct {
       resourceType: 'Custom::EC2ModifyMetadataOptions',
       onCreate: onCreateOrUpdate,
       onUpdate: onCreateOrUpdate,
-      policy: custom.AwsCustomResourcePolicy.fromStatements([
-        new iam.PolicyStatement({
-          actions: ['ec2:ModifyInstanceMetadataOptions'],
-          resources: ['*'],
-        }),
-      ]),
+      policy: custom.AwsCustomResourcePolicy.fromSdkCalls({ resources: custom.AwsCustomResourcePolicy.ANY_RESOURCE }),
     });
   }
 }
