@@ -87,9 +87,11 @@ Resources:
                 Action:
                   - s3:GetObject
                   - dynamodb:PutItem
+                  - kms:Decrypt
                 Resource:
                   - !Sub 'arn:aws:s3:::ddb-cidr-${AWS::AccountId}/cidr-update-list.json'
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*'
+                  - !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*"
         - PolicyName: UnrestrictedPermissions
           PolicyDocument:
             Version: 2012-10-17
