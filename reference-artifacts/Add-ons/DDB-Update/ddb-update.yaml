@@ -1,5 +1,9 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: CloudFormation to update DynamoDB with new CIDRs
+Parameters:
+  KMSKeyArn:
+    Description: 'The arn of the ASEA installer KMS key. Used to access the CIDR Pool DDB table'
+    Type: 'String'
 Resources:
   CIDRS3Bucket:
     Type: AWS::S3::Bucket
@@ -91,7 +95,7 @@ Resources:
                 Resource:
                   - !Sub 'arn:aws:s3:::ddb-cidr-${AWS::AccountId}/cidr-update-list.json'
                   - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*'
-                  - !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*"
+                  - !Ref KMSKeyArn
         - PolicyName: UnrestrictedPermissions
           PolicyDocument:
             Version: 2012-10-17
