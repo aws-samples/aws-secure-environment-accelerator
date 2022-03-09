@@ -1,0 +1,16 @@
+{
+    "cidr-pools": [
+        {
+            "cidr": "10.0.0.0/18",
+            "pool": "prod_eu-west-2",
+            "description": "Production supernet for region eu-west-2",
+            "region": "eu-west-2"
+        },
+        {
+            "cidr": "10.0.64.0/16",
+            "pool": "dev_eu-west-2",
+            "description": "Development supernet for region eu-west-2",
+            "region": "eu-west-2"
+        }
+    ]
+}

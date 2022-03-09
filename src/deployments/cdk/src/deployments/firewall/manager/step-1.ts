@@ -155,6 +155,7 @@ async function createFirewallManager(props: {
     }),
     configName: config.name,
     imageId: config['image-id'],
+    enforceImdsV2: config['enforce-imdsv2'],
     instanceType: config['instance-sizes'],
     blockDeviceMappings,
     userData,

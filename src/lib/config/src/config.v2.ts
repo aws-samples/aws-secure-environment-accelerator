@@ -474,6 +474,7 @@ export const RsyslogConfig = t.interface({
   'rsyslog-enforce-imdsv2': t.defaulted(t.boolean, false),
   'rsyslog-root-volume-size': t.number,
   'rsyslog-max-instance-age': t.number,
+  'user-data': t.optional(t.nonEmptyString),
 });
 
 export type RsyslogConfig = t.TypeOf<typeof RsyslogConfig>;
@@ -587,6 +588,7 @@ export const FirewallEC2ConfigType = t.interface({
   name: t.nonEmptyString,
   'instance-sizes': t.nonEmptyString,
   'image-id': t.nonEmptyString,
+  'enforce-imdsv2': t.defaulted(t.boolean, false),
   region: t.nonEmptyString,
   vpc: t.nonEmptyString,
   'security-group': t.nonEmptyString,
@@ -631,6 +633,7 @@ export const FirewallAutoScaleConfigType = t.interface({
   vpc: t.nonEmptyString,
   subnet: t.nonEmptyString,
   'security-group': t.nonEmptyString,
+  'enforce-imdsv2': t.defaulted(t.boolean, false),
   'fw-instance-role': t.optional(t.string),
   'user-data': t.optional(t.string),
   bootstrap: t.optional(t.nonEmptyString),
@@ -654,6 +657,7 @@ export const FirewallManagerConfigType = t.interface({
   name: t.nonEmptyString,
   'instance-sizes': t.nonEmptyString,
   'image-id': t.nonEmptyString,
+  'enforce-imdsv2': t.defaulted(t.boolean, false),
   region: t.nonEmptyString,
   vpc: t.nonEmptyString,
   'security-group': t.nonEmptyString,

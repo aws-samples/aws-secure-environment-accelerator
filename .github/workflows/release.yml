@@ -397,10 +397,6 @@ jobs:
 
       - name: Copy file output 4e
         run: |
-          cp reference-artifacts/Third-Party/firewall-example-A-A-singletunnel.txt ${{ steps.setup.outputs.dir }}/4e-${{ steps.setup.outputs.prefix }}-firewall-example-A-A-singletunnel.txt
-
-      - name: Copy file output 4e1
-        run: |
           cp reference-artifacts/Third-Party/firewall-example-A-A-multitunnel.txt ${{ steps.setup.outputs.dir }}/4e-${{ steps.setup.outputs.prefix }}-firewall-example-A-A-multitunnel.txt
 
       - name: PDF output 4f

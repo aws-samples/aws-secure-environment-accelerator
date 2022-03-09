@@ -20,6 +20,7 @@
     "@aws-accelerator/custom-resource-cfn-sleep": "workspace:*",
     "@aws-accelerator/custom-resource-elb-deletion-protection": "workspace:*",
     "@aws-accelerator/custom-resource-ec2-disable-api-termination": "workspace:*",
+    "@aws-accelerator/custom-resource-ec2-modify-metadata-options": "workspace:*",
     "@aws-accelerator/custom-resource-r53-dns-endpoint-ips": "workspace:*",
     "@aws-accelerator/custom-resource-s3-put-bucket-replication": "workspace:*",
     "@aws-accelerator/custom-resource-s3-template": "workspace:*",

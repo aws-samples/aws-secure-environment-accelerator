@@ -24,6 +24,7 @@ export interface FirewallClusterProps {
   vpcCidrBlock: string;
   additionalCidrBlocks: string[];
   imageId: string;
+  enforceImdsV2: boolean;
   instanceType: string;
   instanceRole: iam.IRole;
   instanceProfile: IInstanceProfile;
@@ -68,6 +69,7 @@ export class FirewallCluster extends cdk.Construct {
       vpcCidrBlock: this.props.vpcCidrBlock,
       additionalCidrBlocks: this.props.additionalCidrBlocks,
       imageId: this.props.imageId,
+      enforceImdsV2: this.props.enforceImdsV2,
       instanceType: this.props.instanceType,
       instanceProfile: this.props.instanceProfile,
       keyPairName: this.props.keyPairName,

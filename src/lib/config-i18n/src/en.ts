@@ -1540,6 +1540,10 @@ translate(c.RsyslogConfig, {
       description:
         'The number of days before the auto-scaling group replaces any instance. This ensures a clean image is always deployed and if the state machine has been executed, will deploy the most recent patch release of the AMI.',
     },
+    'user-data': {
+      title: 'user data',
+      description: 'Override the default user data EC2 init script.',
+    },
   },
 });
 
@@ -1874,6 +1878,10 @@ translate(c.FirewallEC2ConfigType, {
       title: '',
       description: 'AMI image ID',
     },
+    'enforce-imdsv2': {
+      title: 'Enforce IMDSv2 on the EC instances launched for firewalls',
+      description: 'If set to true, IMDSv2 will be mandatory on the firewall instances. Default : false',
+    },
     region: {
       title: '',
       description: 'Region to deploy the firewall',
@@ -2022,6 +2030,10 @@ translate(c.FirewallAutoScaleConfigType, {
       title: '',
       description: '',
     },
+    'enforce-imdsv2': {
+      title: 'Enforce IMDSv2 on the EC instances launched for firewalls',
+      description: 'If set to true, IMDSv2 will be mandatory on the instances. Default : false',
+    },
     'instance-sizes': {
       title: '',
       description: '',
@@ -2108,6 +2120,10 @@ translate(c.FirewallManagerConfigType, {
     'image-id': {
       title: 'Image ID',
       description: '',
+    },
+    'enforce-imdsv2': {
+      title: 'Enforce IMDSv2 on the EC instance launched for firewall manager',
+      description: 'If set to true, IMDSv2 will be mandatory on the instance. Default : false',
     },
     region: {
       title: '',
