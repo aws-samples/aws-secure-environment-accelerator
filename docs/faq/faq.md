@@ -46,11 +46,12 @@
     - [1.6.11. Can the Fortinet Firewall deployments use static private IP address assignments?](#1611-can-the-fortinet-firewall-deployments-use-static-private-ip-address-assignments)
     - [1.6.12. I've noticed CloudTrail logs and in certain situation VPC flow logs are stored in the centralized log-archive account logging bucket twice?](#1612-ive-noticed-cloudtrail-logs-and-in-certain-situation-vpc-flow-logs-are-stored-in-the-centralized-log-archive-account-logging-bucket-twice)
     - [1.6.13. I need a Route53 Private Hosted Zone in my workload account. How shall I proceed?](#1613-i-need-a-route53-private-hosted-zone-in-my-workload-account-how-shall-i-proceed)
-      - [Create in workload account VPC](#create-in-workload-account-vpc)
-      - [Create in workload account Private Hosted Zone](#create-in-workload-account-private-hosted-zone)
-      - [Create an authorization to associate with this new zone](#create-an-authorization-to-associate-with-this-new-zone)
-      - [Associate Hosted zone](#associate-hosted-zone)
-      - [Validate Association and clean-up](#validate-association-and-clean-up)
+  - [1.7. Network Architecture](#17-network-architecture)
+    - [1.7.1. We want to securely connect our on-premises networks/datacenters to our AWS Cloud PBMM tenancy, what does AWS you recommend?](#171-we-want-to-securely-connect-our-on-premises-networksdatacenters-to-our-aws-cloud-pbmm-tenancy-what-does-aws-you-recommend)
+    - [1.7.2. Does this configuration violate PBMM / ITSG-22/38/33 principals?](#172-does-this-configuration-violate-pbmm--itsg-223833-principals)
+    - [1.7.3. Why do you NOT recommend using a VGW on the perimeter VPC?](#173-why-do-you-not-recommend-using-a-vgw-on-the-perimeter-vpc)
+    - [1.7.4. Why do you NOT recommend connecting directly to the 3rd party firewall cluster in the perimeter account? (not GWLB, not NFW)](#174-why-do-you-not-recommend-connecting-directly-to-the-3rd-party-firewall-cluster-in-the-perimeter-account-not-gwlb-not-nfw)
+    - [1.7.5. What if I really want to inspect this traffic inside AWS, but like the TGW architecture?](#175-what-if-i-really-want-to-inspect-this-traffic-inside-aws-but-like-the-tgw-architecture)
 
 ## 1.1. Operational Activities
 
@@ -600,12 +601,11 @@ To reduce the duplicate long-term storage of these two specific CloudWatch Log t
 
 Side note: CloudTrail S3 data plane logs are enabled at the Organizational level, meaning all S3 bucket access is logged. As CloudTrail is writing to a bucket within the Organization, Cloudtrail itself is accessing the bucket, seemingly creating a cyclical loop. As CloudTrail writes to S3 in 5-10min batches, Cloudtrail will actually only cause one extra log 'entry' every 5-10minutes and not per s3 event, mitigating major concerns. Today, with an Organization trail logging data plane events for all buckets - there is no way to exclude any one bucket. But - having clear view of who accessed/changed logs, including AWS services, is important.
 
-[...Return to Accelerator Table of Contents](../index.md)
-
 ### 1.6.13. I need a Route53 Private Hosted Zone in my workload account. How shall I proceed?
+
 The workload account requires a temporary local VPC in order to create the Private Hosted Zone (PHZ)
 
-#### Create in workload account VPC
+<u>**Create in workload account VPC**</u>
 
 You can create the temporary VPC at account creation via ASEA config (prefered way) by adding a config similar to this one on the workload account definition.
 If you don't use the ASEA config you will need to assume the proper ASEA elevated role in the workload account in order to create the VPC.
@@ -632,69 +632,89 @@ If you don't use the ASEA config you will need to assume the proper ASEA elevate
     ]
 }
 ```
-#### Create in workload account Private Hosted Zone
+
+<u>**Create in workload account Private Hosted Zone**</u>
+
 From the workload account:
 
 List the VPCs.
+
 ```
  aws ec2 describe-vpcs
 ```
+
 Then retrieve the VpcId attribute for the newly created VPC as well as the Id for the shared VPC.
 
 Create the Private Hosted Zone
+
 ```
 aws route53 create-hosted-zone --name <MY_DOMAIN> --hosted-zone-config PrivateZone=true --vpc VPCRegion=<VPC_REGION>,VPCId=<VPC_ID> --caller-reference <YOUR_REFERENCE_ID>
 ```
-Insert the proper values for (Your reference can be any value): 
-* `<MY_DOMAIN>`
-* `<VPC_REGION>`
-* `<VPC_ID>` (Id of new the local VPC)
-* `<YOUR_REFERENCE_ID>`
 
-Take note of the newly created hosted zone id by looking at the output of the command. 
+Insert the proper values for:
+
+- `<MY_DOMAIN>`
+- `<VPC_REGION>`
+- `<VPC_ID>` (id of new the local VPC)
+- `<YOUR_REFERENCE_ID>` (can be any value)
+
+Take note of the newly created hosted zone id by looking at the output of the command.
 The Id is the value after `/hostedzone/` from the Id attribute.
 For example, the value is `Z0123456NWOWQ4HNN40U` from `"Id": "/hostedzone/Z0123456NWOWQ4HNN40U"`.
 
-#### Create an authorization to associate with this new zone
+<u>**Create an authorization to associate with this new zone**</u>
+
 Still in the workload account; create an association request authorization to allow the shared VPC to associate with this new zone.
 
 ```
 aws route53 create-vpc-association-authorization --hosted-zone-id <ZONE_ID> --vpc VPCRegion=<SHARED_VPC_REGION>,VPCId=<SHARED_VPC_ID>
 ```
-Insert the proper values for: 
-* `<ZONE_ID>`
-* `<SHARED_VPC_REGiON>`
-* `<SHARED_VPC_ID>`
 
-#### Associate Hosted zone
+Insert the proper values for:
+
+- `<ZONE_ID>`
+- `<SHARED_VPC_REGiON>`
+- `<SHARED_VPC_ID>`
+
+<u>**Associate Hosted zone**</u>
+
 In the SharedNetwork account associate the Private Hosted Zone from the workload account.
 
 ```
 aws route53 associate-vpc-with-hosted-zone --hosted-zone-id <ZONE_ID> --vpc VPCRegion=<SHARED_VPC_REGION>,VPCId=<SHARED_VPC_ID>
 ```
-Insert the proper values for: 
-* `<ZONE_ID>`
-* `<SHARED_VPC_REGiON>`
-* `<SHARED_VPC_ID>`
 
-#### Validate Association and clean-up
+Insert the proper values for:
+
+- `<ZONE_ID>`
+- `<SHARED_VPC_REGiON>`
+- `<SHARED_VPC_ID>`
+
+<u>**Validate Association and clean-up**</u>
+
 In the workload account, validate the association using the below command. You should see two VPCs attache. The local vpc and the shared vpc.
+
 ```
 aws route53 get-hosted-zone --id <ZONE_ID>
 ```
-Insert the proper values for: 
-* `<ZONE_ID>`
+
+Insert the proper values for:
+
+- `<ZONE_ID>`
 
 You can now dissociate the local vpc from the zone.
+
 ```
 aws route53 disassociate-vpc-from-hosted-zone --hosted-zone-id <ZONE_ID> --vpc VPCRegion=<VPC_REGION>,VPCId=<VPC_ID>
 ```
-Insert the proper values for: 
-* `<ZONE_ID>`
-* `<VPC_REGiON>`
-* `<VPC_ID>`
 
-You can now delete the local VPC. We recommand you leverage the ASEA configuration file.
+Insert the proper values for:
+
+- `<ZONE_ID>`
+- `<VPC_REGiON>`
+- `<VPC_ID>`
+
+You can now delete the local VPC. We recommend you leverage the ASEA configuration file.
 Simply the remove the `vpc` section from the workload account:
 
 ```
@@ -706,6 +726,44 @@ Simply the remove the `vpc` section from the workload account:
 }
 ```
 
-and redeploy using the Main State Machine.
+and rerun the State Machine.
 
+## 1.7. Network Architecture
 
+### 1.7.1. We want to securely connect our on-premises networks/datacenters to our AWS Cloud PBMM tenancy, what does AWS you recommend?
+
+We recommend customers create a new AWS sub-account in your organization in the Infrastructure OU to “own” the Direct Connect (DX), segregating Direct Connect management and billing from other organization activities. Once provisioned you would create a Public VIF on the DX in this account. You can also create additional Private VIF’s when and if required, and share them directly with any sub-account that needs to consume them.
+
+We recommend customers then inter-connect directly to the Transit Gateway, in the Shared Network sub-account, from your on-premises network/datacenters.
+
+- Initiate IPSec VPN tunnels from on-premises to the TGW using BGP w/ECMP to scale and balance the traffic. Equal Cost Multi-Pathing (ECMP) is used to balance the traffic across the available VPN tunnels.
+- You need to create as many VPN attachments to the TGW as is required to meet your bandwidth requirements or DX capacity. Today IPSec attachments are limited to 1.25 Gbps each (10 Gbps would require 8 attachments) and is scalable to 50 Gbps.
+- Each VPN attachment would comprise two tunnels (active/passive), each connecting to a different on-premises firewall/VPN appliance.
+
+The VPN attachments would then be connected to an appropriately configured route table on the TGW. TGW route tables provide VRF like segregation capabilities, allowing customers to control which of their cloud based networks are allowed to communicate on-premises, or visa-versa.
+
+This architecture is fully managed and easy to manage, highly available, scalable, cost effective, and enables customers to reserve all their 3rd party Perimeter firewall capacity for public or internet facing traffic.
+
+(This guidance will be updated once MACSEC is broadly available across AWS transit centers)
+
+### 1.7.2. Does this configuration violate PBMM / ITSG-22/38/33 principals?
+
+No. Data center interconnects are not zoning boundaries (or ZIPs). Additionally, in many cases the on-premises VPN termination device used to interconnect to the cloud either contains, or is placed in-line with firewall and/or inspection devices. Customers insistent on placing a firewall between datacenters can enable the appropriate filtering or inspection on these on-premise devices. Enabling the same capabilities inside AWS would mean a customer is inspecting both ends of the same wire, a pointless activity. The TGW approach is being used by several gov’t PBMM customers.
+
+Additionally, it should be noted that workloads in all the AWS accounts are fully protected using AWS Security Groups (stateful firewalls) wrapped around each and every instance comprising a workload.
+
+### 1.7.3. Why do you NOT recommend using a VGW on the perimeter VPC?
+
+The VGW solution was not designed to support an enterprise cloud environment – it was designed to provide single VPC connectivity. The VGW solution offers lower availability than other options as it relies on VPC route tables to steer traffic, which need to be updated using custom scripts in the event the failure of an appliance or availability zone. The VGW solution is typically harder to maintain and troubleshoot. The VGW solution has limited scalability, as the VGW only supports a single active connection and does not support BGP or ECMP (i.e. supports a maximum bandwidth of 1.25Gbps). Most customers providing enterprise cloud connectivity have switch away from this approach. This approach is highly discouraged.
+
+### 1.7.4. Why do you NOT recommend connecting directly to the 3rd party firewall cluster in the perimeter account? (not GWLB, not NFW)
+
+This approach was common with AWS customers before the TGW was introduced, with many customers upgrading or considering upgrading to the TGW approach. We also have some customers using this architecture based on a very specific limitation of the customer’s Direct Connect architecture, these customers would also like to migrate to the TGW approach, if they could.
+
+While viable, this approach adds unneeded complexity, reduces cloud availability, is expensive to scale, and reduces bandwidth to internet facing workloads. This solution doubles the IPSec VPN tunnels using BGP w/ECMP requirements as it needs tunnels on both sides of the firewall. In this configuration each firewall appliance typically only provides a single pair of IPSec connections supporting marginally more bandwidth than the TGW VPN attachments. Adding tunnels and bandwidth requires adding firewall appliances. Stateful capabilities typically need to be disabled due to performance and asymmetric routing challenges. This typically means a very expensive device is being deployed inside AWS simply to terminate a VPN tunnel.
+
+### 1.7.5. What if I really want to inspect this traffic inside AWS, but like the TGW architecture?
+
+Customers who insist on inspecting the ground to cloud traffic inside AWS _can_ do this with the proposed TGW architecture. The TGW route tables can be adjusted to hairpin the traffic through either a dedicated Inspection VPC, or to the Perimeter account firewall cluster for inspection. The Inspection VPC option could leverage 3rd party firewalls in an autoscaling group behind a Gateway Load Balancer, or leverage AWS network firewall to inspection traffic. To maximize internet throughput, the Inspection VPC option is generally recommended. While we do not feel inspection is needed in this situation, it is possible.
+
+[...Return to Accelerator Table of Contents](../index.md)
