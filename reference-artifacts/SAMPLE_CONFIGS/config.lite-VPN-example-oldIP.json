@@ -1980,6 +1980,7 @@
       "type": "ignore",
       "description": "The Security OU is used to hold AWS accounts containing AWS security resources shared or utilized by the rest of the Organization.",
       "scps": ["Guardrails-Part-0-Core", "Guardrails-Part-1", "Guardrails-Sensitive"],
+      "ssm-inventory-collection": true,
       "gui-perm": true,
       "default-budgets": {
         "name": "Default Security Budget",
@@ -2081,6 +2082,7 @@
       "type": "ignore",
       "description": "The Infrastructure OU is used to hold AWS accounts containing AWS infrastructure resources shared or utilized by the rest of the Organization.",
       "scps": ["Guardrails-Part-0-Core", "Guardrails-Part-1", "Guardrails-Sensitive"],
+      "ssm-inventory-collection": true,
       "default-budgets": {
         "name": "Default Infrastructure Budget",
         "period": "Monthly",
@@ -2182,6 +2184,7 @@
       "description": "The Central OU is used to hold AWS accounts which contain group or team resources used across OU boundaries like code promotion tools.",
       "share-mad-from": "operations",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Sensitive"],
+      "ssm-inventory-collection": true,
       "default-budgets": {
         "name": "Default Central Budget",
         "period": "Monthly",
@@ -2769,6 +2772,7 @@
       "description": "The Dev OU is used to hold accounts at the Development or similiarly permissioned stage of the SDLC cycle containing sensitive unclassified data or workloads.",
       "share-mad-from": "operations",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Sensitive"],
+	  "ssm-inventory-collection": true,
       "default-budgets": {
         "name": "Default Dev Budget",
         "period": "Monthly",
@@ -3365,6 +3369,7 @@
       "description": "The Test OU is used to hold accounts at the Test or similiarly permissioned (i.e. QA) stage of the SDLC cycle containing sensitive unclassified data or workloads.",
       "share-mad-from": "operations",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Sensitive"],
+	  "ssm-inventory-collection": true,
       "default-budgets": {
         "name": "Default Test Budget",
         "period": "Monthly",
@@ -3961,6 +3966,7 @@
       "description": "The Prod OU is used to hold accounts at the Production or similiarly permissioned (i.e. Pre-Prod) stage of the SDLC cycle containing sensitive unclassified data or workloads.",
       "share-mad-from": "operations",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Sensitive"],
+	  "ssm-inventory-collection": true,
       "default-budgets": {
         "name": "Default Prod Budget",
         "period": "Monthly",
@@ -4556,6 +4562,7 @@
       "type": "workload",
       "description": "The Sandbox OU offers the most cloud native, agile experience and is used for experimentation.  It is not to be used to hold production workloads or data as it offers the fewest security controls.",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Sandbox"],
+	  "ssm-inventory-collection": true,
       "default-budgets": {
         "name": "Default Sandbox Budget",
         "period": "Monthly",
