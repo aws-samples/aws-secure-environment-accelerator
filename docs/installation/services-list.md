@@ -54,6 +54,7 @@
 | - Amazon Macie (O)                                                  |
 | - Systems Manager Automation (O)                                    |
 | - Systems Manager Session Manager (O)                               |
+| - Systems Manager Inventory (O)                                     |
 | - AWS KMS (L,O)                                                     |
 | - AWS STS (L)                                                       |
 | - AWS Firewall Manager (O)                                          |

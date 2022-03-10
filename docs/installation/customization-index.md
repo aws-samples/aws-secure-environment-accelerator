@@ -23,7 +23,7 @@
 - **Config file [schema](https://github.com/aws-samples/aws-secure-environment-accelerator/releases/download/v1.5.0/AWS-SEA-Config-Schema-v150-DRAFT.zip) documentation** (Draft)
   - download, extract and open src\lib\docs-gen\output-docs\en\index.html in your browser
 - Estimated monthly [pricing](../pricing/sample_pricing.md) of example configurations
-  
+
 **Samples with Descriptions**
 
 1. **Full configuration** [file](../../reference-artifacts/SAMPLE_CONFIGS/config.example.json) (`config.example.json`)

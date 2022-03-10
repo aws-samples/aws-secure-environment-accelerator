@@ -1,16 +1,16 @@
-# 1. Accelerator v1.5.0 Custom Upgrade Instructions
+# 1. Accelerator v1.5.x Custom Upgrade Instructions
 
-- [1. Accelerator v1.5.0 Custom Upgrade Instructions](#1-accelerator-v150-custom-upgrade-instructions)
+- [1. Accelerator v1.5.x Custom Upgrade Instructions](#1-accelerator-v15x-custom-upgrade-instructions)
   - [1.1. Overview](#11-overview)
   - [1.2. Upgrade Caveats](#12-upgrade-caveats)
   - [1.3. Config File Conversion](#13-config-file-conversion)
   - [1.4. Upgrade process](#14-upgrade-process)
   - [1.5. "3.2. Summary of Upgrade Steps (all versions)" **_(Copied from installation guide)_**](#15-32-summary-of-upgrade-steps-all-versions-copied-from-installation-guide)
-  - [1.6. Post Upgrade Follow-up Tasks for v1.5.0 Upgrade](#16-post-upgrade-follow-up-tasks-for-v150-upgrade)
+  - [1.6. Post Upgrade Follow-up Tasks for v1.5.x Upgrade](#16-post-upgrade-follow-up-tasks-for-v15x-upgrade)
 
 ## 1.1. Overview
 
-The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelerator upgrades, with a couple of key differences:
+The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous Accelerator upgrades, with a couple of key differences:
 
 - the magnitude of this release has resulted in a requirement for significant updates to the config file
   - we have provided a script to _assist_ with this process. A manual verification of the changes and customer custom updates are often still required.
@@ -79,6 +79,7 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
     - the first two SCP files (Part-0 and Part-1) contain the controls which protect the integrity of the Accelerator itself;
     - the third file (Sensitive, Unclass, Sandbox) contains customer data protection specific guardrails, which may change based on workload data classification or customer profiles and requirements;
     - this frees the fourth SCP for use by Control Tower, or for use by customers for custom guardrails (Standalone installs only). As Control Tower leverages 2 SCP files on the Security OU, we have moved some of our SCP's to the account level (Control Tower installations only).
+  - The script and upgrade instructions above do not include the new config file parameters added in v1.5.1. These new parameters can be added either during or after the upgrade. New parameters include: `"rdgw-enforce-imdsv2": true`, `"rsyslog-enforce-imdsv2": true`, `"ssm-inventory-collection": true` on each ou, and `"dynamic-s3-log-partitioning": [{values}]`
 
 ## 1.4. Upgrade process
 
@@ -110,7 +111,12 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
 ## 1.5. "3.2. Summary of Upgrade Steps (all versions)" **_(Copied from installation guide)_**
 
 1. Login to your Organization Management (root) AWS account with administrative privileges
-2. Either: a) Ensure a valid Github token is stored in secrets manager, or b) Ensure the latest release is in a valid branch of CodeCommit in the Organization Management account. See [(section 2.3.2)](./installation.md#232-create-github-personal-access-token-and-store-in-secrets-manager) for more details.
+2. Either:
+
+   a) Ensure a valid Github token is stored in secrets manager, or
+
+   b) Ensure the latest release is in a valid branch of CodeCommit in the Organization Management account. See [(section 2.3.2)](./installation.md#232-create-github-personal-access-token-and-store-in-secrets-manager) for more details.
+
 3. Review and implement any relevant tasks noted in the upgrade considerations in [section 3.1](./installation.md#31-considerations) of the Installation and Upgrade guide
 4. Update the config file in CodeCommit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
    - An automated script is available to help convert config files to the new v1.5.0 format
@@ -135,7 +141,7 @@ The upgrade from v1.3.8 to v1.5.0 is generally the same as any previous Accelera
   - Wait for the CloudFormation stack to update (`Update_Complete` status) (Requires manual refresh)
 - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
-## 1.6. Post Upgrade Follow-up Tasks for v1.5.0 Upgrade
+## 1.6. Post Upgrade Follow-up Tasks for v1.5.x Upgrade
 
 - Once the State Machine finishes in AWS Organizations, delete the `PBMMAccel-Guardrails-Part-2` SCP, as we do not remove policies from Organizations given they could be used by customers for other purposes.
 - Optionally, populate DynamoDB with your allocated CIDR ranges:

@@ -86,6 +86,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Creates Customer Managed KMS Keys (SSM, EBS, S3), EC2 key pairs, and secrets
 - Enables account level default EBS encryption and S3 Block Public Access
 - Configures Systems Manager Session Manager w/KMS encryption and centralized logging
+- Configures Systems Manager Inventory w/centralized logging
 - Creates and configures AWS budgets (customizable per ou and per account)
 - Imports or requests certificates into AWS Certificate Manager
 - Deploys both perimeter and account level ALB's w/Lambda health checks, certificates and TLS policies
@@ -94,7 +95,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Protects Accelerator deployed and managed objects
 - Sets Up SNS Alerting topics (High, Medium, Low, Blackhole priorities)
 - Deploys CloudWatch Log Metrics and Alarms
-- Deploys customer provided custom config rules (1 provided out-of-box, No EC2 Instance Profile)
+- Deploys customer provided custom config rules (2 provided out-of-box, no EC2 Instance Profile/Permissions)
 
 ### Centralized Logging and Alerting
 
@@ -110,6 +111,8 @@ Specifically the accelerator deploys and manages the following functionality, bo
   - GuardDuty Findings
   - Macie Discovery results
   - ALB Logs
+  - SSM Inventory **(NEW)**
+  - Security Hub findings **(NEW)**
   - SSM Session Logs (also sent to CWL)
   - Resolver Query Logs (also sent to CWL)
 - Email alerting for CloudTrail Metric Alarms, Firewall Manager Events **(NEW)**, Security Hub Findings incl. Guardduty Findings **(NEW)**
