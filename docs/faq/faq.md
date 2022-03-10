@@ -47,7 +47,7 @@
     - [1.6.12. I've noticed CloudTrail logs and in certain situation VPC flow logs are stored in the centralized log-archive account logging bucket twice?](#1612-ive-noticed-cloudtrail-logs-and-in-certain-situation-vpc-flow-logs-are-stored-in-the-centralized-log-archive-account-logging-bucket-twice)
     - [1.6.13. I need a Route53 Private Hosted Zone in my workload account. How shall I proceed?](#1613-i-need-a-route53-private-hosted-zone-in-my-workload-account-how-shall-i-proceed)
     - [1.6.14. How do I create a role which has read access to the log-archive bucket to enabling log forwarding to my favorite SIEM solution?](#1614-how-do-i-create-a-role-which-has-read-access-to-the-log-archive-bucket-to-enabling-log-forwarding-to-my-favorite-siem-solution)
-    - [1.6.15. How do I create a role for use by Azure Sentinel?](#1615-how-do-i-create-a-role-for-use-by-azure-sentinel)
+    - [1.6.15. How do I create a role for use by Azure Sentinel using the new S3 Connector method?](#1615-how-do-i-create-a-role-for-use-by-azure-sentinel-using-the-new-s3-connector-method)
     - [1.6.16. Does the ASEA include a full SIEM solution?](#1616-does-the-asea-include-a-full-siem-solution)
   - [1.7. Network Architecture](#17-network-architecture)
     - [1.7.1. We want to securely connect our on-premises networks/datacenters to our AWS Cloud PBMM tenancy, what does AWS you recommend?](#171-we-want-to-securely-connect-our-on-premises-networksdatacenters-to-our-aws-cloud-pbmm-tenancy-what-does-aws-you-recommend)
@@ -759,7 +759,7 @@ As we generally recommend the SIEM be deployed into the Operations account, add 
 }
 ```
 
-### 1.6.15. How do I create a role for use by Azure Sentinel?
+### 1.6.15. How do I create a role for use by Azure Sentinel using the new S3 Connector method?
 
 This process is very similar to FAQ #1.6.14, except we need to allow for a cross-cloud role assumption. This will be done in the Log Archive account, instead of the Operations account.
 
@@ -808,6 +808,7 @@ The above role uses a custom trust policy, and also requires a file of the name 
 
 - The IAM account number listed above is a value provided by Microsoft in their documentation (hard-coded to the same value for all customers).
 - The value of `sts:ExternalId`, shown as `{CUSTOMER-VALUE-HERE}` above, must be replaced with the ID of the Log Analytics Workspace in your Azure tenant.
+- This information is based on the requirements published [here](https://docs.microsoft.com/en-us/azure/sentinel/connect-aws?tabs=s3#create-an-aws-assumed-role-and-grant-access-to-the-aws-sentinel-account) as of 2022-03-10.
 
 ### 1.6.16. Does the ASEA include a full SIEM solution?
 
