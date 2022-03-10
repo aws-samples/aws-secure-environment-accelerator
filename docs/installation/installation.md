@@ -30,7 +30,7 @@ These installation instructions assume one of the prescribed architectures is be
   - [2.6. Post-Installation](#26-post-installation)
 - [3. Upgrades](#3-upgrades)
   - [3.1. Considerations](#31-considerations)
-  - [3.2. Summary of Upgrade Steps (all versions)](#32-summary-of-upgrade-steps-all-versions)
+  - [3.2. Summary of Upgrade Steps (all versions except v1.5.0)](#32-summary-of-upgrade-steps-all-versions-except-v150)
 - [4. Existing Organizations / Accounts](#4-existing-organizations--accounts)
   - [4.1. Considerations: Importing existing AWS Accounts / Deploying Into Existing AWS Organizations](#41-considerations-importing-existing-aws-accounts--deploying-into-existing-aws-organizations)
   - [4.2. Process to import existing AWS accounts into an Accelerator managed Organization](#42-process-to-import-existing-aws-accounts-into-an-accelerator-managed-organization)
@@ -583,11 +583,15 @@ The Accelerator installation is complete, but several manual steps remain:
 
 **Release Specific Upgrade Considerations:**
 
-- Upgrades to `v1.5.0`:
+- Upgrades to `v1.5.1` from `v1.5.0`:
+  - Do not add the parameter: `"ssm-inventory-collection": true` to OUs or accounts which already have SSM Inventory configured or the state machine will fail
+  - Follow the standard upgrade steps detailed in section 3.2 below
+- Upgrades to `v1.5.0` and `v1.5.1` from `v1.3.8 through v1.3.9`:
+  - We recommend upgrading directly to v1.5.1
   - Due to the size and complexity of this upgrade, we require all customers to upgrade to `v1.3.8 or above` before beginning this upgrade
   - While v1.5.0 supports Control Tower for _NEW_ installs, existing Accelerator customers _CANNOT_ add Control Tower to their existing installations at this time (planned enhancement for 22H1)
     - Attempts to install Control Tower on top of the Accelerator will corrupt your environment (both Control Tower and the Accelerator need minor enhancements to enable)
-  - **The v1.5.0 custom upgrade guide can be found [here](./v150-Upgrade.md)**
+  - **The v1.5.x custom upgrade guide can be found [here](./v150-Upgrade.md)**
 - Upgrades to `v1.3.9 and above` from `v1.3.8-b and below`:
   - All interface endpoints containing a period must be removed from the config.json file either before or during the upgrade process
     - i.e. ecr.dkr, ecr.api, transfer.server, sagemaker.api, sagemaker.runtime in the full config.json example
@@ -596,37 +600,18 @@ The Accelerator installation is complete, but several manual steps remain:
   - Requires mandatory config file schema changes as documented in the [release notes](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
     - These updates cause the config file change validation to fail and require running the state machine with the following input to override the validation checks on impacted fields: `{"scope": "FULL", "mode": "APPLY", "configOverrides": {"ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }}`
     - Tightens VPC interface endpoint security group permissions and enables customization. If you use VPC interface endpoints that requires ports/protocols other than TCP/443 (such as email-smtp), you must customize your config file as described [here](/reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md)
-- Upgrades to `v1.3.0 and above` from `v1.2.6 and below`:
-  - **Please note MAJOR changes to state machine behavior, as documented [here](./sm_inputs.md#11-state-machine-behavior)**.
-- Upgrades to `v1.2.6 and above` from `v1.2.5 and below` - Ensure you apply the config file changes described in the release notes:
-  - Cut-paste the new `"replacements": {},` section at the top of the example config file into your config file, as-is
-    - Enables customers to leverage the repo provided SCP's without customization, simplifying upgrades, while allowing SCP region customization
-    - the cloud-cidrX/cloud-maskX variables are examples of customer provided values that can be used to consistently auto-replace values throughout config files, these 4 specific variables are **_all_** required for the firewalls to successfully deploy
-  - The new ${variable} are auto-replaced across your config files, SCP's and firewall config files.
-    - as the variables should resolve to their existing values, you can leave your config file using hardcoded region and Accelerator prefix naming, or you can update them to make subsequent file comparisons easier for future upgrades. These are most useful for new installations in non ca-central-1 regions
-  - Some repo provide filenames have changed, where they are referenced within the config file, you must update them to their new filenames
-  - We do not delete/cleanup old/unused SCP's, in case they were also used by customers for unmanaged OUs or sub-ou's. After the upgrade, you should manually delete any old/extra SCP's which are no longer required
-- Upgrades to `v1.2.5 and above` from `v1.2.4 and below` requires the manual removal of the `PBMMAccel-PipelineRole` StackSet before beginning your upgrade (we have eliminated all use of StackSets in this release)
-  - In the root AWS account, go to: CloudFormation, StackSets
-  - Find: `ASEA-PipelineRole`, and Select the: `Stack Instances` tab
-  - Document all the account numbers, comma separated i.e. 123456789012, 234567890123, 345678901234
-  - Select: Actions, Delete Stacks from StackSets
-  - Paste the above account numbers (comma separated) in the Account numbers box
-  - Select the Accelerator installation/home region from the Specify Regions Box (should be the only region in the dropdown)
-  - Change: Concurrency to: 8, Next, Submit
-  - Wait for operation to complete (refresh the browser several times)
-  - Select Actions, Delete StackSet, click Delete StackSet
-  - Wait for the operation to complete
-- Upgrades to `v1.2.4 and above` from `v1.2.3 and below` - Ensure you apply the config file changes described in the release notes:
-  - failure to set `"central-endpoint": true` directly on the endpoint VPC (instead of in global-options), will result in the removal of your VPC endpoints
-  - failure to move your zone definitions to the endpoint VPC, will result in the removal of you Public and Private hosted zones
+- Upgrades from `v1.3.0 and below`:
+  - Please review the `Release Specific Upgrade Considerations` from ASEA v1.5.0 or below, they were removed from this release.
 
-## 3.2. Summary of Upgrade Steps (all versions)
+## 3.2. Summary of Upgrade Steps (all versions except [v1.5.0](./v150-Upgrade.md))
 
 1. Login to your Organization Management (root) AWS account with administrative privileges
 2. Either:
-   a) Ensure a valid Github token is stored in secrets manager [(section 2.3.2)](#232-create-github-personal-access-token-and-store-in-secrets-manager)
+
+   a) Ensure a valid Github token is stored in secrets manager [(section 2.3.2)](#232-create-github-personal-access-token-and-store-in-secrets-manager), or
+
    b) Ensure the latest release is in a valid branch of CodeCommit in the Organization Management account
+
 3. Review and implement any relevant tasks noted in the upgrade considerations in [section 3.1](#31-considerations)
 4. Update the config file in CodeCommit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
    - An automated script is available to help convert config files to the new v1.5.0 format
@@ -711,11 +696,7 @@ The Accelerator installation is complete, but several manual steps remain:
 - The Organization Management (root) account does NOT have any preventative controls to protect the integrity of the Accelerator codebase, deployed objects or guardrails. Do not delete, modify, or change anything in the Organization Management (root) account unless you are certain as to what you are doing. More specifically, do NOT delete, or change _any_ buckets in the Organization Management (root) account.
 - While generally protected, do not delete/update/change s3 buckets with cdk-asea-, or asea- in _any_ sub-accounts.
 - ALB automated deployments only supports Forward and not redirect rules.
-- The Accelerator deploys SNS topics to send email alerts and notifications. Given email is not a secure transport mechanism, we have chosen not to enable SNS encryption on these topics at this time.
 - AWS generally discourages cross-account KMS key usage. As the Accelerator centralizes logs across an entire organization as a security best practice, this is an exception/example of a unique situation where cross-account KMS key access is required.
-- The Accelerator aggregates all logs in the log-archive account using Kinesis Data and Kinesis Firehose as aggregation tools where the logs could persist for up to 24 hours. These logs are encrypted with Customer Managed KMS keys once stored in S3 (ELB logs only support AES256). These logs are also encrypted in transit using TLS encryption. At this time, we have not enabled Kinesis at-rest encryption, we will reconsider this decision based on customer feedback.
-- AWS Config Aggregator is deployed in the Organization Management (root) account as enablement through Organizations is simpler to implement. AWS Organizations only supported deploying the Aggregator in the Organization Management (root) account and not in a designated administrative account when we implemented this feature. We have a backlog item to update the code to move the Aggregator to the security account.
-- An Organization CloudTrail is deployed, which is created in the primary region in the Organization Management (root) AWS account. All AWS account CloudTrails are centralized into this single CloudWatch Log Group. Starting in v1.1.9 this is where we deploy the CloudWatch Alarms which trigger for ALL accounts in the organization. Security Hub will erroneously report that the only account and/or region that is compliant with certain rules is the primary region of the Organization Management (root) account. We are working with the Security Hub team to rectify this situation in future Security Hub/Accelerator releases (resolved in Accelerator v1.5.0).
 - Only 1 auto-deployed MAD in any mandatory-account is supported today.
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints.
 - If the Organization Management (root) account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
