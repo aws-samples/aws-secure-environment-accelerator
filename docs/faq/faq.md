@@ -612,7 +612,7 @@ Side note: CloudTrail S3 data plane logs are enabled at the Organizational level
 
 ### 1.6.13. I need a Route53 Private Hosted Zone in my workload account. How shall I proceed?
 
-The workload account requires creating a temporary local VPC before creating the Private Hosted Zone (PHZ).  Creating a PHZ in Route 53 requires assocciation with a VPC.  You cannot specify a shared VPC when creating the PHZ, hence the need for this workaround.
+The workload account requires creating a temporary local VPC before creating the Private Hosted Zone (PHZ).  Creating a PHZ in Route53 requires assocciation with a VPC.  You cannot specify a shared VPC when creating the PHZ, hence the need for this workaround.
 
 <u>**Create the temporary workload account VPC**</u>
 
@@ -688,7 +688,7 @@ Insert the proper values for:
 
 <u>**Confirm the association request for the shared vpc**</u>
 
-Switching to an IAM role in the SharedNetwork account associate the Private Hosted Zone from the workload account.
+After switching to an IAM role in the SharedNetwork account associate the Private Hosted Zone from the workload account.
 
 ```
 aws route53 associate-vpc-with-hosted-zone --hosted-zone-id <ZONE_ID> --vpc VPCRegion=<SHARED_VPC_REGION>,VPCId=<SHARED_VPC_ID>
