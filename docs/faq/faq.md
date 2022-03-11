@@ -612,12 +612,13 @@ Side note: CloudTrail S3 data plane logs are enabled at the Organizational level
 
 ### 1.6.13. I need a Route53 Private Hosted Zone in my workload account. How shall I proceed?
 
-The workload account requires a temporary local VPC in order to create the Private Hosted Zone (PHZ)
+The workload account requires creating a temporary local VPC before creating the Private Hosted Zone (PHZ).  Creating a PHZ in Route 53 requires assocciation with a VPC.  You cannot specify a shared VPC when creating the PHZ, hence the need for this workaround.
 
-<u>**Create in workload account VPC**</u>
+<u>**Create the temporary workload account VPC**</u>
 
-You can create the temporary VPC at account creation via ASEA config (prefered way) by adding a config similar to this one on the workload account definition.
-If you don't use the ASEA config you will need to assume the proper ASEA elevated role in the workload account in order to create the VPC.
+You can create the temporary VPC during AWS account creation via the ASEA config (prefered way).  Insert the "vpc" JSON object like shown below when using the ASEA config to create an AWS account.
+
+If you don't use the ASEA config you will need to assume the proper ASEA elevated IAM role in the workload account in order to create the VPC manually.
 
 ```
 "mydevacct": {
@@ -642,9 +643,9 @@ If you don't use the ASEA config you will need to assume the proper ASEA elevate
 }
 ```
 
-<u>**Create in workload account Private Hosted Zone**</u>
+<u>**Create in the workload account a Private Hosted Zone**</u>
 
-From the workload account:
+Using an IAM role assumed in the workload account:
 
 List the VPCs.
 
@@ -673,7 +674,7 @@ For example, the value is `Z0123456NWOWQ4HNN40U` from `"Id": "/hostedzone/Z01234
 
 <u>**Create an authorization to associate with this new zone**</u>
 
-Still in the workload account; create an association request authorization to allow the shared VPC to associate with this new zone.
+While still in the workload account; you need to create an association request authorization to allow the shared VPC to associate with this newly created Route53 PHZ.
 
 ```
 aws route53 create-vpc-association-authorization --hosted-zone-id <ZONE_ID> --vpc VPCRegion=<SHARED_VPC_REGION>,VPCId=<SHARED_VPC_ID>
@@ -685,9 +686,9 @@ Insert the proper values for:
 - `<SHARED_VPC_REGiON>`
 - `<SHARED_VPC_ID>`
 
-<u>**Associate Hosted zone**</u>
+<u>**Confirm the association request for the shared vpc**</u>
 
-In the SharedNetwork account associate the Private Hosted Zone from the workload account.
+Switching to an IAM role in the SharedNetwork account associate the Private Hosted Zone from the workload account.
 
 ```
 aws route53 associate-vpc-with-hosted-zone --hosted-zone-id <ZONE_ID> --vpc VPCRegion=<SHARED_VPC_REGION>,VPCId=<SHARED_VPC_ID>
@@ -701,7 +702,7 @@ Insert the proper values for:
 
 <u>**Validate Association and clean-up**</u>
 
-In the workload account, validate the association using the below command. You should see two VPCs attache. The local vpc and the shared vpc.
+Back in the workload account and assuming its IAM role, validate the association using the below command. You should see two VPCs attache. The local vpc and the shared vpc.
 
 ```
 aws route53 get-hosted-zone --id <ZONE_ID>
