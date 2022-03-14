@@ -270,7 +270,11 @@ export async function vpcReplacements(props: { rawConfigStr: string }): Promise<
   const vpcConfigSections = ['workload-account-configs', 'mandatory-account-configs', 'organizational-units'];
   const rawConfig = JSON.parse(rawConfigStr);
   const existingVpcConfigSections = vpcConfigSections.filter(vpcConfigSection => rawConfig[vpcConfigSection]);
-  console.log('Existing VPC Sections', existingVpcConfigSections);
+  if (existingVpcConfigSections.length < vpcConfigSections.length) {
+    console.log('Expected the follwong keys to exist', vpcConfigSections);
+    console.log('Only found the following keys', existingVpcConfigSections);
+    throw new Error('Please add the missing manditory sections to the configuration file.');
+  }
   for (const vpcConfigSection of existingVpcConfigSections) {
     Object.entries(rawConfig[vpcConfigSection]).map(([key, _]) => {
       const replacements = {
