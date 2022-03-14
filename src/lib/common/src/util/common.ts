@@ -271,7 +271,7 @@ export async function vpcReplacements(props: { rawConfigStr: string }): Promise<
   const rawConfig = JSON.parse(rawConfigStr);
   const existingVpcConfigSections = vpcConfigSections.filter(vpcConfigSection => rawConfig[vpcConfigSection]);
   if (existingVpcConfigSections.length < vpcConfigSections.length) {
-    console.log('Expected the follwong keys to exist', vpcConfigSections);
+    console.log('Expected the following keys to exist', vpcConfigSections);
     console.log('Only found the following keys', existingVpcConfigSections);
     throw new Error('Please add the missing manditory sections to the configuration file.');
   }
