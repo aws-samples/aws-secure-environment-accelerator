@@ -269,7 +269,9 @@ export async function vpcReplacements(props: { rawConfigStr: string }): Promise<
   const ouOrAccountReplacementRegex = '\\${CONFIG::OU_NAME}';
   const vpcConfigSections = ['workload-account-configs', 'mandatory-account-configs', 'organizational-units'];
   const rawConfig = JSON.parse(rawConfigStr);
-  for (const vpcConfigSection of vpcConfigSections) {
+  const existingVpcConfigSections = vpcConfigSections.filter(vpcConfigSection => rawConfig[vpcConfigSection]);
+  console.log('Existing VPC Sections', existingVpcConfigSections);
+  for (const vpcConfigSection of existingVpcConfigSections) {
     Object.entries(rawConfig[vpcConfigSection]).map(([key, _]) => {
       const replacements = {
         '\\${CONFIG::VPC_NAME}': key,
