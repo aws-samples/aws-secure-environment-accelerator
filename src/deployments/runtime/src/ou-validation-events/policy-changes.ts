@@ -110,9 +110,14 @@ export const handler = async (input: ScheduledEvent) => {
     if (ignoredOus.length > 0) {
       if (targetId.startsWith('ou-')) {
         const destinationOrg = await organizations.getOrganizationalUnitWithPath(targetId);
+        console.log(JSON.stringify(destinationOrg, null, 2));
         const destinationRootOrg = destinationOrg.Name!;
         if (ignoredOus.includes(destinationRootOrg)) {
           console.log(`${eventName} is on ignored-ou from ROOT, no need to reattach`);
+          return 'IGNORE';
+        }
+        if (destinationOrg.Path.includes('/')) {
+          console.log(`${destinationOrg.Path} is a nested OU under ${destinationOrg.Name}. Ignoring`);
           return 'IGNORE';
         }
       } else {
