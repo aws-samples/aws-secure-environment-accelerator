@@ -93,9 +93,12 @@ export const handler = async (input: AddScpInput) => {
 
   // Find roots to attach FullAWSAccess
   const rootIds = await scps.organizationRoots();
+  const rootOus = organizationalUnits.filter(ou => {
+    return !ou.ouPath.includes('/');
+  });
 
   // Find Accelerator accounts and OUs to attach FullAWSAccess
-  const acceleratorOuIds = organizationalUnits.map(ou => ou.ouId);
+  const acceleratorOuIds = rootOus.map(ou => ou.ouId);
   const acceleratorAccountIds = accounts.map(a => a.id);
   const acceleratorTargetIds = [...rootIds, ...acceleratorOuIds, ...acceleratorAccountIds];
   const acceleratorTargetOuIds = [...rootIds, ...acceleratorOuIds];
