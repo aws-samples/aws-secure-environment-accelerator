@@ -62,7 +62,7 @@ These installation instructions assume one of the prescribed architectures is be
 
 **For any deployment of the Accelerator which is intended to be used for production workloads, you must evaluate all these decisions carefully. Failure to understand these choices could cause challenges down the road. If this is a "test" or "internal" deployment of the Accelerator which will not be used for production workloads, you can leave the default config values.**
 
-**Config file [schema](https://github.com/aws-samples/aws-secure-environment-accelerator/releases/download/v1.5.0/AWS-SEA-Config-Schema-v150-DRAFT.zip) documentation now AVAILABLE** (Draft)
+**Config file [schema](https://github.com/aws-samples/aws-secure-environment-accelerator/releases/download/v1.5.1/AWS-SEA-Config-Schema-v151-DRAFT.zip) documentation now AVAILABLE** (Draft)
 
 - download, extract and open src\lib\docs-gen\output-docs\en\index.html in your browser
 
@@ -74,7 +74,7 @@ Plan your OU and core account structure carefully. By default, we suggest: `Secu
 - The `Infrastructure` OU will hold the remainder of the accounts shared or utilized by the rest of the organization (`Shared Network`, `Perimeter`, and `Operations`).
 - The remainder of the OUs correspond with major permission shifts in the SDLC cycle and NOT every stage an organization has in their SDLC cycle (i.e. QA or pre-prod would be included in one of the other OUs).
 - The `Central` OU is used to hold accounts with workloads shared across Dev, Test, and Prod environments like centralized CI/CD tooling.
-- The v1.5.0 release aligns the Accelerator OU and account structure with AWS multi-account guidance, splitting the `core` OU into the `Security` and `Infrastructure` OUs.
+- The v1.5.0+ releases align the Accelerator OU and account structure with AWS multi-account guidance, splitting the `core` OU into the `Security` and `Infrastructure` OUs.
 
 **Note:** While OUs can be renamed or additional OUs added at a later point in time, deployed AWS accounts CANNOT be moved between top-level OUs (guardrail violation), nor can top-level OUs easily be deleted (requires deleting all AWS accounts from within the OU first).
 
@@ -245,7 +245,7 @@ As of v1.5.0, the Accelerator offers deployment from either GitHub or CodeCommit
    - Do NOT download the code off the main GitHub branch, this will leave you in a completely unsupported state (and with beta code)
 3. Push the extracted codebase into the newly created CodeCommit repository, maintaining the file/folder hierarchy
 4. Set the default CodeCommit branch for the new repository to main
-5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.0`)
+5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.1`)
 
 ### 2.3.3. AWS Internal (Employee) Accounts Only
 
@@ -348,7 +348,7 @@ If deploying to an internal AWS employee account and installing the solution wit
    - Add an `Email` address to be used for State Machine Status notification
    - The `GithubBranch` should point to the release you selected
      - if upgrading, change it to point to the desired release
-     - the latest stable branch is currently `release/v1.5.0`, case sensitive
+     - the latest stable branch is currently `release/v1.5.1`, case sensitive
      - click `Next`
 7. Finish deploying the stack
    - Apply a tag on the stack, Key=`Accelerator`, Value=`ASEA` (case sensitive).
@@ -396,16 +396,18 @@ If deploying to an internal AWS employee account and installing the solution wit
 
 Current Issues:
 
-- When a new installation includes AWS Network Firewall (NFW), we are seeing State Machine failures in Phase 1 in the Perimeter account. Timing issues are causing the first deployment of the underlying CloudFormation stack to fail and rollback, when we automatically retry the stacks deployment, we attempt to recreate the NFW CloudWatch Log groups which were retained, causing a failure. A fix is in the works. Manually delete the two NFW log groups from the perimeter account (`/ASEA/Nfw/Central-Firewall/Alert` and `/ASEA/Nfw/Central-Firewall/Flow`) using either the Accelerator Pipeline Role or the Org Admin Role and rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
-- If dns-resolver-logging is enabled, VPC names containing spaces are not supported at this time as the VPC name is used as part of the log group name and spaces are not supported in log group names. By default in many of the sample config files, the VPC name is auto-generated from the OU name using a variable. In this situation, spaces are also not permitted in OU names (i.e. if any account in the OU has a VPC with resolver logging enabled and the VPC is using the OU as part of its name).
+- If dns-resolver-logging is enabled, VPC names containing spaces are not supported at this time as the VPC name is used as part of the log group name and spaces are not supported in log group names. By default in many of the sample config files, the VPC name is auto-generated from the OU name using a variable. In this situation, spaces are also not permitted in OU names (i.e. if any account in the OU has a VPC with resolver logging enabled and the VPC is using the OU as part of its name)
 - On larger deployments we are occassionally seeing state machine failures when `Creating Config Recorders`. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
-- Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
-- Applying new Control Tower Detective guardrails fails in v1.5.0. This is fixed in the next release.
+- Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`
+- If the State Machine fails on an initial execution of NEW-ACCOUNTS, it must be re-run to target the failed accounts (i.e. with a FULL scope) or sub-accounts will fail to be properly guardrailed
 
 Issues in Older Releases:
 
 - New installs to releases prior to v1.3.9 are no longer supported.
 - Upgrades to releases prior to v1.3.8 are no longer supported.
+- FIXED in v1.5.1 - When a new installation includes AWS Network Firewall (NFW), we are seeing State Machine failures in Phase 1 in the Perimeter account. Timing issues are causing the first deployment of the underlying CloudFormation stack to fail and rollback, when we automatically retry the stacks deployment, we attempt to recreate the NFW CloudWatch Log groups which were retained, causing a failure. A fix is in the works. Manually delete the two NFW log groups from the perimeter account (`/ASEA/Nfw/Central-Firewall/Alert` and `/ASEA/Nfw/Central-Firewall/Flow`) using either the Accelerator Pipeline Role or the Org Admin Role and rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
+- FIXED in v1.5.1 - Applying new Control Tower Detective guardrails fails in v1.5.0
+-
 
 ## 2.6. Post-Installation
 
@@ -504,7 +506,7 @@ The Accelerator installation is complete, but several manual steps remain:
    - Manually update firewall configuration to forward all logs to the Accelerator deployed NLB addresses fronting the rsyslog cluster
      - login to each firewall, select `Log Settings`, check `Send logs to syslog`, put the NLB FQDN in the `IP Address/FQDN` field (stored in parameter store of perimeter account)
    - Manually update the firewall configuration to connect perimeter ALB high port flows through to internal account ALB's
-     - Note: while this option is still available, a new alb-forwarding mechanism is available in v1.5.0 (see section 2 above) which simplifies and eliminates this more complicated "NAT to DNS name" option;
+     - Note: while this option is still available, a new alb-forwarding mechanism is available in v1.5.0+ (see section 2 above) which simplifies and eliminates this more complicated "NAT to DNS name" option;
      - login to each firewall, switch to `FG-traffic` vdom, select `Policies & Objects`, select `Addresses`, Expand `Addresses`
        - Set `Prod1-ALB-FQDN` to point to a reliable sub-account ALB FQDN, this is used for full-path health checks on **_all_** ALB's
        - Set additional `DevX-ALB-FQDN`, `TestX-ALB-FQDN` and `ProdX-ALB-FQDN` to point to workload account ALB FQDNs
@@ -569,7 +571,7 @@ The Accelerator installation is complete, but several manual steps remain:
 ## 3.1. Considerations
 
 - Due to some breaking dependency issues, customers can only upgrade to v1.3.8 or above (older releases continue to function, but cannot be installed).
-- While an upgrade path is planned, customers with a standalone Accelerator installation can upgrade to v1.5.0 but need to continue with a standalone installation until the Control Tower upgrade option becomes available.
+- While an upgrade path is planned, customers with a standalone Accelerator installation can upgrade to v1.5.x but need to continue with a standalone installation until the Control Tower upgrade option becomes available.
 - Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.
   - do NOT update to the latest firewall AMI - see the the last bullet in section [5.1. Accelerator Design Constraints / Decisions](#51-accelerator-design-constraints--decisions)
   - do NOT update the `organization-admin-role` - see bullet 2 in section [2.2.7. Other](#226-other)
@@ -627,7 +629,7 @@ The Accelerator installation is complete, but several manual steps remain:
    - The pipeline will automatically run and trigger the upgraded state machine
 9. If you are using a pre-existing GitHub token, or installing from CodeCommit:
 
-- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.5.0`)
+- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.5.1`)
   - Go to AWS CloudFormation and select the stack: `ASEA-what-you-provided`
   - Select Update, select Replace current template, Select Upload a template file
   - Select Choose File and select the template you downloaded in step 6 (`AcceleratorInstallerXYZ.template.json` or `AcceleratorInstallerXXX-CodeCommit.template.json`)
