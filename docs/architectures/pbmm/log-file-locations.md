@@ -2,7 +2,7 @@
 
 The following diagram details the ASEA central logging implementation:
 
-![Logging](../architectures/images/ASEA-Logging.png)
+![Logging](../images/ASEA-Logging-Arch.png)
 
 
 ## Accelerator Central Logging Buckets:

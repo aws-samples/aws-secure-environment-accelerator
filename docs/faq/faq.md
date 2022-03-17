@@ -831,7 +831,7 @@ This independent solution can easily and quickly be deployed on top of the ASEA 
 
 The overall logging architecture is represented in this diagram:
 
-![Logging](../architectures/images/ASEA-Logging.png)
+![Logging](../architectures/images/ASEA-Logging-Arch.png)
 
 ## 1.7. Network Architecture
 
