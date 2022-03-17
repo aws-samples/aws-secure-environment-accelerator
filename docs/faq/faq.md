@@ -47,7 +47,7 @@
     - [1.6.12. I've noticed CloudTrail logs and in certain situation VPC flow logs are stored in the centralized log-archive account logging bucket twice?](#1612-ive-noticed-cloudtrail-logs-and-in-certain-situation-vpc-flow-logs-are-stored-in-the-centralized-log-archive-account-logging-bucket-twice)
     - [1.6.13. I need a Route53 Private Hosted Zone in my workload account. How shall I proceed?](#1613-i-need-a-route53-private-hosted-zone-in-my-workload-account-how-shall-i-proceed)
     - [1.6.14. How do I create a role which has read access to the log-archive bucket to enabling log forwarding to my favorite SIEM solution?](#1614-how-do-i-create-a-role-which-has-read-access-to-the-log-archive-bucket-to-enabling-log-forwarding-to-my-favorite-siem-solution)
-    - [1.6.15. How do I create a role for use by Azure Sentinel?](#1615-how-do-i-create-a-role-for-use-by-azure-sentinel)
+    - [1.6.15. How do I create a role for use by Azure Sentinel using the new S3 Connector method?](#1615-how-do-i-create-a-role-for-use-by-azure-sentinel-using-the-new-s3-connector-method)
     - [1.6.16. Does the ASEA include a full SIEM solution?](#1616-does-the-asea-include-a-full-siem-solution)
   - [1.7. Network Architecture](#17-network-architecture)
     - [1.7.1. We want to securely connect our on-premises networks/datacenters to our AWS Cloud PBMM tenancy, what does AWS you recommend?](#171-we-want-to-securely-connect-our-on-premises-networksdatacenters-to-our-aws-cloud-pbmm-tenancy-what-does-aws-you-recommend)
@@ -612,12 +612,13 @@ Side note: CloudTrail S3 data plane logs are enabled at the Organizational level
 
 ### 1.6.13. I need a Route53 Private Hosted Zone in my workload account. How shall I proceed?
 
-The workload account requires a temporary local VPC in order to create the Private Hosted Zone (PHZ)
+The workload account requires creating a temporary local VPC before creating the Private Hosted Zone (PHZ). Creating a PHZ in Route53 requires assocciation with a VPC. You cannot specify a shared VPC when creating the PHZ, hence the need for this workaround.
 
-<u>**Create in workload account VPC**</u>
+<u>**Create the temporary workload account VPC**</u>
 
-You can create the temporary VPC at account creation via ASEA config (prefered way) by adding a config similar to this one on the workload account definition.
-If you don't use the ASEA config you will need to assume the proper ASEA elevated role in the workload account in order to create the VPC.
+You can create the temporary VPC during AWS account creation via the ASEA config (prefered way). Insert the "vpc" JSON object like shown below when using the ASEA config to create an AWS account.
+
+If you don't use the ASEA config you will need to assume the proper ASEA elevated IAM role in the workload account in order to create the VPC manually.
 
 ```
 "mydevacct": {
@@ -642,9 +643,9 @@ If you don't use the ASEA config you will need to assume the proper ASEA elevate
 }
 ```
 
-<u>**Create in workload account Private Hosted Zone**</u>
+<u>**Create in the workload account a Private Hosted Zone**</u>
 
-From the workload account:
+Using an IAM role assumed in the workload account:
 
 List the VPCs.
 
@@ -673,7 +674,7 @@ For example, the value is `Z0123456NWOWQ4HNN40U` from `"Id": "/hostedzone/Z01234
 
 <u>**Create an authorization to associate with this new zone**</u>
 
-Still in the workload account; create an association request authorization to allow the shared VPC to associate with this new zone.
+While still in the workload account; you need to create an association request authorization to allow the shared VPC to associate with this newly created Route53 PHZ.
 
 ```
 aws route53 create-vpc-association-authorization --hosted-zone-id <ZONE_ID> --vpc VPCRegion=<SHARED_VPC_REGION>,VPCId=<SHARED_VPC_ID>
@@ -685,9 +686,9 @@ Insert the proper values for:
 - `<SHARED_VPC_REGiON>`
 - `<SHARED_VPC_ID>`
 
-<u>**Associate Hosted zone**</u>
+<u>**Confirm the association request for the shared vpc**</u>
 
-In the SharedNetwork account associate the Private Hosted Zone from the workload account.
+After switching to an IAM role in the SharedNetwork account associate the Private Hosted Zone from the workload account.
 
 ```
 aws route53 associate-vpc-with-hosted-zone --hosted-zone-id <ZONE_ID> --vpc VPCRegion=<SHARED_VPC_REGION>,VPCId=<SHARED_VPC_ID>
@@ -701,7 +702,7 @@ Insert the proper values for:
 
 <u>**Validate Association and clean-up**</u>
 
-In the workload account, validate the association using the below command. You should see two VPCs attache. The local vpc and the shared vpc.
+Back in the workload account and assuming its IAM role, validate the association using the below command. You should see two VPCs attache. The local vpc and the shared vpc.
 
 ```
 aws route53 get-hosted-zone --id <ZONE_ID>
@@ -759,7 +760,7 @@ As we generally recommend the SIEM be deployed into the Operations account, add 
 }
 ```
 
-### 1.6.15. How do I create a role for use by Azure Sentinel?
+### 1.6.15. How do I create a role for use by Azure Sentinel using the new S3 Connector method?
 
 This process is very similar to FAQ #1.6.14, except we need to allow for a cross-cloud role assumption. This will be done in the Log Archive account, instead of the Operations account.
 
@@ -808,15 +809,16 @@ The above role uses a custom trust policy, and also requires a file of the name 
 
 - The IAM account number listed above is a value provided by Microsoft in their documentation (hard-coded to the same value for all customers).
 - The value of `sts:ExternalId`, shown as `{CUSTOMER-VALUE-HERE}` above, must be replaced with the ID of the Log Analytics Workspace in your Azure tenant.
+- This information is based on the requirements published [here](https://docs.microsoft.com/en-us/azure/sentinel/connect-aws?tabs=s3#create-an-aws-assumed-role-and-grant-access-to-the-aws-sentinel-account) as of 2022-03-10.
 
 ### 1.6.16. Does the ASEA include a full SIEM solution?
 
-We've found a diverse set of needs and requirements across our customer base. The ASEA:
+We've found a diverse set of differing customer needs and requirements across our customer base. The ASEA:
 
 - enables AWS security services like Amazon GuardDuty (a Cloud native IDS solution) and centralizes the consoles of these tools in the Security account;
 - audits the entire environment for compliance and consolidates findings from AWS security services in the Security Hub console in the Security account;
-- sends prioritized email alerts for Security Hub Findings and defined CloudWatch Alarms;
-- centralizes logs in a central bucket in the Log Archive account;
+- sends prioritized email alerts for Security Hub Findings, Firewall Manager alerts and customizable CloudWatch Alarms;
+- centralizes logs across the environment in a central bucket in the Log Archive account;
 - in addition, retains logs locally in CloudWatch Logs for simple query using CloudWatch Insights.
 
 This makes it extremely simple to layer a customers preferred SIEM solution on top of the ASEA, enabling easy consumption of the comprehensive set of collected logs and security findings.
@@ -826,6 +828,10 @@ Customers ask for examples of what this integration looks like. We've also had a
 While not a part of the ASEA, we've made the [SIEM on Amazon OpenSearch Service](https://github.com/aws-samples/siem-on-amazon-opensearch-service) available as an ASEA **Add-on** to satisfy these requirements.
 
 This independent solution can easily and quickly be deployed on top of the ASEA by following the documentation and using the scripts available [here](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Add-ons/opensiem). This process takes less than an hour.
+
+The overall logging architecture is represented in this diagram:
+
+![Logging](../architectures/images/ASEA-Logging-Arch.png)
 
 ## 1.7. Network Architecture
 
