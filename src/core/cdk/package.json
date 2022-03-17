@@ -1,6 +1,6 @@
 {
   "name": "@aws-accelerator/accelerator",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "scripts": {
     "bootstrap": "pnpx cdk bootstrap",
     "deploy": "pnpx cdk deploy",
