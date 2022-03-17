@@ -1,4 +1,9 @@
-# AWS SEA Central Logging Structures
+# AWS SEA Central Logging Implementation and File Structures
+
+The following diagram details the ASEA central logging implementation:
+
+![Logging](../architectures/images/ASEA-Logging.png)
+
 
 ## Accelerator Central Logging Buckets:
 

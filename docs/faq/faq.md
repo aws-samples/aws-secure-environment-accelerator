@@ -612,11 +612,11 @@ Side note: CloudTrail S3 data plane logs are enabled at the Organizational level
 
 ### 1.6.13. I need a Route53 Private Hosted Zone in my workload account. How shall I proceed?
 
-The workload account requires creating a temporary local VPC before creating the Private Hosted Zone (PHZ).  Creating a PHZ in Route53 requires assocciation with a VPC.  You cannot specify a shared VPC when creating the PHZ, hence the need for this workaround.
+The workload account requires creating a temporary local VPC before creating the Private Hosted Zone (PHZ). Creating a PHZ in Route53 requires assocciation with a VPC. You cannot specify a shared VPC when creating the PHZ, hence the need for this workaround.
 
 <u>**Create the temporary workload account VPC**</u>
 
-You can create the temporary VPC during AWS account creation via the ASEA config (prefered way).  Insert the "vpc" JSON object like shown below when using the ASEA config to create an AWS account.
+You can create the temporary VPC during AWS account creation via the ASEA config (prefered way). Insert the "vpc" JSON object like shown below when using the ASEA config to create an AWS account.
 
 If you don't use the ASEA config you will need to assume the proper ASEA elevated IAM role in the workload account in order to create the VPC manually.
 
@@ -813,12 +813,12 @@ The above role uses a custom trust policy, and also requires a file of the name 
 
 ### 1.6.16. Does the ASEA include a full SIEM solution?
 
-We've found a diverse set of needs and requirements across our customer base. The ASEA:
+We've found a diverse set of differing customer needs and requirements across our customer base. The ASEA:
 
 - enables AWS security services like Amazon GuardDuty (a Cloud native IDS solution) and centralizes the consoles of these tools in the Security account;
 - audits the entire environment for compliance and consolidates findings from AWS security services in the Security Hub console in the Security account;
-- sends prioritized email alerts for Security Hub Findings and defined CloudWatch Alarms;
-- centralizes logs in a central bucket in the Log Archive account;
+- sends prioritized email alerts for Security Hub Findings, Firewall Manager alerts and customizable CloudWatch Alarms;
+- centralizes logs across the environment in a central bucket in the Log Archive account;
 - in addition, retains logs locally in CloudWatch Logs for simple query using CloudWatch Insights.
 
 This makes it extremely simple to layer a customers preferred SIEM solution on top of the ASEA, enabling easy consumption of the comprehensive set of collected logs and security findings.
@@ -828,6 +828,10 @@ Customers ask for examples of what this integration looks like. We've also had a
 While not a part of the ASEA, we've made the [SIEM on Amazon OpenSearch Service](https://github.com/aws-samples/siem-on-amazon-opensearch-service) available as an ASEA **Add-on** to satisfy these requirements.
 
 This independent solution can easily and quickly be deployed on top of the ASEA by following the documentation and using the scripts available [here](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Add-ons/opensiem). This process takes less than an hour.
+
+The overall logging architecture is represented in this diagram:
+
+![Logging](../architectures/images/ASEA-Logging.png)
 
 ## 1.7. Network Architecture
 
