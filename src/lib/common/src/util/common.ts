@@ -355,6 +355,6 @@ function enableGlobalRegion(config: string, rawConfig: string, format: FormatTyp
   }
 
   const configStr = getStringFromObject(configObj, format);
-  const rawConfigStr = getStringFromObject(rawConfigObj, format);
+  const rawConfigStr = getStringFromObject(rawConfigObj, JSON_FORMAT);
   return { configStr, rawConfigStr };
 }
