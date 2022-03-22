@@ -43,7 +43,7 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
       outputs,
     });
   } catch (err) {
-    console.log(err);
+    console.log('Log Bucket not created yet. Continuing.');
   }
 
   for (const accountKey of accountKeys) {
