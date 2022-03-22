@@ -54,6 +54,7 @@ The **SiemConfig.json** file is used to configure how this solution is deployed 
                         443
                     ],
                     "source": [
+                        "------ REPLACE -----",
                         "10.0.0.0/8",
                         "100.96.252.0/23",
                         "100.96.250.0/23"
@@ -98,7 +99,7 @@ The **SiemConfig.json** file is used to configure how this solution is deployed 
 | vpcId                           | This is the VPC Id, within the Operations account, where the OpenSearch Domain will be deployed                                                                                                                                                                                     |
 | region                          | This is the ASEA primary or home region                                                                                                                                                                                                                                             |
 | s3LogBuckets                    | This contains a string array of the S3 Bucket names, in the Log Archive account, that will have S3 Notifications configured. In the default ASEA architecture, there are 2 S3 buckets that should be added here.                                                                    |
-| securityGroups                  | This structure is similar to what is used in the ASEA config file, but with reduced implementation. The security groups here will be applied to the Lambda Functions and OpenSearch domain. The Security Groups will be created by this project.                                    |
+| securityGroups                  | This structure is similar to what is used in the ASEA config file, but with reduced implementation. The security groups here will be applied to the Lambda Functions and OpenSearch domain. The Security Groups will be created by this project. The inbound rules should be updated to reflect the allowed IPs. In the example, the IP range is the VPC CIDR in the Operations AWS account.                                    |
 | appSubnets                      | These are the SubnetIds of existing subnets within the VPC. The Lambda Functions and OpenSearch domain will be deployed into the Subnets defined here.                                                                                                                              |
 | lambdaLogProcessingRoleArn      | This is the IAM Role that the **Lambda Processor** will use to download S3 Objects from the Log Archive and write documents to OpenSearch. This is a protected role that is referenced by this project, but created by the ASEA. More details below. This value must be an IAM ARN. |
 | cognitoDomainPrefix             | Amazon Cognito is used to provision user access to the OpenSearch Dashboards. The value specified here will be used as the domain; it must be regionally unique. (You can't use the text aws, amazon, or cognito, in the domain prefix)                                             |
