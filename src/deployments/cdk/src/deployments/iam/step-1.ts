@@ -16,7 +16,7 @@ import * as iam from '@aws-cdk/aws-iam';
 import { AccountStacks } from '../../common/account-stacks';
 import { createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CfnIamRoleOutput } from './outputs';
-import { LogBucketOutput, AccountBucketOutputFinder } from '../defaults/outputs';
+import { LogBucketOutput } from '../defaults/outputs';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 
 export interface IamConfigServiceRoleProps {
@@ -35,12 +35,16 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
   const securityAccountKey = config.getMandatoryAccountKey('central-security');
   const centralOperationsKey = config.getMandatoryAccountKey('central-operations');
   const centralLogKey = config.getMandatoryAccountKey('central-log');
-
-  const logBucketDetails = LogBucketOutput.getBucket({
-    accountStacks,
-    config,
-    outputs,
-  });
+  let logBucketDetails;
+  try {
+    logBucketDetails = LogBucketOutput.getBucket({
+      accountStacks,
+      config,
+      outputs,
+    });
+  } catch (err) {
+    console.log(err);
+  }
 
   for (const accountKey of accountKeys) {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
