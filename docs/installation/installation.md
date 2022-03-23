@@ -61,8 +61,8 @@ These installation instructions assume one of the prescribed architectures is be
 ### 2.2.1. General
 
 **For any deployment of the Accelerator which is intended to be used for production workloads, you must evaluate all these decisions carefully. Failure to understand these choices could cause challenges down the road. If this is a "test" or "internal" deployment of the Accelerator which will not be used for production workloads, you can leave the default config values.**
-
-**Config file [schema](https://github.com/aws-samples/aws-secure-environment-accelerator/releases/download/v1.5.1/AWS-SEA-Config-Schema-v151-DRAFT.zip) documentation now AVAILABLE** (Draft)
+                       
+**Config file [schema](https://github.com/aws-samples/aws-secure-environment-accelerator/releases/download/v1.5.1-a/AWS-SEA-Config-Schema-v151a-DRAFT.zip) documentation now AVAILABLE** (Draft)
 
 - download, extract and open src\lib\docs-gen\output-docs\en\index.html in your browser
 
@@ -245,7 +245,7 @@ As of v1.5.0, the Accelerator offers deployment from either GitHub or CodeCommit
    - Do NOT download the code off the main GitHub branch, this will leave you in a completely unsupported state (and with beta code)
 3. Push the extracted codebase into the newly created CodeCommit repository, maintaining the file/folder hierarchy
 4. Set the default CodeCommit branch for the new repository to main
-5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.1`)
+5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.1-a`)
 
 ### 2.3.3. AWS Internal (Employee) Accounts Only
 
@@ -348,7 +348,7 @@ If deploying to an internal AWS employee account and installing the solution wit
    - Add an `Email` address to be used for State Machine Status notification
    - The `GithubBranch` should point to the release you selected
      - if upgrading, change it to point to the desired release
-     - the latest stable branch is currently `release/v1.5.1`, case sensitive
+     - the latest stable branch is currently `release/v1.5.1-a`, case sensitive
      - click `Next`
 7. Finish deploying the stack
    - Apply a tag on the stack, Key=`Accelerator`, Value=`ASEA` (case sensitive).
@@ -399,7 +399,7 @@ Current Issues:
 - If dns-resolver-logging is enabled, VPC names containing spaces are not supported at this time as the VPC name is used as part of the log group name and spaces are not supported in log group names. By default in many of the sample config files, the VPC name is auto-generated from the OU name using a variable. In this situation, spaces are also not permitted in OU names (i.e. if any account in the OU has a VPC with resolver logging enabled and the VPC is using the OU as part of its name)
 - On larger deployments we are occassionally seeing state machine failures when `Creating Config Recorders`. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`
-- If the State Machine fails on an initial execution of NEW-ACCOUNTS, it must be re-run to target the failed accounts (i.e. with a FULL scope) or sub-accounts will fail to be properly guardrailed
+- If the State Machine fails on an initial execution of NEW-ACCOUNTS, it must be re-run to target the failed accounts (i.e. with `{"scope": "FULL", "mode": "APPLY"}`) or the new sub-accounts will fail to be properly guardrailed
 
 Issues in Older Releases:
 
@@ -585,11 +585,12 @@ The Accelerator installation is complete, but several manual steps remain:
 
 **Release Specific Upgrade Considerations:**
 
-- Upgrades to `v1.5.1` from `v1.5.0`:
+- Upgrades to `v1.5.1-a` from `v1.5.0` or `v1.5.1`:
   - Do not add the parameter: `"ssm-inventory-collection": true` to OUs or accounts which already have SSM Inventory configured or the state machine will fail
   - Follow the standard upgrade steps detailed in section 3.2 below
-- Upgrades to `v1.5.0` and `v1.5.1` from `v1.3.8 through v1.3.9`:
-  - We recommend upgrading directly to v1.5.1
+- `v1.5.1` was replaced by `v1.5.1-a` and is no longer supported for new installs or upgrades
+- Upgrades to `v1.5.0` and and `v1.5.1-a` from `v1.3.8 through v1.3.9`:
+  - We recommend upgrading directly to v1.5.1-a
   - Due to the size and complexity of this upgrade, we require all customers to upgrade to `v1.3.8 or above` before beginning this upgrade
   - While v1.5.0 supports Control Tower for _NEW_ installs, existing Accelerator customers _CANNOT_ add Control Tower to their existing installations at this time (planned enhancement for 22H1)
     - Attempts to install Control Tower on top of the Accelerator will corrupt your environment (both Control Tower and the Accelerator need minor enhancements to enable)
@@ -629,7 +630,7 @@ The Accelerator installation is complete, but several manual steps remain:
    - The pipeline will automatically run and trigger the upgraded state machine
 9. If you are using a pre-existing GitHub token, or installing from CodeCommit:
 
-- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.5.1`)
+- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.5.1-a`)
   - Go to AWS CloudFormation and select the stack: `ASEA-what-you-provided`
   - Select Update, select Replace current template, Select Upload a template file
   - Select Choose File and select the template you downloaded in step 6 (`AcceleratorInstallerXYZ.template.json` or `AcceleratorInstallerXXX-CodeCommit.template.json`)
