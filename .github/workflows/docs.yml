@@ -16,5 +16,5 @@ jobs:
           python-version: 3.x
       - name: Install Material MkDocs
         run: pip install mkdocs-material mkdocs-with-pdf
-      - name: Deploy docs to docs folder on main
+      - name: Deploy docs to docs folder on gh-pages
         run: mkdocs gh-deploy -m "Update GitHub pages for latest documentation release" -b gh-pages --force
