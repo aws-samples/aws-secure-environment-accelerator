@@ -1,0 +1,2139 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the AWS Secure Environment Accelerator">
+      
+      
+        <meta name="author" content="Amazon Web Services">
+      
+      
+        <link rel="canonical" href="https://aws-samples.github.io/aws-secure-environment-accelerator/operations/system-overview/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.7">
+    
+    
+      
+        <title>System Overview - AWS Secure Environment Accelerator</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.9d5733d3.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../css/pdf-print.css">
+    
+      <link rel="stylesheet" href="../../css/extras.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#system-overview" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AWS Secure Environment Accelerator" class="md-header__button md-logo" aria-label="AWS Secure Environment Accelerator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AWS Secure Environment Accelerator
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              System Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws-samples/asea
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AWS Secure Environment Accelerator" class="md-nav__button md-logo" aria-label="AWS Secure Environment Accelerator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    AWS Secure Environment Accelerator
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws-samples/asea
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        About
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        FAQ
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../installation/">Installation & Upgrades</a>
+          
+            <label for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Installation & Upgrades" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Installation & Upgrades
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/install/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/upgrades/" class="md-nav__link">
+        Upgrades
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3_4" type="checkbox" id="__nav_3_4" >
+      
+      
+      
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_3_4">
+          Existing Orgs & Accounts
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Existing Orgs & Accounts" data-md-level="2">
+        <label class="md-nav__title" for="__nav_3_4">
+          <span class="md-nav__icon md-icon"></span>
+          Existing Orgs & Accounts
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/existing-orgs/" class="md-nav__link">
+        Existing Organizations / Accounts
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations-import-ALZAccount/" class="md-nav__link">
+        Import Existing ALZ
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/design/" class="md-nav__link">
+        Design Decisions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/services-list/" class="md-nav__link">
+        Deployed Services List
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/multi-file-config-capabilities/" class="md-nav__link">
+        Multi-file Config
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/object-naming/" class="md-nav__link">
+        Accelerator Object Naming
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/sm_inputs/" class="md-nav__link">
+        State Machine Behavior
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/v150-Upgrade/" class="md-nav__link">
+        v1.5.0 Upgrade Instructions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/what-we-do-where/" class="md-nav__link">
+        Key Account & Capability Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/log-file-locations/" class="md-nav__link">
+        Log File Locations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/customization-index/" class="md-nav__link">
+        Configuration File Customizations
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../">Operations & Troubleshooting</a>
+          
+            <label for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Operations & Troubleshooting" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Operations & Troubleshooting
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          System Overview
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        System Overview
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installer-stack" class="md-nav__link">
+    Installer Stack
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initial-setup-stack" class="md-nav__link">
+    Initial Setup Stack
+  </a>
+  
+    <nav class="md-nav" aria-label="Initial Setup Stack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-or-create-configuration-from-s3" class="md-nav__link">
+    Get or Create Configuration from S3
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-baseline-from-configuration" class="md-nav__link">
+    Get Baseline from Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compare-configurations" class="md-nav__link">
+    Compare Configurations
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-landing-zone-configuration" class="md-nav__link">
+    Load Landing Zone Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-execution-role-to-service-catalog" class="md-nav__link">
+    Add Execution Role to Service Catalog
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-landing-zone-account" class="md-nav__link">
+    Create Landing Zone Account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organizational-unit-ou-validation" class="md-nav__link">
+    Organizational Unit (OU) Validation
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-organization-configuration" class="md-nav__link">
+    Load Organization Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-cloudformation-role-in-root" class="md-nav__link">
+    Install CloudFormation Role in root
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-organization-account" class="md-nav__link">
+    Create Organization Account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-organizational-units" class="md-nav__link">
+    Load Organizational Units
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-accounts" class="md-nav__link">
+    Load Accounts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-execution-roles" class="md-nav__link">
+    Install Execution Roles
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-default-vpcs" class="md-nav__link">
+    Delete Default VPCs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-limits" class="md-nav__link">
+    Load Limits
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-trusted-access-for-services" class="md-nav__link">
+    Enable Trusted Access for Services
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-all-phase-outputs" class="md-nav__link">
+    Store All Phase Outputs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-phase-1-negative-one" class="md-nav__link">
+    Deploy Phase -1 (Negative one)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-phase-1-output" class="md-nav__link">
+    Store Phase -1 Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-phase-0" class="md-nav__link">
+    Deploy Phase 0
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-phase-0-output" class="md-nav__link">
+    Store Phase 0 Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-files" class="md-nav__link">
+    Verify Files
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-config-recorders" class="md-nav__link">
+    Create Config Recorders
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-scps-to-organization" class="md-nav__link">
+    Add SCPs to Organization
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-phase-1" class="md-nav__link">
+    Deploy Phase 1
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-phase-1-output_1" class="md-nav__link">
+    Store Phase 1 Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#account-default-settings" class="md-nav__link">
+    Account Default Settings
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-phase-2" class="md-nav__link">
+    Deploy Phase 2
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-phase-2-output" class="md-nav__link">
+    Store Phase 2 Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-phase-3" class="md-nav__link">
+    Deploy Phase 3
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-phase-3-output" class="md-nav__link">
+    Store Phase 3 Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-phase-4" class="md-nav__link">
+    Deploy Phase 4
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-phase-4-output" class="md-nav__link">
+    Store Phase 4 Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#associate-hosted-zones-step-removed-in-v121" class="md-nav__link">
+    Associate Hosted Zones (Step removed in v1.2.1)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-tags-to-shared-resources" class="md-nav__link">
+    Add Tags to Shared Resources
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-directory-sharing" class="md-nav__link">
+    Enable Directory Sharing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-phase-5" class="md-nav__link">
+    Deploy Phase 5
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-ad-connector" class="md-nav__link">
+    Create AD Connector
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-commit-id" class="md-nav__link">
+    Store Commit ID
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detach-quarantine-scp" class="md-nav__link">
+    Detach Quarantine SCP
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        Troubleshooting
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../common-tasks/" class="md-nav__link">
+        Common Tasks
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../developer/">Developer Guide</a>
+          
+            <label for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Developer Guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Developer Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/development/" class="md-nav__link">
+        Development Guide
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/tech-stack/" class="md-nav__link">
+        Tech Stack
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/best-practices/" class="md-nav__link">
+        Best Practices
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/contributing-guidelines/" class="md-nav__link">
+        How to Contribute
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/release-process/" class="md-nav__link">
+        Release Process
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../architectures/pbmm/">Architecture</a>
+          
+            <label for="__nav_6">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Architecture" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Architecture
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/accounts/" class="md-nav__link">
+        Account Structure
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/network/" class="md-nav__link">
+        Networking
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/auth/" class="md-nav__link">
+        Authentication & Authorization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/logging/" class="md-nav__link">
+        Logging and Monitoring
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/diagrams/" class="md-nav__link">
+        Architecture Diagrams
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pricing/sample_pricing/" class="md-nav__link">
+        Pricing
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
+      
+      
+      
+        
+          
+            
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../workshops/">Workshops</a>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Workshops" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Workshops
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      
+      
+        
+          
+            
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../schema/">Configuration File Schema</a>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Configuration File Schema" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Configuration File Schema
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md" class="md-nav__link">
+        Contributing & Governance
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installer-stack" class="md-nav__link">
+    Installer Stack
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initial-setup-stack" class="md-nav__link">
+    Initial Setup Stack
+  </a>
+  
+    <nav class="md-nav" aria-label="Initial Setup Stack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-or-create-configuration-from-s3" class="md-nav__link">
+    Get or Create Configuration from S3
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-baseline-from-configuration" class="md-nav__link">
+    Get Baseline from Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compare-configurations" class="md-nav__link">
+    Compare Configurations
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-landing-zone-configuration" class="md-nav__link">
+    Load Landing Zone Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-execution-role-to-service-catalog" class="md-nav__link">
+    Add Execution Role to Service Catalog
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-landing-zone-account" class="md-nav__link">
+    Create Landing Zone Account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organizational-unit-ou-validation" class="md-nav__link">
+    Organizational Unit (OU) Validation
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-organization-configuration" class="md-nav__link">
+    Load Organization Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-cloudformation-role-in-root" class="md-nav__link">
+    Install CloudFormation Role in root
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-organization-account" class="md-nav__link">
+    Create Organization Account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-organizational-units" class="md-nav__link">
+    Load Organizational Units
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-accounts" class="md-nav__link">
+    Load Accounts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-execution-roles" class="md-nav__link">
+    Install Execution Roles
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-default-vpcs" class="md-nav__link">
+    Delete Default VPCs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-limits" class="md-nav__link">
+    Load Limits
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-trusted-access-for-services" class="md-nav__link">
+    Enable Trusted Access for Services
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-all-phase-outputs" class="md-nav__link">
+    Store All Phase Outputs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-phase-1-negative-one" class="md-nav__link">
+    Deploy Phase -1 (Negative one)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-phase-1-output" class="md-nav__link">
+    Store Phase -1 Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-phase-0" class="md-nav__link">
+    Deploy Phase 0
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-phase-0-output" class="md-nav__link">
+    Store Phase 0 Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-files" class="md-nav__link">
+    Verify Files
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-config-recorders" class="md-nav__link">
+    Create Config Recorders
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-scps-to-organization" class="md-nav__link">
+    Add SCPs to Organization
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-phase-1" class="md-nav__link">
+    Deploy Phase 1
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-phase-1-output_1" class="md-nav__link">
+    Store Phase 1 Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#account-default-settings" class="md-nav__link">
+    Account Default Settings
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-phase-2" class="md-nav__link">
+    Deploy Phase 2
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-phase-2-output" class="md-nav__link">
+    Store Phase 2 Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-phase-3" class="md-nav__link">
+    Deploy Phase 3
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-phase-3-output" class="md-nav__link">
+    Store Phase 3 Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-phase-4" class="md-nav__link">
+    Deploy Phase 4
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-phase-4-output" class="md-nav__link">
+    Store Phase 4 Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#associate-hosted-zones-step-removed-in-v121" class="md-nav__link">
+    Associate Hosted Zones (Step removed in v1.2.1)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-tags-to-shared-resources" class="md-nav__link">
+    Add Tags to Shared Resources
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-directory-sharing" class="md-nav__link">
+    Enable Directory Sharing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-phase-5" class="md-nav__link">
+    Deploy Phase 5
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-ad-connector" class="md-nav__link">
+    Create AD Connector
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store-commit-id" class="md-nav__link">
+    Store Commit ID
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detach-quarantine-scp" class="md-nav__link">
+    Detach Quarantine SCP
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+<a href="https://github.com/aws-samples/aws-secure-environment-accelerator/edit/master/docs/operations/system-overview.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+
+<h1 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">link</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">link</a></h2>
+<p>The system can be thought of in two levels. The first level of the system consists of Accelerator stacks and resources. Let's call these the Accelerator-management resource. The second level of the system consists of stacks and resources that are deployed by the Accelerator-management resource. Let's call these the Accelerator-managed resources. The Accelerator-management resources are responsible for deploying the Accelerator-managed resources.</p>
+<p>There are two Accelerator-management stacks:</p>
+<ul>
+<li>the <code>Installer</code> stack that is responsible for creating the next listed stack;</li>
+<li>the <code>Initial Setup</code> stack. This stack is responsible for reading configuration file and creating Accelerator-managed resources in the relevant accounts.</li>
+</ul>
+<p>There are multiple Accelerator-managed stacks. Currently there are as many as twelve Accelerator-managed stacks per managed account.</p>
+<p>The figure below shows a zoomed-out overview of the Accelerator. The top of the overview shows the Accelerator-management resources, i.e. the <code>Installer</code> stack and the <code>Initial Setup</code> stack. The bottom of the overview shows the Accelerator-managed resources in the different accounts.</p>
+<p><img alt="System Overview Diagram" src="../img/overview.png" /></p>
+<h2 id="installer-stack">Installer Stack<a class="headerlink" href="#installer-stack" title="Permanent link">link</a></h2>
+<p>The Accelerator-management <code>Installer</code> stack contains the necessary resources to deploy the Accelerator-management <code>Initial Setup</code> stack in an AWS account. This AWS account will be referred to as the 'root' account in this document.</p>
+<p><img alt="Pipelines" src="../img/pipelines.png" /></p>
+<p>The Installer stack consists of the following resources:</p>
+<ul>
+<li><code>ASEA-InstallerPipeline</code>: this is a <code>AWS::CodePipeline::Pipeline</code> that pulls the latest Accelerator code from GitHub. It launches the CodeBuild project <code>ASEA-InstallerProject_pl</code>, executes the <code>ASEA-Installer-SaveApplicationVersion</code> Lambda and launches the Accelerator state machine.</li>
+<li><code>ASEA-InstallerProject_pl</code>: this is a <code>AWS::CodeBuild::Project</code> that installs the Accelerator in AWS account.</li>
+<li><code>ASEA-Installer-SaveApplicationVersion</code>: this is a <code>AWS::Lambda::Function</code> that stores the current Accelerator version into Parameter Store.</li>
+<li><code>ASEA-Installer-StartExecution</code>: this is a <code>AWS::Lambda::Function</code> that launches the Accelerator after CodeBuild deploys the Accelerator.</li>
+<li>Creation of AWS::DynamoDB::Table - <code>ASEA-Parameters</code> and <code>ASEA-Outputs</code> which are used for the internal operation of the Accelerator. <code>ASEA-Outputs</code> is used to share CloudFormation stack outputs between regions, stacks and phases. <code>ASEA-Parameters</code> is used to various configuration items like managed accounts, organizations structure, and limits.</li>
+</ul>
+<p><img alt="Installer Diagram" src="../img/installer.png" /></p>
+<p>The <code>ASEA-InstallerPipeline</code> starts when first installed using the CloudFormation template. The administrator can also start the pipeline manually by clicking the <code>Release Change</code> button in the AWS Console.</p>
+<p><img alt="CodePipeline Release Change" src="../img/codepipeline-release-change.png" /></p>
+<p>This starts the <code>ASEA-InstallerProject_pl</code> CodeBuild project. The CodeBuild project uses the GitHub source artifact. The CodeBuild projects spins up a new Linux instances and installs the Accelerator dependencies and starts the deployment of the Accelerator using the AWS Cloud Development Kit (CDK<sup><a href="#cdk">1</a></sup>).</p>
+<p>CDK bootstraps its environment and creates the <code>CDKToolkit</code> stack in the AWS account. It creates the S3 bucket <code>cdktoolkit-stagingbucket-*</code> and the ECR repository <code>aws-cdk/assets</code>.</p>
+<p>CDK copies assets to the bootstrap bucket and bootstrap repository that are used by the Accelerator. The assets that are stored on S3 include default IAM policies, default SCPs, default firewall configuration. The assets that are pushed to ECR include the Accelerator Docker build image. This Docker image is responsible for deploying Accelerator resources using the CDK.</p>
+<p>CDK finally deploys the <code>Initial Setup</code> stack. The Accelerator state machine is described in the next section.</p>
+<p>This diagram depicts the Accelerator Installer CodePipeline as of v1.2.1:</p>
+<p><img alt="Pipeline Steps" src="../img/pipeline-steps.png" /></p>
+<p>Once the Code Pipeline completes successfully:</p>
+<ul>
+<li>the Accelerator codebase was pulled from GitHub</li>
+<li>the Accelerator codebase was deployed/installed in the Organization Management (root) AWS account</li>
+<li>parameter store <code>/accelerator/version</code> was updated with the new version information<ul>
+<li>this provides a full history of all Accelerator versions and upgrades</li>
+</ul>
+</li>
+<li>the newly installed Accelerator state machine is started</li>
+</ul>
+<p>At this time the resources deployed by the Installer Stack are no longer required. The Installer stack <strong>could</strong> be removed (which would remove the Code Pipeline) with no impact on Accelerator functionality.</p>
+<p>If the Installer Stack was removed, it would need to be re-installed to upgrade the Accelerator. If the stack was not removed, an Accelerator codebase upgrade often only requires updating a single stack parameter to point to the latest Accelerator code branch, and re-releasing the pipeline. No files to manually copy, change or update, an upgrade can be initiated with a simple variable update.</p>
+<p><img alt="Accelerator Upgrade" src="../img/upgrade-cfn.png" /></p>
+<h2 id="initial-setup-stack">Initial Setup Stack<a class="headerlink" href="#initial-setup-stack" title="Permanent link">link</a></h2>
+<p>The Accelerator-management <code>Initial Setup</code> stack, named <code>ASEA-InitialSetup</code>, consists of a state machine, named <code>ASEA-MainStateMachine_sm</code>, that executes various steps to create the Accelerator-managed stacks and resources in the Accelerator-managed accounts. Using a state machine, we can clearly define the deployment process and systematically control branches of execution and handle exceptions.</p>
+<p>The Accelerator comprises a primary state machine <code>ASEA-MainStateMachine_sm</code>, and nine supporting state machines (as of v1.2.1). Customer will only ever Execute the <code>ASEA-MainStateMachine_sm</code>. All troubleshooting will also typically begin with the <code>ASEA-MainStateMachine_sm</code>.</p>
+<p><img alt="All Accelerator State Machine" src="../img/all-state-machines.png" /></p>
+<p>The image below depicts the latest state <code>ASEA-MainStateMachine_sm</code> machine. Each green or white square in the image represents a step in the state machine. This all green diagram represents a successul Accelerator state machine execution.</p>
+<p><img alt="Accelerator State Machine" src="../img/step-functions-main-sm.png" /></p>
+<p>Notice the extremely linear state machine design. This was done to reduce complexity and ease troubleshooting. You may notice a small fork in the state machine. The left path is executed if the Accelerator is deployed on top of an ALZ, The right path is executed if the Accelerator is deployed as a standalone solution. If we eventually add a Control Tower deployment option, it is likely it could also leverage the existing ALZ path.</p>
+<p>The state machine contains three different types of steps:</p>
+<ol>
+<li>steps that execute a Lambda function;</li>
+<li>steps that start another state machine, e.g. <code>Create Accounts</code> step;</li>
+<li>steps that start another state machine that starts a CodeBuild project, e.g. the <code>Phase {-1,0,1,2,3,4,5}</code> steps.</li>
+</ol>
+<p>The stack additionally consists of the following resources:</p>
+<ul>
+<li>AWS::CodeBuild::Project<ul>
+<li><code>ASEA-Deploy</code> or <code>ASEA-DeployPrebuilt</code></li>
+</ul>
+</li>
+<li>AWS::CodeCommit::Repository<ul>
+<li><code>ASEA-Config-Repo</code></li>
+</ul>
+</li>
+<li>AWS::IAM::Role<ul>
+<li><code>ASEA-L-SFN-MasterRole</code></li>
+<li><code>ASEA-L-SFN-Execution</code></li>
+</ul>
+</li>
+<li>AWS::Lambda::Function<ul>
+<li>A Lambda function for every Lambda function step in the state machine.</li>
+</ul>
+</li>
+<li>AWS::StepFunctions::StateMachine<ul>
+<li><code>ASEA-ALZCreateAccount_sm</code>: See <a href="#create-landing-zone-account"><em>Create Landing Zone Account</em></a>;</li>
+<li><code>ASEA-OrgCreateAccount_sm</code>: See <a href="#create-organization-account"><em>Create Organization Account</em></a>;</li>
+<li><code>ASEA-InstallCfnRoleMaster_sm</code>: See <a href="#install-cloudformation-role-in-root">Install CloudFormation Execution Role</a>;</li>
+<li><code>ASEA-InstallRoles_sm</code>: See <a href="#install-execution-roles"><em>Install Execution Roles</em></a>;</li>
+<li><code>ASEA-DeleteDefaultVpcs_sfn</code>: See <a href="#delete-default-vpcs"><em>Delete Default VPCs</em></a>;</li>
+<li><code>ASEA-CodeBuild_sm</code>: See <a href="#deploy-phase-0"><em>Deploy Phase 0</em></a>;</li>
+<li><code>ASEA-CreateConfigRecorder_sfn</code>: See <a href=""><em>Create Config Recorders</em></a>;</li>
+<li><code>ASEA-CreateAdConnector_sm</code>: See <a href="#create-ad-connector"><em>Create AD Connector</em></a>;</li>
+<li><code>ASEA-StoreOutputs_sm</code>: See <a href=""><em>Share Outputs</em></a> - new in v1.2.1.</li>
+</ul>
+</li>
+</ul>
+<p><em>Note: Most resources have a random suffix to their name. This is because we use CDK to deploy the resources. See <a href="">https://docs.aws.amazon.com/cdk/latest/guide/identifiers.html#identifiers_logical_ids</a></em></p>
+<h3 id="get-or-create-configuration-from-s3">Get or Create Configuration from S3<a class="headerlink" href="#get-or-create-configuration-from-s3" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that finds or creates the configuration repository. Finds the configuration file(s) in the CodeCommit repository. If the configuration file cannot be found in the repository it is copied from the customer's S3 configuration bucket. If the copy is successful then the configuration file(s) in the S3 bucket will be removed.</p>
+<p>The configuration file <code>config.json</code> or <code>config.yaml</code> is parsed and validated. This step will fail if both file types exist, the configuration file is not valid JSON or YAML or does not adhere to the configuration file specification. Internally the Accelerator always leverages JSON, but accepts JSON or YAML as the source input file and converts it to JSON prior to each execution, storing the converted and fully expanded file if in the raw folder.</p>
+<p><img alt="CodeCommit" src="../img/codecommit-repo.png" /></p>
+<h3 id="get-baseline-from-configuration">Get Baseline from Configuration<a class="headerlink" href="#get-baseline-from-configuration" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that gets the <code>alz-baseline</code> of the configuration file to decide which path in the state machine will be taken.</p>
+<h3 id="compare-configurations">Compare Configurations<a class="headerlink" href="#compare-configurations" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that compares the previous version of the configuration file with the current version of the configuration file. The previous configuration file CodeCommit commit id is stored in the secret <code>accelerator/config/last-successful-commit</code> in AWS Secrets Manager in the root account.</p>
+<p>The following configuration file changes are not allowed:</p>
+<ul>
+<li>changing ALZ baseline;</li>
+<li>changing root account or region;</li>
+<li>changing central log services account or region;</li>
+<li>changing the organizational unit, name or email address of an account;</li>
+<li>removing an account;</li>
+<li>changing the name, CIDR or region of a VPC;</li>
+<li>disabling a VPC;</li>
+<li>changing the name, availability zone, CIDR of a subnet;</li>
+<li>disabling or removing a subnet;</li>
+<li>changing the name, ASN, region or features of a transit gateway;</li>
+<li>changing the ID, VPC, subnet, region, size, DNS, Netbios of a Managed Active Directory;</li>
+<li>disabling a Managed Active Directory;</li>
+<li>changing the ASN of a virtual private gateway;</li>
+<li>changing the sharing to accounts of a VPC;</li>
+<li>changing the NACLs of a subnet.</li>
+</ul>
+<p>It is possible to ignore certain configuration file changes. See <a href="#restart-the-state-machine">Restart the State Machine</a> how to pass these options to the state machine.</p>
+<h3 id="load-landing-zone-configuration">Load Landing Zone Configuration<a class="headerlink" href="#load-landing-zone-configuration" title="Permanent link">link</a></h3>
+<p><em>Executed only when using AWS Landing Zone baseline</em></p>
+<p>This step calls a Lambda function that validates the ALZ deployment and configuration.</p>
+<p>This step fails when</p>
+<ul>
+<li>an existing ALZ deployment in the root account can not be found;</li>
+<li>an organizational unit that is used by ALZ or the Accelerator can not be found;</li>
+<li>an account is present in the Accelerator configuration but does not exist in AWS Organizations;</li>
+<li>an account has a name, email address or organizational unit that is different from the ALZ configuration;</li>
+<li>an account has a name, email address or organizational unit that is different from the Accelerator configuration;</li>
+<li>the organizational units in the ALZ configuration are different from the ones in AWS Organizations;</li>
+<li>the account type of ALZ configuration accounts can not be detected;</li>
+<li>the accounts of type <code>primary</code>', <code>security</code>, <code>log-archive</code>, <code>shared-services</code> are missing from the ALZ configuration.</li>
+</ul>
+<h3 id="add-execution-role-to-service-catalog">Add Execution Role to Service Catalog<a class="headerlink" href="#add-execution-role-to-service-catalog" title="Permanent link">link</a></h3>
+<p><em>Executed only when using AWS Landing Zone baseline</em></p>
+<p>This step calls a Lambda function that adds the state machine's IAM role to the ALZ Account Vending Machine (AVM) service catalog portfolio.</p>
+<h3 id="create-landing-zone-account">Create Landing Zone Account<a class="headerlink" href="#create-landing-zone-account" title="Permanent link">link</a></h3>
+<p><em>Executed only when using AWS Landing Zone baseline</em></p>
+<p>This step starts the <code>ASEA-ALZCreateAccount_sm</code> state machine. This state machine is responsible for creating an account using the AVM and waits for the account to be created and configured.</p>
+<h3 id="organizational-unit-ou-validation">Organizational Unit (OU) Validation<a class="headerlink" href="#organizational-unit-ou-validation" title="Permanent link">link</a></h3>
+<p><em>Executed only when using AWS Organizations baseline</em></p>
+<p>This step validates that the OU structure defined in the Accelerator configuration file matches the OU and account structure defined in AWS Organizations. Missing OUs are created. If any AWS Accounts or OUs have been renamed, this step updates the configuration file with the latest information. Accounts located in the incorrect top-level OU cause a state machine failure.</p>
+<h3 id="load-organization-configuration">Load Organization Configuration<a class="headerlink" href="#load-organization-configuration" title="Permanent link">link</a></h3>
+<p><em>Executed only when using AWS Organizations baseline</em></p>
+<p>This step calls a Lambda function that validates the Accelerator deployment and configuration.</p>
+<p>This step fails when</p>
+<ul>
+<li>an organizational unit that is used by the Accelerator can not be found;</li>
+<li>an account is present in the Accelerator configuration but does not exist in AWS Organizations;</li>
+<li>an account has a name, email address or organizational unit that is different from the Accelerator configuration.</li>
+<li><strong>returns accounts that have not been created</strong></li>
+<li>duplicates some validation functionality</li>
+</ul>
+<h3 id="install-cloudformation-role-in-root">Install CloudFormation Role in root<a class="headerlink" href="#install-cloudformation-role-in-root" title="Permanent link">link</a></h3>
+<p><em>Executed only when using AWS Organizations baseline</em></p>
+<p>This step starts the <code>ASEA-InstallCfnRoleMaster_sm</code> state machine. This state machine is responsible for creating the IAM role defined in <code>organization-admin-role</code> (default: <code>AWSCloudFormationStackSetAdministrationRole</code>) in the root account. You can read more about why this role is created <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html">here</a>.</p>
+<h3 id="create-organization-account">Create Organization Account<a class="headerlink" href="#create-organization-account" title="Permanent link">link</a></h3>
+<p><em>Executed only when using AWS Organizations baseline</em></p>
+<p>This step starts the <code>ASEA-OrgCreateAccount_sm</code> state machine. This state machine is responsible for creating an account using the AWS Organizations and waits for the account to be created and configured. The newly created account will be moved to the correct organizational unit and will have an the <code>ASEA-Quarantine-New-Object</code> Service Control Policy (SCP) attached to it. The SCP will only be removed after the Accelerator state machine has completed.</p>
+<p>Application of this SCP ensures that new AWS accounts cannot be used until they have been properly configured and had all Accelerator guardrails applied per the configuration file. It is important that guardrails be consistently in place from the time a user first accesses a new AWS account, until the account is decommissioned. Should the state machine fail, still be in-progress, or has not yet processed the account (for whatever reason), users who access it will be prevented from doing <em>anything</em>.</p>
+<h3 id="load-organizational-units">Load Organizational Units<a class="headerlink" href="#load-organizational-units" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that loads all Organizational Units. The Organizational Units are stored in the DynamoDB table <code>ASEA-Parameters</code> in the root account. The Organizational Units will later be used to determine which configuration file options apply to an AWS account.</p>
+<h3 id="load-accounts">Load Accounts<a class="headerlink" href="#load-accounts" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that loads all accounts. The accounts are stored in the DynamoDB table <code>ASEA-Parameters</code> in the root account. The accounts will later be used to deploy stacks in the correct accounts.</p>
+<h3 id="install-execution-roles">Install Execution Roles<a class="headerlink" href="#install-execution-roles" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that creates stack sets in all Accelerator accounts. This stack sets contains a single resource, i.e. an IAM role <code>ASEA-PipelineRole</code> that can be assumed by the <code>ASEA-L-SFN-MasterRole</code>. This IAM role allows the root account to administer the Accelerator accounts.</p>
+<h3 id="delete-default-vpcs">Delete Default VPCs<a class="headerlink" href="#delete-default-vpcs" title="Permanent link">link</a></h3>
+<p>This step starts the <code>ASEA-DeleteDefaultVpcs_sfn</code> state machine. This state machine is responsible for deleting default subnets, internet gateways and VPCs for all regions and accounts in the Accelerator configuration.</p>
+<p>This step fails when one or more default VPCs cannot be deleted. This step does not fail on the first error, it executes on all accounts/regions and then fails with a complete list of errors.</p>
+<h3 id="load-limits">Load Limits<a class="headerlink" href="#load-limits" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that loads service quotas and requests a service quota increase according to the configuration file. When a service quota increase request has been closed but not increased, then the service quota request will be issued again when the creation of the last request was at least two days ago.</p>
+<h3 id="enable-trusted-access-for-services">Enable Trusted Access for Services<a class="headerlink" href="#enable-trusted-access-for-services" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that is responsible for</p>
+<ul>
+<li>enabling AWS service access in the organization;</li>
+<li>enabling AWS Resource Access Manager sharing in the organization;</li>
+<li>creating a service-linked role for AWS IAM Access Analyzer;</li>
+<li>setting the security account as delegated administrator for AWS Firewall Manager;</li>
+<li>setting the security account as delegated administrator for AWS IAM Access Analyzer;</li>
+<li>setting the security account as delegated administrator for Amazon GuardDuty.</li>
+</ul>
+<h3 id="store-all-phase-outputs">Store All Phase Outputs<a class="headerlink" href="#store-all-phase-outputs" title="Permanent link">link</a></h3>
+<p>This step only executes on the first run of the state machine after it has been upgraded to v1.2.0 or above. This step exists solely to support upgrades from Accelerator versions prior to v1.2.0 and can be removed when no existing customers are running versions older than v1.2.0. This steps populates the DynamoDB Outputs table with the outputs from previous executions which were previously stored in S3 (and at one time even stored in secrets manager).</p>
+<h3 id="deploy-phase-1-negative-one">Deploy Phase -1 (Negative one)<a class="headerlink" href="#deploy-phase-1-negative-one" title="Permanent link">link</a></h3>
+<ul>
+<li>The following resources are deployed in phase -1:<ul>
+<li>Creating required roles for macie custom resources</li>
+<li>Creating required roles for guardDuty custom resources</li>
+<li>Creating required roles for securityHub custom resources</li>
+<li>Creating required roles for IamCreateRole custom resource</li>
+<li>Creating required roles for createSSMDocument custom resource</li>
+<li>Creating required roles for createLogGroup custom resource</li>
+<li>Creating required roles for CWLCentralLoggingSubscriptionFilterRole custom resource</li>
+<li>Creating required roles for TransitGatewayCreatePeeringAttachment custom resource</li>
+<li>Creating required roles for TransitGatewayAcceptPeeringAttachment custom resource</li>
+<li>Creating required roles for createLogsMetricFilter custom resource</li>
+<li>Creating required roles for SnsSubscriberLambda custom resource</li>
+</ul>
+</li>
+</ul>
+<h3 id="store-phase-1-output">Store Phase -1 Output<a class="headerlink" href="#store-phase-1-output" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that stores the outputs from the deployed stacks in sub-accounts in the DynamoDB table <code>ASEA-Outputs</code> in AWS Secrets Manager in the root account.</p>
+<h3 id="deploy-phase-0">Deploy Phase 0<a class="headerlink" href="#deploy-phase-0" title="Permanent link">link</a></h3>
+<p>This step starts the <code>ASEA-CodeBuild_sm</code> state machine. This state machine is responsible for starting a CodeBuild execution that deploys CloudFormation stacks in Accelerator-managed accounts using CDK.</p>
+<p><img alt="CodeBuild State Machine" src="../img/step-functions-codebuild-sm.png" /></p>
+<p><img alt="CodeBuild Diagram" src="../img/deploy.png" /></p>
+<p>The same CodeBuild project is used to deploy all phases. The environment variable <code>ACCELERATOR_PHASE</code> in the CodeBuild execution decides which phase to deploy.</p>
+<p>The following resources are deployed in phase 0:</p>
+<ul>
+<li>create default EBS encryption key;</li>
+<li>create an AWS log bucket with encryption key;</li>
+<li>create the central log services bucket with encryption key;</li>
+<li>create the Accelerator configuration bucket with encryption key;</li>
+<li>copy artifacts to the Accelerator configuration bucket:<ul>
+<li>SCPs;</li>
+<li>firewall configuration;</li>
+</ul>
+</li>
+<li>account warming (step 1);</li>
+<li>set password policy (step 1);</li>
+<li>create IAM users (step 1):<ul>
+<li>create passwords and store in Secrets Manager;</li>
+</ul>
+</li>
+<li>create MAD deployment (step 1):<ul>
+<li>create passwords and store in Secrets Manager;</li>
+<li>create service-linked role;</li>
+</ul>
+</li>
+<li>create <code>rsyslog</code> deployment (step 1);</li>
+<li>create firewalls (step 1);</li>
+<li>create budgets (step 1);</li>
+<li>create transit gateways (step 1);</li>
+<li>create Route53 DNS logging log group;</li>
+<li>enable Macie (step 1);</li>
+<li>enable GuardDuty;</li>
+<li>enable Access Analyzer;</li>
+</ul>
+<h3 id="store-phase-0-output">Store Phase 0 Output<a class="headerlink" href="#store-phase-0-output" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that stores the outputs from the deployed stacks in sub-accounts in the secret <code>ASEA-Outputs</code> in AWS Secrets Manager in the root account.</p>
+<h3 id="verify-files">Verify Files<a class="headerlink" href="#verify-files" title="Permanent link">link</a></h3>
+<p>This step verifies that all required files to complete the installation have been provided by the user. If any required files have not been provided, this step will fail and provide a list of <em>all</em> missing files.</p>
+<p>Why do we wait until so late in the state machine execution to perform this task?</p>
+<ol>
+<li>we do not want to add or delete files from a customer supplied bucket</li>
+<li>we do not want to force customers to need to copy and supply standard configuration files for 3. prescriptive installation</li>
+<li>we want to allow customers to override the sample or standard configuration files</li>
+<li>the config bucket is only created in Phase 0</li>
+<li>we copy all the relevant sample files from reference-artifacts folders to our config bucket, and then, we copy any customer supplied config files over top of our sample files</li>
+<li>This allows customers to override the sample configs, with customer custom configs without needing to either fork the repo, or supply the files on a vanilla install</li>
+<li>Until we do this file copy, we cannot be sure that the combination of customer supplied and reference-artifact sample files provides all the required files.</li>
+</ol>
+<h3 id="create-config-recorders">Create Config Recorders<a class="headerlink" href="#create-config-recorders" title="Permanent link">link</a></h3>
+<p>This step starts the <code>ASEA-CreateConfigRecorder_sfn</code> state machine. This state machine is responsible for creating Config recorders in all accounts and regions.</p>
+<h3 id="add-scps-to-organization">Add SCPs to Organization<a class="headerlink" href="#add-scps-to-organization" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that creates and attaches the SCPs listed in the Accelerator configuration. The SCP policies are loaded from the Accelerator configuration bucket.</p>
+<p>This step fails when</p>
+<ul>
+<li>an SCP policy cannot be found in the Accelerator configuration bucket;</li>
+<li>an SCP could not be attached to an organizational unit or account, e.g. when the maximum number of attached SCPs is exceeded</li>
+</ul>
+<h3 id="deploy-phase-1">Deploy Phase 1<a class="headerlink" href="#deploy-phase-1" title="Permanent link">link</a></h3>
+<ul>
+<li>Create S3 Bucket in all accounts and replicate to Log Account Bucket</li>
+<li>Deploy VPC:<ul>
+<li>Vpc</li>
+<li>Subnets</li>
+<li>Subnet sharing (RAM)</li>
+<li>Route tables</li>
+<li>Internet gateways</li>
+<li>NAT gateways</li>
+<li>Interface endpoints</li>
+<li>Gateway endpoints</li>
+<li>Transit Gateway Attachments</li>
+<li>IAM Role required for VPC Peering Auto accept</li>
+</ul>
+</li>
+<li>Firewall images subscription check</li>
+<li>Creates the customer gateways for the EIPs of the firewall</li>
+<li>Create IAM Roles, Users in account based on configuration</li>
+<li>Creates the additional budgets for the account stacks.</li>
+<li>Import Certificates</li>
+<li>Setup SSMSessionManagerDocument</li>
+<li>Create Cost and Usage reports</li>
+<li>Enable Macie in root Account</li>
+<li>GuardDuty setup in Security Account</li>
+<li>Setup CWL Central Logging</li>
+<li>Create Roles required for Flow Logs</li>
+<li>Transit Gateway Peering</li>
+<li>Create LogGroup required for DNS Logging</li>
+</ul>
+<h3 id="store-phase-1-output_1">Store Phase 1 Output<a class="headerlink" href="#store-phase-1-output_1" title="Permanent link">link</a></h3>
+<p>See <a href="#deploy-phase-0"><em>Deploy Phase 0</em></a>.</p>
+<h3 id="account-default-settings">Account Default Settings<a class="headerlink" href="#account-default-settings" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that</p>
+<ul>
+<li>enables and sets EBS default encryption for all accounts in the Accelerator configuration;</li>
+<li>enables S3 object level ALZ Cloudtrail logging;</li>
+<li>enables Log Insight events;</li>
+<li>enables KMS encryption using the CMK from the central logging account;</li>
+<li>sets AWS Systems Manager Session Manager default configuration in every Accelerator-managed account in every region with a VPC.</li>
+</ul>
+<h3 id="deploy-phase-2">Deploy Phase 2<a class="headerlink" href="#deploy-phase-2" title="Permanent link">link</a></h3>
+<ul>
+<li>Create CloudTrail in root account</li>
+<li>Create VPC Peering Connection</li>
+<li>Create Security Groups for shared VPC in sub accounts</li>
+<li>Setup Security Hub in Security Account</li>
+<li>Setup Cross Account CloudWatch logs sharing by creating roles in sub accounts</li>
+<li>Enable VPC FlowLogs</li>
+<li>Create Active Directory (MAD)</li>
+<li>Create Firewall clusters</li>
+<li>Create Firewall Management instance</li>
+<li>Create Transit Gateway Routes, Association and Propagation</li>
+<li>Enable Macie in Security account and Create Members, Update Config</li>
+<li>GuardDuty - Add existing Org accounts as members and allow new accounts to be members and Publish</li>
+<li>Create SNS Topics in Log Account</li>
+<li>TGW Peering Attachments</li>
+</ul>
+<h3 id="store-phase-2-output">Store Phase 2 Output<a class="headerlink" href="#store-phase-2-output" title="Permanent link">link</a></h3>
+<p>See <a href="#deploy-phase-0"><em>Deploy Phase 0</em></a>.</p>
+<h3 id="deploy-phase-3">Deploy Phase 3<a class="headerlink" href="#deploy-phase-3" title="Permanent link">link</a></h3>
+<ul>
+<li>create peering connection routes;</li>
+<li>create ALB (step 1);</li>
+<li>create <code>rsyslog</code> deployment (step 2);</li>
+<li>create hosted zones, resolver rules and resolver endpoints and Share;</li>
+<li>Enable Security Hub and Invite Sub accounts as members;</li>
+<li>TransitGateway Peering attachment and routes;</li>
+<li>Macie update Session;</li>
+</ul>
+<h3 id="store-phase-3-output">Store Phase 3 Output<a class="headerlink" href="#store-phase-3-output" title="Permanent link">link</a></h3>
+<p>See <a href="#deploy-phase-0"><em>Deploy Phase 0</em></a>.</p>
+<h3 id="deploy-phase-4">Deploy Phase 4<a class="headerlink" href="#deploy-phase-4" title="Permanent link">link</a></h3>
+<ul>
+<li>SecurityHub Disable Controls</li>
+<li>Creates CloudWatch Metrics on LogGroups</li>
+<li>Associate Shared Resolver Rules to VPC</li>
+<li>Associate Hosted Zones to VPC</li>
+</ul>
+<h3 id="store-phase-4-output">Store Phase 4 Output<a class="headerlink" href="#store-phase-4-output" title="Permanent link">link</a></h3>
+<p>See <a href="#deploy-phase-0"><em>Deploy Phase 0</em></a>.</p>
+<h3 id="associate-hosted-zones-step-removed-in-v121">Associate Hosted Zones (Step removed in v1.2.1)<a class="headerlink" href="#associate-hosted-zones-step-removed-in-v121" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that associates the private zones, all the interface endpoint zones, and the resolver rules with each VPC that leverages endpoint services. This step was removed in v1.2.1 of the Accelerator codebase.</p>
+<h3 id="add-tags-to-shared-resources">Add Tags to Shared Resources<a class="headerlink" href="#add-tags-to-shared-resources" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that adds tags to shared resources in the share destination account. For example, when a subnet is shared into another account, this step will add the <code>Name</code> tag to the subnet in the shared account.</p>
+<p>The supported resources are</p>
+<ul>
+<li>VPCs;</li>
+<li>subnets;</li>
+<li>security groups;</li>
+<li>transit gateway attachments.</li>
+</ul>
+<h3 id="enable-directory-sharing">Enable Directory Sharing<a class="headerlink" href="#enable-directory-sharing" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that shares Managed Active Directory according to the Accelerator configuration. The directory is shared from the source account to the target account. The directory will be accepted in the target account.</p>
+<h3 id="deploy-phase-5">Deploy Phase 5<a class="headerlink" href="#deploy-phase-5" title="Permanent link">link</a></h3>
+<ul>
+<li>create Remote Desktop Gateway;<ul>
+<li>create launch configuration;</li>
+<li>create autoscaling group;</li>
+</ul>
+</li>
+<li>enable central logging to S3 (step 2);</li>
+<li>Create CloudWatch Events for moveAccount, policyChanges and createAccount</li>
+<li>Creates CloudWatch Alarms</li>
+</ul>
+<h3 id="create-ad-connector">Create AD Connector<a class="headerlink" href="#create-ad-connector" title="Permanent link">link</a></h3>
+<p>This step starts the <code>ASEA-DeleteDefaultVpcs_sfn</code> state machine. This state machine is responsible for creating AD connectors according to the Accelerator configuration.</p>
+<p>This step fails when one or more AD connectors failed to be created.</p>
+<h3 id="store-commit-id">Store Commit ID<a class="headerlink" href="#store-commit-id" title="Permanent link">link</a></h3>
+<p>This step calls a Lambda function that stores the commit ID of the configuration file for which the state machine ran.</p>
+<h3 id="detach-quarantine-scp">Detach Quarantine SCP<a class="headerlink" href="#detach-quarantine-scp" title="Permanent link">link</a></h3>
+<p><em>Executed only when using AWS Organizations baseline</em></p>
+<p>This step calls a Lambda function that stores the commit ID for which the state machine just ran.</p>
+
+              
+            </article>
+          </div>
+        </div>
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" data-md-state="hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../" class="md-footer__link md-footer__link--prev" aria-label="Previous: Operations &amp; Troubleshooting Guide" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Operations & Troubleshooting Guide
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../troubleshooting/" class="md-footer__link md-footer__link--next" aria-label="Next: Troubleshooting" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Troubleshooting
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tracking", "navigation.instant", "navigation.indexes", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.5e67fbfe.min.js"}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e87a5f81.min.js"></script>
+      
+    
+  </body>
+</html>

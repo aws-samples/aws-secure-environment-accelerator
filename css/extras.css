@@ -1,0 +1,7 @@
+.md-grid {
+    max-width: 1600px;
+}
+
+.md-typeset :is(.question, .help, .faq) {
+    font-size: .8rem;
+}

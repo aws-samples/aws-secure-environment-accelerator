@@ -1,0 +1,1896 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the AWS Secure Environment Accelerator">
+      
+      
+        <meta name="author" content="Amazon Web Services">
+      
+      
+        <link rel="canonical" href="https://aws-samples.github.io/aws-secure-environment-accelerator/operations/operations-import-ALZAccount/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.7">
+    
+    
+      
+        <title>Import Existing ALZ - AWS Secure Environment Accelerator</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.9d5733d3.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../css/pdf-print.css">
+    
+      <link rel="stylesheet" href="../../css/extras.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-to-migrate-an-aws-landing-zone-alz-account-as-is-into-an-aws-secure-environment-accelerator-asea" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AWS Secure Environment Accelerator" class="md-header__button md-logo" aria-label="AWS Secure Environment Accelerator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AWS Secure Environment Accelerator
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Import Existing ALZ
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws-samples/asea
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AWS Secure Environment Accelerator" class="md-nav__button md-logo" aria-label="AWS Secure Environment Accelerator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    AWS Secure Environment Accelerator
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws-samples/asea
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        About
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        FAQ
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../installation/">Installation & Upgrades</a>
+          
+            <label for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Installation & Upgrades" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Installation & Upgrades
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/install/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/upgrades/" class="md-nav__link">
+        Upgrades
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3_4" type="checkbox" id="__nav_3_4" checked>
+      
+      
+      
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_3_4">
+          Existing Orgs & Accounts
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Existing Orgs & Accounts" data-md-level="2">
+        <label class="md-nav__title" for="__nav_3_4">
+          <span class="md-nav__icon md-icon"></span>
+          Existing Orgs & Accounts
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/existing-orgs/" class="md-nav__link">
+        Existing Organizations / Accounts
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Import Existing ALZ
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Import Existing ALZ
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites-setup" class="md-nav__link">
+    Prerequisites / Setup
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites / Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#confirm-asea-sso-and-ou-configuration" class="md-nav__link">
+    Confirm ASEA SSO and OU configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#switch-the-alz-linked-account-payment-method-to-invoicing" class="md-nav__link">
+    Switch the ALZ linked account payment method to invoicing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confirm-console-access-to-the-alz-linked-account-and-also-to-the-email-account" class="md-nav__link">
+    Confirm console access to the ALZ linked account and also to the email account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#if-an-enterprise-support-es-customer-then-confirm-es-is-enabled-on-the-alz-linked-account" class="md-nav__link">
+    If an Enterprise Support (ES) customer, then confirm ES is enabled on the ALZ linked account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confirm-the-alz-codepipeline-is-executing-successfully" class="md-nav__link">
+    Confirm the ALZ CodePipeline is executing successfully
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confirm-cli-access-and-setup-python-and-the-aws-python-sdk-boto3" class="md-nav__link">
+    Confirm CLI access and setup Python and the AWS Python SDK (boto3)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#landing-zone-disassociate-the-account-from-the-alz" class="md-nav__link">
+    Landing Zone - Disassociate the account from the ALZ
+  </a>
+  
+    <nav class="md-nav" aria-label="Landing Zone - Disassociate the account from the ALZ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#select-the-product-for-the-specific-linked-account" class="md-nav__link">
+    Select the product for the specific linked account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confirm-the-product-successfully-terminates" class="md-nav__link">
+    Confirm the product successfully terminates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#go-to-the-linked-account-assume-role" class="md-nav__link">
+    Go to the linked account (assume role)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#under-cloudformation-verify-that-the-alz-stacks-stacksets-from-alz-mgmt-were-deleted" class="md-nav__link">
+    Under “CloudFormation” verify that the ALZ Stacks (StackSets from ALZ mgmt) were deleted
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-that-the-account-is-ready-to-be-invited-and-baselined-by-the-asea" class="md-nav__link">
+    Verify that the account is ready to be invited and baselined by the ASEA
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#landing-zone-alz-remove-the-account-from-the-alz-organizations-and-make-standalone" class="md-nav__link">
+    Landing Zone (ALZ) - Remove the account from the ALZ organizations and make standalone
+  </a>
+  
+    <nav class="md-nav" aria-label="Landing Zone (ALZ) - Remove the account from the ALZ organizations and make standalone">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#read-the-following-summaryconsiderations" class="md-nav__link">
+    Read the following summary/considerations
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-access" class="md-nav__link">
+    Verify access
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-billing-flipped-to-invoicing" class="md-nav__link">
+    Verify billing flipped to invoicing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remove-the-account-from-the-organizations-and-make-standalone" class="md-nav__link">
+    Remove the account from the organizations and make standalone
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accelerator-invite-the-account-into-its-organization" class="md-nav__link">
+    Accelerator - Invite the account into its organization
+  </a>
+  
+    <nav class="md-nav" aria-label="Accelerator - Invite the account into its organization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-the-asea-mgmt-account-send-an-invite-to-the-standalone-account" class="md-nav__link">
+    From the ASEA mgmt account, send an invite to the standalone account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#in-the-former-alz-account-accept-the-invitation" class="md-nav__link">
+    In the former ALZ account, Accept the invitation
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keep-the-linked-account-at-the-root-level-of-the-organizations" class="md-nav__link">
+    Keep the linked account at the root level of the Organizations
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activate-enterprise-support-es-on-this-linked-account" class="md-nav__link">
+    Activate Enterprise Support (ES) on this linked account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-or-add-the-organization-adming-role-so-one-can-assume-the-role-into-the-linked-account" class="md-nav__link">
+    Update (or add) the Organization Adming Role so one can assume the role into the linked account
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accelerator-move-the-linked-account-from-the-top-level-root-ou-into-the-appropriate-ou-managed-by-the-asea" class="md-nav__link">
+    Accelerator - Move the linked account from the top level root OU into the appropriate OU managed by the ASEA
+  </a>
+  
+    <nav class="md-nav" aria-label="Accelerator - Move the linked account from the top level root OU into the appropriate OU managed by the ASEA">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#plan-what-ou-this-account-will-be-moved-into" class="md-nav__link">
+    Plan what OU this account will be moved into
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#move-the-account-from-the-root-ou-to-the-correct-ou" class="md-nav__link">
+    Move the account from the root OU to the correct OU
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accelerator-asea-verify-access-control-with-roles-sso-etc" class="md-nav__link">
+    Accelerator (ASEA) - Verify access control with roles, SSO, etc
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#landing-zone-close-down-the-alz-core-accounts-and-then-the-management-account" class="md-nav__link">
+    Landing Zone - Close down the ALZ core accounts and then the management account
+  </a>
+  
+    <nav class="md-nav" aria-label="Landing Zone - Close down the ALZ core accounts and then the management account">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#close-down-the-alz-linked-accounts" class="md-nav__link">
+    Close down the ALZ linked accounts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#close-down-the-alz-management-account" class="md-nav__link">
+    Close down the ALZ management account
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/design/" class="md-nav__link">
+        Design Decisions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/services-list/" class="md-nav__link">
+        Deployed Services List
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/multi-file-config-capabilities/" class="md-nav__link">
+        Multi-file Config
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/object-naming/" class="md-nav__link">
+        Accelerator Object Naming
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/sm_inputs/" class="md-nav__link">
+        State Machine Behavior
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/v150-Upgrade/" class="md-nav__link">
+        v1.5.0 Upgrade Instructions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/what-we-do-where/" class="md-nav__link">
+        Key Account & Capability Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/log-file-locations/" class="md-nav__link">
+        Log File Locations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/customization-index/" class="md-nav__link">
+        Configuration File Customizations
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../">Operations & Troubleshooting</a>
+          
+            <label for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Operations & Troubleshooting" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Operations & Troubleshooting
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system-overview/" class="md-nav__link">
+        System Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        Troubleshooting
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../common-tasks/" class="md-nav__link">
+        Common Tasks
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../developer/">Developer Guide</a>
+          
+            <label for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Developer Guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Developer Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/development/" class="md-nav__link">
+        Development Guide
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/tech-stack/" class="md-nav__link">
+        Tech Stack
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/best-practices/" class="md-nav__link">
+        Best Practices
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/contributing-guidelines/" class="md-nav__link">
+        How to Contribute
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/release-process/" class="md-nav__link">
+        Release Process
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../architectures/pbmm/">Architecture</a>
+          
+            <label for="__nav_6">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Architecture" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Architecture
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/accounts/" class="md-nav__link">
+        Account Structure
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/network/" class="md-nav__link">
+        Networking
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/auth/" class="md-nav__link">
+        Authentication & Authorization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/logging/" class="md-nav__link">
+        Logging and Monitoring
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/pbmm/diagrams/" class="md-nav__link">
+        Architecture Diagrams
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pricing/sample_pricing/" class="md-nav__link">
+        Pricing
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
+      
+      
+      
+        
+          
+            
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../workshops/">Workshops</a>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Workshops" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Workshops
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      
+      
+        
+          
+            
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../schema/">Configuration File Schema</a>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Configuration File Schema" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Configuration File Schema
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md" class="md-nav__link">
+        Contributing & Governance
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites-setup" class="md-nav__link">
+    Prerequisites / Setup
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites / Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#confirm-asea-sso-and-ou-configuration" class="md-nav__link">
+    Confirm ASEA SSO and OU configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#switch-the-alz-linked-account-payment-method-to-invoicing" class="md-nav__link">
+    Switch the ALZ linked account payment method to invoicing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confirm-console-access-to-the-alz-linked-account-and-also-to-the-email-account" class="md-nav__link">
+    Confirm console access to the ALZ linked account and also to the email account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#if-an-enterprise-support-es-customer-then-confirm-es-is-enabled-on-the-alz-linked-account" class="md-nav__link">
+    If an Enterprise Support (ES) customer, then confirm ES is enabled on the ALZ linked account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confirm-the-alz-codepipeline-is-executing-successfully" class="md-nav__link">
+    Confirm the ALZ CodePipeline is executing successfully
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confirm-cli-access-and-setup-python-and-the-aws-python-sdk-boto3" class="md-nav__link">
+    Confirm CLI access and setup Python and the AWS Python SDK (boto3)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#landing-zone-disassociate-the-account-from-the-alz" class="md-nav__link">
+    Landing Zone - Disassociate the account from the ALZ
+  </a>
+  
+    <nav class="md-nav" aria-label="Landing Zone - Disassociate the account from the ALZ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#select-the-product-for-the-specific-linked-account" class="md-nav__link">
+    Select the product for the specific linked account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confirm-the-product-successfully-terminates" class="md-nav__link">
+    Confirm the product successfully terminates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#go-to-the-linked-account-assume-role" class="md-nav__link">
+    Go to the linked account (assume role)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#under-cloudformation-verify-that-the-alz-stacks-stacksets-from-alz-mgmt-were-deleted" class="md-nav__link">
+    Under “CloudFormation” verify that the ALZ Stacks (StackSets from ALZ mgmt) were deleted
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-that-the-account-is-ready-to-be-invited-and-baselined-by-the-asea" class="md-nav__link">
+    Verify that the account is ready to be invited and baselined by the ASEA
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#landing-zone-alz-remove-the-account-from-the-alz-organizations-and-make-standalone" class="md-nav__link">
+    Landing Zone (ALZ) - Remove the account from the ALZ organizations and make standalone
+  </a>
+  
+    <nav class="md-nav" aria-label="Landing Zone (ALZ) - Remove the account from the ALZ organizations and make standalone">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#read-the-following-summaryconsiderations" class="md-nav__link">
+    Read the following summary/considerations
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-access" class="md-nav__link">
+    Verify access
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-billing-flipped-to-invoicing" class="md-nav__link">
+    Verify billing flipped to invoicing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remove-the-account-from-the-organizations-and-make-standalone" class="md-nav__link">
+    Remove the account from the organizations and make standalone
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accelerator-invite-the-account-into-its-organization" class="md-nav__link">
+    Accelerator - Invite the account into its organization
+  </a>
+  
+    <nav class="md-nav" aria-label="Accelerator - Invite the account into its organization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-the-asea-mgmt-account-send-an-invite-to-the-standalone-account" class="md-nav__link">
+    From the ASEA mgmt account, send an invite to the standalone account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#in-the-former-alz-account-accept-the-invitation" class="md-nav__link">
+    In the former ALZ account, Accept the invitation
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keep-the-linked-account-at-the-root-level-of-the-organizations" class="md-nav__link">
+    Keep the linked account at the root level of the Organizations
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activate-enterprise-support-es-on-this-linked-account" class="md-nav__link">
+    Activate Enterprise Support (ES) on this linked account
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-or-add-the-organization-adming-role-so-one-can-assume-the-role-into-the-linked-account" class="md-nav__link">
+    Update (or add) the Organization Adming Role so one can assume the role into the linked account
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accelerator-move-the-linked-account-from-the-top-level-root-ou-into-the-appropriate-ou-managed-by-the-asea" class="md-nav__link">
+    Accelerator - Move the linked account from the top level root OU into the appropriate OU managed by the ASEA
+  </a>
+  
+    <nav class="md-nav" aria-label="Accelerator - Move the linked account from the top level root OU into the appropriate OU managed by the ASEA">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#plan-what-ou-this-account-will-be-moved-into" class="md-nav__link">
+    Plan what OU this account will be moved into
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#move-the-account-from-the-root-ou-to-the-correct-ou" class="md-nav__link">
+    Move the account from the root OU to the correct OU
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accelerator-asea-verify-access-control-with-roles-sso-etc" class="md-nav__link">
+    Accelerator (ASEA) - Verify access control with roles, SSO, etc
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#landing-zone-close-down-the-alz-core-accounts-and-then-the-management-account" class="md-nav__link">
+    Landing Zone - Close down the ALZ core accounts and then the management account
+  </a>
+  
+    <nav class="md-nav" aria-label="Landing Zone - Close down the ALZ core accounts and then the management account">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#close-down-the-alz-linked-accounts" class="md-nav__link">
+    Close down the ALZ linked accounts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#close-down-the-alz-management-account" class="md-nav__link">
+    Close down the ALZ management account
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+<a href="https://github.com/aws-samples/aws-secure-environment-accelerator/edit/master/docs/operations/operations-import-ALZAccount.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+
+<h1 id="how-to-migrate-an-aws-landing-zone-alz-account-as-is-into-an-aws-secure-environment-accelerator-asea">How to migrate an AWS Landing Zone (ALZ) account "as is" into an AWS Secure Environment Accelerator (ASEA)<a class="headerlink" href="#how-to-migrate-an-aws-landing-zone-alz-account-as-is-into-an-aws-secure-environment-accelerator-asea" title="Permanent link">link</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">link</a></h2>
+<p>This document describes the steps to migrate an existing linked account from an AWS Landing Zone (ALZ) to an AWS Secure Environment Accelerator (ASEA).</p>
+<h2 id="prerequisites-setup">Prerequisites / Setup<a class="headerlink" href="#prerequisites-setup" title="Permanent link">link</a></h2>
+<h3 id="confirm-asea-sso-and-ou-configuration">Confirm ASEA SSO and OU configuration<a class="headerlink" href="#confirm-asea-sso-and-ou-configuration" title="Permanent link">link</a></h3>
+<p>On the ASEA, setup and run initial tests with SSO and permission sets with an account under the OU where the linked account will be migrated to.  Confirm that  SSO is properly configured with permissions required for the team members whose account is being migrated. This would include configuration of the ASEA’s AWS Managed Active Directory (MAD) which should align with how the team migrating their account has their AWS SSO and MAD configured today.</p>
+<h3 id="switch-the-alz-linked-account-payment-method-to-invoicing">Switch the ALZ linked account payment method to invoicing<a class="headerlink" href="#switch-the-alz-linked-account-payment-method-to-invoicing" title="Permanent link">link</a></h3>
+<p>If working with your AWS account team (TAM/SA) they will reach out to an internal team within AWS to have the linked account payment method switched to invoicing.  This way the customer doesn’t have to enter a credit card when making the account standalone in the upcoming steps.</p>
+<h3 id="confirm-console-access-to-the-alz-linked-account-and-also-to-the-email-account">Confirm console access to the ALZ linked account and also to the email account<a class="headerlink" href="#confirm-console-access-to-the-alz-linked-account-and-also-to-the-email-account" title="Permanent link">link</a></h3>
+<p>Confirm you have access to login as root to the ALZ linked account AWS console.  Confirm you have access to the email account associated to the ALZ linked account.  The upcoming steps will first make the account standalone (remove from ALZ organizations) so you need to make sure you have root access to the account.  If required, you can reset the password following: <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_passwords_change-root.html">https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_passwords_change-root.html</a></p>
+<h3 id="if-an-enterprise-support-es-customer-then-confirm-es-is-enabled-on-the-alz-linked-account">If an Enterprise Support (ES) customer, then confirm ES is enabled on the ALZ linked account<a class="headerlink" href="#if-an-enterprise-support-es-customer-then-confirm-es-is-enabled-on-the-alz-linked-account" title="Permanent link">link</a></h3>
+<p>If the ALZ management account is on Enterprise Support (ES), then make sure ES is enabled on the linked account being migrated to the ASEA. If its not, then raise a support case to activate ES on the linked account. This is to make sure an ES support case can be created and escalated during step 2 if any unforeseen issue occurs.</p>
+<h3 id="confirm-the-alz-codepipeline-is-executing-successfully">Confirm the ALZ CodePipeline is executing successfully<a class="headerlink" href="#confirm-the-alz-codepipeline-is-executing-successfully" title="Permanent link">link</a></h3>
+<p>Make sure the ALZ CodePipeline is still running successfully. Execute the ALZ CodePipeline from the management account to make sure it runs successfully.</p>
+<ul>
+<li>AWS Console -&gt; CodePipeline</li>
+<li>Select “AWS-Landing-Zone-CodePipeline”</li>
+<li>Select “Release Change”</li>
+<li>Click on the pipeline and confirm it successfully runs through to completion</li>
+</ul>
+<h3 id="confirm-cli-access-and-setup-python-and-the-aws-python-sdk-boto3">Confirm CLI access and setup Python and the AWS Python SDK (boto3)<a class="headerlink" href="#confirm-cli-access-and-setup-python-and-the-aws-python-sdk-boto3" title="Permanent link">link</a></h3>
+<p>Confirm SSO temporary command line access from the management account with AdminAccess.</p>
+<ul>
+<li>SSO login → Select linked account → “Command line or programmatic access”<ul>
+<li>Select Option 2 and add to your AWS credentials file under “[default]“</li>
+<li>This is required as the python script in step 3 takes a “profile” parameter</li>
+</ul>
+</li>
+<li>Confirm you have the AWS CLI tool installed.<ul>
+<li><a href="https://aws.amazon.com/cli/">https://aws.amazon.com/cli/</a></li>
+<li>Confirm by running a command such as “aws s3 ls”</li>
+</ul>
+</li>
+<li>Confirm you have python3 and the AWS python library (boto3) installed which is required in step 2 to confirm the account has been disassociated from the landing zone correctly.<ul>
+<li><a href="https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html">https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="landing-zone-disassociate-the-account-from-the-alz">Landing Zone - Disassociate the account from the ALZ<a class="headerlink" href="#landing-zone-disassociate-the-account-from-the-alz" title="Permanent link">link</a></h2>
+<ul>
+<li>Login to the ALZ management account, and go to “Service Catalog” -&gt; “Provisioned products”</li>
+<li>Select “Access Filter” -&gt; “Account” to see a list of the account products</li>
+</ul>
+<h3 id="select-the-product-for-the-specific-linked-account">Select the product for the specific linked account<a class="headerlink" href="#select-the-product-for-the-specific-linked-account" title="Permanent link">link</a></h3>
+<ul>
+<li>Put the linked account name in the provisioned products search bar</li>
+<li>This will narrow down the list and show a product name “AWS-Landing-Zone-Account-Vending-Machine” with a name <em>“lz_applicaitons_<ACCOUNT_NAME>_<date>”</em></li>
+<li>Select that product and then “Actions-&gt;Terminate”</li>
+</ul>
+<h3 id="confirm-the-product-successfully-terminates">Confirm the product successfully terminates<a class="headerlink" href="#confirm-the-product-successfully-terminates" title="Permanent link">link</a></h3>
+<ul>
+<li>The provisioned product entry will show a status of “Under change”</li>
+<li>You can also verify by going to CloudFormation→Stacks and you will see “DELETE IN PROGRESS” for the AVM Template stack being deleted.<ul>
+<li>Go to the Resources tab to see the deleted resources associated to this stack.</li>
+</ul>
+</li>
+<li>Once the provisioned product no longer says “Under change” move to the next step.  </li>
+<li>Please note, this can take 1-2 hours.</li>
+</ul>
+<h3 id="go-to-the-linked-account-assume-role">Go to the linked account (assume role)<a class="headerlink" href="#go-to-the-linked-account-assume-role" title="Permanent link">link</a></h3>
+<ul>
+<li>From the management account, assume the role “AWSCloudFormationStackSetExecutionRole” to the linked account<ul>
+<li>or optionally, SSO with console access to that account</li>
+</ul>
+</li>
+</ul>
+<h3 id="under-cloudformation-verify-that-the-alz-stacks-stacksets-from-alz-mgmt-were-deleted">Under “CloudFormation” verify that the ALZ Stacks (StackSets from ALZ mgmt) were deleted<a class="headerlink" href="#under-cloudformation-verify-that-the-alz-stacks-stacksets-from-alz-mgmt-were-deleted" title="Permanent link">link</a></h3>
+<ul>
+<li>There should be no stack left in the linked account with the prefix “StackSet-AWS-Landing-Zone-Baseline*".  For example:<ul>
+<li>StackSet-AWS-Landing-Zone-Baseline-CentralizedLoggingSpoke-</li>
+<li>StackSet-AWS-Landing-Zone-Baseline-EnableConfigRules-</li>
+<li>StackSet-AWS-Landing-Zone-Baseline-EnableNotifications-</li>
+<li>StackSet-AWS-Landing-Zone-Baseline-EnableConfigRulesGlobal-</li>
+<li>StackSet-AWS-Landing-Zone-Baseline-EnableConfig-</li>
+<li>StackSet-AWS-Landing-Zone-Baseline-ConfigRole-</li>
+<li>StackSet-AWS-Landing-Zone-Baseline-IamPasswordPolicy-</li>
+<li>StackSet-AWS-Landing-Zone-Baseline-SecurityRoles-</li>
+<li>StackSet-AWS-Landing-Zone-Baseline-EnableCloudTrail-</li>
+</ul>
+</li>
+</ul>
+<h3 id="verify-that-the-account-is-ready-to-be-invited-and-baselined-by-the-asea">Verify that the account is ready to be invited and baselined by the ASEA<a class="headerlink" href="#verify-that-the-account-is-ready-to-be-invited-and-baselined-by-the-asea" title="Permanent link">link</a></h3>
+<ul>
+<li>You need to ensure that resources don’t exist in the default VPC, there is no config recorder channel, no CloudTrail Trail and STS is active in all regions.</li>
+<li>This can be done manually, but ideally use this python script that can be run as well to automate the verification<ul>
+<li><a href="https://github.com/paulbayer/Inventory_Scripts/blob/mainline/ALZ_CheckAccount.py">https://github.com/paulbayer/Inventory_Scripts/blob/mainline/ALZ_CheckAccount.py</a></li>
+<li>mkdir test; cd test</li>
+<li>git clone <a href="https://github.com/paulbayer/Inventory_Scripts.git">https://github.com/paulbayer/Inventory_Scripts.git</a></li>
+<li>python3 ALZ_CheckAccount.py -a LINKED ACCOUNT_HERE -p default</li>
+</ul>
+</li>
+<li>It will run through 5 steps and output the following.   If you were to run this script before the “terminate” step above is complete you would have warnings in steps 2 and 3 below.<ul>
+<li>Step 0 completed without issues</li>
+<li>Checking account 111122223333 for default VPCs in any region</li>
+<li>Step 1 completed with no issues</li>
+<li>Checking account 111122223333 for a Config Recorders and Delivery Channels in any region</li>
+<li>Step 2 completed with no issues</li>
+<li>Checking account 111122223333 for a specially named CloudTrail in all regions</li>
+<li>Step 3 completed with no issues</li>
+<li>Checking account 111122223333 for any GuardDuty invites</li>
+<li>Step 4 completed with no issues</li>
+<li>Checking that the account is part of the AWS Organization.</li>
+<li>Step 5 completed with no issues</li>
+<li>We've found NO issues that would hinder the adoption of this account ****  </li>
+</ul>
+</li>
+</ul>
+<h2 id="landing-zone-alz-remove-the-account-from-the-alz-organizations-and-make-standalone">Landing Zone (ALZ) - Remove the account from the ALZ organizations and make standalone<a class="headerlink" href="#landing-zone-alz-remove-the-account-from-the-alz-organizations-and-make-standalone" title="Permanent link">link</a></h2>
+<p>Removing the account from the ALZ organizations and making it standalone is required so it can be invited into the ASEA organization.</p>
+<h3 id="read-the-following-summaryconsiderations">Read the following summary/considerations<a class="headerlink" href="#read-the-following-summaryconsiderations" title="Permanent link">link</a></h3>
+<ul>
+<li><a href="https://aws.amazon.com/premiumsupport/knowledge-center/organizations-move-accounts/">https://aws.amazon.com/premiumsupport/knowledge-center/organizations-move-accounts/</a></li>
+</ul>
+<h3 id="verify-access">Verify access<a class="headerlink" href="#verify-access" title="Permanent link">link</a></h3>
+<ul>
+<li>As stated in the previous sections, verify you have a mechanism to access the account post leaving the ALZ organization<ul>
+<li>Former SSO roles will no longer function nor will the “AWSCloudFormationStackSetExecutionRole” role as it will have a trust relationship to the ALZ management account.</li>
+<li>Confirm the root credentials have been recovered and are usable</li>
+<li>As an alternative, confirm access with a new role/IAM user with Admin permissions on the account</li>
+</ul>
+</li>
+</ul>
+<h3 id="verify-billing-flipped-to-invoicing">Verify billing flipped to invoicing<a class="headerlink" href="#verify-billing-flipped-to-invoicing" title="Permanent link">link</a></h3>
+<ul>
+<li>As stated in the previous sections, verify the account payment method has been flipped to “invoicing” to avoid having to enter a Credit Card when going standalone.  This can be done working with your AWS account team who will coordinate internally, or by raising a support case describing the use case.</li>
+</ul>
+<h3 id="remove-the-account-from-the-organizations-and-make-standalone">Remove the account from the organizations and make standalone<a class="headerlink" href="#remove-the-account-from-the-organizations-and-make-standalone" title="Permanent link">link</a></h3>
+<ul>
+<li>Follow the instructions on the following link to remove the account</li>
+<li>The short version is select the account from the ALZ mgmt account Organizations and select "remove"</li>
+<li><a href="https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html">https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_remove.html</a></li>
+<li><a href="https://aws.amazon.com/blogs/security/aws-organizations-now-supports-self-service-removal-of-accounts-from-an-organization">https://aws.amazon.com/blogs/security/aws-organizations-now-supports-self-service-removal-of-accounts-from-an-organization</a></li>
+<li>Note, when moving the account standalone do not select Enterprise Support.  You shouldn't get a popup dialog asking for a Credit Card and the Support level since the account should have been moved to invoicing.  Support can be reenabled on the linked account once it’s invited into the ASEA organization.</li>
+</ul>
+<h2 id="accelerator-invite-the-account-into-its-organization">Accelerator - Invite the account into its organization<a class="headerlink" href="#accelerator-invite-the-account-into-its-organization" title="Permanent link">link</a></h2>
+<h3 id="from-the-asea-mgmt-account-send-an-invite-to-the-standalone-account">From the ASEA mgmt account, send an invite to the standalone account<a class="headerlink" href="#from-the-asea-mgmt-account-send-an-invite-to-the-standalone-account" title="Permanent link">link</a></h3>
+<ul>
+<li>Follow the instructions on the following link to invite the account</li>
+<li>The short version is go to the ASEA mgmt account organizations and select "Add an account" -&gt; "Invite existing account" -&gt; "enter the linked account account ID"</li>
+<li><a href="https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_invites.html">https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_invites.html</a></li>
+</ul>
+<h3 id="in-the-former-alz-account-accept-the-invitation">In the former ALZ account, Accept the invitation<a class="headerlink" href="#in-the-former-alz-account-accept-the-invitation" title="Permanent link">link</a></h3>
+<ul>
+<li><a href="https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_invites.html#orgs_manage_accounts_accept-decline-invite">https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_invites.html#orgs_manage_accounts_accept-decline-invite</a></li>
+</ul>
+<h3 id="keep-the-linked-account-at-the-root-level-of-the-organizations">Keep the linked account at the root level of the Organizations<a class="headerlink" href="#keep-the-linked-account-at-the-root-level-of-the-organizations" title="Permanent link">link</a></h3>
+<ul>
+<li>Verify access to the linked account using your root login credentials</li>
+<li>If you had created an IAM role/user with Admin permissions, then verify access as well</li>
+</ul>
+<h3 id="activate-enterprise-support-es-on-this-linked-account">Activate Enterprise Support (ES) on this linked account<a class="headerlink" href="#activate-enterprise-support-es-on-this-linked-account" title="Permanent link">link</a></h3>
+<ul>
+<li>If ES is enabled on the ASEA management account, open a support case to enable ES on this linked account</li>
+<li>Go to the Support center and create a billing support case with "Account" and "Activation"</li>
+<li>Subject "Requesting ES enablement on linked account"</li>
+<li>Body "Requesting ES enablement on linked account <ACCOUNT-ID-HERE>"</li>
+<li>Your AWS TAM can escalate the case with the support team if it’s time sensitive.  </li>
+<li>This is to make sure an ES support case can be created and escalated during the next steps if any unforeseen issue occurs.</li>
+</ul>
+<h3 id="update-or-add-the-organization-adming-role-so-one-can-assume-the-role-into-the-linked-account">Update (or add) the Organization Adming Role so one can assume the role into the linked account<a class="headerlink" href="#update-or-add-the-organization-adming-role-so-one-can-assume-the-role-into-the-linked-account" title="Permanent link">link</a></h3>
+<ul>
+<li>Login to the linked account which just joined the organization.  </li>
+<li>Create a new Organization Admin role, as defined in the customers config file: "organization-admin-role": "OrganizationAccountAccessRole".</li>
+<li>With newer customers the default is "OrganizationAccountAccessRole, with older customers it is "AWSCloudFormationStackSetExecutionRole".  </li>
+<li>If "AWSCloudFormationStackSetExecutionRole" then you can edit the trust relationship directly<ul>
+<li>Go to IAM -&gt; Role -&gt; AWSCloudFormationStackSetExecutionRole</li>
+<li>Update the trust relationship to have the management account ID of the ASEA (instead of the account ID of the previous ALZ)</li>
+</ul>
+</li>
+<li>Verify that you can assume this role from the management account into the linked account</li>
+</ul>
+<h2 id="accelerator-move-the-linked-account-from-the-top-level-root-ou-into-the-appropriate-ou-managed-by-the-asea">Accelerator - Move the linked account from the top level root OU into the appropriate OU managed by the ASEA<a class="headerlink" href="#accelerator-move-the-linked-account-from-the-top-level-root-ou-into-the-appropriate-ou-managed-by-the-asea" title="Permanent link">link</a></h2>
+<h3 id="plan-what-ou-this-account-will-be-moved-into">Plan what OU this account will be moved into<a class="headerlink" href="#plan-what-ou-this-account-will-be-moved-into" title="Permanent link">link</a></h3>
+<ul>
+<li>Option 1 - Create a new OU and move the account into that OU<ul>
+<li>Before the migration, the team would have created a new OU (ie-similar to the sandbox OU).</li>
+<li>This would be needed if they need to isolate this account from TGW attachments/Networking and want to keep it isolated.</li>
+<li>The state machine will run and start to baseline the account.</li>
+<li>It will create a new VPC and deploy resources using CFN such as Config, CloudTrail, etc.</li>
+<li>Note, if the OU is setup similar to the sandbox OU it does not provide access to the shared VPCs that have the TGW attachments.</li>
+<li>Creating a new OU also requires adding that new OU and the OU persona to the config file in advance of the next state machine execution.  </li>
+</ul>
+</li>
+<li>Option 2 - Move account into an existing OU (ie-prod)<ul>
+<li>The state machine will run and start to baseline the account.</li>
+<li>It will create a new VPC and deploy resources using CFN such as Config, CloudTrail, etc.</li>
+<li>The customers existing VPC will remain, as a 2nd DETACHED VPC.  </li>
+<li>Mote. if it is non-compliant to security rules, it remains non-compliant and needs to be cleaned up and brought into compliance</li>
+<li>If the VPC is compliant and it has unique IP addresses, it could be attached to the TGW.</li>
+</ul>
+</li>
+</ul>
+<h3 id="move-the-account-from-the-root-ou-to-the-correct-ou">Move the account from the root OU to the correct OU<a class="headerlink" href="#move-the-account-from-the-root-ou-to-the-correct-ou" title="Permanent link">link</a></h3>
+<ul>
+<li>THIS CANNOT BE EASILY UNDONE - MAKE SURE YOU MOVE TO THE CORRECT OU</li>
+<li>Follow the instructions on the following link to move the account to the correct OU</li>
+<li>The short version is go to the ASEA management account organizations and "select the account" -&gt; "actions" -&gt; "move" -&gt; "select the correct OU"</li>
+<li>NOTE: The ASEA state machine will automatically start within 1-2 minutes of the account being moved into the OU</li>
+<li><a href="https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html#move_account_to_ou">https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html#move_account_to_ou</a></li>
+<li>Verify that the ASEA main state machine (under AWS-&gt;Step Functions) is triggered and runs cleanly (~30-45 minutes)</li>
+</ul>
+<h2 id="accelerator-asea-verify-access-control-with-roles-sso-etc">Accelerator (ASEA) - Verify access control with roles, SSO, etc<a class="headerlink" href="#accelerator-asea-verify-access-control-with-roles-sso-etc" title="Permanent link">link</a></h2>
+<ul>
+<li>Update and verify SSO and permission sets for the linked account now part of the ASEA</li>
+<li>Verify you still have access to the linked account via root (or other mechanisms)</li>
+<li>Verify you still can assume the operations role into the linked account</li>
+</ul>
+<h2 id="landing-zone-close-down-the-alz-core-accounts-and-then-the-management-account">Landing Zone - Close down the ALZ core accounts and then the management account<a class="headerlink" href="#landing-zone-close-down-the-alz-core-accounts-and-then-the-management-account" title="Permanent link">link</a></h2>
+<p>Once all workloads have been migrated from the ALZ to the ASEA, then you may decide to shutdown your ALZ.</p>
+<h3 id="close-down-the-alz-linked-accounts">Close down the ALZ linked accounts<a class="headerlink" href="#close-down-the-alz-linked-accounts" title="Permanent link">link</a></h3>
+<ul>
+<li>Close all the linked accounts “as is” without making them standalone</li>
+<li>This will be the ALZ core linked accounts, but you might have some remaining workload accounts you decided not to migrate to the ASEA.</li>
+<li><a href="https://aws.amazon.com/premiumsupport/knowledge-center/close-aws-account">https://aws.amazon.com/premiumsupport/knowledge-center/close-aws-account</a></li>
+<li>The management account will remain with organizations and the core accounts will show as suspended for 90 days.</li>
+</ul>
+<h3 id="close-down-the-alz-management-account">Close down the ALZ management account<a class="headerlink" href="#close-down-the-alz-management-account" title="Permanent link">link</a></h3>
+<ul>
+<li>After 90 days, the suspended linked accounts will be completely closed</li>
+<li>Go to the root account and turn off Organizations and then close the root account</li>
+</ul>
+
+              
+            </article>
+          </div>
+        </div>
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" data-md-state="hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../../installation/existing-orgs/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Existing Organizations / Accounts" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Existing Organizations / Accounts
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../../installation/design/" class="md-footer__link md-footer__link--next" aria-label="Next: Design Decisions" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Design Decisions
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tracking", "navigation.instant", "navigation.indexes", "navigation.top"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.5e67fbfe.min.js"}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e87a5f81.min.js"></script>
+      
+    
+  </body>
+</html>
