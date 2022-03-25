@@ -14,7 +14,7 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: 3.x
-      - name: Install Material MkDocs
-        run: pip install mkdocs-material 
+      - name: Install Material MkDocs & Dependencies
+        run: pip install mkdocs-material mkdocs-with-pdf
       - name: Deploy docs to docs folder on main
         run: mkdocs gh-deploy -m "Update GitHub pages for latest documentation release" -b mkdocs-0.1 --force
