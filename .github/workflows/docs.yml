@@ -2,7 +2,7 @@ name: docs
 on:
   push:
     branches:
-      - mkdocs-0.1
+      - gh-pages
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -17,4 +17,4 @@ jobs:
       - name: Install Material MkDocs
         run: pip install mkdocs-material 
       - name: Deploy docs to docs folder on main
-        run: mkdocs gh-deploy -m "Update GitHub pages for latest documentation release" -b mkdocs-0.1 --force
+        run: mkdocs gh-deploy -m "Update GitHub pages for latest documentation release" -b gh-pages --force
