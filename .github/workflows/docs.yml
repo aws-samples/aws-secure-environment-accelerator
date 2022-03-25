@@ -2,7 +2,7 @@ name: docs
 on:
   push:
     branches:
-      - gh-pages
+      - mkdocs-0.2
 jobs:
   deploy:
     runs-on: ubuntu-latest
