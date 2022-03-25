@@ -53,6 +53,9 @@ export interface SiemConfig {
   lambdaLogProcessingRoleArn: string;
   s3LogBuckets: string[];
   siemVersion: string;
+  enableLambdaSubscription: boolean;
+  s3NotificationTopicNameOrExistingArn: string;
+  organizationId: string;
 }
 
 export async function loadSiemConfig(): Promise<SiemConfig> {
