@@ -1,0 +1,732 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>GlobalOptions | AWS SEA Config Docs</title>
+	<meta name="description" content="Documentation for AWS SEA Config Docs">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="../assets/css/main.css">
+	<script async src="../assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json"
+				data-base="..">
+				<div class="field">
+					<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+					<input id="tsd-search-field" type="text" />
+				</div>
+				<ul class="results">
+					<li class="state loading">Preparing search index...</li>
+					<li class="state failure">The search index is not available</li>
+				</ul>
+				<ul class="results-priority" style="display:none">
+				</ul>
+				<a href="../index.html" class="title">Accelerator config file documentation</a>
+			</div>
+			<div class="table-cell" id="tsd-widgets">
+				<div id="tsd-filter">
+					<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+					<div class="tsd-filter-group">
+						<div class="tsd-select" id="tsd-filter-visibility">
+							<span class="tsd-select-label">All</span>
+							<ul class="tsd-select-list">
+								<li data-value="public">Public</li>
+								<li data-value="protected">Public/Protected</li>
+								<li data-value="private" class="selected">All</li>
+							</ul>
+						</div>
+						<div class="tsd-select" id="tsd-language-filter">
+							<span id="selected-language" class="tsd-select-label"
+							data-language="en">English</span>
+							<ul class="tsd-select-list" id="tsd-language-select-list">
+								<li data-value="en">English</li>
+								<li data-value="fr">Français</li>
+							</ul>
+						</div>
+						<input type="checkbox" id="tsd-filter-inherited" checked />
+						<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+						<input type="checkbox" id="tsd-filter-externals" checked />
+						<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						<input type="checkbox" id="tsd-filter-only-exported" />
+						<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+					</div>
+				</div>
+				<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+			</div>
+		</div>
+	</div>
+	</div>
+	<div class="tsd-page-title custom-breadcrumb">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="../modules.html" class="main-breadcrumb">AWS SEA Config Docs</a>
+				</li>
+				<li>
+					<a href="GlobalOptions.html">GlobalOptions</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="tsd-page-title disclaimer-wrapper">
+		<div class="container disclaimer">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+				<title>Warning</title>
+				<path
+				d="M85.57 446.25h340.86a32 32 0 0028.17-47.17L284.18 82.58c-12.09-22.44-44.27-22.44-56.36 0L57.4 399.08a32 32 0 0028.17 47.17z"
+				fill="none" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" />
+				<path d="M250.26 195.39l5.74 122 5.73-121.95a5.74 5.74 0 00-5.79-6h0a5.74 5.74 0 00-5.68 5.95z"
+				fill="none" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" />
+				<path fill="black" d="M256 397.25a20 20 0 1120-20 20 20 0 01-20 20z" />
+			</svg>
+			<h5>
+				The configuration file schema documentation is a work in progress. Please use this <b>draft</b> document with caution.  The deeper you browse into the hierarchy, the less accurate the definitions are likely to be.
+			</h5>
+		</div>
+	</div>
+</header>
+<style>
+    .disclaimer-wrapper {
+        background: #FFD740;
+        padding: 0;
+    }
+
+    .custom-breadcrumb {
+        margin-bottom: 0px;
+    }
+
+    .disclaimer {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .disclaimer svg {
+        width: 40px;
+        margin-right: 15px;
+    }
+
+    .disclaimer h5 {
+        line-height: 20px;
+    }
+</style>
+<script>
+    function replaceMainBreadcrumbLink() {
+        const mainBreadcrumb = document.querySelector('.main-breadcrumb');
+        if (!mainBreadcrumb.href.indexOf("modules.html")) return;
+        mainBreadcrumb.href = mainBreadcrumb.href.replace(`/modules.html`, `/index.html`);
+    }
+    const currentLanguage = document.getElementById('selected-language').dataset.language;
+
+    const languageFilter = document.getElementById('tsd-language-filter');
+    languageFilter.addEventListener("mouseenter", (event) => {
+        languageFilter.classList.add("active");
+        const languageList = document.getElementById('tsd-language-select-list');
+        const items = languageList.getElementsByTagName('li');
+        for (const item of items) {
+            if (item.dataset.value === currentLanguage) {
+                item.classList.add('selected');
+                break;
+            }
+        }
+    });
+    languageFilter.addEventListener("mouseleave", (event) => {
+        languageFilter.classList.remove("active");
+    });
+
+    function addEventListenerToLanguages() {
+        const languageList = document.getElementById('tsd-language-select-list');
+        const items = languageList.getElementsByTagName('li');
+        for (const item of items) {
+            item.addEventListener("click", (event) => {
+                languageSelected(event, item);
+            });
+        }
+    }
+
+    function languageSelected(event, itemClicked) {
+        const selectedLanguage = itemClicked.dataset.value; //'en', 'fr', 'es', '..'
+        if (currentLanguage === selectedLanguage) return;
+        document.location = document.location.href.replace(`/${currentLanguage}/`, `/${selectedLanguage}/`);
+    }
+
+    function initializePage() {
+        addEventListenerToLanguages();
+        replaceMainBreadcrumbLink();
+    }
+    window.addEventListener('load', (event) => {
+        initializePage();
+    });
+</script>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>This section defines parameters or configurations that apply across the entire Accelerator installation.</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">GlobalOptions</span>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#additional_cwl_regions" class="tsd-kind-icon">additional-<wbr>cwl-<wbr>regions</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#additional_global_output_regions" class="tsd-kind-icon">additional-<wbr>global-<wbr>output-<wbr>regions</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#aws_config" class="tsd-kind-icon">aws-<wbr>config</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#aws_org_management" class="tsd-kind-icon">aws-<wbr>org-<wbr>management</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#central_bucket" class="tsd-kind-icon">central-<wbr>bucket</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#central_log_services" class="tsd-kind-icon">central-<wbr>log-<wbr>services</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#central_operations_services" class="tsd-kind-icon">central-<wbr>operations-<wbr>services</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#central_security_services" class="tsd-kind-icon">central-<wbr>security-<wbr>services</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#cidr_pools" class="tsd-kind-icon">cidr-<wbr>pools</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#cloudwatch" class="tsd-kind-icon">cloudwatch</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#control_tower_supported_regions" class="tsd-kind-icon">control-<wbr>tower-<wbr>supported-<wbr>regions</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#ct_baseline" class="tsd-kind-icon">ct-<wbr>baseline</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#default_cwl_retention" class="tsd-kind-icon">default-<wbr>cwl-<wbr>retention</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#default_s3_retention" class="tsd-kind-icon">default-<wbr>s3-<wbr>retention</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#default_ssm_documents" class="tsd-kind-icon">default-<wbr>ssm-<wbr>documents</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#endpoint_port_overrides" class="tsd-kind-icon">endpoint-<wbr>port-<wbr>overrides</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#iam_password_policies" class="tsd-kind-icon">iam-<wbr>password-<wbr>policies</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#ignored_ous" class="tsd-kind-icon">ignored-<wbr>ous</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#install_cloudformation_master_role" class="tsd-kind-icon">install-<wbr>cloudformation-<wbr>master-<wbr>role</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#keep_default_vpc_regions" class="tsd-kind-icon">keep-<wbr>default-<wbr>vpc-<wbr>regions</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#organization_admin_role" class="tsd-kind-icon">organization-<wbr>admin-<wbr>role</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#reports" class="tsd-kind-icon">reports</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#scps" class="tsd-kind-icon">scps</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#security_hub_frameworks" class="tsd-kind-icon">security-<wbr>hub-<wbr>frameworks</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#separate_s3_dp_org_trail" class="tsd-kind-icon">separate-<wbr>s3-<wbr>dp-<wbr>org-<wbr>trail</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#ssm_automation" class="tsd-kind-icon">ssm-<wbr>automation</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#supported_regions" class="tsd-kind-icon">supported-<wbr>regions</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#vpc_flow_logs" class="tsd-kind-icon">vpc-<wbr>flow-<wbr>logs</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#workloadaccounts_param_filename" class="tsd-kind-icon">workloadaccounts-<wbr>param-<wbr>filename</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#workloadaccounts_prefix" class="tsd-kind-icon">workloadaccounts-<wbr>prefix</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="GlobalOptions.html#workloadaccounts_suffix" class="tsd-kind-icon">workloadaccounts-<wbr>suffix</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="additional_cwl_regions" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> additional-<wbr>cwl-<wbr>regions</h3>
+					<div class="tsd-signature tsd-kind-icon">additional-<wbr>cwl-<wbr>regions<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:116</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Additional CloudWatch Log Regions<br/><b>Description:</b> By default, only CloudWatch Logs from the Accelerator home region are centralized into the central S3 logging bucket, this allows centralizing CloudWatch Logs for additional regions.  Each region requires an entry in the format: "us-east-1": { "kinesis-stream-shard-count": 1 }.
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-index-signature">
+								<h5><span class="tsd-signature-symbol">[</span>k: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><a href="AdditionalCloudWatchLogRegions.html" class="tsd-signature-type" data-tsd-kind="Interface">AdditionalCloudWatchLogRegions</a></h5>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="additional_global_output_regions" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> additional-<wbr>global-<wbr>output-<wbr>regions</h3>
+					<div class="tsd-signature tsd-kind-icon">additional-<wbr>global-<wbr>output-<wbr>regions<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:119</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Additional Global Output Regions<br/><b>Description:</b> By default, Parameter Store is only populated with parameters for Accelerator deployed objects in the Accelerator home region, this allows for populating Parameter Store in additional regions.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="aws_config" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> aws-<wbr>config</h3>
+					<div class="tsd-signature tsd-kind-icon">aws-<wbr>config<span class="tsd-signature-symbol">:</span> <a href="AWSConfig.html" class="tsd-signature-type" data-tsd-kind="Interface">AWSConfig</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:127</li>
+						</ul>
+					</aside>
+					<b>Title:</b> AWS Config<br/><b>Description:</b> This section within `global-options` is used to *define* AWS Config rules.  These rules are deployed into accounts within designated organizational units or to specific accounts based on settings at the organizational-unit or account level. AWS Config rules continuously evaluate the configuration settings of your AWS resources and when AWS Config detects that a resource violates the conditions in your rule(s), it flags the resource as noncompliant.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="aws_org_management" class="tsd-anchor"></a>
+					<h3>aws-<wbr>org-<wbr>management</h3>
+					<div class="tsd-signature tsd-kind-icon">aws-<wbr>org-<wbr>management<span class="tsd-signature-symbol">:</span> <a href="CentralizedSecurityServicesConfig3.html" class="tsd-signature-type" data-tsd-kind="Interface">CentralizedSecurityServicesConfig3</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:103</li>
+						</ul>
+					</aside>
+					<b>Title:</b> AWS Organizational Management Account<br/><b>Description:</b> The Accelerator has the concept of grouping certain sets of functionality (security, logs, ITOps, Management) together and centralizing their respective capabilities into a single account.  This section identifies the Organization management account and provides the ability to enable/disable services associated with it which are applicable across the organization.  The Organization management account will be defined in the `mandatory-account-configs` section of the config file.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="central_bucket" class="tsd-anchor"></a>
+					<h3>central-<wbr>bucket</h3>
+					<div class="tsd-signature tsd-kind-icon">central-<wbr>bucket<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:97</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Customer S3 Input Bucket<br/><b>Description:</b> The S3 bucket used by customers to provide a customers customized configuration files, including the config.json file.  These files are used by the Accelerator to defined the deployed architecture and configuration or override default. During deployment, the core configuration file is copied to CodeCommit and customers must make configuration changes in CodeCommit after the initial install.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="central_log_services" class="tsd-anchor"></a>
+					<h3>central-<wbr>log-<wbr>services</h3>
+					<div class="tsd-signature tsd-kind-icon">central-<wbr>log-<wbr>services<span class="tsd-signature-symbol">:</span> <a href="CentralizedSecurityServicesConfig2.html" class="tsd-signature-type" data-tsd-kind="Interface">CentralizedSecurityServicesConfig2</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:102</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Central Log Services<br/><b>Description:</b> The Accelerator has the concept of grouping certain sets of functionality (security, logs, ITOps, Management) together and centralizing their respective capabilities into a single account.  This section identifies the Logging account and provides the ability to enable/disable services associated with it which are applicable across the organization.  The Logging account will be defined in the `mandatory-account-configs` section of the config file.  Organization wide Logging Services will be defined here.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="central_operations_services" class="tsd-anchor"></a>
+					<h3>central-<wbr>operations-<wbr>services</h3>
+					<div class="tsd-signature tsd-kind-icon">central-<wbr>operations-<wbr>services<span class="tsd-signature-symbol">:</span> <a href="CentralizedSecurityServicesConfig1.html" class="tsd-signature-type" data-tsd-kind="Interface">CentralizedSecurityServicesConfig1</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:101</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Central Operations Services<br/><b>Description:</b> The Accelerator has the concept of grouping certain sets of functionality (security, logs, ITOps, Management) together and centralizing their respective capabilities into a single account.  This section identifies the Operations account and provides the ability to enable/disable services associated with it which are applicable across the organization.  The Operations account will be defined in the `mandatory-account-configs` section of the config file.  Organization wide Operations Services will be defined here.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="central_security_services" class="tsd-anchor"></a>
+					<h3>central-<wbr>security-<wbr>services</h3>
+					<div class="tsd-signature tsd-kind-icon">central-<wbr>security-<wbr>services<span class="tsd-signature-symbol">:</span> <a href="CentralizedSecurityServicesConfig.html" class="tsd-signature-type" data-tsd-kind="Interface">CentralizedSecurityServicesConfig</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:100</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Central Security Services<br/><b>Description:</b> The Accelerator has the concept of grouping certain sets of functionality (security, logs, ITOps, Management) together and centralizing their respective capabilities into a single account.  This section identifies the Security Tooling account and provides the ability to enable/disable services associated with it which are applicable across the organization.  The Security Tooling account will be defined in the `mandatory-account-configs` section of the config file.  Organization wide Security Services will be defined here.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="cidr_pools" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> cidr-<wbr>pools</h3>
+					<div class="tsd-signature tsd-kind-icon">cidr-<wbr>pools<span class="tsd-signature-symbol">:</span> <a href="CIDRPool.html" class="tsd-signature-type" data-tsd-kind="Interface">CIDRPool</a><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:133</li>
+						</ul>
+					</aside>
+					<b>Title:</b> CIDR Pools<br/><b>Description:</b> CIDR Pools are used to enable the automatic allocation of IP addresses to VPCs and Subnets.  Multiple named pools can be created which can each contain multiple CIDR blocks, each assigned to a specific region.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="cloudwatch" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> cloudwatch</h3>
+					<div class="tsd-signature tsd-kind-icon">cloudwatch<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>alarms<span class="tsd-signature-symbol">: </span><a href="CloudWatchAlarmDefaultsAndDefinitions.html" class="tsd-signature-type" data-tsd-kind="Interface">CloudWatchAlarmDefaultsAndDefinitions</a><span class="tsd-signature-symbol">; </span>metrics<span class="tsd-signature-symbol">: </span><a href="CloudWatchMetricDefinitions.html" class="tsd-signature-type" data-tsd-kind="Interface">CloudWatchMetricDefinitions</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> }</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:121</li>
+						</ul>
+					</aside>
+					<b>Title:</b> CloudWatch<br/><b>Description:</b> This section is used to *define* and *deploy* CloudWatch metrics and alarms.  These metrics and alarms can be installed in a list of named accounts, or to all accounts in the organization within this ssection.  CloudWatch metrics and alarms are currently only supported in the Accelerator home region.
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-index-signature">
+								<h5><span class="tsd-signature-symbol">[</span>k: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">unknown</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5>alarms<span class="tsd-signature-symbol">: </span><a href="CloudWatchAlarmDefaultsAndDefinitions.html" class="tsd-signature-type" data-tsd-kind="Interface">CloudWatchAlarmDefaultsAndDefinitions</a></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5>metrics<span class="tsd-signature-symbol">: </span><a href="CloudWatchMetricDefinitions.html" class="tsd-signature-type" data-tsd-kind="Interface">CloudWatchMetricDefinitions</a><span class="tsd-signature-symbol">[]</span></h5>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="control_tower_supported_regions" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> control-<wbr>tower-<wbr>supported-<wbr>regions</h3>
+					<div class="tsd-signature tsd-kind-icon">control-<wbr>tower-<wbr>supported-<wbr>regions<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:132</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Control Tower Supported Regions<br/><b>Description:</b> This field needs to be populated with the list of regions both supported and enabled by Control Tower. As customers enable new regions, including when new regions are supported by Control Tower, they need to be added to this list.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="ct_baseline" class="tsd-anchor"></a>
+					<h3>ct-<wbr>baseline</h3>
+					<div class="tsd-signature tsd-kind-icon">ct-<wbr>baseline<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:95</li>
+						</ul>
+					</aside>
+					<b>Title:</b> ControlTower Baseline<br/><b>Description:</b> Indicates this installation depends on Control Tower and Control Tower deployed functionality. Control Tower must be installed before beginning an Accelerator installation.  Upgrades from a standalone install to a Control Tower based install are not currently possible.  This flag cannot be changed after initial installation.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="default_cwl_retention" class="tsd-anchor"></a>
+					<h3>default-<wbr>cwl-<wbr>retention</h3>
+					<div class="tsd-signature tsd-kind-icon">default-<wbr>cwl-<wbr>retention<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:109</li>
+						</ul>
+					</aside>
+					<b>Title:</b> CloudWatch Logs Retention Period<br/><b>Description:</b> Defines the default retention period for CloudWatch Log Groups in all Accelerator managed accounts, in days.  Valid values include: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="default_s3_retention" class="tsd-anchor"></a>
+					<h3>default-<wbr>s3-<wbr>retention</h3>
+					<div class="tsd-signature tsd-kind-icon">default-<wbr>s3-<wbr>retention<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:96</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Default account S3 logging bucket retention period<br/><b>Description:</b> In certain cases logs are delivered to the local account before being centralized to the central logging bucket (i.e. VPC Flow logs).  This setting determines the default retention for the local account copy of the logs in S3.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="default_ssm_documents" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> default-<wbr>ssm-<wbr>documents</h3>
+					<div class="tsd-signature tsd-kind-icon">default-<wbr>ssm-<wbr>documents<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:128</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Deprecated<br/><b>Description:</b> Deprecated
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="endpoint_port_overrides" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> endpoint-<wbr>port-<wbr>overrides</h3>
+					<div class="tsd-signature tsd-kind-icon">endpoint-<wbr>port-<wbr>overrides<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:129</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Endpoint Port Overrides<br/><b>Description:</b> The Accelerator locked down all interface endpoint security groups to 0.0.0.0/0:443 inbound, no outbound-rules.  As certain endpoints a different set of ports, this setting enables customers to overide the defaults for a specific endpoint.  If a customer needs to lockdown an endpoint to a specific CIDR range, that is set at the VPC level.  Example: "endpoint-port-overrides": {"logs": ["TCP:443", "UDP:9418"], "ssmmessages": ["TCP:443", "TCP:8080"] }
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-index-signature">
+								<h5><span class="tsd-signature-symbol">[</span>k: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="iam_password_policies" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> iam-<wbr>password-<wbr>policies</h3>
+					<div class="tsd-signature tsd-kind-icon">iam-<wbr>password-<wbr>policies<span class="tsd-signature-symbol">:</span> <a href="IAMPasswordPolicy.html" class="tsd-signature-type" data-tsd-kind="Interface">IAMPasswordPolicy</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:108</li>
+						</ul>
+					</aside>
+					<b>Title:</b> IAM Password Policies<br/><b>Description:</b> This group of settings enables setting the AWS IAM password policies for all accounts in the organization.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="ignored_ous" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> ignored-<wbr>ous</h3>
+					<div class="tsd-signature tsd-kind-icon">ignored-<wbr>ous<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:110</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Ignored OUs<br/><b>Description:</b> Accounts placed within any OU defined here fall outside the governance structure of the Accelerator and do not need to be listed in the config file.  The Accelerator does not apply guardrails to accounts within this OU.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="install_cloudformation_master_role" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> install-<wbr>cloudformation-<wbr>master-<wbr>role</h3>
+					<div class="tsd-signature tsd-kind-icon">install-<wbr>cloudformation-<wbr>master-<wbr>role<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:111</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Install Cloudformation Management Role<br/><b>Description:</b> This flag enables disabling the creation of the CloudFormation role in the Organization management account. Only required when repurposing an old sub-account as a new Organization management account.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="keep_default_vpc_regions" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> keep-<wbr>default-<wbr>vpc-<wbr>regions</h3>
+					<div class="tsd-signature tsd-kind-icon">keep-<wbr>default-<wbr>vpc-<wbr>regions<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:107</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Keep Default VPC Regions<br/><b>Description:</b> The Accelerator deletes default VPCs in every region, this specifies regions where the Accelerator will not delete default VPCs across all accounts in the Organization.  This can also be specified at the account level.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="organization_admin_role" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> organization-<wbr>admin-<wbr>role</h3>
+					<div class="tsd-signature tsd-kind-icon">organization-<wbr>admin-<wbr>role<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:105</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Organization Admin Role<br/><b>Description:</b> The initial default role that exists in every new AWS account and will be used by Accelerator and Control Tower when creating new accounts.  Must be specified by customers when creating new AWS accounts through AWS Organizations.  This must be set to AWSControlTowerExecution when ct-baseline is set to true.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="reports" class="tsd-anchor"></a>
+					<h3>reports</h3>
+					<div class="tsd-signature tsd-kind-icon">reports<span class="tsd-signature-symbol">:</span> <a href="CostAndUsageReports.html" class="tsd-signature-type" data-tsd-kind="Interface">CostAndUsageReports</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:98</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Cost and Usage Reports<br/><b>Description:</b> This section enables customers to deploy and configure Cost and Usage Reports for the organization.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="scps" class="tsd-anchor"></a>
+					<h3>scps</h3>
+					<div class="tsd-signature tsd-kind-icon">scps<span class="tsd-signature-symbol">:</span> <a href="ServiceControlPolicies.html" class="tsd-signature-type" data-tsd-kind="Interface">ServiceControlPolicies</a><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:104</li>
+						</ul>
+					</aside>
+					<b>Title:</b> SCPs<br/><b>Description:</b> This section within `global-options` is used to *define* AWS Service Control Policies (SCPs).  Defined SCPs are referenced in the `organizational-units` or `account-configs` sections, which  assigns these SCPs for application.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="security_hub_frameworks" class="tsd-anchor"></a>
+					<h3>security-<wbr>hub-<wbr>frameworks</h3>
+					<div class="tsd-signature tsd-kind-icon">security-<wbr>hub-<wbr>frameworks<span class="tsd-signature-symbol">:</span> <a href="SecurityHubFrameworksConfig.html" class="tsd-signature-type" data-tsd-kind="Interface">SecurityHubFrameworksConfig</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:99</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Security Hub Frameworks<br/><b>Description:</b> Defines the Security Hub frameworks to be deployed to all accounts in the organization and any individual controls within the frameworks to be disabled.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="separate_s3_dp_org_trail" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> separate-<wbr>s3-<wbr>dp-<wbr>org-<wbr>trail</h3>
+					<div class="tsd-signature tsd-kind-icon">separate-<wbr>s3-<wbr>dp-<wbr>org-<wbr>trail<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:120</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Seperate S3 DataPlane Organization Tail<br/><b>Description:</b> Added to enable Control Tower support, as the Control Tower CloudTrails do not include data plane logging. This allows for the creation of a second trail only containing Data Plane events.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="ssm_automation" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> ssm-<wbr>automation</h3>
+					<div class="tsd-signature tsd-kind-icon">ssm-<wbr>automation<span class="tsd-signature-symbol">:</span> <a href="SSMAutomation.html" class="tsd-signature-type" data-tsd-kind="Interface">SSMAutomation</a><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:126</li>
+						</ul>
+					</aside>
+					<b>Title:</b> SSM Automation<br/><b>Description:</b> This section within `global-options` is used to *defined* and *deploy* SSM automation documents into a limited number of central accounts.  These Automation documents are then shared into accounts within designated organizational units or to specific accounts based on settings at the organizational-unit or account level. SSM Automation documents can be invoked from AWS Config rules to remediate non-compliant rules.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="supported_regions" class="tsd-anchor"></a>
+					<h3>supported-<wbr>regions</h3>
+					<div class="tsd-signature tsd-kind-icon">supported-<wbr>regions<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:106</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Accelerator Managed Regions<br/><b>Description:</b> This is the list of regions where security and governance controls will be deployed by default. It is recommended this list include all enabled by default regions, but, this list MUST include the Accelerator home region, us-east-1 and any regions where the Accelerator deploys functionality like VPCs, TGWs, Zones or Automation documents.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="vpc_flow_logs" class="tsd-anchor"></a>
+					<h3>vpc-<wbr>flow-<wbr>logs</h3>
+					<div class="tsd-signature tsd-kind-icon">vpc-<wbr>flow-<wbr>logs<span class="tsd-signature-symbol">:</span> <a href="VPCFlowLogConfig.html" class="tsd-signature-type" data-tsd-kind="Interface">VPCFlowLogConfig</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:115</li>
+						</ul>
+					</aside>
+					<b>Title:</b> VPC Flow Logs<br/><b>Description:</b> This section within `global-options` is used to define a consistent set of VPC Flog Log settings, which will be utilized when VPC Flow logging is enabled on a VPC within either `organizational-units` or `account-configs`.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="workloadaccounts_param_filename" class="tsd-anchor"></a>
+					<h3>workloadaccounts-<wbr>param-<wbr>filename</h3>
+					<div class="tsd-signature tsd-kind-icon">workloadaccounts-<wbr>param-<wbr>filename<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:114</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Workload Accounts Parameter Filename<br/><b>Description:</b> This is the filename of the main configuration file which contains all the top-level config sections (i.e. config.json).  As the config file can be broken into multiple parts, this enables finding the top-level file and all other sub-files.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="workloadaccounts_prefix" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> workloadaccounts-<wbr>prefix</h3>
+					<div class="tsd-signature tsd-kind-icon">workloadaccounts-<wbr>prefix<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:112</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Workload Accounts Config Filename Prefix<br/><b>Description:</b> When the config file reaches a certain size (line count), the Accelerator will place all new workload accounts in a new config file.  This is the prefix to be used for any new filenames (i.e. config).
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="workloadaccounts_suffix" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> workloadaccounts-<wbr>suffix</h3>
+					<div class="tsd-signature tsd-kind-icon">workloadaccounts-<wbr>suffix<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:113</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Workload Accounts Config Filename Suffix<br/><b>Description:</b> When the config file reaches a certain size (line count), the Accelerator will place all new workload accounts in a new config file.  This is the suffix to be used for the NEXT new filename (any integer), after assigned, it is incremented by 1.
+				</section>
+			</section>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="../modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface">
+						<a href="GlobalOptions.html" class="tsd-kind-icon">Global<wbr>Options</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#additional_cwl_regions" class="tsd-kind-icon">additional-<wbr>cwl-<wbr>regions</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#additional_global_output_regions" class="tsd-kind-icon">additional-<wbr>global-<wbr>output-<wbr>regions</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#aws_config" class="tsd-kind-icon">aws-<wbr>config</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#aws_org_management" class="tsd-kind-icon">aws-<wbr>org-<wbr>management</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#central_bucket" class="tsd-kind-icon">central-<wbr>bucket</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#central_log_services" class="tsd-kind-icon">central-<wbr>log-<wbr>services</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#central_operations_services" class="tsd-kind-icon">central-<wbr>operations-<wbr>services</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#central_security_services" class="tsd-kind-icon">central-<wbr>security-<wbr>services</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#cidr_pools" class="tsd-kind-icon">cidr-<wbr>pools</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#cloudwatch" class="tsd-kind-icon">cloudwatch</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#control_tower_supported_regions" class="tsd-kind-icon">control-<wbr>tower-<wbr>supported-<wbr>regions</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#ct_baseline" class="tsd-kind-icon">ct-<wbr>baseline</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#default_cwl_retention" class="tsd-kind-icon">default-<wbr>cwl-<wbr>retention</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#default_s3_retention" class="tsd-kind-icon">default-<wbr>s3-<wbr>retention</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#default_ssm_documents" class="tsd-kind-icon">default-<wbr>ssm-<wbr>documents</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#endpoint_port_overrides" class="tsd-kind-icon">endpoint-<wbr>port-<wbr>overrides</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#iam_password_policies" class="tsd-kind-icon">iam-<wbr>password-<wbr>policies</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#ignored_ous" class="tsd-kind-icon">ignored-<wbr>ous</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#install_cloudformation_master_role" class="tsd-kind-icon">install-<wbr>cloudformation-<wbr>master-<wbr>role</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#keep_default_vpc_regions" class="tsd-kind-icon">keep-<wbr>default-<wbr>vpc-<wbr>regions</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#organization_admin_role" class="tsd-kind-icon">organization-<wbr>admin-<wbr>role</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#reports" class="tsd-kind-icon">reports</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#scps" class="tsd-kind-icon">scps</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#security_hub_frameworks" class="tsd-kind-icon">security-<wbr>hub-<wbr>frameworks</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#separate_s3_dp_org_trail" class="tsd-kind-icon">separate-<wbr>s3-<wbr>dp-<wbr>org-<wbr>trail</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#ssm_automation" class="tsd-kind-icon">ssm-<wbr>automation</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#supported_regions" class="tsd-kind-icon">supported-<wbr>regions</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#vpc_flow_logs" class="tsd-kind-icon">vpc-<wbr>flow-<wbr>logs</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#workloadaccounts_param_filename" class="tsd-kind-icon">workloadaccounts-<wbr>param-<wbr>filename</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#workloadaccounts_prefix" class="tsd-kind-icon">workloadaccounts-<wbr>prefix</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="GlobalOptions.html#workloadaccounts_suffix" class="tsd-kind-icon">workloadaccounts-<wbr>suffix</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer>
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="overlay"></div>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

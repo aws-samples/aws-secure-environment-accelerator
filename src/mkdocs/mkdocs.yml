@@ -1,0 +1,111 @@
+site_name: AWS Secure Environment Accelerator
+site_url: https://aws-samples.github.io/aws-secure-environment-accelerator/
+site_author: Amazon Web Services
+site_description: Documentation for the AWS Secure Environment Accelerator
+site_dir: ../../docs
+
+nav:
+  - About: index.md
+  - FAQ: faq/index.md
+  - Installation & Upgrades:
+      - installation/index.md
+      - Installation: installation/install.md
+      - Upgrades: installation/upgrades.md
+      - Existing Orgs & Accounts:
+          - installation/existing-orgs.md
+          - Import Existing ALZ: operations/operations-import-ALZAccount.md
+      - Design Decisions: installation/design.md
+      - Deployed Services List: installation/services-list.md
+      - Multi-file Config: installation/multi-file-config-capabilities.md
+      - Accelerator Object Naming: installation/object-naming.md
+      - State Machine Behavior: installation/sm_inputs.md
+      - v1.5.0 Upgrade Instructions: installation/v150-Upgrade.md
+      - Key Account & Capability Overview: installation/what-we-do-where.md
+      - Log File Locations: installation/log-file-locations.md
+      - Configuration File Customizations: installation/customization-index.md
+  - Operations & Troubleshooting:
+      - operations/index.md
+      - System Overview: operations/system-overview.md
+      - Troubleshooting: operations/troubleshooting.md
+      - Common Tasks: operations/common-tasks.md
+  - Developer Guide:
+      - developer/index.md
+      - Development Guide: developer/development.md
+      - Tech Stack: developer/tech-stack.md
+      - Best Practices: developer/best-practices.md
+      - How to Contribute: developer/contributing-guidelines.md
+      - Release Process: developer/release-process.md
+  - Architecture:
+      - architectures/pbmm/index.md
+      - Account Structure: architectures/pbmm/accounts.md
+      - Networking: architectures/pbmm/network.md
+      - Authentication & Authorization: architectures/pbmm/auth.md
+      - Logging and Monitoring: architectures/pbmm/logging.md
+      - Architecture Diagrams: architectures/pbmm/diagrams.md
+      - Pricing: pricing/sample_pricing.md
+  - Workshops:
+      - workshops/index.md
+  - Configuration File Schema:
+      - schema/index.md
+  - Contributing & Governance: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md
+
+theme:
+  name: material
+  highlightjs: true
+  hljs_languages:
+    - yaml
+  features:
+    - navigation.tracking
+    - navigation.instant
+    - navigation.indexes
+    - navigation.top
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  generator: false
+
+extra_css:
+  - css/pdf-print.css
+  - css/extras.css
+
+markdown_extensions:
+  - toc:
+      toc_depth: 3
+      permalink: "link"
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - abbr
+  - attr_list
+  - def_list
+  - footnotes
+
+repo_url: https://github.com/aws-samples/aws-secure-environment-accelerator
+repo_name: aws-samples/asea
+
+plugins:
+  - search
+  - with-pdf:
+      #cover_title:
+      author: Amazon Web Services
+      cover_subtitle: Amazon Web Services
+      #cover_logo: assets/images/banner.png
+      #back_cover: true
+      toc_level: 3
+      #excludes_children:
+      #  - 'releases/changelog/:upgrading'
+      #convert_iframe:
+      #  - src: https://streamable.com/e/zmtb00
+      #   img: https://cdn-cf-east.streamable.com/image/zmtb00-screenshot75403.jpg
+      #two_columns_level: 3
+      #render_js: true
+      #headless_chrome_path: "chrome"
+      #output_path: ../document.pdf
+      #debug_html: true
+      #verbose: true
+      #show_anchors: true
+      #enabled_if_env: ENABLE_PDF_EXPORT
