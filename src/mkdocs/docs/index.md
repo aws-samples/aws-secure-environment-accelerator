@@ -16,6 +16,8 @@ A common misconception is that the AWS Secure Environment Accelerator only deplo
 
 Additionally, while the Accelerator is initially responsible for deploying a prescribed architecture, it more importantly allows for organizations to operate, evolve, and maintain their cloud architecture and security controls over time and as they grow, with minimal effort, often using native AWS tools. Customers don't have to change the way they operate in AWS.
 
+The Accelerator is designed to enable customers to upgrade across Accelerator versions while maintaining a customer’s specific configuration and customizations, and without the need for any coding expertise or for Professional Services. Customers have been able to seamlessly upgrade their AWS multi-account environment from the very first Accelerator beta release to the latest release (across more than 50 releases), gaining the benefits of bug fixes and enhancements while having the option to enable new features, without any loss of existing customization or functionality.
+
 Specifically the accelerator deploys and manages the following functionality, both at initial accelerator deployment and as new accounts are created, added, or onboarded in a completely automated but customizable manner:
 
 ### Creates AWS Account
@@ -86,6 +88,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Creates Customer Managed KMS Keys (SSM, EBS, S3), EC2 key pairs, and secrets
 - Enables account level default EBS encryption and S3 Block Public Access
 - Configures Systems Manager Session Manager w/KMS encryption and centralized logging
+- Configures Systems Manager Inventory w/centralized logging
 - Creates and configures AWS budgets (customizable per ou and per account)
 - Imports or requests certificates into AWS Certificate Manager
 - Deploys both perimeter and account level ALB's w/Lambda health checks, certificates and TLS policies
@@ -94,7 +97,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Protects Accelerator deployed and managed objects
 - Sets Up SNS Alerting topics (High, Medium, Low, Blackhole priorities)
 - Deploys CloudWatch Log Metrics and Alarms
-- Deploys customer provided custom config rules (1 provided out-of-box, No EC2 Instance Profile)
+- Deploys customer provided custom config rules (2 provided out-of-box, No EC2 Instance Profile)
 
 ### Centralized Logging and Alerting
 
@@ -110,6 +113,8 @@ Specifically the accelerator deploys and manages the following functionality, bo
     - GuardDuty Findings
     - Macie Discovery results
     - ALB Logs
+    - SSM Inventory **(NEW)**
+    - Security Hub findings **(NEW)**
     - SSM Session Logs (also sent to CWL)
     - Resolver Query Logs (also sent to CWL)
 - Email alerting for CloudTrail Metric Alarms, Firewall Manager Events **(NEW)**, Security Hub Findings incl. Guardduty Findings **(NEW)**
