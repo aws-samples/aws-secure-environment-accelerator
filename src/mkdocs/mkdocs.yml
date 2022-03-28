@@ -10,15 +10,15 @@ nav:
       - installation/index.md
       - Installation: 
           - Installation Guide: installation/install.md
+          - Releases: https://github.com/aws-samples/aws-secure-environment-accelerator/releases
           - Configuration File Customization: installation/customization-index.md
           - State Machine Behavior: installation/sm_inputs.md
           - Splitting the Config File: installation/multi-file-config-capabilities.md          
+          - Considerations with Existing Organizations: installation/existing-orgs.md
+          - Importing ALZ Accounts: operations/operations-import-ALZAccount.md
       - Upgrades: 
           - Upgrade Guide: installation/upgrades.md
           - v1.5.0 Upgrade Instructions: installation/v150-Upgrade.md
-      - Existing Orgs & Accounts:
-          - Existing Organizations & Accounts: installation/existing-orgs.md
-          - Import Existing ALZ: operations/operations-import-ALZAccount.md
       - Functionality:
           - Services: installation/services-list.md
           - Pricing: pricing/sample_pricing.md
@@ -27,6 +27,7 @@ nav:
           - Centralized Logging Details: installation/log-file-locations.md          
           - Design Decisions: installation/design.md
           - Accelerator Object Naming: installation/object-naming.md
+          - Roadmap: https://github.com/aws-samples/aws-secure-environment-accelerator/projects/1
   - FAQ: faq/index.md
   - Operations & Troubleshooting:
       - operations/index.md

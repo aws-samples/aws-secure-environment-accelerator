@@ -8,7 +8,7 @@
 
     We offer three options and all can be used in the same Accelerator deployment. All options work with AWS Control Tower, ensuring the account is both ingested into Control Tower and all Accelerator guardrails are automatically applied.
 
-    No matter the mechanism you choose, new accounts will automatically be blocked from use until fully guardrailed, the Accelerator will automatically execute, and accounts will automatically be ingested into AWS Control Tower (if deployed).	
+    No matter the mechanism you choose, new accounts will automatically be blocked from use until fully guardrailed, the Accelerator will automatically execute, and accounts will automatically be ingested into AWS Control Tower (if deployed).
 
     **Option 1**
 
@@ -38,7 +38,6 @@
     **Option 3**
 
     Create your account using Account Factory in the AWS Control Tower console.
-
 
 ??? faq "I tried to enroll a new account via Control Tower but it failed?"
 
@@ -90,13 +89,13 @@
 ??? faq "How do I make changes to items I defined in the Accelerator configuration file during installation?"
 
     #### How do I make changes to items I defined in the Accelerator configuration file during installation?
-    
+
     Simply update your configuration file in CodeCommit and rerun the state machine! In most cases, it is that simple.
-    
+
     If you ask the Accelerator to do something that is not supported by the AWS platform, the state machine will fail, so it needs to be a supported capability. For example, the platform does not allow you to change the CIDR block on a VPC, but you can accomplish this as you would today by using the Accelerator to deploy a new second VPC, manually migrating workloads, and then removing the deprecated VPC from the Accelerator configuration.
-    
+
     Below we have also documented additional considerations when creating or updating the configuration file.
-    
+
     It should be noted that we have added code to the Accelerator to block customers from making many 'breaking' or impactful changes to their configuration files. If someone is positive they want to make these changes, we also provide override switches to allow these changes to be attempted forcefully.
 
 ??? faq "Can I update the config file while the State Machine is running? When will those changes be applied?"
@@ -111,7 +110,7 @@
 
     The Accelerator is designed with checks to compare your current configuration file with the version of the config file from the previous successful execution of the state machine. If we believe you are making major or breaking changes to the config file, we will purposefully fail the state machine. See [Config file and Deployment Protections](../installation/customization-index.md#config-file-and-deployment-protections) for more details.
 
-    With the release of v1.3.0 we introduced state machine scoping capabilities to further protect customers, detailed [here](../installation/sm_inputs.md)
+    With the release of v1.3.0 we introduced state machine scoping capabilities to further protect customers, detailed [here](../installation/sm_inputs.md).
 
 ??? faq "What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?"
 
@@ -313,7 +312,7 @@
 
     #### Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?
 
-    Existing ALZ customers are required to uninstall their ALZ deployment before deploying the Accelerator. Please work with your AWS account team to find the best mechanism to uninstall the ALZ solution (procedures and scripts exist). Additionally, please reference section 4 of the Installation and Upgrade Guide. It may be easier to migrate AWS accounts to a new Accelerator Organization, per the process detailed in FAQ #1.2.3.
+    Existing ALZ customers are required to uninstall their ALZ deployment before deploying the Accelerator. Please work with your AWS account team to find the best mechanism to uninstall the ALZ solution (procedures and scripts exist). It is often easier to migrate AWS accounts to a new Accelerator Organization, per the process detailed in the next FAQ question.  Additionally, please reference the following [section](../installation/existing-orgs.md) of the Installation Guide for additional considerations.
 
 ??? faq "What if I want to move an account from an AWS Organization that has the ALZ deployed into an AWS Organization running the Accelerator?"
 
@@ -359,7 +358,7 @@
 
     #### Why do I get the error "There were errors while comparing the configuration changes:" when I update the config file?
 
-    In v1.3.0 we added protections to allow customers to verify the scope of impact of their intended changes to the configuration file. In v1.3.0 and above, the state machine does not allow changes to the config file (other than new accounts) without providing the `scope` parameter. Please refer to section 1.1 of the `State Machine behavior and inputs` [Guide](../installation/sm_inputs.md) for more details.
+    In v1.3.0 we added protections to allow customers to verify the scope of impact of their intended changes to the configuration file. In v1.3.0 and above, the state machine does not allow changes to the config file (other than new accounts) without providing the `scope` parameter. Please refer to the [State Machine behavior and inputs Guide](../installation/sm_inputs.md) for more details.
 
 ## Support Concerns
 
@@ -478,17 +477,17 @@
 
     - **Method 2** - REQUEST AWS Certificate Manager generate a certificate
 
-      ```json
-      "certificates": [
-        {
-          "name": "My-Cert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["www.example.com"]
-        }
-      ]
-      ```
+        ```json
+        "certificates": [
+          {
+            "name": "My-Cert",
+            "type": "request",
+            "domain": "*.example.com",
+            "validation": "DNS",
+            "san": ["www.example.com"]
+          }
+        ]
+        ```
 
         - this mechanism allows a customer to generate new public certificates directly in ACM
         - both `DNS` and `EMAIL` validation mechanisms are supported (DNS recommended)
@@ -928,7 +927,7 @@
 
     AWS Web Application Firewall (WAF) should be enabled on both front-end and back-end ALB's. The Front-end WAF would contain rate limiting, scaling and generic rules. The back-end WAF would contain workload specific rules (i.e. SQL injection). As WAF is essentially a temporary fix for broken applications before a developer can fix the issue, these rules typically require the close involvement of the application team. Rules can be centrally managed across all WAF instances using AWS Firewall Manager from the Security account.
 
-    The front-end ALB is then configured to target the back-end ALB using the process described in the installation guide, section 2.6, step 2 `(Configure the new alb-forwarding feature (added in v1.5.0)`. This enables configuring different DNS names and/or paths to different back-end ALB's using the ASEA's alb-forwarder. We recommend moving away from the NAT to DNS mechanism used in previous released as it was too complex, does not work with bump-in-the-wire inspection devices (NFW, GWLB), and only available on a limited number of 3rd party firewalls.
+    The front-end ALB is then configured to target the back-end ALB using the process described in the [Post Installation](../installation/install.md#post-installation) section of the installation guide, step 2 `(Configure the new alb-forwarding feature (added in v1.5.0)`. This enables configuring different DNS names and/or paths to different back-end ALB's using the ASEA's alb-forwarder. We recommend moving away from the NAT to DNS mechanism used in previous released as it was too complex, does not work with bump-in-the-wire inspection devices (NFW, GWLB), and only available on a limited number of 3rd party firewalls.
 
     This implementation allows workload owners to have complete control of workloads in a local account including the ELB configuration, and allow site names and paths to be defined and setup at sub-account creation time (instead of during development) to enable publishing publicly or on-premises in a rapid agile manner.
 
@@ -939,9 +938,9 @@
 ??? faq "How does CloudFront and API Gateway fit with the answer from question 1.7.6?"
 
     #### How does CloudFront and API Gateway fit with the answer from question 1.7.6?
-    
+
     The perimeter account is focused on protecting legacy IaaS based workloads. Cloud Native applications including CloudFront and API Gateway should be provisioned directly in the same account as the workload and should NOT traverse the perimeter account.
-    
+
     These services must still be appropriately configured. This includes ensuring both WAF and logging are enabled on each endpoint.
-    
+
     The GC guidance on Cloud First patterns and anti-patterns can be downloaded [here](https://wiki.gccollab.ca/images/7/7a/API_First_Architecture_Patterns_EN_Endorsed.docx).
