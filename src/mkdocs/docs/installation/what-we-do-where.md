@@ -2,7 +2,7 @@
 
 ## Overview
 
-- Deploys, creates, manages and updates the following objects across a multi-region, multi-account AWS environment
+-   Deploys, creates, manages and updates the following objects across a multi-region, multi-account AWS environment
 
 | TASK                                                                                                                                   | Accelerator - What happens, WHERE, under what condition, on each state machine execution                                                                                                                                      |
 | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -102,18 +102,18 @@
 
 ## General
 
-- "defined" region, "defined" account, means "customer defined", either at installation, upgrade, or any time they decide to reconfigure
-- all items are created per customer defined parameters and configurations and are fully customizable without changing a single line of code
-- security services are enabled and deployed globally, but, each service can be disabled per region. A single region deployment is possible.
-- customer can enable/disable features, or change the configuration of each feature in the Accelerator config file
-- customers can evolve their configurations over time, as they evolve and as their requirements change, without the requirement for code changes or professional services
+-   "defined" region, "defined" account, means "customer defined", either at installation, upgrade, or any time they decide to reconfigure
+-   all items are created per customer defined parameters and configurations and are fully customizable without changing a single line of code
+-   security services are enabled and deployed globally, but, each service can be disabled per region. A single region deployment is possible.
+-   customer can enable/disable features, or change the configuration of each feature in the Accelerator config file
+-   customers can evolve their configurations over time, as they evolve and as their requirements change, without the requirement for code changes or professional services
 
 ## Region support
 
-- All AWS commercial regions are supported. Lack of availability of CodeBuild, CodeCommit, or AWS Organizations in the Accelerator primary or installation region will prevent installation directly in that region. In these cases, customers can select a different installation region and the Accelerator can remotely deploy configurations and guardrails to that unsupported installation region.
-- Prior to v1.2.5, we utilized a single StackSet, which blocked several additional installation regions. The Accelerator no longer leverages any StackSets, unblocking installing directly in several additional regions.
-- As most features can be toggled on/off (per region), we expect most regions should be supportable both as a primary (or installation) region with the three above noted exceptions, and in these cases should still be fully supported as a managed (or secondary) region.
-- Opt-in regions are not yet supported, but given enough demand, could easily be added.
+-   All AWS commercial regions are supported. Lack of availability of CodeBuild, CodeCommit, or AWS Organizations in the Accelerator primary or installation region will prevent installation directly in that region. In these cases, customers can select a different installation region and the Accelerator can remotely deploy configurations and guardrails to that unsupported installation region.
+-   Prior to v1.2.5, we utilized a single StackSet, which blocked several additional installation regions. The Accelerator no longer leverages any StackSets, unblocking installing directly in several additional regions.
+-   As most features can be toggled on/off (per region), we expect most regions should be supportable both as a primary (or installation) region with the three above noted exceptions, and in these cases should still be fully supported as a managed (or secondary) region.
+-   Opt-in regions are not yet supported, but given enough demand, could easily be added.
 
 ---
 

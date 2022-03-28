@@ -2,14 +2,14 @@
 
 ### Accelerator Object Naming
 
-- Resources will have the 'Name' tag assigned, where Name={name}{suffix}
-    - No prefix or suffix will be applied to DNS records/zones (as that breaks them)
-    - When \_ is not supported, a - will be used
-- Stacks/stacksets/functions and **_non-end user_** accessed objects deployed in all accounts will also start with the {AcceleratorPrefix} prefix (i.e. "**_PBMMAccel-_**" or "**_ASEA-_**")
-    - The prefix does not apply to objects like VPC's, subnets, or TGW's which customers need to directly access. This is for objects deployed to build the customer accessible objects
-    - This prefix will be protected by SCP's so customers don't break 'managed' features
-- Resources will have the tag 'Accelerator={AcceleratorName}' assigned when tags are supported
-- Stacks will have the tag 'AcceleratorName={AcceleratorName}' assigned, which will often (but not always) be inherited by objects created by the stack (due to TGW duplicate tag issue)
+-   Resources will have the 'Name' tag assigned, where Name={name}{suffix}
+    -   No prefix or suffix will be applied to DNS records/zones (as that breaks them)
+    -   When \_ is not supported, a - will be used
+-   Stacks/stacksets/functions and **_non-end user_** accessed objects deployed in all accounts will also start with the {AcceleratorPrefix} prefix (i.e. "**_PBMMAccel-_**" or "**_ASEA-_**")
+    -   The prefix does not apply to objects like VPC's, subnets, or TGW's which customers need to directly access. This is for objects deployed to build the customer accessible objects
+    -   This prefix will be protected by SCP's so customers don't break 'managed' features
+-   Resources will have the tag 'Accelerator={AcceleratorName}' assigned when tags are supported
+-   Stacks will have the tag 'AcceleratorName={AcceleratorName}' assigned, which will often (but not always) be inherited by objects created by the stack (due to TGW duplicate tag issue)
 
 ### Defaults
 

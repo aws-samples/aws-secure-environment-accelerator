@@ -33,8 +33,8 @@ Accelerator v1.3.0 makes a significant change to the manner in which the state m
 
 Starting in v1.3.0, we recommend running the state machine with the parameters that most tightly scope the state machines execution to your planned changes and minimizing the use of `FULL` scope execution.
 
-- should you accidentally change the wrong section of the config file, you will be protected;
-- as you grow and scale to hundreds or thousands of accounts, your state machine execution time will remain fast.
+-   should you accidentally change the wrong section of the config file, you will be protected;
+-   as you grow and scale to hundreds or thousands of accounts, your state machine execution time will remain fast.
 
 **NOTE 1:** The `scope` setting has no impact on SCP application, limit requests, custom tagging, or directory sharing.
 
@@ -68,32 +68,32 @@ Providing any one or more of the following flags will only override the specifie
 
 ```json
 {
-  "configOverrides": {
-    "ov-global-options": true,
-    "ov-del-accts": true,
-    "ov-ren-accts": true,
-    "ov-acct-email": true,
-    "ov-acct-ou": true,
-    "ov-acct-vpc": true,
-    "ov-acct-subnet": true,
-    "ov-acct-vpc-optin": true,
-    "ov-tgw": true,
-    "ov-mad": true,
-    "ov-ou-vpc": true,
-    "ov-ou-subnet": true,
-    "ov-share-to-ou": true,
-    "ov-share-to-accounts": true,
-    "ov-nacl": true,
-    "ov-nfw": true
-  }
+    "configOverrides": {
+        "ov-global-options": true,
+        "ov-del-accts": true,
+        "ov-ren-accts": true,
+        "ov-acct-email": true,
+        "ov-acct-ou": true,
+        "ov-acct-vpc": true,
+        "ov-acct-subnet": true,
+        "ov-acct-vpc-optin": true,
+        "ov-tgw": true,
+        "ov-mad": true,
+        "ov-ou-vpc": true,
+        "ov-ou-subnet": true,
+        "ov-share-to-ou": true,
+        "ov-share-to-accounts": true,
+        "ov-nacl": true,
+        "ov-nfw": true
+    }
 }
 ```
 
 ### Generate verbose logging within state machine
 
-- Added "verbose": "1" state machine input options
-- parameter is optional
-- parameter defaults to 0
+-   Added "verbose": "1" state machine input options
+-   parameter is optional
+-   parameter defaults to 0
 
 ```json
 { "scope": "FULL", "mode": "APPLY", "verbose": "1" }
@@ -127,8 +127,8 @@ Summary of inputs, per section 1.1 above:
 
 ```json
 {
-  "scope": "FULL",
-  "mode": "APPLY",
-  "configOverrides": { "ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }
+    "scope": "FULL",
+    "mode": "APPLY",
+    "configOverrides": { "ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }
 }
 ```

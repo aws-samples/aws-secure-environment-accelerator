@@ -19,15 +19,15 @@ The following diagram details the ASEA central logging implementation:
 
 ### Notes
 
-- Every customer has two Accelerator logging buckets
-- Control Tower installations have an additional two Control Tower logging buckets
-- Customers could use any account name for their central logging account
-- Bucket name format is: {Accel-Prefix}-{Account-Name}-{Accel-Phase}-xxx{Region}-{Random}
-    - {Accel-Prefix} defaults to 'asea' (previously 'pbmmaccel' for Canada)
-    - {Accel-Phase} should always be 'phase0'
-    - {region} should always be 'cacentral1' for Canada
-    - {account} is likely to be 'log-archive'
-    - xxx is either "aes" or "" (nothing)
+-   Every customer has two Accelerator logging buckets
+-   Control Tower installations have an additional two Control Tower logging buckets
+-   Customers could use any account name for their central logging account
+-   Bucket name format is: {Accel-Prefix}-{Account-Name}-{Accel-Phase}-xxx{Region}-{Random}
+    -   {Accel-Prefix} defaults to 'asea' (previously 'pbmmaccel' for Canada)
+    -   {Accel-Phase} should always be 'phase0'
+    -   {region} should always be 'cacentral1' for Canada
+    -   {account} is likely to be 'log-archive'
+    -   xxx is either "aes" or "" (nothing)
 
 ## Accelerator Bucket Folders
 
@@ -61,7 +61,7 @@ The following diagram details the ASEA central logging implementation:
 
 \*\*\*\* v1.5.1 introduces the capability to split CloudWatch log groups starting with specific prefixes out into customer named subfolders. The folder/file structure is otherwise identical. The v1.5.1 example config files separate out MAD, RQL, Security Hub, NFW, rsyslog, and SSM logs by default. Example: Security Hub logs will be in the following structure: `CloudWatchLogs/security-hub/{year}/{month}/{day}/{hour}/`
 
-- Account number is sometimes duplicated in path because logs replicated from another account always need to start with the source account number
-- Macie reports will only appear in the {account#} for the central security account, and only if a customer schedules PII discovery reports
-- All CloudWatch Logs from all accounts are mixed in the same folder, the embedded log format contains the source account information as documented here: <https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/ValidateLogEventFlow.html>
-- With the exception of CloudWatch Logs, all logs are in the original format provided by the log source/service.
+-   Account number is sometimes duplicated in path because logs replicated from another account always need to start with the source account number
+-   Macie reports will only appear in the {account#} for the central security account, and only if a customer schedules PII discovery reports
+-   All CloudWatch Logs from all accounts are mixed in the same folder, the embedded log format contains the source account information as documented here: <https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/ValidateLogEventFlow.html>
+-   With the exception of CloudWatch Logs, all logs are in the original format provided by the log source/service.
