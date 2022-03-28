@@ -40,9 +40,9 @@ Starting in v1.3.0, we recommend running the state machine with the parameters t
 
 **NOTE 2:** All comparisons for config file changes are assessed AFTER all replacements have been made. Changing variable names which result in the same end outcome do NOT appear as a change to the config file.
 
-# **Accelerator State Machine Inputs**
+## **Accelerator State Machine Inputs**
 
-## Rebuild DynamoDB table contents
+### Rebuild DynamoDB table contents
 
 With the exception of the Outputs table, the contents of the Accelerator DynamoDB tables are rebuilt on every state machine execution. We recently started depending on the Outputs DynamoDB tables to ensure the parameters in parameter store are consistently maintained in the same order as objects are created and deleted. Should the CONTENTS of the tables be destroyed or corrupted, customers can force a rebuild of the CloudFormation Outputs in DynamoDB by starting the state machine with the parameter:
 
@@ -52,7 +52,7 @@ With the exception of the Outputs table, the contents of the Accelerator DynamoD
 
 This should be completed BEFORE running the state machine with a corrupt or empty DynamoDB table or the Accelerator is likely to reorder a customers parameters. If the DynamoDB tables were completely destroyed, they must be recreated before running the state machine with this parameter.
 
-## Bypass **ALL** config file validation checks
+### Bypass **ALL** config file validation checks
 
 This parameter should be specified with extreme caution, as it bypasses all config file validation. The state machine typically has protections enabled preventing customers from making breaking changes to the config file. Under certain conditions with the support of a trained expert, bypassing these checks is required. Start the state machine with the parameter:
 
@@ -62,7 +62,7 @@ This parameter should be specified with extreme caution, as it bypasses all conf
 
 **_Customers are encouraged to use the specific override variables below, rather than the all-inclusive override, to ensure they only bypasses intended config changes._**
 
-## Bypassing SPECIFIC config file validation checks
+### Bypassing SPECIFIC config file validation checks
 
 Providing any one or more of the following flags will only override the specified check(s):
 
@@ -89,7 +89,7 @@ Providing any one or more of the following flags will only override the specifie
 }
 ```
 
-## Generate verbose logging within state machine
+### Generate verbose logging within state machine
 
 - Added "verbose": "1" state machine input options
 - parameter is optional
@@ -99,7 +99,7 @@ Providing any one or more of the following flags will only override the specifie
 { "scope": "FULL", "mode": "APPLY", "verbose": "1" }
 ```
 
-## State Machine scoping inputs
+### State Machine scoping inputs
 
 Summary of inputs, per section 1.1 above:
 
@@ -123,7 +123,7 @@ Summary of inputs, per section 1.1 above:
 { "scope": "ACCOUNT", "targetAccounts": ["123456789012", "234567890123"], "mode": "APPLY" }
 ```
 
-## Example of combined inputs
+### Example of combined inputs
 
 ```json
 {
