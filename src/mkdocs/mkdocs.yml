@@ -6,23 +6,28 @@ site_dir: ../../docs
 
 nav:
   - About: index.md
-  - FAQ: faq/index.md
   - Installation & Upgrades:
       - installation/index.md
-      - Installation: installation/install.md
-      - Upgrades: installation/upgrades.md
+      - Installation: 
+          - Installation Guide: installation/install.md
+          - Configuration File Customization: installation/customization-index.md
+          - State Machine Behavior: installation/sm_inputs.md
+          - Splitting the Config File: installation/multi-file-config-capabilities.md          
+      - Upgrades: 
+          - Upgrade Guide: installation/upgrades.md
+          - v1.5.0 Upgrade Instructions: installation/v150-Upgrade.md
       - Existing Orgs & Accounts:
-          - installation/existing-orgs.md
+          - Existing Organizations & Accounts: installation/existing-orgs.md
           - Import Existing ALZ: operations/operations-import-ALZAccount.md
-      - Design Decisions: installation/design.md
-      - Deployed Services List: installation/services-list.md
-      - Multi-file Config: installation/multi-file-config-capabilities.md
-      - Accelerator Object Naming: installation/object-naming.md
-      - State Machine Behavior: installation/sm_inputs.md
-      - v1.5.0 Upgrade Instructions: installation/v150-Upgrade.md
-      - Key Account & Capability Overview: installation/what-we-do-where.md
-      - Log File Locations: installation/log-file-locations.md
-      - Configuration File Customizations: installation/customization-index.md
+      - Functionality:
+          - Services: installation/services-list.md
+          - Pricing: pricing/sample_pricing.md
+          - Architecture Diagrams: architectures/pbmm/diagrams.md
+          - Key Account & Capability Overview: installation/what-we-do-where.md          
+          - Centralized Logging Details: installation/log-file-locations.md          
+          - Design Decisions: installation/design.md
+          - Accelerator Object Naming: installation/object-naming.md
+  - FAQ: faq/index.md
   - Operations & Troubleshooting:
       - operations/index.md
       - System Overview: operations/system-overview.md
@@ -37,12 +42,11 @@ nav:
       - Release Process: developer/release-process.md
   - Architecture:
       - architectures/pbmm/index.md
+      - Architecture Diagrams: architectures/pbmm/diagrams.md
       - Account Structure: architectures/pbmm/accounts.md
       - Networking: architectures/pbmm/network.md
       - Authentication & Authorization: architectures/pbmm/auth.md
       - Logging and Monitoring: architectures/pbmm/logging.md
-      - Architecture Diagrams: architectures/pbmm/diagrams.md
-      - Pricing: pricing/sample_pricing.md
   - Workshops:
       - workshops/index.md
   - Configuration File Schema:
