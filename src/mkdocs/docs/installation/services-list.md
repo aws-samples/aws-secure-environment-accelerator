@@ -2,7 +2,7 @@
 
 ## Services
 
--   Services are listed based as being (L)everaged by the Accelerator or (O)rchestrated by the Accelerator
+Services are listed based as being (L)everaged by the Accelerator or (O)rchestrated by the Accelerator
 
 | SERVICES                                                            |
 | ------------------------------------------------------------------- |

@@ -140,22 +140,11 @@ Before installing, you must first:
     - Government of Canada customers are _required_ to skip this step
     - OU and account names can ONLY be customized during initial installation. These values MUST match with the values supplied in the Accelerator config file.
         1. Go to the AWS Control Tower console and click `Set up landing zone`
-        2. Select your `home` region (i.e. `ca-central-1`)
-            - the Accelerator home region must match the Control Tower home region
-        3. Select _all_ regions for `Additional AWS Regions for governance`, click `Next`
-            - The Control Tower and Accelerator regions MUST be properly aligned
-            - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions`
-            - To manage a region requires the region:
-                - be enabled in Control Tower (if supported)
-                - added to the config file `control-tower-supported-regions` list (if supported)
-                - added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`)
-                - While we highly recommend guardrail deployment for all AWS enabled by default regions, at minimum
-                    - the home region MUST be enabled in Control Tower and must be listed in `control-tower-supported-regions`
-                    - both the home-region and ${GBL_REGION} must be listed in `supported-regions`
+        2. Select your `home` region (i.e. `ca-central-1`) - the Accelerator home region must match the Control Tower home region
+        3. Select _all_ regions for `Additional AWS Regions for governance`, click `Next` - The Control Tower and Accelerator regions MUST be properly aligned - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions` - To manage a region requires the region: - be enabled in Control Tower (if supported) - added to the config file `control-tower-supported-regions` list (if supported) - added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`) - While we highly recommend guardrail deployment for all AWS enabled by default regions, at minimum - the home region MUST be enabled in Control Tower and must be listed in `control-tower-supported-regions` - both the home-region and ${GBL\*REGION} must be listed in `supported-regions`
         4. For the `Foundational OU`, leave the default value `Security`
         5. For the `Additional OU` provide the value `Infrastructure`, click `Next`
-        6. Enter the email addresses for your `Log Archive` and `Audit` accounts, change the `Audit` account name to `Security`, click `Next`
-            - OU and account names can ONLY be customized during initial installation. OU names, account names and email addresses _must_ match identically with the values supplied in the Accelerator config file.
+        6. Enter the email addresses for your `Log Archive` and `Audit` accounts, change the `Audit` account name to `Security`, click `Next` - OU and account names can ONLY be customized during initial installation. OU names, account names and email addresses \_must\* match identically with the values supplied in the Accelerator config file.
         7. Click setup and wait ~60 minutes for the Control Tower installation to complete
         8. Select `Add or register organizational units`, Click `Add an OU`
         9. Type `Dev`, click `Add`, wait until the OU is finished provisioning (or it will error)

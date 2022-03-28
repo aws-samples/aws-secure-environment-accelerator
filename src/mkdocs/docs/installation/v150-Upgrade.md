@@ -71,7 +71,7 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
         -   the first two SCP files (Part-0 and Part-1) contain the controls which protect the integrity of the Accelerator itself;
         -   the third file (Sensitive, Unclass, Sandbox) contains customer data protection specific guardrails, which may change based on workload data classification or customer profiles and requirements;
         -   this frees the fourth SCP for use by Control Tower, or for use by customers for custom guardrails (Standalone installs only). As Control Tower leverages 2 SCP files on the Security OU, we have moved some of our SCP's to the account level (Control Tower installations only).
-        -   The script and upgrade instructions above do not include the new config file parameters added in v1.5.1. These new parameters can be added either during or after the upgrade. New parameters include: `"rdgw-enforce-imdsv2": true`, `"rsyslog-enforce-imdsv2": true`, `"ssm-inventory-collection": true` on each ou, and `"dynamic-s3-log-partitioning": [{values}]`
+    -   The script and upgrade instructions above do not include the new config file parameters added in v1.5.1. These new parameters can be added either during or after the upgrade. New parameters include: `"rdgw-enforce-imdsv2": true`, `"rsyslog-enforce-imdsv2": true`, `"ssm-inventory-collection": true` on each ou, and `"dynamic-s3-log-partitioning": [{values}]`
 
 ## Upgrade process
 
@@ -100,7 +100,7 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
     -   Select the `PBMMAccel-PolicyChanges_rule`, select `actions`, select `Enable`
 -   Follow the Standard Upgrade instructions in [Section 3.2](./index.md#32-summary-of-upgrade-steps-all-versions) of the Installation and Upgrade guide, repeated verbatim below for ease of reference
 
-## "3.2. Summary of Upgrade Steps (all versions)" **_(Copied from installation guide)_**
+## "Summary of Upgrade Steps (all versions)" **_(Copied from installation guide)_**
 
 1. Login to your Organization Management (root) AWS account with administrative privileges
 2. Either:
@@ -124,14 +124,14 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
     - The pipeline will automatically run and trigger the upgraded state machine
 9. If you are using a pre-existing GitHub token, or installing from CodeCommit:
 
--   Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.5.0`)
-    -   Go to AWS CloudFormation and select the stack: `PBMMAccel-what-you-provided`
-    -   Select Update, select Replace current template, Select Upload a template file
-    -   Select Choose File and select the template you downloaded in step 6 (`AcceleratorInstallerXYZ.template.json` or `AcceleratorInstallerXXX-CodeCommit.template.json`)
-    -   Select Next, Update `GithubBranch` parameter to `release/vX.Y.Z` where X.Y.Z represents the latest release
-    -   Click Next, Next, I acknowledge, Update
-    -   Wait for the CloudFormation stack to update (`Update_Complete` status) (Requires manual refresh)
--   Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
+    - Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.5.0`)
+        - Go to AWS CloudFormation and select the stack: `PBMMAccel-what-you-provided`
+        - Select Update, select Replace current template, Select Upload a template file
+        - Select Choose File and select the template you downloaded in step 6 (`AcceleratorInstallerXYZ.template.json` or `AcceleratorInstallerXXX-CodeCommit.template.json`)
+        - Select Next, Update `GithubBranch` parameter to `release/vX.Y.Z` where X.Y.Z represents the latest release
+        - Click Next, Next, I acknowledge, Update
+        - Wait for the CloudFormation stack to update (`Update_Complete` status) (Requires manual refresh)
+    - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
 ## Post Upgrade Follow-up Tasks for v1.5.x Upgrade
 
@@ -175,9 +175,9 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
     }
     ```
 
-          - where `id` is any unique text, `cidr` is the main cidr block from which VPC cidrs are taken. `region` is the AWS region where the pool is used. `pool` is the name of the pool
+        - where `id` is any unique text, `cidr` is the main cidr block from which VPC cidrs are taken. `region` is the AWS region where the pool is used. `pool` is the name of the pool
 
-        </details>
+    </details>
 
     NOTES:
 

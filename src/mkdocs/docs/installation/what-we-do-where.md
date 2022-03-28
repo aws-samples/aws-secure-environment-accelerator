@@ -2,7 +2,7 @@
 
 ## Overview
 
--   Deploys, creates, manages and updates the following objects across a multi-region, multi-account AWS environment
+Deploys, creates, manages and updates the following objects across a multi-region, multi-account AWS environment
 
 | TASK                                                                                                                                   | Accelerator - What happens, WHERE, under what condition, on each state machine execution                                                                                                                                      |
 | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
