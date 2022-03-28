@@ -11,7 +11,7 @@ nav:
       - Installation: 
           - Installation Guide: installation/install.md
           - Releases: https://github.com/aws-samples/aws-secure-environment-accelerator/releases
-          - Configuration File Customization: installation/customization-index.md
+          - Sample Configurations and Customization: installation/customization-index.md
           - State Machine Behavior: installation/sm_inputs.md
           - Splitting the Config File: installation/multi-file-config-capabilities.md          
           - Considerations with Existing Organizations: installation/existing-orgs.md

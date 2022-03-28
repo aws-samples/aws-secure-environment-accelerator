@@ -1,11 +1,11 @@
-# Accelerator Configuration File Customization and Sample Configs
+# Accelerator Sample Configurations and Customization
 
 ## **Summary**
 
 - Sample config files can be found in [this](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/) folder
     - Most of the examples reflect a medium security profile (NIST, ITSG, FEDRAMP)
 - Unsure where to start, use [config.lite-CTNFW-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-CTNFW-example.json) (CT w/NFW variant of option 2)
-- Frugal and want something comprehensive to experiment with, use the [config.test-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.test-example.json) file (option 5)
+- Frugal and want something comprehensive to experiment with, use [config.test-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.test-example.json) (option 5)
 - Config file [schema](../schema/index.md) documentation (Draft)
 - Estimated monthly [pricing](../pricing/sample_pricing.md) for sample configurations
 
@@ -88,11 +88,11 @@
         - local account VPC set to use central endpoints, associates appropriate centralized hosted zones to VPC (also creates 5 local endpoints)
     - adds a VGW for DirectConnect to the perimeter VPC
     - adds the 3rd AZ in ca-central-1 (MAD & ADC in AZ a & b)
-    - Default Settings:
-        - AWS Control Tower: No
-        - Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)
+- Default Settings:
+    - AWS Control Tower: No
+    - Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)
 
-### 5. **Test configuration** ([config.test-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.test-example.json)) **(Use for testing Full/Lite configurations or Low Security Profiles)**
+### 5. **Test configuration** ([config.test-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.test-example.json)) **(Use for testing or Low Security Profiles)**
 
 - Further reduces solution costs, while demonstrating full solution functionality (NOT recommendend for production). This config file:
 
@@ -107,9 +107,9 @@
     - reduced various log retention periods and the VPCFlow log interval
     - removes the two example workload accounts
     - adds AWS Network Firewall (NFW) and AWS NATGW for centralized ingress/egress (per NFW variant)
-    - Default Settings:
-        - AWS Control Tower: No
-        - Firewall: AWS Network Firewall
+- Default Settings:
+    - AWS Control Tower: No
+    - Firewall: AWS Network Firewall
 
 ## **Deployment Customizations**
 
