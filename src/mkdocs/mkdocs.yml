@@ -49,8 +49,10 @@ nav:
       - Logging and Monitoring: architectures/pbmm/logging.md
   - Workshops:
       - workshops/index.md
+      - Administrator Immersion Day: https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-administrators
+      - Workload/Application Team Immersion Day: https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-members
   - Configuration File Schema:
-      - schema/index.md
+      - English: https://aws-samples.github.io/aws-secure-environment-accelerator/schema/en/index.html
   - Contributing & Governance: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md
 
 theme:
@@ -76,7 +78,7 @@ extra_css:
 markdown_extensions:
   - toc:
       toc_depth: 3
-      permalink: "link"
+      permalink: "(link)"
   - def_list
   - pymdownx.tasklist:
       custom_checkbox: true

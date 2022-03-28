@@ -1,6 +1,6 @@
-# Upgrades
+# Accelerator Upgrade Guide
 
-## Considerations
+## General Upgrade Considerations
 
 - Due to some breaking dependency issues, customers can only upgrade to v1.3.8 or above (older releases continue to function, but cannot be installed).
 - While an upgrade path is planned, customers with a standalone Accelerator installation can upgrade to v1.5.x but need to continue with a standalone installation until the Control Tower upgrade option becomes available.
@@ -15,7 +15,7 @@
     - if customers don't take action, we continue to utilize the deployed customized files (without the latest updates)
 - The below release specific considerations need to be cumulatively applied (an upgrade from v1.2.3 to v1.2.5 requires you to follow both v1.2.4 and v1.2.5 considerations)
 
-**Release Specific Upgrade Considerations:**
+## **Release Specific Upgrade Considerations:**
 
 - Upgrades to `v1.5.1` from `v1.5.0`:
     - Do not add the parameter: `"ssm-inventory-collection": true` to OUs or accounts which already have SSM Inventory configured or the state machine will fail
@@ -25,7 +25,7 @@
     - Due to the size and complexity of this upgrade, we require all customers to upgrade to `v1.3.8 or above` before beginning this upgrade
     - While v1.5.0 supports Control Tower for _NEW_ installs, existing Accelerator customers _CANNOT_ add Control Tower to their existing installations at this time (planned enhancement for 22H1)
         - Attempts to install Control Tower on top of the Accelerator will corrupt your environment (both Control Tower and the Accelerator need minor enhancements to enable)
-    - - **The v1.5.x custom upgrade guide can be found [here](./v150-Upgrade.md)**
+    - **The v1.5.x custom upgrade guide can be found [here](./v150-Upgrade.md)**
 - Upgrades to `v1.3.9 and above` from `v1.3.8-b and below`:
     - All interface endpoints containing a period must be removed from the config.json file either before or during the upgrade process
         - i.e. ecr.dkr, ecr.api, transfer.server, sagemaker.api, sagemaker.runtime in the full config.json example

@@ -1,4 +1,4 @@
-# AWS Secure Environment Accelerator Pricing
+# Accelerator Pricing
 
 ## Overview
 

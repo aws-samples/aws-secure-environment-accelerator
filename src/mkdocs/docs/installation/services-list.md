@@ -1,4 +1,4 @@
-# AWS Secure Environment Accelerator Service List
+# Accelerator Service List
 
 ## Services
 

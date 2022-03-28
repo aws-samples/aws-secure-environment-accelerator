@@ -1,4 +1,4 @@
-# Accelerator Installation and Upgrade Guide
+# Accelerator Installation Guide
 
 ## Overview
 
@@ -7,8 +7,6 @@
 _Users are strongly encouraged to also read the [Accelerator Operations/Troubleshooting Guide](../operations/index.md) before installation. The Operations/Troubleshooting Guide provides details as to what is being performed at each stage of the installation process, including detailed troubleshooting guidance._
 
 These installation instructions assume one of the prescribed architectures is being deployed.
-
-## Installation
 
 ## Prerequisites
 
