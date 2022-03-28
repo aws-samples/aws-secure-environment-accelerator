@@ -2,7 +2,7 @@
 
 ## Overview
 
-**_We encourage customers installing the Accelerator to get the support of their local AWS account team (SA, TAM, CSM, Proserve) to assist with the installation of the Accelerator, as the Accelerator leverages, deploys, or orchestrates over 30 different AWS services._**
+**_We encourage customers installing the Accelerator to get the support of their local AWS account team (SA, TAM, CSM, ProServe) to assist with the installation of the Accelerator, as the Accelerator leverages, deploys, or orchestrates over 30 different AWS services._**
 
 _Users are strongly encouraged to also read the [Accelerator Operations/Troubleshooting Guide](../operations/index.md) before installation. The Operations/Troubleshooting Guide provides details as to what is being performed at each stage of the installation process, including detailed troubleshooting guidance._
 
@@ -28,7 +28,7 @@ These installation instructions assume one of the prescribed architectures is be
 
 **For any deployment of the Accelerator which is intended to be used for production workloads, you must evaluate all these decisions carefully. Failure to understand these choices could cause challenges down the road. If this is a "test" or "internal" deployment of the Accelerator which will not be used for production workloads, you can leave the default config values.**
 
-**Config file [schema](../schema/index.md)) documentation** (Draft)
+**Config file [schema](../schema/index.md) documentation** (Draft)
 
 ### OU Structure Planning
 
@@ -61,7 +61,7 @@ If deploying the prescriptive architecture using the Full or Lite sample config 
 3. BGP ASN's for network routing, one for each of:
       - Transit Gateway (one unique ASN per TGW, multi-region example requires a second ASN)
       - IPSec VPN Firewall Cluster (if deployed)
-      - VGW for DirectConnect connectivity (only shown in the config.multi-region-example.json)
+      - VGW for Direct Connect connectivity (only shown in the config.multi-region-example.json)
 
 - For example: the Control Tower with Network Firewall example config requires a single BGP ASN for the TGW, the IPSec VPN example requires two BGP ASN's, and the multi-region example requires five unique BGP ASN's.
 
@@ -170,7 +170,7 @@ Before installing, you must first:
     - Select a key administrator (Admin Role or Group for the Organization Management account), Next
     - Select key users (Admin Role or Group for the Organization Management account), Next
     - Validate an entry exists to "Enable IAM User Permissions" (critical step if using an existing key)
-        - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_Organization Management_** account id.
+        - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_Organization Management_** account ID.
     - Click Finish
     - Select the new key, Select `Key Rotation`, `Automatically rotate this CMK every year`, click Save.
 7. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
@@ -241,14 +241,14 @@ If deploying to an internal AWS employee account and installing the solution wit
     - Click on the product you want to subscribe, in this case `Fortinet FortiGate (BYOL) Next-Generation Firewall` and `Fortinet FortiManager (BYOL Centralized Security Management` **or** `CloudGuard Network Security for Gateway Load Balancer - BYOL` and `Check Point Security Management (BYOL)`
     - Click on "Continue to Subscribe"
     - Click on "Accept Terms" and wait for subscription to be completed
-    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (**Fortinet** `v6.4.7`, **Checkpoint Mgmt** `R81.10-335.883` and **CloudGuard** `R80.40-294.374` recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
+    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI IDs. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (**Fortinet** `v6.4.7`, **Checkpoint Mgmt** `R81.10-335.883` and **CloudGuard** `R80.40-294.374` recommended at this time). Marketplace will provide the required AMI ID. Document the two AMI IDs, as you will need to update them in your config.json file below.
 
 ![New AMI ID](img/new-ami-id.png)
 
 ## Basic Accelerator Configuration
 
 1. Select a sample config file as a baseline starting point
-    - **IMPORTANT: Use a config file from the Github code branch you are deploying from, as valid parameters change over time. The `main` branch is NOT the current release and often will not work with the GA releases.**
+    - **IMPORTANT: Use a config file from the GitHub code branch you are deploying from, as valid parameters change over time. The `main` branch is NOT the current release and often will not work with the GA releases.**
     - sample config files can be found in [this](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/) folder;
     - descriptions of the sample config files and customization guidance can be found [here](./customization-index.md);
     - unsure where to start, use the `config.lite-CTNFW-example.json`, where CTNFW is for Control Tower w/NFW;
@@ -265,8 +265,8 @@ If deploying to an internal AWS employee account and installing the solution wit
     - While it is generally supported, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts to the config file and rerun the state machine.
     - More information [here](./customization-index.md#15-summary-of-example-config-file-minimum-changes-for-new-installs) on the fields in the config file that need to be updated.
 3. A successful deployment of the prescriptive architecture requires VPC access to 9 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 9 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms, logs, monitoring).
-4. When deploying to regions other than `ca-central-1`, you need to modify your config file as follows (for Canada Central 1, the AMI ids are pre-populated for you):
-    1. Update the firewall and firewall manager AMI id's to reflect your home regions regional AMI id's (see 2.3.3, item 13), making sure you select the right version and region per the recommendations.
+4. When deploying to regions other than `ca-central-1`, you need to modify your config file as follows (for Canada Central 1, the AMI IDs are pre-populated for you):
+    1. Update the firewall and firewall manager AMI IDs to reflect your home regions regional AMI IDs (see 2.3.3, item 13), making sure you select the right version and region per the recommendations.
     2. Validate all the Interface Endpoints defined in your config file are supported in your home region (i.e. Endpoint VPC). Remove unsupported endpoints from the config file, add additional endpoints as available.
     3. If you are installing into a home region which is explicitly named in any of the replacements\addl_regions_x, remove it from the list. If deploying in us-east-1, remove ${GBL_REGION}.
 5. Create an S3 bucket in your Organization Management account `your-bucket-name`
@@ -310,7 +310,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - Specify `Stack Name` STARTING with `ASEA-` (case sensitive) suggest a suffix of `orgname` or `username`
     - Change `ConfigS3Bucket` to the name of the bucket you created above `your-bucket-name`
     - Add an `Email` address to be used for State Machine Status notification
-    - The `GithubBranch` should point to the release you selected
+    - The `GitHub Branch` should point to the release you selected
         - if upgrading, change it to point to the desired release
         - the latest stable branch is currently `release/v1.5.1`, case sensitive
         - click `Next`
@@ -319,7 +319,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
     - Click `Next`, Acknowledge resource creation, and click `Create stack`
     - The stack typically takes under 5 minutes to deploy.
-8. Once deployed, you should see a CodePipeline project named `ASEA-InstallerPipeline` in your account. This pipeline connects to Github, pulls the code from the prescribed branch and deploys the Accelerator state machine.
+8. Once deployed, you should see a CodePipeline project named `ASEA-InstallerPipeline` in your account. This pipeline connects to GitHub, pulls the code from the prescribed branch and deploys the Accelerator state machine.
     - if the CloudFormation fails to deploy with an `Internal Failure`, or, if the pipeline fails connecting to GitHub, then:
         - fix the issue with your GitHub secret created in section 2.3.2, then delete the Installer CloudFormation stack you just deployed, and restart at step 3 of this section.
 9. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
@@ -363,7 +363,7 @@ Current Issues:
 - If dns-resolver-logging is enabled, VPC names containing spaces are not supported at this time as the VPC name is used as part of the log group name and spaces are not supported in log group names. By default in many of the sample config files, the VPC name is auto-generated from the OU name using a variable. In this situation, spaces are also not permitted in OU names (i.e. if any account in the OU has a VPC with resolver logging enabled and the VPC is using the OU as part of its name)
 - On larger deployments we are occasionally seeing state machine failures when `Creating Config Recorders`. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
 - Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`
-- If the State Machine fails on an initial execution of NEW-ACCOUNTS, it must be re-run to target the failed accounts (i.e. with a FULL scope) or sub-accounts will fail to be properly guardrailed
+- If the State Machine fails on an initial execution of NEW-ACCOUNTS, it must be re-run to target the failed accounts (i.e. with `{"scope": "FULL", "mode": "APPLY"}`) or the new sub-accounts will fail to be properly guardrailed
 
 Issues in Older Releases:
 
@@ -413,12 +413,12 @@ The Accelerator installation is complete, but several manual steps remain:
 2. Configure the new alb-forwarding feature (added in v1.5.0)
 
     - AWS ALB's are published using DNS names which resolve to backing IP's which could silently change at any time due to a scaling event, maintenance, or a hardware failure. While published as a DNS name, ALB's can only target IP addresses. This presents a challenge as we need the ALB's in the perimeter account to target ALB's in the various back-end workload accounts;
-    - Alb-forwarding solves this problem by executing a small snippet of code every 60 seconds which updates managed alb listeners with any IP changes, ensuring any managed flows do not go offline. This removes the requirement to leverage a 3rd party appliance to perform NAT to a DNS name;
-    - Alb-forwarding is enabled on the perimeter vpc in the perimeter account in many of the sample configs and can be used with Accelerator created or customer created ALB's. This setting causes a new DynamoDB table named `ASEA-Alb-Ip-Forwarding-vpc-*` to be created in the perimeter account. Additionally the parameter store in the perimeter account contains the details of all Accelerator deployed alb's across the environment for easy reference;
-    - Stepts to configure:
-        - First you need to manually create a listener on the front-end alb (without a target group), multiple listeners are supported;
+    - Alb-forwarding solves this problem by executing a small snippet of code every 60 seconds which updates managed ALB listeners with any IP changes, ensuring any managed flows do not go offline. This removes the requirement to leverage a 3rd party appliance to perform NAT to a DNS name;
+    - Alb-forwarding is enabled on the perimeter VPC in the perimeter account in many of the sample configs and can be used with Accelerator created or customer created ALB's. This setting causes a new DynamoDB table named `ASEA-Alb-Ip-Forwarding-vpc-*` to be created in the perimeter account. Additionally the parameter store in the perimeter account contains the details of all Accelerator deployed ALB's across the environment for easy reference;
+    - Steps to configure:
+        - First you need to manually create a listener on the front-end ALB (without a target group), multiple listeners are supported;
         - Next, for each application that needs to be published, a record needs to be added to the DynamoDB table, see sample below;
-        - Records can be added to the table for any alb in the account running the alb-forwarding tool. Records can be added at any time. DDB change logs will trigger the initial creation of the appropriate target group(s) and IP addresses will be verified and updated every 60 seconds therafter.
+        - Records can be added to the table for any ALB in the account running the alb-forwarding tool. Records can be added at any time. DDB change logs will trigger the initial creation of the appropriate target group(s) and IP addresses will be verified and updated every 60 seconds thereafter.
 
 <details><summary>Sample DynamoDB JSON to add an entry to the table:</summary>
 
@@ -440,7 +440,7 @@ The Accelerator installation is complete, but several manual steps remain:
 }
 ```
 
-- where `id` is any unique text, `targetAlbDnsName` is the DNS address for the backend alb for this application (found in parameter store), `vpcId` is the vpc id containing the front-end alb (in this account), `sourceListenerArn` is the arn of the listener of the front-end alb, `paths` and `hosts` are both optional, but one of the two must be supplied. Finally, `priority` must be unique and is used to order the listener rules. Priorities should be spaced at least 40 apart to allow for easy insertion of new applications and forwarder rules.
+- where `id` is any unique text, `targetAlbDnsName` is the DNS address for the backend ALB for this application (found in parameter store), `vpcId` is the vpc ID containing the front-end ALB (in this account), `sourceListenerArn` is the arn of the listener of the front-end ALB, `paths` and `hosts` are both optional, but one of the two must be supplied. Finally, `priority` must be unique and is used to order the listener rules. Priorities should be spaced at least 40 apart to allow for easy insertion of new applications and forwarder rules.
 - the provided `targetAlbDnsName` must resolve to addresses within a [supported](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html) IP address space.
 
 </details>
@@ -457,7 +457,7 @@ The Accelerator installation is complete, but several manual steps remain:
 
     - If deployed, login to any 3rd party firewalls and firewall manager appliances and update any default passwords;
     - Tighten security groups on the 3rd party firewall instances (using the Accelerator configuration file), further limiting access to firewall management interfaces to a set of designated and controlled CIDR ranges;
-    - Update the firewall configuration per your organizations security requirements and best practices;
+    - Update the firewall configuration per your organization's security requirements and best practices;
     - Diagrams reflecting perimeter traffic flows when NFW and/or GWLB are used can be found [here](../architectures/pbmm/diagrams.md) on slides 6 through 9.
 
    **AWS Network Firewall**
@@ -527,4 +527,4 @@ The Accelerator installation is complete, but several manual steps remain:
     4. On the next state machine execution, resources blocked by limits should be deployed (i.e. additional VPC's and Endpoints)
     5. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
 
-9. Note: After a successful install the Control Tower `Organizational units` dashboard will indicate `2 of 3` in the `Accounts enrolled` column for the Security OU, as it does not enable enrollment of the management account in guardrails. The Accelerator compliments Control Tower and enables guardrails in the management account which is important to high compliance customers.
+9. Note: After a successful install the Control Tower `Organizational units'` dashboard will indicate `2 of 3` in the `Accounts enrolled` column for the Security OU, as it does not enable enrollment of the management account in guardrails. The Accelerator compliments Control Tower and enables guardrails in the management account which is important to high compliance customers.

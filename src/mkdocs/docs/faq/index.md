@@ -249,7 +249,9 @@
     - Both the RDGW and rsyslog instances deployed in the Ops account are properly configured for Systems Manager Session Manager
     - We have implemented automation such that all instances are also automatically configured for Session Manager (i.e. configured with the appropriate launch role, has a recent session manager agent installed (most amazon AMI's do), has access to an SSM endpoint)
 
-    **NEW** - System Manager Fleet Manager is now available, which allows connecting graphically to Windows desktops directly from the AWS console without the need for any command line access or tools, and without any requirement for an RDSH/RDP client. This feature "simply works" for all instances already configured for Session Manager. Simply Navigate to Systems Manager, open Fleet Manager, select an instance, click "Node Actions" and select "Connect with Remote Desktop". If you are logging in via AWS SSO, you can seamlessly connect. IAM users must supply valid credentials.
+    **NEW** - System Manager Fleet Manager is now available, which allows connecting graphically to Windows desktops directly from the AWS console without the need for any command line access or tools, and without any requirement for an RDSH/RDP client. As the Accelerator configures Systems Manager, this feature "simply works" for most instances deployed within the Accelerator. 
+	
+	    - Navigate to Systems Manager, open Fleet Manager, select an instance, click "Node Actions" and select "Connect with Remote Desktop". If you are logging in via AWS SSO, you can seamlessly connect. IAM users must supply valid credentials.
 
     **Connecting to an Instance**
 

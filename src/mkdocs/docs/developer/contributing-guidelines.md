@@ -1,6 +1,8 @@
 # How to Contribute
 
-## How-to
+## General
+
+Please first refer to and comply with the Contributing and Governance document found [here](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md)
 
 ## Adding New Functionality?
 

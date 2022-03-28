@@ -88,6 +88,7 @@
         - local account VPC set to use central endpoints, associates appropriate centralized hosted zones to VPC (also creates 5 local endpoints)
     - adds a VGW for DirectConnect to the perimeter VPC
     - adds the 3rd AZ in ca-central-1 (MAD & ADC in AZ a & b)
+
 - Default Settings:
     - AWS Control Tower: No
     - Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)
@@ -107,6 +108,7 @@
     - reduced various log retention periods and the VPCFlow log interval
     - removes the two example workload accounts
     - adds AWS Network Firewall (NFW) and AWS NATGW for centralized ingress/egress (per NFW variant)
+
 - Default Settings:
     - AWS Control Tower: No
     - Firewall: AWS Network Firewall

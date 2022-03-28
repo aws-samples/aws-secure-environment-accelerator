@@ -104,13 +104,14 @@ When customers create AWS accounts directly through AWS Organizations, the Accel
     - Must be present or SM fails
     - Are used to decide where to add new accounts to the config file
 
+
 2. Add the following new parameter to each mandatory and workload account config
 
 ```
       "src-filename": "accounts/my-workload-accounts.json",
 ```
 
-Accelerator Internal Operations:
+### Accelerator Internal Operations
 
 - when updating an account in the config file, we use the `"src-filename"` parameters to find and update an accounts `ou`, `ou-path`, `account-name`, and `email` parameters
 - When creating new accounts (inserting into config file):
@@ -177,7 +178,3 @@ The entire main config file could be reduced to this:
 - Accelerator leverages multiple config files to receive the same input parameters it previously did from one file
 - All accelerator functionality both ALZ and Standalone versions continue to function as previously defined
 - Customer can successfully provides multiple config files with the same result as the current one file
-
----
-
-[...Return to Customization Table of Contents](./customization-index.md)
