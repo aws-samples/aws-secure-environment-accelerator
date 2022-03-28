@@ -13,7 +13,7 @@
 
 ### 1. **Full configuration** ([config.example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.example.json))
 
-The full configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the deployed architecture solution.
+- The full configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the deployed architecture solution.
 
 - Default settings:
     - AWS Control Tower: No
@@ -21,34 +21,37 @@ The full configuration file was based on feedback from customers moving into AWS
 
 ### 2. **Lite weight configuration** files
 
-Four variants with differing central ingress/egress firewalls
+- Four variants with differing central ingress/egress firewalls
 
-- _Variant 1: **Recommended starting point**_ ([config.lite-CTNFW-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-CTNFW-example.json))
-    - Default Settings:
-        - AWS Control Tower: Yes
-        - Firewall: AWS Network Firewall
-- _Variant 2: **Recommended for new GC PBMM customers**_ ([config.lite-VPN-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json))
-    - requires 3rd party licensing (BYOL or PAYGO)
-    - Default Settings:
-        - AWS Control Tower: No
-        - Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)
-- _Variant 3:_ ([config.lite-NFW-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json))
-    - Same as _Variant 1_ config without AWS Control Tower
-    - Default Settings:
-        - AWS Control Tower: No
-        - Firewall: AWS Network Firewall
-- _Variant 4:_ ([config.lite-GWLB-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-GWLB-example.json))
-    - requires 3rd party licensing (BYOL or PAYGO)
-    - Default Settings:
-        - AWS Control Tower: No
-        - Firewall: Gateway Load Balancer with Checkpoint firewalls in an autoscaling group
-To reduce solution costs and allow customers to grow into more advanced AWS capabilities, we created these lite weight configurations that does not sacrifice functionality, but could limit performance. These config files:
+    - _Variant 1: **Recommended starting point**_ ([config.lite-CTNFW-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-CTNFW-example.json))
+        - Default Settings:
+            - AWS Control Tower: Yes
+            - Firewall: AWS Network Firewall
+    - _Variant 2: **Recommended for new GC PBMM customers**_ ([config.lite-VPN-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json))
+        - requires 3rd party licensing (BYOL or PAYGO)
+        - Default Settings:
+            - AWS Control Tower: No
+            - Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)
+    - _Variant 3:_ ([config.lite-NFW-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json))
+        - Same as _Variant 1_ config without AWS Control Tower
+        - Default Settings:
+            - AWS Control Tower: No
+            - Firewall: AWS Network Firewall
+    - _Variant 4:_ ([config.lite-GWLB-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-GWLB-example.json))
+        - requires 3rd party licensing (BYOL or PAYGO)
+        - Default Settings:
+            - AWS Control Tower: No
+            - Firewall: Gateway Load Balancer with Checkpoint firewalls in an autoscaling group
+		
+- To reduce solution costs and allow customers to grow into more advanced AWS capabilities, we created these lite weight configurations that does not sacrifice functionality, but could limit performance. These config files:
+
     - only deploys the 9 required centralized Interface Endpoints (removes 50 from full config). All services remain accessible using the AWS public endpoints, but require traversing the perimeter firewalls
     - removes the perimeter VPC Interface Endpoints
     - reduces the Fortigate instance sizes from c5n.2xl to c5n.xl (VM08 to VM04) in _Variant 2: IPSec VPN with Active/Active Fortinet cluster_ option
     - removes the Unclass ou and VPC
     - AWS Control Tower can be implemented in all sample configs using _Variant 1: AWS Control Tower with AWS Network Firewall_ as an example (new installs only).
-The Accelerator allows customers to easily add or change this functionality in future, as and when required without any impact
+	
+- The Accelerator allows customers to easily add or change this functionality in future, as and when required without any impact
 
 ### 3. **Ultra-Lite sample configuration**
 
@@ -60,7 +63,9 @@ The Accelerator allows customers to easily add or change this functionality in f
     - AWS Control Tower: No
     - Firewall: None
     - Networking: None
-This configuration file was created to represent an extremely minimalistic Accelerator deployment, simply to demonstrate the art of the possible for an extremely simple config. This example is NOT recommended as it violates many AWS best practices. This config has:
+	
+- This configuration file was created to represent an extremely minimalistic Accelerator deployment, simply to demonstrate the art of the possible for an extremely simple config. This example is NOT recommended as it violates many AWS best practices. This config has:
+
     - no `shared-network` or `perimeter` accounts
     - no networking (VPC, TGW, ELB, SG, NACL, endpoints) or route53 (zones, resolvers) objects
     - no Managed AD, AD Connector, rsyslog cluster, RDGW host, or 3rd party firewalls
@@ -70,7 +75,7 @@ This configuration file was created to represent an extremely minimalistic Accel
 
 ### 4. **Multi-Region sample configuration** ([config.multi-region-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.multi-region-example.json))
 
-This configuration file was created to represent a more advanced multi-region version of the Full configuration file from bullet 1 above. This config:
+- This configuration file was created to represent a more advanced multi-region version of the Full configuration file from configuration 1 above. This config:
 
     - adds a TGW in us-east-1, peered to the TGW in ca-central-1
     - adds TGW static routes, including several dummy sample static routes
@@ -89,22 +94,22 @@ This configuration file was created to represent a more advanced multi-region ve
 
 ### 5. **Test configuration** ([config.test-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.test-example.json)) **(Use for testing Full/Lite configurations or Low Security Profiles)**
 
-Further reduces solution costs, while demonstrating full solution functionality (NOT recommendend for production). This config file:
+- Further reduces solution costs, while demonstrating full solution functionality (NOT recommendend for production). This config file:
 
-- uses the Lite weight configuration as the starting point (NFW variant)
-- consolidates Dev/Test/Prod OU to a single Workloads OU/VPC
-- only enables Security Hub, Config and Macie in ca-central-1 and us-east-1
-- removes the Fortigate firewall cluster (per NFW variant)
-- removes the rsyslog cluster
-- reduces the RDGW instance sizes from t2.large to t2.medium
-- reduces the size of the MAD from Enterprise to Standard edition
-- removes the on-premise R53 resolvers (hybrid dns)
-- reduced various log retention periods and the VPCFlow log interval
-- removes the two example workload accounts
-- adds AWS Network Firewall (NFW) and AWS NATGW for centralized ingress/egress (per NFW variant)
-- Default Settings:
-    - AWS Control Tower: No
-    - Firewall: AWS Network Firewall
+    - uses the Lite weight configuration as the starting point (NFW variant)
+    - consolidates Dev/Test/Prod OU to a single Workloads OU/VPC
+    - only enables Security Hub, Config and Macie in ca-central-1 and us-east-1
+    - removes the Fortigate firewall cluster (per NFW variant)
+    - removes the rsyslog cluster
+    - reduces the RDGW instance sizes from t2.large to t2.medium
+    - reduces the size of the MAD from Enterprise to Standard edition
+    - removes the on-premise R53 resolvers (hybrid dns)
+    - reduced various log retention periods and the VPCFlow log interval
+    - removes the two example workload accounts
+    - adds AWS Network Firewall (NFW) and AWS NATGW for centralized ingress/egress (per NFW variant)
+    - Default Settings:
+        - AWS Control Tower: No
+        - Firewall: AWS Network Firewall
 
 ## **Deployment Customizations**
 
@@ -119,8 +124,8 @@ Further reduces solution costs, while demonstrating full solution functionality 
 ### Third Party Firewall example configs
 
 - The Accelerator is provided with a sample 3rd party configuration file to demonstrate automated deployment of 3rd party firewall technologies. Given the code is vendor agnostic, this process should be able to be leveraged to deploy other vendors firewall appliances. When and if other options become available, we will add them here as well.
-  - Automated [firewall configuration customization](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/firewall_file_available_variables.md) possibilities
-  - Sample Fortinet Fortigate firewall config [file](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Third-Party)
+    - Automated [firewall configuration customization](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/firewall_file_available_variables.md) possibilities
+    - Sample Fortinet Fortigate firewall config [file](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Third-Party)
 
 ## Other Configuration File Hints and Tips
 
@@ -246,7 +251,7 @@ At a minimum you should consider reviewing the following config file sections an
 
 ### Workload Account Configs
 
-As mentioned in the Installation Guide, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts back into the config file and rerun the state machine.
+- As mentioned in the Installation Guide, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts back into the config file and rerun the state machine.
 
 - Review the workload accounts in the config that you selected and change the name and email as desired
     - Modify `mydevacct1` with the account name of your choosing
