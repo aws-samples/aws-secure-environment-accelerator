@@ -48,24 +48,28 @@ If deploying the prescriptive architecture using the Full or Lite sample config 
 
 1. Six (6) RFC1918 Class B address blocks (CIDR's) which do not conflict with your on-premise networks (a single /13 block works well)
 
-- VPC CIDR blocks cannot be changed after installation, this is simply the way the AWS platform works, given everything is built on top of them. Carefully consider your address block selection.
-- one block for each OU, except Sandbox which is not routable (Sandbox OU will use a 7th non-routed address block)
-- the "core" Class B range will be split to support the Endpoint VPC and Perimeter VPC (with extra addresses remaining for future use)
-- Given a shared VPC architecture is leveraged (prevents stranded islands of CIDR blocks and reduces networking costs), we have assigned a class B address block to each VPC to future proof the deployment. Smaller customers can successfully deploy with a half class B CIDR block per shared VPC.
+    - VPC CIDR blocks cannot be changed after installation, this is simply the way the AWS platform works, given everything is built on top of them. Carefully consider your address block selection.
+    - one block for each OU, except Sandbox which is not routable (Sandbox OU will use a 7th non-routed address block)
+    - the "core" Class B range will be split to support the Endpoint VPC and Perimeter VPC (with extra addresses remaining for future use)
+    - Given a shared VPC architecture is leveraged (prevents stranded islands of CIDR blocks and reduces networking costs), we have assigned a class B address block to each VPC to future proof the deployment. Smaller customers can successfully deploy with a half class B CIDR block per shared VPC.
 
 2. Two (2) RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
 
-- Used for AWS Managed Active Directory (MAD) deployment and perimeter underlay network
-- non-GC customers can replace the RFC6598 address space with the extra unused addresses from the above RFC1918 CIDR range above (the App2 subnets in the Central VPC and the Perimeter VPC address space)
+    - Used for AWS Managed Active Directory (MAD) deployment and perimeter underlay network
+    - non-GC customers can replace the RFC6598 address space with the extra unused addresses from the above RFC1918 CIDR range above (the App2 subnets in the Central VPC and the Perimeter VPC address space)
 
 3. BGP ASN's for network routing, one for each of:
-      - Transit Gateway (one unique ASN per TGW, multi-region example requires a second ASN)
-      - IPSec VPN Firewall Cluster (if deployed)
-      - VGW for Direct Connect connectivity (only shown in the config.multi-region-example.json)
+    - Transit Gateway (one unique ASN per TGW, multi-region example requires a second ASN)
+    - IPSec VPN Firewall Cluster (if deployed)
+    - VGW for Direct Connect connectivity (only shown in the config.multi-region-example.json)
 
-- For example: the Control Tower with Network Firewall example config requires a single BGP ASN for the TGW, the IPSec VPN example requires two BGP ASN's, and the multi-region example requires five unique BGP ASN's.
+    - For example: the Control Tower with Network Firewall example config requires a single BGP ASN for the TGW, the IPSec VPN example requires two BGP ASN's, and the multi-region example requires five unique BGP ASN's.
 
-NOTE: Prior to v1.5.0 CIDR ranges were assigned to each VPC and subnet throughout the config file. This required customers to perform extensive updates across the config file when needing to move to specific IP ranges compatible with a customer's existing on-premise networks. While this is still supported for those wanting to control exactly what address is used on every subnet, the solution has added support for dynamic CIDR assignments and the sample config files have been updated to reflect. New installs will have CIDR's pulled from CIDR pools, defined in the global-options section of the config file with state maintained in DynamoDB. The v1.5.0 [custom upgrade guide](./v150-Upgrade.md) will provides details on the upgrade process and requirements to migrate to the new CIDR assignment system, if desired. A [script](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Custom-Scripts/Update-Scripts/v1.3.8_to_v1.5.0) was created to assist with this migration.
+NOTE: Prior to v1.5.0 CIDR ranges were assigned to each VPC and subnet throughout the config file. This required customers to perform extensive updates across the config file when needing to move to specific IP ranges compatible with a customer's existing on-premise networks. 
+
+While this is still supported for those wanting to control exactly what address is used on every subnet, the solution has added support for dynamic CIDR assignments and the sample config files have been updated to reflect. New installs will have CIDR's pulled from CIDR pools, defined in the global-options section of the config file with state maintained in DynamoDB. 
+
+The v1.5.0 [custom upgrade guide](./v150-Upgrade.md) will provides details on the upgrade process and requirements to migrate to the new CIDR assignment system, if desired. A [script](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Custom-Scripts/Update-Scripts/v1.3.8_to_v1.5.0) was created to assist with this migration.
 
 ### DNS, Domain Name, TLS Certificate Planning
 
@@ -134,29 +138,29 @@ Before installing, you must first:
 3. Install AWS Control Tower:
     - Government of Canada customers are _required_ to skip this step
     - OU and account names can ONLY be customized during initial installation. These values MUST match with the values supplied in the Accelerator config file.
-    1. Go to the AWS Control Tower console and click `Set up landing zone`
-    2. Select your `home` region (i.e. `ca-central-1`)
-        - the Accelerator home region must match the Control Tower home region
-    3. Select _all_ regions for `Additional AWS Regions for governance`, click `Next`
-        - The Control Tower and Accelerator regions MUST be properly aligned
-        - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions`
-        - To manage a region requires the region:
-            - be enabled in Control Tower (if supported)
-            - added to the config file `control-tower-supported-regions` list (if supported)
-            - added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`)
-        - While we highly recommend guardrail deployment for all AWS enabled by default regions, at minimum
-            - the home region MUST be enabled in Control Tower and must be listed in `control-tower-supported-regions`
-            - both the home-region and ${GBL_REGION} must be listed in `supported-regions`
-    4. For the `Foundational OU`, leave the default value `Security`
-    5. For the `Additional OU` provide the value `Infrastructure`, click `Next`
-    6. Enter the email addresses for your `Log Archive` and `Audit` accounts, change the `Audit` account name to `Security`, click `Next`
-        - OU and account names can ONLY be customized during initial installation. OU names, account names and email addresses _must_ match identically with the values supplied in the Accelerator config file.
-    7. Click setup and wait ~60 minutes for the Control Tower installation to complete
-    8. Select `Add or register organizational units`, Click `Add an OU`
-    9. Type `Dev`, click `Add`, wait until the OU is finished provisioning (or it will error)
-    10. Repeat step 9 for each OU (i.e. `Test`, `Prod`, `Central`, `Sandbox`)
-    11. Select `Account factory`, Edit, Subnets: 0, Deselect all regions, click `Save`
-    12. In AWS Organizations, move the Management account from the `root` OU into the `Security` OU
+        1. Go to the AWS Control Tower console and click `Set up landing zone`
+        2. Select your `home` region (i.e. `ca-central-1`)
+            - the Accelerator home region must match the Control Tower home region
+        3. Select _all_ regions for `Additional AWS Regions for governance`, click `Next`
+            - The Control Tower and Accelerator regions MUST be properly aligned
+            - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions`
+            - To manage a region requires the region:
+                - be enabled in Control Tower (if supported)
+                - added to the config file `control-tower-supported-regions` list (if supported)
+                - added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`)
+                - While we highly recommend guardrail deployment for all AWS enabled by default regions, at minimum
+                    - the home region MUST be enabled in Control Tower and must be listed in `control-tower-supported-regions`
+                    - both the home-region and ${GBL_REGION} must be listed in `supported-regions`
+        4. For the `Foundational OU`, leave the default value `Security`
+        5. For the `Additional OU` provide the value `Infrastructure`, click `Next`
+        6. Enter the email addresses for your `Log Archive` and `Audit` accounts, change the `Audit` account name to `Security`, click `Next`
+            - OU and account names can ONLY be customized during initial installation. OU names, account names and email addresses _must_ match identically with the values supplied in the Accelerator config file.
+        7. Click setup and wait ~60 minutes for the Control Tower installation to complete
+        8. Select `Add or register organizational units`, Click `Add an OU`
+        9. Type `Dev`, click `Add`, wait until the OU is finished provisioning (or it will error)
+        10. Repeat step 9 for each OU (i.e. `Test`, `Prod`, `Central`, `Sandbox`)
+        11. Select `Account factory`, Edit, Subnets: 0, Deselect all regions, click `Save`
+        12. In AWS Organizations, move the Management account from the `root` OU into the `Security` OU
 4. Verify:
     1. AWS Organizations is enabled in `All features` mode
         - if required, navigate to AWS Organizations, click `Create Organization`, `Create Organization`
