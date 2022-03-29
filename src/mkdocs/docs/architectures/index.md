@@ -1,9 +1,9 @@
 #  Accelerator Sample Architecture
 
-- [Architecture Diagrams](./architectures/pbmm/diagrams.md)
-- [Overview](./architectures/pbmm/index.md)
-- [Account Structure](./architectures/pbmm/accounts.md)
-- [Networking](./architectures/pbmm/network.md)
-- [Authentication & Authorization](./architectures/pbmm/auth.md)
-- [Logging and Monitoring](./architectures/pbmm/logging.md)
+- [Architecture Diagrams](./pbmm/diagrams.md)
+- [Overview](./pbmm/index.md)
+- [Account Structure](./pbmm/accounts.md)
+- [Networking](./pbmm/network.md)
+- [Authentication & Authorization](./pbmm/auth.md)
+- [Logging and Monitoring](./pbmm/logging.md)
 	  
