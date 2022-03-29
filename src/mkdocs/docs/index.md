@@ -30,7 +30,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
     - Security Tooling
 - Workload Accounts - automated concurrent mass account creation or use AWS organizations to scale one account at a time. These accounts are used to host a customer's workloads and applications.
 - Scalable to 1000's of AWS accounts
-- Supports AWS Organizations nested [ou's](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html) and importing existing AWS accounts
+- Supports AWS Organizations nested [OU's](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html) and importing existing AWS accounts
 - Performs 'account warming' to establish initial limits, when required
 - Automatically submits limit increases, when required (complies with initial limits until increased)
 - Leverages AWS Control Tower **(NEW)**
@@ -89,7 +89,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Enables account level default EBS encryption and S3 Block Public Access
 - Configures Systems Manager Session Manager w/KMS encryption and centralized logging
 - Configures Systems Manager Inventory w/centralized logging
-- Creates and configures AWS budgets (customizable per ou and per account)
+- Creates and configures AWS budgets (customizable per OU and per account)
 - Imports or requests certificates into AWS Certificate Manager
 - Deploys both perimeter and account level ALB's w/Lambda health checks, certificates and TLS policies
 - Deploys & configures 3rd party firewall clusters and management instances (leverages marketplace)
@@ -133,7 +133,7 @@ With the release of v1.5.0, the AWS Accelerator adds the capability to be deploy
 
 This summarizes the installation process, the full installation document can be found in the documentation section below.
 
-- Create a config.json (or config.yaml) file to represent your organizations requirements ([several samples provided](/installation/customization-index.md))
+- Create a config.json (or config.yaml) file to represent your organizations requirements ([several samples provided](./installation/customization-index.md))
 - Create a Secrets Manager Secret which contains a GitHub token that provides access to the Accelerator code repository
 - Create a unique S3 input bucket in the management account of the region you wish to deploy the solution and place your config.json and any additional custom config files in the bucket
 - Download and execute the latest [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) installer CloudFormation template in your management accounts preferred 'primary' / 'home' region
@@ -141,7 +141,7 @@ This summarizes the installation process, the full installation document can be 
     - CloudFormation to deploy and start the Code Pipeline (~5 mins)
     - Code Pipeline to download the Accelerator codebase and install the Accelerator State Machine (~10 mins)
     - The Accelerator State Machine to finish execution (~1.25 hrs Standalone version, ~2.25 hrs Control Tower Version)
-- Perform required one-time [post installation](/installation/index.md#26-post-installation) activities (configure AWS SSO, set firewall passwords, etc.)
+- Perform required one-time [post installation](./installation/install.md#post-installation) activities (configure AWS SSO, set firewall passwords, etc.)
 - On an ongoing basis:
     - Use AWS Organizations to create new AWS accounts, which will automatically be guardrailed by the Accelerator
     - Update the config file in CodeCommit and run the Accelerator State Machine to:

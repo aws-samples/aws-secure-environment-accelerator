@@ -40,7 +40,7 @@ nav:
       - Best Practices: developer/best-practices.md
       - How to Contribute: developer/contributing-guidelines.md
       - Release Process: developer/release-process.md
-  - Architecture:
+  - Sample Architecture:
       - architectures/pbmm/index.md
       - Architecture Diagrams: architectures/pbmm/diagrams.md
       - Account Structure: architectures/pbmm/accounts.md
