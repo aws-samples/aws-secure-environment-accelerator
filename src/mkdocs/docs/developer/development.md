@@ -22,20 +22,20 @@ When we want to enable functionality in a managed account we try to
 
 The folder structure of the project is as follows:
 
-- `src/installer/cdk`: See [Installer Stack](#installer-stack);
-- `src/core/cdk`: See [Initial Setup Stack](#initial-setup-stack);
-- `src/core/runtime` See [Initial Setup Stack](#initial-setup-stack) and [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
-- `src/deployments/runtime` See [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
-- `src/deployments/cdk`: See [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
-- `src/lib/accelerator-cdk`: See [Libraries & Tools](#libraries--tools);
-- `src/lib/cdk-constructs`: See [Libraries & Tools](#libraries--tools);
-- `src/lib/cdk-plugin-assume-role`: See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
-- `src/lib/common-config`: See [Libraries & Tools](#libraries--tools);
-- `src/lib/common-outputs`: See [Libraries & Tools](#libraries--tools);
-- `src/lib/common-types`: See [Libraries & Tools](#libraries--tools);
-- `src/lib/common`: See [Libraries & Tools](#libraries--tools);
-- `src/lib/custom-resources/**/cdk`: See [Custom Resources](#custom-resources);
-- `src/lib/custom-resources/**/runtime`: See [Custom Resources](#custom-resources);
+-   `src/installer/cdk`: See [Installer Stack](#installer-stack);
+-   `src/core/cdk`: See [Initial Setup Stack](#initial-setup-stack);
+-   `src/core/runtime` See [Initial Setup Stack](#initial-setup-stack) and [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
+-   `src/deployments/runtime` See [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
+-   `src/deployments/cdk`: See [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
+-   `src/lib/accelerator-cdk`: See [Libraries & Tools](#libraries--tools);
+-   `src/lib/cdk-constructs`: See [Libraries & Tools](#libraries--tools);
+-   `src/lib/cdk-plugin-assume-role`: See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
+-   `src/lib/common-config`: See [Libraries & Tools](#libraries--tools);
+-   `src/lib/common-outputs`: See [Libraries & Tools](#libraries--tools);
+-   `src/lib/common-types`: See [Libraries & Tools](#libraries--tools);
+-   `src/lib/common`: See [Libraries & Tools](#libraries--tools);
+-   `src/lib/custom-resources/**/cdk`: See [Custom Resources](#custom-resources);
+-   `src/lib/custom-resources/**/runtime`: See [Custom Resources](#custom-resources);
 
 ## Installer Stack
 
@@ -45,31 +45,31 @@ As stated in the Operations Guide, the `Installer` stack is responsible for inst
 
 ```typescript
 new codebuild.PipelineProject(stack, 'InstallerProject', {
-  buildSpec: codebuild.BuildSpec.fromObject({
-    version: '0.2',
-    phases: {
-      install: {
-        'runtime-versions': {
-          nodejs: 14,
+    buildSpec: codebuild.BuildSpec.fromObject({
+        version: '0.2',
+        phases: {
+            install: {
+                'runtime-versions': {
+                    nodejs: 14,
+                },
+                // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
+                commands: ['npm install --global pnpm@6.2.3', 'pnpm install --unsafe-perm --frozen-lockfile'],
+            },
+            pre_build: {
+                // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
+                commands: ['pnpm recursive run build --unsafe-perm'],
+            },
+            build: {
+                commands: [
+                    'cd src/core/cdk',
+                    // Bootstrap the environment for use by CDK
+                    'pnpx cdk bootstrap --require-approval never',
+                    // Deploy the Initial Setup stack
+                    'pnpx cdk deploy --require-approval never',
+                ],
+            },
         },
-        // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-        commands: ['npm install --global pnpm@6.2.3', 'pnpm install --unsafe-perm --frozen-lockfile'],
-      },
-      pre_build: {
-        // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-        commands: ['pnpm recursive run build --unsafe-perm'],
-      },
-      build: {
-        commands: [
-          'cd src/core/cdk',
-          // Bootstrap the environment for use by CDK
-          'pnpx cdk bootstrap --require-approval never',
-          // Deploy the Initial Setup stack
-          'pnpx cdk deploy --require-approval never',
-        ],
-      },
-    },
-  }),
+    }),
 });
 ```
 
@@ -77,8 +77,8 @@ When the CodePipeline finishes deploying the `Initial Setup` stack, it starts a 
 
 The `Initial Setup` stack deployment receives environment variables from the CodePipeline's CodeBuild step. The most notable environment variables are:
 
-- `ACCELERATOR_STATE_MACHINE_NAME`: The `Initial Setup` will use this name for the main state machine. So it is the `Installer` stack that decides the name of the main state machine. This way we can confidently start the main state machine of the `Initial Setup` stack from the CodePipeline;
-- `ENABLE_PREBUILT_PROJECT`: See [Prebuilt Docker Image](#codebuild-and-prebuilt-docker-image).
+-   `ACCELERATOR_STATE_MACHINE_NAME`: The `Initial Setup` will use this name for the main state machine. So it is the `Installer` stack that decides the name of the main state machine. This way we can confidently start the main state machine of the `Initial Setup` stack from the CodePipeline;
+-   `ENABLE_PREBUILT_PROJECT`: See [Prebuilt Docker Image](#codebuild-and-prebuilt-docker-image).
 
 ## Initial Setup Stack
 
@@ -90,8 +90,8 @@ The `Initial Setup` stack is defined in the `src/core/cdk` folder.
 
 The `Initial Setup` stack is similar to the `Installer` stack, as in that it runs a CodeBuild project to deploy others stacks using CDK. In case of the `Initial Setup` stack
 
-- we use a AWS Step Functions State Machine to run steps instead of using a CodePipeline;
-- we deploy multiple stacks, called `Phase` stacks, in Accelerator-managed accounts. These `Phase` stacks contain Accelerator-managed resources.
+-   we use a AWS Step Functions State Machine to run steps instead of using a CodePipeline;
+-   we deploy multiple stacks, called `Phase` stacks, in Accelerator-managed accounts. These `Phase` stacks contain Accelerator-managed resources.
 
 In order to install these `Phase` stacks in Accelerator-managed accounts, we need access to those accounts. We create a stack set in the Organization Management (root) account that has instances in all Accelerator-managed accounts. This stack set contains what we call the `PipelineRole`.
 
@@ -134,16 +134,16 @@ When this CodeBuild project executes, it uses the Docker image as base -- the de
 
 Some steps in the state machine write data to Amazon DynamoDB. This data is necessary to deploy the `Phase` stacks later on. At one time this data was written to Secrets Manager and/or S3, these mechanisms were deemed ineffective due to object size limitations or consistency challenges and were all eventually migrated to DynamoDB.
 
-- `Load Accounts` step: This step finds the Accelerator-managed accounts in AWS Organizations and stores the account key -- the key of the account in `mandatory-account-configs` or `workload-account-configs` object in the Accelerator config -- and account ID and other useful information in the `ASEA-Parameters` table, `accounts/#` key and `accounts-items-count` key;
-- `Load Organizations` step: More or less the same as the `Load Accounts` step but for organizational units in AWS Organizations and stores the values in the `ASEA-Parameters` table, `organizations` key;
-- `Load Limits` step: This step requests limit increases for Accelerator-managed accounts and stores the current limits in the the `ASEA-Parameters` table, `limits` key.
-- `Store Phase X Output`: This step loads stack outputs from all existing `Phase` stacks and stores the outputs in the DynamoDB table `ASEA-Outputs`.
+-   `Load Accounts` step: This step finds the Accelerator-managed accounts in AWS Organizations and stores the account key -- the key of the account in `mandatory-account-configs` or `workload-account-configs` object in the Accelerator config -- and account ID and other useful information in the `ASEA-Parameters` table, `accounts/#` key and `accounts-items-count` key;
+-   `Load Organizations` step: More or less the same as the `Load Accounts` step but for organizational units in AWS Organizations and stores the values in the `ASEA-Parameters` table, `organizations` key;
+-   `Load Limits` step: This step requests limit increases for Accelerator-managed accounts and stores the current limits in the the `ASEA-Parameters` table, `limits` key.
+-   `Store Phase X Output`: This step loads stack outputs from all existing `Phase` stacks and stores the outputs in the DynamoDB table `ASEA-Outputs`.
 
 Other data is passed through environment variables:
 
-- `ACCELERATOR_NAME`: The name of the Accelerator;
-- `ACCELERATOR_PREFIX`: The prefix for all named Accelerator-managed resources;
-- `ACCELERATOR_EXECUTION_ROLE_NAME`: The name of the execution role in the Accelerator-managed accounts. This is the `PipelineRole` we created using stack sets.
+-   `ACCELERATOR_NAME`: The name of the Accelerator;
+-   `ACCELERATOR_PREFIX`: The prefix for all named Accelerator-managed resources;
+-   `ACCELERATOR_EXECUTION_ROLE_NAME`: The name of the execution role in the Accelerator-managed accounts. This is the `PipelineRole` we created using stack sets.
 
 ## Phase Steps and Phase Stacks
 
@@ -167,8 +167,8 @@ This step loads the stack outputs from our DynamoDB Table `ASEA-Outputs` and sto
 
 Example values are
 
-- /ASEA/network/vpc/1/name => Endpoint
-- /ASEA/network/vpc/1/id => vpc-XXXXXXXXXX
+-   /ASEA/network/vpc/1/name => Endpoint
+-   /ASEA/network/vpc/1/id => vpc-XXXXXXXXXX
 
 `ASEA-Outputs-Utils` DynamoDB Table is used extensively to maintain same index irrespective of configuration changes.
 
@@ -183,18 +183,18 @@ The `cdk.ts` file calls the `deploy` method in the `apps/app.ts`. This `deploy` 
  * Input to the `deploy` method of a phase.
  */
 export interface PhaseInput {
-  // The config.json file
-  acceleratorConfig: AcceleratorConfig;
-  // Auxiliary class to construct stacks
-  accountStacks: AccountStacks;
-  // The list of accounts, their key in the configuration file and their ID
-  accounts: Account[];
-  // The parsed environment variables
-  context: Context;
-  // The list of stack outputs from previous phases
-  outputs: StackOutput[];
-  // Auxiliary class to manage limits
-  limiter: Limiter;
+    // The config.json file
+    acceleratorConfig: AcceleratorConfig;
+    // Auxiliary class to construct stacks
+    accountStacks: AccountStacks;
+    // The list of accounts, their key in the configuration file and their ID
+    accounts: Account[];
+    // The parsed environment variables
+    context: Context;
+    // The list of stack outputs from previous phases
+    outputs: StackOutput[];
+    // Auxiliary class to manage limits
+    limiter: Limiter;
 }
 ```
 
@@ -221,27 +221,27 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
 ```typescript
 export async function deploy({ acceleratorConfig, accountStacks, accounts, outputs }: PhaseInput) {
-  // Find the central bucket in the outputs
-  const centralBucket = CentralBucketOutput.getBucket({
-    accountStacks,
-    config: acceleratorConfig,
-    outputs,
-  });
+    // Find the central bucket in the outputs
+    const centralBucket = CentralBucketOutput.getBucket({
+        accountStacks,
+        config: acceleratorConfig,
+        outputs,
+    });
 
-  // Find the log bucket in the outputs
-  const logBucket = LogBucketOutput.getBucket({
-    accountStacks,
-    config: acceleratorConfig,
-    outputs,
-  });
+    // Find the log bucket in the outputs
+    const logBucket = LogBucketOutput.getBucket({
+        accountStacks,
+        config: acceleratorConfig,
+        outputs,
+    });
 
-  // Find the account buckets in the outputs
-  const accountBuckets = await defaults.step2({
-    accounts,
-    accountStacks,
-    centralLogBucket: logBucket,
-    config: acceleratorConfig,
-  });
+    // Find the account buckets in the outputs
+    const accountBuckets = await defaults.step2({
+        accounts,
+        accountStacks,
+        centralLogBucket: logBucket,
+        config: acceleratorConfig,
+    });
 }
 ```
 
@@ -275,10 +275,10 @@ We wrote a CDK plugin that can assume a role into another account. In our case, 
 
 We use the internal CDK API to deploy the `Phase` stacks instead of the CDK CLI for the following reasons:
 
-- It allows us to deploy multiple stacks in parallel;
-- Disable stack termination before destroying a stack;
-- Delete a stack after it initially failed to create;
-- Deploy multiple apps at the same time -- see [Stacks with Same Name in Different Regions](#stacks-with-same-name-in-different-regions).
+-   It allows us to deploy multiple stacks in parallel;
+-   Disable stack termination before destroying a stack;
+-   Delete a stack after it initially failed to create;
+-   Deploy multiple apps at the same time -- see [Stacks with Same Name in Different Regions](#stacks-with-same-name-in-different-regions).
 
 The helper class `CdkToolkit` in `toolkit.ts` wraps around the CDK API.
 
@@ -312,11 +312,11 @@ The example above synthesizes to the following CloudFormation template.
 
 ```yaml
 Resources:
-  SharedNetworkAB7JKF7:
-    Properties:
-      Tags:
-        - Key: Name
-          Value: SharedNetwork_vpc
+    SharedNetworkAB7JKF7:
+        Properties:
+            Tags:
+                - Key: Name
+                  Value: SharedNetwork_vpc
 ```
 
 #### `AcceleratorStack`
@@ -337,27 +337,27 @@ The functions should be used to create pseudo-random names for IAM roles, KMS ke
 
 ```typescript
 export async function step1(props: CertificatesStep1Props) {
-  const { accountStacks, centralBucket: centralBucket, config } = props;
+    const { accountStacks, centralBucket: centralBucket, config } = props;
 
-  for (const { accountKey, certificates } of config.getCertificateConfigs()) {
-    if (certificates.length === 0) {
-      continue;
-    }
+    for (const { accountKey, certificates } of config.getCertificateConfigs()) {
+        if (certificates.length === 0) {
+            continue;
+        }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountKey}`);
-      continue;
-    }
+        const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+        if (!accountStack) {
+            console.warn(`Cannot find account stack ${accountKey}`);
+            continue;
+        }
 
-    for (const certificate of certificates) {
-      createCertificate({
-        centralBucket,
-        certificate,
-        scope: accountStack,
-      });
+        for (const certificate of certificates) {
+            createCertificate({
+                centralBucket,
+                certificate,
+                scope: accountStack,
+            });
+        }
     }
-  }
 }
 ```
 
@@ -375,13 +375,13 @@ The `Limiter` class helps keeps track of resource we create and prevents exceedi
 
 ```typescript
 for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
-  if (!limiter.create(accountKey, Limit.VpcPerRegion, region)) {
-    console.log(`Skipping VPC "${vpcConfig.name}" deployment.`);
-    console.log(`Reached maximum VPCs per region for account "${accountKey}" and region "${region}"`);
-    continue;
-  }
+    if (!limiter.create(accountKey, Limit.VpcPerRegion, region)) {
+        console.log(`Skipping VPC "${vpcConfig.name}" deployment.`);
+        console.log(`Reached maximum VPCs per region for account "${accountKey}" and region "${region}"`);
+        continue;
+    }
 
-  createVpc({ ouKey, accountKey, vpcConfig });
+    createVpc({ ouKey, accountKey, vpcConfig });
 }
 ```
 
@@ -393,7 +393,7 @@ Initially we would create stack outputs like this:
 
 ```typescript
 new cdk.CfnOutput(stack, 'BucketOutput', {
-  value: bucket.bucketArn,
+    value: bucket.bucketArn,
 });
 ```
 
@@ -401,12 +401,12 @@ But then we'd get a lot of outputs in a stack. We started some outputs together 
 
 ```typescript
 new JsonOutputValue(stack, 'Output', {
-  type: 'FirewallInstanceOutput',
-  value: {
-    instanceId: instance.instanceId,
-    name: firewallConfig.name,
-    az,
-  },
+    type: 'FirewallInstanceOutput',
+    value: {
+        instanceId: instance.instanceId,
+        name: firewallConfig.name,
+        az,
+    },
 });
 ```
 
@@ -414,23 +414,23 @@ Using the solution above, we'd not have type checking when reading or writing ou
 
 ```typescript
 export const FirewallInstanceOutput = t.interface(
-  {
-    id: t.string,
-    name: t.string,
-    az: t.string,
-  },
-  'FirewallInstanceOutput',
+    {
+        id: t.string,
+        name: t.string,
+        az: t.string,
+    },
+    'FirewallInstanceOutput',
 );
 
 export type FirewallInstanceOutput = t.TypeOf<typeof FirewallInstanceOutput>;
 
 new StructuredOutputValue<FirewallInstanceOutput>(stack, 'Output', {
-  type: FirewallInstanceOutput,
-  value: {
-    instanceId: instance.instanceId,
-    name: firewallConfig.name,
-    az,
-  },
+    type: FirewallInstanceOutput,
+    value: {
+        instanceId: instance.instanceId,
+        name: firewallConfig.name,
+        az,
+    },
 });
 ```
 
@@ -440,8 +440,8 @@ And we can even improve on this a bit more.
 export const CfnFirewallInstanceOutput = createCfnStructuredOutput(FirewallInstanceOutput);
 
 new CfnFirewallInstanceOutput(stack, 'Output', {
-  vpcId: vpc.ref,
-  vpcName: vpcConfig.name,
+    vpcId: vpc.ref,
+    vpcName: vpcConfig.name,
 });
 ```
 
@@ -450,8 +450,8 @@ export const FirewallInstanceOutputFinder = createStructuredOutputFinder(Firewal
 
 // Create an OutputFinder
 const firewallInstances = FirewallInstanceOutputFinder.findAll({
-  outputs,
-  accountKey,
+    outputs,
+    accountKey,
 });
 
 // Example usage of the OutputFinder
@@ -466,15 +466,15 @@ There is another special type of output, `AddTagsToResourcesOutput`. It can be u
 
 ```typescript
 new AddTagsToResourcesOutput(this, 'OutputSharedResourcesSubnets', {
-  dependencies: sharedSubnets.map(o => o.subnet),
-  produceResources: () =>
-    sharedSubnets.map(o => ({
-      resourceId: o.subnet.ref,
-      resourceType: 'subnet',
-      sourceAccountId: o.sourceAccountId,
-      targetAccountIds: o.targetAccountIds,
-      tags: o.subnet.tags.renderTags(),
-    })),
+    dependencies: sharedSubnets.map(o => o.subnet),
+    produceResources: () =>
+        sharedSubnets.map(o => ({
+            resourceId: o.subnet.ref,
+            resourceType: 'subnet',
+            sourceAccountId: o.sourceAccountId,
+            targetAccountIds: o.targetAccountIds,
+            tags: o.subnet.tags.renderTags(),
+        })),
 });
 ```
 
@@ -498,11 +498,11 @@ Example of setting `aws-sdk` as external dependency.
 
 ```json
 {
-  "externals": ["aws-lambda", "aws-sdk"],
-  "dependencies": {
-    "aws-lambda": "1.0.6",
-    "aws-sdk": "2.631.0"
-  }
+    "externals": ["aws-lambda", "aws-sdk"],
+    "dependencies": {
+        "aws-lambda": "1.0.6",
+        "aws-sdk": "2.631.0"
+    }
 }
 ```
 
@@ -512,11 +512,11 @@ Example of setting `aws-sdk` as embedded dependency.
 
 ```json
 {
-  "externals": ["aws-lambda"],
-  "dependencies": {
-    "aws-lambda": "1.0.6",
-    "aws-sdk": "2.711.0"
-  }
+    "externals": ["aws-lambda"],
+    "dependencies": {
+        "aws-lambda": "1.0.6",
+        "aws-sdk": "2.711.0"
+    }
 }
 ```
 
@@ -536,18 +536,18 @@ This library helps you send a custom resource response to CloudFormation.
 export const handler = errorHandler(onEvent);
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
-  console.log(`Creating KMS grant...`);
-  console.log(JSON.stringify(event, null, 2));
+    console.log(`Creating KMS grant...`);
+    console.log(JSON.stringify(event, null, 2));
 
-  // eslint-disable-next-line default-case
-  switch (event.RequestType) {
-    case 'Create':
-      return onCreate(event);
-    case 'Update':
-      return onUpdate(event);
-    case 'Delete':
-      return onDelete(event);
-  }
+    // eslint-disable-next-line default-case
+    switch (event.RequestType) {
+        case 'Create':
+            return onCreate(event);
+        case 'Update':
+            return onUpdate(event);
+        case 'Delete':
+            return onDelete(event);
+    }
 }
 ```
 
@@ -563,30 +563,30 @@ This library defines the base Webpack template to compile custom resource runtim
 
 ```json
 {
-  "name": "@aws-accelerator/custom-resource-kms-grant-runtime",
-  "version": "0.0.1",
-  "private": true,
-  "scripts": {
-    "prepare": "webpack-cli --config webpack.config.ts"
-  },
-  "source": "src/index.ts",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "externals": ["aws-lambda", "aws-sdk"],
-  "devDependencies": {
-    "@aws-accelerator/custom-resource-runtime-webpack-base": "workspace:^0.0.1",
-    "@types/aws-lambda": "8.10.46",
-    "@types/node": "14.14.31",
-    "ts-loader": "7.0.5",
-    "typescript": "3.8.3",
-    "webpack": "4.42.1",
-    "webpack-cli": "3.3.11"
-  },
-  "dependencies": {
-    "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:^0.0.1",
-    "aws-lambda": "1.0.6",
-    "aws-sdk": "2.668.0"
-  }
+    "name": "@aws-accelerator/custom-resource-kms-grant-runtime",
+    "version": "0.0.1",
+    "private": true,
+    "scripts": {
+        "prepare": "webpack-cli --config webpack.config.ts"
+    },
+    "source": "src/index.ts",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "externals": ["aws-lambda", "aws-sdk"],
+    "devDependencies": {
+        "@aws-accelerator/custom-resource-runtime-webpack-base": "workspace:^0.0.1",
+        "@types/aws-lambda": "8.10.46",
+        "@types/node": "14.14.31",
+        "ts-loader": "7.0.5",
+        "typescript": "3.8.3",
+        "webpack": "4.42.1",
+        "webpack-cli": "3.3.11"
+    },
+    "dependencies": {
+        "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:^0.0.1",
+        "aws-lambda": "1.0.6",
+        "aws-sdk": "2.668.0"
+    }
 }
 ```
 
@@ -641,22 +641,22 @@ The script enables development mode which means that accounts, organizations, co
 
 ```json
 [
-  {
-    "key": "shared-network",
-    "id": "000000000001",
-    "arn": "arn:aws:organizations::000000000000:account/o-0123456789/000000000001",
-    "name": "myacct-ASEA-shared-network",
-    "email": "myacct+ASEA-mandatory-shared-network@example.com",
-    "ou": "core"
-  },
-  {
-    "key": "operations",
-    "id": "000000000002",
-    "arn": "arn:aws:organizations::000000000000:account/o-0123456789/000000000002",
-    "name": "myacct-ASEA-operations",
-    "email": "myacct+ASEA-mandatory-operations@example.com",
-    "ou": "core"
-  }
+    {
+        "key": "shared-network",
+        "id": "000000000001",
+        "arn": "arn:aws:organizations::000000000000:account/o-0123456789/000000000001",
+        "name": "myacct-ASEA-shared-network",
+        "email": "myacct+ASEA-mandatory-shared-network@example.com",
+        "ou": "core"
+    },
+    {
+        "key": "operations",
+        "id": "000000000002",
+        "arn": "arn:aws:organizations::000000000000:account/o-0123456789/000000000002",
+        "name": "myacct-ASEA-operations",
+        "email": "myacct+ASEA-mandatory-operations@example.com",
+        "ou": "core"
+    }
 ]
 ```
 
@@ -664,18 +664,18 @@ The script enables development mode which means that accounts, organizations, co
 
 ```json
 [
-  {
-    "ouId": "ou-0000-00000000",
-    "ouArn": "arn:aws:organizations::000000000000:ou/o-0123456789/ou-0000-00000000",
-    "ouName": "core",
-    "ouPath": "core"
-  },
-  {
-    "ouId": "ou-0000-00000001",
-    "ouArn": "arn:aws:organizations::000000000000:ou/o-0123456789/ou-0000-00000001",
-    "ouName": "prod",
-    "ouPath": "prod"
-  }
+    {
+        "ouId": "ou-0000-00000000",
+        "ouArn": "arn:aws:organizations::000000000000:ou/o-0123456789/ou-0000-00000000",
+        "ouName": "core",
+        "ouPath": "core"
+    },
+    {
+        "ouId": "ou-0000-00000001",
+        "ouArn": "arn:aws:organizations::000000000000:ou/o-0123456789/ou-0000-00000001",
+        "ouName": "prod",
+        "ouPath": "prod"
+    }
 ]
 ```
 
@@ -683,22 +683,22 @@ The script enables development mode which means that accounts, organizations, co
 
 ```json
 [
-  {
-    "accountKey": "shared-network",
-    "limitKey": "Amazon VPC/VPCs per Region",
-    "serviceCode": "vpc",
-    "quotaCode": "L-F678F1CE",
-    "value": 15,
-    "region": "ca-central-1"
-  },
-  {
-    "accountKey": "shared-network",
-    "limitKey": "Amazon VPC/Interface VPC endpoints per VPC",
-    "serviceCode": "vpc",
-    "quotaCode": "L-29B6F2EB",
-    "value": 50,
-    "region": "ca-central-1"
-  }
+    {
+        "accountKey": "shared-network",
+        "limitKey": "Amazon VPC/VPCs per Region",
+        "serviceCode": "vpc",
+        "quotaCode": "L-F678F1CE",
+        "value": 15,
+        "region": "ca-central-1"
+    },
+    {
+        "accountKey": "shared-network",
+        "limitKey": "Amazon VPC/Interface VPC endpoints per VPC",
+        "serviceCode": "vpc",
+        "quotaCode": "L-29B6F2EB",
+        "value": 50,
+        "region": "ca-central-1"
+    }
 ]
 ```
 
@@ -706,11 +706,11 @@ The script enables development mode which means that accounts, organizations, co
 
 ```json
 [
-  {
-    "accountKey": "shared-network",
-    "outputKey": "DefaultBucketOutputC7CE5936",
-    "outputValue": "{\"type\":\"AccountBucket\",\"value\":{\"bucketArn\":\"arn:aws:s3:::ASEA-sharednetwork-phase1-cacentral1-18vq0emthri3h\",\"bucketName\":\"ASEA-sharednetwork-phase1-cacentral1-18vq0emthri3h\",\"encryptionKeyArn\":\"arn:aws:kms:ca-central-1:0000000000001:key/d54a8acb-694c-4fc5-9afe-ca2b263cd0b3\",\"region\":\"ca-central-1\"}}"
-  }
+    {
+        "accountKey": "shared-network",
+        "outputKey": "DefaultBucketOutputC7CE5936",
+        "outputValue": "{\"type\":\"AccountBucket\",\"value\":{\"bucketArn\":\"arn:aws:s3:::ASEA-sharednetwork-phase1-cacentral1-18vq0emthri3h\",\"bucketName\":\"ASEA-sharednetwork-phase1-cacentral1-18vq0emthri3h\",\"encryptionKeyArn\":\"arn:aws:kms:ca-central-1:0000000000001:key/d54a8acb-694c-4fc5-9afe-ca2b263cd0b3\",\"region\":\"ca-central-1\"}}"
+    }
 ]
 ```
 
@@ -718,10 +718,10 @@ The script enables development mode which means that accounts, organizations, co
 
 ```json
 {
-  "acceleratorName": "ASEA",
-  "acceleratorPrefix": "ASEA-",
-  "acceleratorExecutionRoleName": "ASEA-PipelineRole",
-  "defaultRegion": "ca-central-1"
+    "acceleratorName": "ASEA",
+    "acceleratorPrefix": "ASEA-",
+    "acceleratorExecutionRoleName": "ASEA-PipelineRole",
+    "defaultRegion": "ca-central-1"
 }
 ```
 
@@ -780,10 +780,10 @@ There's a test in the file `src/deployments/cdk/test/apps/unsupported-changes.sp
 
 ```typescript
 test('templates should stay exactly the same', () => {
-  for (const [stackName, resources] of Object.entries(stackResources)) {
-    // Compare the relevant properties to the snapshot
-    expect(resources).toMatchSnapshot(stackName);
-  }
+    for (const [stackName, resources] of Object.entries(stackResources)) {
+        // Compare the relevant properties to the snapshot
+        expect(resources).toMatchSnapshot(stackName);
+    }
 });
 ```
 

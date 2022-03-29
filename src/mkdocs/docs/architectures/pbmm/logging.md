@@ -26,7 +26,7 @@ The _AWS Secure Environment Architecture_ recommends enabling GuardDuty [at the 
 
 Config may be [enabled at the Organization][config-org] level - this provides an overall view of the compliance status of all resources across the Organization.
 
-_Note: At the time of writing, the Config Multi-Account Multi-Region Data Aggregation sits in the Organization Management (root) account. The _AWS Secure Environment Architecture_ will recommend that this be situated in the security account, once that becomes easily-configurable in Organizations._
+_Note: At the time of writing, the Config Multi-Account Multi-Region Data Aggregation sits in the Organization Management (root) account. The \_AWS Secure Environment Architecture_ will recommend that this be situated in the security account, once that becomes easily-configurable in Organizations.\_
 
 ## Cloudwatch Logs
 
@@ -38,9 +38,9 @@ The primary dashboard for Operators to assess the security posture of the AWS fo
 
 The _AWS Secure Environment Architecture_ recommends that certain Security Hub frameworks be enabled, specifically:
 
-- [AWS Foundational Security Best Practices v1.0.0][found]
-- [PCI DSS v3.2.1][pci]
-- [CIS AWS Foundations Benchmark v1.2.0][cis]
+-   [AWS Foundational Security Best Practices v1.0.0][found]
+-   [PCI DSS v3.2.1][pci]
+-   [CIS AWS Foundations Benchmark v1.2.0][cis]
 
 These frameworks will perform checks against the accounts via Config Rules that are evaluated against the AWS Config resources in scope. See the above links for a definition of the associated controls.
 

@@ -16,23 +16,23 @@ Note that this VPC is in its own isolated account, separate from Shared Network,
 
 ### IP Ranges
 
-- **Primary Range**: The _AWS Secure Environment Architecture_ recommends that the perimeter VPC have a primary range in the [RFC1918][1918] block (e.g. `10.7.4.0/22`), used only for subnets dedicated to 'detonation' purposes. This primary range, in an otherwise-unused [RFC1918][1918] range, is not intended to be routable outside of the VPC, and is reserved for future use with malware detonation capabilities of NGFW devices.
-- **Secondary Range**: This VPC should also have a secondary range in the [RFC6598][6598] block (e.g. `100.96.250.0/23`) used for the overlay network (NGFW devices inside VPN tunnel) for all other subnets. This secondary range is assigned by an external entity (e.g. Shared Services Canada), and should be carefully selected in order to co-exist with _AWS Secure Environment Architecture_ deployments that exist at peer organizations; for instance other government departments that maintain a relationship with the same shared entity in a carrier-grade NAT topology. Although this is a 'secondary' range in VPC parlance, this VPC CIDR should be interpreted as the more 'significant' of the two with respect to Transit Gateway routing; the Transit Gateway will only ever interact with this 'secondary' range.
+-   **Primary Range**: The _AWS Secure Environment Architecture_ recommends that the perimeter VPC have a primary range in the [RFC1918][1918] block (e.g. `10.7.4.0/22`), used only for subnets dedicated to 'detonation' purposes. This primary range, in an otherwise-unused [RFC1918][1918] range, is not intended to be routable outside of the VPC, and is reserved for future use with malware detonation capabilities of NGFW devices.
+-   **Secondary Range**: This VPC should also have a secondary range in the [RFC6598][6598] block (e.g. `100.96.250.0/23`) used for the overlay network (NGFW devices inside VPN tunnel) for all other subnets. This secondary range is assigned by an external entity (e.g. Shared Services Canada), and should be carefully selected in order to co-exist with _AWS Secure Environment Architecture_ deployments that exist at peer organizations; for instance other government departments that maintain a relationship with the same shared entity in a carrier-grade NAT topology. Although this is a 'secondary' range in VPC parlance, this VPC CIDR should be interpreted as the more 'significant' of the two with respect to Transit Gateway routing; the Transit Gateway will only ever interact with this 'secondary' range.
 
 ![Endpoints](./images/perimeter.drawio.png)
 
 This VPC has four subnets per AZ, each of which hosts a port used by the NGFW devices, which are deployed in an HA pair. The purpose of these subnets is as follows.
 
-- **Detonation**: This is an unused subnet reserved for future use with malware detonation capabilities of the NGFW devices.
-    - e.g. `10.7.4.0/24` - not routable except local.
-- **Proxy**: This subnet hosts reverse proxy services for web and other protocols. It also contains the [three interface endpoints][ssm_endpoints] necessary for AWS Systems Manager Session Manager, which enables SSH-less CLI access to authorized and authenticated principals in the perimeter account.
-    - e.g. `100.96.251.64/26`
-- **On-Premises**: This subnet hosts the private interfaces of the firewalls, corresponding to connections from the on-premises network.
-    - e.g. `100.96.250.192/26`
-- **FW-Management**: This subnet is used to host management tools and the management of the Firewalls itself.
-    - e.g. `100.96.251.160/27` - a smaller subnet is permissible due to modest IP requirements for management instances.
-- **Public**: This subnet is the public-access zone for the perimeter VPC. It hosts the public interface of the firewalls, as well as application load balancers that are used to balance traffic across the firewall pair. There is one Elastic IPv4 address per public subnet that corresponds to the IPSec Customer Gateway (CGW) for the VPN connections into the Transit Gateway in Shared Networking.
-    - e.g. `100.96.250.0/26`
+-   **Detonation**: This is an unused subnet reserved for future use with malware detonation capabilities of the NGFW devices.
+    -   e.g. `10.7.4.0/24` - not routable except local.
+-   **Proxy**: This subnet hosts reverse proxy services for web and other protocols. It also contains the [three interface endpoints][ssm_endpoints] necessary for AWS Systems Manager Session Manager, which enables SSH-less CLI access to authorized and authenticated principals in the perimeter account.
+    -   e.g. `100.96.251.64/26`
+-   **On-Premises**: This subnet hosts the private interfaces of the firewalls, corresponding to connections from the on-premises network.
+    -   e.g. `100.96.250.192/26`
+-   **FW-Management**: This subnet is used to host management tools and the management of the Firewalls itself.
+    -   e.g. `100.96.251.160/27` - a smaller subnet is permissible due to modest IP requirements for management instances.
+-   **Public**: This subnet is the public-access zone for the perimeter VPC. It hosts the public interface of the firewalls, as well as application load balancers that are used to balance traffic across the firewall pair. There is one Elastic IPv4 address per public subnet that corresponds to the IPSec Customer Gateway (CGW) for the VPN connections into the Transit Gateway in Shared Networking.
+    -   e.g. `100.96.250.0/26`
 
 Outbound internet connections (for software updates, etc.) can be initiated from within the workload VPCs, and use the transparent proxy feature of the next-gen Firewalls.
 
@@ -71,10 +71,10 @@ The Transit Gateway is a central hub that performs several core functions within
 
 The four TGW RTs exist to serve the following main functions:
 
-- **Segregated TGW RT**: Used as the association table for the workload VPCs; prevents east-west traffic, except to shared resources.
-- **Core TGW RT**: Used for internet/on-premises response traffic, and Endpoint VPC egress.
-- **Shared TGW RT**: Used to provide `Central` VPC access east-west for the purposes of response traffic to shared workloads
-- **Standalone TGW RT**: Reserved for future use. Prevents TGW routing except to the Endpoint VPC.
+-   **Segregated TGW RT**: Used as the association table for the workload VPCs; prevents east-west traffic, except to shared resources.
+-   **Core TGW RT**: Used for internet/on-premises response traffic, and Endpoint VPC egress.
+-   **Shared TGW RT**: Used to provide `Central` VPC access east-west for the purposes of response traffic to shared workloads
+-   **Standalone TGW RT**: Reserved for future use. Prevents TGW routing except to the Endpoint VPC.
 
 Note that a unique BGP ASN will need to be available for the TGW.
 
@@ -110,9 +110,9 @@ This cross-VPC resolution of the service-specific private hosted zone functions 
 
 The Endpoint VPC also hosts the common DNS infrastructure used to resolve DNS queries:
 
-- within the cloud
-- from the cloud to on-premises
-- from on-premises to the cloud
+-   within the cloud
+-   from the cloud to on-premises
+-   from on-premises to the cloud
 
 #### Within The Cloud
 
@@ -140,11 +140,11 @@ Note that security groups are recommended as the primary data-plane isolation me
 
 The following subnets are defined by the _AWS Secure Environment Architecture_:
 
-- **TGW subnet**: This subnet hosts the elastic-network interfaces for the TGW attachment. A `/27` subnet is sufficient.
-- **Web subnet**: This subnet hosts front-end or otherwise 'client' facing infrastructure. A `/20` or larger subnet is recommended to facilitate auto-scaling.
-- **App subnet**: This subnet hosts app-tier code (EC2, containers, etc). A `/19` or larger subnet is recommended to facilitate auto-scaling.
-- **Data subnet**: This subnet hosts data-tier code (RDS instances, ElastiCache instances). A `/21` or larger subnet is recommended.
-- **Mgmt subnet**: This subnet hosts bastion or other management instances. A `/21` or larger subnet is recommended.
+-   **TGW subnet**: This subnet hosts the elastic-network interfaces for the TGW attachment. A `/27` subnet is sufficient.
+-   **Web subnet**: This subnet hosts front-end or otherwise 'client' facing infrastructure. A `/20` or larger subnet is recommended to facilitate auto-scaling.
+-   **App subnet**: This subnet hosts app-tier code (EC2, containers, etc). A `/19` or larger subnet is recommended to facilitate auto-scaling.
+-   **Data subnet**: This subnet hosts data-tier code (RDS instances, ElastiCache instances). A `/21` or larger subnet is recommended.
+-   **Mgmt subnet**: This subnet hosts bastion or other management instances. A `/21` or larger subnet is recommended.
 
 Each subnet is associated with a Common VPC Route Table, as depicted above. Gateway Endpoints for relevant services (Amazon S3, Amazon DynamoDB) are installed in the Common route tables of all Workload VPCs. Aside from local traffic or gateway-bound traffic, `0.0.0.0/0` is always destined for the TGW.
 

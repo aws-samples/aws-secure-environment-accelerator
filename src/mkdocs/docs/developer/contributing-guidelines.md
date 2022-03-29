@@ -8,23 +8,23 @@ Please first refer to and comply with the Contributing and Governance document f
 
 Before making a change or adding new functionality you have to verify what kind of functionality is being added.
 
-- Is it an Accelerator-management change?
-    - Is the change related to the `Installer` stack?
-        - Is the change CDK related?
-            - Make the change in `src/installer/cdk`.
-        - Is the change runtime related?
-            - Make the change in `src/installer/cdk/assets`.
-    - Is the change related to the `Initial Setup` stack?
-        - Is the change CDK related?
-            - Make the change in `src/core/cdk`
-        - Is the change runtime related?
-            - Make the change in `src/core/runtime`
-- Is it an Accelerator-managed change?
-    - Is the change related to the `Phase` stacks?
-        - Is the change CDK related?
-            - Make the change in `src/deployments/cdk`
-        - Is the change runtime related?
-            - Make the change in `src/deployments/runtime`
+-   Is it an Accelerator-management change?
+    -   Is the change related to the `Installer` stack?
+        -   Is the change CDK related?
+            -   Make the change in `src/installer/cdk`.
+        -   Is the change runtime related?
+            -   Make the change in `src/installer/cdk/assets`.
+    -   Is the change related to the `Initial Setup` stack?
+        -   Is the change CDK related?
+            -   Make the change in `src/core/cdk`
+        -   Is the change runtime related?
+            -   Make the change in `src/core/runtime`
+-   Is it an Accelerator-managed change?
+    -   Is the change related to the `Phase` stacks?
+        -   Is the change CDK related?
+            -   Make the change in `src/deployments/cdk`
+        -   Is the change runtime related?
+            -   Make the change in `src/deployments/runtime`
 
 ## Create a CDK Lambda Function with Lambda Runtime Code
 
@@ -36,12 +36,12 @@ See [Custom Resource](#custom-resource) and [Custom Resources](#custom-resources
 
 1. Create a separate folder that contains the CDK and Lambda function runtime code, e.g. `src/lib/custom-resources/my-custom-resource`;
 2. Create a folder `my-custom-resource` that contains the CDK code;
-   1. Create a `package.json` file with a dependency to the `my-custom-resource/runtime` package;
-   2. Create a `cdk` folder that contains the source of the CDK code;
+    1. Create a `package.json` file with a dependency to the `my-custom-resource/runtime` package;
+    2. Create a `cdk` folder that contains the source of the CDK code;
 3. Create a folder `my-custom-resource/runtime` that contains the runtime code;
-   1. Create a `runtime/package.json` file with a `"name"`, `"prepare"` script and a `"main"`;
-   2. Create a `runtime/webpack.config.ts` file that compiles TypeScript code to a single JavaScript file;
-   3. Create a `runtime/src` folder that contains the source of the Lambda function runtime code;
+    1. Create a `runtime/package.json` file with a `"name"`, `"prepare"` script and a `"main"`;
+    2. Create a `runtime/webpack.config.ts` file that compiles TypeScript code to a single JavaScript file;
+    3. Create a `runtime/src` folder that contains the source of the Lambda function runtime code;
 
 You can look at the `src/lib/custom-resources/cdk-acm-import-certificate` custom resource as an example.
 

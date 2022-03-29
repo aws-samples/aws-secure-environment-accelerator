@@ -380,7 +380,7 @@ Issues in Older Releases:
 
 The Accelerator installation is complete, but several manual steps remain:
 
-1. Enable and configure AWS SSO in your `home` region (i.e. ca-central-1)
+1.  Enable and configure AWS SSO in your `home` region (i.e. ca-central-1)
 
     - Login to the AWS Console using your Organization Management account
     - Navigate to AWS Single Sign-On, click `Enable SSO`
@@ -414,7 +414,7 @@ The Accelerator installation is complete, but several manual steps remain:
         - Navigate to "Directory Service" , select the directory => Actions => Reset user password
         - Users can change their passwords from any MAD domain connected instance
 
-2. Configure the new alb-forwarding feature (added in v1.5.0)
+2.  Configure the new alb-forwarding feature (added in v1.5.0)
 
     - AWS ALB's are published using DNS names which resolve to backing IP's which could silently change at any time due to a scaling event, maintenance, or a hardware failure. While published as a DNS name, ALB's can only target IP addresses. This presents a challenge as we need the ALB's in the perimeter account to target ALB's in the various back-end workload accounts;
     - Alb-forwarding solves this problem by executing a small snippet of code every 60 seconds which updates managed ALB listeners with any IP changes, ensuring any managed flows do not go offline. This removes the requirement to leverage a 3rd party appliance to perform NAT to a DNS name;
@@ -428,19 +428,19 @@ The Accelerator installation is complete, but several manual steps remain:
 
     ```json
     {
-    "id": "App1",
-    "targetAlbDnsName": "internal-Core-mydevacct1-alb-123456789.ca-central-1.elb.amazonaws.com",
-    "targetGroupDestinationPort": 443,
-    "targetGroupProtocol": "HTTPS",
-    "vpcId": "vpc-0a6f44a80514daaaf",
-    "rule": {
-        "sourceListenerArn": "arn:aws:elasticloadbalancing:ca-central-1:123456789012:listener/app/Public-DevTest-perimeter-alb/b1b12e7a0c412bf3/ef9b022a4fdd8bdf",
-        "condition": {
-            "paths": ["/img/*", "/myApp2"],
-            "hosts": ["aws.amazon.com"],
-            "priority": 30
+        "id": "App1",
+        "targetAlbDnsName": "internal-Core-mydevacct1-alb-123456789.ca-central-1.elb.amazonaws.com",
+        "targetGroupDestinationPort": 443,
+        "targetGroupProtocol": "HTTPS",
+        "vpcId": "vpc-0a6f44a80514daaaf",
+        "rule": {
+            "sourceListenerArn": "arn:aws:elasticloadbalancing:ca-central-1:123456789012:listener/app/Public-DevTest-perimeter-alb/b1b12e7a0c412bf3/ef9b022a4fdd8bdf",
+            "condition": {
+                "paths": ["/img/*", "/myApp2"],
+                "hosts": ["aws.amazon.com"],
+                "priority": 30
+            }
         }
-    }
     }
     ```
 
@@ -450,11 +450,11 @@ The Accelerator installation is complete, but several manual steps remain:
 
     </details>
 
-3. On a per role basis, you need to enable the CWL Account Selector in the Security and the Operations accounts, in each account:
+3.  On a per role basis, you need to enable the CWL Account Selector in the Security and the Operations accounts, in each account:
 
     - Go to CloudWatch, Settings, Under `Cross-account cross-region` select `Configure`, Under `View cross-account cross-region` select `Edit`, choose `AWS Organization account selector`, click `Save changes`
 
-4. Configure central Ingress/Egress firewalls, if deployed
+4.  Configure central Ingress/Egress firewalls, if deployed
 
     - Layer 3/4 `appliance` based inspection is an optional feature
 
@@ -510,11 +510,11 @@ The Accelerator installation is complete, but several manual steps remain:
         - No best practice or security configuration has been configured on the Checkpoint firewalls. These firewalls have been configured to work with GWLB, but otherwise have the default/basic Checkpoint out-of-box configuration installed
         - Do NOT reboot the Checkpoint appliances until bootstrap is complete (~25 minutes for the manager), or you will be required to redeploy the instance
 
-5. Recover root passwords for all sub-accounts and apply strong passwords
+5.  Recover root passwords for all sub-accounts and apply strong passwords
 
     - Process documented [here](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys_retrieve.html#reset-root-password)
 
-6. Enable MFA for **all** IAM users and **all** root account users, recommendations:
+6.  Enable MFA for **all** IAM users and **all** root account users, recommendations:
 
     - Yubikeys provide the strongest form of MFA protection and are strongly encouraged for all account root users and all IAM users in the Organization Management (root) account
     - the Organization Management (root) account requires a dedicated Yubikey (if access is required to a sub-account root user, we do not want to expose the Organization Management accounts Yubikey)
@@ -522,9 +522,9 @@ The Accelerator installation is complete, but several manual steps remain:
     - each IAM breakglass user requires a dedicated Yubikey, as do any additional IAM users in the Organization Management (root) account. While some CSPs do not recommend MFA on the breakglass users, it is strongly encouraged in AWS
     - all other AWS users (AWS SSO, IAM in sub-accounts, etc.) can leverage virtual MFA devices (like Google Authenticator on a mobile device)
 
-7. Customers are responsible for the ongoing management and rotation of all passwords on a regular basis per their organizational password policy. This includes the passwords of all IAM users, MAD users, firewall users, or other users, whether deployed by the Accelerator or not. We do NOT automatically rotate any passwords, but strongly encourage customers do so, on a regular basis.
+7.  Customers are responsible for the ongoing management and rotation of all passwords on a regular basis per their organizational password policy. This includes the passwords of all IAM users, MAD users, firewall users, or other users, whether deployed by the Accelerator or not. We do NOT automatically rotate any passwords, but strongly encourage customers do so, on a regular basis.
 
-8. During the installation we request required limit increases, resources dependent on these limits will not be deployed
+8.  During the installation we request required limit increases, resources dependent on these limits will not be deployed
 
     1. Limit increase requests are controlled through the Accelerator configuration file `"limits":{}` setting
     2. The sample configuration file requests increases to your EIP count in the perimeter account and to the VPC count and Interface Endpoint count in the shared-network account
@@ -532,7 +532,7 @@ The Accelerator installation is complete, but several manual steps remain:
     4. On the next state machine execution, resources blocked by limits should be deployed (i.e. additional VPC's and Endpoints)
     5. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
 
-9. Note: After a successful install the Control Tower `Organizational units'` dashboard will indicate `2 of 3` in the `Accounts enrolled` column for the Security OU, as it does not enable enrollment of the management account in guardrails. The Accelerator compliments Control Tower and enables guardrails in the management account which is important to high compliance customers.
+9.  Note: After a successful install the Control Tower `Organizational units'` dashboard will indicate `2 of 3` in the `Accounts enrolled` column for the Security OU, as it does not enable enrollment of the management account in guardrails. The Accelerator compliments Control Tower and enables guardrails in the management account which is important to high compliance customers.
 
 ## Other Operational Considerations
 

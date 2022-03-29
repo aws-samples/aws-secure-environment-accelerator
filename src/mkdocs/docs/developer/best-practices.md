@@ -8,8 +8,8 @@ Entry point TypeScript files -- files that start execution instead of just defin
 
 ```typescript
 process.on('unhandledRejection', (reason, _) => {
-  console.error(reason);
-  process.exit(1);
+    console.error(reason);
+    process.exit(1);
 });
 ```
 
@@ -38,15 +38,15 @@ Some resources, like `AWS::S3::Bucket`, can have an explicit name. Setting an ex
 
 The first issue that could occur goes as follows:
 
-- the named resource has a retention policy to retain the resource after deleting;
-- then the named resource is created through a CloudFormation stack;
-- next, an error happens while creating or updating the stack and the stack rolls back;
-- and finally the named resource is deleted from the stack but has a retention policy to retain, so the resource not be deleted;
+-   the named resource has a retention policy to retain the resource after deleting;
+-   then the named resource is created through a CloudFormation stack;
+-   next, an error happens while creating or updating the stack and the stack rolls back;
+-   and finally the named resource is deleted from the stack but has a retention policy to retain, so the resource not be deleted;
 
 Suppose then that the stack creation issue is resolved and we retry to create the named resource through the CloudFormation stack:
 
-- the named resource is created through a CloudFormation stack;
-- the named resource will fail to create because a resource with the given name already exists.
+-   the named resource is created through a CloudFormation stack;
+-   the named resource will fail to create because a resource with the given name already exists.
 
 The best way to prevent this issue from happening is to not explicitly set a name for the resource and let CloudFormation generate the name.
 
@@ -64,8 +64,8 @@ Not only changing logical IDs could cause CloudFormation to replace resources. C
 
 Be especially careful when:
 
-- changing immutable properties for a named resource. Example of a resource is `AWS::Budgets::Budget`, `AWS::ElasticLoadBalancingV2::LoadBalancer`.
-- updating network interfaces for an `AWS::EC2::Instance`. Not only will this cause the instance to re-create, it will also fail to attach the network interfaces to the new EC2 instance. CloudFormation creates the new EC2 instance first before deleting the old one. It will try to attach the network interfaces to the new instance, but the network interfaces are still attached to the old instance and CloudFormation will fail.
+-   changing immutable properties for a named resource. Example of a resource is `AWS::Budgets::Budget`, `AWS::ElasticLoadBalancingV2::LoadBalancer`.
+-   updating network interfaces for an `AWS::EC2::Instance`. Not only will this cause the instance to re-create, it will also fail to attach the network interfaces to the new EC2 instance. CloudFormation creates the new EC2 instance first before deleting the old one. It will try to attach the network interfaces to the new instance, but the network interfaces are still attached to the old instance and CloudFormation will fail.
 
 For some named resources, like `AWS::AutoScaling::LaunchConfiguration` and `AWS::Budgets::Budget`, we append a hash to the name of the resource that is based on its properties. This way when an immutable property is changed, the name will also change, and the resource will be replaced successfully. See for example `src/lib/cdk-constructs/src/autoscaling/launch-configuration.ts` and `src/lib/cdk-constructs/src//billing/budget.ts`.
 
@@ -78,14 +78,14 @@ export type LaunchConfigurationProps = autoscaling.CfnLaunchConfigurationProps;
  * CloudFormation.
  */
 export class LaunchConfiguration extends autoscaling.CfnLaunchConfiguration {
-  constructor(scope: cdk.Construct, id: string, props: LaunchConfigurationProps) {
-    super(scope, id, props);
+    constructor(scope: cdk.Construct, id: string, props: LaunchConfigurationProps) {
+        super(scope, id, props);
 
-    if (props.launchConfigurationName) {
-      const hash = hashSum({ ...props, path: this.node.path });
-      this.launchConfigurationName = `${props.launchConfigurationName}-${hash}`;
+        if (props.launchConfigurationName) {
+            const hash = hashSum({ ...props, path: this.node.path });
+            this.launchConfigurationName = `${props.launchConfigurationName}-${hash}`;
+        }
     }
-  }
 }
 ```
 
@@ -110,14 +110,14 @@ let endpointCount = 0;
 let endpointStackIndex = 0;
 let endpointStack;
 for (const endpoint of endpointConfig.endpoints) {
-  if (!endpointStack || endpointCount >= 30) {
-    endpointStack = new NestedStack(accountStack, `Endpoint${endpointStackIndex++}`);
-    endpointCount = 0;
-  }
-  new InterfaceEndpoint(endpointStack, pascalCase(endpoint), {
-    serviceName: endpoint,
-  });
-  endpointCount++;
+    if (!endpointStack || endpointCount >= 30) {
+        endpointStack = new NestedStack(accountStack, `Endpoint${endpointStackIndex++}`);
+        endpointCount = 0;
+    }
+    new InterfaceEndpoint(endpointStack, pascalCase(endpoint), {
+        serviceName: endpoint,
+    });
+    endpointCount++;
 }
 ```
 
@@ -145,11 +145,11 @@ The `package.json` file also needs a `name` and a `main` entry that points to th
 
 ```json
 {
-  "name": "lambda-fn-runtime",
-  "main": "dist/index.js",
-  "scripts": {
-    "prepare": "webpack-cli --config webpack.config.ts"
-  }
+    "name": "lambda-fn-runtime",
+    "main": "dist/index.js",
+    "scripts": {
+        "prepare": "webpack-cli --config webpack.config.ts"
+    }
 }
 ```
 
@@ -161,9 +161,9 @@ Next, we add the dependency to the new workspace to the workspace that contains 
 
 ```json
 {
-  "devDependencies": {
-    "lambda-fn-runtime": "workspace:^0.0.1"
-  }
+    "devDependencies": {
+        "lambda-fn-runtime": "workspace:^0.0.1"
+    }
 }
 ```
 
@@ -173,23 +173,23 @@ In the CDK code we can now resolve the path to the compiled code using the `Node
 
 ```typescript
 class LambdaFun extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string) {
-    super(scope, id);
+    constructor(scope: cdk.Construct, id: string) {
+        super(scope, id);
 
-    // Find the runtime package folder and resolves the `main` entry of `package.json`.
-    // In our case this is `node_modules/lambda-fn-runtime/dist/index.js`.
-    const runtimeMain = resolve.require('lambda-fn-runtime');
+        // Find the runtime package folder and resolves the `main` entry of `package.json`.
+        // In our case this is `node_modules/lambda-fn-runtime/dist/index.js`.
+        const runtimeMain = resolve.require('lambda-fn-runtime');
 
-    // Find the directory containing our `index.js` file.
-    // In our case this is `node_modules/lambda-fn-runtime/dist`.
-    const runtimeDir = path.dirname(lambdaPath);
+        // Find the directory containing our `index.js` file.
+        // In our case this is `node_modules/lambda-fn-runtime/dist`.
+        const runtimeDir = path.dirname(lambdaPath);
 
-    new lambda.Function(this, 'Resource', {
-      runtime: lambda.Runtime.NODEJS_14_X,
-      code: lambda.Code.fromAsset(runtimeDir),
-      handler: 'index.handler', // The `handler` function in `index.js`
-    });
-  }
+        new lambda.Function(this, 'Resource', {
+            runtime: lambda.Runtime.NODEJS_14_X,
+            code: lambda.Code.fromAsset(runtimeDir),
+            handler: 'index.handler', // The `handler` function in `index.js`
+        });
+    }
 }
 ```
 
@@ -214,32 +214,32 @@ Only a single Lambda function is created per custom resource, account and region
 
 ```typescript
 class CustomResource extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: CustomResourceProps) {
-    super(scope, id);
+    constructor(scope: cdk.Construct, id: string, props: CustomResourceProps) {
+        super(scope, id);
 
-    new cdk.CustomResource(this, 'Resource', {
-      resourceType: 'Custom::CustomResource',
-      serviceToken: this.lambdaFunction.functionArn,
-    });
-  }
-
-  private get lambdaFunction() {
-    const constructName = `CustomResourceLambda`;
-
-    const stack = cdk.Stack.of(this);
-    const existing = stack.node.tryFindChild(constructName);
-    if (existing) {
-      return existing as lambda.Function;
+        new cdk.CustomResource(this, 'Resource', {
+            resourceType: 'Custom::CustomResource',
+            serviceToken: this.lambdaFunction.functionArn,
+        });
     }
 
-    // The package '@aws-accelerator/custom-resources/cdk-custom-resource-runtime' contains the runtime code for the custom resource
-    const lambdaPath = require.resolve('@aws-accelerator/custom-resources/cdk-custom-resource-runtime');
-    const lambdaDir = path.dirname(lambdaPath);
+    private get lambdaFunction() {
+        const constructName = `CustomResourceLambda`;
 
-    return new lambda.Function(stack, constructName, {
-      code: lambda.Code.fromAsset(lambdaDir),
-    });
-  }
+        const stack = cdk.Stack.of(this);
+        const existing = stack.node.tryFindChild(constructName);
+        if (existing) {
+            return existing as lambda.Function;
+        }
+
+        // The package '@aws-accelerator/custom-resources/cdk-custom-resource-runtime' contains the runtime code for the custom resource
+        const lambdaPath = require.resolve('@aws-accelerator/custom-resources/cdk-custom-resource-runtime');
+        const lambdaDir = path.dirname(lambdaPath);
+
+        return new lambda.Function(stack, constructName, {
+            code: lambda.Code.fromAsset(lambdaDir),
+        });
+    }
 }
 ```
 
@@ -286,8 +286,8 @@ Another example is when we want to use `secretsmanager.Secret` and set the secre
 
 ```typescript
 function setSecretValue(secret: secrets.Secret, value: string) {
-  const cfnSecret = secret.node.defaultChild as secrets.CfnSecret; // Get the L1 resource that backs this L2 resource
-  cfnSecret.addPropertyOverride('SecretString', value); // Override the property `SecretString` on the L1 resource
-  cfnSecret.addPropertyDeletionOverride('GenerateSecretString'); // Delete the property `GenerateSecretString` from the L1 resource
+    const cfnSecret = secret.node.defaultChild as secrets.CfnSecret; // Get the L1 resource that backs this L2 resource
+    cfnSecret.addPropertyOverride('SecretString', value); // Override the property `SecretString` on the L1 resource
+    cfnSecret.addPropertyDeletionOverride('GenerateSecretString'); // Delete the property `GenerateSecretString` from the L1 resource
 }
 ```

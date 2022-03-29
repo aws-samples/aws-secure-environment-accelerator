@@ -18,23 +18,23 @@ The AWS Organization resides in the Organization Management (root) AWS account. 
 
 ```json
 {
-  "Role": {
-    "Path": "/",
-    "RoleName": "AWSCloudFormationStackSetExecutionRole",
-    "Arn": "arn:aws:iam::111111111111:role/AWSCloudFormationStackSetExecutionRole", // Child account.
-    "AssumeRolePolicyDocument": {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Effect": "Allow",
-          "Principal": {
-            "AWS": "arn:aws:iam::123456789012:root" // Organization Management (root) account may assume this role.
-          },
-          "Action": "sts:AssumeRole"
+    "Role": {
+        "Path": "/",
+        "RoleName": "AWSCloudFormationStackSetExecutionRole",
+        "Arn": "arn:aws:iam::111111111111:role/AWSCloudFormationStackSetExecutionRole", // Child account.
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "AWS": "arn:aws:iam::123456789012:root" // Organization Management (root) account may assume this role.
+                    },
+                    "Action": "sts:AssumeRole"
+                }
+            ]
         }
-      ]
     }
-  }
 }
 ```
 
@@ -52,8 +52,8 @@ Underneath the root of the Organization, Organizational Units (OUs) provide an o
 
 Example use cases are as follows:
 
-- An SCP is attached to the core OU to prevent the deletion of Transit Gateway resources in the associated accounts.
-- The shared network account uses RAM sharing to share the development line-of-business VPC with a development OU. This makes the VPC available to a functional account in that OU used by developers, despite residing logically in the shared network account.
+-   An SCP is attached to the core OU to prevent the deletion of Transit Gateway resources in the associated accounts.
+-   The shared network account uses RAM sharing to share the development line-of-business VPC with a development OU. This makes the VPC available to a functional account in that OU used by developers, despite residing logically in the shared network account.
 
 OUs may be nested (to a total depth of five), with SCPs and RAM sharing applied at the desired level. A typical _AWS Secure Environment Architecture_ environment will have the following OUs:
 

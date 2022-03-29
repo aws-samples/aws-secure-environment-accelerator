@@ -160,20 +160,20 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
 <details><summary>Sample DynamoDB JSON to add an entry to the `PBMMAccel-cidr-pool` table:</summary>
 
 ```json
-    {
-        "id": {
-            "S": "1"
-        },
-        "cidr": {
-            "S": "10.0.0.0/13"
-        },
-        "region": {
-            "S": "ca-central-1"
-        },
-        "pool": {
-            "S": "main"
-        }
+{
+    "id": {
+        "S": "1"
+    },
+    "cidr": {
+        "S": "10.0.0.0/13"
+    },
+    "region": {
+        "S": "ca-central-1"
+    },
+    "pool": {
+        "S": "main"
     }
+}
 ```
 
     - where `id` is any unique text, `cidr` is the main cidr block from which VPC cidrs are taken. `region` is the AWS region where the pool is used. `pool` is the name of the pool

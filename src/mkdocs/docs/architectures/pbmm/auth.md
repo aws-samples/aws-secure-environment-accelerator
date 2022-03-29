@@ -10,23 +10,23 @@ AWS accounts, as a default position, are entirely self-contained with respect to
 
 ```json
 {
-  "Role": {
-    "Path": "/",
-    "RoleName": "AWSCloudFormationStackSetExecutionRole",
-    "Arn": "arn:aws:iam::111111111111:role/AWSCloudFormationStackSetExecutionRole", // Child account.
-    "AssumeRolePolicyDocument": {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Effect": "Allow",
-          "Principal": {
-            "AWS": "arn:aws:iam::123456789012:root" // Organization Management (root) account may assume this role.
-          },
-          "Action": "sts:AssumeRole"
+    "Role": {
+        "Path": "/",
+        "RoleName": "AWSCloudFormationStackSetExecutionRole",
+        "Arn": "arn:aws:iam::111111111111:role/AWSCloudFormationStackSetExecutionRole", // Child account.
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "AWS": "arn:aws:iam::123456789012:root" // Organization Management (root) account may assume this role.
+                    },
+                    "Action": "sts:AssumeRole"
+                }
+            ]
         }
-      ]
     }
-  }
 }
 ```
 
@@ -56,10 +56,10 @@ Users, via their AD group membership, are ultimately assigned to SSO User Roles 
 
 An organization might decide to use **AWS Managed Policies for Job Functions** that are located within the SSO service as the baseline for role-based-access-control (RBAC) separation within an AWS account. This enables job function policies such as:
 
-- **Administrator** - This policy grants almost all actions for all AWS services and for all resources in the account.
-- **Developer Power User** - This user performs application development tasks and can create and configure resources and services that support AWS aware application development.
-- **Database Administrator** - This policy grants permissions to create, configure, and maintain databases. It includes access to AWS database services, such as Amazon DynamoDB, Amazon Relational Database Service (RDS), and Amazon Redshift.
-- **View-Only User** - This policy grants `List*`, `Describe*`, `Get*`, `View*`, and `Lookup*` access to resources for most AWS services.
+-   **Administrator** - This policy grants almost all actions for all AWS services and for all resources in the account.
+-   **Developer Power User** - This user performs application development tasks and can create and configure resources and services that support AWS aware application development.
+-   **Database Administrator** - This policy grants permissions to create, configure, and maintain databases. It includes access to AWS database services, such as Amazon DynamoDB, Amazon Relational Database Service (RDS), and Amazon Redshift.
+-   **View-Only User** - This policy grants `List*`, `Describe*`, `Get*`, `View*`, and `Lookup*` access to resources for most AWS services.
 
 ### Principal Authorization
 

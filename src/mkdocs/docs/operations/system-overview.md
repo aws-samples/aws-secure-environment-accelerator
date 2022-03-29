@@ -6,8 +6,8 @@ The system can be thought of in two levels. The first level of the system consis
 
 There are two Accelerator-management stacks:
 
-- the `Installer` stack that is responsible for creating the next listed stack;
-- the `Initial Setup` stack. This stack is responsible for reading configuration file and creating Accelerator-managed resources in the relevant accounts.
+-   the `Installer` stack that is responsible for creating the next listed stack;
+-   the `Initial Setup` stack. This stack is responsible for reading configuration file and creating Accelerator-managed resources in the relevant accounts.
 
 There are multiple Accelerator-managed stacks. Currently there are as many as twelve Accelerator-managed stacks per managed account.
 
@@ -23,11 +23,11 @@ The Accelerator-management `Installer` stack contains the necessary resources to
 
 The Installer stack consists of the following resources:
 
-- `ASEA-InstallerPipeline`: this is a `AWS::CodePipeline::Pipeline` that pulls the latest Accelerator code from GitHub. It launches the CodeBuild project `ASEA-InstallerProject_pl`, executes the `ASEA-Installer-SaveApplicationVersion` Lambda and launches the Accelerator state machine.
-- `ASEA-InstallerProject_pl`: this is a `AWS::CodeBuild::Project` that installs the Accelerator in AWS account.
-- `ASEA-Installer-SaveApplicationVersion`: this is a `AWS::Lambda::Function` that stores the current Accelerator version into Parameter Store.
-- `ASEA-Installer-StartExecution`: this is a `AWS::Lambda::Function` that launches the Accelerator after CodeBuild deploys the Accelerator.
-- Creation of AWS::DynamoDB::Table - `ASEA-Parameters` and `ASEA-Outputs` which are used for the internal operation of the Accelerator. `ASEA-Outputs` is used to share CloudFormation stack outputs between regions, stacks and phases. `ASEA-Parameters` is used to various configuration items like managed accounts, organizations structure, and limits.
+-   `ASEA-InstallerPipeline`: this is a `AWS::CodePipeline::Pipeline` that pulls the latest Accelerator code from GitHub. It launches the CodeBuild project `ASEA-InstallerProject_pl`, executes the `ASEA-Installer-SaveApplicationVersion` Lambda and launches the Accelerator state machine.
+-   `ASEA-InstallerProject_pl`: this is a `AWS::CodeBuild::Project` that installs the Accelerator in AWS account.
+-   `ASEA-Installer-SaveApplicationVersion`: this is a `AWS::Lambda::Function` that stores the current Accelerator version into Parameter Store.
+-   `ASEA-Installer-StartExecution`: this is a `AWS::Lambda::Function` that launches the Accelerator after CodeBuild deploys the Accelerator.
+-   Creation of AWS::DynamoDB::Table - `ASEA-Parameters` and `ASEA-Outputs` which are used for the internal operation of the Accelerator. `ASEA-Outputs` is used to share CloudFormation stack outputs between regions, stacks and phases. `ASEA-Parameters` is used to various configuration items like managed accounts, organizations structure, and limits.
 
 ![Installer Diagram](img/installer.png)
 
@@ -49,11 +49,11 @@ This diagram depicts the Accelerator Installer CodePipeline as of v1.2.1:
 
 Once the Code Pipeline completes successfully:
 
-- the Accelerator codebase was pulled from GitHub
-- the Accelerator codebase was deployed/installed in the Organization Management (root) AWS account
-- parameter store `/accelerator/version` was updated with the new version information
-    - this provides a full history of all Accelerator versions and upgrades
-- the newly installed Accelerator state machine is started
+-   the Accelerator codebase was pulled from GitHub
+-   the Accelerator codebase was deployed/installed in the Organization Management (root) AWS account
+-   parameter store `/accelerator/version` was updated with the new version information
+    -   this provides a full history of all Accelerator versions and upgrades
+-   the newly installed Accelerator state machine is started
 
 At this time the resources deployed by the Installer Stack are no longer required. The Installer stack **could** be removed (which would remove the Code Pipeline) with no impact on Accelerator functionality.
 
@@ -83,25 +83,25 @@ The state machine contains three different types of steps:
 
 The stack additionally consists of the following resources:
 
-- AWS::CodeBuild::Project
-    - `ASEA-Deploy` or `ASEA-DeployPrebuilt`
-- AWS::CodeCommit::Repository
-    - `ASEA-Config-Repo`
-- AWS::IAM::Role
-    - `ASEA-L-SFN-MasterRole`
-    - `ASEA-L-SFN-Execution`
-- AWS::Lambda::Function
-    - A Lambda function for every Lambda function step in the state machine.
-- AWS::StepFunctions::StateMachine
-    - `ASEA-ALZCreateAccount_sm`: See [_Create Landing Zone Account_](#create-landing-zone-account);
-    - `ASEA-OrgCreateAccount_sm`: See [_Create Organization Account_](#create-organization-account);
-    - `ASEA-InstallCfnRoleMaster_sm`: See [Install CloudFormation Execution Role](#install-cloudformation-role-in-root);
-    - `ASEA-InstallRoles_sm`: See [_Install Execution Roles_](#install-execution-roles);
-    - `ASEA-DeleteDefaultVpcs_sfn`: See [_Delete Default VPCs_](#delete-default-vpcs);
-    - `ASEA-CodeBuild_sm`: See [_Deploy Phase 0_](#deploy-phase-0);
-    - `ASEA-CreateConfigRecorder_sfn`: See [_Create Config Recorders_]();
-    - `ASEA-CreateAdConnector_sm`: See [_Create AD Connector_](#create-ad-connector);
-    - `ASEA-StoreOutputs_sm`: See [_Share Outputs_]() - new in v1.2.1.
+-   AWS::CodeBuild::Project
+    -   `ASEA-Deploy` or `ASEA-DeployPrebuilt`
+-   AWS::CodeCommit::Repository
+    -   `ASEA-Config-Repo`
+-   AWS::IAM::Role
+    -   `ASEA-L-SFN-MasterRole`
+    -   `ASEA-L-SFN-Execution`
+-   AWS::Lambda::Function
+    -   A Lambda function for every Lambda function step in the state machine.
+-   AWS::StepFunctions::StateMachine
+    -   `ASEA-ALZCreateAccount_sm`: See [_Create Landing Zone Account_](#create-landing-zone-account);
+    -   `ASEA-OrgCreateAccount_sm`: See [_Create Organization Account_](#create-organization-account);
+    -   `ASEA-InstallCfnRoleMaster_sm`: See [Install CloudFormation Execution Role](#install-cloudformation-role-in-root);
+    -   `ASEA-InstallRoles_sm`: See [_Install Execution Roles_](#install-execution-roles);
+    -   `ASEA-DeleteDefaultVpcs_sfn`: See [_Delete Default VPCs_](#delete-default-vpcs);
+    -   `ASEA-CodeBuild_sm`: See [_Deploy Phase 0_](#deploy-phase-0);
+    -   `ASEA-CreateConfigRecorder_sfn`: See [_Create Config Recorders_]();
+    -   `ASEA-CreateAdConnector_sm`: See [_Create AD Connector_](#create-ad-connector);
+    -   `ASEA-StoreOutputs_sm`: See [_Share Outputs_]() - new in v1.2.1.
 
 _Note: Most resources have a random suffix to their name. This is because we use CDK to deploy the resources. See [https://docs.aws.amazon.com/cdk/latest/guide/identifiers.html#identifiers_logical_ids]()_
 
@@ -123,21 +123,21 @@ This step calls a Lambda function that compares the previous version of the conf
 
 The following configuration file changes are not allowed:
 
-- changing ALZ baseline;
-- changing root account or region;
-- changing central log services account or region;
-- changing the organizational unit, name or email address of an account;
-- removing an account;
-- changing the name, CIDR or region of a VPC;
-- disabling a VPC;
-- changing the name, availability zone, CIDR of a subnet;
-- disabling or removing a subnet;
-- changing the name, ASN, region or features of a transit gateway;
-- changing the ID, VPC, subnet, region, size, DNS, Netbios of a Managed Active Directory;
-- disabling a Managed Active Directory;
-- changing the ASN of a virtual private gateway;
-- changing the sharing to accounts of a VPC;
-- changing the NACLs of a subnet.
+-   changing ALZ baseline;
+-   changing root account or region;
+-   changing central log services account or region;
+-   changing the organizational unit, name or email address of an account;
+-   removing an account;
+-   changing the name, CIDR or region of a VPC;
+-   disabling a VPC;
+-   changing the name, availability zone, CIDR of a subnet;
+-   disabling or removing a subnet;
+-   changing the name, ASN, region or features of a transit gateway;
+-   changing the ID, VPC, subnet, region, size, DNS, Netbios of a Managed Active Directory;
+-   disabling a Managed Active Directory;
+-   changing the ASN of a virtual private gateway;
+-   changing the sharing to accounts of a VPC;
+-   changing the NACLs of a subnet.
 
 It is possible to ignore certain configuration file changes. See [Restart the State Machine](#restart-the-state-machine) how to pass these options to the state machine.
 
@@ -149,14 +149,14 @@ This step calls a Lambda function that validates the ALZ deployment and configur
 
 This step fails when
 
-- an existing ALZ deployment in the root account can not be found;
-- an organizational unit that is used by ALZ or the Accelerator can not be found;
-- an account is present in the Accelerator configuration but does not exist in AWS Organizations;
-- an account has a name, email address or organizational unit that is different from the ALZ configuration;
-- an account has a name, email address or organizational unit that is different from the Accelerator configuration;
-- the organizational units in the ALZ configuration are different from the ones in AWS Organizations;
-- the account type of ALZ configuration accounts can not be detected;
-- the accounts of type `primary`', `security`, `log-archive`, `shared-services` are missing from the ALZ configuration.
+-   an existing ALZ deployment in the root account can not be found;
+-   an organizational unit that is used by ALZ or the Accelerator can not be found;
+-   an account is present in the Accelerator configuration but does not exist in AWS Organizations;
+-   an account has a name, email address or organizational unit that is different from the ALZ configuration;
+-   an account has a name, email address or organizational unit that is different from the Accelerator configuration;
+-   the organizational units in the ALZ configuration are different from the ones in AWS Organizations;
+-   the account type of ALZ configuration accounts can not be detected;
+-   the accounts of type `primary`', `security`, `log-archive`, `shared-services` are missing from the ALZ configuration.
 
 ### Add Execution Role to Service Catalog
 
@@ -184,11 +184,11 @@ This step calls a Lambda function that validates the Accelerator deployment and 
 
 This step fails when
 
-- an organizational unit that is used by the Accelerator can not be found;
-- an account is present in the Accelerator configuration but does not exist in AWS Organizations;
-- an account has a name, email address or organizational unit that is different from the Accelerator configuration.
-- **returns accounts that have not been created**
-- duplicates some validation functionality
+-   an organizational unit that is used by the Accelerator can not be found;
+-   an account is present in the Accelerator configuration but does not exist in AWS Organizations;
+-   an account has a name, email address or organizational unit that is different from the Accelerator configuration.
+-   **returns accounts that have not been created**
+-   duplicates some validation functionality
 
 ### Install CloudFormation Role in root
 
@@ -230,12 +230,12 @@ This step calls a Lambda function that loads service quotas and requests a servi
 
 This step calls a Lambda function that is responsible for
 
-- enabling AWS service access in the organization;
-- enabling AWS Resource Access Manager sharing in the organization;
-- creating a service-linked role for AWS IAM Access Analyzer;
-- setting the security account as delegated administrator for AWS Firewall Manager;
-- setting the security account as delegated administrator for AWS IAM Access Analyzer;
-- setting the security account as delegated administrator for Amazon GuardDuty.
+-   enabling AWS service access in the organization;
+-   enabling AWS Resource Access Manager sharing in the organization;
+-   creating a service-linked role for AWS IAM Access Analyzer;
+-   setting the security account as delegated administrator for AWS Firewall Manager;
+-   setting the security account as delegated administrator for AWS IAM Access Analyzer;
+-   setting the security account as delegated administrator for Amazon GuardDuty.
 
 ### Store All Phase Outputs
 
@@ -243,18 +243,18 @@ This step only executes on the first run of the state machine after it has been 
 
 ### Deploy Phase -1 (Negative one)
 
-- The following resources are deployed in phase -1:
-    - Creating required roles for macie custom resources
-    - Creating required roles for guardDuty custom resources
-    - Creating required roles for securityHub custom resources
-    - Creating required roles for IamCreateRole custom resource
-    - Creating required roles for createSSMDocument custom resource
-    - Creating required roles for createLogGroup custom resource
-    - Creating required roles for CWLCentralLoggingSubscriptionFilterRole custom resource
-    - Creating required roles for TransitGatewayCreatePeeringAttachment custom resource
-    - Creating required roles for TransitGatewayAcceptPeeringAttachment custom resource
-    - Creating required roles for createLogsMetricFilter custom resource
-    - Creating required roles for SnsSubscriberLambda custom resource
+-   The following resources are deployed in phase -1:
+    -   Creating required roles for macie custom resources
+    -   Creating required roles for guardDuty custom resources
+    -   Creating required roles for securityHub custom resources
+    -   Creating required roles for IamCreateRole custom resource
+    -   Creating required roles for createSSMDocument custom resource
+    -   Creating required roles for createLogGroup custom resource
+    -   Creating required roles for CWLCentralLoggingSubscriptionFilterRole custom resource
+    -   Creating required roles for TransitGatewayCreatePeeringAttachment custom resource
+    -   Creating required roles for TransitGatewayAcceptPeeringAttachment custom resource
+    -   Creating required roles for createLogsMetricFilter custom resource
+    -   Creating required roles for SnsSubscriberLambda custom resource
 
 ### Store Phase -1 Output
 
@@ -272,28 +272,28 @@ The same CodeBuild project is used to deploy all phases. The environment variabl
 
 The following resources are deployed in phase 0:
 
-- create default EBS encryption key;
-- create an AWS log bucket with encryption key;
-- create the central log services bucket with encryption key;
-- create the Accelerator configuration bucket with encryption key;
-- copy artifacts to the Accelerator configuration bucket:
-    - SCPs;
-    - firewall configuration;
-- account warming (step 1);
-- set password policy (step 1);
-- create IAM users (step 1):
-    - create passwords and store in Secrets Manager;
-- create MAD deployment (step 1):
-    - create passwords and store in Secrets Manager;
-    - create service-linked role;
-- create `rsyslog` deployment (step 1);
-- create firewalls (step 1);
-- create budgets (step 1);
-- create transit gateways (step 1);
-- create Route53 DNS logging log group;
-- enable Macie (step 1);
-- enable GuardDuty;
-- enable Access Analyzer;
+-   create default EBS encryption key;
+-   create an AWS log bucket with encryption key;
+-   create the central log services bucket with encryption key;
+-   create the Accelerator configuration bucket with encryption key;
+-   copy artifacts to the Accelerator configuration bucket:
+    -   SCPs;
+    -   firewall configuration;
+-   account warming (step 1);
+-   set password policy (step 1);
+-   create IAM users (step 1):
+    -   create passwords and store in Secrets Manager;
+-   create MAD deployment (step 1):
+    -   create passwords and store in Secrets Manager;
+    -   create service-linked role;
+-   create `rsyslog` deployment (step 1);
+-   create firewalls (step 1);
+-   create budgets (step 1);
+-   create transit gateways (step 1);
+-   create Route53 DNS logging log group;
+-   enable Macie (step 1);
+-   enable GuardDuty;
+-   enable Access Analyzer;
 
 ### Store Phase 0 Output
 
@@ -323,36 +323,36 @@ This step calls a Lambda function that creates and attaches the SCPs listed in t
 
 This step fails when
 
-- an SCP policy cannot be found in the Accelerator configuration bucket;
-- an SCP could not be attached to an organizational unit or account, e.g. when the maximum number of attached SCPs is exceeded
+-   an SCP policy cannot be found in the Accelerator configuration bucket;
+-   an SCP could not be attached to an organizational unit or account, e.g. when the maximum number of attached SCPs is exceeded
 
 ### Deploy Phase 1
 
-- Create S3 Bucket in all accounts and replicate to Log Account Bucket
-- Deploy VPC:
-    - Vpc
-    - Subnets
-    - Subnet sharing (RAM)
-    - Route tables
-    - Internet gateways
-    - NAT gateways
-    - Interface endpoints
-    - Gateway endpoints
-    - Transit Gateway Attachments
-    - IAM Role required for VPC Peering Auto accept
-- Firewall images subscription check
-- Creates the customer gateways for the EIPs of the firewall
-- Create IAM Roles, Users in account based on configuration
-- Creates the additional budgets for the account stacks.
-- Import Certificates
-- Setup SSMSessionManagerDocument
-- Create Cost and Usage reports
-- Enable Macie in root Account
-- GuardDuty setup in Security Account
-- Setup CWL Central Logging
-- Create Roles required for Flow Logs
-- Transit Gateway Peering
-- Create LogGroup required for DNS Logging
+-   Create S3 Bucket in all accounts and replicate to Log Account Bucket
+-   Deploy VPC:
+    -   Vpc
+    -   Subnets
+    -   Subnet sharing (RAM)
+    -   Route tables
+    -   Internet gateways
+    -   NAT gateways
+    -   Interface endpoints
+    -   Gateway endpoints
+    -   Transit Gateway Attachments
+    -   IAM Role required for VPC Peering Auto accept
+-   Firewall images subscription check
+-   Creates the customer gateways for the EIPs of the firewall
+-   Create IAM Roles, Users in account based on configuration
+-   Creates the additional budgets for the account stacks.
+-   Import Certificates
+-   Setup SSMSessionManagerDocument
+-   Create Cost and Usage reports
+-   Enable Macie in root Account
+-   GuardDuty setup in Security Account
+-   Setup CWL Central Logging
+-   Create Roles required for Flow Logs
+-   Transit Gateway Peering
+-   Create LogGroup required for DNS Logging
 
 ### Store Phase 1 Output
 
@@ -362,28 +362,28 @@ See [_Deploy Phase 0_](#deploy-phase-0).
 
 This step calls a Lambda function that
 
-- enables and sets EBS default encryption for all accounts in the Accelerator configuration;
-- enables S3 object level ALZ Cloudtrail logging;
-- enables Log Insight events;
-- enables KMS encryption using the CMK from the central logging account;
-- sets AWS Systems Manager Session Manager default configuration in every Accelerator-managed account in every region with a VPC.
+-   enables and sets EBS default encryption for all accounts in the Accelerator configuration;
+-   enables S3 object level ALZ Cloudtrail logging;
+-   enables Log Insight events;
+-   enables KMS encryption using the CMK from the central logging account;
+-   sets AWS Systems Manager Session Manager default configuration in every Accelerator-managed account in every region with a VPC.
 
 ### Deploy Phase 2
 
-- Create CloudTrail in root account
-- Create VPC Peering Connection
-- Create Security Groups for shared VPC in sub accounts
-- Setup Security Hub in Security Account
-- Setup Cross Account CloudWatch logs sharing by creating roles in sub accounts
-- Enable VPC FlowLogs
-- Create Active Directory (MAD)
-- Create Firewall clusters
-- Create Firewall Management instance
-- Create Transit Gateway Routes, Association and Propagation
-- Enable Macie in Security account and Create Members, Update Config
-- GuardDuty - Add existing Org accounts as members and allow new accounts to be members and Publish
-- Create SNS Topics in Log Account
-- TGW Peering Attachments
+-   Create CloudTrail in root account
+-   Create VPC Peering Connection
+-   Create Security Groups for shared VPC in sub accounts
+-   Setup Security Hub in Security Account
+-   Setup Cross Account CloudWatch logs sharing by creating roles in sub accounts
+-   Enable VPC FlowLogs
+-   Create Active Directory (MAD)
+-   Create Firewall clusters
+-   Create Firewall Management instance
+-   Create Transit Gateway Routes, Association and Propagation
+-   Enable Macie in Security account and Create Members, Update Config
+-   GuardDuty - Add existing Org accounts as members and allow new accounts to be members and Publish
+-   Create SNS Topics in Log Account
+-   TGW Peering Attachments
 
 ### Store Phase 2 Output
 
@@ -391,13 +391,13 @@ See [_Deploy Phase 0_](#deploy-phase-0).
 
 ### Deploy Phase 3
 
-- create peering connection routes;
-- create ALB (step 1);
-- create `rsyslog` deployment (step 2);
-- create hosted zones, resolver rules and resolver endpoints and Share;
-- Enable Security Hub and Invite Sub accounts as members;
-- TransitGateway Peering attachment and routes;
-- Macie update Session;
+-   create peering connection routes;
+-   create ALB (step 1);
+-   create `rsyslog` deployment (step 2);
+-   create hosted zones, resolver rules and resolver endpoints and Share;
+-   Enable Security Hub and Invite Sub accounts as members;
+-   TransitGateway Peering attachment and routes;
+-   Macie update Session;
 
 ### Store Phase 3 Output
 
@@ -405,10 +405,10 @@ See [_Deploy Phase 0_](#deploy-phase-0).
 
 ### Deploy Phase 4
 
-- SecurityHub Disable Controls
-- Creates CloudWatch Metrics on LogGroups
-- Associate Shared Resolver Rules to VPC
-- Associate Hosted Zones to VPC
+-   SecurityHub Disable Controls
+-   Creates CloudWatch Metrics on LogGroups
+-   Associate Shared Resolver Rules to VPC
+-   Associate Hosted Zones to VPC
 
 ### Store Phase 4 Output
 
@@ -424,10 +424,10 @@ This step calls a Lambda function that adds tags to shared resources in the shar
 
 The supported resources are
 
-- VPCs;
-- subnets;
-- security groups;
-- transit gateway attachments.
+-   VPCs;
+-   subnets;
+-   security groups;
+-   transit gateway attachments.
 
 ### Enable Directory Sharing
 
@@ -435,12 +435,12 @@ This step calls a Lambda function that shares Managed Active Directory according
 
 ### Deploy Phase 5
 
-- create Remote Desktop Gateway;
-    - create launch configuration;
-    - create autoscaling group;
-- enable central logging to S3 (step 2);
-- Create CloudWatch Events for moveAccount, policyChanges and createAccount
-- Creates CloudWatch Alarms
+-   create Remote Desktop Gateway;
+    -   create launch configuration;
+    -   create autoscaling group;
+-   enable central logging to S3 (step 2);
+-   Create CloudWatch Events for moveAccount, policyChanges and createAccount
+-   Creates CloudWatch Alarms
 
 ### Create AD Connector
 

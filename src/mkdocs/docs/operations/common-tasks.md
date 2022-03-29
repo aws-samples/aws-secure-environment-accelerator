@@ -6,9 +6,9 @@ The state machine can be stopped and restarted at any time. The Accelerator has 
 
 The state machine will execute:
 
-- automatically after each execution of the Code Pipeline (new installs, code upgrades, or manual pipeline executions)
-- automatically when new AWS accounts are moved into any Accelerator controller OU in AWS Organizations
-- when someone manual starts it: `Step Functions`, `ASEA-MainStateMachine_sm`, `Start Execution`, `Start Execution` (leave default values in name and json box)
+-   automatically after each execution of the Code Pipeline (new installs, code upgrades, or manual pipeline executions)
+-   automatically when new AWS accounts are moved into any Accelerator controller OU in AWS Organizations
+-   when someone manual starts it: `Step Functions`, `ASEA-MainStateMachine_sm`, `Start Execution`, `Start Execution` (leave default values in name and json box)
 
 The state machine prevents users from accidentally performing certain major breaking changes, specifically unsupported AWS platform changes, changes that will fail to deploy, or changes that could be catastrophic to users. If someone knows exactly what they are doing and the full implications of these changes, we provide the option to override these checks. Customers should expect that items we have blocked CANNOT be changed after the Accelerator installation.
 
@@ -18,39 +18,39 @@ Providing this parameter to the state machine overrides _all_ checks:
 
 ```json
 {
-   "overrideComparison": true
+    "overrideComparison": true
 }
 ```
 
 Providing any one or more of the following flags will only override the specified check(s):
 
 ```json
- {
-   "configOverrides": {
-     'ov-global-options': true,
-     'ov-del-accts': true,
-     'ov-ren-accts': true,
-     'ov-acct-email': true,
-     'ov-acct-ou': true,
-     'ov-acct-vpc': true,
-     'ov-acct-subnet': true,
-     'ov-tgw': true,
-     'ov-mad': true,
-     'ov-ou-vpc': true,
-     'ov-ou-subnet': true,
-     'ov-share-to-ou': true,
-     'ov-share-to-accounts': true,
-     'ov-nacl': true,
-     'ov-nfw': true
- }
- }
+{
+    "configOverrides": {
+        "ov-global-options": true,
+        "ov-del-accts": true,
+        "ov-ren-accts": true,
+        "ov-acct-email": true,
+        "ov-acct-ou": true,
+        "ov-acct-vpc": true,
+        "ov-acct-subnet": true,
+        "ov-tgw": true,
+        "ov-mad": true,
+        "ov-ou-vpc": true,
+        "ov-ou-subnet": true,
+        "ov-share-to-ou": true,
+        "ov-share-to-accounts": true,
+        "ov-nacl": true,
+        "ov-nfw": true
+    }
+}
 ```
 
 Providing this value allows for the forced rebuilding of the DynamoDB Outputs table:
 
 ```json
 {
-  "storeAllOutputs": true
+    "storeAllOutputs": true
 }
 ```
 

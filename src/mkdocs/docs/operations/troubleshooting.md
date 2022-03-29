@@ -116,7 +116,7 @@ fields @timestamp, @message
 
 ### CodePipeline
 
-- "Internal Failure" incorrect Github token, repo or branch
+-   "Internal Failure" incorrect Github token, repo or branch
 
 ## Examples
 
