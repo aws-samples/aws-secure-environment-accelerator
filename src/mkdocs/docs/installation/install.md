@@ -424,10 +424,10 @@ The Accelerator installation is complete, but several manual steps remain:
         - Next, for each application that needs to be published, a record needs to be added to the DynamoDB table, see sample below;
         - Records can be added to the table for any ALB in the account running the alb-forwarding tool. Records can be added at any time. DDB change logs will trigger the initial creation of the appropriate target group(s) and IP addresses will be verified and updated every 60 seconds thereafter.
 
-<details><summary>Sample DynamoDB JSON to add an entry to the table:</summary>
+    <details><summary>Sample DynamoDB JSON to add an entry to the table:</summary>
 
-```json
-{
+    ```json
+    {
     "id": "App1",
     "targetAlbDnsName": "internal-Core-mydevacct1-alb-123456789.ca-central-1.elb.amazonaws.com",
     "targetGroupDestinationPort": 443,
@@ -441,14 +441,14 @@ The Accelerator installation is complete, but several manual steps remain:
             "priority": 30
         }
     }
-}
-```
+    }
+    ```
 
-    -   where `id` is any unique text, `targetAlbDnsName` is the DNS address for the backend ALB for this application (found in parameter store), `vpcId` is the vpc ID containing the front-end ALB (in this account), `sourceListenerArn` is the arn of the listener of the front-end ALB, `paths` and `hosts` are both optional, but one of the two must be supplied. Finally, `priority` must be unique and is used to order the listener rules. Priorities should be spaced at least 40 apart to allow for easy insertion of new applications and forwarder rules.
+        -   where `id` is any unique text, `targetAlbDnsName` is the DNS address for the backend ALB for this application (found in parameter store), `vpcId` is the vpc ID containing the front-end ALB (in this account), `sourceListenerArn` is the arn of the listener of the front-end ALB, `paths` and `hosts` are both optional, but one of the two must be supplied. Finally, `priority` must be unique and is used to order the listener rules. Priorities should be spaced at least 40 apart to allow for easy insertion of new applications and forwarder rules.
 
-    -   the provided `targetAlbDnsName` must resolve to addresses within a [supported](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html) IP address space.
+        -   the provided `targetAlbDnsName` must resolve to addresses within a [supported](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html) IP address space.
 
-</details>
+    </details>
 
 3. On a per role basis, you need to enable the CWL Account Selector in the Security and the Operations accounts, in each account:
 
