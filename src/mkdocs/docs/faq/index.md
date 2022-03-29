@@ -289,7 +289,7 @@
 
     You need to ensure that resources don’t exist in the default VPC or else the state machine won't be able to delete it. If you encounter this error, you can either delete the resources within the VPC or delete the default VPC manually and run the state machine again.
 
-## 1.2. Existing Accounts/Organizations
+## 1.2. Existing Accounts / Organizations
 
 ??? faq "1.2.1. How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?"
 
