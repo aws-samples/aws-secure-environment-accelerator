@@ -113,7 +113,7 @@ plugins:
       #two_columns_level: 3
       #render_js: true
       #headless_chrome_path: "chrome"
-      #output_path: ../accelerator-docs.pdf
+      output_path: ../accelerator-docs.pdf
       #debug_html: true
       #verbose: true
       #show_anchors: true
