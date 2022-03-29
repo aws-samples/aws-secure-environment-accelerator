@@ -141,7 +141,16 @@ Before installing, you must first:
     - OU and account names can ONLY be customized during initial installation. These values MUST match with the values supplied in the Accelerator config file.
         1. Go to the AWS Control Tower console and click `Set up landing zone`
         2. Select your `home` region (i.e. `ca-central-1`) - the Accelerator home region must match the Control Tower home region
-        3. Select _all_ regions for `Additional AWS Regions for governance`, click `Next` - The Control Tower and Accelerator regions MUST be properly aligned - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions` - To manage a region requires the region: - be enabled in Control Tower (if supported) - added to the config file `control-tower-supported-regions` list (if supported) - added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`) - While we highly recommend guardrail deployment for all AWS enabled by default regions, at minimum - the home region MUST be enabled in Control Tower and must be listed in `control-tower-supported-regions` - both the home-region and ${GBL\*REGION} must be listed in `supported-regions`
+        3. Select _all_ regions for `Additional AWS Regions for governance`, click `Next`
+            - The Control Tower and Accelerator regions MUST be properly aligned
+            - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions`
+            - To manage a region requires the region:
+                - be enabled in Control Tower (if supported)
+                - added to the config file `control-tower-supported-regions` list (if supported)
+                - added to the config file `supported-regions` list (even if not supported by Control Tower, as the Accelerator can manage regions not yet supported by Control Tower, but only when NOT listed in `control-tower-supported-regions`)
+                - While we highly recommend guardrail deployment for all AWS enabled by default regions, at minimum
+                    - the home region MUST be enabled in Control Tower and must be listed in `control-tower-supported-regions`
+                    - both the home-region and ${GBL\*REGION} must be listed in `supported-regions`
         4. For the `Foundational OU`, leave the default value `Security`
         5. For the `Additional OU` provide the value `Infrastructure`, click `Next`
         6. Enter the email addresses for your `Log Archive` and `Audit` accounts, change the `Audit` account name to `Security`, click `Next` - OU and account names can ONLY be customized during initial installation. OU names, account names and email addresses \_must\* match identically with the values supplied in the Accelerator config file.
@@ -196,7 +205,7 @@ As of v1.5.0, the Accelerator offers deployment from either GitHub or CodeCommit
 
 **CodeCommit** (alternative option)
 
--   Multiple options exist for downloading the GitHub Accelerator codebase and pushing it into CodeCommit. As this option is only for advanced users, detailed instructions are not provided.
+Multiple options exist for downloading the GitHub Accelerator codebase and pushing it into CodeCommit. As this option is only for advanced users, detailed instructions are not provided.
 
 1. In your AWS Organization Management account, open CodeCommit and create a new repository named `aws-secure-environment-accelerator`
 2. Go to GitHub and download the repository `Source code` zip or tarball for the [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) you wish to deploy
@@ -332,6 +341,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - Once the error is resolved, re-run the step function `ASEA-MainStateMachine_sm` using `{"scope": "FULL","mode": "APPLY"}` as input
 
 16. If deploying a prescriptive architecture with 3rd party firewalls, after the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
+
     1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the main state machine (`ASEA-MainStateMachine_sm`) to deploy the firewall (no SM input parameters required)
     2. Login to the **perimeter** sub-account (Assume your `organization-admin-role`)
     3. Activate the 3rd party vendor firewall and firewall manager AMI's in the AWS Marketplace
@@ -341,11 +351,11 @@ If deploying to an internal AWS employee account and installing the solution wit
         - Subscribe and Accept the Terms for each product (firewall and firewall manager)
         - When complete, you should see the marketplace products as subscriptions **in the Perimeter account**:
 
-![marketplace](img/marketplace.png)
+    ![marketplace](img/marketplace.png)
 
 17. If deploying the prescriptive architecture, once the main state machine (`ASEA-MainStateMachine_sm`) completes successfully, confirm the status of your perimeter firewall deployment
-    -   If you have t2.micro ec2 instances running in any account which had the account-warming flag set to true, they will be removed on the next state machine execution;
-    -   If your perimeter firewalls were defined but not deployed on first run, you will need to rerun the state machine. This happens when:
+    - If you have t2.micro ec2 instances running in any account which had the account-warming flag set to true, they will be removed on the next state machine execution;
+    - If your perimeter firewalls were defined but not deployed on first run, you will need to rerun the state machine. This happens when:
         1. you were unable to activate the firewall AMI's before stage 2 (step 16)
         2. we were not able to fully activate your account before we were ready to deploy your firewalls. This case can be identified by a running EC2 micro instance in the account, or by looking for the following log entry 'Minimum 15 minutes of account warming required for account'.
         3. In these cases, simply select the `ASEA-MainStateMachine_sm` in Step Functions and select `Start Execution` (no SM input parameters required)
@@ -372,37 +382,37 @@ The Accelerator installation is complete, but several manual steps remain:
 
 1. Enable and configure AWS SSO in your `home` region (i.e. ca-central-1)
 
--   Login to the AWS Console using your Organization Management account
--   Navigate to AWS Single Sign-On, click `Enable SSO`
--   Set the SSO directory to AD ("Settings" => "Identity Source" => "Identity Source" => click `Change`, Select Active Directory, and select your domain from the list)
--   Under "Identity Source" section, Click `Edit` beside "Attribute mappings", then set the `email` attribute to: `${dir:email}` and click `Save Changes`
--   Configure Multi-factor authentication, we recommend the following minimum settings:
-    -   Every time they sign in (always-on)
-    -   Security key and built-in authenticators
-    -   Authenticator apps
-    -   Require them to provide a one-time password sent by email to sign in
-    -   Users can add and manage their own MFA devices
--   Create all the default permission sets and any desired custom permission sets
-    -   e.g. Select `AWS accounts` from the side bar, select "Permission sets" tab then `Create permission set`
-        -   `Use an existing job function policy` => Next
-        -   Select job function policy `AdministratorAccess`
-        -   Add Tags, Review and Create
-        -   repeat for each default permission set and any required custom permission sets
--   For Control Tower based installations, remove the orphaned Permission Sets from each AWS accounts (select the account, expand Permission Sets, click Remove for each)
--   Map MAD groups to permission sets and accounts
-    -   Select `AWS accounts` from the side bar and select `AWS organization` tab
-    -   Select the accounts you want to map to each MAD group and click `Assign users`
-    -   Select your DNS domain e.g. `example.local`, and search for the group you would like to assign (e.g. `aws-` for the pre-created groups) and click `Search connected directory`
-    -   Select the desired group `aws-log-archive-View`
-    -   Select the permission set you would like to assign to the MAD group to (e.g. `ViewOnlyAccess`)
-    -   Click `Finish` (Note: if it fails during provisioning, simply select the failed accounts and click on "Retry changes")
--   AWS SSO should be the primary mechanism for all access to all AWS accounts in your Organization, to determine or update the login page for your organization:
-    -   Click on `Dashboard` within the AWS SSO console and note the `User portal URL`
-    -   Share this url with all your users
-    -   NOTE: the url prefix can only be changed ONCE (ever) using the settings tab, so update with caution
--   Any pre-created AWS MAD users passwords are available in secrets manager in the AWS management account. To reset these passwords login to the Operations account through AWS SSO, then:
-    -   Navigate to "Directory Service" , select the directory => Actions => Reset user password
-    -   Users can change their passwords from any MAD domain connected instance
+    - Login to the AWS Console using your Organization Management account
+    - Navigate to AWS Single Sign-On, click `Enable SSO`
+    - Set the SSO directory to AD ("Settings" => "Identity Source" => "Identity Source" => click `Change`, Select Active Directory, and select your domain from the list)
+    - Under "Identity Source" section, Click `Edit` beside "Attribute mappings", then set the `email` attribute to: `${dir:email}` and click `Save Changes`
+    - Configure Multi-factor authentication, we recommend the following minimum settings:
+        - Every time they sign in (always-on)
+        - Security key and built-in authenticators
+        - Authenticator apps
+        - Require them to provide a one-time password sent by email to sign in
+        - Users can add and manage their own MFA devices
+    - Create all the default permission sets and any desired custom permission sets
+        - e.g. Select `AWS accounts` from the side bar, select "Permission sets" tab then `Create permission set`
+            - `Use an existing job function policy` => Next
+            - Select job function policy `AdministratorAccess`
+            - Add Tags, Review and Create
+            - repeat for each default permission set and any required custom permission sets
+    - For Control Tower based installations, remove the orphaned Permission Sets from each AWS accounts (select the account, expand Permission Sets, click Remove for each)
+    - Map MAD groups to permission sets and accounts
+        - Select `AWS accounts` from the side bar and select `AWS organization` tab
+        - Select the accounts you want to map to each MAD group and click `Assign users`
+        - Select your DNS domain e.g. `example.local`, and search for the group you would like to assign (e.g. `aws-` for the pre-created groups) and click `Search connected directory`
+        - Select the desired group `aws-log-archive-View`
+        - Select the permission set you would like to assign to the MAD group to (e.g. `ViewOnlyAccess`)
+        - Click `Finish` (Note: if it fails during provisioning, simply select the failed accounts and click on "Retry changes")
+    - AWS SSO should be the primary mechanism for all access to all AWS accounts in your Organization, to determine or update the login page for your organization:
+        - Click on `Dashboard` within the AWS SSO console and note the `User portal URL`
+        - Share this url with all your users
+        - NOTE: the url prefix can only be changed ONCE (ever) using the settings tab, so update with caution
+    - Any pre-created AWS MAD users passwords are available in secrets manager in the AWS management account. To reset these passwords login to the Operations account through AWS SSO, then:
+        - Navigate to "Directory Service" , select the directory => Actions => Reset user password
+        - Users can change their passwords from any MAD domain connected instance
 
 2. Configure the new alb-forwarding feature (added in v1.5.0)
 
@@ -435,6 +445,7 @@ The Accelerator installation is complete, but several manual steps remain:
 ```
 
     -   where `id` is any unique text, `targetAlbDnsName` is the DNS address for the backend ALB for this application (found in parameter store), `vpcId` is the vpc ID containing the front-end ALB (in this account), `sourceListenerArn` is the arn of the listener of the front-end ALB, `paths` and `hosts` are both optional, but one of the two must be supplied. Finally, `priority` must be unique and is used to order the listener rules. Priorities should be spaced at least 40 apart to allow for easy insertion of new applications and forwarder rules.
+
     -   the provided `targetAlbDnsName` must resolve to addresses within a [supported](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html) IP address space.
 
 </details>
@@ -465,21 +476,21 @@ The Accelerator installation is complete, but several manual steps remain:
     - Manually update the firewall configuration to connect perimeter ALB high port flows through to internal account ALB's
         - Note: while this option is still available, a new alb-forwarding mechanism is available in v1.5.0+ (see section 2 above) which simplifies and eliminates this more complicated "NAT to DNS name" option;
         - login to each firewall, switch to `FG-traffic` vdom, select `Policies & Objects`, select `Addresses`, Expand `Addresses`
-    - Set `Prod1-ALB-FQDN` to point to a reliable sub-account ALB FQDN, this is used for full-path health checks on **_all_** ALB's
-        - Set additional `DevX-ALB-FQDN`, `TestX-ALB-FQDN` and `ProdX-ALB-FQDN` to point to workload account ALB FQDNs
-            - Two of each type of ALB FQDN records have been created, when you need more, you need to create BOTH an additional FQDN and a new VIP, per ALB
-            - Each new VIP will use a new high port (i.e. 7007, 7008, etc.), all of which map back to port 443
-        - Detailed steps can be read [here](../guides/fortigate/public-facing-workload-via-fortigate.md).
+            - Set `Prod1-ALB-FQDN` to point to a reliable sub-account ALB FQDN, this is used for full-path health checks on **_all_** ALB's
+            - Set additional `DevX-ALB-FQDN`, `TestX-ALB-FQDN` and `ProdX-ALB-FQDN` to point to workload account ALB FQDNs
+                - Two of each type of ALB FQDN records have been created, when you need more, you need to create BOTH an additional FQDN and a new VIP, per ALB
+                - Each new VIP will use a new high port (i.e. 7007, 7008, etc.), all of which map back to port 443
+            - Detailed steps can be read [here](../guides/fortigate/public-facing-workload-via-fortigate.md).
 
     **Checkpoint**
 
     - Download and install Checkpoint SmartConsole client on your PC (only available for Windows, if you have a Mac, you can use Workspaces to install the client)
     - Retrieve the firewall and firewall manager SSL certificate from secrets manager in the perimeter account and save to a pem file (convert to ppk on Windows)
         - Login to the `AWS Console` for the `Perimeter` account
-            - Navigate to `Secrets Manager` and select `Secrets`
-            - Look for Secret name `ASEA/keypair/ASEA-Appliances` and click on it
-            - Go to the `Secret value` section and click on `Retrieve secret value`
-            - Make sure you have the `Plaintext` tab selected and copy the content to a .pem file using your preferred text editor. (the file will need to be converted to ppk format on Windows)
+        - Navigate to `Secrets Manager` and select `Secrets`
+        - Look for Secret name `ASEA/keypair/ASEA-Appliances` and click on it
+        - Go to the `Secret value` section and click on `Retrieve secret value`
+        - Make sure you have the `Plaintext` tab selected and copy the content to a .pem file using your preferred text editor. (the file will need to be converted to ppk format on Windows)
     - Wait approx. 25 min. after the managers "Launch time" and then SSH into the Firewall Manager using the SSL certificate (.pem file retrieved above) and login user `admin`
         - The firewall manager EC2 instance name is `ASEA-Checkpoint-FirewallMgr`
         - Once you SSH successfully, execute the following commands:
