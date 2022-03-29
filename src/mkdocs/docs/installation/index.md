@@ -19,6 +19,5 @@ This section contains information on the installation and upgrade procedures for
     -   [Architecture Diagrams](../architectures/pbmm/diagrams.md)
     -   [Key Account & Capability Overview](../installation/what-we-do-where.md)
     -   [Centralized Logging Details](../installation/log-file-locations.md)
-    -   [Design Decisions](../installation/design.md)
     -   [Accelerator Object Naming](../installation/object-naming.md)
     -   [Roadmap](https://github.com/aws-samples/aws-secure-environment-accelerator/projects/1)

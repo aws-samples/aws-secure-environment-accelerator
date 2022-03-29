@@ -50,9 +50,9 @@ nav:
   - Workshops:
       - workshops/index.md
       - Administrator Immersion Day: https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-administrators
-      - Workload/Application Team Immersion Day: https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-members
+      - Application Team Immersion Day: https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-members
   - Configuration File Schema:
-      - English: https://aws-samples.github.io/aws-secure-environment-accelerator/schema/en/index.html
+      - English: /aws-secure-environment-accelerator/schema/en/index.html
   - Contributing & Governance: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md
 
 theme:

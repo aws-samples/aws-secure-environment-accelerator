@@ -28,7 +28,7 @@ These installation instructions assume one of the prescribed architectures is be
 
 **For any deployment of the Accelerator which is intended to be used for production workloads, you must evaluate all these decisions carefully. Failure to understand these choices could cause challenges down the road. If this is a "test" or "internal" deployment of the Accelerator which will not be used for production workloads, you can leave the default config values.**
 
-**Config file [schema](../schema/index.md) documentation** (Draft)
+**Config file [schema](/aws-secure-environment-accelerator/schema/en/index.html) documentation** (Draft)
 
 ### OU Structure Planning
 
