@@ -266,7 +266,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - If deploying the Managed AD, update the dns-domain, netbios-domain, log-group-name, as well as the AD users and groups that will be created;
     - For a test deployment, the remainder of the values can be used as-is;
     - While it is generally supported, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts to the config file and rerun the state machine.
-    - More information [here](./customization-index#summary-of-example-config-file-minimum-changes-for-new-installs) on the fields in the config file that need to be updated.
+    - More information [here](./customization-index.md#summary-of-example-config-file-minimum-changes-for-new-installs) on the fields in the config file that need to be updated.
 3. A successful deployment of the prescriptive architecture requires VPC access to 9 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 9 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms, logs, monitoring).
 4. When deploying to regions other than `ca-central-1`, you need to modify your config file as follows (for Canada Central 1, the AMI IDs are pre-populated for you):
     1. Update the firewall and firewall manager AMI IDs to reflect your home regions regional AMI IDs (see 2.3.3, item 13), making sure you select the right version and region per the recommendations.
@@ -281,7 +281,7 @@ If deploying to an internal AWS employee account and installing the solution wit
 7. If required, place the firewall configuration and license files in the folder and path defined in the config file
     - For AWS Network Firewall: `nfw/nfw-example-policy.json`
     - For Fortinet: `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
-        - We have made a sample available [here](../../reference-artifacts/Third-Party): `./reference-artifacts/Third-Party/`
+        - We have made a sample available [here](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Third-Party/): `./reference-artifacts/Third-Party/`
         - the samples configures an active / active firewall pair with two tunnels per firewall
         - If you updated your perimeter VPC subnet names, you must also make these changes in your firewall-example.txt file
         - If you don't have any license files, update the config file with an empty array (`"license": []`). Do NOT use the following: `[""]`.
