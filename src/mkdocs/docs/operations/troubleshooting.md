@@ -32,7 +32,7 @@ a. If the step is calling a Lambda function then you will see the following afte
 
 ![State Machine Lambda Failure](img/state-machine-lambda-failure.png)
 
-In this case, you can see that the `Cause` section contains a useful message. This message will differ between Lambda functions. In case this message does not make the issue clear, you can click on the `CloudWatch Logs` link in the `Resource` section to view the output of the Lambda function that was called by the step. See the section [CloudWatch Logs](#cloudwatch-logs). Note: The `Resource` section contains two links that blend together. You need to click the second link (`CloudWatch Logs`), not the first link which will open the actual resource/Lambda.
+In this case, you can see that the `Cause` section contains a useful message. This message will differ between Lambda functions. In case this message does not make the issue clear, you can click on the `CloudWatch Logs` link in the `Resource` section to view the output of the Lambda function that was called by the step. See the section [CloudWatch Logs](#125-cloudwatch). Note: The `Resource` section contains two links that blend together. You need to click the second link (`CloudWatch Logs`), not the first link which will open the actual resource/Lambda.
 
 b. In case the failed step started another state machine, you will see the following after clicking the failed step.
 
@@ -44,7 +44,7 @@ In case the failed step started the CodeBuild state machine, `ASEA-CodeBuild_sm`
 
 ![State Machine CodeBuild Failure](img/state-machine-codebuild-failure.png).
 
-In the image above the execution of CodeBuild project `ASEA-DeployPrebuilt` with ID `ASEA-DeployPrebuilt:717584a9-c406-4569-9cc2-0d23e9ff9ef0` failed. See the [CodeBuild](#codebuild) section to troubleshoot.
+In the image above the execution of CodeBuild project `ASEA-DeployPrebuilt` with ID `ASEA-DeployPrebuilt:717584a9-c406-4569-9cc2-0d23e9ff9ef0` failed. See the [CodeBuild](#122-codebuild) section to troubleshoot.
 
 ### 1.2.2. CodeBuild
 
@@ -70,7 +70,7 @@ You can for example see the error message `The stack named ASEA-Perimeter-Phase2
 
 In this example we can see that the resource `FirewallManager` failed to create through CloudFormation. One way to solve this issue is to deprovision the firewall manager in the configuration file and then run the state machine. Next, provision the firewall manager and run the state machine again.
 
-If the error message is not clear, or the error occurred in a nested stack, then a more detailed error will be available in the CloudFormation stack events. See the [CloudFormation](#cloudformation) section below.
+If the error message is not clear, or the error occurred in a nested stack, then a more detailed error will be available in the CloudFormation stack events. See the [CloudFormation](#123-cloudformation) section below.
 
 ![CodeBuild Execution Nested Stack Failure](img/codebuild-build-failure-nested-stack.png)
 
@@ -84,7 +84,7 @@ In case you want to troubleshoot errors that occurred in CloudFormation, the bes
 
 When a native resource fails to create or update there are no additional logs available except what is displayed in the `Status reason` column. When a custom resource fails to create or update -- i.e. not a native CloudFormation resource but a resource backed by a custom Lambda function -- then we can find additional logs in CloudWatch.
 
-Often the stack failure occurrs in a managed account instead of the root account. See [Switch To a Managed Account](#switch-to-a-managed-account) to switch to the CloudFormation console in the managed account.
+Often the stack failure occurrs in a managed account instead of the root account. See [Switch To a Managed Account](/common-tasks.md#12-switch-to-a-managed-account) to switch to the CloudFormation console in the managed account.
 
 ### 1.2.4. Custom Resource
 

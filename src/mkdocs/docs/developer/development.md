@@ -26,20 +26,20 @@ When we want to enable functionality in a managed account we try to
 
 The folder structure of the project is as follows:
 
--   `src/installer/cdk`: See [Installer Stack](#12-installer-stack);
--   `src/core/cdk`: See [Initial Setup Stack](#13-initial-setup-stack);
--   `src/core/runtime` See [Initial Setup Stack](#13-initial-setup-stack) and [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
--   `src/deployments/runtime` See [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
--   `src/deployments/cdk`: See [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
--   `src/lib/accelerator-cdk`: See [Libraries & Tools](#libraries--tools);
--   `src/lib/cdk-constructs`: See [Libraries & Tools](#libraries--tools);
--   `src/lib/cdk-plugin-assume-role`: See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
--   `src/lib/common-config`: See [Libraries & Tools](#libraries--tools);
--   `src/lib/common-outputs`: See [Libraries & Tools](#libraries--tools);
--   `src/lib/common-types`: See [Libraries & Tools](#libraries--tools);
--   `src/lib/common`: See [Libraries & Tools](#libraries--tools);
--   `src/lib/custom-resources/**/cdk`: See [Custom Resources](#custom-resources);
--   `src/lib/custom-resources/**/runtime`: See [Custom Resources](#custom-resources);
+-   `src/installer/cdk`: See [Installer Stack](#13-installer-stack);
+-   `src/core/cdk`: See [Initial Setup Stack](#14-initial-setup-stack);
+-   `src/core/runtime` See [Initial Setup Stack](#14-initial-setup-stack) and [Phase Steps and Phase Stacks](#15-phase-steps-and-phase-stacks);
+-   `src/deployments/runtime` See [Phase Steps and Phase Stacks](#15-phase-steps-and-phase-stacks);
+-   `src/deployments/cdk`: See [Phase Steps and Phase Stacks](#15-phase-steps-and-phase-stacks);
+-   `src/lib/accelerator-cdk`: See [Libraries & Tools](#17-libraries-tools);
+-   `src/lib/cdk-constructs`: See [Libraries & Tools](#17-libraries-tools);
+-   `src/lib/cdk-plugin-assume-role`: See [CDK Assume Role Plugin](#171-cdk-assume-role-plugin).
+-   `src/lib/common-config`: See [Libraries & Tools](#17-libraries-tools);
+-   `src/lib/common-outputs`: See [Libraries & Tools](#17-libraries-tools);
+-   `src/lib/common-types`: See [Libraries & Tools](#17-libraries-tools);
+-   `src/lib/common`: See [Libraries & Tools](#17-libraries-tools);
+-   `src/lib/custom-resources/**/cdk`: See [Custom Resources](#176-custom-resources);
+-   `src/lib/custom-resources/**/runtime`: See [Custom Resources](#176-custom-resources);
 
 ## 1.3. Installer Stack
 
@@ -82,7 +82,7 @@ When the CodePipeline finishes deploying the `Initial Setup` stack, it starts a 
 The `Initial Setup` stack deployment receives environment variables from the CodePipeline's CodeBuild step. The most notable environment variables are:
 
 -   `ACCELERATOR_STATE_MACHINE_NAME`: The `Initial Setup` will use this name for the main state machine. So it is the `Installer` stack that decides the name of the main state machine. This way we can confidently start the main state machine of the `Initial Setup` stack from the CodePipeline;
--   `ENABLE_PREBUILT_PROJECT`: See [Prebuilt Docker Image](#codebuild-and-prebuilt-docker-image).
+-   `ENABLE_PREBUILT_PROJECT`: See [Prebuilt Docker Image](#141-codebuild-and-prebuilt-docker-image).
 
 ## 1.4. Initial Setup Stack
 
@@ -105,7 +105,7 @@ The code for the steps in the state machine is in `src/core/runtime`. All the st
 
 The CodeBuild project that deploys the different `Phase` stacks is constructed using the `CdkDeployProject` or `PrebuiltCdkDeployProject` based on the value of the environment variable `ENABLE_PREBUILT_PROJECT`.
 
-The first, `CdkDeployProject` constructs a CodeBuild project that copies this whole Github repository as a ZIP file to S3 using [CDK S3 assets](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-s3-assets-readme.html). This ZIP file is then used as source for the CodeBuild project. When the CodeBuild project executes, it runs `pnpm recursive install` which in turn will run all `prepare` scripts in all `package.json` files in the project -- as described in section [CDK Code Dependency on Lambda Function Code](#334-cdk-code-dependency-on-lambda-function-code).
+The first, `CdkDeployProject` constructs a CodeBuild project that copies this whole Github repository as a ZIP file to S3 using [CDK S3 assets](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-s3-assets-readme.html). This ZIP file is then used as source for the CodeBuild project. When the CodeBuild project executes, it runs `pnpm recursive install` which in turn will run all `prepare` scripts in all `package.json` files in the project -- as described in section [CDK Code Dependency on Lambda Function Code](./best-practices.md#134-cdk-code-dependency-on-lambda-function-code).
 
 After installing the dependencies, the CodeBuild project deploys the `Phase` stacks.
 
@@ -153,7 +153,7 @@ Other data is passed through environment variables:
 
 Read [Operations Guide](../operations/system-overview.md#13-initial-setup-stack) first before reading this section. This section is a technical addition to the _Deploy Phase X_ sections in the Operations Guide.
 
-The `Phase` stacks contain the Accelerator-managed resources. The reason the deployment of Accelerator-managed resources is split into different phases is because there cannot be cross account/region references between CloudFormation stacks. See [Cross-Account/Region References](#cross-accountregion-references).
+The `Phase` stacks contain the Accelerator-managed resources. The reason the deployment of Accelerator-managed resources is split into different phases is because there cannot be cross account/region references between CloudFormation stacks. See [Cross-Account/Region References](./best-practices.md#121-cross-accountregion-references).
 
 The `Phase` stacks are deployed by a CodeBuild project in the `Initial Setup` stack as stated in the previous paragraphs. The CodeBuild project executes the `codebuild-deploy.sh` script. See [`initial-setup.ts`](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/src/core/cdk/src/initial-setup.ts#L132).
 
@@ -251,7 +251,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, outpu
 
 ### 1.6.2. Passing Outputs between Phases
 
-The CodeBuild step that is responsible for deploying a `Phase` stack runs in the Organization Management (root) account. We wrote a CDK plugin that allows the CDK deploy step to assume a role in the Accelerator-managed account and create the CloudFormation `Phase` stack in the managed account. See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
+The CodeBuild step that is responsible for deploying a `Phase` stack runs in the Organization Management (root) account. We wrote a CDK plugin that allows the CDK deploy step to assume a role in the Accelerator-managed account and create the CloudFormation `Phase` stack in the managed account. See [CDK Assume Role Plugin](#171-cdk-assume-role-plugin).
 
 After a `Phase-X` is deployed in all Accelerator-managed accounts, a step in the `Initial Setup` state machine collects all the `Phase-X` stack outputs in all Accelerator-managed accounts and regions and stores theses outputs in DynamoDB.
 
@@ -282,7 +282,7 @@ We use the internal CDK API to deploy the `Phase` stacks instead of the CDK CLI 
 -   It allows us to deploy multiple stacks in parallel;
 -   Disable stack termination before destroying a stack;
 -   Delete a stack after it initially failed to create;
--   Deploy multiple apps at the same time -- see [Stacks with Same Name in Different Regions](#stacks-with-same-name-in-different-regions).
+-   Deploy multiple apps at the same time -- see [Stacks with Same Name in Different Regions](#181-stacks-with-same-name-in-different-regions).
 
 The helper class `CdkToolkit` in `toolkit.ts` wraps around the CDK API.
 
@@ -488,7 +488,7 @@ Next, the state machine step `Add Tags to Shared Resources` looks for all those 
 
 ### 1.7.6. Custom Resources
 
-There are different ways to create a custom resource using CDK. See the [Custom Resource](#custom-resource) section for more information.
+There are different ways to create a custom resource using CDK. See the [Custom Resource](./best-practices.md#135-custom-resource) section for more information.
 
 All custom resources have a `README.md` that demonstrates their usage.
 
@@ -766,7 +766,7 @@ See CDK's documentation on [Testing constructs](https://docs.aws.amazon.com/cdk/
 
 ### 1.10.1. Validating Immutable Property Changes and Logical ID Changes
 
-The most important unit test in this project is one that validates that logical IDs and immutable properties do not change unexpectedly. To avoid the issues described in section [Resource Names and Logical IDs](#resource-names-and-logical-ids), [Changing Logical IDs](#changing-logical-ids) and [Changing (Immutable) Properties](#changing-immutable-properties).
+The most important unit test in this project is one that validates that logical IDs and immutable properties do not change unexpectedly. To avoid the issues described in section [Resource Names and Logical IDs](./best-practices.md#122-resource-names-and-logical-ids), [Changing Logical IDs](./best-practices.md#123-changing-logical-ids) and [Changing (Immutable) Properties](./best-practices.md#124-changing-immutable-properties).
 
 This test can be found in the `src/deployments/cdk/test/apps/unsupported-changes.spec.ts` file. It synthesizes the `Phase` stacks using mocked outputs and uses [`jest` snapshots](https://jestjs.io/docs/en/snapshot-testing) to compare against future changes.
 
@@ -776,7 +776,7 @@ The test will fail when changing immutable properties or changing logical IDs of
 pnpx run test -- -u
 ```
 
-See [Accept Unit Test Snapshot Changes](#accept-unit-test-snapshot-changes).
+See [Accept Unit Test Snapshot Changes](./contributing-guidelines.md#16-accept-unit-test-snapshot-changes).
 
 ### 1.10.2. Upgrade CDK
 

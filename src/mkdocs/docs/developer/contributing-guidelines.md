@@ -28,11 +28,11 @@ Before making a change or adding new functionality you have to verify what kind 
 
 ## 1.3. Create a CDK Lambda Function with Lambda Runtime Code
 
-See [CDK Code Dependency on Lambda Function Code](#cdk-code-dependency-on-lambda-function-code) for a short introduction.
+See [CDK Code Dependency on Lambda Function Code](./best-practices.md#134-cdk-code-dependency-on-lambda-function-code) for a short introduction.
 
 ## 1.4. Create a Custom Resource
 
-See [Custom Resource](#custom-resource) and [Custom Resources](#custom-resources) for a short introduction.
+See [Custom Resource](./best-practices.md#135-custom-resource) and [Custom Resources](./development.md#176-custom-resources) for a short introduction.
 
 1. Create a separate folder that contains the CDK and Lambda function runtime code, e.g. `src/lib/custom-resources/my-custom-resource`;
 2. Create a folder `my-custom-resource` that contains the CDK code;

@@ -95,15 +95,15 @@ The stack additionally consists of the following resources:
 -   AWS::Lambda::Function
     -   A Lambda function for every Lambda function step in the state machine.
 -   AWS::StepFunctions::StateMachine
-    -   `ASEA-ALZCreateAccount_sm`: See [_Create Landing Zone Account_](#create-landing-zone-account);
-    -   `ASEA-OrgCreateAccount_sm`: See [_Create Organization Account_](#create-organization-account);
-    -   `ASEA-InstallCfnRoleMaster_sm`: See [Install CloudFormation Execution Role](#install-cloudformation-role-in-root);
-    -   `ASEA-InstallRoles_sm`: See [_Install Execution Roles_](#install-execution-roles);
-    -   `ASEA-DeleteDefaultVpcs_sfn`: See [_Delete Default VPCs_](#delete-default-vpcs);
-    -   `ASEA-CodeBuild_sm`: See [_Deploy Phase 0_](#deploy-phase-0);
-    -   `ASEA-CreateConfigRecorder_sfn`: See [_Create Config Recorders_]();
-    -   `ASEA-CreateAdConnector_sm`: See [_Create AD Connector_](#create-ad-connector);
-    -   `ASEA-StoreOutputs_sm`: See [_Share Outputs_]() - new in v1.2.1.
+    -   `ASEA-ALZCreateAccount_sm`: See [_Create Landing Zone Account_](#136-create-landing-zone-account);
+    -   `ASEA-OrgCreateAccount_sm`: See [_Create Organization Account_](#1310-create-organization-account);
+    -   `ASEA-InstallCfnRoleMaster_sm`: See [Install CloudFormation Execution Role](#139-install-cloudformation-role-in-root);
+    -   `ASEA-InstallRoles_sm`: See [_Install Execution Roles_](#1313-install-execution-roles);
+    -   `ASEA-DeleteDefaultVpcs_sfn`: See [_Delete Default VPCs_](#1314-delete-default-vpcs);
+    -   `ASEA-CodeBuild_sm`: See [_Deploy Phase 0_](#1320-deploy-phase-0);
+    -   `ASEA-CreateConfigRecorder_sfn`: See [_Create Config Recorders_](#1323-create-config-recorders);
+    -   `ASEA-CreateAdConnector_sm`: See [_Create AD Connector_](#1338-create-ad-connector);
+    -   `ASEA-StoreOutputs_sm`: See [_Share Outputs_](#1321-store-phase-0-output) - new in v1.2.1.
 
 _Note: Most resources have a random suffix to their name. This is because we use CDK to deploy the resources. See [https://docs.aws.amazon.com/cdk/latest/guide/identifiers.html#identifiers_logical_ids]()_
 
@@ -141,7 +141,7 @@ The following configuration file changes are not allowed:
 -   changing the sharing to accounts of a VPC;
 -   changing the NACLs of a subnet.
 
-It is possible to ignore certain configuration file changes. See [Restart the State Machine](#restart-the-state-machine) how to pass these options to the state machine.
+It is possible to ignore certain configuration file changes. See [Restart the State Machine](./common-tasks.md#11-restart-the-state-machine) how to pass these options to the state machine.
 
 ### 1.3.4. Load Landing Zone Configuration
 
@@ -358,7 +358,7 @@ This step fails when
 
 ### 1.3.26. Store Phase 1 Output
 
-See [_Deploy Phase 0_](#deploy-phase-0).
+See [_Deploy Phase 0_](#1320-deploy-phase-0).
 
 ### 1.3.27. Account Default Settings
 
@@ -389,7 +389,7 @@ This step calls a Lambda function that
 
 ### 1.3.29. Store Phase 2 Output
 
-See [_Deploy Phase 0_](#deploy-phase-0).
+See [_Deploy Phase 0_](#1320-deploy-phase-0).
 
 ### 1.3.30. Deploy Phase 3
 
@@ -403,7 +403,7 @@ See [_Deploy Phase 0_](#deploy-phase-0).
 
 ### 1.3.31. Store Phase 3 Output
 
-See [_Deploy Phase 0_](#deploy-phase-0).
+See [_Deploy Phase 0_](#1320-deploy-phase-0).
 
 ### 1.3.32. Deploy Phase 4
 
@@ -414,7 +414,7 @@ See [_Deploy Phase 0_](#deploy-phase-0).
 
 ### 1.3.33. Store Phase 4 Output
 
-See [_Deploy Phase 0_](#deploy-phase-0).
+See [_Deploy Phase 0_](#1320-deploy-phase-0).
 
 ### 1.3.34. Associate Hosted Zones (Step removed in v1.2.1)
 

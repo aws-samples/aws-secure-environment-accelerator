@@ -30,7 +30,7 @@ In a single-account environment we would could just:
 
 In a multi-account environment this is not possible and we had to find a way to share outputs across accounts and regions.
 
-See [Passing Outputs Between Phases](#passing-outputs-between-phases).
+See [Passing Outputs Between Phases](./development.md#162-passing-outputs-between-phases).
 
 ### 1.2.2. Resource Names and Logical IDs
 
@@ -95,7 +95,7 @@ CDK makes heavy use of CloudFormation so all best practices that apply to CloudF
 
 ### 1.3.1. Logical IDs
 
-The logical ID of a CDK component is calculated based on its path in the construct tree. Be careful moving around constructs in the construct tree -- e.g. changing the parent of a construct or nesting a construct in another construct -- as this will change the logical ID of the construct. Then you could end up with the issues described in section [Changing Logical IDs](#changing-logical-ids) and section [Changing (Immutable) Properties](#changing-immutable-properties).
+The logical ID of a CDK component is calculated based on its path in the construct tree. Be careful moving around constructs in the construct tree -- e.g. changing the parent of a construct or nesting a construct in another construct -- as this will change the logical ID of the construct. Then you could end up with the issues described in section [Changing Logical IDs](./best-practices.md#123-changing-logical-ids) and section [Changing (Immutable) Properties](./best-practices.md#124-changing-immutable-properties).
 
 See [Logical ID Stability](https://docs.aws.amazon.com/cdk/latest/guide/identifiers.html#identifiers_logical_id_stability) for more information.
 
@@ -131,7 +131,7 @@ The L2 constructs for EC2 and VPC do not map well onto the Accelerator-managed r
 
 ### 1.3.4. CDK Code Dependency on Lambda Function Code
 
-You can read about the distinction between CDK code and runtime code in the introduction of the [Development](#development) section.
+You can read about the distinction between CDK code and runtime code in the introduction of the [Development](./development.md#11-overview) section.
 
 CDK code can depend on runtime code. For example when we want to create a Lambda function using CDK, we need the runtime code to define the Lambda function. We use `npm scripts`, `npm` dependencies and the `NodeJS` `modules` API to define this dependency between CDK code and runtime code.
 
