@@ -44,7 +44,7 @@
 
 1. Login to your Organization Management (root) AWS account with administrative privileges
 2. Either:
-   a) Ensure a valid Github token is stored in secrets manager [(per the installation guide)](./install.md#create-github-personal-access-token-and-store-in-secrets-manager)
+   a) Ensure a valid Github token is stored in secrets manager [(per the installation guide)](./install.md#create-github-personal-access-token-and-store-in-secrets-manager), or
    b) Ensure the latest release is in a valid branch of CodeCommit in the Organization Management account
 3. Review and implement any relevant tasks noted in the General Upgrade Considerations [section](#general-upgrade-considerations) above
 4. Update the config file in CodeCommit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)

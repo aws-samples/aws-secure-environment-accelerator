@@ -19,7 +19,7 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
 
 ## Upgrade Caveats
 
-1. **While an upgrade path is planned, customers with a Standalone Accelerator installation can upgrade to v1.5.0 but need to continue with a Standalone installation until the Control Tower upgrade option becomes available.**
+1. **While an upgrade path is planned, customers with a Standalone Accelerator installation can upgrade to v1.5.x but need to continue with a Standalone installation until the Control Tower upgrade option becomes available.**
 
 2. The script to assist with config file conversion and DynamoDB population only supports single file json based config files, customers that leverage YAML and/or multi-part config files, have several options:
 
@@ -71,7 +71,7 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
         -   the first two SCP files (Part-0 and Part-1) contain the controls which protect the integrity of the Accelerator itself;
         -   the third file (Sensitive, Unclass, Sandbox) contains customer data protection specific guardrails, which may change based on workload data classification or customer profiles and requirements;
         -   this frees the fourth SCP for use by Control Tower, or for use by customers for custom guardrails (Standalone installs only). As Control Tower leverages 2 SCP files on the Security OU, we have moved some of our SCP's to the account level (Control Tower installations only).
-    -   The script and upgrade instructions above do not include the new config file parameters added in v1.5.1. These new parameters can be added either during or after the upgrade. New parameters include: `"rdgw-enforce-imdsv2": true`, `"rsyslog-enforce-imdsv2": true`, `"ssm-inventory-collection": true` on each ou, and `"dynamic-s3-log-partitioning": [{values}]`
+    -   The script and upgrade instructions above do not include the new config file parameters added in v1.5.1+. These new parameters can be added either during or after the upgrade. New parameters include: `"rdgw-enforce-imdsv2": true`, `"rsyslog-enforce-imdsv2": true`, `"ssm-inventory-collection": true` on each ou, and `"dynamic-s3-log-partitioning": [{values}]`
 
 ## Upgrade process
 

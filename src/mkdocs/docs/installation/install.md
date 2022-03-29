@@ -212,7 +212,7 @@ Multiple options exist for downloading the GitHub Accelerator codebase and pushi
     - Do NOT download the code off the main GitHub branch, this will leave you in a completely unsupported state (and with beta code)
 3. Push the extracted codebase into the newly created CodeCommit repository, maintaining the file/folder hierarchy
 4. Set the default CodeCommit branch for the new repository to main
-5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.1`)
+5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.1-a`)
 
 ### AWS Internal (Employee) Accounts Only
 
@@ -282,7 +282,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - For AWS Network Firewall: `nfw/nfw-example-policy.json`
     - For Fortinet: `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
         - We have made a sample available [here](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Third-Party/): `./reference-artifacts/Third-Party/`
-        - the samples configures an active / active firewall pair with two tunnels per firewall
+        - the sample configures an active / active firewall pair with two tunnels per firewall
         - If you updated your perimeter VPC subnet names, you must also make these changes in your firewall-example.txt file
         - If you don't have any license files, update the config file with an empty array (`"license": []`). Do NOT use the following: `[""]`.
     - The basic Checkpoint configuration is stored directly in config.json
@@ -315,7 +315,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - Add an `Email` address to be used for State Machine Status notification
     - The `GitHub Branch` should point to the release you selected
         - if upgrading, change it to point to the desired release
-        - the latest stable branch is currently `release/v1.5.1`, case sensitive
+        - the latest stable branch is currently `release/v1.5.1-a`, case sensitive
         - click `Next`
 7. Finish deploying the stack
     - Apply a tag on the stack, Key=`Accelerator`, Value=`ASEA` (case sensitive).
@@ -373,8 +373,6 @@ Issues in Older Releases:
 
 -   New installs to releases prior to v1.3.9 are no longer supported.
 -   Upgrades to releases prior to v1.3.8 are no longer supported.
--   FIXED in v1.5.1 - When a new installation includes AWS Network Firewall (NFW), we are seeing State Machine failures in Phase 1 in the Perimeter account. Timing issues are causing the first deployment of the underlying CloudFormation stack to fail and rollback, when we automatically retry the stacks deployment, we attempt to recreate the NFW CloudWatch Log groups which were retained, causing a failure. A fix is in the works. Manually delete the two NFW log groups from the perimeter account (`/ASEA/Nfw/Central-Firewall/Alert` and `/ASEA/Nfw/Central-Firewall/Flow`) using either the Accelerator Pipeline Role or the Org Admin Role and rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
--   FIXED in v1.5.1 - Applying new Control Tower Detective guardrails fails in v1.5.0
 
 ## Post-Installation
 
