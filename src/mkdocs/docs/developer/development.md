@@ -26,9 +26,9 @@ When we want to enable functionality in a managed account we try to
 
 The folder structure of the project is as follows:
 
--   `src/installer/cdk`: See [Installer Stack](#installer-stack);
--   `src/core/cdk`: See [Initial Setup Stack](#initial-setup-stack);
--   `src/core/runtime` See [Initial Setup Stack](#initial-setup-stack) and [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
+-   `src/installer/cdk`: See [Installer Stack](#12-installer-stack);
+-   `src/core/cdk`: See [Initial Setup Stack](#13-initial-setup-stack);
+-   `src/core/runtime` See [Initial Setup Stack](#13-initial-setup-stack) and [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
 -   `src/deployments/runtime` See [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
 -   `src/deployments/cdk`: See [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
 -   `src/lib/accelerator-cdk`: See [Libraries & Tools](#libraries--tools);
@@ -43,7 +43,7 @@ The folder structure of the project is as follows:
 
 ## 1.3. Installer Stack
 
-Read the [Operations Guide](../operations/index.md#installer-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
+Read the [Operations Guide](../operations/system-overview.md#12-installer-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
 
 As stated in the Operations Guide, the `Installer` stack is responsible for installing the `Initial Setup` stack. It is an Accelerator-management resource. The main resource in the `Installer` stack is the `ASEA-Installer` CodePipeline. The CodePipeline uses this GitHub repository as source action and runs CDK in a CodeBuild step to deploy the `Initial Setup` stack.
 
@@ -86,7 +86,7 @@ The `Initial Setup` stack deployment receives environment variables from the Cod
 
 ## 1.4. Initial Setup Stack
 
-Read [Operations Guide](../operations/index.md#initial-setup-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
+Read [Operations Guide](../operations/system-overview.md#13-initial-setup-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
 
 As stated in the Operations Guide, the `Initial Setup` stack consists of a state machine, named `ASEA-MainStateMachine_sm`, which executes steps to create the Accelerator-managed stacks and resources in the managed accounts. It is an Accelerator-management resource.
 
@@ -151,7 +151,7 @@ Other data is passed through environment variables:
 
 ## 1.5. Phase Steps and Phase Stacks
 
-Read [Operations Guide](../operations/index.md#initial-setup-stack) first before reading this section. This section is a technical addition to the _Deploy Phase X_ sections in the Operations Guide.
+Read [Operations Guide](../operations/system-overview.md#13-initial-setup-stack) first before reading this section. This section is a technical addition to the _Deploy Phase X_ sections in the Operations Guide.
 
 The `Phase` stacks contain the Accelerator-managed resources. The reason the deployment of Accelerator-managed resources is split into different phases is because there cannot be cross account/region references between CloudFormation stacks. See [Cross-Account/Region References](#cross-accountregion-references).
 

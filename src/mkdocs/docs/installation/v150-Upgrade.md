@@ -75,7 +75,7 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
 
 ## 1.4. Upgrade process
 
--   Before proceeding with your upgrade please review the General Upgrade Considerations in this [section](./upgrades.md#general-upgrade-considerations) of the Upgrade guide
+-   Before proceeding with your upgrade please review the General and Release Specific Upgrade Considerations in the [Upgrade Guide](./upgrades.md)
     -   upgrades directly from v1.3.8 need to ensure they include the extra step required for v1.3.9 upgrades (removal of endpoints with periods)
 -   Login to your AWS Organization Management account, in your home or default region
 -   Place your _updated and validated_ config file back in the root folder of your CodeCommit repository
@@ -107,9 +107,9 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
 
     a) Ensure a valid Github token is stored in secrets manager, or
 
-    b) Ensure the latest release is in a valid branch of CodeCommit in the Organization Management account. See this [(section)](./install.md#create-github-personal-access-token-and-store-in-secrets-manager) of the installation guide for more details.
+    b) Ensure the latest release is in a valid branch of CodeCommit in the Organization Management account. See this [(section)](./install.md#142-create-github-personal-access-token-and-store-in-secrets-manager) of the installation guide for more details.
 
-3. Review and implement any relevant tasks noted in the upgrade considerations in this [section](./upgrades.md#general-upgrade-considerations) of the Upgrade guide
+3. Review and implement any relevant tasks noted in the upgrade consideration sections (sections 1.1 and 1.2) of the [Upgrade Guide](./upgrades.md)
 4. Update the config file in CodeCommit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
     - An automated script is available to help convert config files to the new v1.5.0 format
     - Compare your running config file with the sample config file from the latest release

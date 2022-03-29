@@ -2,7 +2,7 @@
 
 ## 1.1. Operational Activities
 
-??? faq "How do I add new AWS accounts to my AWS Organization?"
+??? faq "1.1.1. How do I add new AWS accounts to my AWS Organization?"
 
     #### How do I add new AWS accounts to my AWS Organization?
 
@@ -39,7 +39,7 @@
 
     Create your account using Account Factory in the AWS Control Tower console.
 
-??? faq "I tried to enroll a new account via Control Tower but it failed?"
+??? faq "1.1.2. I tried to enroll a new account via Control Tower but it failed?"
 
     #### I tried to enroll a new account via Control Tower but it failed?
 
@@ -53,7 +53,7 @@
 
     This is because the Accelerator checks that there are no errors with Control Tower before continuing. In some cases Control Tower can leave an orphaned Service Catalog product in an **Error** state. You need to cleanup Control Towers Service Catalogs Provisioned Products so there are no products remaining in an error or tainted state before you can successfully re-run the state machine.
 
-??? faq "Can I use AWS Organizations for all tasks I currently use AWS Organizations for?"
+??? faq "1.1.3. Can I use AWS Organizations for all tasks I currently use AWS Organizations for?"
 
     #### Can I use AWS Organizations for all tasks I currently use AWS Organizations for?
 
@@ -86,7 +86,7 @@
     - Except for the Quarantine SCP applied to specific accounts, we do not 'control' SCP's below the top level, customers can add/create/customize SCP's
         - as of v1.3.3 customers can optionally control account level SCP's through the configuration file
 
-??? faq "How do I make changes to items I defined in the Accelerator configuration file during installation?"
+??? faq "1.1.4. How do I make changes to items I defined in the Accelerator configuration file during installation?"
 
     #### How do I make changes to items I defined in the Accelerator configuration file during installation?
 
@@ -98,13 +98,13 @@
 
     It should be noted that we have added code to the Accelerator to block customers from making many 'breaking' or impactful changes to their configuration files. If someone is positive they want to make these changes, we also provide override switches to allow these changes to be attempted forcefully.
 
-??? faq "Can I update the config file while the State Machine is running? When will those changes be applied?"
+??? faq "1.1.5. Can I update the config file while the State Machine is running? When will those changes be applied?"
 
     #### Can I update the config file while the State Machine is running? When will those changes be applied?
 
     Yes. The state machine captures a consistent input state of the requested configuration when it starts. The running Accelerator instance does not see or consider any configuration changes that occur after it has started. All configuration changes occurring after the state machine is running will only be leveraged on the _next_ state machine execution.
 
-??? faq "What if I really mess up the configuration file?"
+??? faq "1.1.6. What if I really mess up the configuration file?"
 
     #### What if I really mess up the configuration file?
 
@@ -112,7 +112,7 @@
 
     With the release of v1.3.0 we introduced state machine scoping capabilities to further protect customers, detailed [here](../installation/sm_inputs.md).
 
-??? faq "What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?"
+??? faq "1.1.7. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?"
 
     #### What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?
 
@@ -126,7 +126,7 @@
 
     Will your state machine fail at some point in time, likely. Will you be able to easily recover and move forward without extensive time and effort, YES!
 
-??? faq " How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?"
+??? faq "1.1.8. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?"
 
     #### How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?
 
@@ -146,7 +146,7 @@
     - the third file (Sensitive, Unclass, Sandbox) contains customer data protection specific guardrails, which may change based on workload data classification or customer profiles and requirements;
     - this freed the fourth SCP for use by Control Tower. As Control Tower leverages 2 SCP files on the Security OU, we have moved some of our SCP's to the account level.
 
-??? faq "I deployed AWS Managed Active Directory (MAD) as part of my deployment, how do I manage Active Directory domain users, groups, and domain policies after deployment?"
+??? faq "1.1.9. I deployed AWS Managed Active Directory (MAD) as part of my deployment, how do I manage Active Directory domain users, groups, and domain policies after deployment?"
 
     #### I deployed AWS Managed Active Directory (MAD) as part of my deployment, how do I manage Active Directory domain users, groups, and domain policies after deployment?
 
@@ -161,7 +161,7 @@
 
     The Accelerator will not create/update/delete new AD users or groups, nor will it update the domain password policy after the initial installation of Managed Active Directory. It is your responsibility to rotate these passwords on a regular basis per your organizations password policy. (NOTE: After updating the admin password it needs to be stored back in secrets manager).
 
-??? faq "How do I suspend an AWS account?"
+??? faq "1.1.10. How do I suspend an AWS account?"
 
     #### How do I suspend an AWS account?
 
@@ -189,7 +189,7 @@
             - rerun the state machine, specifying: `{ "overrideComparison": true }`
         - Deleted accounts will continue to appear under the `Suspended` OU for 90-days
 
-??? faq "I need a new VPC, where shall I define it?"
+??? faq "1.1.11. I need a new VPC, where shall I define it?"
 
     #### I need a new VPC, where shall I define it?
 
@@ -212,7 +212,7 @@
 
     The Future: While Opt-In VPCs are powerful, we want to take this further. Why not deploy an AWS Service Catalog template which contains the names of all the available opt-in VPCs for the accounts OU, inside each account. An account end user could then request a new VPC for their account from the list of available opt-in patterns. A user's selection would be sent to a centralized queue for approval (w/auto-approval options), which would result in the opt-in-vpc entry in that account being updated with the end users requested VPC pattern and the personalized VPC being created in the account and attached to the centralized TGW (if part of the pattern). This would ensure all VPC's conformed to a set of desirable design patterns, but also allow the end-user community choices based on their desired development and app patterns. If you like this idea, please +1 [this](https://github.com/aws-samples/aws-secure-environment-accelerator/issues/738) feature request.
 
-??? faq "How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?"
+??? faq "1.1.12. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?"
 
     #### How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?
 
@@ -238,7 +238,7 @@
     - One of our early adopter customers has developed a custom user interface which allows their clients to request new AWS environments. Clients provide items like cost center, budget, and select their environment requirements (i.e. Sandbox, Unclass or full sensitive SDLC account set). On appropriate approval, this pushes the changes to the Accelerator configuration file and triggers the state machine.
     - Once the state machine completes, the SNS topic triggers their follow-up workflow, validates the requested accounts were provisioned, updates the customer's account database, and then executes a collection of customer specific follow-up workflow actions on any newly provisioned accounts.
 
-??? faq "How can I easily access my virtual machines or EC2 instances?"
+??? faq "1.1.13. How can I easily access my virtual machines or EC2 instances?"
 
     #### How can I easily access my virtual machines or EC2 instances?
 
@@ -283,7 +283,7 @@
     - If you want to remove the region from your command line, you can:
         - Type: “aws configure” from command prompt, hit {enter} (key), {enter} (secret), enter: ca-central-1, {enter}
 
-??? faq "I ran the state machine but it failed when it tried to delete the default VPC?"
+??? faq "1.1.14. I ran the state machine but it failed when it tried to delete the default VPC?"
 
     #### I ran the state machine but it failed when it tried to delete the default VPC? The state machine cannot delete the default VPC (Error: VPC has dependencies and cannot be deleted)
 
@@ -291,7 +291,7 @@
 
 ## 1.2. Existing Accounts/Organizations
 
-??? faq "How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?"
+??? faq "1.2.1. How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?"
 
     #### How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?
 
@@ -310,13 +310,13 @@
         - Assume an administrative role into the account
         - Execute the Accelerator provided CloudFormation template to create the required Accelerator bootstrapping role
 
-??? faq "Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?"
+??? faq "1.2.2. Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?"
 
     #### Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?
 
     Existing ALZ customers are required to uninstall their ALZ deployment before deploying the Accelerator. Please work with your AWS account team to find the best mechanism to uninstall the ALZ solution (procedures and scripts exist). It is often easier to migrate AWS accounts to a new Accelerator Organization, per the process detailed in the next FAQ question.  Additionally, please reference the following [section](../installation/existing-orgs.md) of the Installation Guide for additional considerations.
 
-??? faq "What if I want to move an account from an AWS Organization that has the ALZ deployed into an AWS Organization running the Accelerator?"
+??? faq "1.2.3. What if I want to move an account from an AWS Organization that has the ALZ deployed into an AWS Organization running the Accelerator?"
 
     #### What if I want to move an account from an AWS Organization that has the ALZ deployed into an AWS Organization running the Accelerator?
 
@@ -326,7 +326,7 @@
 
 ## 1.3. End User Environment
 
-??? faq "Is there anything my end users need to be aware of? Why do some of my end users struggle with CloudWatch Log groups errors?"
+??? faq "1.3.1. Is there anything my end users need to be aware of? Why do some of my end users struggle with CloudWatch Log groups errors?"
 
     #### Is there anything my end users need to be aware of? Why do some of my end users struggle with CloudWatch Log groups errors?
 
@@ -336,7 +336,7 @@
 
     The Accelerator provided SCPs (guardrails/protections) are our recommendations, yet designed to be fully customizable, enabling any customer to carefully override these defaults to meet their individual requirements. If insistent, we'd suggest only bypassing the policy on the Sandbox OU, and only for log groups that start with a very specific prefix (not all log groups). When a customer wants to use the delete capability, they would need to name their log group with the designated prefix - i.e. opt-in to allow CloudWatch log group deletes.
 
-??? faq "How can I leverage Accelerator deployed objects in my IaC? Do I need to manually determine the arn's and object id's of Accelerator deployed objects to leverage them in my IaC?"
+??? faq "1.3.2. How can I leverage Accelerator deployed objects in my IaC? Do I need to manually determine the arn's and object id's of Accelerator deployed objects to leverage them in my IaC?"
 
     #### How can I leverage Accelerator deployed objects in my IaC? Do I need to manually determine the arn's and object id's of Accelerator deployed objects to leverage them in my IaC?
 
@@ -348,7 +348,7 @@
 
 ## 1.4. Upgrades
 
-??? faq "Can I upgrade directly to the latest release, or must I perform upgrades sequentially?"
+??? faq "1.4.1. Can I upgrade directly to the latest release, or must I perform upgrades sequentially?"
 
     #### Can I upgrade directly to the latest release, or must I perform upgrades sequentially?
 
@@ -356,7 +356,7 @@
 
     Given the magnitude of the v1.5.0 release, we have added a one-time requirement that all customers upgrade to a minimum of v1.3.8 before attempting to upgrade to v1.5.0.
 
-??? faq "Why do I get the error "There were errors while comparing the configuration changes:" when I update the config file?"
+??? faq "1.4.2. Why do I get the error "There were errors while comparing the configuration changes:" when I update the config file?"
 
     #### Why do I get the error "There were errors while comparing the configuration changes:" when I update the config file?
 
@@ -364,13 +364,13 @@
 
 ## 1.5. Support Concerns
 
-??? faq "The Accelerator is written in CDK and deploys CloudFormation, does this restrict the Infrastructure as Code (IaC) tools that I can use?"
+??? faq "1.5.1. The Accelerator is written in CDK and deploys CloudFormation, does this restrict the Infrastructure as Code (IaC) tools that I can use?"
 
     #### The Accelerator is written in CDK and deploys CloudFormation, does this restrict the Infrastructure as Code (IaC) tools that I can use?
 
     No. Customers can choose the IaC framework or tooling of their choice. The tooling used to deploy the Accelerator has no impact on the automation framework customers use to deploy their applications within the Accelerator environment. It should be noted that the functionality deployed by the Accelerator is extremely platform specific and would not benefit from multi-platform IaC frameworks or tooling.
 
-??? faq "What happens if AWS stops enhancing the Accelerator?"
+??? faq "1.5.2. What happens if AWS stops enhancing the Accelerator?"
 
     #### What happens if AWS stops enhancing the Accelerator?
 
@@ -380,7 +380,7 @@
 
     The Accelerator codebase can be completely uninstalled from the organization management (root) account, without any impact to the deployed functionality or guardrails. In this situation, guardrail updates and new account provisioning reverts to a manual process. Should a customer decide they no longer wish to utilize the solution, they can remove the Accelerator codebase without any impact to deployed resources and go back to doing things natively in AWS as they did before they deployed the Accelerator. By adopting the Accelerator, customers are not locking themselves in or making a one-way door decision.
 
-??? faq "What level of Support will the ASEA have from AWS Support?"
+??? faq "1.5.3. What level of Support will the ASEA have from AWS Support?"
 
     #### What level of Support will the ASEA have from AWS Support?
 
@@ -388,7 +388,7 @@
 
     As the Accelerator also includes code, anything specifically related to the Accelerator codebase will be only supported on a "best effort" basis by AWS support, as AWS support does not support custom code. The first line of support for the codebase is typically your local AWS team (your SA, TAM, ProServe and/or AWS Partner). As an open source project, customers can file requests using GitHub Issues against the Accelerator repository or open a discussion in GitHub discussions. Most customer issues arise during installation and are related to configuration customization or during the upgrade process.
 
-??? faq "What does it take to support the Accelerator?"
+??? faq "1.5.4. What does it take to support the Accelerator?"
 
     #### What does it take to support the Accelerator?
 
@@ -396,7 +396,7 @@
 
     Customers have indicated that deploying the Accelerator reduces their ongoing operational burden over operating in native AWS, saving hours of effort every time a new account is provisioned by automating the deployment of the persona associated with new accounts (guardrails, networking and security). The Accelerator does NOT alleviate a customer's requirement to learn to effectively operate in the cloud (like monitoring security tooling/carrying out Security Operation Center (SOC) duties). This effort exists regardless of the existence of the Accelerator.
 
-??? faq "Is the Accelerator only designed and suitable for Government of Canada or PBMM customers?"
+??? faq "1.5.5. Is the Accelerator only designed and suitable for Government of Canada or PBMM customers?"
 
     #### Is the Accelerator only designed and suitable for Government of Canada or PBMM customers?
 
@@ -415,7 +415,7 @@
 
 ## 1.6. Deployed Functionality
 
-??? faq "I wish to be in compliance with the 12 GC TBS Guardrails, what don't you cover with the provided sample architecture?"
+??? faq "1.6.1. I wish to be in compliance with the 12 GC TBS Guardrails, what don't you cover with the provided sample architecture?"
 
     #### I wish to be in compliance with the 12 GC TBS Guardrails, what don't you cover with the provided sample architecture?
 
@@ -427,13 +427,13 @@
 
     Finally, while we started with a goal of delivering on the 12 guardrails, we believe we have extended well beyond those security controls, to further help customers move towards meeting the full PBMM technical control profile (official documentation is weak in this area at this time).
 
-??? faq "Does the ALB perform SSL offloading?"
+??? faq "1.6.2. Does the ALB perform SSL offloading?"
 
     #### Does the ALB perform SSL offloading?
 
     As configured - the perimeter ALB decrypts incoming traffic using its certificate and then re-encrypts it with the certificate for the back-end ALB. The front-end and back-end ALB's can use the same or different certs. If the Firewall needs to inspect the traffic, it also needs the backend certificate be manually installed.
 
-??? faq "What is the recommended approach to manage the ALB certificates deployed by the Accelerator?"
+??? faq "1.6.3. What is the recommended approach to manage the ALB certificates deployed by the Accelerator?"
 
     #### What is the recommended approach to manage the ALB certificates deployed by the Accelerator?
 
@@ -530,13 +530,13 @@
 
     We suggest the most effective mechanism for leveraging ACM is by adding CNAME authorization records to the relevant DNS domains using Method 2, but may not appropriate right for all customers.
 
-??? faq "Why do we have rsyslog servers? I thought everything was sent to CloudWatch?"
+??? faq "1.6.4. Why do we have rsyslog servers? I thought everything was sent to CloudWatch?"
 
     #### Why do we have rsyslog servers? I thought everything was sent to CloudWatch?
 
     The rsyslog servers are included to accept logs for appliances and third party applications that do not natively support the CloudWatch Agent from any account within a customers Organization. These logs are then immediately forwarded to CloudWatch Logs within the account the rsyslog servers are deployed (Operations) and are also copied to the S3 immutable bucket in the log-archive account. Logs are only persisted on the rsyslog hosts for 24 hours. The rsyslog servers are required to centralize the 3rd party firewall logs (Fortinet Fortigate).
 
-??? faq "Can you deploy the solution without Fortinet Firewall Licenses?"
+??? faq "1.6.5. Can you deploy the solution without Fortinet Firewall Licenses?"
 
     #### Can you deploy the solution without Fortinet Firewall Licenses?
 
@@ -544,7 +544,7 @@
 
     Additionally, several additional firewall options are now available, including using AWS Network Firewall, a native AWS service.
 
-??? faq "I installed additional software on my Accelerator deployed RDGW / rsyslog host, where did it go?"
+??? faq "1.6.6. I installed additional software on my Accelerator deployed RDGW / rsyslog host, where did it go?"
 
     #### I installed additional software on my Accelerator deployed RDGW / rsyslog host, where did it go?
 
@@ -554,7 +554,7 @@
 
     At any time, customers can terminate the RDGW or rsyslog hosts and they will automatically be re-created from the base images with the latest patch available at the time of the last Accelerator State Machine execution.
 
-??? faq "Some sample configurations provide NACLs and Security Groups. Is that enough?"
+??? faq "1.6.7. Some sample configurations provide NACLs and Security Groups. Is that enough?"
 
     #### Some sample configurations provide NACLs and Security Groups. Is that enough?
 
@@ -564,25 +564,25 @@
 
     The use of NACLs are general discouraged, but leveraged in this architecture as a defense-in-depth mechanism. Security groups should be used as the primary access control mechanism. As with security groups, we encourage customers to review and tailor their NACLs based on their own security requirements.
 
-??? faq "Can I deploy the solution as the account root user?"
+??? faq "1.6.8. Can I deploy the solution as the account root user?"
 
     #### Can I deploy the solution as the account root user?
 
     No, you cannot install as the root user. The root user has no ability to assume roles which is a requirement to configure the sub-accounts and will prevent the deployment. As per the [installation instructions](../installation/index.md#general), you require an IAM user with the `AdministratorAccess` policy attached.
 
-??? faq "Is the Organizational Management root account monitored similarly to the other accounts in the organization?"
+??? faq "1.6.9. Is the Organizational Management root account monitored similarly to the other accounts in the organization?"
 
     #### Is the Organizational Management root account monitored similarly to the other accounts in the organization?
 
     Yes, all accounts including the Organization Management or root account have the same monitoring and logging services enabled. When supported, AWS security services like GuardDuty, Macie, and Security Hub have their delegated administrator account configured as the "security" account. These tools can be used within each local account (including the Organization Management account) within the organization to gain account level visibility or within the Security account for Organization wide visibility. For more information about monitoring and logging refer to [architecture documentation](../architectures/pbmm/logging.md).
 
-??? faq "How are the perimeter firewall configurations and licensing managed after deployment?"
+??? faq "1.6.10. How are the perimeter firewall configurations and licensing managed after deployment?"
 
     #### How are the perimeter firewall configurations and licensing managed after deployment?
 
     While you deploy the perimeter firewalls with the Accelerator you will continue to manage firewall updates, configuration changes, and license renewals from the respective firewall management interface and not from the Accelerator config file. As these changes are not managed by the Accelerator you do not need to rerun the state machine to implement or track any of these changes. You can update the AMI of the 3rd party firewalls using the Accelerator, you must first remove the existing firewalls and redeploy them (as the Elastic IP's (EIP's) will block a parallel deployment) or deploy a second parallel firewall cluster and de-provision the first cluster when ready.
 
-??? faq "Can the Fortinet Firewall deployments use static private IP address assignments?"
+??? faq "1.6.11. Can the Fortinet Firewall deployments use static private IP address assignments?"
 
     #### Can the Fortinet Firewall deployments use static private IP address assignments?
 
@@ -630,7 +630,7 @@
 
     Where `private-ips` are not present for the subnet or availability zone an address will be assigned automatically from available addresses when the firewall instance is created.
 
-??? faq "I've noticed CloudTrail logs and in certain situation VPC flow logs are stored in the centralized log-archive account logging bucket twice?"
+??? faq "1.6.12. I've noticed CloudTrail logs and in certain situation VPC flow logs are stored in the centralized log-archive account logging bucket twice?"
 
     #### I've noticed CloudTrail logs and in certain situation VPC flow logs are stored in the centralized log-archive account logging bucket twice?
 
@@ -642,7 +642,7 @@
 
     Side note: CloudTrail S3 data plane logs are enabled at the Organizational level, meaning all S3 bucket access is logged. As CloudTrail is writing to a bucket within the Organization, CloudTrail itself is accessing the bucket, seemingly creating a cyclical loop. As CloudTrail writes to S3 in 5-10min batches, CloudTrail will actually only cause one extra log 'entry' every 5-10minutes and not per s3 event, mitigating major concerns. Today, with an Organization trail logging data plane events for all buckets - there is no way to exclude any one bucket. But - having clear view of who accessed/changed logs, including AWS services, is important.
 
-??? faq "I need a Route53 Private Hosted Zone in my workload account. How shall I proceed?"
+??? faq "1.6.13. I need a Route53 Private Hosted Zone in my workload account. How shall I proceed?"
 
     #### I need a Route53 Private Hosted Zone in my workload account. How shall I proceed?
 
@@ -772,7 +772,7 @@
 
     and rerun the State Machine.
 
-??? faq "How do I create a role which has read access to the log-archive bucket to enabling log forwarding to my favorite SIEM solution?"
+??? faq "1.6.14. How do I create a role which has read access to the log-archive bucket to enabling log forwarding to my favorite SIEM solution?"
 
     #### How do I create a role which has read access to the log-archive bucket to enabling log forwarding to my favorite SIEM solution?
 
@@ -796,7 +796,7 @@
     }
     ```
 
-??? faq "How do I create a role for use by Azure Sentinel using the new S3 Connector method?"
+??? faq "1.6.15. How do I create a role for use by Azure Sentinel using the new S3 Connector method?"
 
     #### How do I create a role for use by Azure Sentinel using the new S3 Connector method?
 
@@ -849,7 +849,7 @@
     - The value of `sts:ExternalId`, shown as `{CUSTOMER-VALUE-HERE}` above, must be replaced with the ID of the Log Analytics Workspace in your Azure tenant.
     - This information is based on the requirements published [here](https://docs.microsoft.com/en-us/azure/sentinel/connect-aws?tabs=s3#create-an-aws-assumed-role-and-grant-access-to-the-aws-sentinel-account) as of 2022-03-10.
 
-??? faq "Does the ASEA include a full SIEM solution?"
+??? faq "1.6.16. Does the ASEA include a full SIEM solution?"
 
     #### Does the ASEA include a full SIEM solution?
 
@@ -875,7 +875,7 @@
 
 ## 1.7. Network Architecture
 
-??? faq "We want to securely connect our on-premises networks/datacenters to our AWS Cloud PBMM tenancy, what does AWS you recommend?"
+??? faq "1.7.1. We want to securely connect our on-premises networks/datacenters to our AWS Cloud PBMM tenancy, what does AWS you recommend?"
 
     #### We want to securely connect our on-premises networks/datacenters to our AWS Cloud PBMM tenancy, what does AWS you recommend?
 
@@ -893,7 +893,7 @@
 
     (This guidance will be updated once MACSEC is broadly available across AWS transit centers)
 
-??? faq "Does this configuration violate PBMM / ITSG-22/38/33 principals?"
+??? faq "1.7.2. Does this configuration violate PBMM / ITSG-22/38/33 principals?"
 
     #### Does this configuration violate PBMM / ITSG-22/38/33 principals?
 
@@ -901,13 +901,13 @@
 
     Additionally, it should be noted that workloads in all the AWS accounts are fully protected using AWS Security Groups (stateful firewalls) wrapped around each and every instance comprising a workload.
 
-??? faq "Why do you NOT recommend using a VGW on the perimeter VPC?"
+??? faq "1.7.3. Why do you NOT recommend using a VGW on the perimeter VPC?"
 
     #### Why do you NOT recommend using a VGW on the perimeter VPC?
 
     The VGW solution was not designed to support an enterprise cloud environment – it was designed to provide single VPC connectivity. The VGW solution offers lower availability than other options as it relies on VPC route tables to steer traffic, which need to be updated using custom scripts in the event the failure of an appliance or availability zone. The VGW solution is typically harder to maintain and troubleshoot. The VGW solution has limited scalability, as the VGW only supports a single active connection and does not support BGP or ECMP (i.e. supports a maximum bandwidth of 1.25Gbps). Most customers providing enterprise cloud connectivity have switch away from this approach. This approach is highly discouraged.
 
-??? faq "Why do you NOT recommend connecting directly to the 3rd party firewall cluster in the perimeter account? (not GWLB, not NFW)"
+??? faq "1.7.4. Why do you NOT recommend connecting directly to the 3rd party firewall cluster in the perimeter account? (not GWLB, not NFW)"
 
     #### Why do you NOT recommend connecting directly to the 3rd party firewall cluster in the perimeter account? (not GWLB, not NFW)
 
@@ -915,13 +915,13 @@
 
     While viable, this approach adds unneeded complexity, reduces cloud availability, is expensive to scale, and reduces bandwidth to internet facing workloads. This solution doubles the IPSec VPN tunnels using BGP w/ECMP requirements as it needs tunnels on both sides of the firewall. In this configuration each firewall appliance typically only provides a single pair of IPSec connections supporting marginally more bandwidth than the TGW VPN attachments. Adding tunnels and bandwidth requires adding firewall appliances. Stateful capabilities typically need to be disabled due to performance and asymmetric routing challenges. This typically means a very expensive device is being deployed inside AWS simply to terminate a VPN tunnel.
 
-??? faq "What if I really want to inspect this traffic inside AWS, but like the TGW architecture?"
+??? faq "1.7.5. What if I really want to inspect this traffic inside AWS, but like the TGW architecture?"
 
     #### What if I really want to inspect this traffic inside AWS, but like the TGW architecture?
 
     Customers who insist on inspecting the ground to cloud traffic inside AWS _can_ do this with the proposed TGW architecture. The TGW route tables can be adjusted to hairpin the traffic through either a dedicated Inspection VPC, or to the Perimeter account firewall cluster for inspection. The Inspection VPC option could leverage 3rd party firewalls in an autoscaling group behind a Gateway Load Balancer, or leverage AWS network firewall to inspection traffic. To maximize internet throughput, the Inspection VPC option is generally recommended. While we do not feel inspection is needed in this situation, it is possible.
 
-??? faq "What does the traffic flow look like for an application running in a workload account?"
+??? faq "1.7.6. What does the traffic flow look like for an application running in a workload account?"
 
     #### What does the traffic flow look like for an application running in a workload account?
 
@@ -929,7 +929,7 @@
 
     AWS Web Application Firewall (WAF) should be enabled on both front-end and back-end ALB's. The Front-end WAF would contain rate limiting, scaling and generic rules. The back-end WAF would contain workload specific rules (i.e. SQL injection). As WAF is essentially a temporary fix for broken applications before a developer can fix the issue, these rules typically require the close involvement of the application team. Rules can be centrally managed across all WAF instances using AWS Firewall Manager from the Security account.
 
-    The front-end ALB is then configured to target the back-end ALB using the process described in the [Post Installation](../installation/install.md#post-installation) section of the installation guide, step 2 `(Configure the new alb-forwarding feature (added in v1.5.0)`. This enables configuring different DNS names and/or paths to different back-end ALB's using the ASEA's alb-forwarder. We recommend moving away from the NAT to DNS mechanism used in previous released as it was too complex, does not work with bump-in-the-wire inspection devices (NFW, GWLB), and only available on a limited number of 3rd party firewalls.
+    The front-end ALB is then configured to target the back-end ALB using the process described in the [Post Installation](../installation/install.md#17-post-installation) section of the installation guide, step 2 `(Configure the new alb-forwarding feature (added in v1.5.0)`. This enables configuring different DNS names and/or paths to different back-end ALB's using the ASEA's alb-forwarder. We recommend moving away from the NAT to DNS mechanism used in previous released as it was too complex, does not work with bump-in-the-wire inspection devices (NFW, GWLB), and only available on a limited number of 3rd party firewalls.
 
     This implementation allows workload owners to have complete control of workloads in a local account including the ELB configuration, and allow site names and paths to be defined and setup at sub-account creation time (instead of during development) to enable publishing publicly or on-premises in a rapid agile manner.
 
@@ -937,7 +937,7 @@
 
     ![Diagram](../architectures/images/perimeter-NFW-flows.png)
 
-??? faq "How does CloudFront and API Gateway fit with the answer from question 1.7.6?"
+??? faq "1.7.7. How does CloudFront and API Gateway fit with the answer from question 1.7.6?"
 
     #### How does CloudFront and API Gateway fit with the answer from question 1.7.6?
 
