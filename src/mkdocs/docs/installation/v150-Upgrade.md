@@ -156,9 +156,10 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
             -   the script should have populated the following two DynamoDB tables: `PBMMAccel-cidr-vpc-assign` and `PBMMAccel-cidr-subnet-assign` with all your existing vpc and subnet assignments.
 
     -   if you plan to dynamically assign CIDR ranges for any new VPCs, you need to manually create the CIDR pools by adding new item(s) to the DynamoDB Table `PBMMAccel-cidr-pool`. The `PBMMAccel-cidr-pool` table stores CIDR ranges to select from for new CIDR assignments. This table works together with the other two DynamoDB tables to track, assign and maintain non-overlapping CIDR ranges based on a pool name and region.
-    <details><summary>Sample DynamoDB JSON to add an entry to the `PBMMAccel-cidr-pool` table:</summary>
 
-    ```json
+<details><summary>Sample DynamoDB JSON to add an entry to the `PBMMAccel-cidr-pool` table:</summary>
+
+```json
     {
         "id": {
             "S": "1"
@@ -173,11 +174,11 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
             "S": "main"
         }
     }
-    ```
+```
 
-        - where `id` is any unique text, `cidr` is the main cidr block from which VPC cidrs are taken. `region` is the AWS region where the pool is used. `pool` is the name of the pool
+    - where `id` is any unique text, `cidr` is the main cidr block from which VPC cidrs are taken. `region` is the AWS region where the pool is used. `pool` is the name of the pool
 
-    </details>
+</details>
 
     NOTES:
 

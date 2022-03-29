@@ -181,7 +181,7 @@ At a minimum you should consider reviewing the following config file sections an
 
 -   S3 Central Bucket
     -   `global-options/central-bucket`: "AWSDOC-EXAMPLE-BUCKET"
-    -   replace with `your-bucket-name` as referenced in the Installation Guide [S3 Creation - Step #5](./index.md#24-basic-accelerator-configuration)
+    -   replace with `your-bucket-name` as referenced in the Installation Guide [Step #5](./install.md/#basic-accelerator-configuration)
 -   Central Log Services SNS Emails
     -   `global-options/central-log-services/sns-subscription-emails`: "myemail+notifyT-xxx@example.com"
     -   update the 3 email addresses (high, medium and low) as required. Each address will receives alerts or alarms of the specified level. The same email address can be used for all three.
