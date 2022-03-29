@@ -1,6 +1,6 @@
-# AWS Secure Environment Accelerator PBMM Architecture
+# 1. AWS Secure Environment Accelerator PBMM Architecture
 
-## Overview
+## 1.1. Overview
 
 The _AWS Secure Environment PBMM Architecture_ is a comprehensive, multi-account AWS cloud architecture, initially designed for use within the Government of Canada for [PBMM workloads][pbmm]. The _AWS Secure Environment PBMM Architecture_ has been designed to address central identity and access management, governance, data security, comprehensive logging, and network design/segmentation per Canadian Centre for Cyber Security ITSG-33 specifications (a NIST 800-53 variant).
 
@@ -8,7 +8,7 @@ This document specifically does NOT talk about the tooling or mechanisms that ca
 
 It is anticipated we will offer multiple sample architectures with the AWS SEA solution, each having its own architecture document like this. As the SEA can produce hundreds of solutions, it does not make sense to repeat that content in this document.
 
-## Introduction
+## 1.2. Introduction
 
 The _AWS Secure Environment Architecture_ has been built with the following design principles:
 
@@ -19,7 +19,7 @@ The _AWS Secure Environment Architecture_ has been built with the following desi
 5. Design for high availability: the design stretches across two physical AWS Availability Zones (AZ), such that the loss of any one AZ does not impact application availability. The design can be easily extended to a third availability zone.
 6. Operate as least privilege: all principals in the accounts are intended to operate with the lowest-feasible permission set.
 
-### Purpose of Document
+### 1.2.1. Purpose of Document
 
 This document is intended to outline the technical measures that are delivered by the _AWS Secure Environment Architecture_ that make it suitable for PBMM workloads. An explicit **non-goal** of this document is to explain the delivery architecture of the [AWS Secure Environment Accelerator tool][accel_tool] itself, an open-source software project built by AWS.
 
@@ -32,7 +32,7 @@ Comprehensive details on the tool itself are available elsewhere:
 
 Except where absolutely necessary, this document will refrain from referencing the _AWS Secure Environment Accelerator tool_ further.
 
-### Overview
+### 1.2.2. Overview
 
 The central features of the _AWS Secure Environment Architecture_ are as follows:
 
@@ -45,11 +45,11 @@ The central features of the _AWS Secure Environment Architecture_ are as follows
 -   **Detective Security Controls:** Potential security threats are surfaced across the cloud environment via automatic deployment of detective security controls such as GuardDuty, AWS Config, and Security Hub.
 -   **Single-Sign-On**: AWS SSO is used to provide AD-authenticated IAM role assumption into accounts across the Organization for authorized principals.
 
-### Document Convention
+### 1.2.3. Document Convention
 
 Several conventions are used throughout this document to aid understanding.
 
-#### AWS Account Numbers
+#### 1.2.3.1. AWS Account Numbers
 
 AWS account numbers are decimal-digit pseudorandom identifiers with 12 digits (e.g. `651278770121`). This document will use the convention that an AWS Organization Management (root) account has the account ID `123456789012`, and child accounts are given by `111111111111`, `222222222222`, etc.
 
@@ -57,7 +57,7 @@ For example the following ARN would refer to a VPC subnet in the `ca-central-1` 
 
     arn:aws:ec2:ca-central-1:123456789012:subnet/subnet-024759b61fc305ea3
 
-#### JSON Annotation
+#### 1.2.3.2. JSON Annotation
 
 Throughout the document, JSON snippets may be annotated with comments (starting with `//`). The JSON language itself does not define comments as part of the specification; these must be removed prior to use in most situations, including the AWS Console and APIs.
 
@@ -75,15 +75,15 @@ For example:
 
 The above is not valid JSON without first removing the comment on the fourth line.
 
-#### IP Addresses
+#### 1.2.3.3. IP Addresses
 
 The design makes use of [RFC1918][1918] addresses (e.g. `10.1.0.0/16`) and [RFC6598][6598] (e.g. `100.96.250.0/23`) for various networks; these will be labeled accordingly. Any specific range or IP shown is purely for illustration purposes only.
 
-### Department Naming
+### 1.2.4. Department Naming
 
 This document will make no reference to specific Government of Canada departments. Where naming is required (e.g. in domain names), this document will use a placeholder name as needed; e.g. `dept.gc.ca`.
 
-### Relationship to AWS Landing Zone
+### 1.2.5. Relationship to AWS Landing Zone
 
 AWS Landing Zone is an AWS Solution designed to deploy multi-account cloud architectures for customers. The _AWS Secure Environment Architecture_ draws on design patterns from Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it. An earlier internal release of the _AWS Secure Environment Architecture_ presupposed the existence of an AWS Landing Zone in the Organization; this requirement has since been removed as of release `v1.1.0`.
 

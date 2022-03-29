@@ -1,6 +1,6 @@
-# Accelerator Sample Configurations and Customization
+# 1. Accelerator Sample Configurations and Customization
 
-## **Summary**
+## 1.1. **Summary**
 
 -   Sample config files can be found in [this](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/) folder
     -   Most of the examples reflect a medium security profile (NIST, ITSG, FEDRAMP)
@@ -9,9 +9,9 @@
 -   Config file [schema](/aws-secure-environment-accelerator/schema/en/index.html) documentation (Draft)
 -   Estimated monthly [pricing](../pricing/sample_pricing.md) for sample configurations
 
-## **Sample Configuration Files with Descriptions**
+## 1.2. **Sample Configuration Files with Descriptions**
 
-### 1. **Full configuration** ([config.example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.example.json))
+### 1.2.1. **Full configuration** ([config.example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.example.json))
 
 -   The full configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the deployed architecture solution.
 
@@ -19,7 +19,7 @@
     -   AWS Control Tower: No
     -   Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)
 
-### 2. **Lite weight configuration** files
+### 1.2.2. **Lite weight configuration** files
 
 -   Four variants with differing central ingress/egress firewalls
 
@@ -53,7 +53,7 @@
 
 -   The Accelerator allows customers to easily add or change this functionality in future, as and when required without any impact
 
-### 3. **Ultra-Lite sample configuration**
+### 1.2.3. **Ultra-Lite sample configuration**
 
 -   _Variant 1:_ ([config.ultralite-CT-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.ultralite-CT-example.json))
     -   AWS Control Tower: Yes
@@ -72,7 +72,7 @@
     -   only deploys 2 AWS config rules w/SSM remediation
     -   renamed log-archive (Logs), security (Audit) and operations (Ops) account names
 
-### 4. **Multi-Region sample configuration** ([config.multi-region-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.multi-region-example.json))
+### 1.2.4. **Multi-Region sample configuration** ([config.multi-region-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.multi-region-example.json))
 
 -   This configuration file was created to represent a more advanced multi-region version of the Full configuration file from configuration 1 above. This config:
 
@@ -92,7 +92,7 @@
     -   AWS Control Tower: No
     -   Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)
 
-### 5. **Test configuration** ([config.test-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.test-example.json)) **(Use for testing or Low Security Profiles)**
+### 1.2.5. **Test configuration** ([config.test-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.test-example.json)) **(Use for testing or Low Security Profiles)**
 
 -   Further reduces solution costs, while demonstrating full solution functionality (NOT recommendend for production). This config file:
 
@@ -112,23 +112,23 @@
     -   AWS Control Tower: No
     -   Firewall: AWS Network Firewall
 
-## **Deployment Customizations**
+## 1.3. **Deployment Customizations**
 
-### [Multi-file config file and YAML formatting option](./multi-file-config-capabilities.md)
+### 1.3.1. [Multi-file config file and YAML formatting option](./multi-file-config-capabilities.md)
 
 -   The sample configuration files are provided as single, all encompassing, json files. The Accelerator also supports both splitting the config file into multiple component files and configuration files built using YAML instead of json. Details can be found in the linked document.
 
-### [Sample Snippets](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md)
+### 1.3.2. [Sample Snippets](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md)
 
 -   The sample configuration files do not include the full range of supported configuration file parameters and values, additional configuration file parameters and values can be found in the sample snippets document.
 
-### Third Party Firewall example configs
+### 1.3.3. Third Party Firewall example configs
 
 -   The Accelerator is provided with a sample 3rd party configuration file to demonstrate automated deployment of 3rd party firewall technologies. Given the code is vendor agnostic, this process should be able to be leveraged to deploy other vendors firewall appliances. When and if other options become available, we will add them here as well.
     -   Automated [firewall configuration customization](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/firewall_file_available_variables.md) possibilities
     -   Sample Fortinet Fortigate firewall config [file](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Third-Party)
 
-## Other Configuration File Hints and Tips
+## 1.4. Other Configuration File Hints and Tips
 
 -   It is critical that all accounts that are leveraged by other accounts (i.e. accounts that any workload accounts are dependant on), are included in the mandatory-accounts section of the config file (i.e. shared-network, log-archive, operations)
 -   Account pointers within the config file point to the account key (i.e. (`mandatory-account-configs\account-key`) and NOT the account name field (`mandatory-account-configs\account-key\account-name: "account name"`). This allows for easy account names, duplicate account names, and no requirement to update account pointers during account renames.
@@ -159,7 +159,7 @@
 -   If you update the 3rd party firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the management port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
 -   Removing the AWS NFW requires 2 state machine executions, in the first you must remove all routes that reference the NFW, and in the second you can remove or xx out the NFW (also true for the GWLB implementation ).
 
-## Config file and Deployment Protections
+## 1.5. Config file and Deployment Protections
 
 -   The config file is moved to AWS CodeCommit after the first execution of the state machine to provide strong configuration history, versioning and change control
 -   After each successful state machine execution, we record the commit id of the config file used for that execution in secrets manager
@@ -173,11 +173,11 @@
     -   If a customer is purposefully making extensive changes across the config file and wants to simply override all checks with a single override flag, we also have this option, but discourage it use.
     -   The various override flags and their format can be found in [here](./sm_inputs.md).
 
-## Summary of Example Config File Minimum Changes for New Installs
+## 1.6. Summary of Example Config File Minimum Changes for New Installs
 
 At a minimum you should consider reviewing the following config file sections and make the required changes.
 
-### Global Options
+### 1.6.1. Global Options
 
 -   S3 Central Bucket
     -   `global-options/central-bucket`: "AWSDOC-EXAMPLE-BUCKET"
@@ -195,7 +195,7 @@ At a minimum you should consider reviewing the following config file sections an
     -   `global-options/cidr-pools/3/cidr`: "10.249.1.0/24"
         -   A non-routable pool of addresses used to dynamically assign CIDR ranges for the Active Directory Connector subnets in the Organization Management/root account
 
-### Mandatory Account Configs
+### 1.6.2. Mandatory Account Configs
 
 -   All mandatory accounts specific to your config file, that are present under the `mandatory-account-config` section require you to assign a unique email address for each account listed below. Replace the email values in the JSON config file for these accounts with unique email addresses.
     -   `mandatory-account-configs/shared-network/email`: "myemail+aseaT-network@example.com---------------------REPLACE------------"
@@ -250,7 +250,7 @@ At a minimum you should consider reviewing the following config file sections an
     -   `mandatory-account-configs/management/iam/users`
         -   the names of your break-glass and ASEA operation users
 
-### Workload Account Configs
+### 1.6.3. Workload Account Configs
 
 -   As mentioned in the Installation Guide, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts back into the config file and rerun the state machine.
 
@@ -261,7 +261,7 @@ At a minimum you should consider reviewing the following config file sections an
     -   Modify `mydevacct1/description`: "This is an OPTIONAL SAMPLE workload account..." with a description relevant to your account
     -   Modify `mydevacct1/ou`: "Dev" with the OU that you would like the account to be attached to
 
-### Organization Units
+### 1.6.4. Organization Units
 
 -   For all organization units, update the budget alerts email addresses:
     -   `organizational-units/core/default-budgets/alerts/emails`: "myemail+aseaT-budg@example.com"

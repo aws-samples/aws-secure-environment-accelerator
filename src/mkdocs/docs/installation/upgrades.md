@@ -1,6 +1,6 @@
-# Accelerator Upgrade Guide
+# 1. Accelerator Upgrade Guide
 
-## General Upgrade Considerations
+## 1.1. General Upgrade Considerations
 
 -   Due to some breaking dependency issues, customers can only upgrade to v1.3.8 or above (older releases continue to function, but cannot be installed).
 -   While an upgrade path is planned, customers with a standalone Accelerator installation can upgrade to v1.5.x but need to continue with a standalone installation until the Control Tower upgrade option becomes available.
@@ -15,7 +15,7 @@
     -   if customers don't take action, we continue to utilize the deployed customized files (without the latest updates)
 -   The below release specific considerations need to be cumulatively applied (an upgrade from v1.2.3 to v1.2.5 requires you to follow both v1.2.4 and v1.2.5 considerations)
 
-## **Release Specific Upgrade Considerations:**
+## 1.2. **Release Specific Upgrade Considerations:**
 
 -   Upgrades to `v1.5.1-a` from `v1.5.0` or `v1.5.1`:
     -   Do not add the parameter: `"ssm-inventory-collection": true` to OUs or accounts which already have SSM Inventory configured or the state machine will fail
@@ -40,7 +40,7 @@
 -   Upgrades from `v1.3.0 and below`:
     -   Please review the `Release Specific Upgrade Considerations` from ASEA v1.5.0 or below, they were removed from this release.
 
-## Summary of Upgrade Steps (all versions except [v1.5.0](./v150-Upgrade.md))
+## 1.3. Summary of Upgrade Steps (all versions except [v1.5.0](./v150-Upgrade.md))
 
 1. Login to your Organization Management (root) AWS account with administrative privileges
 2. Either:

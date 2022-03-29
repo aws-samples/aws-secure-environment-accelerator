@@ -1,8 +1,8 @@
-# Best Practices
+# 1. Best Practices
 
-## TypeScript and NodeJS
+## 1.1. TypeScript and NodeJS
 
-### Handle Unhandled Promises
+### 1.1.1. Handle Unhandled Promises
 
 Entry point TypeScript files -- files that start execution instead of just defining methods and classes -- should have the following code snippet at the start of the file.
 
@@ -15,9 +15,9 @@ process.on('unhandledRejection', (reason, _) => {
 
 This prevents unhandled promise rejection errors by NodeJS. Please read <https://medium.com/dailyjs/how-to-prevent-your-node-js-process-from-crashing-5d40247b8ab2> for more information.
 
-## CloudFormation
+## 1.2. CloudFormation
 
-### Cross-Account/Region References
+### 1.2.1. Cross-Account/Region References
 
 When managing multiple AWS accounts, the Accelerator may need permissions to modify resources in the managed accounts. For example, a transit gateway could be created in a shared network account and it need to be shared to the perimeter account to create a VPN connection.
 
@@ -32,7 +32,7 @@ In a multi-account environment this is not possible and we had to find a way to 
 
 See [Passing Outputs Between Phases](#passing-outputs-between-phases).
 
-### Resource Names and Logical IDs
+### 1.2.2. Resource Names and Logical IDs
 
 Some resources, like `AWS::S3::Bucket`, can have an explicit name. Setting an explicit name can introduce some possible issues.
 
@@ -52,13 +52,13 @@ The best way to prevent this issue from happening is to not explicitly set a nam
 
 Another issue could occur when changing the logical ID of the named resource. This is documented in the following section.
 
-### Changing Logical IDs
+### 1.2.3. Changing Logical IDs
 
 When changing the logical ID of a resource CloudFormation assumes the resource is a new resource since it has a logical ID it does not know yet. When updating a stack, CloudFormation will always prioritize resource creation before deletion.
 
 The following issue could occur when the resource has an explicit name. CloudFormation will try to create the resource anew and will fail since a resource with the given name already exists. Example of resources where this could happen are `AWS::S3::Bucket`, `AWS::SecretManager::Secret`.
 
-### Changing (Immutable) Properties
+### 1.2.4. Changing (Immutable) Properties
 
 Not only changing logical IDs could cause CloudFormation to replace resources. Changing immutable properties also cause replacement of resources. See [Update behaviors of stack resources](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement).
 
@@ -89,17 +89,17 @@ export class LaunchConfiguration extends autoscaling.CfnLaunchConfiguration {
 }
 ```
 
-## CDK
+## 1.3. CDK
 
 CDK makes heavy use of CloudFormation so all best practices that apply to CloudFormation also apply to CDK.
 
-### Logical IDs
+### 1.3.1. Logical IDs
 
 The logical ID of a CDK component is calculated based on its path in the construct tree. Be careful moving around constructs in the construct tree -- e.g. changing the parent of a construct or nesting a construct in another construct -- as this will change the logical ID of the construct. Then you could end up with the issues described in section [Changing Logical IDs](#changing-logical-ids) and section [Changing (Immutable) Properties](#changing-immutable-properties).
 
 See [Logical ID Stability](https://docs.aws.amazon.com/cdk/latest/guide/identifiers.html#identifiers_logical_id_stability) for more information.
 
-### Moving Resources between Nested Stacks
+### 1.3.2. Moving Resources between Nested Stacks
 
 In some cases we use nested stacks to overcome [the limit of 200 CloudFormation resources per stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html).
 
@@ -123,13 +123,13 @@ for (const endpoint of endpointConfig.endpoints) {
 
 We have to be careful here though. Suppose the configuration file contains 40 interface endpoints. The first 30 interface endpoints will be created in the first nested stack; the next 10 interface endpoints will be created in the second nested stack. Suppose now that we remove the first nested endpoint from the configuration file. This will cause the 31st interface endpoint to become the 30th interface endpoint in the list and it will cause the interface endpoint to be moved from the second nested stack to the first nested stack. This will cause the stack updates to fail since CloudFormation will first try to create the interface endpoint in the first nested stack before removing it from the second nested stack. We do currently not support changes to the interface endpoint configuration because of this behavior.
 
-### L1 vs. L2 Constructs
+### 1.3.3. L1 vs. L2 Constructs
 
 See [AWS Construct library](https://docs.aws.amazon.com/cdk/latest/guide/constructs.html#constructs_lib) for an explanation on L1 and L2 constructs.
 
 The L2 constructs for EC2 and VPC do not map well onto the Accelerator-managed resources. For this reason we mostly use L1 CDK constructs -- such as `ec2.CfnVPC`, `ec2.CfnSubnet` -- instead of using L2 CDK constructs -- such as `ec2.Vpc` and `ec2.Subnet`.
 
-### CDK Code Dependency on Lambda Function Code
+### 1.3.4. CDK Code Dependency on Lambda Function Code
 
 You can read about the distinction between CDK code and runtime code in the introduction of the [Development](#development) section.
 
@@ -197,7 +197,7 @@ You now have a CDK Lambda function that uses the compiled Lambda function runtim
 
 > _Note_: The runtime code needs to recompile every time it changes since the `prepare` script only runs when the runtime workspace is installed.
 
-### Custom Resource
+### 1.3.5. Custom Resource
 
 We create custom resources for functionality that is not supported natively by CloudFormation. We have two types of custom resources in this project:
 
@@ -243,11 +243,11 @@ class CustomResource extends cdk.Construct {
 }
 ```
 
-### Escape Hatches
+### 1.3.6. Escape Hatches
 
 Sometimes CDK does not support a property on a resource that CloudFormation does support. You can then override the property using the `addOverride` or `addPropertyOverride` methods on CDK CloudFormation resources. See [CDK escape hatches](https://docs.aws.amazon.com/cdk/latest/guide/cfn_layer.html).
 
-#### AutoScaling Group Metadata
+#### 1.3.6.1. AutoScaling Group Metadata
 
 An example where we override metadata is when we create a launch configuration.S
 
@@ -280,7 +280,7 @@ launchConfig.addOverride('Metadata.AWS::CloudFormation::Init', {
 });
 ```
 
-#### Secret `SecretValue`
+#### 1.3.6.2. Secret `SecretValue`
 
 Another example is when we want to use `secretsmanager.Secret` and set the secret value.
 

@@ -1,6 +1,6 @@
-# Existing Organizations / Accounts
+# 1. Existing Organizations / Accounts
 
-## Considerations: Importing existing AWS Accounts / Deploying Into Existing AWS Organizations
+## 1.1. Considerations: Importing existing AWS Accounts / Deploying Into Existing AWS Organizations
 
 -   The Accelerator _can_ be installed into existing AWS Organizations
     -   our early adopters have all successfully deployed into existing organizations
@@ -15,7 +15,7 @@
     -   We've tried to ensure all customer deployments are smooth. Given the breadth and depth of the AWS service offerings and the flexibility in the available deployment options, there may be scenarios that cause deployments into existing Organizations to initially fail. In these situations, simply rectify the conflict and re-run the state machine.
     -   If the Firewall Manager administrative account is already set for your organization, it needs to be unset before starting a deployment.
 
-## Process to import existing AWS accounts into an Accelerator managed Organization
+## 1.2. Process to import existing AWS accounts into an Accelerator managed Organization
 
 -   Newly invited AWS accounts in an Organization will land in the root ou
 -   Unlike newly created AWS accounts which immediately have a Deny-All SCP applied, imported accounts are not locked down as we do not want to break existing workloads (these account are already running without Accelerator guardrails)
@@ -33,7 +33,7 @@
 -   The state machine is both highly parallel and highly resilient, stopping the state machine should not have any negative impact. Importing 1 or 10 accounts generally takes about the same amount of time for the Accelerator to process, so it may be worth stopping the current execution and rerunning to capture all changes in a single execution.
 -   We have added a 2 min delay before triggering the state machine, allowing customers to make multiple changes within a short timeframe and have them all captured automatically in the same state machine execution.
 
-## Deploying the Accelerator into an existing Organization
+## 1.3. Deploying the Accelerator into an existing Organization
 
 -   As stated above, if the ALZ was previously deployed into the Organization, please work with your AWS account team to find the best mechanism to uninstall the ALZ solution
 -   Ensure all existing sub-accounts have the role name defined in `organization-admin-role` installed and set to trust the Organization Management (root) AWS Organization account

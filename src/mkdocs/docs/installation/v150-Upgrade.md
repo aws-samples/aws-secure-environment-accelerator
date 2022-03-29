@@ -1,6 +1,6 @@
-# Accelerator v1.5.x Custom Upgrade Instructions
+# 1. Accelerator v1.5.x Custom Upgrade Instructions
 
-## Overview
+## 1.1. Overview
 
 The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous Accelerator upgrades, with a couple of key differences:
 
@@ -17,7 +17,7 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
     -   you can change your IP address mechanism for any vpc at any time
     -   customers can mix and match IP address management mechanisms as they choose (`provided`, `lookup`, and `dynamic`)
 
-## Upgrade Caveats
+## 1.2. Upgrade Caveats
 
 1. **While an upgrade path is planned, customers with a Standalone Accelerator installation can upgrade to v1.5.x but need to continue with a Standalone installation until the Control Tower upgrade option becomes available.**
 
@@ -35,7 +35,7 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
 3. Config files which are significantly different than the example config files may not be properly converted. This includes config files which use different mandatory account keys or renamed the core OU.
 4. This guide and its examples assume the existing accelerator deployment uses the `PBMMAccel-` accelerator prefix, if a different prefix is used on the existing installation, it is important it is specified when execution section 1.6 below.
 
-## Config File Conversion
+## 1.3. Config File Conversion
 
 -   You must first upgrade to Accelerator v1.3.8 or v1.3.9
 -   Login to your AWS Organization Management account
@@ -73,7 +73,7 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
         -   this frees the fourth SCP for use by Control Tower, or for use by customers for custom guardrails (Standalone installs only). As Control Tower leverages 2 SCP files on the Security OU, we have moved some of our SCP's to the account level (Control Tower installations only).
     -   The script and upgrade instructions above do not include the new config file parameters added in v1.5.1+. These new parameters can be added either during or after the upgrade. New parameters include: `"rdgw-enforce-imdsv2": true`, `"rsyslog-enforce-imdsv2": true`, `"ssm-inventory-collection": true` on each ou, and `"dynamic-s3-log-partitioning": [{values}]`
 
-## Upgrade process
+## 1.4. Upgrade process
 
 -   Before proceeding with your upgrade please review the General Upgrade Considerations in this [section](./upgrades.md#general-upgrade-considerations) of the Upgrade guide
     -   upgrades directly from v1.3.8 need to ensure they include the extra step required for v1.3.9 upgrades (removal of endpoints with periods)
@@ -100,7 +100,7 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
     -   Select the `PBMMAccel-PolicyChanges_rule`, select `actions`, select `Enable`
 -   Follow the Standard Upgrade instructions from the section `Summary of Upgrade Steps (all versions)` of the Installation and Upgrade guide, repeated verbatim below for ease of reference
 
-## "Summary of Upgrade Steps (all versions)" **_(Copied from upgrade guide)_**
+## 1.5. "Summary of Upgrade Steps (all versions)" **_(Copied from upgrade guide)_**
 
 1. Login to your Organization Management (root) AWS account with administrative privileges
 2. Either:
@@ -133,7 +133,7 @@ The upgrade from v1.3.8/v1.3.9 to v1.5.x is generally the same as any previous A
         - Wait for the CloudFormation stack to update (`Update_Complete` status) (Requires manual refresh)
     - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
-## Post Upgrade Follow-up Tasks for v1.5.x Upgrade
+## 1.6. Post Upgrade Follow-up Tasks for v1.5.x Upgrade
 
 -   Once the State Machine finishes in AWS Organizations, delete the `PBMMAccel-Guardrails-Part-2` SCP, as we do not remove policies from Organizations given they could be used by customers for other purposes.
 -   Optionally, populate DynamoDB with your allocated CIDR ranges:

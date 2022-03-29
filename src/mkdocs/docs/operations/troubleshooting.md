@@ -1,12 +1,12 @@
-# Troubleshooting
+# 1. Troubleshooting
 
-## Overview
+## 1.1. Overview
 
 Issues could occur in different parts of the Accelerator. We'll guide you through troubleshooting these issues in this section.
 
-## Components
+## 1.2. Components
 
-### State Machine
+### 1.2.1. State Machine
 
 Viewing the step function `Graph inspector` (depicted above in 2.2), the majority of the main state machine has a large colored box around which is the functionality to catch state machine failures `Main Try Catch block to Notify users`. This large outer box will be blue while the state machine is still executing, it will be green upon a successful state machine execution and will turn orange/yellow on a state machine failure.
 
@@ -46,7 +46,7 @@ In case the failed step started the CodeBuild state machine, `ASEA-CodeBuild_sm`
 
 In the image above the execution of CodeBuild project `ASEA-DeployPrebuilt` with ID `ASEA-DeployPrebuilt:717584a9-c406-4569-9cc2-0d23e9ff9ef0` failed. See the [CodeBuild](#codebuild) section to troubleshoot.
 
-### CodeBuild
+### 1.2.2. CodeBuild
 
 The Accelerator deploys and leverages two CodeBuild projects. The `ASEA-InstallerProject_pl` project is used by the Code Pipeline/Installer stack and `ASEA-DeployPrebuilt` which is used throughout the Accelerator state machine. Both are similar in that they use CDK to deploy stacks. The installer project will not exist, if the installer has been removed.
 
@@ -74,7 +74,7 @@ If the error message is not clear, or the error occurred in a nested stack, then
 
 ![CodeBuild Execution Nested Stack Failure](img/codebuild-build-failure-nested-stack.png)
 
-### CloudFormation
+### 1.2.3. CloudFormation
 
 In case you want to troubleshoot errors that occurred in CloudFormation, the best way is to look in the CloudFormation stack's events. This requires you to assume a role into the relevant sub-account, and to locate the relevant failed, rolled-back, or deleted stack. Unfortunately, we are unable to log the region of the error message, so depending on what's being deployed, you may need to search all 16 regions for the failed stack.
 
@@ -86,7 +86,7 @@ When a native resource fails to create or update there are no additional logs av
 
 Often the stack failure occurrs in a managed account instead of the root account. See [Switch To a Managed Account](#switch-to-a-managed-account) to switch to the CloudFormation console in the managed account.
 
-### Custom Resource
+### 1.2.4. Custom Resource
 
 Custom resources are backed by a Lambda function that implements the creation, modification or deletion or the resource. Every Lambda function has a CloudWatch log group that contains logs about the custom resource creation. To troubleshoot errors in custom resource, you need to check the custom resource's log group.
 
@@ -99,7 +99,7 @@ Example custom resource log group names:
 /aws/lambda/ASEA-Operations-Phas-CustomGetDetectorIdLambd-HEM07DR0DOOJ
 ```
 
-### CloudWatch
+### 1.2.5. CloudWatch
 
 When you arrived in CloudWatch logs by clicking on the state machine's step `CloudWatch Logs` link you will immediately see the list of log streams. Every log stream represents an instance of the Lambda function.
 
@@ -114,22 +114,22 @@ fields @timestamp, @message
 | limit 100
 ```
 
-### CodePipeline
+### 1.2.6. CodePipeline
 
 -   "Internal Failure" incorrect Github token, repo or branch
 
-## Examples
+## 1.3. Examples
 
 Lets walk through a couple of example:
 
-### Example 1
+### 1.3.1. Example 1
 
 State Machine failed (Lambda), click on the grey box, then click on the Resource object:
 ![Debug 1](img/debug1.png)
 Click on the red failed box, click on `Step Input`. The error is clearly indicated, we could not delete a Default VPC because the default VPC had dependencies, in a specified account and region. In this case several dependencies exist and need to be cleaned up to proceed (EIP's and something less obvious like security groups).
 ![Debug 2](img/debug2.png)
 
-### Example 2
+### 1.3.2. Example 2
 
 In the next example the state machine failed (sub-state machine) on the create accounts step. In this case rather than clicking on the `Graph inspector` we are going to scroll down through the `Execution event history` underneath the Graph inspector. We are going to find the FIRST failed task from the top of the list and then select the state machine from the prior task:
 ![Debug 4](img/debug4.png)
@@ -141,7 +141,7 @@ If you open the latest log stream in the opened log group (`/aws/lambda/ASEA-Ini
 
 ![Debug 7](img/debug7.png)
 
-### Example 3
+### 1.3.3. Example 3
 
 In the next example the state machine failed in one of the CodeBuild state machine steps, based on the `Resource` name of the failed step.
 ![Debug 9](img/debug9a.png)

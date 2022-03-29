@@ -1,10 +1,10 @@
-# Accelerator Basic Operation and Frequently asked Questions
+# 1. Accelerator Basic Operation and Frequently asked Questions
 
-## Operational Activities
+## 1.1. Operational Activities
 
 ??? faq "How do I add new AWS accounts to my AWS Organization?"
 
-    #### How do I add new AWS accounts to my AWS Organization?
+#### 1.1.0.1. How do I add new AWS accounts to my AWS Organization?
 
     We offer three options and all can be used in the same Accelerator deployment. All options work with AWS Control Tower, ensuring the account is both ingested into Control Tower and all Accelerator guardrails are automatically applied.
 
@@ -289,7 +289,7 @@
 
     You need to ensure that resources don’t exist in the default VPC or else the state machine won't be able to delete it. If you encounter this error, you can either delete the resources within the VPC or delete the default VPC manually and run the state machine again.
 
-## Existing Accounts/Organizations
+## 1.2. Existing Accounts/Organizations
 
 ??? faq "How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?"
 
@@ -324,7 +324,7 @@
 
     For a detailed procedure, please review this [document](../operations/operations-import-ALZAccount.md).
 
-## End User Environment
+## 1.3. End User Environment
 
 ??? faq "Is there anything my end users need to be aware of? Why do some of my end users struggle with CloudWatch Log groups errors?"
 
@@ -346,7 +346,7 @@
 
     Additionally, setting "populate-all-elbs-in-param-store": true for an account will populates all Accelerator wide ELB information into parameter store within that account. The sample PBMM configuration files set this value on the perimeter account, such that ELB information is available to configure centralized ingress capabilities.
 
-## Upgrades
+## 1.4. Upgrades
 
 ??? faq "Can I upgrade directly to the latest release, or must I perform upgrades sequentially?"
 
@@ -362,7 +362,7 @@
 
     In v1.3.0 we added protections to allow customers to verify the scope of impact of their intended changes to the configuration file. In v1.3.0 and above, the state machine does not allow changes to the config file (other than new accounts) without providing the `scope` parameter. Please refer to the [State Machine behavior and inputs Guide](../installation/sm_inputs.md) for more details.
 
-## Support Concerns
+## 1.5. Support Concerns
 
 ??? faq "The Accelerator is written in CDK and deploys CloudFormation, does this restrict the Infrastructure as Code (IaC) tools that I can use?"
 
@@ -413,7 +413,7 @@
 
     While the prescriptive sample configuration files were originally developed based on GC requirements, they were also developed following AWS Best Practices. Additionally, many security frameworks around the world have similar and overlapping security requirements (you can only do security so many ways). The provided architecture is applicable to many security compliance regimes around the world and not just the GC.
 
-## Deployed Functionality
+## 1.6. Deployed Functionality
 
 ??? faq "I wish to be in compliance with the 12 GC TBS Guardrails, what don't you cover with the provided sample architecture?"
 
@@ -873,7 +873,7 @@
 
     ![Logging](../installation/img/ASEA-Logging-Arch.png)
 
-## Network Architecture
+## 1.7. Network Architecture
 
 ??? faq "We want to securely connect our on-premises networks/datacenters to our AWS Cloud PBMM tenancy, what does AWS you recommend?"
 

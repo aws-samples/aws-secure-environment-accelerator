@@ -1,20 +1,20 @@
-# AWS Secure Environment Accelerator
+# 1. AWS Secure Environment Accelerator
 
-## **Multi-file Accelerator Config file and YAML Support Details**
+## 1.1. **Multi-file Accelerator Config file and YAML Support Details**
 
-### Customers would like the ability to specify their configuration in YAML. This facilitates
+### 1.1.1. Customers would like the ability to specify their configuration in YAML. This facilitates
 
 -   commenting out entire sections, which is unavailable in standard JSON
 -   annotating aspects of configuration (e.g. cidr: "10.100.0.0/16" # We chose this for \$reason.)
 -   aligning the Accelerator with CloudFormation, which supports JSON/YAML as input format
 
-### Customers would like the configuration file split into multiple files
+### 1.1.2. Customers would like the configuration file split into multiple files
 
 -   one file for Global options + Mandatory accounts
 -   one file per OU
 -   one file for every approx. 2000 lines of workload accounts (Code Commit diff stops working at 3000 lines, allow for adding to each file)
 
-### Benefits
+### 1.1.3. Benefits
 
 1. Easier cut/paste/comparison of OU configurations
 2. Allow CodeCommit diff functionality to function (File currently too large)
@@ -22,7 +22,7 @@
 4. Smaller scoped updates (de-risk accidentally changing the wrong section)
 5. Both a customer request and something the team thought was a good idea
 
-### Steps FOR YAML
+### 1.1.4. Steps FOR YAML
 
 -   The loadAcceleratorConfig functionality should no longer assume config.json as the config filename in the config repo and/or S3, instead it should look for config.yaml and config.json
 -   Check for the existence of config.yaml and config.json (initially in S3, but also in CodeCommit on future executions)
@@ -34,7 +34,7 @@
 -   Both JSON and YAML input files will be equally supported
 -   Only one file format is supported across all config files, either JSON or YAML, customers can NOT mix YAML and JSON file formats
 
-### Steps For File Split
+### 1.1.5. Steps For File Split
 
 -   When the `__LOAD` keyword is encountered, search relatively (from the same location as root config file) for the file, and insert into the config tree, recursively following `__LOAD` if necessary (to max depth of 2). Any file referenced in `__LOAD` must parse successfully in one of the two formats, otherwise FAIL.
 
@@ -85,7 +85,7 @@ etc
 -   Max depth of 2 means config.json can load ou/dev.json, which can load global/security-groups.json.
 -   security-groups.json CANNOT load another sub-file (unless security-groups.json was only directly loaded from config.json).
 
-### Dealing with Accelerator Automatic Config File Updates
+### 1.1.6. Dealing with Accelerator Automatic Config File Updates
 
 When customers create AWS accounts directly through AWS Organizations, the Accelerator automatically updates the config file, adding these new accounts. If a customer renames an OU we automatically update the config file. With multi-part files, how do we know what source file to update? We require two mechanisms:
 
@@ -110,7 +110,7 @@ When customers create AWS accounts directly through AWS Organizations, the Accel
         "src-filename": "accounts/my-workload-accounts.json",
     ```
 
-### Accelerator Internal Operations
+### 1.1.7. Accelerator Internal Operations
 
 -   when updating an account in the config file, we use the `"src-filename"` parameters to find and update an accounts `ou`, `ou-path`, `account-name`, and `email` parameters
 -   When creating new accounts (inserting into config file):
@@ -123,7 +123,7 @@ When customers create AWS accounts directly through AWS Organizations, the Accel
         -   update `"workloadaccounts-suffix"` to: `{"workloadaccounts-suffix"}` + `1`
         -   be careful with comma's between files (JSON sections) when appending/connecting
 
-### Example
+### 1.1.8. Example
 
 The entire main config file could be reduced to this:
 
@@ -171,7 +171,7 @@ The entire main config file could be reduced to this:
 }
 ```
 
-### Acceptance Criteria
+### 1.1.9. Acceptance Criteria
 
 -   A new customer may start an Accelerator deployment with a config.json or config.yaml, and have it deploy as expected so long as the file is semantically correct according to structure and expected keys (and of course syntactically correct in either YAML or JSON)
 -   Accelerator should continue to function as it does today

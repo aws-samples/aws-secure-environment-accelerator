@@ -1,6 +1,6 @@
-# Public Facing Workload Configuration Sample
+# 1. Public Facing Workload Configuration Sample
 
-## Overview
+## 1.1. Overview
 
 This page describes the steps needed to configure a public facing web application that is deployed within a workload AWS Account in the Secure Environment Accelerator (SEA).
 
@@ -14,9 +14,9 @@ The high-level steps are the following:
 
 The screenshots and steps in this page are specific to the Fortigate Firewalls.
 
-## Perimeter SEA AWS Account
+## 1.2. Perimeter SEA AWS Account
 
-### SSL Certificate Configuration
+### 1.2.1. SSL Certificate Configuration
 
 1. Within the Perimeter SEA AWS Account, navigate to the Certificate Manager service.
 
@@ -44,7 +44,7 @@ The screenshots and steps in this page are specific to the Fortigate Firewalls.
 
 ---
 
-### ALB Target Group Configuration
+### 1.2.2. ALB Target Group Configuration
 
 1. Navigate to the EC2 Load Balancers and view the default Application Load Balancers (ALB).
 
@@ -66,7 +66,7 @@ These are pairs of targets (one for each firewall) that direct traffic from the 
 
 ![ALB New Target Group](img/public-facing-workload-via-fortigate/Picture7.png)
 
-5. When Registering a target, pick the instance that aligns with the Availability Zone (AZ) that is being configured. Example: Firewall*az[A|B]. If creating 'Public-DevTest-SampleApp-**azA**', then choose Firewall instance 'Firewall***azA**'.
+5. When Registering a target, pick the instance that aligns with the Availability Zone (AZ) that is being configured. Example: Firewall\*az[A|B]. If creating 'Public-DevTest-SampleApp-**azA**', then choose Firewall instance 'Firewall**\*azA**'.
 
 ![ALB New Target Group Register](img/public-facing-workload-via-fortigate/Picture8.png)
 
@@ -80,7 +80,7 @@ These are pairs of targets (one for each firewall) that direct traffic from the 
 
 ---
 
-### ALB Listener Rule Configuration
+### 1.2.3. ALB Listener Rule Configuration
 
 1. Create a DNS entry for the web application that resolves to the perimeter ALB being configured. For example: webapplication.mydomain.ca resolves to 'Public-DevTest-perimeter-alb-1616856287.ca-central-1.elb.amazonaws.com'
 
@@ -114,7 +114,7 @@ These are pairs of targets (one for each firewall) that direct traffic from the 
 
 ---
 
-## Fortigate Firewall Configuration
+## 1.3. Fortigate Firewall Configuration
 
 The following configuration will be executed per Firewall instance (twice with the default SEA configuration).
 

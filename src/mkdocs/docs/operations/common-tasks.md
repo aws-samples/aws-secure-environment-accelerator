@@ -1,6 +1,6 @@
-# Common Tasks
+# 1. Common Tasks
 
-## Restart the State Machine
+## 1.1. Restart the State Machine
 
 The state machine can be stopped and restarted at any time. The Accelerator has been design to be able to rollback to a stable state, such that should the state machine be stopped or fail for any reason, subsequent state machine executions can simply proceed through the failed step without manual cleanup or issues (assuming the failure scenario has been resolved). An extensive amount of effort was placed on ensuring seamless customer recovery in failure situations. The Accelerator is idempotent - it can be run as many or as few times as desired with no negative effect. On each state machine execution, the state machine, primarily leveraging the capabilities of CDK, will evaluate the delta's between the old previously deployed configuration and the new configuration and update the environment as appropriate.
 
@@ -54,7 +54,7 @@ Providing this value allows for the forced rebuilding of the DynamoDB Outputs ta
 }
 ```
 
-## Switch To a Managed Account
+## 1.2. Switch To a Managed Account
 
 To switch from the root account to a managed account you can click on your account name in the AWS Console. Then choose `Switch Role` in the menu.
 

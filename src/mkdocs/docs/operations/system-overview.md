@@ -1,6 +1,6 @@
-# System Overview
+# 1. System Overview
 
-## Overview
+## 1.1. Overview
 
 The system can be thought of in two levels. The first level of the system consists of Accelerator stacks and resources. Let's call these the Accelerator-management resource. The second level of the system consists of stacks and resources that are deployed by the Accelerator-management resource. Let's call these the Accelerator-managed resources. The Accelerator-management resources are responsible for deploying the Accelerator-managed resources.
 
@@ -15,7 +15,7 @@ The figure below shows a zoomed-out overview of the Accelerator. The top of the 
 
 ![System Overview Diagram](img/overview.png)
 
-## Installer Stack
+## 1.2. Installer Stack
 
 The Accelerator-management `Installer` stack contains the necessary resources to deploy the Accelerator-management `Initial Setup` stack in an AWS account. This AWS account will be referred to as the 'root' account in this document.
 
@@ -61,7 +61,7 @@ If the Installer Stack was removed, it would need to be re-installed to upgrade 
 
 ![Accelerator Upgrade](img/upgrade-cfn.png)
 
-## Initial Setup Stack
+## 1.3. Initial Setup Stack
 
 The Accelerator-management `Initial Setup` stack, named `ASEA-InitialSetup`, consists of a state machine, named `ASEA-MainStateMachine_sm`, that executes various steps to create the Accelerator-managed stacks and resources in the Accelerator-managed accounts. Using a state machine, we can clearly define the deployment process and systematically control branches of execution and handle exceptions.
 
@@ -105,7 +105,7 @@ The stack additionally consists of the following resources:
 
 _Note: Most resources have a random suffix to their name. This is because we use CDK to deploy the resources. See [https://docs.aws.amazon.com/cdk/latest/guide/identifiers.html#identifiers_logical_ids]()_
 
-### Get or Create Configuration from S3
+### 1.3.1. Get or Create Configuration from S3
 
 This step calls a Lambda function that finds or creates the configuration repository. Finds the configuration file(s) in the CodeCommit repository. If the configuration file cannot be found in the repository it is copied from the customer's S3 configuration bucket. If the copy is successful then the configuration file(s) in the S3 bucket will be removed.
 
@@ -113,11 +113,11 @@ The configuration file `config.json` or `config.yaml` is parsed and validated. T
 
 ![CodeCommit](img/codecommit-repo.png)
 
-### Get Baseline from Configuration
+### 1.3.2. Get Baseline from Configuration
 
 This step calls a Lambda function that gets the `alz-baseline` of the configuration file to decide which path in the state machine will be taken.
 
-### Compare Configurations
+### 1.3.3. Compare Configurations
 
 This step calls a Lambda function that compares the previous version of the configuration file with the current version of the configuration file. The previous configuration file CodeCommit commit id is stored in the secret `accelerator/config/last-successful-commit` in AWS Secrets Manager in the root account.
 
@@ -141,7 +141,7 @@ The following configuration file changes are not allowed:
 
 It is possible to ignore certain configuration file changes. See [Restart the State Machine](#restart-the-state-machine) how to pass these options to the state machine.
 
-### Load Landing Zone Configuration
+### 1.3.4. Load Landing Zone Configuration
 
 _Executed only when using AWS Landing Zone baseline_
 
@@ -158,25 +158,25 @@ This step fails when
 -   the account type of ALZ configuration accounts can not be detected;
 -   the accounts of type `primary`', `security`, `log-archive`, `shared-services` are missing from the ALZ configuration.
 
-### Add Execution Role to Service Catalog
+### 1.3.5. Add Execution Role to Service Catalog
 
 _Executed only when using AWS Landing Zone baseline_
 
 This step calls a Lambda function that adds the state machine's IAM role to the ALZ Account Vending Machine (AVM) service catalog portfolio.
 
-### Create Landing Zone Account
+### 1.3.6. Create Landing Zone Account
 
 _Executed only when using AWS Landing Zone baseline_
 
 This step starts the `ASEA-ALZCreateAccount_sm` state machine. This state machine is responsible for creating an account using the AVM and waits for the account to be created and configured.
 
-### Organizational Unit (OU) Validation
+### 1.3.7. Organizational Unit (OU) Validation
 
 _Executed only when using AWS Organizations baseline_
 
 This step validates that the OU structure defined in the Accelerator configuration file matches the OU and account structure defined in AWS Organizations. Missing OUs are created. If any AWS Accounts or OUs have been renamed, this step updates the configuration file with the latest information. Accounts located in the incorrect top-level OU cause a state machine failure.
 
-### Load Organization Configuration
+### 1.3.8. Load Organization Configuration
 
 _Executed only when using AWS Organizations baseline_
 
@@ -190,13 +190,13 @@ This step fails when
 -   **returns accounts that have not been created**
 -   duplicates some validation functionality
 
-### Install CloudFormation Role in root
+### 1.3.9. Install CloudFormation Role in root
 
 _Executed only when using AWS Organizations baseline_
 
 This step starts the `ASEA-InstallCfnRoleMaster_sm` state machine. This state machine is responsible for creating the IAM role defined in `organization-admin-role` (default: `AWSCloudFormationStackSetAdministrationRole`) in the root account. You can read more about why this role is created [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html).
 
-### Create Organization Account
+### 1.3.10. Create Organization Account
 
 _Executed only when using AWS Organizations baseline_
 
@@ -204,29 +204,29 @@ This step starts the `ASEA-OrgCreateAccount_sm` state machine. This state machin
 
 Application of this SCP ensures that new AWS accounts cannot be used until they have been properly configured and had all Accelerator guardrails applied per the configuration file. It is important that guardrails be consistently in place from the time a user first accesses a new AWS account, until the account is decommissioned. Should the state machine fail, still be in-progress, or has not yet processed the account (for whatever reason), users who access it will be prevented from doing _anything_.
 
-### Load Organizational Units
+### 1.3.11. Load Organizational Units
 
 This step calls a Lambda function that loads all Organizational Units. The Organizational Units are stored in the DynamoDB table `ASEA-Parameters` in the root account. The Organizational Units will later be used to determine which configuration file options apply to an AWS account.
 
-### Load Accounts
+### 1.3.12. Load Accounts
 
 This step calls a Lambda function that loads all accounts. The accounts are stored in the DynamoDB table `ASEA-Parameters` in the root account. The accounts will later be used to deploy stacks in the correct accounts.
 
-### Install Execution Roles
+### 1.3.13. Install Execution Roles
 
 This step calls a Lambda function that creates stack sets in all Accelerator accounts. This stack sets contains a single resource, i.e. an IAM role `ASEA-PipelineRole` that can be assumed by the `ASEA-L-SFN-MasterRole`. This IAM role allows the root account to administer the Accelerator accounts.
 
-### Delete Default VPCs
+### 1.3.14. Delete Default VPCs
 
 This step starts the `ASEA-DeleteDefaultVpcs_sfn` state machine. This state machine is responsible for deleting default subnets, internet gateways and VPCs for all regions and accounts in the Accelerator configuration.
 
 This step fails when one or more default VPCs cannot be deleted. This step does not fail on the first error, it executes on all accounts/regions and then fails with a complete list of errors.
 
-### Load Limits
+### 1.3.15. Load Limits
 
 This step calls a Lambda function that loads service quotas and requests a service quota increase according to the configuration file. When a service quota increase request has been closed but not increased, then the service quota request will be issued again when the creation of the last request was at least two days ago.
 
-### Enable Trusted Access for Services
+### 1.3.16. Enable Trusted Access for Services
 
 This step calls a Lambda function that is responsible for
 
@@ -237,11 +237,11 @@ This step calls a Lambda function that is responsible for
 -   setting the security account as delegated administrator for AWS IAM Access Analyzer;
 -   setting the security account as delegated administrator for Amazon GuardDuty.
 
-### Store All Phase Outputs
+### 1.3.17. Store All Phase Outputs
 
 This step only executes on the first run of the state machine after it has been upgraded to v1.2.0 or above. This step exists solely to support upgrades from Accelerator versions prior to v1.2.0 and can be removed when no existing customers are running versions older than v1.2.0. This steps populates the DynamoDB Outputs table with the outputs from previous executions which were previously stored in S3 (and at one time even stored in secrets manager).
 
-### Deploy Phase -1 (Negative one)
+### 1.3.18. Deploy Phase -1 (Negative one)
 
 -   The following resources are deployed in phase -1:
     -   Creating required roles for macie custom resources
@@ -256,11 +256,11 @@ This step only executes on the first run of the state machine after it has been 
     -   Creating required roles for createLogsMetricFilter custom resource
     -   Creating required roles for SnsSubscriberLambda custom resource
 
-### Store Phase -1 Output
+### 1.3.19. Store Phase -1 Output
 
 This step calls a Lambda function that stores the outputs from the deployed stacks in sub-accounts in the DynamoDB table `ASEA-Outputs` in AWS Secrets Manager in the root account.
 
-### Deploy Phase 0
+### 1.3.20. Deploy Phase 0
 
 This step starts the `ASEA-CodeBuild_sm` state machine. This state machine is responsible for starting a CodeBuild execution that deploys CloudFormation stacks in Accelerator-managed accounts using CDK.
 
@@ -295,11 +295,11 @@ The following resources are deployed in phase 0:
 -   enable GuardDuty;
 -   enable Access Analyzer;
 
-### Store Phase 0 Output
+### 1.3.21. Store Phase 0 Output
 
 This step calls a Lambda function that stores the outputs from the deployed stacks in sub-accounts in the secret `ASEA-Outputs` in AWS Secrets Manager in the root account.
 
-### Verify Files
+### 1.3.22. Verify Files
 
 This step verifies that all required files to complete the installation have been provided by the user. If any required files have not been provided, this step will fail and provide a list of _all_ missing files.
 
@@ -313,11 +313,11 @@ Why do we wait until so late in the state machine execution to perform this task
 6. This allows customers to override the sample configs, with customer custom configs without needing to either fork the repo, or supply the files on a vanilla install
 7. Until we do this file copy, we cannot be sure that the combination of customer supplied and reference-artifact sample files provides all the required files.
 
-### Create Config Recorders
+### 1.3.23. Create Config Recorders
 
 This step starts the `ASEA-CreateConfigRecorder_sfn` state machine. This state machine is responsible for creating Config recorders in all accounts and regions.
 
-### Add SCPs to Organization
+### 1.3.24. Add SCPs to Organization
 
 This step calls a Lambda function that creates and attaches the SCPs listed in the Accelerator configuration. The SCP policies are loaded from the Accelerator configuration bucket.
 
@@ -326,7 +326,7 @@ This step fails when
 -   an SCP policy cannot be found in the Accelerator configuration bucket;
 -   an SCP could not be attached to an organizational unit or account, e.g. when the maximum number of attached SCPs is exceeded
 
-### Deploy Phase 1
+### 1.3.25. Deploy Phase 1
 
 -   Create S3 Bucket in all accounts and replicate to Log Account Bucket
 -   Deploy VPC:
@@ -354,11 +354,11 @@ This step fails when
 -   Transit Gateway Peering
 -   Create LogGroup required for DNS Logging
 
-### Store Phase 1 Output
+### 1.3.26. Store Phase 1 Output
 
 See [_Deploy Phase 0_](#deploy-phase-0).
 
-### Account Default Settings
+### 1.3.27. Account Default Settings
 
 This step calls a Lambda function that
 
@@ -368,7 +368,7 @@ This step calls a Lambda function that
 -   enables KMS encryption using the CMK from the central logging account;
 -   sets AWS Systems Manager Session Manager default configuration in every Accelerator-managed account in every region with a VPC.
 
-### Deploy Phase 2
+### 1.3.28. Deploy Phase 2
 
 -   Create CloudTrail in root account
 -   Create VPC Peering Connection
@@ -385,11 +385,11 @@ This step calls a Lambda function that
 -   Create SNS Topics in Log Account
 -   TGW Peering Attachments
 
-### Store Phase 2 Output
+### 1.3.29. Store Phase 2 Output
 
 See [_Deploy Phase 0_](#deploy-phase-0).
 
-### Deploy Phase 3
+### 1.3.30. Deploy Phase 3
 
 -   create peering connection routes;
 -   create ALB (step 1);
@@ -399,26 +399,26 @@ See [_Deploy Phase 0_](#deploy-phase-0).
 -   TransitGateway Peering attachment and routes;
 -   Macie update Session;
 
-### Store Phase 3 Output
+### 1.3.31. Store Phase 3 Output
 
 See [_Deploy Phase 0_](#deploy-phase-0).
 
-### Deploy Phase 4
+### 1.3.32. Deploy Phase 4
 
 -   SecurityHub Disable Controls
 -   Creates CloudWatch Metrics on LogGroups
 -   Associate Shared Resolver Rules to VPC
 -   Associate Hosted Zones to VPC
 
-### Store Phase 4 Output
+### 1.3.33. Store Phase 4 Output
 
 See [_Deploy Phase 0_](#deploy-phase-0).
 
-### Associate Hosted Zones (Step removed in v1.2.1)
+### 1.3.34. Associate Hosted Zones (Step removed in v1.2.1)
 
 This step calls a Lambda function that associates the private zones, all the interface endpoint zones, and the resolver rules with each VPC that leverages endpoint services. This step was removed in v1.2.1 of the Accelerator codebase.
 
-### Add Tags to Shared Resources
+### 1.3.35. Add Tags to Shared Resources
 
 This step calls a Lambda function that adds tags to shared resources in the share destination account. For example, when a subnet is shared into another account, this step will add the `Name` tag to the subnet in the shared account.
 
@@ -429,11 +429,11 @@ The supported resources are
 -   security groups;
 -   transit gateway attachments.
 
-### Enable Directory Sharing
+### 1.3.36. Enable Directory Sharing
 
 This step calls a Lambda function that shares Managed Active Directory according to the Accelerator configuration. The directory is shared from the source account to the target account. The directory will be accepted in the target account.
 
-### Deploy Phase 5
+### 1.3.37. Deploy Phase 5
 
 -   create Remote Desktop Gateway;
     -   create launch configuration;
@@ -442,17 +442,17 @@ This step calls a Lambda function that shares Managed Active Directory according
 -   Create CloudWatch Events for moveAccount, policyChanges and createAccount
 -   Creates CloudWatch Alarms
 
-### Create AD Connector
+### 1.3.38. Create AD Connector
 
 This step starts the `ASEA-DeleteDefaultVpcs_sfn` state machine. This state machine is responsible for creating AD connectors according to the Accelerator configuration.
 
 This step fails when one or more AD connectors failed to be created.
 
-### Store Commit ID
+### 1.3.39. Store Commit ID
 
 This step calls a Lambda function that stores the commit ID of the configuration file for which the state machine ran.
 
-### Detach Quarantine SCP
+### 1.3.40. Detach Quarantine SCP
 
 _Executed only when using AWS Organizations baseline_
 

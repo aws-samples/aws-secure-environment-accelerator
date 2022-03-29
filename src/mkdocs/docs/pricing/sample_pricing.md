@@ -1,6 +1,6 @@
-# Accelerator Pricing
+# 1. Accelerator Pricing
 
-## Overview
+## 1.1. Overview
 
 The AWS Secure Environment Accelerator (ASEA) is available free of charge as an open source solution on GitHub. **You are responsible for the cost of the AWS services enabled, configured, and deployed by the solution.**
 
@@ -14,7 +14,7 @@ As shown below, different configuration files can dramatically change the monthl
 
 This document is designed to assist customers in understanding the pricing associated with operating the example ASEA configuration files. For full pricing details, please refer to each services [pricing page](https://aws.amazon.com/pricing/).
 
-## Example Configuration File Pricing
+## 1.2. Example Configuration File Pricing
 
 The pricing found in this document is provided as an example only. Pricing represents reasonably steady state, minimal activity or traffic flows, and only includes sample workload accounts when they exist in the example config files.
 
@@ -22,7 +22,7 @@ Pricing is based on the ca-central-1 region, a month with 31 days (744 hours), o
 
 Any changes to the example configuration file will impact the pricing. These estimates do not include any customer workloads, workloads must be independently priced.
 
-### Pricing by Configuration file
+### 1.2.1. Pricing by Configuration file
 
 The following table provides the estimated monthly pricing based on the example configuration. Additional information on each of the example config files can be found [here](https://github.com/ColinL2021/aws-secure-environment-accelerator/blob/costs/docs/installation/customization-index.md).
 
@@ -33,7 +33,7 @@ The following table provides the estimated monthly pricing based on the example 
 | Lite                     | Same as Full Config with the following changes: 1) Reduces the FortiGate instance sizes from c5n.2xl to c5n.xl (VM08 to VM04); 2) Only deploys the 9 required centralized Interface Endpoints (removes 50). All services remain accessible using the AWS public endpoints, but require traversing the perimeter firewalls; 3) Removes the perimeter VPC Interface Endpoints; 4) Removes the Unclass ou and VPC.<br><br>Four variants of the lite configuration file are provided:<br>- AWS Control Tower w/AWS Network Firewall instead of IPSEC VPN Firewalls **(recommended starting point)**<br>- AWS Network Firewall instead of IPSEC VPN Firewalls<br>- IPSEC VPN integrated 3rd party firewalls<br>- AWS Gateway Load Balancer integrated 3rd party firewalls | $2,575 <br><br> $2,550 <br><br> $2,450<br>+FW lic.<br><br> $2475<br>+FW lic. |
 | Full                     | Large IPSEC VPN Firewalls w/Endpoints - The full configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the deployed architecture solution.                                                                                                                                                                                                                                                                                                                                    | $4,200                                                                       |
 
-### Pricing by AWS Account (All Configurations)
+### 1.2.2. Pricing by AWS Account (All Configurations)
 
 The following table provides the estimated monthly pricing per AWS account for each of the example configuration files.
 
@@ -49,7 +49,7 @@ The following table provides the estimated monthly pricing per AWS account for e
 | TheFunAccount  | This is an optional sample workload account that is created in Sandbox organizational unit. Sandbox accounts are designed for experimentation only, as they have the fewest guardrails, and provide the most cloud native experience. These accounts leverage localized networking and are fully isolated from all other organization networks, with no transit gateway connectivity and direct internet access via a local internet gateway.                                                                        | -             | -         | $70                 | $70        |
 | **TOTAL**      | **Estimated Monthly Pricing**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | **$30**       | **$1500** | **$2,450 - $2,575** | **$4,200** |
 
-### Detailed Pricing by AWS Service (Lite Config – IPSec VPN Active/Active Firewalls)
+### 1.2.3. Detailed Pricing by AWS Service (Lite Config – IPSec VPN Active/Active Firewalls)
 
 We picked a single example configuration file to provide detailed pricing per service.
 

@@ -1,10 +1,10 @@
-# How to Contribute
+# 1. How to Contribute
 
-## General
+## 1.1. General
 
 Please first refer to and comply with the Contributing and Governance document found [here](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md)
 
-## Adding New Functionality?
+## 1.2. Adding New Functionality?
 
 Before making a change or adding new functionality you have to verify what kind of functionality is being added.
 
@@ -26,11 +26,11 @@ Before making a change or adding new functionality you have to verify what kind 
         -   Is the change runtime related?
             -   Make the change in `src/deployments/runtime`
 
-## Create a CDK Lambda Function with Lambda Runtime Code
+## 1.3. Create a CDK Lambda Function with Lambda Runtime Code
 
 See [CDK Code Dependency on Lambda Function Code](#cdk-code-dependency-on-lambda-function-code) for a short introduction.
 
-## Create a Custom Resource
+## 1.4. Create a Custom Resource
 
 See [Custom Resource](#custom-resource) and [Custom Resources](#custom-resources) for a short introduction.
 
@@ -47,7 +47,7 @@ You can look at the `src/lib/custom-resources/cdk-acm-import-certificate` custom
 
 It is best practice to add tags to any resources that the custom resource creates using the `cfn-tags` library.
 
-## Run All Unit Tests
+## 1.5. Run All Unit Tests
 
 Run in the root of the project.
 
@@ -55,7 +55,7 @@ Run in the root of the project.
 pnpm recursive run test --no-bail --stream -- --silent
 ```
 
-## Accept Unit Test Snapshot Changes
+## 1.6. Accept Unit Test Snapshot Changes
 
 Run in `src/deployments/cdk`.
 
@@ -63,7 +63,7 @@ Run in `src/deployments/cdk`.
 pnpm run test -- -u
 ```
 
-## Validate Code with Prettier
+## 1.7. Validate Code with Prettier
 
 Run in the root of the project.
 
@@ -71,7 +71,7 @@ Run in the root of the project.
 pnpx prettier --check **/*.ts
 ```
 
-## Format Code with Prettier
+## 1.8. Format Code with Prettier
 
 Run in the root of the project.
 
@@ -79,7 +79,7 @@ Run in the root of the project.
 pnpx prettier --write **/*.ts
 ```
 
-## Validate Code with `tslint`
+## 1.9. Validate Code with `tslint`
 
 Run in the root of the project.
 
