@@ -1,16 +1,16 @@
-# Prescriptive Sample Architecture Diagrams
+# 1. Prescriptive Sample Architecture Diagrams
 
-## Shared VPC Architecture
+## 1.1. Shared VPC Architecture
 
 ![ASEA1 Diagram](../images/ASEA1.png)
 
 ![ASEA2 Diagram](../images/ASEA2.png)
 
-## Spoke VPC Architecture
+## 1.2. Spoke VPC Architecture
 
 ![ASEA3 Diagram](../images/ASEA-Spoke.png)
 
-## VPC and Security Group Patterns
+## 1.3. VPC and Security Group Patterns
 
 ![ASEA4 Diagram](../images/ASEA3.png)
 
@@ -18,7 +18,7 @@
 
 ![ASEA6 Diagram](../images/ASEA5.png)
 
-## Additional Perimeter Patterns
+## 1.4. Additional Perimeter Patterns
 
 ![ASEA7 Diagram](../images/perimeter-NFW.png)
 

@@ -41,8 +41,9 @@ nav:
       - How to Contribute: developer/contributing-guidelines.md
       - Release Process: developer/release-process.md
   - Sample Architecture:
-      - architectures/pbmm/index.md
+      - architectures/index.md
       - Architecture Diagrams: architectures/pbmm/diagrams.md
+      - Overview: architectures/pbmm/index.md
       - Account Structure: architectures/pbmm/accounts.md
       - Networking: architectures/pbmm/network.md
       - Authentication & Authorization: architectures/pbmm/auth.md

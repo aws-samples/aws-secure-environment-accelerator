@@ -1,8 +1,9 @@
-# Installation and Upgrades
+# 1. Accelerator Installation and Upgrades
 
 This section contains information on the installation and upgrade procedures for ASEA.
 
--   Installation:
+## 1.1. Installation
+
     -   [Installation Guide](../installation/install.md)
     -   [Releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
     -   [Sample Configurations and Customization](../installation/customization-index.md)
@@ -10,10 +11,14 @@ This section contains information on the installation and upgrade procedures for
     -   [Splitting the Config File](../installation/multi-file-config-capabilities.md)
     -   [Considerations with Existing Organizations](../installation/existing-orgs.md)
     -   [Importing ALZ Accounts](../operations/operations-import-ALZAccount.md)
--   Upgrades:
+
+## 1.2. Upgrades
+
     -   [Upgrade Guide](../installation/upgrades.md)
     -   [v1.5.0 Upgrade Instructions](../installation/v150-Upgrade.md)
--   Functionality:
+
+## 1.3. Functionality
+
     -   [Services](../installation/services-list.md)
     -   [Pricing](../pricing/sample_pricing.md)
     -   [Architecture Diagrams](../architectures/pbmm/diagrams.md)

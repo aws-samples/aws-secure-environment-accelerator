@@ -4,7 +4,7 @@
 
 ??? faq "How do I add new AWS accounts to my AWS Organization?"
 
-#### 1.1.0.1. How do I add new AWS accounts to my AWS Organization?
+    #### How do I add new AWS accounts to my AWS Organization?
 
     We offer three options and all can be used in the same Accelerator deployment. All options work with AWS Control Tower, ensuring the account is both ingested into Control Tower and all Accelerator guardrails are automatically applied.
 

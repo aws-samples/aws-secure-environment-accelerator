@@ -1,6 +1,6 @@
-# AWS Internal - Accelerator Release Process
+# 1. AWS Internal - Accelerator Release Process
 
-## Creating a new Accelerator Code Release
+## 1.1. Creating a new Accelerator Code Release
 
 1. Ensure `main` branch is in a suitable state
 2. Disable branch protection for both the `main` branch and for the `release/` branches

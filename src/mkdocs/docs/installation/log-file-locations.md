@@ -1,10 +1,10 @@
-# Accelerator Central Logging Implementation and File Structures
+# 1. Accelerator Central Logging Implementation and File Structures
 
 The following diagram details the ASEA central logging implementation:
 
 ![Logging](img/ASEA-Logging-Arch.png)
 
-## Accelerator Central Logging Buckets
+## 1.1. Accelerator Central Logging Buckets
 
 ---
 
@@ -17,7 +17,7 @@ The following diagram details the ASEA central logging implementation:
 
 ---
 
-### Notes
+### 1.1.1. Notes
 
 -   Every customer has two Accelerator logging buckets
 -   Control Tower installations have an additional two Control Tower logging buckets
@@ -29,7 +29,7 @@ The following diagram details the ASEA central logging implementation:
     -   {account} is likely to be 'log-archive'
     -   xxx is either "aes" or "" (nothing)
 
-## Accelerator Bucket Folders
+## 1.2. Accelerator Bucket Folders
 
 ---
 
@@ -51,7 +51,7 @@ The following diagram details the ASEA central logging implementation:
 
 ---
 
-### Notes
+### 1.2.1. Notes
 
 \* Located in Control Tower bucket when installed, Control Tower adds the {org-id} (i.e. o-h9ho05hcxl/) as the top level folder
 
