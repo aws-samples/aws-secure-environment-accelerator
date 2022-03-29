@@ -1,4 +1,4 @@
-# 1. **State Machine Behavior and Inputs**
+# 1. State Machine Behavior and Inputs
 
 ## 1.1. State Machine Behavior
 
@@ -40,7 +40,7 @@ Starting in v1.3.0, we recommend running the state machine with the parameters t
 
 **NOTE 2:** All comparisons for config file changes are assessed AFTER all replacements have been made. Changing variable names which result in the same end outcome do NOT appear as a change to the config file.
 
-## 1.2. **Accelerator State Machine Inputs**
+## 1.2. Accelerator State Machine Inputs
 
 ### 1.2.1. Rebuild DynamoDB table contents
 

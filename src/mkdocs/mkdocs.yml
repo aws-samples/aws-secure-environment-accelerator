@@ -55,6 +55,8 @@ nav:
   - Configuration File Schema:
       - English: /aws-secure-environment-accelerator/schema/en/index.html
   - Contributing & Governance: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md
+  - Documentation PDF: 
+      - Open PDF: /aws-secure-environment-accelerator/pdf/accelerator-docs.pdf
 
 theme:
   name: material
@@ -111,7 +113,7 @@ plugins:
       #two_columns_level: 3
       #render_js: true
       #headless_chrome_path: "chrome"
-      #output_path: ../document.pdf
+      #output_path: ../accelerator-docs.pdf
       #debug_html: true
       #verbose: true
       #show_anchors: true

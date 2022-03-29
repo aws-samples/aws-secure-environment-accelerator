@@ -1,6 +1,6 @@
 # 1. Accelerator Sample Configurations and Customization
 
-## 1.1. **Summary**
+## 1.1. Summary
 
 -   Sample config files can be found in [this](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/) folder
     -   Most of the examples reflect a medium security profile (NIST, ITSG, FEDRAMP)
@@ -9,7 +9,7 @@
 -   Config file [schema](/aws-secure-environment-accelerator/schema/en/index.html) documentation (Draft)
 -   Estimated monthly [pricing](../pricing/sample_pricing.md) for sample configurations
 
-## 1.2. **Sample Configuration Files with Descriptions**
+## 1.2. Sample Configuration Files with Descriptions
 
 ### 1.2.1. **Full configuration** ([config.example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.example.json))
 
@@ -112,7 +112,7 @@
     -   AWS Control Tower: No
     -   Firewall: AWS Network Firewall
 
-## 1.3. **Deployment Customizations**
+## 1.3. Deployment Customizations
 
 ### 1.3.1. [Multi-file config file and YAML formatting option](./multi-file-config-capabilities.md)
 
