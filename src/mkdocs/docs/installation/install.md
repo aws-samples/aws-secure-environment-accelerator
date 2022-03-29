@@ -18,7 +18,7 @@ These installation instructions assume one of the prescribed architectures is be
 -   Valid Accelerator configuration file, updated to reflect your requirements (see below)
 -   Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
 -   Government of Canada customers are still required to do a standalone installation at this time, please request standalone installation instructions from your Account SA or TAM
--   The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes [here](./existing-orgs.md/#existing-organizations-accounts)
+-   The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes [here](./existing-orgs.md#existing-organizations-accounts)
 -   Existing AWS Landing Zone Solution (ALZ) customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process.
 -   Changes to the Accelerator codebase are strongly discouraged unless they are contributed and accepted back to the solution. Code customization will block the ability to upgrade to the latest release and upgrades are encouraged to be done between quarterly to semi-annually. The solution was designed to be extremely customizable without changing code, existing customers following these guidelines have been able to upgrade across more than 50 Accelerator releases, while maintaining their customizations and gaining the latest bug fixes, features and enhancements without any developer or professional services based support. Please see [this](../faq/index.md#how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes) FAQ for more details.
 
@@ -266,7 +266,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - If deploying the Managed AD, update the dns-domain, netbios-domain, log-group-name, as well as the AD users and groups that will be created;
     - For a test deployment, the remainder of the values can be used as-is;
     - While it is generally supported, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts to the config file and rerun the state machine.
-    - More information [here](./customization-index/#summary-of-example-config-file-minimum-changes-for-new-installs) on the fields in the config file that need to be updated.
+    - More information [here](./customization-index#summary-of-example-config-file-minimum-changes-for-new-installs) on the fields in the config file that need to be updated.
 3. A successful deployment of the prescriptive architecture requires VPC access to 9 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 9 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms, logs, monitoring).
 4. When deploying to regions other than `ca-central-1`, you need to modify your config file as follows (for Canada Central 1, the AMI IDs are pre-populated for you):
     1. Update the firewall and firewall manager AMI IDs to reflect your home regions regional AMI IDs (see 2.3.3, item 13), making sure you select the right version and region per the recommendations.
@@ -336,7 +336,7 @@ If deploying to an internal AWS employee account and installing the solution wit
 14. You will receive an email from the State Machine SNS topic and the 3 SNS alerting topics. Please confirm all four (4) email subscriptions to enable receipt of state machine status and security alert messages. Until completed, you will not receive any email messages (must be completed within 7-days).
 15. If the state machine **fails**:
 
-    - Refer to the [Troubleshooting Guide](../operations/troubleshooting/#troubleshooting) for instructions on how to inspect and retrieve the error
+    - Refer to the [Troubleshooting Guide](../operations/troubleshooting#troubleshooting) for instructions on how to inspect and retrieve the error
     - You can also refer to the [FAQ](../faq/index.md) and [Known Installation Issues](#known-installation-issues)
     - Once the error is resolved, re-run the step function `ASEA-MainStateMachine_sm` using `{"scope": "FULL","mode": "APPLY"}` as input
 

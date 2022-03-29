@@ -5,8 +5,8 @@
 -   Due to some breaking dependency issues, customers can only upgrade to v1.3.8 or above (older releases continue to function, but cannot be installed).
 -   While an upgrade path is planned, customers with a standalone Accelerator installation can upgrade to v1.5.x but need to continue with a standalone installation until the Control Tower upgrade option becomes available.
 -   Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.
-    -   do NOT update to the latest firewall AMI - see the last bullet in section [Other Operational Considerations](../install.md/#other-operational-considerations) of the installation guide
-    -   do NOT update the `organization-admin-role` - see bullet 2 in section [Planning\Other](../install.md/#other)
+    -   do NOT update to the latest firewall AMI - see the last bullet in section [Other Operational Considerations](./install.md#other-operational-considerations) of the installation guide
+    -   do NOT update the `organization-admin-role` - see bullet 2 in section [Planning\Other](./install.md#other)
     -   do NOT update account-keys (i.e. existing installations cannot change the internal values to `management` from `master`)
     -   do NOT make changes outside those required for the upgrade (those stated in the release notes or found through the comparison with the sample config file(s)). Customers wishing to change existing Accelerator configuration should either do so before their upgrade, ensuring a clean/successful state machine execution, or after a successful upgrade.
 -   The Accelerator name and prefix **_CANNOT_** be changed after the initial installation
@@ -44,7 +44,7 @@
 
 1. Login to your Organization Management (root) AWS account with administrative privileges
 2. Either:
-   a) Ensure a valid Github token is stored in secrets manager [(per the installation guide)](./install.md/#create-github-personal-access-token-and-store-in-secrets-manager)
+   a) Ensure a valid Github token is stored in secrets manager [(per the installation guide)](./install.md#create-github-personal-access-token-and-store-in-secrets-manager)
    b) Ensure the latest release is in a valid branch of CodeCommit in the Organization Management account
 3. Review and implement any relevant tasks noted in the General Upgrade Considerations [section](#general-upgrade-considerations) above
 4. Update the config file in CodeCommit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
