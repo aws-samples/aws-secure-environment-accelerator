@@ -18,9 +18,9 @@ These installation instructions assume one of the prescribed architectures is be
 -   Valid Accelerator configuration file, updated to reflect your requirements (see below)
 -   Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
 -   Government of Canada customers are still required to do a standalone installation at this time, please request standalone installation instructions from your Account SA or TAM
--   The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in [section 4](#4-existing-organizations--accounts) below
+-   The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes [here](./existing-orgs.md/#existing-organizations-accounts)
 -   Existing AWS Landing Zone Solution (ALZ) customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process.
--   Changes to the Accelerator codebase are strongly discouraged unless they are contributed and accepted back to the solution. Code customization will block the ability to upgrade to the latest release and upgrades are encouraged to be done between quarterly to semi-annually. The solution was designed to be extremely customizable without changing code, existing customers following these guidelines have been able to upgrade across more than 50 Accelerator releases, while maintaining their customizations and gaining the latest bug fixes, features and enhancements without any developer or professional services based support. Please see [this](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/faq/index.md#1112-how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes) FAQ for more details.
+-   Changes to the Accelerator codebase are strongly discouraged unless they are contributed and accepted back to the solution. Code customization will block the ability to upgrade to the latest release and upgrades are encouraged to be done between quarterly to semi-annually. The solution was designed to be extremely customizable without changing code, existing customers following these guidelines have been able to upgrade across more than 50 Accelerator releases, while maintaining their customizations and gaining the latest bug fixes, features and enhancements without any developer or professional services based support. Please see [this](../faq/index.md#how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes) FAQ for more details.
 
 ## Production Deployment Planning
 
@@ -114,7 +114,7 @@ d) Customer gateway (CGW) creation, to enable connectivity to on-premises firewa
 
 -   Defined in the config file under deployments w/TGW VPN attachments (but without an AMI or VPC association)
 
-Examples of each of the firewall options have been included as variants of the Lite config file [example](./customization-index.md#sample-accelerator-configuration-files).
+Examples of each of the firewall options have been included as variants of the Lite config file [example](./customization-index.md#sample-configuration-files-with-descriptions).
 
 Note: While we only provide a single example for each 3rd party implementation today, the implementations are generic and should be usable by any 3rd party firewall vendor, assuming they support the required features and protocols. The two examples were driven by customer demand and heavy lifting by the 3rd party vendor. We look forward to additional vendors developing and contributing additional sample configurations. For new 3rd party integrations, we encourage the use of the GWLB approach.
 
@@ -257,7 +257,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - If deploying the Managed AD, update the dns-domain, netbios-domain, log-group-name, as well as the AD users and groups that will be created;
     - For a test deployment, the remainder of the values can be used as-is;
     - While it is generally supported, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts to the config file and rerun the state machine.
-    - More information [here](./customization-index.md#15-summary-of-example-config-file-minimum-changes-for-new-installs) on the fields in the config file that need to be updated.
+    - More information [here](./customization-index/#summary-of-example-config-file-minimum-changes-for-new-installs) on the fields in the config file that need to be updated.
 3. A successful deployment of the prescriptive architecture requires VPC access to 9 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 9 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms, logs, monitoring).
 4. When deploying to regions other than `ca-central-1`, you need to modify your config file as follows (for Canada Central 1, the AMI IDs are pre-populated for you):
     1. Update the firewall and firewall manager AMI IDs to reflect your home regions regional AMI IDs (see 2.3.3, item 13), making sure you select the right version and region per the recommendations.
@@ -318,7 +318,7 @@ If deploying to an internal AWS employee account and installing the solution wit
         - fix the issue with your GitHub secret created in section 2.3.2, then delete the Installer CloudFormation stack you just deployed, and restart at step 3 of this section.
 9. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
 10. **While the pipeline is running:**
-    - review the list of [Known Installation Issues](#251-known-installation-issues) in section 2.5.1 below
+    - review the list of [Known Installation Issues](#known-installation-issues) in the section below
     - review the Accelerator Basic Operation and Frequently Asked Questions [(FAQ) Document](../faq/index.md)
 11. Once the pipeline completes (~10 mins), the main state machine, named `ASEA-MainStateMachine_sm`, will start in Step Functions
 12. The state machine time is dependent on the quantity of resources being deployed. On an initial installation of a more complex sample configuration files, it takes approximately 2 hours to execute (depending on the configuration file). Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but often takes as little as 20 minutes.
@@ -327,8 +327,8 @@ If deploying to an internal AWS employee account and installing the solution wit
 14. You will receive an email from the State Machine SNS topic and the 3 SNS alerting topics. Please confirm all four (4) email subscriptions to enable receipt of state machine status and security alert messages. Until completed, you will not receive any email messages (must be completed within 7-days).
 15. If the state machine **fails**:
 
-    - Refer to the [Troubleshooting Guide](../operations/index.md#4-troubleshooting) for instructions on how to inspect and retrieve the error
-    - You can also refer to the [FAQ](../faq/index.md) and [Known Installation Issues](#251-known-installation-issues)
+    - Refer to the [Troubleshooting Guide](../operations/troubleshooting/#troubleshooting) for instructions on how to inspect and retrieve the error
+    - You can also refer to the [FAQ](../faq/index.md) and [Known Installation Issues](#known-installation-issues)
     - Once the error is resolved, re-run the step function `ASEA-MainStateMachine_sm` using `{"scope": "FULL","mode": "APPLY"}` as input
 
 16. If deploying a prescriptive architecture with 3rd party firewalls, after the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
@@ -522,3 +522,16 @@ The Accelerator installation is complete, but several manual steps remain:
     5. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
 
 9. Note: After a successful install the Control Tower `Organizational units'` dashboard will indicate `2 of 3` in the `Accounts enrolled` column for the Security OU, as it does not enable enrollment of the management account in guardrails. The Accelerator compliments Control Tower and enables guardrails in the management account which is important to high compliance customers.
+
+## Other Operational Considerations
+
+-   The Organization Management (root) account does NOT have any preventative controls to protect the integrity of the Accelerator codebase, deployed objects or guardrails. Do not delete, modify, or change anything in the Organization Management (root) account unless you are certain as to what you are doing. More specifically, do NOT delete, or change _any_ buckets in the Organization Management (root) account.
+-   While generally protected, do not delete/update/change s3 buckets with cdk-asea-, or asea- in _any_ sub-accounts.
+-   ALB automated deployments only supports Forward and not redirect rules.
+-   AWS generally discourages cross-account KMS key usage. As the Accelerator centralizes logs across an entire organization as a security best practice, this is an exception/example of a unique situation where cross-account KMS key access is required.
+-   Only 1 auto-deployed MAD in any mandatory-account is supported today.
+-   VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints.
+-   If the Organization Management (root) account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
+-   3rd party firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment), or deploy a second parallel FW cluster and de-provision the first cluster when ready.
+-   When adding more than 100 accounts to an OU which uses shared VPC's, you must _first_ increase the Quota `Participant accounts per VPC` in the shared VPC owner account (i.e. shared-network). Trapping this quota before the SM fails has been added to the backlog.
+-   The default limit for Directory Sharing is 125 accounts for an Enterprise Managed Active Directory (MAD), a quota increase needs to be manually requested through support from the account containing the MAD before this limit is reached. Standard MAD has a sharing limit of 5 accounts (and only supports a small quota increase). The MAD sharing limit is not available in the Service Quota's tools.

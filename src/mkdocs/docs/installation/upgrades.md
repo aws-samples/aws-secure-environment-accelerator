@@ -5,8 +5,8 @@
 -   Due to some breaking dependency issues, customers can only upgrade to v1.3.8 or above (older releases continue to function, but cannot be installed).
 -   While an upgrade path is planned, customers with a standalone Accelerator installation can upgrade to v1.5.x but need to continue with a standalone installation until the Control Tower upgrade option becomes available.
 -   Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.
-    -   do NOT update to the latest firewall AMI - see the the last bullet in section [5.1. Accelerator Design Constraints / Decisions](#51-accelerator-design-constraints--decisions)
-    -   do NOT update the `organization-admin-role` - see bullet 2 in section [2.2.7. Other](#226-other)
+    -   do NOT update to the latest firewall AMI - see the last bullet in section [Other Operational Considerations](./install.md/#other-operational-considerations) of the installation guide
+    -   do NOT update the `organization-admin-role` - see bullet 2 in section [Planning\Other](./install.md/#other)
     -   do NOT update account-keys (i.e. existing installations cannot change the internal values to `management` from `master`)
     -   do NOT make changes outside those required for the upgrade (those stated in the release notes or found through the comparison with the sample config file(s)). Customers wishing to change existing Accelerator configuration should either do so before their upgrade, ensuring a clean/successful state machine execution, or after a successful upgrade.
 -   The Accelerator name and prefix **_CANNOT_** be changed after the initial installation
@@ -17,11 +17,12 @@
 
 ## **Release Specific Upgrade Considerations:**
 
--   Upgrades to `v1.5.1` from `v1.5.0`:
+-   Upgrades to `v1.5.1-a` from `v1.5.0` or `v1.5.1`:
     -   Do not add the parameter: `"ssm-inventory-collection": true` to OUs or accounts which already have SSM Inventory configured or the state machine will fail
     -   Follow the standard upgrade steps detailed in section 3.2 below
--   Upgrades to `v1.5.0` and `v1.5.1` from `v1.3.8 through v1.3.9`:
-    -   We recommend upgrading directly to v1.5.1
+-   v1.5.1 was replaced by v1.5.1-a and is no longer supported for new installs or upgrades
+-   Upgrades to `v1.5.0` and `v1.5.1-a` from `v1.3.8 through v1.3.9`:
+    -   We recommend upgrading directly to v1.5.1-a
     -   Due to the size and complexity of this upgrade, we require all customers to upgrade to `v1.3.8 or above` before beginning this upgrade
     -   While v1.5.0 supports Control Tower for _NEW_ installs, existing Accelerator customers _CANNOT_ add Control Tower to their existing installations at this time (planned enhancement for 22H1)
         -   Attempts to install Control Tower on top of the Accelerator will corrupt your environment (both Control Tower and the Accelerator need minor enhancements to enable)
@@ -34,7 +35,7 @@
 
     -   Requires mandatory config file schema changes as documented in the [release notes](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
         -   These updates cause the config file change validation to fail and require running the state machine with the following input to override the validation checks on impacted fields: `{"scope": "FULL", "mode": "APPLY", "configOverrides": {"ov-ou-vpc": true, "ov-ou-subnet": true, "ov-acct-vpc": true }}`
-        -   Tightens VPC interface endpoint security group permissions and enables customization. If you use VPC interface endpoints that requires ports/protocols other than TCP/443 (such as email-smtp), you must customize your config file as described [here](/reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md)
+        -   Tightens VPC interface endpoint security group permissions and enables customization. If you use VPC interface endpoints that requires ports/protocols other than TCP/443 (such as email-smtp), you must customize your config file as described [here](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md)
 
 -   Upgrades from `v1.3.0 and below`:
     -   Please review the `Release Specific Upgrade Considerations` from ASEA v1.5.0 or below, they were removed from this release.
@@ -43,9 +44,9 @@
 
 1. Login to your Organization Management (root) AWS account with administrative privileges
 2. Either:
-   a) Ensure a valid Github token is stored in secrets manager [(section 2.3.2)](#232-create-github-personal-access-token-and-store-in-secrets-manager)
+   a) Ensure a valid Github token is stored in secrets manager [(per the installation guide)](./install.md/#create-github-personal-access-token-and-store-in-secrets-manager)
    b) Ensure the latest release is in a valid branch of CodeCommit in the Organization Management account
-3. Review and implement any relevant tasks noted in the upgrade considerations in [section 3.1](#31-considerations)
+3. Review and implement any relevant tasks noted in the General Upgrade Considerations [section](#general-upgrade-considerations) above
 4. Update the config file in CodeCommit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
     - An automated script is available to help convert config files to the new v1.5.0 format
     - Compare your running config file with the sample config file from the latest release
@@ -60,7 +61,7 @@
     - The pipeline will automatically run and trigger the upgraded state machine
 9. If you are using a pre-existing GitHub token, or installing from CodeCommit:
 
-    - Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.5.1`)
+    - Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.5.1-a`)
         - Go to AWS CloudFormation and select the stack: `ASEA-what-you-provided`
         - Select Update, select Replace current template, Select Upload a template file
         - Select Choose File and select the template you downloaded in step 6 (`AcceleratorInstallerXYZ.template.json` or `AcceleratorInstallerXXX-CodeCommit.template.json`)

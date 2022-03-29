@@ -91,24 +91,24 @@ When customers create AWS accounts directly through AWS Organizations, the Accel
 
 1. Add the following new parameters to the global-options section of the config file
 
-```
-    "workloadaccounts-param-filename": "accounts/more-accounts2.json",
-    "workloadaccounts-prefix" : "accounts/more-accounts",
-    "workloadaccounts-suffix" : 3,
-```
+    ```
+        "workloadaccounts-param-filename": "accounts/more-accounts2.json",
+        "workloadaccounts-prefix" : "accounts/more-accounts",
+        "workloadaccounts-suffix" : 3,
+    ```
 
--   filename is set to `config.json`, and prefix to `config` in a single file configuration scenario (suffix is not used)
--   While OU contents can be moved into `__LOADED` sub-files, it was decided the OU object itself must remain in the main config file
--   The above parameters:
-    -   are required to be in the main config file and cannot be `__LOAD`'ed
-    -   Must be present or SM fails
-    -   Are used to decide where to add new accounts to the config file
+    - filename is set to `config.json`, and prefix to `config` in a single file configuration scenario (suffix is not used)
+    - While OU contents can be moved into `__LOADED` sub-files, it was decided the OU object itself must remain in the main config file
+    - The above parameters:
+        - are required to be in the main config file and cannot be `__LOAD`'ed
+        - Must be present or SM fails
+        - Are used to decide where to add new accounts to the config file
 
 2. Add the following new parameter to each mandatory and workload account config
 
-```
-      "src-filename": "accounts/my-workload-accounts.json",
-```
+    ```
+        "src-filename": "accounts/my-workload-accounts.json",
+    ```
 
 ### Accelerator Internal Operations
 
