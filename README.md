@@ -6,7 +6,7 @@ While flexible, the AWS Accelerator is delivered with a sample configuration fil
 
 The installation of the provided prescriptive architecture is reasonably simple, deploying a customized architecture does require extensive understanding of the AWS platform. The sample deployment specifically helps customers meet NIST 800-53 and/or CCCS Medium Cloud Control Profile (formerly PBMM).
 
-![Diagram](./docs/operations/img/ASEA-high-level-architecture.png)
+![Diagram](./src/mkdocs/operations/img/ASEA-high-level-architecture.png)
 
 ## What specifically does the Accelerator deploy and manage?
 
