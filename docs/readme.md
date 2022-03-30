@@ -7,5 +7,5 @@ https://aws-samples.github.io/aws-secure-environment-accelerator/
 ## Why?
 
 - Improved navigation
-- Improved formating
+- Improved formatting
 - New search capabilities
