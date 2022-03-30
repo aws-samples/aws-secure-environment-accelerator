@@ -535,7 +535,7 @@ The Accelerator installation is complete, but several manual steps remain:
 ## 1.8. Other Operational Considerations
 
 -   The Organization Management (root) account does NOT have any preventative controls to protect the integrity of the Accelerator codebase, deployed objects or guardrails. Do not delete, modify, or change anything in the Organization Management (root) account unless you are certain as to what you are doing. More specifically, do NOT delete, or change _any_ buckets in the Organization Management (root) account.
--   While generally protected, do not delete/update/change s3 buckets with cdk-asea-, or asea- in _any_ sub-accounts.
+-   While generally protected, do not delete/update/change S3 buckets with cdk-asea-, or asea- in _any_ sub-accounts.
 -   ALB automated deployments only supports Forward and not redirect rules.
 -   AWS generally discourages cross-account KMS key usage. As the Accelerator centralizes logs across an entire organization as a security best practice, this is an exception/example of a unique situation where cross-account KMS key access is required.
 -   Only 1 auto-deployed MAD in any mandatory-account is supported today.

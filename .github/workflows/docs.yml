@@ -5,7 +5,7 @@ name: docs
 on:
   push:
     branches:
-      - mkdocs-0.2
+      - main
 jobs:
   deploy:
     runs-on: ubuntu-latest

@@ -121,7 +121,7 @@ PBMM Guardrails apply across the Organization. These guardrails protect key infr
 | `DenyAlarmDeletion`          | Prevents modification of any cloudwatch alarm used to alert on significant control plane events |
 | `ProtectKeyRoles`            | Prevents any IAM operation on Accelerator tool IAM roles                                        |
 | `DenySSMDel`                 | Prevents modification of any ssm resource used for Accelerator tool purposes                    |
-| `DenyLogDel`                 | Prevents the deletion of any log resource in Cloudwatch Logs                                    |
+| `DenyLogDel`                 | Prevents the deletion of any log resource in CloudWatch Logs                                    |
 | `DenyLeaveOrg`               | Prevents an account from leaving the Organization                                               |
 | `DenyLambdaDel`              | Prevents the modification of any guardrail Lambda function                                      |
 | `BlockOther`                 | Prevents miscellaneous operations; e.g. Deny `ds:DisableSso`                                    |

@@ -365,7 +365,7 @@ See [_Deploy Phase 0_](#1320-deploy-phase-0).
 This step calls a Lambda function that
 
 -   enables and sets EBS default encryption for all accounts in the Accelerator configuration;
--   enables S3 object level ALZ Cloudtrail logging;
+-   enables S3 object level ALZ CloudTrail logging;
 -   enables Log Insight events;
 -   enables KMS encryption using the CMK from the central logging account;
 -   sets AWS Systems Manager Session Manager default configuration in every Accelerator-managed account in every region with a VPC.

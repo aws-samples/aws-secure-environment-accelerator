@@ -16,7 +16,7 @@ A common misconception is that the AWS Secure Environment Accelerator only deplo
 
 Additionally, while the Accelerator is initially responsible for deploying a prescribed architecture, it more importantly allows for organizations to operate, evolve, and maintain their cloud architecture and security controls over time and as they grow, with minimal effort, often using native AWS tools. While the Accelerator helps with the deployment of technical security controls, it’s important to understand that the Accelerator is only part of your security and compliance effort.  We encourage customers to work with their AWS account team, AWS Professional Services or an AWS Partner to determine how to best meet the remainder of your compliance requirements.
 
-The Accelerator is designed to enable customers to upgrade across Accelerator versions while maintaining a customer’s specific configuration and customizations, and without the need for any coding expertise or for Professional Services. Customers have been able to seamlessly upgrade their AWS multi-account environment from the very first Accelerator beta release to the latest release (across more than 50 releases), gaining the benefits of bug fixes and enhancements while having the option to enable new features, without any loss of existing customization or functionality.
+The Accelerator is designed to enable customers to upgrade across Accelerator versions while maintaining a customer’s specific configuration and customizations, and without the need for any coding expertise or for professional services. Customers have been able to seamlessly upgrade their AWS multi-account environment from the very first Accelerator beta release to the latest release (across more than 50 releases), gaining the benefits of bug fixes and enhancements while having the option to enable new features, without any loss of existing customization or functionality.
 
 Specifically the accelerator deploys and manages the following functionality, both at initial accelerator deployment and as new accounts are created, added, or onboarded in a completely automated but customizable manner:
 
@@ -72,7 +72,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 ### 1.2.5. Cloud Security Services
 
 -   Enables and configures the following AWS services, worldwide w/central designated admin account:
-    -   Guardduty w/S3 protection
+    -   GuardDuty w/S3 protection
     -   Security Hub (Enables designated security standards, and disables individual controls)
     -   Firewall Manager
     -   CloudTrail w/Insights and S3 data plane logging

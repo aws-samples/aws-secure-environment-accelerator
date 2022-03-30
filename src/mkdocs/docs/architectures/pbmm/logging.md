@@ -28,7 +28,7 @@ Config may be [enabled at the Organization][config-org] level - this provides an
 
 _Note: At the time of writing, the Config Multi-Account Multi-Region Data Aggregation sits in the Organization Management (root) account. The \_AWS Secure Environment Architecture_ will recommend that this be situated in the security account, once that becomes easily-configurable in Organizations.\_
 
-## 1.6. Cloudwatch Logs
+## 1.6. CloudWatch Logs
 
 CloudWatch Logs is AWS' logging aggregator service, used to monitor, store, and access log files from EC2 instances, AWS CloudTrail, Route 53, and other sources. The _AWS Secure Environment Architecture_ recommends that log subscriptions are created for all log groups in all workload accounts, and streamed into S3 in the log-archive account (via Kinesis) for analysis and long-term audit purposes.
 
