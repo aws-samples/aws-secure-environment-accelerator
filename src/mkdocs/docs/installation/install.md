@@ -336,7 +336,7 @@ If deploying to an internal AWS employee account and installing the solution wit
 14. You will receive an email from the State Machine SNS topic and the 3 SNS alerting topics. Please confirm all four (4) email subscriptions to enable receipt of state machine status and security alert messages. Until completed, you will not receive any email messages (must be completed within 7-days).
 15. If the state machine **fails**:
 
-    - Refer to the [Troubleshooting Guide](../operations/troubleshooting) for instructions on how to inspect and retrieve the error
+    - Refer to the [Troubleshooting Guide](../operations/troubleshooting.md) for instructions on how to inspect and retrieve the error
     - You can also refer to the [FAQ](../faq/index.md) and [Known Installation Issues](#161-known-installation-issues)
     - Once the error is resolved, re-run the step function `ASEA-MainStateMachine_sm` using `{"scope": "FULL","mode": "APPLY"}` as input
 

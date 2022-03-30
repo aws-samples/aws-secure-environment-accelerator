@@ -149,9 +149,9 @@ The _AWS Secure Environment Architecture_ recommends that the AWS Private Market
 ![PMP](./images/pmp.png)
 
 [pbmm]: https://www.canada.ca/en/government/system/digital-government/modern-emerging-technologies/cloud-services/government-canada-security-control-profile-cloud-based-it-services.html#toc4
-[ops_guide]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/operations/index.md
-[dev_guide]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/developer/developer-guide.md
-[accel_tool]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/README.md
+[ops_guide]: https://aws-samples.github.io/aws-secure-environment-accelerator/operations/index.md
+[dev_guide]: https://aws-samples.github.io/aws-secure-environment-accelerator/developer/index.md
+[accel_tool]: https://aws-samples.github.io/aws-secure-environment-accelerator/
 [aws_org]: https://aws.amazon.com/organizations/
 [aws_scps]: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_type-auth.html#orgs_manage_policies_scp
 [aws_vpn]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html
