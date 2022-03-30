@@ -10,7 +10,7 @@ nav:
       - installation/index.md
       - Installation: 
           - Installation Guide: installation/install.md
-          - Releases: https://github.com/aws-samples/aws-secure-environment-accelerator/releases
+          - Releases (Link): https://github.com/aws-samples/aws-secure-environment-accelerator/releases
           - Sample Configurations and Customization: installation/customization-index.md
           - State Machine Behavior: installation/sm_inputs.md
           - Splitting the Config File: installation/multi-file-config-capabilities.md          
@@ -26,7 +26,7 @@ nav:
           - Key Account & Capability Overview: installation/what-we-do-where.md          
           - Centralized Logging Details: installation/log-file-locations.md          
           - Accelerator Object Naming: installation/object-naming.md
-          - Roadmap: https://github.com/aws-samples/aws-secure-environment-accelerator/projects/1
+          - Roadmap (Link): https://github.com/aws-samples/aws-secure-environment-accelerator/projects/1
   - FAQ: faq/index.md
   - Operations & Troubleshooting:
       - operations/index.md
@@ -51,9 +51,9 @@ nav:
   - Workshops:
       - workshops/index.md
       - Administrator Immersion Day: https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-administrators
-      - Application Team Immersion Day: https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-members
+      - Workload Team Immersion Day: https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-members
   - Configuration File Schema:
-      - English: /aws-secure-environment-accelerator/schema/en/index.html
+      - English (Link): /aws-secure-environment-accelerator/schema/en/index.html
   - Contributing & Governance: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md
   - Documentation PDF: 
       - Open PDF: /aws-secure-environment-accelerator/pdf/accelerator-docs.pdf
