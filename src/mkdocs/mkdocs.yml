@@ -1,0 +1,120 @@
+site_name: AWS Secure Environment Accelerator
+site_url: https://aws-samples.github.io/aws-secure-environment-accelerator/
+site_author: Amazon Web Services
+site_description: Documentation for the AWS Secure Environment Accelerator
+site_dir: ../../docs
+
+nav:
+  - About: index.md
+  - Installation & Upgrades:
+      - installation/index.md
+      - Installation: 
+          - Installation Guide: installation/install.md
+          - Releases (Link): https://github.com/aws-samples/aws-secure-environment-accelerator/releases
+          - Sample Configurations and Customization: installation/customization-index.md
+          - State Machine Behavior: installation/sm_inputs.md
+          - Splitting the Config File: installation/multi-file-config-capabilities.md          
+          - Considerations with Existing Organizations: installation/existing-orgs.md
+          - Importing ALZ Accounts: operations/operations-import-ALZAccount.md
+      - Upgrades: 
+          - Upgrade Guide: installation/upgrades.md
+          - v1.5.0 Upgrade Instructions: installation/v150-Upgrade.md
+      - Functionality:
+          - Services: installation/services-list.md
+          - Pricing: pricing/sample_pricing.md
+          - Architecture Diagrams: architectures/pbmm/diagrams.md
+          - Key Account & Capability Overview: installation/what-we-do-where.md          
+          - Centralized Logging Details: installation/log-file-locations.md          
+          - Accelerator Object Naming: installation/object-naming.md
+          - Roadmap (Link): https://github.com/aws-samples/aws-secure-environment-accelerator/projects/1
+  - FAQ: faq/index.md
+  - Operations & Troubleshooting:
+      - operations/index.md
+      - System Overview: operations/system-overview.md
+      - Troubleshooting: operations/troubleshooting.md
+      - Common Tasks: operations/common-tasks.md
+  - Developer Guide:
+      - developer/index.md
+      - Development Guide: developer/development.md
+      - Tech Stack: developer/tech-stack.md
+      - Best Practices: developer/best-practices.md
+      - How to Contribute: developer/contributing-guidelines.md
+      - Release Process: developer/release-process.md
+  - Sample Architecture:
+      - architectures/index.md
+      - Architecture Diagrams: architectures/pbmm/diagrams.md
+      - Overview: architectures/pbmm/index.md
+      - Account Structure: architectures/pbmm/accounts.md
+      - Networking: architectures/pbmm/network.md
+      - Authentication & Authorization: architectures/pbmm/auth.md
+      - Logging and Monitoring: architectures/pbmm/logging.md
+  - Workshops:
+      - workshops/index.md
+      - Administrator Immersion Day: https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-administrators
+      - Workload Team Immersion Day: https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-members
+  - Configuration File Schema:
+      - English (Link): /aws-secure-environment-accelerator/schema/en/index.html
+  - Contributing & Governance: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md
+  - Documentation PDF: 
+      - Open PDF: /aws-secure-environment-accelerator/pdf/accelerator-docs.pdf
+
+theme:
+  name: material
+  highlightjs: true
+  hljs_languages:
+    - yaml
+  features:
+    - navigation.tracking
+    - navigation.instant
+    - navigation.indexes
+    - navigation.top
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  generator: false
+
+extra_css:
+  - css/pdf-print.css
+  - css/extras.css
+
+markdown_extensions:
+  - toc:
+      toc_depth: 3
+      permalink: "(link)"
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - abbr
+  - attr_list
+  - def_list
+  - footnotes
+
+repo_url: https://github.com/aws-samples/aws-secure-environment-accelerator
+repo_name: aws-samples/asea
+
+plugins:
+  - search
+  - with-pdf:
+      #cover_title:
+      author: Amazon Web Services
+      cover_subtitle: Amazon Web Services
+      #cover_logo: assets/images/banner.png
+      #back_cover: true
+      toc_level: 3
+      #excludes_children:
+      #  - 'releases/changelog/:upgrading'
+      #convert_iframe:
+      #  - src: https://streamable.com/e/zmtb00
+      #   img: https://cdn-cf-east.streamable.com/image/zmtb00-screenshot75403.jpg
+      #two_columns_level: 3
+      #render_js: true
+      #headless_chrome_path: "chrome"
+      output_path: pdf/accelerator-docs.pdf
+      #debug_html: true
+      #verbose: true
+      #show_anchors: true
+      #enabled_if_env: ENABLE_PDF_EXPORT

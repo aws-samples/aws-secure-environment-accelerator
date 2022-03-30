@@ -1,0 +1,252 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>SecurityGroupSourceConfig9 | AWS SEA Config Docs</title>
+	<meta name="description" content="Documentation for AWS SEA Config Docs">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="../assets/css/main.css">
+	<script async src="../assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json"
+				data-base="..">
+				<div class="field">
+					<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+					<input id="tsd-search-field" type="text" />
+				</div>
+				<ul class="results">
+					<li class="state loading">Preparing search index...</li>
+					<li class="state failure">The search index is not available</li>
+				</ul>
+				<ul class="results-priority" style="display:none">
+				</ul>
+				<a href="../index.html" class="title">Accelerator config file documentation</a>
+			</div>
+			<div class="table-cell" id="tsd-widgets">
+				<div id="tsd-filter">
+					<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+					<div class="tsd-filter-group">
+						<div class="tsd-select" id="tsd-filter-visibility">
+							<span class="tsd-select-label">All</span>
+							<ul class="tsd-select-list">
+								<li data-value="public">Public</li>
+								<li data-value="protected">Public/Protected</li>
+								<li data-value="private" class="selected">All</li>
+							</ul>
+						</div>
+						<div class="tsd-select" id="tsd-language-filter">
+							<span id="selected-language" class="tsd-select-label"
+							data-language="en">English</span>
+							<ul class="tsd-select-list" id="tsd-language-select-list">
+								<li data-value="en">English</li>
+								<li data-value="fr">Français</li>
+							</ul>
+						</div>
+						<input type="checkbox" id="tsd-filter-inherited" checked />
+						<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+						<input type="checkbox" id="tsd-filter-externals" checked />
+						<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						<input type="checkbox" id="tsd-filter-only-exported" />
+						<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+					</div>
+				</div>
+				<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+			</div>
+		</div>
+	</div>
+	</div>
+	<div class="tsd-page-title custom-breadcrumb">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="../modules.html" class="main-breadcrumb">AWS SEA Config Docs</a>
+				</li>
+				<li>
+					<a href="SecurityGroupSourceConfig9.html">SecurityGroupSourceConfig9</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="tsd-page-title disclaimer-wrapper">
+		<div class="container disclaimer">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+				<title>Warning</title>
+				<path
+				d="M85.57 446.25h340.86a32 32 0 0028.17-47.17L284.18 82.58c-12.09-22.44-44.27-22.44-56.36 0L57.4 399.08a32 32 0 0028.17 47.17z"
+				fill="none" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" />
+				<path d="M250.26 195.39l5.74 122 5.73-121.95a5.74 5.74 0 00-5.79-6h0a5.74 5.74 0 00-5.68 5.95z"
+				fill="none" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" />
+				<path fill="black" d="M256 397.25a20 20 0 1120-20 20 20 0 01-20 20z" />
+			</svg>
+			<h5>
+				The configuration file schema documentation is a work in progress. Please use this <b>draft</b> document with caution.  The deeper you browse into the hierarchy, the less accurate the definitions are likely to be.
+			</h5>
+		</div>
+	</div>
+</header>
+<style>
+    .disclaimer-wrapper {
+        background: #FFD740;
+        padding: 0;
+    }
+
+    .custom-breadcrumb {
+        margin-bottom: 0px;
+    }
+
+    .disclaimer {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .disclaimer svg {
+        width: 40px;
+        margin-right: 15px;
+    }
+
+    .disclaimer h5 {
+        line-height: 20px;
+    }
+</style>
+<script>
+    function replaceMainBreadcrumbLink() {
+        const mainBreadcrumb = document.querySelector('.main-breadcrumb');
+        if (!mainBreadcrumb.href.indexOf("modules.html")) return;
+        mainBreadcrumb.href = mainBreadcrumb.href.replace(`/modules.html`, `/index.html`);
+    }
+    const currentLanguage = document.getElementById('selected-language').dataset.language;
+
+    const languageFilter = document.getElementById('tsd-language-filter');
+    languageFilter.addEventListener("mouseenter", (event) => {
+        languageFilter.classList.add("active");
+        const languageList = document.getElementById('tsd-language-select-list');
+        const items = languageList.getElementsByTagName('li');
+        for (const item of items) {
+            if (item.dataset.value === currentLanguage) {
+                item.classList.add('selected');
+                break;
+            }
+        }
+    });
+    languageFilter.addEventListener("mouseleave", (event) => {
+        languageFilter.classList.remove("active");
+    });
+
+    function addEventListenerToLanguages() {
+        const languageList = document.getElementById('tsd-language-select-list');
+        const items = languageList.getElementsByTagName('li');
+        for (const item of items) {
+            item.addEventListener("click", (event) => {
+                languageSelected(event, item);
+            });
+        }
+    }
+
+    function languageSelected(event, itemClicked) {
+        const selectedLanguage = itemClicked.dataset.value; //'en', 'fr', 'es', '..'
+        if (currentLanguage === selectedLanguage) return;
+        document.location = document.location.href.replace(`/${currentLanguage}/`, `/${selectedLanguage}/`);
+    }
+
+    function initializePage() {
+        addEventListenerToLanguages();
+        replaceMainBreadcrumbLink();
+    }
+    window.addEventListener('load', (event) => {
+        initializePage();
+    });
+</script>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Security group source configuration</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">SecurityGroupSourceConfig9</span>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="SecurityGroupSourceConfig9.html#security_group" class="tsd-kind-icon">security-<wbr>group</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="security_group" class="tsd-anchor"></a>
+					<h3>security-<wbr>group</h3>
+					<div class="tsd-signature tsd-kind-icon">security-<wbr>group<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:2220</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Security Group source<br/><b>Description:</b> The source of the traffic. For example IP address ranges or other security groups
+				</section>
+			</section>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="../modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface">
+						<a href="SecurityGroupSourceConfig9.html" class="tsd-kind-icon">Security<wbr>Group<wbr>Source<wbr>Config9</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="SecurityGroupSourceConfig9.html#security_group" class="tsd-kind-icon">security-<wbr>group</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer>
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="overlay"></div>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>
