@@ -18,6 +18,8 @@ Resources:
         LambdaConfigurations:
           - Event: 's3:ObjectCreated:*'
             Function: !GetAtt CIDRLambda.Arn
+      VersioningConfiguration:
+        Status: Enabled
   CIDRBucketInvoke:
     Type: AWS::Lambda::Permission
     Properties:
