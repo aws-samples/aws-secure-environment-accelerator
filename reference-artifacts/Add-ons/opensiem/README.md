@@ -271,7 +271,9 @@ To use this option, update the config value (**s3NotificationTopicNameOrExisting
 
 #### 2. Add-on Uses an Existing SNS Topic
 
-This option will use an existing SNS Topic in the Log Archive account. The SNS Topic Access Policy and KMS Key Policy (if using KMS CMK encryption) need to be updated before deployment, or the deployment will fail. The S3 Notifications will be configured to publish events to this existing SNS Topic.
+This option will use an existing SNS Topic in the Log Archive account. The SNS Topic Access Policy and KMS Key Policy (if using KMS CMK encryption) need to be updated before deployment, or the deployment will fail. The S3 Notifications will be configured to publish events to this existing SNS Topic. 
+
+If a SNS Topic is already configured on the S3 buckets, update the **s3NotificationTopicNameOrExistingArn** config setting, ensure that the SNS Topic Access Policies are updated as described below, but do not execute the steps in section 5. Proceed to the steps in section 6.
 
 To use this option, update the config value (**s3NotificationTopicNameOrExistingArn**) with the existing SNS Topic's ARN. Here's an example:
 
@@ -377,7 +379,7 @@ If the existing SNS Topic is configured with KMS CMK encryption, the following K
 6. Deploy the CDK S3 Notifications Stack. 
 
 ```
-> npx cdk deploy --toolkit-stack-name orgcdktoolkit
+> npx cdk deploy --toolkit-stack-name orgcdktoolkit OpenSearchSiemS3NotificationsStack
 ```
 
 ### 6. Enable the Lambda Processor Subscription
