@@ -345,26 +345,54 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           subnetCidr = subnetDefinition.cidr?.value?.toCidrString()!;
         }
         if (!subnetCidr) {
-          console.warn(`Subnet with name "${subnetName}" and AZ "${subnetDefinition.az}" does not have a CIDR block`);
+          console.warn(
+            `Subnet with name "${subnetName}" and AZ "${
+              subnetDefinition.az || subnetDefinition.lz
+            }" does not have a CIDR block`,
+          );
           continue;
         }
 
-        const subnetId = `${subnetName}_${vpcName}_az${subnetDefinition.az}`;
+        let subnetId = '';
+        let az = '';
+        let subnetAz = '';
+        if (subnetDefinition.az && !subnetDefinition.lz) {
+          subnetId = `${subnetName}_${vpcName}_az${subnetDefinition.az}`;
+          az = `${this.region}${subnetDefinition.az}`;
+          subnetAz = subnetDefinition.az;
+        }
+        if (subnetDefinition.lz && !subnetDefinition.az) {
+          subnetId = `${subnetName}_${vpcName}_lz${subnetDefinition.lz}`;
+          az = subnetDefinition.lz;
+          subnetAz = subnetDefinition.lz;
+        }
+        if (!subnetId) {
+          console.warn(
+            `Subnet with name "${subnetName}" can not have an AZ and LZ. Skipping deployment. AZ: ${subnetDefinition.az} LZ: ${subnetDefinition.lz}`,
+          );
+          continue;
+        }
+
         const subnet = new ec2.CfnSubnet(this, subnetId, {
           cidrBlock: subnetCidr,
           vpcId: vpcObj.ref,
-          availabilityZone: `${this.region}${subnetDefinition.az}`,
+          availabilityZone: az,
+          outpostArn: subnetDefinition['outpost-arn'],
         });
+        if (subnetDefinition.lz) {
+          console.log(subnet);
+        }
         for (const extensions of extendVpc) {
           subnet.addDependsOn(extensions);
         }
+
         this.azSubnets.push({
           subnet,
           subnetName,
           id: subnet.ref,
           name: subnetName,
-          az: subnetDefinition.az,
           cidrBlock: subnetCidr,
+          az: subnetAz,
         });
 
         // Attach Subnet to Route-Table

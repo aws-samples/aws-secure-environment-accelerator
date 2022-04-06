@@ -241,6 +241,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
         }
 
         if (existingSubnet['account-ou-key'] === `organizational-unit/${ouKey}`) {
+          const az = subnetDef.az || subnetDef.lz || '';
           await updateSubnetCidr(subnetCidrPoolAssignedTable, uuidv4(), {
             accountOuKey: `account/${accountKey}`,
             cidr: existingSubnet.cidr,
@@ -248,7 +249,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
             region: vpcConfig.region,
             vpc: vpcConfig.name,
             subnet: subnetConfig.name,
-            az: subnetDef.az,
+            az,
             accountKey,
           });
         }
@@ -350,7 +351,8 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
               `Error while creating dynamic CIDR for Subnets in VPC: "${vpcConfig.region}/${vpcConfig.name}"`,
             );
           }
-          console.log(`Dynamic CIDR for "${subnetConfig.name}.${subnetDef.az}" is "${subnetCidr}"`);
+          console.log(`Dynamic CIDR for "${subnetConfig.name}.${subnetDef.az || subnetDef.lz}" is "${subnetCidr}"`);
+          const az = subnetDef.az || subnetDef.lz || '';
           await updateSubnetCidr(subnetCidrPoolAssignedTable, uuidv4(), {
             accountOuKey: `account/${accountKey}`,
             cidr: subnetCidr,
@@ -358,7 +360,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
             region: vpcConfig.region,
             vpc: vpcConfig.name,
             subnet: subnetConfig.name,
-            az: subnetDef.az,
+            az,
             accountKey,
           });
         } else {

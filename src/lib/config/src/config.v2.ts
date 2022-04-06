@@ -99,7 +99,9 @@ export const CidrConfigType = t.interface({
 export type CidrConfig = t.TypeOf<typeof CidrConfigType>;
 
 export const SubnetDefinitionConfig = t.interface({
-  az: t.availabilityZone,
+  az: t.optional(t.availabilityZone),
+  'outpost-arn': t.optional(t.nonEmptyString),
+  'lz': t.optional(t.nonEmptyString),
   cidr: t.optional(CidrConfigType),
   'route-table': t.nonEmptyString,
   disabled: t.defaulted(t.boolean, false),
