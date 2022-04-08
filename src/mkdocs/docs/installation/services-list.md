@@ -2,71 +2,63 @@
 
 ## Services
 
-Services are listed based as being (L)everaged by the Accelerator or (O)rchestrated by the Accelerator
+This table indicates whether services are leveraged and/or orchestrated by the Accelerator.
 
-| SERVICES                                                            |
-| ------------------------------------------------------------------- |
-| **Compute**                                                         |
-| - AWS Lambda (L)                                                    |
-| - Amazon EC2 (O)                                                    |
-| **Monitoring & Alerts**                                             |
-| - Amazon CloudTrail (O)                                             |
-| - AWS Config (O)                                                    |
-| - Amazon CloudWatch (L,O)                                           |
-| - Amazon EventBridge (L,O)                                          |
-| - Amazon SNS (L)                                                    |
-| - AWS Budgets (O)                                                   |
-| - Systems Manager Inventory (O)                                     |
-| **Infrastructure**                                                  |
-| - AWS CodeCommit (L)                                                |
-| - AWS CodeBuild (L)                                                 |
-| - AWS CodePipeline (L)                                              |
-| - AWS CloudFormation (L)                                            |
-| - AWS CDK, AWS SDK (L)                                              |
-| - AWS Step Functions (L)                                            |
-| - Kinesis Data Stream (L)                                           |
-| - Kinesis Data Firehose (L)                                         |
-| - Amazon SQS (L)                                                    |
-| **Data**                                                            |
-| - Amazon S3 (L,O)                                                   |
-| - Amazon DynamoDB (L)                                               |
-| - Amazon ECR, ECR Public (L)                                        |
-| - Systems Manager Parameter Store (L,O)                             |
-| - AWS Secrets Manager (L)                                           |
-| **Networking**                                                      |
-| - Amazon VPC (O)                                                    |
-| - AWS Transit Gateway (O)                                           |
-| - AWS PrivateLink (O)                                               |
-| - Elastic Load Balancing (incl. ALB, NLB, GWLB) (O)                 |
-| - Route53 (O)                                                       |
-| - Route53 Resolver (O)                                              |
-| **Management**                                                      |
-| - AWS Organizations (L,O)                                           |
-| - AWS Resource Access Manager (RAM) (O)                             |
-| - AWS IAM (L,O)                                                     |
-| - AWS SSO (L)                                                       |
-| - AWS Directory Service (incl. AWS Managed AD and AD Connector) (O) |
-| - AWS Control Tower (L,O)                                           |
-| - AWS IAM Access Analyzer (O)                                       |
-| - AWS Cost and Usage Reports (O)                                    |
-| - AWS Service Quotas (O)                                            |
-| **Security**                                                        |
-| - AWS GuardDuty (O)                                                 |
-| - AWS Security Hub (O)                                              |
-| - Amazon Macie (O)                                                  |
-| - Systems Manager Automation (O)                                    |
-| - Systems Manager Session Manager (O)                               |
-| - Systems Manager Inventory (O)                                     |
-| - AWS KMS (L,O)                                                     |
-| - AWS STS (L)                                                       |
-| - AWS Firewall Manager (O)                                          |
-| - AWS Network Firewall (O)                                          |
-| - AWS Certificate Manager (O)                                       |
-| **3rd Party**                                                       |
-| - Fortinet FortiGate and FortiManager (Firewall & Mgmt) (O)         |
-| - Checkpoint CloudGuard and Manager (Firewall & Mgmt) (O)           |
-| - rsyslog on Amazon Linux 2 (O)                                     |
-| - RDGW Bastion on Windows (O)                                       |
+| CATEGORY                | SERVICE                                                          | LEVERAGED | ORCHESTRATED |
+| ----------------------- | ---------------------------------------------------------------- | --------- | ------------ |
+| **Compute**             | AWS Lambda                                                       | X         |              |
+|                         | Amazon Elastic Compute Cloud (EC2)                               |           | X            |
+| **Monitoring & Alerts** | Amazon CloudTrail                                                |           | X            |
+|                         | AWS Config                                                       |           | X            |
+|                         | Amazon CloudWatch                                                | X         | X            |
+|                         | Amazon EventBridge                                               | X         | X            |
+|                         | Amazon Simple Notification Service (SNS)                         | X         |              |
+|                         | AWS Budgets                                                      |           | X            |
+|                         | Systems Manager Inventory                                        |           | X            |
+| **Infrastructure**      | AWS CodeCommit                                                   | X         |              |
+|                         | AWS CodeBuild                                                    | X         |              |
+|                         | AWS CodePipeline                                                 | X         |              |
+|                         | AWS CloudFormation                                               | X         |              |
+|                         | AWS Cloud Development Kit (CDK) / Software Development Kit (SDK) | X         |              |
+|                         | AWS Step Functions                                               | X         |              |
+|                         | Kinesis Data Stream                                              | X         |              |
+|                         | Kinesis Data Firehose                                            | X         |              |
+|                         | Amazon Simple Queue Service (SQS)                                | X         |              |
+| **Data**                | Amazon Simple Storage Service (S3)                               | X         | X            |
+|                         | Amazon DynamoDB                                                  | X         |              |
+|                         | Amazon Elastic Container Registry (ECR)                          | X         |              |
+|                         | Systems Manager Parameter Store                                  | X         | X            |
+|                         | AWS Secrets Manager                                              | X         |              |
+| **Networking**          | Amazon Virtual Private Cloud (VPC)                               |           | X            |
+|                         | AWS Transit Gateway                                              |           | X            |
+|                         | AWS PrivateLink                                                  |           | X            |
+|                         | Elastic Load Balancer (ELB)                                      |           | X            |
+|                         | Route53                                                          |           | X            |
+|                         | Route53 Resolver                                                 |           | X            |
+| **Management**          | AWS Organizations                                                | X         | X            |
+|                         | AWS Resource Access Manager (RAM)                                |           | X            |
+|                         | AWS Identity and Access Management (IAM)                         | X         | X            |
+|                         | AWS Single Sign-On (SSO)                                         | X         |              |
+|                         | AWS Directory Service (incl. AWS Managed AD and AD Connector)    |           | X            |
+|                         | AWS Control Tower                                                | X         | X            |
+|                         | AWS IAM Access Analyzer                                          |           | X            |
+|                         | AWS Cost and Usage Reports                                       |           | X            |
+|                         | AWS Service Quotas                                               |           | X            |
+| **Security**            | AWS GuardDuty                                                    |           | X            |
+|                         | AWS Security Hub                                                 |           | X            |
+|                         | Amazon Macie                                                     |           | X            |
+|                         | Systems Manager Automation                                       |           | X            |
+|                         | Systems Manager Session Manager                                  |           | X            |
+|                         | Systems Manager Inventory                                        |           | X            |
+|                         | AWS Key Management Service (KMS)                                 | X         | X            |
+|                         | AWS Security Token Service (STS)                                 | X         |              |
+|                         | AWS Firewall Manager                                             |           | X            |
+|                         | AWS Network Firewall                                             |           | X            |
+|                         | AWS Certificate Manager (ACM)                                    |           | X            |
+| **Third-Party**         | Fortinet FortiGate and FortiManager (Firewall & Mgmt)            |           | X            |
+|                         | Checkpoint CloudGuard and Manager (Firewall & Mgmt)              |           | X            |
+|                         | `rsyslog` on Amazon Linux 2                                      |           | X            |
+|                         | Remote Desktop Gateway Bastion on Windows                        |           | X            |
 
 ---
 
