@@ -732,10 +732,15 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
               destinationCidrBlock: route.destination as string,
             };
             new ec2.CfnRoute(this, constructName, routeParams);
+<<<<<<< Updated upstream
+=======
+            continue;
+>>>>>>> Stashed changes
           } else {
             // Need to add for different Routes
             continue;
           }
+<<<<<<< Updated upstream
           if (route.target !== 'customer') {
             const params: ec2.CfnRouteProps = {
               routeTableId: routeTableObj,
@@ -746,6 +751,16 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             if (dependsOn) {
               cfnRoute.addDependsOn(dependsOn);
             }
+=======
+          const params: ec2.CfnRouteProps = {
+            routeTableId: routeTableObj,
+            destinationCidrBlock: route.destination as string,
+            gatewayId,
+          };
+          const cfnRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, params);
+          if (dependsOn) {
+            cfnRoute.addDependsOn(dependsOn);
+>>>>>>> Stashed changes
           }
         }
       }
