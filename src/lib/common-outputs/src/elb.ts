@@ -79,7 +79,7 @@ export const LoadBalancerEndpointOutputFinder = createStructuredOutputFinder(Loa
     accountKey: string;
     region: string;
     vpcName: string;
-    az: string;
+    az: string | undefined;
     elbAccountKey?: string;
   }) =>
     finder.tryFindOne({

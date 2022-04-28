@@ -70,7 +70,7 @@ export async function step4(props: ElbStep4Props) {
             outputs,
             accountKey,
             elbName: routeConfig.name!,
-            az: subnetDef.az,
+            az: subnetDef.az || subnetDef.lz,
             region: vpcConfig.region,
             vpcName: vpcConfig.name,
           });

@@ -254,6 +254,13 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         : ec2.DefaultInstanceTenancy.DEFAULT,
     });
     this.vpcId = vpcObj.ref;
+    const lgw = props.vpcProps.vpcConfig['lgw-id'];
+    if (lgw) {
+      new ec2.CfnLocalGatewayRouteTableVPCAssociation(this, `${vpcName}-${lgw || ''}`, {
+        localGatewayRouteTableId: lgw,
+        vpcId: this.vpcId,
+      });
+    }
 
     const extendVpc: ec2.CfnVPCCidrBlock[] = [];
     this.cidr2Block.forEach((additionalCidr, index) => {
@@ -333,7 +340,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         if (['lookup', 'dynamic'].includes(vpcConfig['cidr-src'])) {
           const subnetCidrPool = currentSubnetPools.find(
             s =>
-              s.az === subnetDefinition.az &&
+              (s.az === subnetDefinition.az || s.az === subnetDefinition.lz) &&
               s['subnet-name'] === subnetConfig.name &&
               s['vpc-name'] === vpcConfig.name &&
               s.region === vpcConfig.region,
@@ -379,9 +386,6 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           availabilityZone: az,
           outpostArn: subnetDefinition['outpost-arn'],
         });
-        if (subnetDefinition.lz) {
-          console.log(subnet);
-        }
         for (const extensions of extendVpc) {
           subnet.addDependsOn(extensions);
         }
@@ -714,19 +718,34 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             };
             new ec2.CfnRoute(this, constructName, routeParams);
             continue;
+          } else if (route.target === 'customer') {
+            if (!route.type || !route['target-id']) {
+              console.warn(
+                `type and target-id are required when using customer as target for route for the route ${route.name}`,
+              );
+              continue;
+            }
+            let constructName = `${routeTableName}_${route.type}_${route['target-id']}`;
+            const routeParams: ec2.CfnRouteProps = {
+              routeTableId: routeTableObj,
+              [route.type]: route['target-id'],
+              destinationCidrBlock: route.destination as string,
+            };
+            new ec2.CfnRoute(this, constructName, routeParams);
           } else {
             // Need to add for different Routes
             continue;
           }
-
-          const params: ec2.CfnRouteProps = {
-            routeTableId: routeTableObj,
-            destinationCidrBlock: route.destination as string,
-            gatewayId,
-          };
-          const cfnRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, params);
-          if (dependsOn) {
-            cfnRoute.addDependsOn(dependsOn);
+          if (route.target !== 'customer') {
+            const params: ec2.CfnRouteProps = {
+              routeTableId: routeTableObj,
+              destinationCidrBlock: route.destination as string,
+              gatewayId,
+            };
+            const cfnRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, params);
+            if (dependsOn) {
+              cfnRoute.addDependsOn(dependsOn);
+            }
           }
         }
       }
