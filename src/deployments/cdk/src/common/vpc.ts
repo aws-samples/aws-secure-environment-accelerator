@@ -254,7 +254,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         : ec2.DefaultInstanceTenancy.DEFAULT,
     });
     this.vpcId = vpcObj.ref;
-    const lgw = props.vpcProps.vpcConfig['lgw-id'];
+    const lgw = props.vpcProps.vpcConfig['lgw-route-table-id'];
     if (lgw) {
       new ec2.CfnLocalGatewayRouteTableVPCAssociation(this, `${vpcName}-${lgw || ''}`, {
         localGatewayRouteTableId: lgw,
