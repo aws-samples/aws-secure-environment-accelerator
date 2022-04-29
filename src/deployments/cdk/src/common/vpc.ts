@@ -376,7 +376,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           id: subnet.ref,
           name: subnetName,
           cidrBlock: subnetCidr,
-          az: availabilityZone,
+          az: subnetDefinition.az,
         });
 
         // Attach Subnet to Route-Table
