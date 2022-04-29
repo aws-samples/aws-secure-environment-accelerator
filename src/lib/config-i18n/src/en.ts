@@ -475,6 +475,10 @@ translate(c.SubnetDefinitionConfig, {
       description:
         'Define the subnet in the Accelerator to reserve the address space, but do not create it at this time.  Used to define a 3 AZ config, but deploy a 2 AZ config.',
     },
+    'outpost-arn': {
+      title: '',
+      description: '',
+    },
   },
 });
 
@@ -609,6 +613,12 @@ translate(c.RouteConfig, {
     port: {
       title: '',
       description: 'When routing traffic to ports of 3rd party virtual appliances',
+    },
+    'target-id': {
+      title: '',
+    },
+    type: {
+      title: '',
     },
   },
 });
@@ -1031,6 +1041,9 @@ translate(c.VpcConfigType, {
     'central-endpoint': {
       title: '',
       description: 'Use central endpoints for this VPC',
+    },
+    'lgw-route-table-id': {
+      title: '',
     },
   },
 });

@@ -99,9 +99,8 @@ export const CidrConfigType = t.interface({
 export type CidrConfig = t.TypeOf<typeof CidrConfigType>;
 
 export const SubnetDefinitionConfig = t.interface({
-  az: t.optional(t.availabilityZone),
+  az: t.union([t.availabilityZone, t.nonEmptyString]),
   'outpost-arn': t.optional(t.nonEmptyString),
-  lz: t.optional(t.nonEmptyString),
   cidr: t.optional(CidrConfigType),
   'route-table': t.nonEmptyString,
   disabled: t.defaulted(t.boolean, false),
@@ -326,7 +325,7 @@ export const VpcConfigType = t.interface({
   'security-groups': t.optional(t.array(SecurityGroupConfigType)),
   zones: t.optional(ZoneNamesConfigType),
   'central-endpoint': t.defaulted(t.boolean, false),
-  'lgw-id': t.optional(t.nonEmptyString),
+  'lgw-route-table-id': t.optional(t.nonEmptyString),
 });
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;
