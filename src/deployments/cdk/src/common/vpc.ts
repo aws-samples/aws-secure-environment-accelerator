@@ -256,7 +256,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     this.vpcId = vpcObj.ref;
     const lgw = props.vpcProps.vpcConfig['lgw-route-table-id'];
     if (lgw) {
-      new ec2.CfnLocalGatewayRouteTableVPCAssociation(this, `${vpcName}-${lgw || ''}`, {
+      new ec2.CfnLocalGatewayRouteTableVPCAssociation(this, `${vpcName}-${lgw}`, {
         localGatewayRouteTableId: lgw,
         vpcId: this.vpcId,
       });
@@ -705,7 +705,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
               );
               continue;
             }
-            let constructName = `${routeTableName}_${route.type}_${route['target-id']}`;
+            const constructName = `${routeTableName}_${route.type}_${route['target-id']}`;
             const routeParams: ec2.CfnRouteProps = {
               routeTableId: routeTableObj,
               [route.type]: route['target-id'],
