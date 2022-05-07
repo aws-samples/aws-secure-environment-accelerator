@@ -259,7 +259,7 @@ arn:aws:sqs:<region>:<operations account id>:opensearch-siem-dlq
 Amazon S3 Notifications currently does not support duplicate S3 Event + Suffix configurations, thus limiting options to have multiple Lambda targets for S3 Notifications. This solution implements/supports a fan-out architecture using SNS.
 Instead of having S3 Notifications invoke Lambda, they are published to a SNS Topic, and the Lambda(s) is subscribed to receive those messages. This add-on supports two configuration options:
 
-#### 1. Add-on Creates and Configures the SNS Topic
+#### OPTION 1: Add-on creates and configures the SNS topic
 
 This option will create a new SNS Topic in the Log Archive account. It will also create a new KMS Customer Managed Key (CMK), update its Key Policy, and configure the SNS Topic to use it for encryption. The S3 Notifications will be configured to publish events to this new SNS Topic.
 
@@ -269,7 +269,7 @@ To use this option, update the config value (**s3NotificationTopicNameOrExisting
 "s3NotificationTopicNameOrExistingArn": "siem-s3-notifications",
 ```
 
-#### 2. Add-on Uses an Existing SNS Topic
+#### OPTION 2: Add-on uses an existing SNS topic
 
 This option will use an existing SNS Topic in the Log Archive account. The SNS Topic Access Policy and KMS Key Policy (if using KMS CMK encryption) need to be updated before deployment, or the deployment will fail. The S3 Notifications will be configured to publish events to this existing SNS Topic. 
 
