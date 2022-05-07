@@ -19,6 +19,7 @@ import * as kms from 'aws-cdk-lib/aws-kms';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3Deployment from 'aws-cdk-lib/aws-s3-deployment';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { SnsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as eventTargets from 'aws-cdk-lib/aws-events-targets';
 import * as sns from 'aws-cdk-lib/aws-sns';
@@ -249,6 +250,8 @@ export class OpenSearchSiemStack extends Stack {
       siemConfig.logArchiveAccountId,
       siemConfig.s3LogBuckets,
       siemConfig.siemVersion,
+      siemConfig.enableLambdaSubscription,
+      siemConfig.s3NotificationTopicNameOrExistingArn,
       siemBucket,
     );
 
@@ -280,6 +283,8 @@ export class OpenSearchSiemStack extends Stack {
     logArchiveAccountId: string,
     s3LogBuckets: string[],
     siemVersion: string,
+    enableTopicSubscription: boolean,
+    s3NotificationTopicNameOrExistingArn: string,
     geoIpUploadBucket?: s3.Bucket,
   ) {
     const lambdaRole = iam.Role.fromRoleArn(scope, 'LambdaProcessorRole', lambdaProcessingRoleArn);
@@ -313,6 +318,17 @@ export class OpenSearchSiemStack extends Stack {
         sourceArn: `arn:aws:s3:::${logBucket}`,
         sourceAccount: logArchiveAccountId,
       });
+    }
+
+    if (enableTopicSubscription) {
+      let topicSourceArn = s3NotificationTopicNameOrExistingArn;
+
+      if (!s3NotificationTopicNameOrExistingArn.startsWith('arn')) {
+        topicSourceArn = `arn:aws:sns:${this.region}:${logArchiveAccountId}:${s3NotificationTopicNameOrExistingArn}`;
+      }
+
+      const snsTopic = sns.Topic.fromTopicArn(this, 's3NotificationTopicLookup', topicSourceArn);
+      eventProcessingLambda.addEventSource(new SnsEventSource(snsTopic));
     }
 
     // Dead Letter Queue

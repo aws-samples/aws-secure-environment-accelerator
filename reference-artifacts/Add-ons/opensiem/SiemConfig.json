@@ -51,5 +51,8 @@
     "openSearchVolumeSize": 100,
     "openSearchConfiguration": "opensearch-config.json",    
     "maxmindLicense": "license.txt",
+    "s3NotificationTopicNameOrExistingArn": "----- REPLACE -----",
+    "enableLambdaSubscription": false,
+    "organizationId": "----- REPLACE -----",
     "siemVersion": "v2.6.1a"
 }

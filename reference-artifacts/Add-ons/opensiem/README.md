@@ -92,30 +92,36 @@ The **SiemConfig.json** file is used to configure how this solution is deployed 
     "openSearchVolumeSize": 100,
     "openSearchConfiguration": "opensearch-config.json",
     "maxmindLicense": "license.txt",
+    "s3NotificationTopicNameOrExistingArn": "----- REPLACE -----",
+    "enableLambdaSubscription": false,
+    "organizationId": "----- REPLACE -----"
     "siemVersion": "v2.6.1a"
 }
 ```
 
-| Config                          | Description                                                                                                                                                                                                                                                                                                                                                                                  |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| operationsAccountId             | This is the AWS Account ID for the Operations account                                                                                                                                                                                                                                                                                                                                        |
-| logArchiveAccountId             | This is the AWS Account ID for the Log Archive account                                                                                                                                                                                                                                                                                                                                       |
-| vpcId                           | This is the VPC Id, within the Operations account, where the OpenSearch Domain will be deployed                                                                                                                                                                                                                                                                                              |
-| region                          | This is the ASEA primary or home region                                                                                                                                                                                                                                                                                                                                                      |
-| s3LogBuckets                    | This contains a string array of the S3 Bucket names, in the Log Archive account, that will have S3 Notifications configured. In the default ASEA architecture, there are 2 S3 buckets that should be added here.                                                                                                                                                                             |
-| securityGroups                  | This structure is similar to what is used in the ASEA config file, but with reduced implementation. The security groups here will be applied to the Lambda Functions and OpenSearch domain. The Security Groups will be created by this project. The inbound rules should be updated to reflect the allowed IPs. In the example, the IP range is the VPC CIDR in the Operations AWS account. |
-| appSubnets                      | These are the SubnetIds of existing subnets within the VPC. The Lambda Functions and OpenSearch domain will be deployed into the Subnets defined here.                                                                                                                                                                                                                                       |
-| lambdaLogProcessingRoleArn      | This is the IAM Role that the **Lambda Processor** will use to download S3 Objects from the Log Archive and write documents to OpenSearch. This is a protected role that is referenced by this project, but created by the ASEA. More details below. This value must be an IAM ARN.                                                                                                          |
-| cognitoDomainPrefix             | Amazon Cognito is used to provision user access to the OpenSearch Dashboards. The value specified here will be used as the domain; it must be regionally unique. (You can't use the text aws, amazon, or cognito, in the domain prefix)                                                                                                                                                      |
-| openSearchDomainName            | This is the name for the OpenSearch domain                                                                                                                                                                                                                                                                                                                                                   |
-| openSearchInstanceTypeMainNodes | This specifies the OpenSearch instance type for the main nodes. ([Supported Types](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/supported-instance-types.html))                                                                                                                                                                                                      |
-| openSearchInstanceTypeDataNodes | This specifies the OpenSearch instance type for the data nodes. ([Supported Types](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/supported-instance-types.html))                                                                                                                                                                                                      |
-| openSearchCapacityMainNodes     | This specifies the number of OpenSearch main nodes to provision.                                                                                                                                                                                                                                                                                                                             |
-| openSearchInstanceTypeDataNodes | This specifies the number of OpenSearch data nodes to provision.                                                                                                                                                                                                                                                                                                                             |
-| openSearchVolumeSize            | This specifies the amount of storage (GB) provisioned for the data nodes. This impacts the amount of available storage for the Domain. Note there are [limits](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/limits.html) for EBS size for instance types.                                                                                                            |
-| openSearchConfiguration         | This is the file name of the SIEM search configuration. This file should reside in the _config_ folder. This json file mirrors the content found in the _SIEM on Amazon OpenSearch Service_ corresponding INI file.                                                                                                                                                                          |
-| maxmindLicense                  | This is the file name of the MaxMind license file. This file should reside in the _config_ folder. This is an optional configuration that enables IP to Geo which enables map visualizations. Leave blank ("") to skip the deployment of this functionality.                                                                                                                                 |
-| siemVersion                     | This is a label used to identitfy the _SIEM on Amazon OpenSearch Service_ or your own version/configuration of the Lambdas. This applies an environment variable to the Lambdas and a change to this value will execute the lambdas on CDK deployment.                                                                                                                                       |
+| Config                                | Description                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| operationsAccountId                   | This is the AWS Account ID for the Operations account                                                                                                                                                                                                                                                                                                                                        |
+| logArchiveAccountId                   | This is the AWS Account ID for the Log Archive account                                                                                                                                                                                                                                                                                                                                       |
+| vpcId                                 | This is the VPC Id, within the Operations account, where the OpenSearch Domain will be deployed                                                                                                                                                                                                                                                                                              |
+| region                                | This is the ASEA primary or home region                                                                                                                                                                                                                                                                                                                                                      |
+| s3LogBuckets                          | This contains a string array of the S3 Bucket names, in the Log Archive account, that will have S3 Notifications configured. In the default ASEA architecture, there are 2 S3 buckets that should be added here.                                                                                                                                                                             |
+| securityGroups                        | This structure is similar to what is used in the ASEA config file, but with reduced implementation. The security groups here will be applied to the Lambda Functions and OpenSearch domain. The Security Groups will be created by this project. The inbound rules should be updated to reflect the allowed IPs. In the example, the IP range is the VPC CIDR in the Operations AWS account. |
+| appSubnets                            | These are the SubnetIds of existing subnets within the VPC. The Lambda Functions and OpenSearch domain will be deployed into the Subnets defined here.                                                                                                                                                                                                                                       |
+| lambdaLogProcessingRoleArn            | This is the IAM Role that the **Lambda Processor** will use to download S3 Objects from the Log Archive and write documents to OpenSearch. This is a protected role that is referenced by this project, but created by the ASEA. More details below. This value must be an IAM ARN.                                                                                                          |
+| cognitoDomainPrefix                   | Amazon Cognito is used to provision user access to the OpenSearch Dashboards. The value specified here will be used as the domain; it must be regionally unique. (You can't use the text aws, amazon, or cognito, in the domain prefix)                                                                                                                                                      |
+| openSearchDomainName                  | This is the name for the OpenSearch domain                                                                                                                                                                                                                                                                                                                                                   |
+| openSearchInstanceTypeMainNodes       | This specifies the OpenSearch instance type for the main nodes. ([Supported Types](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/supported-instance-types.html))                                                                                                                                                                                                      |
+| openSearchInstanceTypeDataNodes       | This specifies the OpenSearch instance type for the data nodes. ([Supported Types](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/supported-instance-types.html))                                                                                                                                                                                                      |
+| openSearchCapacityMainNodes           | This specifies the number of OpenSearch main nodes to provision.                                                                                                                                                                                                                                                                                                                             |
+| openSearchInstanceTypeDataNodes       | This specifies the number of OpenSearch data nodes to provision.                                                                                                                                                                                                                                                                                                                             |
+| openSearchVolumeSize                  | This specifies the amount of storage (GB) provisioned for the data nodes. This impacts the amount of available storage for the Domain. Note there are [limits](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/limits.html) for EBS size for instance types.                                                                                                            |
+| openSearchConfiguration               | This is the file name of the SIEM search configuration. This file should reside in the _config_ folder. This json file mirrors the content found in the _SIEM on Amazon OpenSearch Service_ corresponding INI file.                                                                                                                                                                          |
+| maxmindLicense                        | This is the file name of the MaxMind license file. This file should reside in the _config_ folder. This is an optional configuration that enables IP to Geo which enables map visualizations. Leave blank ("") to skip the deployment of this functionality.                                                                                                                                 |
+| s3NotificationTopicNameOrExistingArn  | Specify the desired name of a SNS topic (ex: siem-s3-notifications) to create a NEW SNS topic. This will also create a new KMS key for SNS encryption. Alternatively, provide the ARN to an existing SNS topic.  (See additional details below)                                                                                                                                              |
+| enableLambdaSubscription              | On initial deployment, this value should be false. When true, the Lambda Processor function will be updated to subscribe to the SNS Topic.                                                                                                                                                                                                                                                   |
+| organizationId                        | This is the AWS Organization ID. It can be retrieved with `aws organizations describe-organization --query 'Organization.Id'`. When a new SNS Topic is created, this value is used to support cross-account SNS Subscription.                                                                                                                                                                |
+| siemVersion                           | This is a label used to identitfy the _SIEM on Amazon OpenSearch Service_ or your own version/configuration of the Lambdas. This applies an environment variable to the Lambdas and a change to this value will execute the lambdas on CDK deployment.                                                                                                                                       |
 
 ---
 
@@ -246,9 +252,99 @@ arn:aws:sqs:<region>:<operations account id>:opensearch-siem-dlq
 > npx cdk deploy --toolkit-stack-name orgcdktoolkit OpenSearchSiemStack
 ```
 
-8. Once completed, the CloudFormation stack will output a value for **LambdaProcessorArn**. This value will be needed as input to the second CDK deployment in the next step (<OpenSearchSiemStack.LambdaProcessorArn-CfnOutput>).
+### 4. Amazon Simple Notification Service (SNS) Configuration
 
-### 4. Deploy the S3 Notifications Stack (Log Archive account)
+---
+
+Amazon S3 Notifications currently does not support duplicate S3 Event + Suffix configurations, thus limiting options to have multiple Lambda targets for S3 Notifications. This solution implements/supports a fan-out architecture using SNS.
+Instead of having S3 Notifications invoke Lambda, they are published to a SNS Topic, and the Lambda(s) is subscribed to receive those messages. This add-on supports two configuration options:
+
+#### OPTION 1: Add-on creates and configures the SNS topic
+
+This option will create a new SNS Topic in the Log Archive account. It will also create a new KMS Customer Managed Key (CMK), update its Key Policy, and configure the SNS Topic to use it for encryption. The S3 Notifications will be configured to publish events to this new SNS Topic.
+
+To use this option, update the config value (**s3NotificationTopicNameOrExistingArn**) with the desired name of the SNS Topic to create. Here's an example:
+
+```
+"s3NotificationTopicNameOrExistingArn": "siem-s3-notifications",
+```
+
+#### OPTION 2: Add-on uses an existing SNS topic
+
+This option will use an existing SNS Topic in the Log Archive account. The SNS Topic Access Policy and KMS Key Policy (if using KMS CMK encryption) need to be updated before deployment, or the deployment will fail. The S3 Notifications will be configured to publish events to this existing SNS Topic. 
+
+If a SNS Topic is already configured on the S3 buckets, update the **s3NotificationTopicNameOrExistingArn** config setting, ensure that the SNS Topic Access Policies are updated as described below, but do not execute the steps in section 5. Proceed to the steps in section 6.
+
+To use this option, update the config value (**s3NotificationTopicNameOrExistingArn**) with the existing SNS Topic's ARN. Here's an example:
+
+```
+"s3NotificationTopicNameOrExistingArn": "arn:aws:sns:ca-central-1:444111222555:my-existing-sns-topic",
+```
+
+The following are the SNS Topic Access Policies that need to be added to an existing SNS Topic. There must be permissions assigned for each bucket defined in the **s3LogBuckets** config. In this example, there are 2.
+```
+{
+    "Sid": "Allow SIEM Subscription of Topic",
+    "Effect": "Allow",
+    "Principal": {
+        "AWS": "*"
+    },
+    "Action": "sns:Subscribe",
+    "Resource": "arn:aws:sns:ca-central-1:444111222555:my-existing-sns-topic ----- REPLACE -----",
+    "Condition": {
+        "StringEquals": {
+            "aws:PrincipalOrgID": "o-tb8rqaev51 ----- REPLACE -----"
+        }
+    }
+},
+{
+    "Sid": "1",
+    "Effect": "Allow",
+    "Principal": {
+        "Service": "s3.amazonaws.com"
+    },
+    "Action": "sns:Publish",
+    "Resource": "arn:aws:sns:ca-central-1:444111222555:my-existing-sns-topic ----- REPLACE -----",
+    "Condition": {
+        "ArnLike": {
+            "aws:SourceArn": "arn:aws:s3:::asea-logarchive-phase0-aescacentral1 ----- REPLACE -----"
+        }
+    }
+},
+{
+    "Sid": "2",
+    "Effect": "Allow",
+    "Principal": {
+        "Service": "s3.amazonaws.com"
+    },
+    "Action": "sns:Publish",
+    "Resource": "arn:aws:sns:ca-central-1:444111222555:my-existing-sns-topic ----- REPLACE -----",
+    "Condition": {
+        "ArnLike": {
+            "aws:SourceArn": "arn:aws:s3:::asea-logarchive-phase0-cacentral1 ----- REPLACE -----"
+        }
+    }
+}
+```
+
+If the existing SNS Topic is configured with KMS CMK encryption, the following KMS Key Policy statement needs to be added:
+```
+{
+    "Sid": "Allow S3 use of the CMK",
+    "Effect": "Allow",
+    "Principal": {
+        "Service": "s3.amazonaws.com"
+    },
+    "Action": [
+        "kms:Decrypt",
+        "kms:GenerateDataKey*"
+    ],
+    "Resource": "*"
+}
+```
+
+
+### 5. Deploy the S3 Notifications Stack (Log Archive account)
 
 ---
 
@@ -280,13 +376,56 @@ arn:aws:sqs:<region>:<operations account id>:opensearch-siem-dlq
 > npx cdk bootstrap --toolkit-stack-name orgcdktoolkit
 ```
 
-6. Deploy the CDK S3 Notifications Stack. Replace **<OpenSearchSiemStack.LambdaProcessorArn-CfnOutput>** with the output value from the first CloudFormation Stack.
+6. Deploy the CDK S3 Notifications Stack. 
 
 ```
-> npx cdk deploy --toolkit-stack-name orgcdktoolkit --parameters lambdaProcessorArn="<OpenSearchSiemStack.LambdaProcessorArn-CfnOutput>" OpenSearchSiemS3NotificationsStack
+> npx cdk deploy --toolkit-stack-name orgcdktoolkit OpenSearchSiemS3NotificationsStack
 ```
 
-### 5. Cognito Configuration (Operations account)
+### 6. Enable the Lambda Processor Subscription
+
+---
+
+This step will configure the Lambda Processor to subscribe to the SNS Topic. When this completes, messages will start to write to OpenSearch. 
+
+> As of v2.6.1 of the _SIEM on Amazon OpenSearch Service_ project, the Lambda Processor code does not support messages from SNS. The copy of the code in this project contains an addition to support it. This contribution is submitted back to the original repository with Pull Request [232](https://github.com/aws-samples/siem-on-amazon-opensearch-service/pull/232).
+
+
+1. Ensure you are in the directory **reference-artifacts/Add-ons/opensiem**
+2. Apply AWS credentials for the **operations** AWS account to a command terminal.
+3. Set the default region example:
+
+**mac/linux**
+
+```
+  > export AWS_DEFAULT_REGION=ca-central-1
+```
+
+**windows (command window)**
+
+```
+  > set AWS_DEFAULT_REGION=ca-central-1
+```
+
+4. Confirm AWS credentials are applied for the working command terminal. The output should show credentials for the **operations** AWS account.
+
+```
+ > aws sts get-caller-identity
+```
+
+5. Update the SiemConfig.json **enableLambdaSubscription** to true
+
+```
+"enableLambdaSubscription": true
+```
+
+6. Update the CDK OpenSearch Stack.
+
+```
+> npx cdk deploy --toolkit-stack-name orgcdktoolkit OpenSearchSiemStack
+```
+
+### 7. Cognito Configuration (Operations account)
 
 ---
 
@@ -302,7 +441,7 @@ Amazon Cognito is used to add authentication and protection to the OpenSearch Se
    > aws cognito-idp admin-set-user-password --user-pool-id <your-user-pool-id> --username <username> --password "<password>" --permanent
    ```
 
-### 6. OpenSearch Dashboards
+### 8. OpenSearch Dashboards
 
 ---
 
@@ -341,7 +480,7 @@ In OpenSearch:
 3. Log back into the OpenSearch Console
    - Select OpenSearch Dashboards, Dashboard to see a list of the preconfigured SIEM visualizations
 
-## 7. Log Ingestion
+## 9. Log Ingestion
 
 The _SIEM on Amazon OpenSearch Service_ log ingestion to OpenSearch is driven by logs uploaded/put to S3. The S3 object key is used to determine what type of log file and what type of OpenSearch mapping should be applied. ASEA v1.5.1 introduces a new feature to place log files into different folders based on a string match in the S3 object key. Here's the v1.5.1 new configuration that should be applied:
 
@@ -387,7 +526,7 @@ via_cwl = True
 
 Note that the _s3_key_ has a value of _/rql/_. This matches the above _dynamic-s3-log-partitioning_ for rql files. The **Log Processor** will process that S3 log file expecting it to be a rql file, in the file format of JSON, and was written to CloudWatch Logs first (opposed to directly written to the S3 bucket).
 
-## 8. Cleaning up
+## 10. Cleaning up
 
 ---
 
