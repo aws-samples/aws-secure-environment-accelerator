@@ -88,7 +88,7 @@ This document will make no reference to specific Government of Canada department
 
 ### 1.2.5. Relationship to other AWS reference architectures
 
-AWS Landing Zone is an AWS Solution designed to deploy multi-account cloud architectures for customers. The _AWS Trusted Secure Enclave Architecture_ draws on design patterns from Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it. An earlier internal release of the _AWS Trusted Secure Enclave Architecture_ presupposed the existence of an AWS Landing Zone in the Organization; this requirement has since been removed as of release `v1.1.0`.
+xxxxAWS Landing Zone is an AWS Solution designed to deploy multi-account cloud architectures for customers. The _AWS Trusted Secure Enclave Architecture_ draws on design patterns from Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it. An earlier internal release of the _AWS Trusted Secure Enclave Architecture_ presupposed the existence of an AWS Landing Zone in the Organization; this requirement has since been removed as of release `v1.1.0`.
 
 [sensitive]: https://www.canada.ca/en/government/system/digital-government/modern-emerging-technologies/cloud-services/government-canada-security-control-profile-cloud-based-it-services.html#toc4
 [aws_org]: https://aws.amazon.com/organizations/
