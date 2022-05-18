@@ -4,7 +4,7 @@
 
 The AWS Secure Environment Accelerator (ASEA) is available free of charge as an open source solution on GitHub. **You are responsible for the cost of the AWS services enabled, configured, and deployed by the solution.**
 
-The ASEA solution enables, configures and deploys two types of AWS [services](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/docs/installation/services-list.md): services leveraged by the ASEA itself to deliver its capabilities; and services orchestrated by the ASEA to help create a secure multi-account AWS foundation for your users and workloads.
+The ASEA solution enables, configures and deploys two types of AWS [services](../installation/services-list.md): services leveraged by the ASEA itself to deliver its capabilities; and services orchestrated by the ASEA to help create a secure multi-account AWS foundation for your users and workloads.
 
 The pricing for services leveraged by the ASEA are relatively consistent and small. The pricing for services orchestrated by the ASEA can vary dramatically based on the underlying architecture, services and features selected by a customer through the customizable configuration file.
 
@@ -24,7 +24,7 @@ Any changes to the example configuration file will impact the pricing. These est
 
 ### 1.2.1. Pricing by Configuration file
 
-The following table provides the estimated monthly pricing based on the example configuration. Additional information on each of the example config files can be found [here](https://github.com/ColinL2021/aws-secure-environment-accelerator/blob/costs/docs/installation/customization-index.md).
+The following table provides the estimated monthly pricing based on the example configuration. Additional information on each of the example config files can be found [here](../installation/customization-index.md).
 
 | Example<br>Configuration | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Estimated Monthly Pricing                                                    |
 | :----------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------- |
