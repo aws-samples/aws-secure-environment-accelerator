@@ -235,6 +235,10 @@ function CreateRoute(props: {
     }
   } else {
     const routeId = routesMap[routeName];
+    if (!routeId) {
+      console.warn(`Cannot find route ${routeName} in transit gateway ${transitGateway.name}`);
+      return;
+    }
     CreateTransitGatewayRoute({
       scope,
       name: routeName,
