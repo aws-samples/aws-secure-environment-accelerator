@@ -131,7 +131,7 @@ With the release of v1.5.0, the AWS Accelerator adds the capability to be deploy
 
 This summarizes the installation process, the full installation document can be found in the documentation section below.
 
-- Create a config.json (or config.yaml) file to represent your organizations requirements ([several samples provided](./docs/installation/customization-index.md))
+- Create a config.json (or config.yaml) file to represent your organizations requirements ([several samples provided](https://aws-samples.github.io/aws-secure-environment-accelerator/installation/customization-index/))
 - Create a Secrets Manager Secret which contains a GitHub token that provides access to the Accelerator code repository
 - Create a unique S3 input bucket in the management account of the region you wish to deploy the solution and place your config.json and any additional custom config files in the bucket
 - Download and execute the latest [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) installer CloudFormation template in your management accounts preferred 'primary' / 'home' region
