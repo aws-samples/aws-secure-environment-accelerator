@@ -3294,6 +3294,10 @@ translate(c.GlobalOptionsConfigType, {
       description:
         'Indicates this installation depends on Control Tower and Control Tower deployed functionality. Control Tower must be installed before beginning an Accelerator installation.  Upgrades from a standalone install to a Control Tower based install are not currently possible.  This flag cannot be changed after initial installation.',
     },
+    'meta-data-collection': {
+      title: 'Metadata Collection',
+      description: 'Metadata collection service that stores information about ASEA in the management account',
+    },
     'default-s3-retention': {
       title: 'Default account S3 logging bucket retention period',
       description:

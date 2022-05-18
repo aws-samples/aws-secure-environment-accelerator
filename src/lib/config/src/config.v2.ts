@@ -1086,6 +1086,7 @@ export const GlobalOptionsConfigType = t.interface({
   'endpoint-port-overrides': t.optional(t.record(t.nonEmptyString, t.array(t.nonEmptyString))),
   'control-tower-supported-regions': t.defaulted(t.array(t.nonEmptyString), []),
   'cidr-pools': t.defaulted(t.array(CidrPoolConfigType), []),
+  'meta-data-collection': t.defaulted(t.boolean, false),
 });
 
 export type GlobalOptionsConfig = t.TypeOf<typeof GlobalOptionsConfigType>;
