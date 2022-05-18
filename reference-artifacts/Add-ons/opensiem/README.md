@@ -14,7 +14,7 @@ The total deployment time takes approximately 30 minutes (+ ASEA State Machine e
 
 The following diagram details the ASEA + OpenSIEM Add-On logging architecture. The OpenSIEM Add-On components are documented in turquoise on the right side of the diagram in both the log-archive and the operations accounts.
 
-![Logging](./src/mkdocs/docs/installation/img/ASEA-Logging-Arch.png)
+![Logging](../../../src/mkdocs/docs/installation/img/ASEA-Logging-Arch.png)
 
 ## Prerequisites
 
