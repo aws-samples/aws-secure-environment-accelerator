@@ -41,6 +41,7 @@ import * as snsDeployment from '../deployments/sns';
 import * as ssmDeployment from '../deployments/ssm';
 import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { logArchiveReadOnlyAccess } from '../deployments/s3/log-archive-read-access';
+import * as metadataDeployment from '../deployments/metadata-collection';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import * as alb from '../deployments/alb';
 
@@ -452,6 +453,16 @@ export async function deploy({
     config: acceleratorConfig,
     acceleratorPrefix: context.acceleratorPrefix,
   });
+
+  if (acceleratorConfig['global-options']['meta-data-collection']) {
+    const metadataService = metadataDeployment.createMetadataService({
+      acceleratorPrefix: context.acceleratorPrefix,
+      accountStacks,
+      accounts,
+      config: acceleratorConfig,
+      configBucket: centralBucket.bucketName,
+    });
+  }
 
   await tgwDeployment.acceptPeeringAttachment({
     accountStacks,
