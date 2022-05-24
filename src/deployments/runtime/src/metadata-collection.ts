@@ -11,7 +11,9 @@ import { STS } from '@aws-accelerator/common/src/aws/sts';
 
 export const handler = async (_event: any, _context: any) => {
   console.log(_event);
+
   const accleratorPrefix = process.env.ACCELERATOR_PREFIX!;
+  const centralBucketName = process.env.CENTRAL_BUCKET_NAME!;
   const bucketName = process.env.BUCKET_NAME!;
   const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME!;
   const outputsTableName = `${accleratorPrefix}Outputs`;
@@ -119,8 +121,16 @@ export const handler = async (_event: any, _context: any) => {
   };
 
   console.log('writing metadata and config to bucket.');
-  console.log(JSON.stringify(metadata, null, 2));
+  // console.log(JSON.stringify(metadata, null, 2));
 
   await s3.putObject({ Bucket: bucketName, Key: 'metadata.json', Body: JSON.stringify(metadata, null, 4) });
-  await s3.putObject({ Bucket: bucketName, Key: 'config.json', Body: aseaConfig });
+  await s3.putObject({ Bucket: bucketName, Key: 'config/config.json', Body: aseaConfig });
+
+  const items = await s3.listBucket(centralBucketName);
+  console.log('ITEMS: ', items);
+  for (const item of items) {
+    if (!item.Key?.startsWith('certs/')) {
+      await s3.copyObject(centralBucketName, item.Key!, bucketName, 'config');
+    }
+  }
 };
