@@ -1119,10 +1119,10 @@ translate(c.IamRoleConfigType, {
       title: '',
       description: 'Set to true if this role requires read-only access to the log archive bucket.',
     },
-    "meta-data-read-only-access": {
+    'meta-data-read-only-access': {
       title: '',
-      description: 'Set to true if this role requires read only access to the metadata bucket'
-    }
+      description: 'Set to true if this role requires read only access to the metadata bucket',
+    },
   },
 });
 
