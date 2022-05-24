@@ -1020,6 +1020,10 @@ translate(c.IamRoleConfigType, {
       title: '',
       description: '',
     },
+    'meta-data-read-only-access': {
+      title: '',
+      description: '',
+    },
   },
 });
 
