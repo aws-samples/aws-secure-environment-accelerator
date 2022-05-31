@@ -120,17 +120,33 @@ export const handler = async (_event: any, _context: any) => {
     ous: ousWithPath,
   };
 
-  console.log('writing metadata and config to bucket.');
-  // console.log(JSON.stringify(metadata, null, 2));
+  const centralBucketItems = await s3.listBucket(centralBucketName);
+  const metadataBucketItems = await s3.listBucket(bucketName);
+  const centralBucketItemNames = centralBucketItems.map(item => item.Key);
 
-  await s3.putObject({ Bucket: bucketName, Key: 'metadata.json', Body: JSON.stringify(metadata, null, 4) });
-  await s3.putObject({ Bucket: bucketName, Key: 'config/config.json', Body: aseaConfig });
+  const itemsToDelete = metadataBucketItems.filter(item => {
+    const splitKey = item.Key?.split('/') || [];
+    splitKey.shift();
+    const key = splitKey.join('/');
+    return !centralBucketItemNames.includes(key);
+  });
 
-  const items = await s3.listBucket(centralBucketName);
-  console.log('ITEMS: ', items);
-  for (const item of items) {
+  const keysToDelete = itemsToDelete.map(item => {
+    return { Key: item.Key! };
+  });
+
+  if (keysToDelete.length > 0) {
+    await s3.deleteObjects({ Bucket: bucketName, Delete: { Objects: keysToDelete } });
+  }
+  //Delete Utens
+  for (const item of centralBucketItems) {
     if (!item.Key?.startsWith('certs/')) {
       await s3.copyObject(centralBucketName, item.Key!, bucketName, 'config');
     }
   }
+
+  console.log('writing metadata and config to bucket.');
+
+  await s3.putObject({ Bucket: bucketName, Key: 'metadata.json', Body: JSON.stringify(metadata, null, 4) });
+  await s3.putObject({ Bucket: bucketName, Key: 'config/config.json', Body: aseaConfig });
 };

@@ -49,6 +49,10 @@ export class S3 {
     return throttlingBackOff(() => this.client.deleteObject(input).promise());
   }
 
+  async deleteObjects(input: s3.DeleteObjectsRequest): Promise<s3.DeleteObjectsOutput> {
+    return throttlingBackOff(() => this.client.deleteObjects(input).promise());
+  }
+
   async putBucketKmsEncryption(bucket: string, kmsMasterKeyId: string): Promise<void> {
     const params: s3.PutBucketEncryptionRequest = {
       Bucket: bucket,
