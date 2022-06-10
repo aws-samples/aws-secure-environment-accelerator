@@ -64,8 +64,18 @@ export class AssumeRoleProviderSource implements CredentialProviderSource {
   protected async assumeRole(accountId: string, duration: number): Promise<aws.STS.AssumeRoleResponse> {
     const roleArn = `arn:aws:iam::${accountId}:role/${this.props.assumeRoleName}`;
     console.log(`Assuming role ${green(roleArn)} for ${duration} seconds`);
+    let region;
+    let endpoint;
 
-    const sts = new aws.STS();
+    if (process.env.AWS_REGION) {
+      region = process.env.AWS_REGION;
+      endpoint = `sts.${process.env.AWS_REGION}.amazonaws.com`;
+    }
+
+    const sts = new aws.STS({
+      region,
+      endpoint,
+    });
     return throttlingBackOff(() =>
       sts
         .assumeRole({
