@@ -197,12 +197,13 @@ export const handler = async (input: ScheduledEvent) => {
     const acceleratorAccountIds = accounts.map(a => a.accountId!);
     const acceleratorTargetIds = [...rootIds, ...acceleratorOuIds, ...acceleratorAccountIds];
     const acceleratorTargetOuIds = [...rootIds, ...acceleratorOuIds];
+    const baseline = globalOptionsConfig['ct-baseline'] ? 'CONTROL_TOWER' : 'ORGANIZATIONS';
 
     // Detach non-Accelerator policies from Accelerator accounts
     await scps.detachPoliciesFromTargets({
       policyNamesToKeep: acceleratorPolicyNames,
       policyTargetIdsToInclude: acceleratorTargetOuIds,
-      baseline: globalOptionsConfig['ct-baseline'] ? 'CONTROL_TOWER' : 'ORGANIZATIONS',
+      baseline,
     });
 
     await scps.attachFullAwsAccessPolicyToTargets({
@@ -215,6 +216,7 @@ export const handler = async (input: ScheduledEvent) => {
       configurationOus: organizationalUnits,
       acceleratorOus: config.getOrganizationalUnits(),
       acceleratorPrefix,
+      baseline,
     });
 
     await scps.attachOrDetachPoliciesToAccounts({
