@@ -237,9 +237,7 @@ class Installer extends cdk.Stack {
     installerCmk.addToResourcePolicy(
       new iam.PolicyStatement({
         actions: ['kms:Decrypt', 'kms:DescribeKey'],
-        principals: [
-          new iam.ArnPrincipal(`arn:aws:iam::${cdk.Stack.of(this).account}:role/${acceleratorPrefix}metadata-lambda`),
-        ],
+        principals: [new iam.ServicePrincipal('lambda.amazonaws.com')],
         resources: ['*'],
       }),
     );

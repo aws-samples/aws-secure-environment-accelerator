@@ -72,14 +72,15 @@ export function createMetadataService(props: MetadataServiceProps) {
         resources: ['*'],
       }),
     );
-
-    bucket.addToResourcePolicy(
-      new iam.PolicyStatement({
-        actions: ['s3:GetObject', 's3:ListBucket'],
-        resources: [bucket.bucketArn, bucket.arnForObjects('*')],
-        principals: metadataReadOnlyRoles,
-      }),
-    );
+    if (metadataReadOnlyRoles) {
+      bucket.addToResourcePolicy(
+        new iam.PolicyStatement({
+          actions: ['s3:GetObject', 's3:ListBucket'],
+          resources: [bucket.bucketArn, bucket.arnForObjects('*')],
+          principals: metadataReadOnlyRoles,
+        }),
+      );
+    }
   }
   // Give all ASEA roles access to use this key for decryption
   encryptionKey.addToResourcePolicy(
