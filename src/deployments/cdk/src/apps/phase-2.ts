@@ -455,7 +455,7 @@ export async function deploy({
   });
 
   if (acceleratorConfig['global-options']['meta-data-collection']) {
-    const metadataService = metadataDeployment.createMetadataService({
+    metadataDeployment.createMetadataService({
       acceleratorPrefix: context.acceleratorPrefix,
       accountStacks,
       accounts,
