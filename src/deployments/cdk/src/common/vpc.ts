@@ -332,6 +332,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     const subnetsConfig = props.vpcProps.vpcConfig.subnets || [];
     for (const subnetConfig of subnetsConfig) {
       const subnetName = subnetConfig.name;
+      console.log(`Deploying Subnet ${subnetName}`);
       for (const subnetDefinition of subnetConfig.definitions.values()) {
         if (subnetDefinition.disabled) {
           continue;
@@ -352,7 +353,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           subnetCidr = subnetDefinition.cidr?.value?.toCidrString()!;
         }
         if (!subnetCidr) {
-          console.warn(`Subnet with name "${subnetName}" and AZ "${subnetDefinition.az}" does not have a CIDR block`);
+          console.log(`Subnet with name "${subnetName}" and AZ "${subnetDefinition.az}" does not have a CIDR block`);
           continue;
         }
         let availabilityZone = subnetDefinition.az;
@@ -360,12 +361,16 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           availabilityZone = `${this.region}${subnetDefinition.az}`;
         }
         const subnetId = `${subnetName}_${vpcName}_az${subnetDefinition.az}`;
+        console.log(`Creating subnet ${subnetId}`);
         const subnet = new ec2.CfnSubnet(this, subnetId, {
           cidrBlock: subnetCidr,
           vpcId: vpcObj.ref,
           availabilityZone,
           outpostArn: subnetDefinition['outpost-arn'],
         });
+        if (availabilityZone.length > 1) {
+          console.log(subnet);
+        }
         for (const extensions of extendVpc) {
           subnet.addDependsOn(extensions);
         }
