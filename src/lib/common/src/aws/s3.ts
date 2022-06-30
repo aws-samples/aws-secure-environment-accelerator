@@ -81,6 +81,25 @@ export class S3 {
         .promise(),
     );
   }
+
+  async copyObjectWithACL(
+    sourceBucket: string,
+    sourceKey: string,
+    destinationBucket: string,
+    destinationPrefix: string,
+    acl: string,
+  ) {
+    await throttlingBackOff(() =>
+      this.client
+        .copyObject({
+          Bucket: destinationBucket,
+          CopySource: `${sourceBucket}/${sourceKey}`,
+          Key: `${destinationPrefix}/${sourceKey}`,
+          ACL: acl,
+        })
+        .promise(),
+    );
+  }
   async listBucket(bucket: string) {
     let token;
     const params: s3.ListObjectsV2Request = {

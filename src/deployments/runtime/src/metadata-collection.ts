@@ -141,7 +141,7 @@ export const handler = async (_event: any, _context: any) => {
   //Delete Utens
   for (const item of centralBucketItems) {
     if (!item.Key?.startsWith('certs/')) {
-      await s3.copyObject(centralBucketName, item.Key!, bucketName, 'config');
+      await s3.copyObjectWithACL(centralBucketName, item.Key!, bucketName, 'config', 'bucket-owner-full-control');
     }
   }
 
