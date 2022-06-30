@@ -147,6 +147,16 @@ export const handler = async (_event: any, _context: any) => {
 
   console.log('writing metadata and config to bucket.');
 
-  await s3.putObject({ Bucket: bucketName, Key: 'metadata.json', Body: JSON.stringify(metadata, null, 4) });
-  await s3.putObject({ Bucket: bucketName, Key: 'config/config.json', Body: aseaConfig });
+  await s3.putObject({
+    Bucket: bucketName,
+    Key: 'metadata.json',
+    Body: JSON.stringify(metadata, null, 4),
+    ACL: 'bucket-owner-full-control',
+  });
+  await s3.putObject({
+    Bucket: bucketName,
+    Key: 'config/config.json',
+    Body: aseaConfig,
+    ACL: 'bucket-owner-full-control',
+  });
 };
