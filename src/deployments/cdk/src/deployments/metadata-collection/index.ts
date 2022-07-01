@@ -2,10 +2,7 @@ import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { Organizations } from '@aws-accelerator/custom-resource-organization';
-import {
-  createEncryptionKeyName,
-  createName,
-} from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import { createEncryptionKeyName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import * as targets from '@aws-cdk/aws-events-targets';
 import { Rule, Schedule } from '@aws-cdk/aws-events';
 import * as kms from '@aws-cdk/aws-kms';
@@ -13,17 +10,18 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
-import { overrideLogicalId } from '../../utils/cdk';
 import path from 'path';
-import * as t from 'io-ts';
 import { getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
-
+import { IamRoleNameOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { createPolicyName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 export interface MetadataServiceProps {
   acceleratorPrefix: string;
   accountStacks: AccountStacks;
   accounts: Account[];
   config: AcceleratorConfig;
   configBucket: string;
+  outputs: StackOutput[];
 }
 
 export function createMetadataService(props: MetadataServiceProps) {
@@ -199,5 +197,52 @@ export function createMetadataService(props: MetadataServiceProps) {
 
   cloudwatchrule.addTarget(new targets.LambdaFunction(metadataLambda));
 
+  const iamConfig = config.getIamConfigs();
+  for (const config of iamConfig) {
+    const accountKey = config.accountKey;
+    const metadataroles = config.iam.roles?.filter(role => {
+      return role['meta-data-read-only-access'];
+    });
+
+    const roleOutputs = metadataroles?.map(role => {
+      return IamRoleNameOutputFinder.tryFindOneByName({
+        outputs: props.outputs,
+        accountKey,
+        roleName: role.role,
+        roleKey: 'IamAccountRole',
+      });
+    });
+
+    if (roleOutputs && roleOutputs.length > 0) {
+      const stackToUpdate = accountStacks.tryGetOrCreateAccountStack(
+        accountKey,
+        props.config['global-options']['central-log-services'].region,
+      );
+      for (const output of roleOutputs) {
+        const policyName = createPolicyName('MetadataReadOnlyPolicy');
+        const metadataPolicy = new iam.ManagedPolicy(stackToUpdate, `IAM-Metadata-Policy-${accountKey}`, {
+          managedPolicyName: policyName,
+          description: policyName,
+        });
+
+        metadataPolicy.addStatements(
+          new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            actions: ['kms:Decrypt', 'kms:DescribeKey', 'kms:GenerateDataKey'],
+            resources: ['*'],
+          }),
+
+          new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            actions: ['s3:GetObject', 's3:ListBucket'],
+            resources: [`arn:aws:s3:::${bucketName}`, `arn:aws:s3:::${bucketName}/*`],
+          }),
+        );
+        if (output) {
+          metadataPolicy.attachToRole(iam.Role.fromRoleArn(stackToUpdate, 'metadataRole', output.roleArn));
+        }
+      }
+    }
+  }
   return bucket;
 }

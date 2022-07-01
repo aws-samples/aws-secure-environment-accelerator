@@ -461,6 +461,7 @@ export async function deploy({
       accounts,
       config: acceleratorConfig,
       configBucket: centralBucket.bucketName,
+      outputs,
     });
   }
 
