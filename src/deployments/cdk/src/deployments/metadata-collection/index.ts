@@ -212,12 +212,12 @@ export function createMetadataService(props: MetadataServiceProps) {
         roleKey: 'IamAccountRole',
       });
     });
+    const stackToUpdate = accountStacks.tryGetOrCreateAccountStack(
+      accountKey,
+      props.config['global-options']['central-log-services'].region,
+    );
 
-    if (roleOutputs && roleOutputs.length > 0) {
-      const stackToUpdate = accountStacks.tryGetOrCreateAccountStack(
-        accountKey,
-        props.config['global-options']['central-log-services'].region,
-      );
+    if (roleOutputs && roleOutputs.length > 0 && stackToUpdate) {
       for (const output of roleOutputs) {
         const policyName = createPolicyName('MetadataReadOnlyPolicy');
         const metadataPolicy = new iam.ManagedPolicy(stackToUpdate, `IAM-Metadata-Policy-${accountKey}`, {
