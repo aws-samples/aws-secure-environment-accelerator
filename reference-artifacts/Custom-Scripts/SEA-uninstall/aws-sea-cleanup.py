@@ -45,7 +45,8 @@ def get_accounts():
     paginator = organizations.get_paginator('list_accounts')
     page_iterator = paginator.paginate()
     for aws_accounts in page_iterator:
-        tmp = map(lambda x: [x["Id"], x["Name"]], aws_accounts["Accounts"])
+        active_accounts = list(filter(lambda x: (x['Status'] == "ACTIVE"), aws_accounts["Accounts"]))
+        tmp = map(lambda x: [x["Id"], x["Name"]], active_accounts)
     
         print(tabulate(list(tmp), headers=["Id", "Name"]))
         
