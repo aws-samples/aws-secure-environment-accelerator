@@ -83,6 +83,13 @@ function createRole(accountStack: AccountStack) {
     }),
   );
 
+  role.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      actions: ['kms:Encrypt', 'kms:Decrypt', 'kms:GenerateDataKey'],
+      resources: ['*'],
+    }),
+  );
+
   new CfnIamRoleOutput(accountStack, `SnsSubscriberLambdaOutput`, {
     roleName: role.roleName,
     roleArn: role.roleArn,

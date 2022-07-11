@@ -322,7 +322,7 @@
           "accounts": ["ALL"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "aws-controltower/CloudTrailLogs",
-          "filter-pattern": "{ ($.eventName = ConsoleLogin) && ($.errorMessage = \"Failedauthentication\") }",
+          "filter-pattern": "{ ($.eventName = ConsoleLogin) && ($.errorMessage = \"Failed authentication\") }",
           "metric-namespace": "CloudTrailMetrics",
           "metric-name": "ConsoleSignInFailureCount",
           "metric-value": "1"

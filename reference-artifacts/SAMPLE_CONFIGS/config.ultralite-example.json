@@ -280,7 +280,7 @@
           "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
-          "filter-pattern": "{ ($.eventName = ConsoleLogin) && ($.errorMessage = \"Failedauthentication\") }",
+          "filter-pattern": "{ ($.eventName = ConsoleLogin) && ($.errorMessage = \"Failed authentication\") }",
           "metric-namespace": "CloudTrailMetrics",
           "metric-name": "ConsoleSignInFailureCount",
           "metric-value": "1"
