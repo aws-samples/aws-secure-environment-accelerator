@@ -600,7 +600,8 @@ translate(c.RouteConfig, {
     },
     target: {
       title: '',
-      description: 'The target type for the next-hop, includes TGW, IGW, VGW, pcx, NATGW_subnet_azX, NFW_subnet_azX, s3, DynamoDB, and customer. If target is set to customer, the target-id and type are required.',
+      description:
+        'The target type for the next-hop, includes TGW, IGW, VGW, pcx, NATGW_subnet_azX, NFW_subnet_azX, s3, DynamoDB, and customer. If target is set to customer, the target-id and type are required.',
     },
     name: {
       title: '',
@@ -612,7 +613,8 @@ translate(c.RouteConfig, {
     },
     port: {
       title: '',
-      description: 'Subnet name containing the targeted virtual appliance port (only used when targeting EC2 based firewall appliances)',
+      description:
+        'Subnet name containing the targeted virtual appliance port (only used when targeting EC2 based firewall appliances)',
     },
     'target-id': {
       title: 'Target ID',
@@ -620,7 +622,8 @@ translate(c.RouteConfig, {
     },
     type: {
       title: 'Target Type',
-      description: 'The target type for the next hop, when created external to the ASEA. Valid values: "egressOnlyInternetGatewayId", "gatewayId", "instanceId", "localGatewayId","natGatewayId", "networkInterfaceId", "transitGatewayId", "vpcEndpointId", "vpcPeeringConnectionId".',
+      description:
+        'The target type for the next hop, when created external to the ASEA. Valid values: "egressOnlyInternetGatewayId", "gatewayId", "instanceId", "localGatewayId","natGatewayId", "networkInterfaceId", "transitGatewayId", "vpcEndpointId", "vpcPeeringConnectionId".',
     },
   },
 });
