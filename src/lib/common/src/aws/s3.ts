@@ -49,6 +49,10 @@ export class S3 {
     return throttlingBackOff(() => this.client.deleteObject(input).promise());
   }
 
+  async deleteObjects(input: s3.DeleteObjectsRequest): Promise<s3.DeleteObjectsOutput> {
+    return throttlingBackOff(() => this.client.deleteObjects(input).promise());
+  }
+
   async putBucketKmsEncryption(bucket: string, kmsMasterKeyId: string): Promise<void> {
     const params: s3.PutBucketEncryptionRequest = {
       Bucket: bucket,
@@ -65,5 +69,56 @@ export class S3 {
     };
 
     await throttlingBackOff(() => this.client.putBucketEncryption(params).promise());
+  }
+  async copyObject(sourceBucket: string, sourceKey: string, destinationBucket: string, destinationPrefix: string) {
+    await throttlingBackOff(() =>
+      this.client
+        .copyObject({
+          Bucket: destinationBucket,
+          CopySource: `${sourceBucket}/${sourceKey}`,
+          Key: `${destinationPrefix}/${sourceKey}`,
+        })
+        .promise(),
+    );
+  }
+
+  async copyObjectWithACL(
+    sourceBucket: string,
+    sourceKey: string,
+    destinationBucket: string,
+    destinationPrefix: string,
+    acl: string,
+  ) {
+    await throttlingBackOff(() =>
+      this.client
+        .copyObject({
+          Bucket: destinationBucket,
+          CopySource: `${sourceBucket}/${sourceKey}`,
+          Key: `${destinationPrefix}/${sourceKey}`,
+          ACL: acl,
+        })
+        .promise(),
+    );
+  }
+  async listBucket(bucket: string) {
+    let token;
+    const params: s3.ListObjectsV2Request = {
+      Bucket: bucket,
+      ContinuationToken: token,
+    };
+    const items = [];
+    do {
+      const response = await throttlingBackOff(() => this.client.listObjectsV2(params).promise());
+      if (response.Contents) {
+        items.push(...response.Contents);
+      }
+      if (response.NextContinuationToken) {
+        params.ContinuationToken = response.NextContinuationToken;
+      } else {
+        params.ContinuationToken = undefined;
+      }
+    } while (params.ContinuationToken);
+
+    return items;
   }
 }

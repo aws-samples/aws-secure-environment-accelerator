@@ -39,8 +39,14 @@ export class StepFunctions {
    * list Executions
    */
   async listExecutions(input: ListExecutionsInput): Promise<ExecutionListItem[]> {
-    const executions = await throttlingBackOff(() => this.client.listExecutions(input).promise());
-    return executions.executions;
+    const executionList = [];
+    let token;
+    do {
+      const executions = await throttlingBackOff(() => this.client.listExecutions(input).promise());
+      executionList.push(...executions.executions);
+      token = executions.nextToken;
+    } while (token);
+    return executionList;
   }
 
   /**
