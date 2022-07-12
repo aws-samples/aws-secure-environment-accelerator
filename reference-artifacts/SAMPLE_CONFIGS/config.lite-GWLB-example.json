@@ -1429,13 +1429,15 @@
           "deploy": "local",
           "name": "Perimeter",
           "description": "This VPC is used to hold centralized ingress/egress (perimeter) security services.",
-          "cidr-src": "dynamic",
+          "cidr-src": "provided",
           "cidr": [
             {
-              "size": 22,
-              "pool": "main"
+              "value": "10.7.4.0/22",
+              "pool": "main",
+              "size": 22
             },
             {
+              "value": "100.96.250.0/23",
               "pool": "RFC6598b",
               "size": 23
             }
@@ -1459,6 +1461,7 @@
                   "az": "a",
                   "route-table": "Public_azA",
                   "cidr": {
+                    "value": "100.96.250.0/26",
                     "pool": "RFC6598b",
                     "size": 26
                   }
@@ -1467,6 +1470,7 @@
                   "az": "b",
                   "route-table": "Public_azB",
                   "cidr": {
+                    "value": "100.96.250.128/26",
                     "pool": "RFC6598b",
                     "size": 26
                   }
@@ -1480,6 +1484,7 @@
                   "az": "a",
                   "route-table": "FWMgmt_azA",
                   "cidr": {
+                    "value": "100.96.251.32/27",
                     "pool": "RFC6598b",
                     "size": 27
                   }
@@ -1488,6 +1493,7 @@
                   "az": "b",
                   "route-table": "FWMgmt_azB",
                   "cidr": {
+                    "value": "100.96.251.160/27",
                     "pool": "RFC6598b",
                     "size": 27
                   }
@@ -1501,6 +1507,7 @@
                   "az": "a",
                   "route-table": "Proxy_azA",
                   "cidr": {
+                    "value": "100.96.251.64/26",
                     "pool": "RFC6598b",
                     "size": 26
                   }
@@ -1509,6 +1516,7 @@
                   "az": "b",
                   "route-table": "Proxy_azB",
                   "cidr": {
+                    "value": "100.96.251.192/26",
                     "pool": "RFC6598b",
                     "size": 26
                   }
@@ -1522,6 +1530,7 @@
                   "az": "a",
                   "route-table": "OnPremise_azA",
                   "cidr": {
+                    "value": "100.96.250.64/26",
                     "pool": "RFC6598b",
                     "size": 26
                   }
@@ -1530,6 +1539,7 @@
                   "az": "b",
                   "route-table": "OnPremise_azB",
                   "cidr": {
+                    "value": "100.96.250.192/26",
                     "pool": "RFC6598b",
                     "size": 26
                   }
@@ -1543,6 +1553,7 @@
                   "az": "a",
                   "route-table": "Detonation_Shared",
                   "cidr": {
+                    "value": "10.7.4.0/24",
                     "pool": "main",
                     "size": 24
                   }
@@ -1551,6 +1562,7 @@
                   "az": "b",
                   "route-table": "Detonation_Shared",
                   "cidr": {
+                    "value": "10.7.5.0/24",
                     "pool": "main",
                     "size": 24
                   }
@@ -1570,6 +1582,18 @@
                   "az": "a"
                 },
                 {
+                  "destination": "100.96.250.0/26",
+                  "target": "GWLB",
+                  "name": "Inspection-GWLB",
+                  "az": "a"
+                },
+                {
+                  "destination": "100.96.250.128/26",
+                  "target": "GWLB",
+                  "name": "Inspection-GWLB",
+                  "az": "b"
+                },
+                {
                   "destination": "10.0.0.0/8",
                   "target": "TGW"
                 },
@@ -1584,6 +1608,18 @@
               "routes": [
                 {
                   "destination": "0.0.0.0/0",
+                  "target": "GWLB",
+                  "name": "Inspection-GWLB",
+                  "az": "b"
+                },
+                {
+                  "destination": "100.96.250.0/26",
+                  "target": "GWLB",
+                  "name": "Inspection-GWLB",
+                  "az": "a"
+                },
+                {
+                  "destination": "100.96.250.128/26",
                   "target": "GWLB",
                   "name": "Inspection-GWLB",
                   "az": "b"
