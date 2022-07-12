@@ -21,6 +21,7 @@ export interface AssumeRoleProviderSourceProps {
   name: string;
   assumeRoleName: string;
   assumeRoleDuration: number;
+  region: string | undefined;
 }
 
 export class AssumeRoleProviderSource implements CredentialProviderSource {
@@ -64,9 +65,13 @@ export class AssumeRoleProviderSource implements CredentialProviderSource {
   protected async assumeRole(accountId: string, duration: number): Promise<aws.STS.AssumeRoleResponse> {
     const roleArn = `arn:aws:iam::${accountId}:role/${this.props.assumeRoleName}`;
     console.log(`Assuming role ${green(roleArn)} for ${duration} seconds`);
-
-    const sts = new aws.STS();
-    return throttlingBackOff(() =>
+    const region = this.props.region;
+    let endpoint;
+    if (region) {
+      endpoint = `sts.${region}.amazonaws.com`;
+    }
+    const sts = new aws.STS({ endpoint, region });
+    const assumeRoleResponse = await throttlingBackOff(() =>
       sts
         .assumeRole({
           RoleArn: roleArn,
@@ -75,5 +80,8 @@ export class AssumeRoleProviderSource implements CredentialProviderSource {
         })
         .promise(),
     );
+
+    console.log(assumeRoleResponse);
+    return assumeRoleResponse;
   }
 }

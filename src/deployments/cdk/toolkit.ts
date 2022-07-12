@@ -31,10 +31,6 @@ import { promises as fsp } from 'fs';
 // Set debug logging
 setLogLevel(1);
 
-// Register the assume role plugin
-const assumeRolePlugin = new AssumeProfilePlugin();
-assumeRolePlugin.init(PluginHost.instance);
-
 export interface CdkToolkitProps {
   assemblies: CloudAssembly[];
   configuration: Configuration;
@@ -198,6 +194,9 @@ export class CdkToolkit {
   }
 
   async deployStack(stack: CloudFormationStackArtifact, retries: number = 0): Promise<StackOutput[]> {
+    // Register the assume role plugin
+    const assumeRolePlugin = new AssumeProfilePlugin({ region: stack.environment.region });
+    await assumeRolePlugin.init(PluginHost.instance);
     this.deploymentLog(stack, 'Deploying Stack');
     const stackExists = await this.cloudFormation.stackExists({ stack });
     this.deploymentLog(stack, `Stack Exists: ${stackExists}`);

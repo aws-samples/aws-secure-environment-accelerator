@@ -14,14 +14,22 @@
 import aws from './aws-client';
 import * as sts from 'aws-sdk/clients/sts';
 import { throttlingBackOff } from './backoff';
-
 export class STS {
   private readonly client: aws.STS;
   private readonly cache: { [roleArn: string]: aws.Credentials } = {};
 
   constructor(credentials?: aws.Credentials) {
+    let region;
+    let endpoint;
+    if (process.env.AWS_REGION) {
+      region = process.env.AWS_REGION;
+      endpoint = `sts.${process.env.AWS_REGION}.amazonaws.com`;
+    }
+
     this.client = new aws.STS({
       credentials,
+      region,
+      endpoint,
     });
   }
 
