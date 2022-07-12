@@ -460,7 +460,7 @@ translate(c.SubnetDefinitionConfig, {
   fields: {
     az: {
       title: 'Availability Zone',
-      description: 'Availability Zone to create the subnet in',
+      description: 'Availability Zone to create the subnet.',
     },
     cidr: {
       title: 'Subnet CIDR Definition',
@@ -477,7 +477,7 @@ translate(c.SubnetDefinitionConfig, {
     },
     'outpost-arn': {
       title: 'Outpost ARN',
-      description: 'The Outpost ARN needed to associate the subnet with an AWS Outpost implementation',
+      description: 'The ARN of the Outpost to create the subnet.',
     },
   },
 });
@@ -592,35 +592,35 @@ translate(c.PcxRouteConfigType, {
 
 translate(c.RouteConfig, {
   title: 'Route Config',
-  description: 'The configuration routes that are added to the route tables',
+  description: 'The configuration for routes to be added to a route table',
   fields: {
     destination: {
       title: '',
-      description: 'Destination IP subnet or VPC Gateway endpoint',
+      description: 'Destination CIDR or either "s3", "DynamoDB" for a VPC Gateway endpoint.',
     },
     target: {
       title: '',
-      description: 'Next-hop address for the route. If target is set to customer, the target-id and type are required.',
+      description: 'The target type for the next-hop, includes TGW, IGW, VGW, pcx, NATGW_subnet_azX, NFW_subnet_azX, s3, DynamoDB, and customer. If target is set to customer, the target-id and type are required.',
     },
     name: {
       title: '',
-      description: 'Name of the route',
+      description: 'Route table name.',
     },
     az: {
       title: '',
-      description: 'Availability Zone',
+      description: 'Availability Zone (only used when targeting EC2 based firewall appliances)',
     },
     port: {
       title: '',
-      description: 'When routing traffic to ports of 3rd party virtual appliances',
+      description: 'Subnet name containing the targeted virtual appliance port (only used when targeting EC2 based firewall appliances)',
     },
     'target-id': {
       title: 'Target ID',
-      description: 'The ID of the specified target',
+      description: 'The ID of the specified target, i.e. igw-12345678901234567.',
     },
     type: {
       title: 'Target Type',
-      description: 'The type of target for the next hop.',
+      description: 'The target type for the next hop, when created external to the ASEA. Valid values: "egressOnlyInternetGatewayId", "gatewayId", "instanceId", "localGatewayId","natGatewayId", "networkInterfaceId", "transitGatewayId", "vpcEndpointId", "vpcPeeringConnectionId".',
     },
   },
 });
