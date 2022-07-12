@@ -14,7 +14,10 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
+import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
+import * as targets from '@aws-cdk/aws-events-targets';
+import { Rule, Schedule } from '@aws-cdk/aws-events';
 import { RegionInfo } from '@aws-cdk/region-info';
 import { EbsDefaultEncryption } from '@aws-accelerator/custom-resource-ec2-ebs-default-encryption';
 import { S3PublicAccessBlock } from '@aws-accelerator/custom-resource-s3-public-access-block';
@@ -64,6 +67,7 @@ export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Res
   const logAccountDefaultKeys = createDefaultEncryptionKeys(props);
   const accountEbsEncryptionKeys = createDefaultEbsEncryptionKey(props);
   const aesLogBucket = createAesLogBucket(props);
+
   return {
     centralBucketCopy,
     centralLogBucket,
@@ -92,6 +96,10 @@ function blockS3PublicAccess(props: DefaultsStep1Props) {
     });
   }
 }
+
+/**
+ * Creates a bucket that contains copies of the files in the central bucket.
+ */
 
 /**
  * Creates a bucket that contains copies of the files in the central bucket.
