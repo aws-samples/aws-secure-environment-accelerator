@@ -1020,6 +1020,10 @@ translate(c.IamRoleConfigType, {
       title: '',
       description: '',
     },
+    'meta-data-read-only-access': {
+      title: '',
+      description: '',
+    },
   },
 });
 
@@ -3058,6 +3062,10 @@ translate(c.GlobalOptionsConfigType, {
     'ct-baseline': {
       title: 'Control Tower Baseline',
       description: 'For future integration with Control Tower.',
+    },
+    'meta-data-collection': {
+      title: 'Metadata Collection',
+      description: 'Metadata collection service that stores information about ASEA in the management account',
     },
     'default-s3-retention': {
       title: 'Lifecycle policy for S3',

@@ -17,7 +17,7 @@ import { throttlingBackOff } from './backoff';
 
 export class DynamoDB {
   private readonly client: aws.DynamoDB;
-  private readonly documentClient: aws.DynamoDB.DocumentClient;
+  readonly documentClient: aws.DynamoDB.DocumentClient;
 
   constructor(credentials?: aws.Credentials, region?: string) {
     this.client = new aws.DynamoDB({

@@ -1119,6 +1119,10 @@ translate(c.IamRoleConfigType, {
       title: '',
       description: 'Set to true if this role requires read-only access to the log archive bucket.',
     },
+    'meta-data-read-only-access': {
+      title: '',
+      description: 'Set to true if this role requires read only access to the metadata bucket',
+    },
   },
 });
 
@@ -3293,6 +3297,10 @@ translate(c.GlobalOptionsConfigType, {
       title: 'ControlTower Baseline',
       description:
         'Indicates this installation depends on Control Tower and Control Tower deployed functionality. Control Tower must be installed before beginning an Accelerator installation.  Upgrades from a standalone install to a Control Tower based install are not currently possible.  This flag cannot be changed after initial installation.',
+    },
+    'meta-data-collection': {
+      title: 'Metadata Collection',
+      description: 'Metadata collection service that stores information about ASEA in the management account',
     },
     'default-s3-retention': {
       title: 'Default account S3 logging bucket retention period',

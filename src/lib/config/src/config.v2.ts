@@ -337,6 +337,7 @@ export const IamRoleConfigType = t.interface({
   'ssm-log-archive-access': t.optional(t.boolean),
   'ssm-log-archive-write-access': t.optional(t.boolean),
   'ssm-log-archive-read-only-access': t.optional(t.boolean),
+  'meta-data-read-only-access': t.optional(t.boolean),
 });
 
 export const IamConfigType = t.interface({
@@ -1086,6 +1087,7 @@ export const GlobalOptionsConfigType = t.interface({
   'endpoint-port-overrides': t.optional(t.record(t.nonEmptyString, t.array(t.nonEmptyString))),
   'control-tower-supported-regions': t.defaulted(t.array(t.nonEmptyString), []),
   'cidr-pools': t.defaulted(t.array(CidrPoolConfigType), []),
+  'meta-data-collection': t.defaulted(t.boolean, false),
 });
 
 export type GlobalOptionsConfig = t.TypeOf<typeof GlobalOptionsConfigType>;
