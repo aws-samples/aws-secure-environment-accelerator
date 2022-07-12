@@ -99,7 +99,8 @@ export const CidrConfigType = t.interface({
 export type CidrConfig = t.TypeOf<typeof CidrConfigType>;
 
 export const SubnetDefinitionConfig = t.interface({
-  az: t.availabilityZone,
+  az: t.union([t.availabilityZone, t.nonEmptyString]),
+  'outpost-arn': t.optional(t.nonEmptyString),
   cidr: t.optional(CidrConfigType),
   'route-table': t.nonEmptyString,
   disabled: t.defaulted(t.boolean, false),
@@ -152,12 +153,28 @@ export const AccountVpcConfigType = t.interface({
 
 export type AccountVpcConfigType = t.TypeOf<typeof AccountVpcConfigType>;
 
+export const RouteTargetType = t.enums('RouteTargetType', [
+  'egressOnlyInternetGatewayId',
+  'gatewayId',
+  'instanceId',
+  'localGatewayId',
+  'natGatewayId',
+  'networkInterfaceId',
+  'transitGatewayId',
+  'vpcEndpointId',
+  'vpcPeeringConnectionId',
+]);
+
+export type RouteTargetType = t.TypeOf<typeof RouteTargetType>;
+
 export const RouteConfig = t.interface({
   destination: t.union([t.nonEmptyString, PcxRouteConfigType]), // TODO Can be string or destination in another account
   target: t.nonEmptyString,
   name: t.optional(t.nonEmptyString),
   az: t.optional(t.nonEmptyString),
   port: t.optional(t.nonEmptyString),
+  type: t.optional(RouteTargetType),
+  'target-id': t.optional(t.nonEmptyString),
 });
 
 export const RouteTableConfigType = t.interface({
@@ -308,6 +325,7 @@ export const VpcConfigType = t.interface({
   'security-groups': t.optional(t.array(SecurityGroupConfigType)),
   zones: t.optional(ZoneNamesConfigType),
   'central-endpoint': t.defaulted(t.boolean, false),
+  'lgw-route-table-id': t.optional(t.nonEmptyString),
 });
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;

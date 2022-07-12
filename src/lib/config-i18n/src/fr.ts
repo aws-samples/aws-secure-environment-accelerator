@@ -388,6 +388,9 @@ translate(c.SubnetDefinitionConfig, {
       title: '',
       description: '',
     },
+    'outpost-arn': {
+      title: '',
+    },
   },
 });
 
@@ -519,6 +522,12 @@ translate(c.RouteConfig, {
     port: {
       title: '',
       description: '',
+    },
+    'target-id': {
+      title: '',
+    },
+    type: {
+      title: '',
     },
   },
 });
@@ -934,6 +943,9 @@ translate(c.VpcConfigType, {
     'central-endpoint': {
       title: '',
       description: '',
+    },
+    'lgw-route-table-id': {
+      title: '',
     },
   },
 });
