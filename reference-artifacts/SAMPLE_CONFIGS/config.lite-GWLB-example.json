@@ -844,12 +844,6 @@
         "region": "${HOME_REGION}"
       },
       {
-        "cidr": "100.96.250.0/23",
-        "pool": "RFC6598b",
-        "description": "Address pool used to dynamically assign CIDR ranges for the Perimeter VPC.",
-        "region": "${HOME_REGION}"
-      },
-      {
         "cidr": "10.249.1.0/24",
         "pool": "ForSSO",
         "description": "A non-routable pool of addresses used to dynamically assign CIDR ranges for the Active Directory Connector subnets in the Organization Management/root account.",
@@ -1433,12 +1427,10 @@
           "cidr": [
             {
               "value": "10.7.4.0/22",
-              "pool": "main",
               "size": 22
             },
             {
               "value": "100.96.250.0/23",
-              "pool": "RFC6598b",
               "size": 23
             }
           ],
@@ -1462,7 +1454,6 @@
                   "route-table": "Public_azA",
                   "cidr": {
                     "value": "100.96.250.0/26",
-                    "pool": "RFC6598b",
                     "size": 26
                   }
                 },
@@ -1471,7 +1462,6 @@
                   "route-table": "Public_azB",
                   "cidr": {
                     "value": "100.96.250.128/26",
-                    "pool": "RFC6598b",
                     "size": 26
                   }
                 }
@@ -1485,7 +1475,6 @@
                   "route-table": "FWMgmt_azA",
                   "cidr": {
                     "value": "100.96.251.32/27",
-                    "pool": "RFC6598b",
                     "size": 27
                   }
                 },
@@ -1494,7 +1483,6 @@
                   "route-table": "FWMgmt_azB",
                   "cidr": {
                     "value": "100.96.251.160/27",
-                    "pool": "RFC6598b",
                     "size": 27
                   }
                 }
@@ -1508,7 +1496,6 @@
                   "route-table": "Proxy_azA",
                   "cidr": {
                     "value": "100.96.251.64/26",
-                    "pool": "RFC6598b",
                     "size": 26
                   }
                 },
@@ -1517,7 +1504,6 @@
                   "route-table": "Proxy_azB",
                   "cidr": {
                     "value": "100.96.251.192/26",
-                    "pool": "RFC6598b",
                     "size": 26
                   }
                 }
@@ -1531,7 +1517,6 @@
                   "route-table": "OnPremise_azA",
                   "cidr": {
                     "value": "100.96.250.64/26",
-                    "pool": "RFC6598b",
                     "size": 26
                   }
                 },
@@ -1540,7 +1525,6 @@
                   "route-table": "OnPremise_azB",
                   "cidr": {
                     "value": "100.96.250.192/26",
-                    "pool": "RFC6598b",
                     "size": 26
                   }
                 }
@@ -1554,7 +1538,6 @@
                   "route-table": "Detonation_Shared",
                   "cidr": {
                     "value": "10.7.4.0/24",
-                    "pool": "main",
                     "size": 24
                   }
                 },
@@ -1563,7 +1546,6 @@
                   "route-table": "Detonation_Shared",
                   "cidr": {
                     "value": "10.7.5.0/24",
-                    "pool": "main",
                     "size": 24
                   }
                 }
