@@ -2,9 +2,9 @@
 
 ## 1.1. Overview
 
-**_We encourage customers installing the Accelerator to get the support of their local AWS account team (SA, TAM, CSM, ProServe) to assist with the installation of the Accelerator, as the Accelerator leverages, deploys, or orchestrates over 30 different AWS services._**
+**_We encourage customers installing the Accelerator to get the support of their local AWS account team (SA, TAM, CSM, ProServe) to assist with the installation of the Accelerator, as the Accelerator leverages, deploys, or orchestrates over 50 different AWS services._**
 
-_Users are strongly encouraged to also read the [Accelerator Operations/Troubleshooting Guide](../operations/index.md) before installation. The Operations/Troubleshooting Guide provides details as to what is being performed at each stage of the installation process, including detailed troubleshooting guidance._
+_Users are strongly encouraged to also read the [Accelerator Operations/Troubleshooting Guide](../operations/index.md) before installation and the [FAQ](../faq/index.md) while waiting for the installation to complete. The Operations/Troubleshooting Guide provides details as to what is being performed at each stage of the installation process, including detailed troubleshooting guidance._
 
 These installation instructions assume one of the prescribed architectures is being deployed.
 
@@ -15,6 +15,7 @@ These installation instructions assume one of the prescribed architectures is be
 -   Management or root AWS Organization account (the AWS Accelerator cannot be deployed in an AWS sub-account)
     -   No additional AWS accounts need to be pre-created before Accelerator installation
 -   If required, a limit increase to support your desired number of new AWS sub-accounts (default limit is 10 sub-accounts)
+    - **recent changes to new AWS account limits are causing accelerator installation failures, please work with your local account team to increase your limits**
 -   Valid Accelerator configuration file, updated to reflect your requirements (see below)
 -   Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
 -   Government of Canada customers are still required to do a standalone installation at this time, please request standalone installation instructions from your Account SA or TAM
@@ -212,7 +213,7 @@ Multiple options exist for downloading the GitHub Accelerator codebase and pushi
     - Do NOT download the code off the main GitHub branch, this will leave you in a completely unsupported state (and with beta code)
 3. Push the extracted codebase into the newly created CodeCommit repository, maintaining the file/folder hierarchy
 4. Set the default CodeCommit branch for the new repository to main
-5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.1-a`)
+5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.2`)
 
 ### 1.4.3. AWS Internal (Employee) Accounts Only
 
@@ -315,7 +316,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - Add an `Email` address to be used for State Machine Status notification
     - The `GitHub Branch` should point to the release you selected
         - if upgrading, change it to point to the desired release
-        - the latest stable branch is currently `release/v1.5.1-a`, case sensitive
+        - the latest stable branch is currently `release/v1.5.2`, case sensitive
         - click `Next`
 7. Finish deploying the stack
     - Apply a tag on the stack, Key=`Accelerator`, Value=`ASEA` (case sensitive).
