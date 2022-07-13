@@ -224,38 +224,10 @@ jobs:
   upload-archive-to-release:
     # We don't want to upload artifact to the release if the workflow was dispatched manually
     if: github.event_name != 'workflow_dispatch'
-    needs: [release, build-documentation, build-sea-gui, build-sea-config-schema]
+    needs: [release, build-sea-gui, build-sea-config-schema]
     name: Upload Archives to Release
     runs-on: ubuntu-latest
     steps:
-      - name: Documentation - Download Archive
-        uses: actions/download-artifact@v2
-        id: download-archive-documentation
-        with:
-          name: ${{ needs.build-documentation.outputs.documentation-archive-name }}
-          path: download-archive-documentation
-      - name: Documentation - Create Archive
-        id: create-archive-documentation
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NUMERIC_RELEASE_SHORT: ${{ needs.release.outputs.numeric-release-short }}
-          OUTPUT_DIR: ${{ steps.download-archive-documentation.outputs.download-path }}
-        run: |
-          cd "${OUTPUT_DIR}"
-          zip -r  documentation.zip *
-
-          echo ::set-output name=release-path::$(realpath "./documentation.zip")
-          echo ::set-output name=release-asset-name::AWS-SEA-Documentation-v${NUMERIC_RELEASE_SHORT}.zip
-      - name: Documentation - Upload Release Asset
-        id: upload-release-asset-documentation
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.release.outputs.release-asset-url }}
-          asset_path: ${{ steps.create-archive-documentation.outputs.release-path }}
-          asset_name: ${{ steps.create-archive-documentation.outputs.release-asset-name }}
-          asset_content_type: application/zip
       - name: SEA-GUI - Download Archive
         uses: actions/download-artifact@v2
         id: download-archive-sea-gui
@@ -290,7 +262,7 @@ jobs:
         with:
           name: ${{ needs.build-sea-config-schema.outputs.release-asset-name }}
           path: download-archive-sea-config-schema
-      - name: SEA-GUI - Create Archive
+      - name: SEA-Config-Schema - Create Archive
         id: create-archive-sea-config-schema
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -302,7 +274,7 @@ jobs:
 
           echo ::set-output name=release-path::$(realpath "./archive.zip")
           echo ::set-output name=release-asset-name::AWS-SEA-Config-Schema-v${NUMERIC_RELEASE_SHORT}-DRAFT.zip
-      - name: SEA-GUI - Upload Release Asset
+      - name: SEA-Config-Schema - Upload Release Asset
         id: upload-release-asset-sea-config-schema
         uses: actions/upload-release-asset@v1
         env:
