@@ -1132,15 +1132,15 @@ translate(c.IamRoleConfigType, {
     },
     'ssm-log-archive-write-access': {
       title: '',
-      description: 'Set to true if this role requires read and write access to the log archive bucket.',
+      description: 'Set to true to grant this role write access to the log archive buckets.',
     },
     'ssm-log-archive-read-only-access': {
       title: '',
-      description: 'Set to true if this role requires read-only access to the log archive bucket.',
+      description: 'Set to true to grant this role read-only access to the log archive buckets.',
     },
     'meta-data-read-only-access': {
       title: '',
-      description: 'Set to true if this role requires read only access to the metadata bucket',
+      description: 'Set to true to grant this role read-only access to the metadata bucket in the log archive account.',
     },
   },
 });
@@ -3319,7 +3319,8 @@ translate(c.GlobalOptionsConfigType, {
     },
     'meta-data-collection': {
       title: 'Metadata Collection',
-      description: 'Metadata collection service that stores information about ASEA in the management account',
+      description:
+        'Enables metadata collection service that stores information about ASEA configuration in the metadata bucket in the log archive account.',
     },
     'default-s3-retention': {
       title: 'Default account S3 logging bucket retention period',
