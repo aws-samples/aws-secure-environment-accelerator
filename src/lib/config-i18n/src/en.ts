@@ -601,15 +601,15 @@ translate(c.RouteConfig, {
     target: {
       title: '',
       description:
-        'The target type for the next-hop, includes TGW, IGW, VGW, pcx, NATGW_subnet_azX, NFW_subnet_azX, s3, DynamoDB, and customer. If target is set to customer, the target-id and type are required.',
+        'The target type for the next-hop, includes TGW, IGW, VGW, pcx, GWLB, NATGW_subnet_azX, NFW_subnet_azX, s3, DynamoDB, and customer. If target is set to customer, the target-id and type are required.',
     },
     name: {
       title: '',
-      description: 'Route table name.',
+      description: 'Name of the GWLB to be targeted.',
     },
     az: {
       title: '',
-      description: 'Availability Zone (only used when targeting EC2 based firewall appliances)',
+      description: 'Availability Zone (only used when targeting GWLB endpoints and EC2 based firewall appliances)',
     },
     port: {
       title: '',
