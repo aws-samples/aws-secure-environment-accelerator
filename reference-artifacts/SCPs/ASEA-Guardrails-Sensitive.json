@@ -265,7 +265,7 @@
         "s3:ListMultiR*",
         "s3:PutMultiR*",
         "sns:Publish",
-        "tagging:GetResources"
+        "tag:GetResources"
       ],
       "Resource": "*",
       "Condition": {
