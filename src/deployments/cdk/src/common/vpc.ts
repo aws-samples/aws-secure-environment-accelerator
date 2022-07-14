@@ -368,9 +368,6 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           availabilityZone,
           outpostArn: subnetDefinition['outpost-arn'],
         });
-        if (availabilityZone.length > 1) {
-          console.log(subnet);
-        }
         for (const extensions of extendVpc) {
           subnet.addDependsOn(extensions);
         }
