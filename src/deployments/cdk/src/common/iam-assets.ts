@@ -244,14 +244,14 @@ export class IamAssets extends cdk.Construct {
       return iamSSMLogArchiveReadOnlyAccessPolicy;
     };
 
-    if (!IamConfigType.is(iamConfig)) {
+    if (!iamConfig) {
       console.log(
         `IAM config is not defined for account with key - ${accountKey}. Skipping Policies/Users/Roles creation.`,
       );
     } else {
       const iamPolicies = iamConfig.policies;
       for (const iamPolicy of iamPolicies!) {
-        if (!IamPolicyConfigType.is(iamPolicy)) {
+        if (!iamPolicy) {
           console.log(
             `IAM config - policies is not defined for account with key - ${accountKey}. Skipping Policies creation.`,
           );
@@ -262,7 +262,7 @@ export class IamAssets extends cdk.Construct {
 
       const iamUsers = iamConfig.users;
       for (const iamUser of iamUsers!) {
-        if (!IamUserConfigType.is(iamUser)) {
+        if (!iamUser) {
           console.log(
             `IAM config - users is not defined for account with key - ${accountKey}. Skipping Users creation.`,
           );
@@ -287,7 +287,7 @@ export class IamAssets extends cdk.Construct {
           : undefined;
 
       for (const iamRole of iamRoles) {
-        if (!IamRoleConfigType.is(iamRole)) {
+        if (!iamRole) {
           console.log(
             `IAM config - roles is not defined for account with key - ${accountKey}. Skipping Roles creation.`,
           );
