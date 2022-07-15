@@ -71,7 +71,7 @@ export class AssumeRoleProviderSource implements CredentialProviderSource {
       endpoint = `sts.${region}.amazonaws.com`;
     }
     const sts = new aws.STS({ endpoint, region });
-    const assumeRoleResponse = await throttlingBackOff(() =>
+    return await throttlingBackOff(() =>
       sts
         .assumeRole({
           RoleArn: roleArn,
@@ -80,8 +80,5 @@ export class AssumeRoleProviderSource implements CredentialProviderSource {
         })
         .promise(),
     );
-
-    console.log(assumeRoleResponse);
-    return assumeRoleResponse;
   }
 }

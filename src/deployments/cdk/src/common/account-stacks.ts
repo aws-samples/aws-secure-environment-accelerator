@@ -196,7 +196,10 @@ export class AccountStacks {
   protected createStackLogicalId(accountKey: string, region: string, suffix?: string) {
     // BE CAREFUL CHANGING THE STACK LOGICAL ID
     // When changed, it will generate new logical IDs for all resources in this stack and recreate all resources!
-    const accountPrettyName = pascalCase(accountKey);
+    let accountPrettyName = pascalCase(accountKey);
+    if (this.startsWithNum(accountPrettyName)) {
+      accountPrettyName = `a${accountPrettyName}`;
+    }
     const suffixPretty = suffix ? pascalCase(suffix) : '';
     const regionPrettyName = region === this.props.context.defaultRegion ? '' : pascalCase(region);
     const stackConstructId = !suffix
@@ -204,4 +207,8 @@ export class AccountStacks {
       : `${accountPrettyName}Phase${this.props.phase}${regionPrettyName}${suffixPretty}`;
     return stackConstructId;
   }
+
+  startsWithNum = (expression: string) => {
+    return new RegExp(/^\d/).test(expression);
+  };
 }
