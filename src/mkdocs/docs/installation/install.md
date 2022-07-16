@@ -259,7 +259,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - These configuration files can be used, as-is, with only minor modification to successfully deploy the sample architectures;
     - On upgrades, compare your deployed configuration file with the latest branch configuration file for any new or changed parameters;
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
-    - For existing accounts, they _must_ match identically to both the account names and email addresses defined in AWS Organizations;
+    - For existing accounts, they _must_ match identically to both the account names and email addresses defined in AWS Organizations (including the management account);
     - For new accounts, they must reflect the new account name/email you want created;
     - All new AWS accounts require a unique email address which has never before been used to create an AWS account;
     - When updating the budget or SNS notification email addresses within the sample config, a single email address for all is sufficient;
