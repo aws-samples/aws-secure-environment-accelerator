@@ -213,7 +213,7 @@ Multiple options exist for downloading the GitHub Accelerator codebase and pushi
     - Do NOT download the code off the main GitHub branch, this will leave you in a completely unsupported state (and with beta code)
 3. Push the extracted codebase into the newly created CodeCommit repository, maintaining the file/folder hierarchy
 4. Set the default CodeCommit branch for the new repository to main
-5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.2`)
+5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.3`)
 
 ### 1.4.3. AWS Internal (Employee) Accounts Only
 
@@ -316,7 +316,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - Add an `Email` address to be used for State Machine Status notification
     - The `GitHub Branch` should point to the release you selected
         - if upgrading, change it to point to the desired release
-        - the latest stable branch is currently `release/v1.5.2`, case sensitive
+        - the latest stable branch is currently `release/v1.5.3`, case sensitive
         - click `Next`
 7. Finish deploying the stack
     - Apply a tag on the stack, Key=`Accelerator`, Value=`ASEA` (case sensitive).
