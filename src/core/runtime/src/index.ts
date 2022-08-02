@@ -14,7 +14,7 @@
 export { handler as addRoleToKmsKeyStep } from './add-role-to-kms-key-step';
 export { handler as addScpStep } from './add-scp-step';
 export { handler as addRoleToServiceCatalogStep } from './add-role-to-service-catalog-step';
-export { handler as addTagsToSharedResourcesStep } from './add-tags-to-shared-resources-step';
+//export { handler as addTagsToSharedResourcesStep } from './add-tags-to-shared-resources-step';
 export { handler as enableTrustedAccessForServicesStep } from './enable-trusted-access-for-services-step';
 export { handler as loadAccountsStep } from './load-accounts-step';
 // export { handler as loadConfigurationStep } from './load-configuration-step';
@@ -42,13 +42,15 @@ export { handler as loadAllConfig } from './load-consolidated';
 // TODO Replace with
 //   export * as codebuild from './codebuild';
 // when babel-loader supports it
+
+import * as addTagsToSharedResources from './add-tags-to-shared-resources';
 import * as createAccount from './create-landing-zone-account';
+import * as createAdConnector from './create-adconnector';
+import * as createConfigRecorder from './create-config-recorder';
 import * as createOrganizationAccount from './create-organization-account';
 import * as createStack from './create-stack';
 import * as createStackSet from './create-stack-set';
-import * as createAdConnector from './create-adconnector';
 import * as deleteDefaultVpcs from './delete-default-vpc';
-import * as createConfigRecorder from './create-config-recorder';
 export {
   createAccount,
   createStack,
@@ -57,4 +59,5 @@ export {
   createOrganizationAccount,
   deleteDefaultVpcs,
   createConfigRecorder,
+  addTagsToSharedResources
 };

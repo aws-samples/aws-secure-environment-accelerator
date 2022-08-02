@@ -11,32 +11,35 @@
  *  and limitations under the License.
  */
 
-import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as codebuild from '@aws-cdk/aws-codebuild';
+import * as dynamodb from '@aws-cdk/aws-dynamodb';
+import * as fs from 'fs';
 import * as iam from '@aws-cdk/aws-iam';
+import * as kms from '@aws-cdk/aws-kms';
 import * as lambda from '@aws-cdk/aws-lambda';
+import * as path from 'path';
+import * as s3 from '@aws-cdk/aws-s3';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
-import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
+import * as sns from '@aws-cdk/aws-sns';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
-import * as s3 from '@aws-cdk/aws-s3';
-import { CdkDeployProject, PrebuiltCdkDeployProject } from '@aws-accelerator/cdk-accelerator/src/codebuild';
+
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-stack';
-import { createRoleName, createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import { CdkDeployProject, PrebuiltCdkDeployProject } from '@aws-accelerator/cdk-accelerator/src/codebuild';
+import { createName, createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+
+import { AddTagsToResourcesTask } from './tasks/add-tags-to-resources-task'
+import { CDKBootstrapTask } from './tasks/cdk-bootstrap';
 import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-tasks';
+import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import { CreateControlTowerAccountTask } from './tasks/create-control-tower-account-task';
 import { CreateOrganizationAccountTask } from './tasks/create-organization-account-task';
-import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import { CreateStackTask } from './tasks/create-stack-task';
 import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
-import * as fs from 'fs';
-import * as sns from '@aws-cdk/aws-sns';
 import { StoreOutputsTask } from './tasks/store-outputs-task';
 import { StoreOutputsToSSMTask } from './tasks/store-outputs-to-ssm-task';
-import { CDKBootstrapTask } from './tasks/cdk-bootstrap';
-import * as kms from '@aws-cdk/aws-kms';
 
 const VPC_CIDR_POOL_TABLE = 'cidr-vpc-assign';
 const SUBNET_CIDR_POOL_TABLE = 'cidr-subnet-assign';
@@ -960,18 +963,65 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const addTagsToSharedResourcesTask = new CodeTask(this, 'Add Tags to Shared Resources', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.addTagsToSharedResourcesStep',
+      // S3 bucket for Add Tags to Shared Resources Lambda fns
+      const addTagsToSharedResourcesBucket = new s3.Bucket(this, 'AddTagsToSharedResourcesBucket', {
+        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+        encryption: s3.BucketEncryption.S3_MANAGED,
+        removalPolicy: cdk.RemovalPolicy.RETAIN,
+        lifecycleRules: [
+          {
+            id: '1DayDelete',
+            enabled: true,
+            expiration: cdk.Duration.days(1),
+          },
+        ],
+      });
+      addTagsToSharedResourcesBucket.addToResourcePolicy(
+        new iam.PolicyStatement({
+          actions: ['s3:GetObject*', 's3:PutObject*', 's3:DeleteObject*', 's3:GetBucket*', 's3:List*'],
+          resources: [addTagsToSharedResourcesBucket.arnForObjects('*'), addTagsToSharedResourcesBucket.bucketArn],
+          principals: [pipelineRole],
+        }),
+      );
+      // Allow only https requests
+      addTagsToSharedResourcesBucket.addToResourcePolicy(
+        new iam.PolicyStatement({
+          actions: ['s3:*'],
+          resources: [addTagsToSharedResourcesBucket.bucketArn, addTagsToSharedResourcesBucket.arnForObjects('*')],
+          principals: [new iam.AnyPrincipal()],
+          conditions: {
+            Bool: {
+              'aws:SecureTransport': 'false',
+            },
+          },
+          effect: iam.Effect.DENY,
+        }),
+      );
+
+      //State Machine and associated resources for Adding Tags to Shared Resources
+      const addTagsToSharedResourcesStateMachine = new sfn.StateMachine(this, 'Add Tags To Resources Sfn', {
+        stateMachineName: `${props.acceleratorPrefix}AddTagsToSharedResources_sfn`,
+        definition: new AddTagsToResourcesTask(this, 'AddTagsToSharedResources', {
+          lambdaCode,
           role: pipelineRole,
-        },
-        functionPayload: {
+          name: 'Add Tags To Shared Resources',
+        }),
+      });
+
+      const addTagsToSharedResourcesTask = new tasks.StepFunctionsStartExecution(this, 'Add Tags To Resources', {
+        stateMachine: addTagsToSharedResourcesStateMachine,
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          'accounts.$': '$.accounts',
+          acceleratorPrefix: props.acceleratorPrefix,
           assumeRoleName: props.stateMachineExecutionRole,
           outputTableName: outputsTable.tableName,
-        },
+          s3Bucket: addTagsToSharedResourcesBucket.bucketName
+        }),
         resultPath: 'DISCARD',
       });
+
+
 
       const enableDirectorySharingTask = new CodeTask(this, 'Enable Directory Sharing', {
         functionProps: {
