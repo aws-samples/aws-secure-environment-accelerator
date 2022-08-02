@@ -254,6 +254,13 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         : ec2.DefaultInstanceTenancy.DEFAULT,
     });
     this.vpcId = vpcObj.ref;
+    const lgw = props.vpcProps.vpcConfig['lgw-route-table-id'];
+    if (lgw) {
+      new ec2.CfnLocalGatewayRouteTableVPCAssociation(this, `${vpcName}-${lgw}`, {
+        localGatewayRouteTableId: lgw,
+        vpcId: this.vpcId,
+      });
+    }
 
     const extendVpc: ec2.CfnVPCCidrBlock[] = [];
     this.cidr2Block.forEach((additionalCidr, index) => {
@@ -325,6 +332,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     const subnetsConfig = props.vpcProps.vpcConfig.subnets || [];
     for (const subnetConfig of subnetsConfig) {
       const subnetName = subnetConfig.name;
+      console.log(`Deploying Subnet ${subnetName}`);
       for (const subnetDefinition of subnetConfig.definitions.values()) {
         if (subnetDefinition.disabled) {
           continue;
@@ -345,26 +353,32 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           subnetCidr = subnetDefinition.cidr?.value?.toCidrString()!;
         }
         if (!subnetCidr) {
-          console.warn(`Subnet with name "${subnetName}" and AZ "${subnetDefinition.az}" does not have a CIDR block`);
+          console.log(`Subnet with name "${subnetName}" and AZ "${subnetDefinition.az}" does not have a CIDR block`);
           continue;
         }
-
+        let availabilityZone = subnetDefinition.az;
+        if (availabilityZone.length === 1) {
+          availabilityZone = `${this.region}${subnetDefinition.az}`;
+        }
         const subnetId = `${subnetName}_${vpcName}_az${subnetDefinition.az}`;
+        console.log(`Creating subnet ${subnetId}`);
         const subnet = new ec2.CfnSubnet(this, subnetId, {
           cidrBlock: subnetCidr,
           vpcId: vpcObj.ref,
-          availabilityZone: `${this.region}${subnetDefinition.az}`,
+          availabilityZone,
+          outpostArn: subnetDefinition['outpost-arn'],
         });
         for (const extensions of extendVpc) {
           subnet.addDependsOn(extensions);
         }
+
         this.azSubnets.push({
           subnet,
           subnetName,
           id: subnet.ref,
           name: subnetName,
-          az: subnetDefinition.az,
           cidrBlock: subnetCidr,
+          az: subnetDefinition.az,
         });
 
         // Attach Subnet to Route-Table
@@ -686,11 +700,25 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             };
             new ec2.CfnRoute(this, constructName, routeParams);
             continue;
+          } else if (route.target === 'customer') {
+            if (!route.type || !route['target-id']) {
+              console.warn(
+                `type and target-id are required when using customer as target for route for the route ${route.name}`,
+              );
+              continue;
+            }
+            const constructName = `${routeTableName}_${route.type}_${route['target-id']}`;
+            const routeParams: ec2.CfnRouteProps = {
+              routeTableId: routeTableObj,
+              [route.type]: route['target-id'],
+              destinationCidrBlock: route.destination as string,
+            };
+            new ec2.CfnRoute(this, constructName, routeParams);
+            continue;
           } else {
             // Need to add for different Routes
             continue;
           }
-
           const params: ec2.CfnRouteProps = {
             routeTableId: routeTableObj,
             destinationCidrBlock: route.destination as string,

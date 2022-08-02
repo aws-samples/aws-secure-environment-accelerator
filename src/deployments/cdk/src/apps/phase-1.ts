@@ -510,7 +510,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         accountIamConfigs[accountKey].users = iamConfig.users;
       }
     } else {
-      accountIamConfigs[accountKey] = iamConfig;
+      accountIamConfigs[accountKey] = IamConfigType.encode(JSON.parse(JSON.stringify(iamConfig)));
     }
   }
 

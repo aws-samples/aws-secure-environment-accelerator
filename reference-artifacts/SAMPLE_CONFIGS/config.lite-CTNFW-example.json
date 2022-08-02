@@ -1248,7 +1248,7 @@
           "ssm-image-id": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2",
           "rsyslog-instance-type": "t3.large",
           "rsyslog-instance-role": "${ACCELERATOR_PREFIX_ND}-Rsyslog-Role",
-          "rsyslog-enforce-imdsv2": true,
+          "rsyslog-enforce-imdsv2": false,
           "rsyslog-root-volume-size": 100,
           "rsyslog-max-instance-age": 7
         }
@@ -1742,7 +1742,7 @@
       }
     },
     "management": {
-      "account-name": "ASEA-Main",
+      "account-name": "ASEA-Main---------------------REPLACE------------",
       "email": "myemail+aseaT-management@example.com---------------------REPLACE------------",
       "ou": "Security",
       "src-filename": "config.json",

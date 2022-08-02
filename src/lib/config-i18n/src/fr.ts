@@ -388,6 +388,9 @@ translate(c.SubnetDefinitionConfig, {
       title: '',
       description: '',
     },
+    'outpost-arn': {
+      title: '',
+    },
   },
 });
 
@@ -519,6 +522,12 @@ translate(c.RouteConfig, {
     port: {
       title: '',
       description: '',
+    },
+    'target-id': {
+      title: '',
+    },
+    type: {
+      title: '',
     },
   },
 });
@@ -935,6 +944,9 @@ translate(c.VpcConfigType, {
       title: '',
       description: '',
     },
+    'lgw-route-table-id': {
+      title: '',
+    },
   },
 });
 
@@ -1017,6 +1029,10 @@ translate(c.IamRoleConfigType, {
       description: '',
     },
     'ssm-log-archive-read-only-access': {
+      title: '',
+      description: '',
+    },
+    'meta-data-read-only-access': {
       title: '',
       description: '',
     },
@@ -3058,6 +3074,10 @@ translate(c.GlobalOptionsConfigType, {
     'ct-baseline': {
       title: 'Control Tower Baseline',
       description: 'For future integration with Control Tower.',
+    },
+    'meta-data-collection': {
+      title: 'Metadata Collection',
+      description: 'Metadata collection service that stores information about ASEA in the management account',
     },
     'default-s3-retention': {
       title: 'Lifecycle policy for S3',

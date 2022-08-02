@@ -22,6 +22,7 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
+import { publicDecrypt } from 'crypto';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -233,7 +234,13 @@ class Installer extends cdk.Stack {
     });
 
     installerCmk.grantEncryptDecrypt(new iam.AccountRootPrincipal());
-
+    installerCmk.addToResourcePolicy(
+      new iam.PolicyStatement({
+        actions: ['kms:Decrypt', 'kms:DescribeKey'],
+        principals: [new iam.ServicePrincipal('lambda.amazonaws.com')],
+        resources: ['*'],
+      }),
+    );
     // Define a build specification to build the initial setup templates
     const installerProject = new codebuild.PipelineProject(this, 'InstallerProject', {
       projectName: `${acceleratorPrefix}InstallerProject_pl`,
