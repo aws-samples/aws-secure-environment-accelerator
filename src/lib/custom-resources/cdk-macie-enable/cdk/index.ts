@@ -63,6 +63,9 @@ export class MacieEnable extends cdk.Construct {
       handler: 'index.handler',
       role,
       timeout: cdk.Duration.minutes(10),
+      environment: {
+        BACKOFF_START_DELAY: process.env.BACKOFF_START_DELAY || '',
+      },
     });
   }
 }

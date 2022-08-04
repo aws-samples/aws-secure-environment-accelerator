@@ -22,8 +22,19 @@ export function throttlingBackOff<T>(
   request: () => Promise<T>,
   options?: Partial<Omit<IBackOffOptions, 'retry'>>,
 ): Promise<T> {
+  let startingDelay = 500;
+  if (process.env.BACKOFF_START_DELAY) {
+    const backoffStartDelay = parseInt(process.env.BACKOFF_START_DELAY, 10);
+    if (!isNaN(backoffStartDelay)) {
+      startingDelay = backoffStartDelay;
+    }
+  }
+
+  console.log(`throttlingBackOff delay set to ${startingDelay}`);
+
   return backOff(request, {
-    startingDelay: 500,
+    startingDelay,
+    delayFirstAttempt: true,
     jitter: 'full',
     retry: isThrottlingError,
     ...options,

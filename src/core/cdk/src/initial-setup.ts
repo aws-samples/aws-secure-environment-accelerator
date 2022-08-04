@@ -799,6 +799,10 @@ export namespace InitialSetup {
             type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
             value: sfn.JsonPath.stringAt('$.verbose'),
           },
+          BACKOFF_START_DELAY: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: sfn.JsonPath.stringAt('$.backoffStartDelay'),
+          },
         };
 
         const deployTask = new tasks.CodeBuildStartBuild(this, `Deploy Phase ${phase}`, {

@@ -33,6 +33,7 @@ export interface Context {
   cidrPoolTable: string;
   centralOperationsAccount?: string;
   masterAccount?: string;
+  backoffStartDelay?: string;
 }
 
 export function loadContext(): Context {
@@ -62,5 +63,6 @@ export function loadContext(): Context {
     vpcCidrPoolAssignedTable: process.env.VPC_CIDR_ASSIGNED_POOL!,
     subnetCidrPoolAssignedTable: process.env.SUBNET_CIDR_ASSIGNED_POOL!,
     cidrPoolTable: process.env.CIDR_POOL!,
+    backoffStartDelay: process.env.BACKOFF_START_DELAY,
   };
 }
