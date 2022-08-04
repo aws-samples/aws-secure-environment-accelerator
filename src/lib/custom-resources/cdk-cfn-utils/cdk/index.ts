@@ -22,12 +22,16 @@ export function throttlingBackOff<T>(
   request: () => Promise<T>,
   options?: Partial<Omit<IBackOffOptions, 'retry'>>,
 ): Promise<T> {
-  let startingDelay = 500;
+  const defaultDelay = 500;
+  let startingDelay = defaultDelay;
   if (process.env.BACKOFF_START_DELAY) {
     const backoffStartDelay = parseInt(process.env.BACKOFF_START_DELAY, 10);
     if (!isNaN(backoffStartDelay)) {
       startingDelay = backoffStartDelay;
     }
+
+    // Add jitter to the starting delay
+    startingDelay = Math.random() * (startingDelay - defaultDelay + 1) + defaultDelay;
   }
 
   console.log(`throttlingBackOff delay set to ${startingDelay}`);
