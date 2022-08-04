@@ -801,7 +801,7 @@ export namespace InitialSetup {
           },
           BACKOFF_START_DELAY: {
             type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-            value: sfn.JsonPath.stringAt('$.backoffStartDelay'),
+            value: sfn.JsonPath.stringAt('$.smInput.backoffStartDelay'),
           },
         };
 

@@ -34,6 +34,7 @@ exports.handler = async function (event, context) {
       scope: 'FULL',
       mode: 'APPLY',
       verbose: '0',
+      backoffStartDelay: '500'
     };
 
     await sfn
