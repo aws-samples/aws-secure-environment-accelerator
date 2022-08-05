@@ -432,7 +432,7 @@ async function startStateMachine(stateMachineArn: string): Promise<string> {
         scope: 'NEW-ACCOUNTS',
         mode: 'APPLY',
         verbose: '0',
-        backoffStartDelay: '500'
+        backoffStartDelay: '500',
       }),
     });
   } else {
