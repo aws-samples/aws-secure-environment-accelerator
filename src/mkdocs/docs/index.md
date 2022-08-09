@@ -33,20 +33,21 @@ Specifically the accelerator deploys and manages the following functionality, bo
 -   Supports AWS Organizations nested [OU's](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html) and importing existing AWS accounts
 -   Performs 'account warming' to establish initial limits, when required
 -   Automatically submits limit increases, when required (complies with initial limits until increased)
--   Leverages AWS Control Tower **(NEW)**
+-   Leverages AWS Control Tower
 
 ### 1.2.2. Creates Networking
 
 -   Transit Gateways and TGW route tables (incl. inter-region TGW peering)
 -   Centralized and/or Local (bespoke) VPC's
 -   Subnets, Route tables, NACLs, Security groups, NATGWs, IGWs, VGWs, CGWs
+-   **NEW** Outpost, Local Zone and Wavelength support
 -   VPC Endpoints (Gateway and Interface, Centralized or Local)
 -   Route 53 Private and Public Zones, Resolver Rules and Endpoints, VPC Endpoint Overloaded Zones
 -   All completely and individually customizable (per account, VPC, subnet, or OU)
 -   Layout and customize your VPCs, subnets, CIDRs and connectivity the way you want
--   Static or Dynamic **(NEW)** VPC and subnet CIDR assignments
+-   Static or Dynamic VPC and subnet CIDR assignments
 -   Deletes default VPC's (worldwide)
--   AWS Network Firewall **(NEW)**
+-   AWS Network Firewall
 
 ### 1.2.3. Cross-Account Object Sharing
 
@@ -93,11 +94,11 @@ Specifically the accelerator deploys and manages the following functionality, bo
 -   Imports or requests certificates into AWS Certificate Manager
 -   Deploys both perimeter and account level ALB's w/Lambda health checks, certificates and TLS policies
 -   Deploys & configures 3rd party firewall clusters and management instances (leverages marketplace)
-    -   Gateway Load Balancer w/auto-scaling **(NEW)** and VPN IPSec BGP ECMP deployment options
+    -   Gateway Load Balancer w/auto-scaling and VPN IPSec BGP ECMP deployment options
 -   Protects Accelerator deployed and managed objects
 -   Sets Up SNS Alerting topics (High, Medium, Low, Blackhole priorities)
 -   Deploys CloudWatch Log Metrics and Alarms
--   Deploys customer provided custom config rules (2 provided out-of-box, No EC2 Instance Profile)
+-   Deploys customer provided custom config rules (2 provided out-of-box, no EC2 Instance Profile/Permissions)
 
 ### 1.2.7. Centralized Logging and Alerting
 
@@ -113,11 +114,12 @@ Specifically the accelerator deploys and manages the following functionality, bo
     -   GuardDuty Findings
     -   Macie Discovery results
     -   ALB Logs
-    -   SSM Inventory **(NEW)**
-    -   Security Hub findings **(NEW)**
+    -   SSM Inventory
+    -   Security Hub findings
     -   SSM Session Logs (also sent to CWL)
     -   Resolver Query Logs (also sent to CWL)
--   Email alerting for CloudTrail Metric Alarms, Firewall Manager Events **(NEW)**, Security Hub Findings incl. Guardduty Findings **(NEW)**
+-   Email alerting for CloudTrail Metric Alarms, Firewall Manager Events, Security Hub Findings incl. GuardDuty Findings
+- **NEW** Optionally collect Organization and ASEA configuration and metadata in a new restricted log archive bucket
 
 ## 1.3. Relationship with AWS Landing Zone Solution (ALZ)
 
@@ -125,7 +127,7 @@ The ALZ was an AWS Solution designed to deploy a multi-account AWS architecture 
 
 ## 1.4. Relationship with AWS Control Tower
 
-The AWS Secure Environment Accelerator now leverages AWS Control Tower! **(NEW)**
+The AWS Secure Environment Accelerator now leverages AWS Control Tower!
 
 With the release of v1.5.0, the AWS Accelerator adds the capability to be deployed on top of AWS Control Tower. Customers get the benefits of the fully managed capabilities of AWS Control Tower combined with the power and flexibility of the Accelerators Networking and Security orchestration.
 
