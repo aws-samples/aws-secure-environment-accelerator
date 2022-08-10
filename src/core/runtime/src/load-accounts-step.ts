@@ -26,6 +26,7 @@ export interface SMInput {
   verbose?: string | number;
   targetOus?: string[];
   targetAccounts?: string[];
+  backoffStartDelay?: string | number;
 }
 export interface LoadAccountsInput extends LoadConfigurationInput {
   accountsItemsCountId: string;
@@ -42,6 +43,7 @@ export interface LoadAccountsOutput {
   scope: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
   mode: 'APPLY';
   verbose: string | '1' | '0';
+  backoffStartDelay: string | '500';
 }
 
 const dynamoDB = new DynamoDB();
@@ -62,7 +64,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     smInput,
   } = input;
 
-  const { targetAccounts, targetOus, mode, scope, verbose } = smInput;
+  const { targetAccounts, targetOus, mode, scope, verbose, backoffStartDelay } = smInput;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -199,5 +201,6 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     scope: scope || 'NEW-ACCOUNTS',
     mode: mode || 'APPLY',
     verbose: verbose ? `${verbose}` : '0',
+    backoffStartDelay: backoffStartDelay ? `${backoffStartDelay}` : '5000',
   };
 };

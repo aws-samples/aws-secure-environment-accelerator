@@ -33,8 +33,7 @@ exports.handler = async function (event, context) {
     const smInput = {
       scope: 'FULL',
       mode: 'APPLY',
-      verbose: '0',
-      backoffStartDelay: '500'
+      verbose: '0'
     };
 
     await sfn
