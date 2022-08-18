@@ -29,7 +29,7 @@
    const secretDetails = event.detail.requestParameters;
    const secretArn = secretDetails.secretId;
    const secretValue = await getSecretValue(secretArn);
-   await updatePipelineDetailsForBothPipelines(secretValue);
+   await updatePipelineDetailsForPipelineList(secretValue);
    return {
      statusCode: 200,
    };
@@ -85,7 +85,7 @@
    return results;
  }
  
- async function updatePipelineDetailsForBothPipelines(secretValue) {
+ async function updatePipelineDetailsForPipelineList(secretValue) {
    for (const pipeline of pipelineArray) {
      try {
        const pipelineDetails = await getPipelineDetails(pipeline);
