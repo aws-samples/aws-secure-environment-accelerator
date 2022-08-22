@@ -51,11 +51,30 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
       },
     });
 
+    // Since this is deployed organization wide, this role is required
+    // https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CreateSubscriptionFilter-IAMrole.html
+    const subscriptionFilterRole = new iam.Role(this, 'SubscriptionFilterRole', {
+      assumedBy: new iam.ServicePrincipal(cdk.Fn.sub('logs.${AWS::Region}.amazonaws.com')),
+      description: 'Role used by Subscription Filter to allow access to CloudWatch Destination',
+      inlinePolicies: {
+        accessLogEvents: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              resources: ['*'],
+              actions: ['logs:PutLogEvents'],
+            }),
+          ],
+        }),
+      },
+    });
+
+
     // Creating new CloudWatch event Rule which adds Subscription filter to newly created LogGroup
     const envVariables = {
       EXCLUSIONS: JSON.stringify(props.globalExclusions),
       LOG_DESTINATION: props.logDestinationArn,
       LOG_RETENTION: props.logRetention.toString(),
+      SUBSCRIPTION_FILTER_ROLE_ARN: subscriptionFilterRole.roleArn
     };
     const addSubscriptionLambda = this.ensureLambdaFunction(
       this.cloudWatchEnventLambdaPath,
