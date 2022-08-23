@@ -16,7 +16,6 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as events from '@aws-cdk/aws-events';
-import { v4 as uuidv4 } from 'uuid';
 
 const resourceType = 'Custom::CentralLoggingSubscriptionFilter';
 

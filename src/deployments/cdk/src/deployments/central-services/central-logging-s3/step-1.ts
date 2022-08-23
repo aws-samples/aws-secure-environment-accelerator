@@ -270,25 +270,6 @@ async function cwlSettingsInLogArchive(props: {
     },
   });
 
-  //
-  // Since this is deployed organization wide, this role is required
-  // https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CreateSubscriptionFilter-IAMrole.html
-  const subscriptionFilterRole = new iam.Role(scope, 'SubscriptionFilterRole', {
-    assumedBy: new iam.ServicePrincipal(cdk.Fn.sub('logs.${AWS::Region}.amazonaws.com')),
-    description: 'Role used by Subscription Filter to allow access to CloudWatch Destination',
-    inlinePolicies: {
-      accessLogEvents: new iam.PolicyDocument({
-        statements: [
-          new iam.PolicyStatement({
-            resources: ['*'],
-            actions: ['logs:PutLogEvents'],
-          }),
-        ],
-      }),
-    },
-  });
-
-
   // Store LogDestination ARN in output so that subsequent phases can access the output
   new CfnLogDestinationOutput(scope, `CloudWatchCentralLoggingOrgOutput`, {
     destinationArn: logDestination.attrArn,
