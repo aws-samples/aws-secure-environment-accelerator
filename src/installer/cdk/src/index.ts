@@ -115,6 +115,12 @@ class Installer extends cdk.Stack {
       default: 680,
     });
 
+    const backoffStartDelay = new cdk.CfnParameter(this, 'Backoff Start Delay', {
+      description:
+        'The start delay for exponential backoff of API calls in milliseconds. Leave at the default of 500 unless needed.',
+      default: 500,
+    });
+
     const stateMachineName = `${acceleratorPrefix}MainStateMachine_sm`;
 
     // The state machine name has to match the name of the state machine in initial setup
@@ -321,6 +327,10 @@ class Installer extends cdk.Stack {
           DEPLOY_STACK_PAGE_SIZE: {
             type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
             value: stackDeployPageSize.valueAsString,
+          },
+          BACKOFF_START_DELAY: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: backoffStartDelay.valueAsString,
           },
         },
       },
