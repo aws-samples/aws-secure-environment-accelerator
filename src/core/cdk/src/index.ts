@@ -39,6 +39,7 @@ async function main() {
     env.CONFIG_S3_BUCKET || `${acceleratorPrefix.toLowerCase()}${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}-config`;
   const codebuildComputeType = env.BUILD_COMPUTE_TYPE || 'BUILD_GENERAL1_LARGE';
   const pageSize = env.DEPLOY_STACK_PAGE_SIZE || '900';
+  const backoff = env.BACKOFF_START_DELAY;
   const enablePrebuiltProject = 'ENABLE_PREBUILT_PROJECT' in env;
   const notificationEmail = env.NOTIFICATION_EMAIL || 'notify@example.com';
   const installerCmk = env.INSTALLER_CMK || `alias/${acceleratorPrefix}Installer-Key`;
@@ -70,6 +71,7 @@ async function main() {
     installerCmk,
     codebuildComputeType,
     pageSize,
+    backoff,
   });
 }
 
