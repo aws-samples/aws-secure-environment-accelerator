@@ -87,7 +87,7 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
         ruleName,
         logRetention,
         roleArn: subscriptionRoleOutput.roleArn,
-        uuid: uuidv4.toString()
+        uuid: uuidv4()
       });
     }
   }
