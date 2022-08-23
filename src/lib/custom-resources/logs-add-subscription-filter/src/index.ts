@@ -41,16 +41,6 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: CentralLoggingSubscriptionFilterProps) {
     super(scope, id);
 
-    this.role = iam.Role.fromRoleArn(this, `${resourceType}Role`, props.roleArn);
-    // Custom Resource to add subscriptin filter to existing logGroups
-    this.resource = new cdk.CustomResource(this, 'CustomResource', {
-      resourceType,
-      serviceToken: this.lambdaFunction.functionArn,
-      properties: {
-        ...props,
-      },
-    });
-
     // Since this is deployed organization wide, this role is required
     // https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CreateSubscriptionFilter-IAMrole.html
     const subscriptionFilterRole = new iam.Role(this, 'SubscriptionFilterRole', {
@@ -68,6 +58,15 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
       },
     });
 
+    this.role = iam.Role.fromRoleArn(this, `${resourceType}Role`, props.roleArn);
+    // Custom Resource to add subscriptin filter to existing logGroups
+    this.resource = new cdk.CustomResource(this, 'CustomResource', {
+      resourceType,
+      serviceToken: this.lambdaFunction.functionArn,
+      properties: {
+        ...props
+      },
+    });
 
     // Creating new CloudWatch event Rule which adds Subscription filter to newly created LogGroup
     const envVariables = {

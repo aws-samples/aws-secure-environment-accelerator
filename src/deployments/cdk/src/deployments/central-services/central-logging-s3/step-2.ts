@@ -85,7 +85,7 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
         globalExclusions,
         ruleName,
         logRetention,
-        roleArn: subscriptionRoleOutput.roleArn,
+        roleArn: subscriptionRoleOutput.roleArn
       });
     }
   }
