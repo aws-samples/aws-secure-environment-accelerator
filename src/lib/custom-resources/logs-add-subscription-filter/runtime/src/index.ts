@@ -27,7 +27,7 @@ export interface HandlerProperties {
   logDestinationArn: string;
   globalExclusions?: string[];
   logRetention: number;
-  subscriptionFilterRoleArn: string;
+  subscriptionFilterRoleArn?: string;
 }
 
 export const handler = errorHandler(onEvent);
@@ -109,7 +109,7 @@ async function centralLoggingSubscription(event: CloudFormationCustomResourceEve
       await putLogRetentionPolicy(logGroup.logGroupName!, logRetention);
       // Add Subscription filter to logGroup
       console.log(`Adding subscription filter for ${logGroup.logGroupName}`);
-      await addSubscriptionFilter(logGroup.logGroupName!, logDestinationArn, subscriptionFilterRoleArn);
+      await addSubscriptionFilter(logGroup.logGroupName!, logDestinationArn, subscriptionFilterRoleArn!);
     }),
   );
 }
@@ -143,7 +143,7 @@ async function centralLoggingSubscriptionUpdate(event: CloudFormationCustomResou
       await putLogRetentionPolicy(logGroup.logGroupName!, logRetention);
       // Add Subscription filter to logGroup
       console.log(`Adding subscription filter for ${logGroup.logGroupName}`);
-      await addSubscriptionFilter(logGroup.logGroupName!, logDestinationArn, subscriptionFilterRoleArn);
+      await addSubscriptionFilter(logGroup.logGroupName!, logDestinationArn, subscriptionFilterRoleArn!);
     }),
   );
 }

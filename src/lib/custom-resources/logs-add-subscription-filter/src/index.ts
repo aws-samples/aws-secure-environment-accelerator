@@ -26,6 +26,7 @@ export interface CentralLoggingSubscriptionFilterProps {
   logRetention: number;
   roleArn: string;
   uuid: string;
+  subscriptionFilterRole?: string;
 }
 
 /**
@@ -59,6 +60,7 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
       },
     });
 
+    props.subscriptionFilterRole = subscriptionFilterRole.roleArn;
     this.role = iam.Role.fromRoleArn(this, `${resourceType}Role`, props.roleArn);
     // Custom Resource to add subscriptin filter to existing logGroups
     this.resource = new cdk.CustomResource(this, 'CustomResource', {
