@@ -117,7 +117,7 @@ class Installer extends cdk.Stack {
 
     const backoffStartDelay = new cdk.CfnParameter(this, 'Backoff Start Delay', {
       description:
-        'The start delay for exponential backoff of API calls in milliseconds. Leave at the default of 500 unless needed.',
+        'The start delay for exponential backoff of API calls in milliseconds. Leave at the default of 5000 unless needed.',
       default: 5000,
     });
 
