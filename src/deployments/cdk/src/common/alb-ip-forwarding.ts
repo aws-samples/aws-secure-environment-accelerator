@@ -59,7 +59,7 @@ export class AlbIpForwarding extends Construct {
       runtime: lambda.Runtime.NODEJS_14_X,
       code: lambdaCode,
       handler: 'index.albIpMonitor',
-      timeout: Duration.seconds(30),
+      timeout: Duration.seconds(60),
       environment: {
         LOOKUP_TABLE: ddbTable.tableName,
       },
@@ -82,7 +82,7 @@ export class AlbIpForwarding extends Construct {
       runtime: lambda.Runtime.NODEJS_14_X,
       handler: 'index.albTargetRecordMonitor',
       code: lambdaCode,
-      timeout: Duration.seconds(30),
+      timeout: Duration.seconds(60),
       environment: {
         LOOKUP_TABLE: ddbTable.tableName,
       },

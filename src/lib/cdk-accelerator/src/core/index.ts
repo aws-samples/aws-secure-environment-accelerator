@@ -15,3 +15,4 @@ export * from './cfn-include';
 export * from './name-tagger';
 export * from './accelerator-protected-tagger';
 export * from './lambda-env-variables';
+export * from './lambda-default-timeout';

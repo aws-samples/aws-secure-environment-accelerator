@@ -106,7 +106,7 @@ export class S3UpdateLogArchivePolicy extends cdk.Construct {
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,
-      timeout: cdk.Duration.seconds(30),
+      timeout: cdk.Duration.seconds(60),
     });
   }
 }
