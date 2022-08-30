@@ -64,6 +64,16 @@ const LIMITS: { [limitKey: string]: LimitCode } = {
     quotaCode: 'L-29A0C5DF',
     enabled: false,
   },
+  [Limit.CloudWatchCreateLogStream]: {
+    serviceCode: 'logs',
+    quotaCode: 'L-76507CEF',
+    enabled: true,
+  },
+  [Limit.LambdaConcurrentExecutions]: {
+    serviceCode: 'lambda',
+    quotaCode: 'L-B99A9384',
+    enabled: true,
+  },
 };
 
 const dynamodb = new DynamoDB();
