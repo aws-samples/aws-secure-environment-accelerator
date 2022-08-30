@@ -100,8 +100,14 @@ export const handler = async (input: LoadLimitsInput) => {
 
   const accountConfigs = config.getAccountConfigs();
   const sts = new STS();
+  console.log('-----')
+  console.log(JSON.stringify(accountConfigs))
   for (const [accountKey, accountConfig] of accountConfigs) {
+    console.log('****')
+    console.log(accountKey)
+    console.log(accountConfig)
     const accountId = getAccountId(accounts, accountKey);
+    console.log(accountId)
 
     if (!accountId) {
       console.warn(`Cannot find account with accountKey ${accountKey}`);
