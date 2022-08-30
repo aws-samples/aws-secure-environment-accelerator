@@ -18,6 +18,8 @@ export enum Limit {
   CloudFormationStackCount = 'AWS CloudFormation/Stack count',
   CloudFormationStackSetPerAdmin = 'AWS CloudFormation/Stack sets per administrator account',
   OrganizationsMaximumAccounts = 'AWS Organizations/Maximum accounts',
+  CloudWatchCreateLogStream = 'AWS CloudWatch Logs/CreateLogStream throttle limit in transactions per second',
+  LambdaConcurrentExecutions = 'AWS Lambda/Concurrent Executions'
 }
 
 export interface LimitOutput {
