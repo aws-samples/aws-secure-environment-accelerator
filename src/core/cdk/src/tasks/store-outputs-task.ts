@@ -47,7 +47,7 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
     const storeAccountOutputs = new sfn.Map(this, `Store Account Outputs`, {
       itemsPath: `$.accounts`,
       resultPath: 'DISCARD',
-      maxConcurrency: 20,
+      maxConcurrency: 10,
       parameters: {
         'accountId.$': '$$.Map.Item.Value',
         'regions.$': '$.regions',
@@ -120,7 +120,7 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
     const storeAccountRegionOutputs = new sfn.Map(this, `Store Account Region Outputs`, {
       itemsPath: `$.regions`,
       resultPath: 'DISCARD',
-      maxConcurrency: 20,
+      maxConcurrency: 10,
       parameters: {
         'account.$': '$.account',
         'region.$': '$$.Map.Item.Value',
