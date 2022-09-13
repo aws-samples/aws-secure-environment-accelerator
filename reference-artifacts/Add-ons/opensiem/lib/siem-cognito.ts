@@ -103,7 +103,11 @@ export class CognitoUserPool extends Construct {
 
     const { userPoolName, usernameAttributes } = props;
 
-    const externalId: string = Math.random().toString(11).slice(2);
+    let externalId: string = this.node.tryGetContext('externalId');
+
+    if (!externalId) {
+      externalId = Math.random().toString(11).slice(2);
+    }
 
     const snsRole = new iam.Role(this, 'MfaSnsRole', {
       assumedBy: new iam.ServicePrincipal('cognito-idp.amazonaws.com'),
