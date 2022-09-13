@@ -873,13 +873,13 @@
 
     ![Logging](../installation/img/ASEA-Logging-Arch.png)
 
-??? faq "1.6.17. Deploying AWS Elastic Beanstalk instances"
+??? faq "1.6.17. How do I deploy AWS Elastic Beanstalk instances?"
 
-    #### Deploying AWS Elastic Beanstalk instances
+    #### How do I deploy AWS Elastic Beanstalk instances?
 
-    If your deployed environment contains an SCP enforcing volumen encryption of EC2 instances, your Elastic Beanstalk deployment will fail.
+    If your deployed environment contains an SCP enforcing volume encryption of EC2 instances, your Elastic Beanstalk deployment will fail.
 
-    The SCP will look simething like this:
+    The SCP will contain an entry like this:
 
     ```json
     {
