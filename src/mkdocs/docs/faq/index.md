@@ -873,6 +873,48 @@
 
     ![Logging](../installation/img/ASEA-Logging-Arch.png)
 
+??? faq "1.6.17. Deploying AWS Elastic Beanstalk instances"
+
+    #### Deploying AWS Elastic Beanstalk instances
+
+    If your deployed environment contains an SCP enforcing volumen encryption of EC2 instances, your Elastic Beanstalk deployment will fail.
+
+    The SCP will look simething like this:
+
+    ```json
+    {
+      "Sid": "EBS1",
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:*:*:volume/*",
+      "Condition": {
+        "Bool": {
+          "ec2:Encrypted": "false"
+        }
+      }
+    },
+
+    ```
+    A solution is to encrypt the root volume of the AMI that Elastic Beanstalk uses for your selected platform, and perform a custom AMI deployment of your Elastic Beanstalk application.
+
+    You can gather the AMI that Elastic Beanstalk uses via CLI with the following command:
+
+    ```bash
+    aws elasticbeanstalk describe-platform-version --region <YOUR_REGION> --platform-arn <ARN_EB_PLATFORM>
+    ```
+
+    Once you have gathered the AMI ID successfully, go to the EC2 console and:
+    
+    - Click on the ‘AMIs’ option in the left navigation pane 
+    - Search for your AMI after selecting ‘Public Images’ from the dropdown list. 
+    - Select the AMI 
+    - Go to Actions and Copy AMI
+    - Click on the checkbox to enable ‘Encryption’ and then select "Copy AMI".
+
+    Once the AMI is successfully copied, you can use this AMI to specify a custom AMI in your Elastic Beanstalk environments with root volume encrypted.
+
+
+
 ## 1.7. Network Architecture
 
 ??? faq "1.7.1. We want to securely connect our on-premises networks/datacenters to our AWS Cloud PBMM tenancy, what does AWS you recommend?"
