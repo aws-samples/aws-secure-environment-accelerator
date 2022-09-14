@@ -551,9 +551,9 @@ The following AWS resources are retained when deleting the solution:
 - Updated the CDK version to v2.40.0
 - Updated the OpenSearch cluster with the latest version 1.3 (will cause a Blue/Green Deployment)
 - Updated the OpenSearch cluster to use GP3 for the EBS volume type (will cause a Blue/Green Deployment)
-- Added 14 CloudWatch Alarms to monitor the OpenSearch cluster base on the recommendations [here](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/cloudwatch-alarms.html)
+- Added 14 CloudWatch Alarms to monitor the OpenSearch cluster based on the recommendations [here](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/cloudwatch-alarms.html)
 - Reduced the Lambda Processor memory to 512MB and changed timeout to 2 minutes
 - Added a SNS queue to send alerts to registered emails. 
 - New configurations:
   - "alertNotificationEmails": ["user@email.com"]  CloudWatch Alarm will send notifications to emails listed here
-  - "enableLambdaInsights": true Will enable CloudWatch Lambda Insights. This brings visbility into memory usage to have data to fine tune the Processor Lambda.
+  - "enableLambdaInsights": true Will enable CloudWatch Lambda Insights. This brings visibility into memory usage to have data to fine tune the Processor Lambda.
