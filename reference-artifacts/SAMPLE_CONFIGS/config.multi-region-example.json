@@ -61,6 +61,7 @@
       "guardduty-excl-regions": [],
       "guardduty-s3": true,
       "guardduty-s3-excl-regions": [],
+      "guardduty-frequency": "FIFTEEN_MINUTES",
       "cwl": true,
       "access-analyzer": true,
       "config-excl-regions": [],
