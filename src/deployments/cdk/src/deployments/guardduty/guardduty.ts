@@ -116,6 +116,7 @@ export async function step2(props: GuardDutyStepProps) {
   }));
   const centralServiceConfig = props.config['global-options']['central-security-services'];
   const s3ProtectionExclRegions = centralServiceConfig['guardduty-s3-excl-regions'] || [];
+  const eksProtectionExclRegions = centralServiceConfig['guardduty-eks-excl-regions'] || [];
   const frequency = await getFrequency(props.config);
   regions?.map(region => {
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey, region);
@@ -123,6 +124,7 @@ export async function step2(props: GuardDutyStepProps) {
       memberAccounts: accountDetails,
       roleArn: adminSetupRoleOutput.roleArn,
       s3Protection: centralServiceConfig['guardduty-s3'] && !s3ProtectionExclRegions.includes(region),
+      eksProtection: centralServiceConfig['guardduty-eks'] && !eksProtectionExclRegions.includes(region),
       frequency,
     });
   });
