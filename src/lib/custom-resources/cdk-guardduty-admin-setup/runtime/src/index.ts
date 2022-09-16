@@ -28,6 +28,12 @@ const guardduty = new AWS.GuardDuty();
 // Guardduty CreateMembers, UpdateMembers and DeleteMembers apis only supports max 50 accounts per request
 const pageSize = 50;
 
+export enum GuardDutyFrequency {
+  FIFTEEN_MINUTES = 'FIFTEEN_MINUTES',
+  ONE_HOUR = 'ONE_HOUR',
+  SIX_HOURS = 'SIX_HOURS',
+}
+
 export interface AccountDetail {
   AccountId: string;
   Email: string;
@@ -37,6 +43,7 @@ export interface HandlerProperties {
   deligatedAdminAccountId: string;
   memberAccounts: AccountDetail[];
   s3Protection: boolean;
+  frequency: GuardDutyFrequency;
 }
 
 export const handler = errorHandler(onEvent);
@@ -69,8 +76,8 @@ async function onCreateOrUpdate(
     };
   }
 
-  const { memberAccounts, s3Protection } = properties;
-  await updateS3Protection(detectorId, s3Protection);
+  const { memberAccounts, s3Protection, frequency } = properties;
+  await updateS3ProtectionAndFrequency(detectorId, s3Protection, frequency);
 
   const isAutoEnabled = await isConfigurationAutoEnabled(detectorId, s3Protection);
   if (!isAutoEnabled) {
@@ -209,7 +216,11 @@ async function updateMemberDataSource(memberAccounts: AccountDetail[], detectorI
   }
 }
 
-async function updateS3Protection(detectorId: string, s3Protection: boolean) {
+async function updateS3ProtectionAndFrequency(
+  detectorId: string,
+  s3Protection: boolean,
+  frequency?: GuardDutyFrequency,
+) {
   try {
     await throttlingBackOff(() =>
       guardduty
@@ -220,6 +231,7 @@ async function updateS3Protection(detectorId: string, s3Protection: boolean) {
               Enable: s3Protection,
             },
           },
+          FindingPublishingFrequency: frequency,
         })
         .promise(),
     );
@@ -288,7 +300,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const { memberAccounts } = properties;
   try {
     const detectorId = await getDetectorId();
-    await updateS3Protection(detectorId!, false);
+    await updateS3ProtectionAndFrequency(detectorId!, false, undefined);
     await updateConfig(detectorId!, false, false);
     await updateMemberDataSource(memberAccounts, detectorId!, false);
     await deleteMembers(memberAccounts, detectorId!);
