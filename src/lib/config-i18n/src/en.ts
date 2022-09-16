@@ -2807,6 +2807,15 @@ translate(c.CentralServicesConfigType, {
       title: 'GuardDuty S3 Protection Exclusion Regions',
       description: 'List of excluded regions from Guardduty S3 protection. [SECURITY]',
     },
+    'guardduty-eks': {
+      title: 'GuardDuty EKS Protection',
+      description:
+        'EKS protection enables Amazon GuardDuty to monitor control plane activity by analyzing Kubernetes audit logs. [SECURITY]',
+    },
+    'guardduty-eks-excl-regions': {
+      title: 'GuardDuty EKS Protection Exclusion Regions',
+      description: 'List of excluded regions from Guardduty EKS protection. [SECURITY]',
+    },
     'guardduty-frequency': {
       title: 'Update Frequency for Policy Findings',
       description:
