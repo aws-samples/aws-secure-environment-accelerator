@@ -87,15 +87,21 @@ export class CdkToolkit {
       },
     });
     await configuration.load();
-
-    const sdkProvider = await SdkProvider.withAwsCliCompatibleDefaults({
-      profile: configuration.settings.get(['profile']),
-    });
-    return new CdkToolkit({
-      assemblies,
-      configuration,
-      sdkProvider,
-    });
+    try {
+      const sdkProvider = await SdkProvider.withAwsCliCompatibleDefaults({
+        profile: configuration.settings.get(['profile']),
+      });
+      return new CdkToolkit({
+        assemblies,
+        configuration,
+        sdkProvider,
+      });
+    } catch (err) {
+      console.log(`Error loading sdk profile for ${configuration.settings.get(['profile'])}`);
+      console.log(err);
+      console.log(JSON.stringify(configuration, null, 4));
+      throw err;
+    }
   }
 
   /**
