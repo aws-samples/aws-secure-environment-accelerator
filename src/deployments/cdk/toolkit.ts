@@ -195,10 +195,17 @@ export class CdkToolkit {
 
   async deployStack(stack: CloudFormationStackArtifact, retries: number = 0): Promise<StackOutput[]> {
     // Register the assume role plugin
+
     const assumeRolePlugin = new AssumeProfilePlugin({ region: stack.environment.region });
-    await assumeRolePlugin.init(PluginHost.instance);
+    assumeRolePlugin.init(PluginHost.instance);
     this.deploymentLog(stack, 'Deploying Stack');
-    const stackExists = await this.cloudFormation.stackExists({ stack });
+    let stackExists = false;
+    try {
+      stackExists = await this.cloudFormation.stackExists({ stack });
+    } catch (err) {
+      this.deploymentLog(stack, 'FAILED stack exists');
+      console.log(err);
+    }
     this.deploymentLog(stack, `Stack Exists: ${stackExists}`);
 
     const resources = Object.keys(stack.template.Resources || {});
