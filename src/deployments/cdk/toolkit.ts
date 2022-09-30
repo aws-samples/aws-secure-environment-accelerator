@@ -26,6 +26,7 @@ import { debugModeEnabled } from '@aws-cdk/core/lib/debug';
 import { AssumeProfilePlugin } from '@aws-accelerator/cdk-plugin-assume-role/src/assume-role-plugin';
 import { fulfillAll } from './promise';
 import { promises as fsp } from 'fs';
+import * as AWS from 'aws-sdk';
 
 // Set microstats emitters
 // Set debug logging
@@ -88,6 +89,22 @@ export class CdkToolkit {
     });
     await configuration.load();
     console.log('LOAD: ', configuration.settings.get(['profile']));
+
+    //const roleArn = `arn:${partition}:iam::${process.env['MANAGEMENT_ACCOUNT_ID']}:role/${process.env['MANAGEMENT_ACCOUNT_ROLE_NAME']}`;
+    const stsClient = new AWS.STS({ region: process.env['AWS_REGION'] });
+    console.log(stsClient.getCallerIdentity());
+    const roleArn = "";
+    console.log(`[accelerator] management account roleArn => ${roleArn}`);
+
+    const assumeRoleCredential = await(stsClient.assumeRole({ RoleArn: roleArn, RoleSessionName: 'acceleratorAssumeRoleSession' }).promise());
+
+
+    process.env['AWS_ACCESS_KEY_ID'] = assumeRoleCredential.Credentials!.AccessKeyId!;
+    process.env['AWS_ACCESS_KEY'] = assumeRoleCredential.Credentials!.AccessKeyId!;
+    process.env['AWS_SECRET_KEY'] = assumeRoleCredential.Credentials!.SecretAccessKey!;
+    process.env['AWS_SECRET_ACCESS_KEY'] = assumeRoleCredential.Credentials!.SecretAccessKey!;
+    process.env['AWS_SESSION_TOKEN'] = assumeRoleCredential.Credentials!.SessionToken;
+
     const sdkProvider = await SdkProvider.withAwsCliCompatibleDefaults({
       profile: configuration.settings.get(['profile']),
       ec2creds: true,
