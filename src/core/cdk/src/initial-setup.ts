@@ -194,6 +194,8 @@ export namespace InitialSetup {
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
           new iam.ServicePrincipal('events.amazonaws.com'),
+          new iam.ServicePrincipal('ec2'),
+          new iam.AccountPrincipal(stack.account)
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
         maxSessionDuration: buildTimeout,
