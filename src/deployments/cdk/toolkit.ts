@@ -90,6 +90,7 @@ export class CdkToolkit {
     console.log('LOAD: ', configuration.settings.get(['profile']));
     const sdkProvider = await SdkProvider.withAwsCliCompatibleDefaults({
       profile: configuration.settings.get(['profile']),
+      ec2creds: true,
     });
     return new CdkToolkit({
       assemblies,
