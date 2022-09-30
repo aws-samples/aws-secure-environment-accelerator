@@ -346,6 +346,47 @@
 
     Additionally, setting "populate-all-elbs-in-param-store": true for an account will populates all Accelerator wide ELB information into parameter store within that account. The sample PBMM configuration files set this value on the perimeter account, such that ELB information is available to configure centralized ingress capabilities.
 
+??? faq "1.3.3. How do I deploy AWS Elastic Beanstalk instances?"
+
+    #### How do I deploy AWS Elastic Beanstalk instances?
+
+    If your deployed environment contains an SCP enforcing volume encryption of EC2 instances, your Elastic Beanstalk deployment will fail.
+
+    The SCP will contain an entry like this:
+
+    ```json
+    {
+      "Sid": "EBS1",
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:*:*:volume/*",
+      "Condition": {
+        "Bool": {
+          "ec2:Encrypted": "false"
+        }
+      }
+    },
+
+    ```
+    A solution is to encrypt the root volume of the AMI that Elastic Beanstalk uses for your selected platform, and perform a custom AMI deployment of your Elastic Beanstalk application.
+
+    You can gather the AMI that Elastic Beanstalk uses via CLI with the following command:
+
+    ```bash
+    aws elasticbeanstalk describe-platform-version --region <YOUR_REGION> --platform-arn <ARN_EB_PLATFORM>
+    ```
+
+    Once you have gathered the AMI ID successfully, go to the EC2 console and:
+    
+    - Click on the ‘AMIs’ option in the left navigation pane 
+    - Search for your AMI after selecting ‘Public Images’ from the dropdown list. 
+    - Select the AMI 
+    - Go to Actions and Copy AMI
+    - Click on the checkbox to enable ‘Encryption’ and then select "Copy AMI".
+
+    Once the AMI is successfully copied, you can use this AMI to specify a custom AMI in your Elastic Beanstalk environments with root volume encrypted.
+	
+	
 ## 1.4. Upgrades
 
 ??? faq "1.4.1. Can I upgrade directly to the latest release, or must I perform upgrades sequentially?"
@@ -873,47 +914,25 @@
 
     ![Logging](../installation/img/ASEA-Logging-Arch.png)
 
-??? faq "1.6.17. How do I deploy AWS Elastic Beanstalk instances?"
+??? faq "1.6.17. Why are only select interface endpoints provisioned in the sample configuration files?"
 
-    #### How do I deploy AWS Elastic Beanstalk instances?
-
-    If your deployed environment contains an SCP enforcing volume encryption of EC2 instances, your Elastic Beanstalk deployment will fail.
-
-    The SCP will contain an entry like this:
-
-    ```json
-    {
-      "Sid": "EBS1",
-      "Effect": "Deny",
-      "Action": "ec2:RunInstances",
-      "Resource": "arn:aws:ec2:*:*:volume/*",
-      "Condition": {
-        "Bool": {
-          "ec2:Encrypted": "false"
-        }
-      }
-    },
-
-    ```
-    A solution is to encrypt the root volume of the AMI that Elastic Beanstalk uses for your selected platform, and perform a custom AMI deployment of your Elastic Beanstalk application.
-
-    You can gather the AMI that Elastic Beanstalk uses via CLI with the following command:
-
-    ```bash
-    aws elasticbeanstalk describe-platform-version --region <YOUR_REGION> --platform-arn <ARN_EB_PLATFORM>
-    ```
-
-    Once you have gathered the AMI ID successfully, go to the EC2 console and:
-    
-    - Click on the ‘AMIs’ option in the left navigation pane 
-    - Search for your AMI after selecting ‘Public Images’ from the dropdown list. 
-    - Select the AMI 
-    - Go to Actions and Copy AMI
-    - Click on the checkbox to enable ‘Encryption’ and then select "Copy AMI".
-
-    Once the AMI is successfully copied, you can use this AMI to specify a custom AMI in your Elastic Beanstalk environments with root volume encrypted.
-
-
+    #### Why are only select interface endpoints provisioned in the sample configuration files? 
+   
+   For economic reasons, most of the sample configuration files only include the following minimum set of required interface endpoints:
+   
+   "ec2", "ec2messages", "ssm", "ssmmessages", "secretsmanager", "cloudformation", "kms", "logs", "monitoring"
+   
+   The full sample configuration file included all interface endpoints that existed in the Canada (Central) region at the time the configuration file was originally developed:
+   
+   "access-analyzer", "acm-pca", "application-autoscaling", "appmesh-envoy-management", "athena", "autoscaling", "autoscaling-plans", "awsconnector", "cassandra", "clouddirectory", "cloudformation", "cloudtrail", "codebuild", "codecommit", "codepipeline", "config", "datasync", "ebs", "ec2", "ec2messages", "ecr.api", "ecr.dkr", "ecs", "ecs-agent", "ecs-telemetry", "elasticbeanstalk", "elasticbeanstalk-health", "elasticfilesystem", "elasticloadbalancing", "elasticmapreduce", "email-smtp", "events", "execute-api", "git-codecommit", "glue", "kinesis-firehose", "kinesis-streams", "kms", "license-manager", "logs", "macie2", "monitoring", "notebook", "sagemaker.api", "sagemaker.runtime", "secretsmanager", "servicecatalog", "sms", "sns", "sqs", "ssm", "ssmmessages", "states", "storagegateway", "sts", "synthetics", "transfer", "transfer.server", "workspaces"
+   
+   Since that time these additional endpoints have been launched in the ca-central-1 region and can be optionally added to customer configuration files to make them accessible from private address space: 
+   
+   "airflow.api", "airflow.env", "airflow.ops", "app-integrations", "appstream.api", "appstream.streaming", "auditmanager", "backup", "backup-gateway", "batch", "cloudhsmv2", "codedeploy", "codedeploy-commands-secure", "codestar-connections.api", "comprehend", "comprehendmedical", "databrew", "dms", "elasticache", "emr-containers", "finspace", "finspace-api", "fis", "fsx", "greengrass", "imagebuilder", "inspector2", "iot.data", "iot.fleethub.api", "iotsitewise.api", "iotsitewise.data", "kendra", "lakeformation", "lambda", "memory-db", "mgn", "models-v2-lex", "nimble", "panorama", "profile", "qldb.session", "rds", "rds-data", "redshift", "redshift-data", "rekognition", "runtime-v2-lex", "sagemaker.featurestore-runtime", "securityhub", "servicecatalog-appregistry", "ssm-contacts", "ssm-incidents", "sync-states", "textract", "transcribe", "transcribestreaming", "translate", "xray"
+   
+   The aws.sagemaker.ca-central-1.studio interface endpoint was also launched, but cannot be auto-deployed by the Accelerator at this time as it does not utilize standardized naming and requires a code update to enable deployment.
+   
+   Additional endpoints may exist in other AWS regions.  Any endpoint can be added to any Accelerator configuration file, as long as it follows the standardized endpoint naming convention (e.g. com.amazonaws.{region}.{service}).
 
 ## 1.7. Network Architecture
 
