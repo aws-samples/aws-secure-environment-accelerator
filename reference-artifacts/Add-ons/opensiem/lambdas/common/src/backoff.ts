@@ -21,7 +21,7 @@ export function throttlingBackOff<T>(
   options?: Partial<Omit<IBackOffOptions, 'retry'>>,
 ): Promise<T> {
   const defaultDelay = 500;
-  let maxDelayValue = 5000;
+  let maxDelayValue = 2000;
 
   if (process.env.BACKOFF_START_DELAY) {
     const backoffStartDelay = parseInt(process.env.BACKOFF_START_DELAY, 10);
