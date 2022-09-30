@@ -88,15 +88,18 @@ export class CdkToolkit {
       },
     });
     await configuration.load();
-    console.log('LOAD: ', configuration.settings.get(['profile']));
+    //console.log('LOAD: ', configuration.settings.get(['profile']));
 
-    //const roleArn = `arn:${partition}:iam::${process.env['MANAGEMENT_ACCOUNT_ID']}:role/${process.env['MANAGEMENT_ACCOUNT_ROLE_NAME']}`;
-    const stsClient = new AWS.STS({ region: process.env['AWS_REGION'] });
-    console.log(stsClient.getCallerIdentity());
+    console.log('********************')
+    const stsClient = new AWS.STS({});
+    const getCallerIdentityResponse = await stsClient.getCallerIdentity({}).promise();
+    console.log(getCallerIdentityResponse.Arn)
+    console.log('***************')
+    
     const roleArn = "";
     console.log(`[accelerator] management account roleArn => ${roleArn}`);
 
-    const assumeRoleCredential = await(stsClient.assumeRole({ RoleArn: roleArn, RoleSessionName: 'acceleratorAssumeRoleSession' }).promise());
+    const assumeRoleCredential = await(stsClient.assumeRole({ RoleArn: getCallerIdentityResponse.Arn, RoleSessionName: 'acceleratorAssumeRoleSession' }).promise());
 
 
     process.env['AWS_ACCESS_KEY_ID'] = assumeRoleCredential.Credentials!.AccessKeyId!;
