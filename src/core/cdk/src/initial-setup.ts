@@ -57,6 +57,7 @@ export namespace InitialSetup {
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     codebuildComputeType: any;
     pageSize: string;
+    backoff: string | undefined;
     /**
      * Current Accelerator version
      */
@@ -264,6 +265,7 @@ export namespace InitialSetup {
           SUBNET_CIDR_ASSIGNED_POOL: subnetCidrPoolTable.tableName,
           CIDR_POOL: cidrPoolTable.tableName,
           DEPLOY_STACK_PAGE_SIZE: props.pageSize,
+          BACKOFF_START_DELAY: props.backoff || '',
           COMPUTE_TYPE: props.codebuildComputeType,
         },
       });
