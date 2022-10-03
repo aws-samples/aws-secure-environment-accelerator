@@ -188,6 +188,7 @@ export namespace InitialSetup {
 
 
       const roleName = createRoleName('L-SFN-MasterRole');
+      const roleArn = `arn:aws:iam::${stack.account}:role/${roleName}`
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
         roleName: roleName,
@@ -197,7 +198,7 @@ export namespace InitialSetup {
           new iam.ServicePrincipal('lambda.amazonaws.com'),
           new iam.ServicePrincipal('events.amazonaws.com'),
           new iam.ServicePrincipal('ec2'),
-          new iam.AccountPrincipal(roleName)
+          new iam.ArnPrincipal(roleArn)
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
         maxSessionDuration: buildTimeout,
