@@ -135,7 +135,7 @@ export class CurReportDefinition extends cdk.Construct {
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,
-      timeout: cdk.Duration.seconds(10),
+      timeout: cdk.Duration.seconds(60),
     });
   }
 }
