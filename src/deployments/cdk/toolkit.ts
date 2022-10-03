@@ -88,19 +88,16 @@ export class CdkToolkit {
       },
     });
     await configuration.load();
-    //console.log('LOAD: ', configuration.settings.get(['profile']));
 
-    console.log('********************')
+    /*  The code below forces an STS Assume role on itself to address an issue with new CDK Version Upgrade
+    */
     const stsClient = new AWS.STS({});
     const getCallerIdentityResponse = await stsClient.getCallerIdentity({}).promise();
     const getCallerIdentityResponseArraySplitBySlash = getCallerIdentityResponse.Arn.split("/");
-    const getCallerIdentityResponseArraySplitByColon = getCallerIdentityResponse.Arn.split(":");
-    getCallerIdentityResponseArraySplitBySlash[2] = "iam"
-    getCallerIdentityResponseArraySplitBySlash.pop()
-    const roleName = getCallerIdentityResponseArraySplitBySlash.pop()
-    const accountId = getCallerIdentityResponseArraySplitByColon[4]
+    getCallerIdentityResponseArraySplitBySlash.pop();
+    const roleName = getCallerIdentityResponseArraySplitBySlash.pop();
+    const accountId = getCallerIdentityResponse.Account;
     const roleArn = `arn:aws:iam::${accountId}:role/${roleName}`
-    console.log('***************')
     
     console.log(`[accelerator] management account roleArn => ${roleArn}`);
 
