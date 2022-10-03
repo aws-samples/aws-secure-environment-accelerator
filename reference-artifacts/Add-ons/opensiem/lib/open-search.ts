@@ -98,7 +98,7 @@ export class OpenSearchDomain extends Construct {
     });
 
     this.resource = new opensearch.CfnDomain(this, 'Domain', {
-      engineVersion: 'OpenSearch_1.1',
+      engineVersion: 'OpenSearch_1.3',
       domainName,
       clusterConfig: {
         dedicatedMasterEnabled: true,
@@ -117,7 +117,7 @@ export class OpenSearchDomain extends Construct {
       ebsOptions: {
         ebsEnabled: true,
         volumeSize,
-        volumeType: 'gp2',
+        volumeType: 'gp3',
       },
       advancedSecurityOptions: {
         internalUserDatabaseEnabled: false,

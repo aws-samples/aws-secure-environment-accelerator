@@ -23,12 +23,14 @@ import { SnsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as eventTargets from 'aws-cdk-lib/aws-events-targets';
 import * as sns from 'aws-cdk-lib/aws-sns';
+import * as snsSubscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as cognito from './siem-cognito';
 import { SiemConfig } from './siem-config';
 import * as opensearch from './open-search';
 import { OpenSearchSiemConfigure } from './siem-configure';
 import { OpenSearchSiemGeoIpInit } from './siem-geoip-download';
+import { Alerts } from './siem-alerts';
 
 export interface OpenSearchSiemStackProps extends StackProps {
   provisionServiceLinkedRole?: boolean;
@@ -251,14 +253,15 @@ export class OpenSearchSiemStack extends Stack {
       siemConfig.s3LogBuckets,
       siemConfig.siemVersion,
       siemConfig.enableLambdaSubscription,
+      siemConfig.enableLambdaInsights,
       siemConfig.s3NotificationTopicNameOrExistingArn,
       siemBucket,
     );
 
-    this.configureSnsAlerts(this, kmsEncryptionKey);
+    this.configureSnsAlerts(this, kmsEncryptionKey, domain.name, siemConfig.alertNotificationEmails);
   }
 
-  configureSnsAlerts(scope: Construct, kmsKey: kms.Key) {
+  configureSnsAlerts(scope: Construct, kmsKey: kms.Key, clusterDomainName: string, alertEmails: string[]) {
     const snsAlertRole = new iam.Role(scope, 'SnsAlertRole', {
       roleName: 'opensearch-siem-sns-role',
       assumedBy: new iam.ServicePrincipal('es.amazonaws.com'),
@@ -270,7 +273,18 @@ export class OpenSearchSiemStack extends Stack {
       masterKey: kmsKey,
     });
 
+    if (alertEmails && alertEmails.length > 0) {
+      for (const email of alertEmails) {
+        snsAlertTopic.addSubscription(new snsSubscriptions.EmailSubscription(email));
+      }
+    }
+
     snsAlertTopic.grantPublish(snsAlertRole);
+
+    new Alerts(scope, 'opensearch-siem-alerts', {
+      alertTopic: snsAlertTopic,
+      clusterDomainName,
+    });
   }
 
   configureSiemProcessor(
@@ -284,6 +298,7 @@ export class OpenSearchSiemStack extends Stack {
     s3LogBuckets: string[],
     siemVersion: string,
     enableTopicSubscription: boolean,
+    enableLambdaInsights: boolean,
     s3NotificationTopicNameOrExistingArn: string,
     geoIpUploadBucket?: s3.Bucket,
   ) {
@@ -294,9 +309,9 @@ export class OpenSearchSiemStack extends Stack {
       code: lambda.Code.fromAsset('lambdas/siem-processor/os-loader.zip'),
       role: lambdaRole,
       handler: 'index.lambda_handler',
-      timeout: Duration.seconds(900),
+      timeout: Duration.minutes(2),
       vpc,
-      memorySize: 2048,
+      memorySize: 512,
       vpcSubnets: {
         subnetFilters: [ec2.SubnetFilter.byIds(domainSubnetIds)],
       },
@@ -310,6 +325,7 @@ export class OpenSearchSiemStack extends Stack {
         GEOIP_BUCKET: geoIpUploadBucket?.bucketName || '',
         SIEM_VERSION: siemVersion,
       },
+      insightsVersion: enableLambdaInsights ? lambda.LambdaInsightsVersion.VERSION_1_0_135_0 : undefined,
     });
 
     for (const logBucket of s3LogBuckets) {
