@@ -2807,6 +2807,11 @@ translate(c.CentralServicesConfigType, {
       title: 'GuardDuty S3 Protection Exclusion Regions',
       description: 'List of excluded regions from Guardduty S3 protection. [SECURITY]',
     },
+    'guardduty-frequency': {
+      title: 'Update Frequency for Policy Findings',
+      description:
+        'The schedule GuardDuty uses to publish updates to policy findings. Supported values are: FIFTEEN_MINUTES, ONE_HOUR, SIX_HOURS. [SECURITY]',
+    },
     'access-analyzer': {
       title: '',
       description:

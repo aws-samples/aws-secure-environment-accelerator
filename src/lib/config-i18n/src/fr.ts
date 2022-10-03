@@ -2609,6 +2609,10 @@ translate(c.CentralServicesConfigType, {
       title: '',
       description: '',
     },
+    'guardduty-frequency': {
+      title: '',
+      description: '',
+    },
     'access-analyzer': {
       title: '',
       description: '',

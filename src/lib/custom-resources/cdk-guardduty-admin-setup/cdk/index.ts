@@ -15,6 +15,7 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
+import { GuardDutyFrequency } from '@aws-accelerator/custom-resource-guardduty-admin-setup-runtime';
 
 const resourceType = 'Custom::GuardDutyAdminSetup';
 
@@ -27,6 +28,7 @@ export interface GuardDutyAdminSetupProps {
   memberAccounts: AccountDetail[];
   roleArn: string;
   s3Protection: boolean;
+  frequency: GuardDutyFrequency;
 }
 
 /**
@@ -43,6 +45,7 @@ export class GuardDutyAdminSetup extends cdk.Construct {
     const handlerProperties = {
       memberAccounts: props.memberAccounts,
       s3Protection: props.s3Protection,
+      frequency: props.frequency,
     };
 
     const adminSetup = this.lambdaFunction(props.roleArn);
