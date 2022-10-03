@@ -93,13 +93,18 @@ export class CdkToolkit {
     console.log('********************')
     const stsClient = new AWS.STS({});
     const getCallerIdentityResponse = await stsClient.getCallerIdentity({}).promise();
-    console.log(getCallerIdentityResponse.Arn)
+    const getCallerIdentityResponseArraySplitBySlash = getCallerIdentityResponse.Arn.split("/");
+    const getCallerIdentityResponseArraySplitByColon = getCallerIdentityResponse.Arn.split(":");
+    getCallerIdentityResponseArraySplitBySlash[2] = "iam"
+    getCallerIdentityResponseArraySplitBySlash.pop()
+    const roleName = getCallerIdentityResponseArraySplitBySlash.pop()
+    const accountId = getCallerIdentityResponseArraySplitByColon[4]
+    const roleArn = `arn:aws:iam::${accountId}:role/${roleName}`
     console.log('***************')
     
-    const roleArn = "";
     console.log(`[accelerator] management account roleArn => ${roleArn}`);
 
-    const assumeRoleCredential = await(stsClient.assumeRole({ RoleArn: getCallerIdentityResponse.Arn, RoleSessionName: 'acceleratorAssumeRoleSession' }).promise());
+    const assumeRoleCredential = await(stsClient.assumeRole({ RoleArn: roleArn, RoleSessionName: 'acceleratorAssumeRoleSession' }).promise());
 
 
     process.env['AWS_ACCESS_KEY_ID'] = assumeRoleCredential.Credentials!.AccessKeyId!;
