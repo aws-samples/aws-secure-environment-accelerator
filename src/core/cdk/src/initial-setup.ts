@@ -186,19 +186,14 @@ export namespace InitialSetup {
       // The role used by the build should allow this session duration
       const buildTimeout = cdk.Duration.hours(4);
 
-
-      const roleName = createRoleName('L-SFN-MasterRole');
-      const roleArn = `arn:aws:iam::${stack.account}:role/${roleName}`
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
-        roleName: roleName,
+        roleName: createRoleName('L-SFN-MasterRole'),
         assumedBy: new iam.CompositePrincipal(
           // TODO Only add root role for development environments
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
           new iam.ServicePrincipal('events.amazonaws.com'),
-          new iam.ServicePrincipal('ec2'),
-          new iam.ArnPrincipal(roleArn)
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
         maxSessionDuration: buildTimeout,
@@ -564,6 +559,8 @@ export namespace InitialSetup {
       );
 
       const accountsPath = path.join(__dirname, 'assets', 'execution-role.template.json');
+      const managementAccountPath = path.join(__dirname, 'assets', 'management-execution-role.template.json');
+      const managementAccountExecutionRoleContent = fs.readFileSync(managementAccountPath);
       const executionRoleContent = fs.readFileSync(accountsPath);
 
       const installRolesStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}InstallRoles_sm`, {
@@ -585,14 +582,19 @@ export namespace InitialSetup {
             RoleName: props.stateMachineExecutionRole,
             MaxSessionDuration: `${buildTimeout.toSeconds()}`,
             // TODO Only add root role for development environments
-            AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
+            AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,
+              ${pipelineRole.roleArn},
+              arn:aws:iam::${stack.account}:role/${props.acceleratorPrefix}PipelineRole`,
+            AssumeBySelfRoleName: `${props.acceleratorPrefix}PipelineRole`,
             AcceleratorPrefix: props.acceleratorPrefix.endsWith('-')
               ? props.acceleratorPrefix.slice(0, -1).toLowerCase()
               : props.acceleratorPrefix.toLowerCase(),
           },
           stackTemplate: executionRoleContent.toString(),
+          managementAccountTemplate: managementAccountExecutionRoleContent.toString(),
           'accountId.$': '$.accountId',
           'assumeRoleName.$': '$.organizationAdminRole',
+          parametersTableName: parametersTable.tableName
         }),
         resultPath: 'DISCARD',
       });

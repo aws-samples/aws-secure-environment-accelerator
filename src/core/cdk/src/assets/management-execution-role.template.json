@@ -35,15 +35,6 @@
                             "Action": "sts:AssumeRole",
                             "Effect": "Allow",
                             "Principal": {
-                                "AWS": {
-                                    "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${AssumeBySelfRoleName}"
-                                }
-                            }
-                        },
-                        {
-                            "Action": "sts:AssumeRole",
-                            "Effect": "Allow",
-                            "Principal": {
                                 "Service": "ssm.amazonaws.com"
                             }
                         },
