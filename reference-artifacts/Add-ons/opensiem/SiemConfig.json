@@ -54,5 +54,7 @@
     "s3NotificationTopicNameOrExistingArn": "----- REPLACE -----",
     "enableLambdaSubscription": false,
     "organizationId": "----- REPLACE -----",
+    "enableLambdaInsights": false,
+    "alertNotificationEmails": [""],
     "siemVersion": "v2.6.1a"
 }
