@@ -218,6 +218,7 @@ importers:
       '@types/node': 14.14.31
       '@types/semver': 7.3.5
       aws-cdk: 1.174.0
+      aws-sdk: 2.944.0
       cdk-assets: 1.174.0
       eslint: 7.25.0
       hash-sum: 2.0.0
@@ -324,6 +325,7 @@ importers:
       '@aws-cdk/region-info': 1.174.0
       '@types/js-yaml': 4.0.1
       '@types/semver': 7.3.5
+      aws-sdk: 2.944.0
       cdk-assets: 1.174.0
       hash-sum: 2.0.0
       io-ts: 2.2.16
@@ -5390,6 +5392,9 @@ packages:
   /@aws-cdk/cloud-assembly-schema/1.174.0:
     resolution: {integrity: sha512-F3ZYy3RVcGGYIHCoHv6/eO3bd6GVhtzcmwEf9ky6cHaHgp7DGmzjlY3jqaHyduCLg+FXztG0jAbJhWJwbzpkCg==}
     engines: {node: '>= 14.15.0'}
+    dependencies:
+      jsonschema: 1.4.1
+      semver: 7.3.8
     bundledDependencies:
       - jsonschema
       - semver
@@ -5648,6 +5653,7 @@ packages:
     engines: {node: '>= 14.15.0'}
     dependencies:
       '@aws-cdk/cloud-assembly-schema': 1.174.0
+      semver: 7.3.8
     bundledDependencies:
       - semver
 
@@ -13771,6 +13777,7 @@ packages:
   /constructs/3.3.71:
     resolution: {integrity: sha512-3KFtTsA7OV27m/+pJhN4iJkKzHbPIPvyvEX5BQ/JCAWjfCHOQEVpIgxHLpT4i8L1OFta+pJrzcEVAHo6UitwqA==}
     engines: {node: '>= 10.17.0'}
+    bundledDependencies: []
 
   /contains-path/0.1.0:
     resolution: {integrity: sha1-/ozxhP9mcLa67wGp1IYaXL7EEgo=}
@@ -18227,7 +18234,7 @@ packages:
     dev: true
 
   /jmespath/0.15.0:
-    resolution: {integrity: sha1-o/Iiqarp+Wb10nx5ZRDigJF2Qhc=}
+    resolution: {integrity: sha512-+kHj8HXArPfpPEKGLZ+kB5ONRTCiGQXo8RQYL0hH8t6pWXUBBK5KkkQmTNOwKK4LEsd0yTsgtjJVm4UBSZea4w==}
     engines: {node: '>= 0.6.0'}
 
   /jmespath/0.16.0:
@@ -18446,6 +18453,9 @@ packages:
       universalify: 2.0.0
     optionalDependencies:
       graceful-fs: 4.2.6
+
+  /jsonschema/1.4.1:
+    resolution: {integrity: sha512-S6cATIPVv1z0IlxdN+zUk5EPjkGCdnhN4wVSBlvoUO1tOLJootbo9CquNJmbIh4yikWHiUedhRYrNPn1arpEmQ==}
 
   /jsprim/1.4.1:
     resolution: {integrity: sha1-MT5mvB5cwG5Di8G3SZwuXFastqI=}
@@ -21854,6 +21864,13 @@ packages:
 
   /semver/7.3.5:
     resolution: {integrity: sha512-PoeGJYh8HK4BTO/a9Tf6ZG3veo/A7ZVsYrSA6J8ny9nb3B1VrpkuN+z9OE5wfE5p6H4LchYZsegiQgbJD94ZFQ==}
+    engines: {node: '>=10'}
+    hasBin: true
+    dependencies:
+      lru-cache: 6.0.0
+
+  /semver/7.3.8:
+    resolution: {integrity: sha512-NB1ctGL5rlHrPJtFDVIVzTyQylMLu9N9VICA6HSFJo8MCGVTMW6gfpicwKmmK/dAjTOrqu5l63JJOpDSrAis3A==}
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
