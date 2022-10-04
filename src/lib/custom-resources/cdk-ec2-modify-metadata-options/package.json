@@ -8,7 +8,7 @@
     "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
   },
   "dependencies": {
-    "@aws-cdk/aws-iam": "1.44.0",
+    "@aws-cdk/aws-iam": "1.174.0",
     "@aws-cdk/core": "1.174.0",
     "@aws-cdk/custom-resources": "1.174.0"
   },
