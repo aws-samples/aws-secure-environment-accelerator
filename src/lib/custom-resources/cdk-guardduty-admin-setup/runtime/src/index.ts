@@ -12,7 +12,7 @@
  */
 
 import * as AWS from 'aws-sdk';
-AWS.config.logger = console;
+//AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceCreateEvent,
@@ -28,6 +28,12 @@ const guardduty = new AWS.GuardDuty();
 // Guardduty CreateMembers, UpdateMembers and DeleteMembers apis only supports max 50 accounts per request
 const pageSize = 50;
 
+export enum GuardDutyFrequency {
+  FIFTEEN_MINUTES = 'FIFTEEN_MINUTES',
+  ONE_HOUR = 'ONE_HOUR',
+  SIX_HOURS = 'SIX_HOURS',
+}
+
 export interface AccountDetail {
   AccountId: string;
   Email: string;
@@ -37,6 +43,8 @@ export interface HandlerProperties {
   deligatedAdminAccountId: string;
   memberAccounts: AccountDetail[];
   s3Protection: boolean;
+  eksProtection: boolean;
+  frequency: GuardDutyFrequency;
 }
 
 export const handler = errorHandler(onEvent);
@@ -69,13 +77,13 @@ async function onCreateOrUpdate(
     };
   }
 
-  const { memberAccounts, s3Protection } = properties;
-  await updateS3Protection(detectorId, s3Protection);
+  const { memberAccounts, s3Protection, eksProtection, frequency } = properties;
+  await updateS3ProtectionAndFrequency(detectorId, s3Protection, eksProtection, frequency);
 
-  const isAutoEnabled = await isConfigurationAutoEnabled(detectorId, s3Protection);
+  const isAutoEnabled = await isConfigurationAutoEnabled(detectorId, s3Protection, eksProtection);
   if (!isAutoEnabled) {
     // Update Config to handle new Account created under Organization
-    await updateConfig(detectorId, s3Protection);
+    await updateConfig(detectorId, s3Protection, eksProtection);
   } else {
     console.log(`GuardDuty is already enabled ORG Level`);
   }
@@ -86,8 +94,9 @@ async function onCreateOrUpdate(
   );
   if (requiredMemberAccounts.length > 0) {
     await createMembers(requiredMemberAccounts, detectorId);
-    await updateMemberDataSource(requiredMemberAccounts, detectorId, s3Protection);
   }
+
+  await updateMemberDataSource(existingMembers, detectorId, s3Protection, eksProtection);
 
   return {
     physicalResourceId,
@@ -135,7 +144,7 @@ async function createMembers(memberAccounts: AccountDetail[], detectorId: string
 }
 
 // Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
-async function updateConfig(detectorId: string, s3Protection: boolean, autoEnable = true) {
+async function updateConfig(detectorId: string, s3Protection: boolean, eksProtection: boolean, autoEnable = true) {
   try {
     console.log(`Calling api "guardduty.updateOrganizationConfiguration()", ${detectorId}`);
     await throttlingBackOff(() =>
@@ -146,6 +155,11 @@ async function updateConfig(detectorId: string, s3Protection: boolean, autoEnabl
           DataSources: {
             S3Logs: {
               AutoEnable: s3Protection,
+            },
+            Kubernetes: {
+              AuditLogs: {
+                AutoEnable: eksProtection,
+              },
             },
           },
         })
@@ -158,7 +172,11 @@ async function updateConfig(detectorId: string, s3Protection: boolean, autoEnabl
 }
 
 // describe-organization-configuration to check if security hub is already enabled in org level or not
-async function isConfigurationAutoEnabled(detectorId: string, s3Protection: boolean): Promise<boolean> {
+async function isConfigurationAutoEnabled(
+  detectorId: string,
+  s3Protection: boolean,
+  eksProtection: boolean,
+): Promise<boolean> {
   try {
     console.log(`Calling api "guardduty.describeOrganizationConfiguration()", ${detectorId}`);
     const response = await throttlingBackOff(() =>
@@ -168,7 +186,11 @@ async function isConfigurationAutoEnabled(detectorId: string, s3Protection: bool
         })
         .promise(),
     );
-    return response.AutoEnable && response.DataSources?.S3Logs.AutoEnable! === s3Protection;
+    return (
+      response.AutoEnable &&
+      response.DataSources?.S3Logs.AutoEnable! === s3Protection &&
+      response.DataSources?.Kubernetes?.AuditLogs.AutoEnable! === eksProtection
+    );
   } catch (error) {
     console.error(
       `Error Occurred while checking configuration auto enabled of GuardDuty ${error.code}: ${error.message}`,
@@ -177,16 +199,21 @@ async function isConfigurationAutoEnabled(detectorId: string, s3Protection: bool
   }
 }
 
-async function updateMemberDataSource(memberAccounts: AccountDetail[], detectorId: string, s3Protection: boolean) {
-  if (s3Protection) {
-    return;
-  }
+async function updateMemberDataSource(
+  memberAccounts: AccountDetail[],
+  detectorId: string,
+  s3Protection: boolean,
+  eksProtection: boolean,
+) {
+  // if (s3Protection && eksProtection) {
+  //   return;
+  // }
   try {
     let pageNumber = 1;
     let currentAccounts: AccountDetail[] = paginate(memberAccounts, pageNumber, pageSize);
     while (currentAccounts.length > 0) {
       console.log(
-        `Calling api "guardduty.updateMemberDetectors()", ${currentAccounts}, ${detectorId} to disable S3Protection`,
+        `Calling api "guardduty.updateMemberDetectors()", ${currentAccounts}, ${detectorId} to update S3Protection or EKSProtection`,
       );
       await throttlingBackOff(() =>
         guardduty
@@ -195,7 +222,12 @@ async function updateMemberDataSource(memberAccounts: AccountDetail[], detectorI
             DetectorId: detectorId,
             DataSources: {
               S3Logs: {
-                Enable: false,
+                Enable: s3Protection,
+              },
+              Kubernetes: {
+                AuditLogs: {
+                  Enable: eksProtection,
+                },
               },
             },
           })
@@ -209,7 +241,12 @@ async function updateMemberDataSource(memberAccounts: AccountDetail[], detectorI
   }
 }
 
-async function updateS3Protection(detectorId: string, s3Protection: boolean) {
+async function updateS3ProtectionAndFrequency(
+  detectorId: string,
+  s3Protection: boolean,
+  eksProtection: boolean,
+  frequency?: GuardDutyFrequency,
+) {
   try {
     await throttlingBackOff(() =>
       guardduty
@@ -219,7 +256,13 @@ async function updateS3Protection(detectorId: string, s3Protection: boolean) {
             S3Logs: {
               Enable: s3Protection,
             },
+            Kubernetes: {
+              AuditLogs: {
+                Enable: eksProtection,
+              },
+            },
           },
+          FindingPublishingFrequency: frequency,
         })
         .promise(),
     );
@@ -276,6 +319,9 @@ function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
   if (typeof properties.s3Protection === 'string') {
     properties.s3Protection = properties.s3Protection === 'true';
   }
+  if (typeof properties.eksProtection === 'string') {
+    properties.eksProtection = properties.eksProtection === 'true';
+  }
   return properties;
 }
 
@@ -288,9 +334,9 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const { memberAccounts } = properties;
   try {
     const detectorId = await getDetectorId();
-    await updateS3Protection(detectorId!, false);
-    await updateConfig(detectorId!, false, false);
-    await updateMemberDataSource(memberAccounts, detectorId!, false);
+    await updateS3ProtectionAndFrequency(detectorId!, false, false, undefined);
+    await updateConfig(detectorId!, false, false, false);
+    await updateMemberDataSource(memberAccounts, detectorId!, false, false);
     await deleteMembers(memberAccounts, detectorId!);
   } catch (error) {
     console.warn('Exception while performing Delete Action');
