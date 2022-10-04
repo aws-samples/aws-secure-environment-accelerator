@@ -28,6 +28,7 @@ export interface GuardDutyAdminSetupProps {
   memberAccounts: AccountDetail[];
   roleArn: string;
   s3Protection: boolean;
+  eksProtection: boolean;
   frequency: GuardDutyFrequency;
 }
 
@@ -45,6 +46,7 @@ export class GuardDutyAdminSetup extends cdk.Construct {
     const handlerProperties = {
       memberAccounts: props.memberAccounts,
       s3Protection: props.s3Protection,
+      eksProtection: props.eksProtection,
       frequency: props.frequency,
     };
 
