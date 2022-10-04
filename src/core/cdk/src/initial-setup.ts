@@ -187,8 +187,7 @@ export namespace InitialSetup {
       // The role used by the build should allow this session duration
       const buildTimeout = cdk.Duration.hours(4);
 
-      const roleName = createRoleName('L-SFN-MasterRole');
-      const roleArnSFN = `arn:aws:iam::${stack.account}:role/${roleName}`
+      //const roleName = createRoleName('L-SFN-MasterRole');
       const roleArnRoot = `arn:aws:iam::${stack.account}:root`
 
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
@@ -199,7 +198,6 @@ export namespace InitialSetup {
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
           new iam.ServicePrincipal('events.amazonaws.com'),
-          new iam.ArnPrincipal(roleArnSFN),
           new iam.ArnPrincipal(roleArnRoot)
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
