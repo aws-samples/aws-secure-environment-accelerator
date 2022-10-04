@@ -104,6 +104,7 @@
     "@aws-cdk/region-info": "1.174.0",
     "@types/js-yaml": "4.0.1",
     "@types/semver": "7.3.5",
+    "aws-sdk": "2.944.0",
     "cdk-assets": "1.174.0",
     "hash-sum": "2.0.0",
     "io-ts": "2.2.16",

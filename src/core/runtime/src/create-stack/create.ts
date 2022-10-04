@@ -49,7 +49,7 @@ export const handler = async (input: CreateStackInput) => {
     region,
     ignoreAccountId,
     ignoreRegion,
-    parametersTableName
+    parametersTableName,
   } = input;
 
   if (ignoreAccountId && ignoreAccountId === accountId && !ignoreRegion) {
@@ -66,7 +66,7 @@ export const handler = async (input: CreateStackInput) => {
   /** Checks Parameters Table in DDB to see if we are in management account.
    * If so, our PBMM Pipeline role has different permissions and we use
    * a different template.
-   */ 
+   */
 
   // if(parametersTableName){
   //   const accounts = await loadAccounts(parametersTableName!, dynamodb);
