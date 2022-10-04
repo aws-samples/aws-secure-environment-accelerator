@@ -9,9 +9,6 @@
         "AssumedByRoleArn": {
             "Type": "CommaDelimitedList"
         },
-        "AssumeBySelfRoleName": {
-            "Type": "String"
-        },
         "AcceleratorPrefix": {
             "Type": "String"
         }
@@ -28,15 +25,6 @@
                             "Principal": {
                                 "AWS": {
                                     "Ref": "AssumedByRoleArn"
-                                }
-                            }
-                        },
-                        {
-                            "Action": "sts:AssumeRole",
-                            "Effect": "Allow",
-                            "Principal": {
-                                "AWS": {
-                                    "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${AssumeBySelfRoleName}"
                                 }
                             }
                         },
@@ -67,7 +55,54 @@
                             "Principal": {
                                 "Service": "fms.amazonaws.com"
                             }
-                        }
+                        },
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Effect": "Allow",
+                            "Principal": {
+                              "AWS": {
+                                "Fn::Join": [
+                                  "",
+                                  [
+                                    "arn:",
+                                    {
+                                      "Ref": "AWS::Partition"
+                                    },
+                                    ":iam::",
+                                    {
+                                      "Ref": "AWS::AccountId"
+                                    },
+                                    ":root"
+                                  ]
+                                ]
+                              }
+                            },
+                            "Condition": {
+                              "StringEquals": {
+                                "AWS:PrincipalArn": [
+                                  {
+                                    "Fn::Join": [
+                                      "",
+                                      [
+                                        "arn:",
+                                        {
+                                          "Ref": "AWS::Partition"
+                                        },
+                                        ":iam::",
+                                        {
+                                          "Ref": "AWS::AccountId"
+                                        },
+                                        ":aws:role/",
+                                        {
+                                          "Ref": "RoleName"
+                                        }
+                                      ]
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          }
                     ],
                     "Version": "2012-10-17"
                 },
