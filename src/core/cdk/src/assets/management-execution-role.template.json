@@ -9,9 +9,6 @@
         "AssumedByRoleArn": {
             "Type": "CommaDelimitedList"
         },
-        "AssumeBySelfRoleName": {
-            "Type": "String"
-        },
         "AcceleratorPrefix": {
             "Type": "String"
         }
