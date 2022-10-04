@@ -100,7 +100,7 @@ const createListenerRule = async (
     ruleParams.Conditions.push(pathConfig);
   }
 
-  if (hosts.length > 0) {
+  if (hosts?.length > 0) {
     const hostConfig = {
       Field: 'host-header',
       Values: hosts,
@@ -131,7 +131,7 @@ const updateListenerRule = async (ruleArn: string, paths: string[], hosts: strin
     ruleParams?.Conditions?.push(pathConfig);
   }
 
-  if (hosts.length > 0) {
+  if (hosts?.length > 0) {
     const hostConfig = {
       Field: 'host-header',
       Values: hosts,

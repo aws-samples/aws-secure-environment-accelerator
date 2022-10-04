@@ -2609,6 +2609,18 @@ translate(c.CentralServicesConfigType, {
       title: '',
       description: '',
     },
+    'guardduty-eks': {
+      title: '',
+      description: '',
+    },
+    'guardduty-eks-excl-regions': {
+      title: '',
+      description: '',
+    },
+    'guardduty-frequency': {
+      title: '',
+      description: '',
+    },
     'access-analyzer': {
       title: '',
       description: '',

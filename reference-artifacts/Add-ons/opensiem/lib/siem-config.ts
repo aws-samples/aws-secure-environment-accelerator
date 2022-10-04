@@ -56,6 +56,8 @@ export interface SiemConfig {
   enableLambdaSubscription: boolean;
   s3NotificationTopicNameOrExistingArn: string;
   organizationId: string;
+  alertNotificationEmails: string[];
+  enableLambdaInsights: boolean;
 }
 
 export async function loadSiemConfig(): Promise<SiemConfig> {

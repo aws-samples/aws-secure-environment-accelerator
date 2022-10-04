@@ -23,6 +23,12 @@ import { GuardDutyAdminSetup } from '@aws-accelerator/custom-resource-guardduty-
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 
+export enum GuardDutyFrequency {
+  FIFTEEN_MINUTES = 'FIFTEEN_MINUTES',
+  ONE_HOUR = 'ONE_HOUR',
+  SIX_HOURS = 'SIX_HOURS',
+}
+
 export interface GuardDutyStepProps {
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
@@ -110,12 +116,16 @@ export async function step2(props: GuardDutyStepProps) {
   }));
   const centralServiceConfig = props.config['global-options']['central-security-services'];
   const s3ProtectionExclRegions = centralServiceConfig['guardduty-s3-excl-regions'] || [];
+  const eksProtectionExclRegions = centralServiceConfig['guardduty-eks-excl-regions'] || [];
+  const frequency = await getFrequency(props.config);
   regions?.map(region => {
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey, region);
     new GuardDutyAdminSetup(masterAccountStack, 'GuardDutyAdminSetup', {
       memberAccounts: accountDetails,
       roleArn: adminSetupRoleOutput.roleArn,
       s3Protection: centralServiceConfig['guardduty-s3'] && !s3ProtectionExclRegions.includes(region),
+      eksProtection: centralServiceConfig['guardduty-eks'] && !eksProtectionExclRegions.includes(region),
+      frequency,
     });
   });
 }
@@ -196,4 +206,17 @@ export async function getValidRegions(config: AcceleratorConfig) {
   const excl = config['global-options']['central-security-services']['guardduty-excl-regions'];
   const validRegions = regions.filter(x => !excl?.includes(x));
   return validRegions;
+}
+
+export async function getFrequency(config: AcceleratorConfig) {
+  const frequency = config['global-options']['central-security-services']['guardduty-frequency'];
+  if (frequency === GuardDutyFrequency.SIX_HOURS) {
+    return GuardDutyFrequency.SIX_HOURS;
+  } else if (frequency === GuardDutyFrequency.ONE_HOUR) {
+    return GuardDutyFrequency.ONE_HOUR;
+  } else if (frequency === GuardDutyFrequency.FIFTEEN_MINUTES) {
+    return GuardDutyFrequency.FIFTEEN_MINUTES;
+  } else {
+    return GuardDutyFrequency.SIX_HOURS;
+  }
 }

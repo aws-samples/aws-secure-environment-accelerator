@@ -15,7 +15,7 @@ These installation instructions assume one of the prescribed architectures is be
 -   Management or root AWS Organization account (the AWS Accelerator cannot be deployed in an AWS sub-account)
     -   No additional AWS accounts need to be pre-created before Accelerator installation
 -   If required, a limit increase to support your desired number of new AWS sub-accounts (default limit is 10 sub-accounts)
-    - **recent changes to new AWS account limits are causing accelerator installation failures, please work with your local account team to increase your limits**
+    -   **recent changes to new AWS account limits are causing accelerator installation failures, please work with your local account team to increase your limits**
 -   Valid Accelerator configuration file, updated to reflect your requirements (see below)
 -   Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
 -   Government of Canada customers are still required to do a standalone installation at this time, please request standalone installation instructions from your Account SA or TAM
@@ -142,7 +142,8 @@ Before installing, you must first:
     - OU and account names can ONLY be customized during initial installation. These values MUST match with the values supplied in the Accelerator config file.
         1. Go to the AWS Control Tower console and click `Set up landing zone`
         2. Select your `home` region (i.e. `ca-central-1`) - the Accelerator home region must match the Control Tower home region
-        3. Select _all_ regions for `Additional AWS Regions for governance`, click `Next`
+        3. Leave the Region deny setting set to `Not enabled` - the Accelerator needs a customized region deny policy
+        4. Select _all_ regions for `Additional AWS Regions for governance`, click `Next`
             - The Control Tower and Accelerator regions MUST be properly aligned
             - If a region is not `governed` by Control Tower, it must NOT be listed in `control-tower-supported-regions`
             - To manage a region requires the region:
@@ -152,15 +153,16 @@ Before installing, you must first:
                 - While we highly recommend guardrail deployment for all AWS enabled by default regions, at minimum
                     - the home region MUST be enabled in Control Tower and must be listed in `control-tower-supported-regions`
                     - both the home-region and ${GBL\*REGION} must be listed in `supported-regions`
-        4. For the `Foundational OU`, leave the default value `Security`
-        5. For the `Additional OU` provide the value `Infrastructure`, click `Next`
-        6. Enter the email addresses for your `Log Archive` and `Audit` accounts, change the `Audit` account name to `Security`, click `Next` - OU and account names can ONLY be customized during initial installation. OU names, account names and email addresses \_must\* match identically with the values supplied in the Accelerator config file.
-        7. Click setup and wait ~60 minutes for the Control Tower installation to complete
-        8. Select `Add or register organizational units`, Click `Add an OU`
-        9. Type `Dev`, click `Add`, wait until the OU is finished provisioning (or it will error)
-        10. Repeat step 9 for each OU (i.e. `Test`, `Prod`, `Central`, `Sandbox`)
-        11. Select `Account factory`, Edit, Subnets: 0, Deselect all regions, click `Save`
-        12. In AWS Organizations, move the Management account from the `root` OU into the `Security` OU
+        5. For the `Foundational OU`, leave the default value `Security`
+        6. For the `Additional OU` provide the value `Infrastructure`, click `Next`
+        7. Enter the email addresses for your `Log Archive` and `Audit` accounts, change the `Audit` account name to `Security`, click `Next` - OU and account names can ONLY be customized during initial installation. OU names, account names and email addresses \_must\* match identically with the values supplied in the Accelerator config file.
+        8. Select `Enabled` for AWS CloudTrail configuration (if not selected), click `Next`
+        9. Click `Set up landing zone` and wait ~60 minutes for the Control Tower installation to complete
+        10. Select `Add or register organizational units`, Click `Add an OU`
+        11. Type `Dev`, click `Add`, wait until the OU is finished provisioning (or it will error)
+        12. Repeat step 9 for each OU (i.e. `Test`, `Prod`, `Central`, `Sandbox`)
+        13. Select `Account factory`, Edit, Subnets: 0, Deselect all regions, click `Save`
+        14. In AWS Organizations, move the Management account from the `root` OU into the `Security` OU
 4. Verify:
     1. AWS Organizations is enabled in `All features` mode
         - if required, navigate to AWS Organizations, click `Create Organization`, `Create Organization`
@@ -365,9 +367,17 @@ If deploying to an internal AWS employee account and installing the solution wit
 
 Current Issues:
 
+-   **NEW 2022-08-07** An issue with the version of cfn-init in the "latest" AWS standard Windows AMI will cause the state machine to fail during a new installation when deploying an RDGW host. RDGW hosts in existing deployments will fail to fully initialize if the state machine is or has been recently run and the auto-scaling group subsequently refreshes the host (default every 7 days).
+
+    -   To temporarily workaround this issue, assume an administrative role in your `operations` account, open Systems Manager Parameter Store, and `Create parameter` with a Name of `/asea/windows-ami` and a value of `ami-0d336ea070bc06fb8` (which is the previous good AMI), accepting the other default values. Update your config file to point to this new parameter by changing `image-path` (under \deployments\mad) to `/asea/windows-ami` instead of `/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base`. Rerun your state machine. If you have an existing RDGW instance it should be terminated to allow the auto-scaling group to redeploy it.
+    -   This config file entry should be reverted and state machine rerun once the next AWS Windows AMI is released (hopefully within the next week) to ensure you are always using the latest Windows AMI.
+
 -   If dns-resolver-logging is enabled, VPC names containing spaces are not supported at this time as the VPC name is used as part of the log group name and spaces are not supported in log group names. By default in many of the sample config files, the VPC name is auto-generated from the OU name using a variable. In this situation, spaces are also not permitted in OU names (i.e. if any account in the OU has a VPC with resolver logging enabled and the VPC is using the OU as part of its name)
+
 -   On larger deployments we are occasionally seeing state machine failures when `Creating Config Recorders`. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
+
 -   Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`
+
 -   If the State Machine fails on an initial execution of NEW-ACCOUNTS, it must be re-run to target the failed accounts (i.e. with `{"scope": "FULL", "mode": "APPLY"}`) or the new sub-accounts will fail to be properly guardrailed
 
 Issues in Older Releases:

@@ -14,7 +14,7 @@ A common misconception is that the AWS Secure Environment Accelerator only deplo
 
 Additionally, while the Accelerator is initially responsible for deploying a prescribed architecture, it more importantly allows for organizations to operate, evolve, and maintain their cloud architecture and security controls over time and as they grow, with minimal effort, often using native AWS tools. While the Accelerator helps with the deployment of technical security controls, it’s important to understand that the Accelerator is only part of your security and compliance effort.  We encourage customers to work with their AWS account team, AWS Professional Services or an AWS Partner to determine how to best meet the remainder of your compliance requirements.
 
-The Accelerator is designed to enable customers to upgrade across Accelerator versions while maintaining a customer’s specific configuration and customizations, and without the need for any coding expertise or for Professional Services. Customers have been able to seamlessly upgrade their AWS multi-account environment from the very first Accelerator beta release to the latest release (across more than 50 releases), gaining the benefits of bug fixes and enhancements while having the option to enable new features, without any loss of existing customization or functionality.
+The Accelerator is designed to enable customers to upgrade across Accelerator versions while maintaining a customer’s specific configuration and customizations, and without the need for any coding expertise or for professional services. Customers have been able to seamlessly upgrade their AWS multi-account environment from the very first Accelerator beta release to the latest release (across more than 50 releases), gaining the benefits of bug fixes and enhancements while having the option to enable new features, without any loss of existing customization or functionality.
 
 Specifically the accelerator deploys and manages the following functionality, both at initial accelerator deployment and as new accounts are created, added, or onboarded in a completely automated but customizable manner:
 
@@ -28,23 +28,24 @@ Specifically the accelerator deploys and manages the following functionality, bo
   - Security Tooling
 - Workload Accounts - automated concurrent mass account creation or use AWS organizations to scale one account at a time. These accounts are used to host a customer's workloads and applications.
 - Scalable to 1000's of AWS accounts
-- Supports AWS Organizations nested [ou's](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html) and importing existing AWS accounts
+- Supports AWS Organizations nested [OU's](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html) and importing existing AWS accounts
 - Performs 'account warming' to establish initial limits, when required
 - Automatically submits limit increases, when required (complies with initial limits until increased)
-- Leverages AWS Control Tower **(NEW)**
+- Leverages AWS Control Tower
 
 ### Creates Networking
 
 - Transit Gateways and TGW route tables (incl. inter-region TGW peering)
 - Centralized and/or Local (bespoke) VPC's
 - Subnets, Route tables, NACLs, Security groups, NATGWs, IGWs, VGWs, CGWs
+- **NEW** Outpost, Local Zone and Wavelength support
 - VPC Endpoints (Gateway and Interface, Centralized or Local)
 - Route 53 Private and Public Zones, Resolver Rules and Endpoints, VPC Endpoint Overloaded Zones
 - All completely and individually customizable (per account, VPC, subnet, or OU)
 - Layout and customize your VPCs, subnets, CIDRs and connectivity the way you want
-- Static or Dynamic **(NEW)** VPC and subnet CIDR assignments
+- Static or Dynamic VPC and subnet CIDR assignments
 - Deletes default VPC's (worldwide)
-- AWS Network Firewall **(NEW)**
+- AWS Network Firewall
 
 ### Cross-Account Object Sharing
 
@@ -70,7 +71,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 ### Cloud Security Services
 
 - Enables and configures the following AWS services, worldwide w/central designated admin account:
-  - Guardduty w/S3 protection
+  - GuardDuty w/S3 protection
   - Security Hub (Enables designated security standards, and disables individual controls)
   - Firewall Manager
   - CloudTrail w/Insights and S3 data plane logging
@@ -87,11 +88,11 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Enables account level default EBS encryption and S3 Block Public Access
 - Configures Systems Manager Session Manager w/KMS encryption and centralized logging
 - Configures Systems Manager Inventory w/centralized logging
-- Creates and configures AWS budgets (customizable per ou and per account)
+- Creates and configures AWS budgets (customizable per OU and per account)
 - Imports or requests certificates into AWS Certificate Manager
 - Deploys both perimeter and account level ALB's w/Lambda health checks, certificates and TLS policies
 - Deploys & configures 3rd party firewall clusters and management instances (leverages marketplace)
-  - Gateway Load Balancer w/auto-scaling **(NEW)** and VPN IPSec BGP ECMP deployment options
+  - Gateway Load Balancer w/auto-scaling and VPN IPSec BGP ECMP deployment options
 - Protects Accelerator deployed and managed objects
 - Sets Up SNS Alerting topics (High, Medium, Low, Blackhole priorities)
 - Deploys CloudWatch Log Metrics and Alarms
@@ -111,11 +112,12 @@ Specifically the accelerator deploys and manages the following functionality, bo
   - GuardDuty Findings
   - Macie Discovery results
   - ALB Logs
-  - SSM Inventory **(NEW)**
-  - Security Hub findings **(NEW)**
+  - SSM Inventory 
+  - Security Hub findings
   - SSM Session Logs (also sent to CWL)
   - Resolver Query Logs (also sent to CWL)
-- Email alerting for CloudTrail Metric Alarms, Firewall Manager Events **(NEW)**, Security Hub Findings incl. Guardduty Findings **(NEW)**
+- Email alerting for CloudTrail Metric Alarms, Firewall Manager Events, Security Hub Findings incl. GuardDuty Findings
+- **NEW** Optionally collect Organization and ASEA configuration and metadata in a new restricted log archive bucket
 
 ## Relationship with AWS Landing Zone Solution (ALZ)
 
@@ -123,7 +125,7 @@ The ALZ was an AWS Solution designed to deploy a multi-account AWS architecture 
 
 ## Relationship with AWS Control Tower
 
-The AWS Secure Environment Accelerator now leverages AWS Control Tower! **(NEW)**
+The AWS Secure Environment Accelerator now leverages AWS Control Tower!
 
 With the release of v1.5.0, the AWS Accelerator adds the capability to be deployed on top of AWS Control Tower. Customers get the benefits of the fully managed capabilities of AWS Control Tower combined with the power and flexibility of the Accelerators Networking and Security orchestration.
 
