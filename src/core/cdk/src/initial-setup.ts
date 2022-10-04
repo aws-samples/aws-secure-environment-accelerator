@@ -187,7 +187,6 @@ export namespace InitialSetup {
       // The role used by the build should allow this session duration
       const buildTimeout = cdk.Duration.hours(4);
 
-      //const roleName = createRoleName('L-SFN-MasterRole');
       const roleArnRoot = `arn:aws:iam::${stack.account}:root`
 
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
