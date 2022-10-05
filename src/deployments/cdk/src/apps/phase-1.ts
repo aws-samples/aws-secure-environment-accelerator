@@ -85,7 +85,15 @@ export interface IamPolicyArtifactsOutput {
  * - Transit Gateway Peering
  * - Create LogGroup required for DNS Logging
  */
-export async function deploy({ acceleratorConfig, accountStacks, accounts, context, limiter, outputs, organizations }: PhaseInput) {
+export async function deploy({
+  acceleratorConfig,
+  accountStacks,
+  accounts,
+  context,
+  limiter,
+  outputs,
+  organizations,
+}: PhaseInput) {
   const assignedVpcCidrPools = await loadAssignedVpcCidrPool(context.vpcCidrPoolAssignedTable);
   const assignedSubnetCidrPools = await loadAssignedSubnetCidrPool(context.subnetCidrPoolAssignedTable);
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
