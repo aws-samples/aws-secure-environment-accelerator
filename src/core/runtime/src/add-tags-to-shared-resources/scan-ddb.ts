@@ -23,11 +23,11 @@ interface ScanDDBRequestInput {
 }
 
 interface ScanDDBOutput {
-  accounts: string[],
-  assumeRoleName: string,
-  outputTableName: string,
-  s3Bucket: string,
-  s3Key: string
+  accounts: string[];
+  assumeRoleName: string;
+  outputTableName: string;
+  s3Bucket: string;
+  s3Key: string;
 }
 
 const dynamodb = new DynamoDB();
@@ -36,17 +36,15 @@ const s3 = new S3();
 export const handler = async (input: ScanDDBRequestInput) => {
   console.log(`Scanning DynamoDB for shared resources...`);
   console.log(JSON.stringify(input, null, 2));
-  
+
   const { assumeRoleName, outputTableName, s3Bucket, accounts } = input;
   const key = `${Date.now()}-ddb_output.json`;
   const outputs = await loadOutputs(outputTableName, dynamodb);
 
-
-  
   if (!s3Bucket) {
     return {
       status: 'FAILURE',
-      statusReason: `${s3Bucket} not found please review.`
+      statusReason: `${s3Bucket} not found please review.`,
     };
   }
 
@@ -57,11 +55,9 @@ export const handler = async (input: ScanDDBRequestInput) => {
       Bucket: s3Bucket,
     });
     console.log(JSON.stringify(fileUploadResult));
-    console.log(`DynamoDB scan results saved to ${s3Bucket}/${key}`)
+    console.log(`DynamoDB scan results saved to ${s3Bucket}/${key}`);
   } catch (e) {
-    throw new Error(
-      `Unable to write DynamoDB output to ${s3Bucket}\n${e.message} code:${e.code}`,
-    );
+    throw new Error(`Unable to write DynamoDB output to ${s3Bucket}\n${e.message} code:${e.code}`);
   }
 
   const output: ScanDDBOutput = {
@@ -69,8 +65,8 @@ export const handler = async (input: ScanDDBRequestInput) => {
     assumeRoleName: assumeRoleName,
     outputTableName: outputTableName,
     s3Bucket: s3Bucket,
-    s3Key: key
-  }
-  
+    s3Key: key,
+  };
+
   return output;
-}
+};

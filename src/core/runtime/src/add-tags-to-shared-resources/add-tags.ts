@@ -54,7 +54,7 @@ export const handler = async (input: CreateTagsRequestInput) => {
   if (!s3Bucket || !s3Key) {
     return {
       status: 'FAILURE',
-      statusReason: `${s3Bucket}/${s3Key} not found please review.`
+      statusReason: `${s3Bucket}/${s3Key} not found please review.`,
     };
   }
 
@@ -65,56 +65,55 @@ export const handler = async (input: CreateTagsRequestInput) => {
   });
 
   await tagResources(addTagsToResourcesOutputs, accountId, assumeRoleName);
-    
+
   return {
     status: 'SUCCESS',
     statusReason: `Added tags for all the shared resources in account: ${accountId}`,
   };
-
-}
+};
 
 async function loadDDBScanFromS3(bucket: string, key: string): Promise<StackOutput[]> {
   try {
-    const ddbScanResults = 
-      await s3.getObjectBodyAsString({
-        Bucket: bucket,
-        Key: key,
-      })
-    return JSON.parse(ddbScanResults)
+    const ddbScanResults = await s3.getObjectBodyAsString({
+      Bucket: bucket,
+      Key: key,
+    });
+    return JSON.parse(ddbScanResults);
   } catch (e) {
-    throw new Error(
-      `Cannot find"${key}" in bucket "${bucket}": code:${e.code}`,
-    );
+    throw new Error(`Cannot find"${key}" in bucket "${bucket}": code:${e.code}`);
   }
 }
 
-async function tagResources(addTagsToResourcesOutputs: AddTagToResourceOutputs[], accountId: string, assumeRoleName: string){
+async function tagResources(
+  addTagsToResourcesOutputs: AddTagToResourceOutputs[],
+  accountId: string,
+  assumeRoleName: string,
+) {
   const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
   for (const addTagsToResourcesOutput of addTagsToResourcesOutputs) {
     for (const addTagsToResources of addTagsToResourcesOutput) {
-      await tagIndividualResource(addTagsToResources)
+      await tagIndividualResource(addTagsToResources);
     }
   }
-  
-  async function tagIndividualResource(addTagsToResources: AddTagToResourceOutput){
+
+  async function tagIndividualResource(addTagsToResources: AddTagToResourceOutput) {
     const { resourceId, resourceType, targetAccountIds, tags, region } = addTagsToResources;
-    if(targetAccountIds.includes(accountId)){
+    if (targetAccountIds.includes(accountId)) {
       console.log(`Tagging resource "${resourceId}" in account "${accountId}"`);
       if (ALLOWED_RESOURCE_TYPES.includes(resourceType)) {
         try {
-         //This instantiation is here because of region specificity 
-            const tagResources = new TagResources(credentials, region);
-            await tagResources.createTags({
+          //This instantiation is here because of region specificity
+          const tagResources = new TagResources(credentials, region);
+          await tagResources.createTags({
             Resources: [resourceId],
             Tags: tags.map(t => ({ Key: t.key, Value: t.value })),
-          })
+          });
         } catch (e) {
           console.warn(`Cannot tag resource "${resourceId}" in account "${accountId}": ${e}`);
         }
       } else {
         console.warn(`Unsupported resource type "${resourceType}"`);
-      } 
+      }
     }
   }
 }
-

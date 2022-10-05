@@ -14,10 +14,8 @@
 export { handler as addRoleToKmsKeyStep } from './add-role-to-kms-key-step';
 export { handler as addScpStep } from './add-scp-step';
 export { handler as addRoleToServiceCatalogStep } from './add-role-to-service-catalog-step';
-//export { handler as addTagsToSharedResourcesStep } from './add-tags-to-shared-resources-step';
 export { handler as enableTrustedAccessForServicesStep } from './enable-trusted-access-for-services-step';
 export { handler as loadAccountsStep } from './load-accounts-step';
-// export { handler as loadConfigurationStep } from './load-configuration-step';
 export { handler as loadOrganizationConfigurationStep } from './configuration/load-organizations-config';
 export { handler as loadControlTowerConfigurationStep } from './configuration/load-control-tower-config';
 export { handler as loadLimitsStep } from './load-limits-step';
@@ -59,5 +57,5 @@ export {
   createOrganizationAccount,
   deleteDefaultVpcs,
   createConfigRecorder,
-  addTagsToSharedResources
+  addTagsToSharedResources,
 };

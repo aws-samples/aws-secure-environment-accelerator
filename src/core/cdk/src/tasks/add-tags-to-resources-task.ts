@@ -126,12 +126,8 @@ export class AddTagsToResourcesTask extends sfn.StateMachineFragment {
       .when(sfn.Condition.stringEquals('$.status', 'SUCCESS'), pass)
       .otherwise(fail);
 
-    
     let chain: sfn.Chain;
-    chain = sfn.Chain.start(ddbTask)
-      .next(mapTask)
-      .next(verifyddbTask)
-      .next(isDdbTaskSuccess);
+    chain = sfn.Chain.start(ddbTask).next(mapTask).next(verifyddbTask).next(isDdbTaskSuccess);
     this.startState = chain.startState;
     this.endStates = chain.endStates;
   }

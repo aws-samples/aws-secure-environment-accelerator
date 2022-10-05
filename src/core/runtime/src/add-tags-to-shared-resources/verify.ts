@@ -11,41 +11,39 @@
  *  and limitations under the License.
  */
 
- interface VerifyAddTagsToResourceInput {
-    /**
-     * Input from Step Function map runs
-     */
-    accounts: string[];
-    assumeRoleName: string;
-    outputTableName: string;
-    s3Bucket: string;
-    results: string[];
+interface VerifyAddTagsToResourceInput {
+  /**
+   * Input from Step Function map runs
+   */
+  accounts: string[];
+  assumeRoleName: string;
+  outputTableName: string;
+  s3Bucket: string;
+  results: string[];
+}
+
+interface VerifyAddTagsToResourceOutput {
+  status: string;
+  /**
+   * Single Dimensional Array constructed for readablity from Multi Dimensional
+   */
+  errors: string[];
+}
+
+export const handler = async (input: VerifyAddTagsToResourceInput): Promise<VerifyAddTagsToResourceOutput> => {
+  console.log(`Verifying Add Tags to Resources...`);
+  console.log(JSON.stringify(input, null, 2));
+
+  const results = input.results;
+  const aggregatedErrorResponses = results.filter(results => results.status !== 'SUCCESS');
+  let status = 'SUCCESS';
+
+  if (aggregatedErrorResponses && aggregatedErrorResponses.length > 0) {
+    status = 'FAILURE';
   }
-  
-  interface VerifyAddTagsToResourceOutput {
-    status: string;
-    /**
-     * Single Dimensional Array constructed for readablity from Multi Dimensional
-     */
-    errors: string[];
-  }
-  
-  export const handler = async (input: VerifyAddTagsToResourceInput): Promise<VerifyAddTagsToResourceOutput> => {
-    console.log(`Verifying Add Tags to Resources...`);
-    console.log(JSON.stringify(input, null, 2));
 
-    const results = input.results;
-    const aggregatedErrorResponses = results.filter(results => results.status !== 'SUCCESS');
-    let status = 'SUCCESS'
-
-    if (aggregatedErrorResponses && aggregatedErrorResponses.length > 0) {
-      status = 'FAILURE';
-    }
- 
-    return {
-      status,
-      errors: aggregatedErrorResponses,
-    };
-
+  return {
+    status,
+    errors: aggregatedErrorResponses,
   };
-  
+};

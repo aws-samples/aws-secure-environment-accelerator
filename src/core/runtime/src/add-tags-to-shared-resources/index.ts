@@ -11,8 +11,6 @@
  *  and limitations under the License.
  */
 
- export { handler as add } from './add-tags';
- export { handler as verify } from './verify';
- export { handler as scan } from './scan-ddb';
-
- 
+export { handler as add } from './add-tags';
+export { handler as verify } from './verify';
+export { handler as scan } from './scan-ddb';
