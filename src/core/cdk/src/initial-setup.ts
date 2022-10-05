@@ -30,7 +30,7 @@ import { AcceleratorStack, AcceleratorStackProps } from '@aws-accelerator/cdk-ac
 import { CdkDeployProject, PrebuiltCdkDeployProject } from '@aws-accelerator/cdk-accelerator/src/codebuild';
 import { createName, createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 
-import { AddTagsToResourcesTask } from './tasks/add-tags-to-resources-task'
+import { AddTagsToResourcesTask } from './tasks/add-tags-to-resources-task';
 import { CDKBootstrapTask } from './tasks/cdk-bootstrap';
 import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-tasks';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
@@ -1025,12 +1025,10 @@ export namespace InitialSetup {
           acceleratorPrefix: props.acceleratorPrefix,
           assumeRoleName: props.stateMachineExecutionRole,
           outputTableName: outputsTable.tableName,
-          s3Bucket: addTagsToSharedResourcesBucket.bucketName
+          s3Bucket: addTagsToSharedResourcesBucket.bucketName,
         }),
         resultPath: 'DISCARD',
       });
-
-
 
       const enableDirectorySharingTask = new CodeTask(this, 'Enable Directory Sharing', {
         functionProps: {
