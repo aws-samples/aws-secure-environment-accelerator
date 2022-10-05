@@ -14,6 +14,9 @@
 import { CloudFormation, objectToCloudFormationParameters } from '@aws-accelerator/common/src/aws/cloudformation';
 import { StackTemplateLocation, getTemplateBody } from '../create-stack-set/create-stack-set';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
+
+import { loadAccounts } from '../utils/load-accounts';
 
 interface CreateStackInput {
   stackName: string;
@@ -22,11 +25,14 @@ interface CreateStackInput {
   stackTemplate: StackTemplateLocation;
   accountId?: string;
   assumeRoleName?: string;
+  managementAccountTemplate?: StackTemplateLocation;
   region?: string;
   ignoreAccountId?: string;
   ignoreRegion?: string;
+  parametersTableName?: string;
 }
 
+const dynamodb = new DynamoDB();
 const sts = new STS();
 export const handler = async (input: CreateStackInput) => {
   console.log(`Creating stack...`);
@@ -38,10 +44,12 @@ export const handler = async (input: CreateStackInput) => {
     stackParameters,
     stackTemplate,
     accountId,
+    managementAccountTemplate,
     assumeRoleName,
     region,
     ignoreAccountId,
     ignoreRegion,
+    parametersTableName,
   } = input;
 
   if (ignoreAccountId && ignoreAccountId === accountId && !ignoreRegion) {
@@ -54,6 +62,18 @@ export const handler = async (input: CreateStackInput) => {
 
   // Load the template body from the given location
   const templateBody = await getTemplateBody(stackTemplate);
+
+  /** Checks Parameters Table in DDB to see if we are in management account.
+   * If so, our PBMM Pipeline role has different permissions and we use
+   * a different template.
+   */
+
+  // if(parametersTableName){
+  //   const accounts = await loadAccounts(parametersTableName!, dynamodb);
+  //   if((accounts.find(acc => acc.id === accountId)?.key!) === 'management'){
+  //     templateBody = await getTemplateBody(managementAccountTemplate!);
+  //   }
+  // }
 
   let cfn: CloudFormation;
   if (accountId && assumeRoleName) {
