@@ -21,11 +21,12 @@ import { Bootstrapper } from 'aws-cdk/lib/api/bootstrap';
 import { Command, Configuration } from 'aws-cdk/lib/settings';
 import { SdkProvider } from 'aws-cdk/lib/api/aws-auth';
 import { CloudFormationDeployments } from 'aws-cdk/lib/api/cloudformation-deployments';
-import { PluginHost } from 'aws-cdk/lib/plugin';
+import { PluginHost } from 'aws-cdk/lib/api/plugin';
 import { debugModeEnabled } from '@aws-cdk/core/lib/debug';
 import { AssumeProfilePlugin } from '@aws-accelerator/cdk-plugin-assume-role/src/assume-role-plugin';
 import { fulfillAll } from './promise';
 import { promises as fsp } from 'fs';
+import * as AWS from 'aws-sdk';
 
 // Set microstats emitters
 // Set debug logging
@@ -88,8 +89,31 @@ export class CdkToolkit {
     });
     await configuration.load();
 
+    /*  The code below forces an STS Assume role on itself to address an issue with new CDK Version Upgrade
+     */
+    const stsClient = new AWS.STS({});
+    const getCallerIdentityResponse = await stsClient.getCallerIdentity({}).promise();
+    const getCallerIdentityResponseArraySplitBySlash = getCallerIdentityResponse.Arn!.split('/');
+    getCallerIdentityResponseArraySplitBySlash.pop();
+    const roleName = getCallerIdentityResponseArraySplitBySlash.pop();
+    const accountId = getCallerIdentityResponse.Account;
+    const roleArn = `arn:aws:iam::${accountId}:role/${roleName}`;
+
+    console.log(`[accelerator] management account roleArn => ${roleArn}`);
+
+    const assumeRoleCredential = await stsClient
+      .assumeRole({ RoleArn: roleArn, RoleSessionName: 'acceleratorAssumeRoleSession' })
+      .promise();
+
+    process.env['AWS_ACCESS_KEY_ID'] = assumeRoleCredential.Credentials!.AccessKeyId!;
+    process.env['AWS_ACCESS_KEY'] = assumeRoleCredential.Credentials!.AccessKeyId!;
+    process.env['AWS_SECRET_KEY'] = assumeRoleCredential.Credentials!.SecretAccessKey!;
+    process.env['AWS_SECRET_ACCESS_KEY'] = assumeRoleCredential.Credentials!.SecretAccessKey!;
+    process.env['AWS_SESSION_TOKEN'] = assumeRoleCredential.Credentials!.SessionToken;
+
     const sdkProvider = await SdkProvider.withAwsCliCompatibleDefaults({
       profile: configuration.settings.get(['profile']),
+      ec2creds: true,
     });
     return new CdkToolkit({
       assemblies,
@@ -195,10 +219,17 @@ export class CdkToolkit {
 
   async deployStack(stack: CloudFormationStackArtifact, retries: number = 0): Promise<StackOutput[]> {
     // Register the assume role plugin
+
     const assumeRolePlugin = new AssumeProfilePlugin({ region: stack.environment.region });
-    await assumeRolePlugin.init(PluginHost.instance);
+    assumeRolePlugin.init(PluginHost.instance);
     this.deploymentLog(stack, 'Deploying Stack');
-    const stackExists = await this.cloudFormation.stackExists({ stack });
+    let stackExists = false;
+    try {
+      stackExists = await this.cloudFormation.stackExists({ stack });
+    } catch (err) {
+      this.deploymentLog(stack, 'FAILED stack exists');
+      console.log(err);
+    }
     this.deploymentLog(stack, `Stack Exists: ${stackExists}`);
 
     const resources = Object.keys(stack.template.Resources || {});

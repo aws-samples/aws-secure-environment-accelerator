@@ -11,7 +11,7 @@
  *  and limitations under the License.
  */
 
-import { Plugin, PluginHost } from 'aws-cdk/lib/plugin';
+import { Plugin, PluginHost } from 'aws-cdk/lib/api/plugin';
 import { AssumeRoleProviderSource } from './assume-role-provider-source';
 
 export class AssumeProfilePlugin implements Plugin {
