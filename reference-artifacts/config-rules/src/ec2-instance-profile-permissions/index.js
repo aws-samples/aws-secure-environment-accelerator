@@ -6,7 +6,7 @@ const config = new AWS.ConfigService();
 const APPLICABLE_RESOURCES = ['AWS::IAM::Role'];
 
 exports.handler = async function (event, context) {
-  console.log(`Custom Rule for checking Polocies attached to IAM role used under Instance Profile...`);
+  console.log(`Custom Rule for checking Policies attached to IAM role used under Instance Profile...`);
   console.log(JSON.stringify(event, null, 2));
 
   const invokingEvent = JSON.parse(event.invokingEvent);
@@ -55,6 +55,11 @@ async function evaluateCompliance(props) {
     return {
       complianceType: 'NOT_APPLICABLE',
       annotation: 'The configuration item was deleted and could not be validated',
+    };
+  } else if (configurationItem.configurationItemStatus === 'ResourceNotRecorded' || configurationItem.configurationItemStatus === 'ResourceDeletedNotRecorded') {
+    return {
+      complianceType: 'NOT_APPLICABLE',
+      annotation: 'The configuration item is not recorded in this region and need not be validated',
     };
   }
 
