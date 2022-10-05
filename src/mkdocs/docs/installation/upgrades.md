@@ -19,7 +19,7 @@
 
 -   Upgrades to `v1.5.1-a and above` from `v1.5.0` or `v1.5.1`:
     -   Do not add the parameter: `"ssm-inventory-collection": true` to OUs or accounts which already have SSM Inventory configured or the state machine will fail
-    -   Follow the standard upgrade steps detailed in section 3.2 below
+    -   Follow the standard upgrade steps detailed in section 1.3 below
 -   `v1.5.1` was replaced by v1.5.1-a and is no longer supported for new installs or upgrades
 -   Upgrades to `v1.5.0` and `v1.5.1-a and above` from `v1.3.8 through v1.3.9`:
     -   We recommend upgrading directly to v1.5.1-a

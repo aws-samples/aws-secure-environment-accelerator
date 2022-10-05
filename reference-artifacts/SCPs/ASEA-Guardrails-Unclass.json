@@ -7,7 +7,6 @@
       "Action": [
         "aws-marketplace:CreatePrivate*",
         "aws-marketplace:AssociateProductsWithPrivate*",
-        "aws-marketplace:CreatePrivate*",
         "aws-marketplace:DescribePrivate*",
         "aws-marketplace:DisassociateProducts*",
         "aws-marketplace:ListPrivate*",
