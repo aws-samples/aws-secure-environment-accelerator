@@ -11,6 +11,8 @@
  *  and limitations under the License.
  */
 
+import { ResizeClusterMessage } from 'aws-sdk/clients/redshift';
+
 interface VerifyAddTagsToResourceInput {
   /**
    * Input from Step Function map runs
@@ -19,7 +21,12 @@ interface VerifyAddTagsToResourceInput {
   assumeRoleName: string;
   outputTableName: string;
   s3Bucket: string;
-  results: string[];
+  results: Result[];
+}
+
+interface Result {
+  status: string;
+  statusReason: string;
 }
 
 interface VerifyAddTagsToResourceOutput {
@@ -27,7 +34,7 @@ interface VerifyAddTagsToResourceOutput {
   /**
    * Single Dimensional Array constructed for readablity from Multi Dimensional
    */
-  errors: string[];
+  errors: Result[];
 }
 
 export const handler = async (input: VerifyAddTagsToResourceInput): Promise<VerifyAddTagsToResourceOutput> => {
