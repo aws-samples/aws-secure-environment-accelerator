@@ -41,7 +41,11 @@ export const handler = async (input: any): Promise<string> => {
   if (isExcluded(exclusions, logGroupName)) {
     return `No Need of Subscription Filter for "${logGroupName}"`;
   }
-  await addSubscriptionFilter(logGroupName, logDestinationArn, subscriptionFilterRoleArn);
+
+  if (subscriptionFilterRoleArn) {
+    await addSubscriptionFilter(logGroupName, logDestinationArn, subscriptionFilterRoleArn);
+  }
+
   const logRetention = process.env.LOG_RETENTION;
   if (logRetention) {
     // Update Log Retention Policy
