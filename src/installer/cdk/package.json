@@ -20,7 +20,10 @@
     "@aws-cdk/aws-kms": "1.174.0",
     "@aws-cdk/aws-lambda": "1.174.0",
     "@aws-cdk/aws-s3": "1.174.0",
-    "@aws-cdk/core": "1.174.0"
+    "@aws-cdk/core": "1.174.0",
+    "@aws-cdk/aws-events": "1.174.0",
+    "@aws-cdk/aws-events-targets": "1.174.0",
+    "@aws-cdk/aws-logs": "1.174.0"
   },
   "devDependencies": {
     "@types/jest": "25.2.3",
