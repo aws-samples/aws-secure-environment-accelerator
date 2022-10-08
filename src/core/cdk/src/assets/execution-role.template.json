@@ -92,7 +92,7 @@
                                         {
                                           "Ref": "AWS::AccountId"
                                         },
-                                        ":aws:role/",
+                                        ":role/",
                                         {
                                           "Ref": "RoleName"
                                         }
