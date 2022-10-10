@@ -61,19 +61,19 @@ export const handler = async (input: CreateStackInput) => {
   console.debug(stackTemplate);
 
   // Load the template body from the given location
-  const templateBody = await getTemplateBody(stackTemplate);
+  let templateBody = await getTemplateBody(stackTemplate);
 
   /** Checks Parameters Table in DDB to see if we are in management account.
    * If so, our PBMM Pipeline role has different permissions and we use
    * a different template.
    */
 
-  // if(parametersTableName){
-  //   const accounts = await loadAccounts(parametersTableName!, dynamodb);
-  //   if((accounts.find(acc => acc.id === accountId)?.key!) === 'management'){
-  //     templateBody = await getTemplateBody(managementAccountTemplate!);
-  //   }
-  // }
+  if (parametersTableName) {
+    const accounts = await loadAccounts(parametersTableName!, dynamodb);
+    if (accounts.find(acc => acc.id === accountId)?.key! === 'management') {
+      templateBody = await getTemplateBody(managementAccountTemplate!);
+    }
+  }
 
   let cfn: CloudFormation;
   if (accountId && assumeRoleName) {
