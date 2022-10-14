@@ -1,9 +1,8 @@
-#  Accelerator Sample Architecture
+# Accelerator Sample Sensitive Architecture
 
-- [Architecture Diagrams](./pbmm/diagrams.md)
-- [Overview](./pbmm/index.md)
-- [Account Structure](./pbmm/accounts.md)
-- [Networking](./pbmm/network.md)
-- [Authentication & Authorization](./pbmm/auth.md)
-- [Logging and Monitoring](./pbmm/logging.md)
-	  
+-   [Overview](./sensitive/index.md)
+-   [Account Structure](./sensitive/accounts.md)
+-   [Authentication & Authorization](./sensitive/auth.md)
+-   [Logging and Monitoring](./sensitive/logging.md)
+-   [Networking](./sensitive/network.md)
+-   [Architecture Diagrams](./sensitive/diagrams.md)
