@@ -1,5 +1,11 @@
 # SIEM on Amazon OpenSearch Service for the ASEA
 
+## Disclaimer
+
+This example code demonstrates deploying different patterns or tools within the Accelerator. It is NOT considered a part of the Accelerator, nor is it supported as part of the Accelerator. These add-ons are provided solely for inspirational purposes. 
+
+## Description
+
 This AWS Cloud Development Kit ([CDK](https://aws.amazon.com/cdk/)) project integrates the [SIEM on Amazon OpenSearch Service](https://github.com/aws-samples/siem-on-amazon-opensearch-service) with the AWS Secure Environment Accelerator (ASEA). The goal is to make it easier to deploy the _SIEM on Amazon OpenSearch Service_ github project into the ASEA default multi-account architecture.
 
 At a highlevel, the deployment steps consist of the following:
