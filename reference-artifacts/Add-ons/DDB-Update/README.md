@@ -1,5 +1,11 @@
 ## CloudFormation template for DynamoDB table
 
+## Disclaimer
+
+This example code demonstrates deploying different patterns or tools within the Accelerator. It is NOT considered a part of the Accelerator, nor is it supported as part of the Accelerator. These add-ons are provided solely for inspirational purposes. 
+
+## Description
+
 This CloudFormation script does the following:
 
 1. Create an Amazon S3 bucket for the JSON file containing CIDR ranges
