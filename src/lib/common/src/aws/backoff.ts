@@ -37,7 +37,7 @@ export function throttlingBackOff<T>(
 
   return backOff(request, {
     startingDelay,
-    delayFirstAttempt: true,
+    delayFirstAttempt: false,
     jitter: 'full',
     retry: isThrottlingError,
     ...options,
