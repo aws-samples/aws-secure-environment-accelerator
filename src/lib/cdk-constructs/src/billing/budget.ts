@@ -26,7 +26,7 @@ export interface BudgetProps {
  * The hash makes sure the budget gets replaced correctly by CloudFormation.
  */
 export class Budget extends Construct {
-  constructor(scope: cdk.Construct, id: string, props: BudgetProps) {
+  constructor(scope: Construct, id: string, props: BudgetProps) {
     super(scope, id);
 
     const hash = hashSum({ ...props, path: this.node.path });

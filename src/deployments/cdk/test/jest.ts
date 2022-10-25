@@ -13,7 +13,7 @@
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import * as cdk from 'aws-cdk-lib';
-import { SynthUtils } from 'aws-cdk-lib/assert';
+import { SynthUtils } from '@aws-cdk/assert';
 
 /**
  * Interface that represents a CloudFormation template.

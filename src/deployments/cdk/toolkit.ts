@@ -26,7 +26,7 @@ import { debugModeEnabled } from '@aws-cdk/core/lib/debug'
 import { AssumeProfilePlugin } from '@aws-accelerator/cdk-plugin-assume-role/src/assume-role-plugin';
 import { fulfillAll } from './promise';
 import { promises as fsp } from 'fs';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import * as AWS from 'aws-sdk';
 
 // Set microstats emitters

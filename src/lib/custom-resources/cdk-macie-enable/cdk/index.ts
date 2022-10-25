@@ -12,9 +12,9 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { HandlerProperties, MacieFrequency, MacieStatus } from '@aws-accelerator/custom-resource-macie-enable-runtime';
 
 const resourceType = 'Custom::MacieEnable';
@@ -29,10 +29,10 @@ export interface MacieEnableProps {
 /**
  * Custom resource implementation that enable Macie for AWS account.
  */
-export class MacieEnable extends cdk.Construct {
+export class MacieEnable extends Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: MacieEnableProps) {
+  constructor(scope: Construct, id: string, props: MacieEnableProps) {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = props;

@@ -33,7 +33,7 @@ interface ElbEndpoint {
   accountKey: string;
 }
 
-export class GatewayLoadBalancer extends cdk.Construct {
+export class GatewayLoadBalancer extends Construct {
   private readonly resource: elb.CfnLoadBalancer;
   private readonly listeners: elb.CfnListener[] = [];
   private readonly endpointService: ec2.CfnVPCEndpointService;

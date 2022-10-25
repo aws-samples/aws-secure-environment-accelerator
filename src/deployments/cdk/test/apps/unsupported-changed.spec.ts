@@ -93,7 +93,7 @@ beforeAll(async () => {
       stackResources[stack.node.uniqueId] = resourcesToList(template.Resources);
 
       // Render all nested stacks
-      // See https://github.com/aws/aws-cdk/blob/master/packages/aws-cdk-lib/assert/lib/synth-utils.ts#L52
+      // See https://github.com/aws/aws-cdk/blob/master/packages/@aws-cdk/assert/lib/synth-utils.ts#L52
       const nestedStacks = stack.node.findAll().filter(cdk.NestedStack.isNestedStack);
       for (const nestedStack of nestedStacks) {
         const nestedTemplateFile = path.join(assembly.directory, nestedStack.templateFile);

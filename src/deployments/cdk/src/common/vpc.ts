@@ -157,7 +157,7 @@ export class VpcStack extends cdk.NestedStack {
  *
  * TODO: Decouple this class from the configuration file.
  */
-export class Vpc extends cdk.Construct implements constructs.Vpc {
+export class Vpc extends Construct implements constructs.Vpc {
   readonly name: string;
   readonly region: Region;
 

@@ -47,7 +47,7 @@ export class SecretsContainer extends Construct {
   readonly keyAlias: string;
   readonly principals: iam.IPrincipal[] = [];
 
-  constructor(scope: cdk.Construct, name: string) {
+  constructor(scope: Construct, name: string) {
     super(scope, name);
 
     this.keyAlias = createEncryptionKeyName(`Secrets-Key`);

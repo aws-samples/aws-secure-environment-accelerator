@@ -27,7 +27,7 @@ export interface StructuredOutputFilter<T> {
   accountKey?: string;
 }
 
-export type CfnStructuredOutputClass<T> = new (scope: Construct, id: string, value: T) => cdk.Construct;
+export type CfnStructuredOutputClass<T> = new (scope: Construct, id: string, value: T) => Construct;
 
 export function createCfnStructuredOutput<T>(type: t.Type<T>): CfnStructuredOutputClass<T> {
   class Impl extends Construct {

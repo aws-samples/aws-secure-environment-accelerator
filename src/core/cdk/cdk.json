@@ -1,7 +1,7 @@
 {
   "app": "pnpx ts-node src/index.ts",
   "context": {
-    "@aws-cdk/core:newStyleStackSynthesis": "true",
-    "@aws-cdk/aws-lambda:recognizeVersionProps": "true"
+    "aws-cdk-lib:newStyleStackSynthesis": "true",
+    "aws-cdk-lib/aws-lambda:recognizeVersionProps": "true"
   }
 }

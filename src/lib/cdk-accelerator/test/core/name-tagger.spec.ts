@@ -14,10 +14,10 @@
 import 'jest';
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import { expect, haveResource, haveResourceLike } from 'aws-cdk-lib/assert';
+import { expect, haveResource, haveResourceLike } from '@aws-cdk/assert';
 import { AcceleratorNameTagger } from '../../src/core';
 // eslint-disable-next-line
-import { Aspects } from '@aws-cdk/core';
+import { Aspects } from 'aws-cdk-lib';
 
 test('should add the Name tag with the correct suffix to ec2.Vpc', () => {
   const stack = new cdk.Stack();
@@ -82,7 +82,7 @@ test('should add the Name tag with the correct suffix to ec2.Subnet', () => {
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  cdk.ConstructNode.prepare(stack.node);
+  ConstructNode.prepare(stack.node);
 
   expect(stack).to(
     haveResourceLike('AWS::EC2::Subnet', {

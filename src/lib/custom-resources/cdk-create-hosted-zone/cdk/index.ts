@@ -36,7 +36,7 @@ export class CreateHostedZone extends Construct {
   private readonly resource: cdk.CustomResource;
   private role: iam.IRole;
 
-  constructor(scope: cdk.Construct, id: string, props: CreateHostedZoneProps) {
+  constructor(scope: Construct, id: string, props: CreateHostedZoneProps) {
     super(scope, id);
     this.role = iam.Role.fromRoleArn(this, `${resourceType}Role`, props.roleArn);
 

@@ -46,7 +46,7 @@ export interface SecurityHubProps {
 }
 
 export class SecurityHub extends Construct {
-  constructor(scope: cdk.Construct, name: string, props: SecurityHubProps) {
+  constructor(scope: Construct, name: string, props: SecurityHubProps) {
     super(scope, name);
     const { account, subAccountIds, masterAccountId, standards, roleArn } = props;
 

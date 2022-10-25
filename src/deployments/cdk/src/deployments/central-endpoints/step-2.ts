@@ -24,7 +24,7 @@ import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { ResolverEndpoint } from '@aws-accelerator/cdk-constructs/src/route53';
 import { JsonOutputValue } from '../../common/json-output';
 import { Account, getAccountId } from '../../utils/accounts';
-import * as ram from '@aws-cdk/aws-ram';
+import * as ram from 'aws-cdk-lib/aws-ram';
 import { createName, hashPath } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CreateResolverRule, TargetIp } from '@aws-accelerator/custom-resource-create-resolver-rule';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
