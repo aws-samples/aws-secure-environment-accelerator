@@ -58,6 +58,7 @@ export namespace InitialSetup {
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     codebuildComputeType: any;
     pageSize: string;
+    backoff: string | undefined;
     /**
      * Current Accelerator version
      */
