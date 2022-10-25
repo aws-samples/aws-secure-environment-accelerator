@@ -81,7 +81,7 @@ export class SecretsContainer extends Construct {
       }),
     );
 
-    if(this.principals){
+    if(this.principals.length){
       this.encryptionKey.addToResourcePolicy(
         new iam.PolicyStatement({
           actions: ['kms:Decrypt'],
