@@ -11,8 +11,8 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
+ import * as cdk from 'aws-cdk-lib';
+ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as c from '@aws-accelerator/common-config/src';
 import { Vpc } from '@aws-accelerator/cdk-constructs/src/vpc';
 import { FirewallManager } from '@aws-accelerator/cdk-constructs/src/firewall';
@@ -26,6 +26,7 @@ import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerato
 import { addReplacementsToUserData } from '../cluster/step-4';
 import { Account } from '../../../utils/accounts';
 import { createIamInstanceProfileName } from '../../../common/iam-assets';
+import { Construct } from 'constructs';
 
 export interface FirewallManagerStep1Props {
   accountStacks: AccountStacks;
@@ -112,7 +113,7 @@ export async function step1(props: FirewallManagerStep1Props) {
  * Create firewall management instance for the given VPC and config in the given scope.
  */
 async function createFirewallManager(props: {
-  scope: cdk.Construct;
+  scope: Construct;
   vpc: Vpc;
   firewallManagerConfig: c.FirewallManagerConfig;
   keyPairName?: string;

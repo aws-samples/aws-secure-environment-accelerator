@@ -12,12 +12,12 @@
  */
 
 import { pascalCase } from 'pascal-case';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { getAccountId } from '../utils/accounts';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
 import { VpcOutputFinder, SharedSecurityGroupIndexOutput, NfwOutput } from '@aws-accelerator/common-outputs/src/vpc';
-import * as ec2 from '@aws-cdk/aws-ec2';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { PeeringConnectionConfig, VpcConfigType } from '@aws-accelerator/common-config/src';
 import { getVpcSharedAccountKeys } from '../common/vpc-subnet-sharing';
 import { SecurityGroup } from '../common/security-group';

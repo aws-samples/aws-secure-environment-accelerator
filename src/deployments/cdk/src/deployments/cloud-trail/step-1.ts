@@ -11,7 +11,7 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import * as c from '@aws-accelerator/common-config/src';
 import { AccountStacks } from '../../common/account-stacks';
 import { LogBucketOutput } from '../defaults/outputs';
@@ -24,7 +24,7 @@ import {
   createRoleName,
   createName,
 } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import * as iam from '@aws-cdk/aws-iam';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Context } from '../../utils/context';
 import { AccountBuckets } from '../defaults';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';

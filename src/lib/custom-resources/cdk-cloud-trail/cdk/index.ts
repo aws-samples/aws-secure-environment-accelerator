@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as path from 'path';
-import * as lambda from '@aws-cdk/aws-lambda';
+ import * as cdk from 'aws-cdk-lib';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import * as path from 'path';
+ import * as lambda from 'aws-cdk-lib/aws-lambda';
+ import { Construct } from 'constructs';
 
 const resourceType = 'Custom::CreateCloudTrail';
 
@@ -34,9 +35,9 @@ export interface CloudTrailProperties {
 /**
  * Custom resource implementation that creates CloudTrail
  */
-export class CreateCloudTrail extends cdk.Construct {
+export class CreateCloudTrail extends Construct {
   private readonly resource: cdk.CustomResource;
-  constructor(scope: cdk.Construct, id: string, props: CloudTrailProperties) {
+  constructor(scope: Construct, id: string, props: CloudTrailProperties) {
     super(scope, id);
 
     this.resource = new cdk.CustomResource(this, 'Resource', {

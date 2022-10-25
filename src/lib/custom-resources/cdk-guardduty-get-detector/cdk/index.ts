@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as path from 'path';
+ import * as cdk from 'aws-cdk-lib';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import * as lambda from 'aws-cdk-lib/aws-lambda';
+ import * as path from 'path';
+ import { Construct } from 'constructs';
 
 const resourceType = 'Custom::GetDetectorId';
 
@@ -25,10 +26,10 @@ export interface GuardDutyGetDetectorProps {
 /**
  * Custom resource implementation that retrieve IPs for a created DNS Endpoint.
  */
-export class GuardDutyDetector extends cdk.Construct {
+export class GuardDutyDetector extends Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: GuardDutyGetDetectorProps) {
+  constructor(scope: Construct, id: string, props: GuardDutyGetDetectorProps) {
     super(scope, id);
 
     const guardDutyDetector = this.lambdaFunction(props.roleArn);

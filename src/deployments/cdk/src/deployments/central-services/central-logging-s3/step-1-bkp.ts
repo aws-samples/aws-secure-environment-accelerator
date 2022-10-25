@@ -11,12 +11,13 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { createRoleName, createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import * as kinesisfirehose from '@aws-cdk/aws-kinesisfirehose';
+import * as kinesisfirehose from 'aws-cdk-lib/aws-kinesisfirehose';
 import { AccountStack } from '../../../common/account-stacks';
 import { JsonOutputValue } from '../../../common/json-output';
+import { Construct } from 'constructs';
 
 export interface CentralLoggingToS3Step1Props {
   accountStack: AccountStack;
@@ -40,7 +41,7 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
  * Create initial Setup in Sub Account for centralized logging
  * 5.15b - READY - Centralize CWL - Part 2
  */
-async function cwlCentralLoggingSettings(props: { scope: cdk.Construct; bucketArn: string }) {
+async function cwlCentralLoggingSettings(props: { scope: Construct; bucketArn: string }) {
   const { scope, bucketArn } = props;
 
   // Create IAM Role for reading logs from stream and push to destination

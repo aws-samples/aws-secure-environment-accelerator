@@ -18,7 +18,7 @@ import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { HostedZoneOutputFinder } from '@aws-accelerator/common-outputs/src/hosted-zone';
 import { Account, getAccountId } from '../../utils/accounts';
 import { AssociateHostedZones } from '@aws-accelerator/custom-resource-associate-hosted-zones';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import {
   StaticResourcesOutputFinder,
   StaticResourcesOutput,

@@ -12,9 +12,10 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::SSMSessionManagerDocument';
 
@@ -31,10 +32,10 @@ export interface SSMSessionManagerDocumentProps {
 /**
  * Custom resource that will create SSM Document.
  */
-export class SSMSessionManagerDocument extends cdk.Construct {
+export class SSMSessionManagerDocument extends Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: SSMSessionManagerDocumentProps) {
+  constructor(scope: Construct, id: string, props: SSMSessionManagerDocumentProps) {
     super(scope, id);
     const {
       cloudWatchEncryptionEnabled,

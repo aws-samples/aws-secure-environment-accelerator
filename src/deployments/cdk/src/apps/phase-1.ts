@@ -11,8 +11,8 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { pascalCase } from 'pascal-case';
 import { getAccountId, Account } from '../utils/accounts';

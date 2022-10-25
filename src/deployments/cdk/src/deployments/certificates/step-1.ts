@@ -11,15 +11,16 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as certificatemanager from '@aws-cdk/aws-certificatemanager';
-import * as secrets from '@aws-cdk/aws-secretsmanager';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import * as certificatemanager from 'aws-cdk-lib/aws-certificatemanager';
+import * as secrets from 'aws-cdk-lib/aws-secretsmanager';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as c from '@aws-accelerator/common-config/src';
 import { AcmImportCertificate } from '@aws-accelerator/custom-resource-acm-import-certificate';
 import { AccountStacks } from '../../common/account-stacks';
 import { pascalCase } from 'pascal-case';
 import { createCertificateSecretName, CfnAcmOutput } from './outputs';
+import { Construct } from 'constructs';
 
 export interface CertificatesStep1Props {
   accountStacks: AccountStacks;
@@ -54,7 +55,7 @@ export async function step1(props: CertificatesStep1Props) {
 function createCertificate(props: {
   centralBucket: s3.IBucket;
   certificate: c.CertificateConfig;
-  scope: cdk.Construct;
+  scope: Construct;
 }) {
   const { scope, centralBucket, certificate } = props;
 

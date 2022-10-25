@@ -12,9 +12,9 @@
  */
 
 import * as t from 'io-ts';
-import * as cdk from '@aws-cdk/core';
-import * as kms from '@aws-cdk/aws-kms';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import * as kms from 'aws-cdk-lib/aws-kms';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { Account } from '../../utils/accounts';
@@ -25,6 +25,7 @@ import { SsmKmsOutput } from '@aws-accelerator/common-outputs/src/ssm';
 import { optional } from '@aws-accelerator/common-types';
 import { createStructuredOutputFinder } from '@aws-accelerator/common-outputs/src/structured-output';
 import { DefaultKmsOutput } from '@aws-accelerator/common-outputs/src/kms';
+import { Construct } from 'constructs';
 
 export const CfnEbsKmsOutput = createCfnStructuredOutput(EbsKmsOutput);
 export const CfnDefaultKmsOutput = createCfnStructuredOutput(DefaultKmsOutput);
@@ -41,7 +42,7 @@ export interface RegionalBucketAttributes extends s3.BucketAttributes {
 
 export namespace RegionalBucket {
   export function fromBucketAttributes(
-    scope: cdk.Construct,
+    scope: Construct,
     id: string,
     attrs: RegionalBucketAttributes,
   ): RegionalBucket {

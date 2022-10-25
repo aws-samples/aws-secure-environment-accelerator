@@ -11,9 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as path from 'path';
+ import * as cdk from 'aws-cdk-lib';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import * as path from 'path';
+ import { Construct } from 'constructs';
 
 const resourceType = 'Custom::VpcDefaultSecurityGroup';
 
@@ -25,10 +26,10 @@ export interface VpcDefaultSecurityGroupProps {
 /**
  * Custom resource implementation that delete inbound and outbound rules of default security group
  */
-export class VpcDefaultSecurityGroup extends cdk.Construct {
+export class VpcDefaultSecurityGroup extends Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: VpcDefaultSecurityGroupProps) {
+  constructor(scope: Construct, id: string, props: VpcDefaultSecurityGroupProps) {
     super(scope, id);
 
     const lambdaPath = require.resolve('@aws-accelerator/custom-resource-vpc-default-security-group-runtime');

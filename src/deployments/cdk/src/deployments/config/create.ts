@@ -13,9 +13,9 @@
 
 import * as c from '@aws-accelerator/common-config';
 import { AccountStacks } from '../../common/account-stacks';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import * as awsConfig from '@aws-cdk/aws-config';
+import * as awsConfig from 'aws-cdk-lib/aws-config';
 import { Account, getAccountId } from '../../utils/accounts';
 import { getStackJsonOutput, StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { LogBucketOutput, AccountBucketOutputFinder } from '../defaults/outputs';

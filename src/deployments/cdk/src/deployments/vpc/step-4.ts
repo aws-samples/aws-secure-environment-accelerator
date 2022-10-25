@@ -17,7 +17,7 @@ import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-rol
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
 import { createLogGroupName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import { CfnResolverQueryLoggingConfig, CfnResolverQueryLoggingConfigAssociation } from '@aws-cdk/aws-route53resolver';
+import { CfnResolverQueryLoggingConfig, CfnResolverQueryLoggingConfigAssociation } from 'aws-cdk-lib/aws-route53resolver';
 
 export interface VpcStep4Props {
   vpcConfig: VpcConfig;

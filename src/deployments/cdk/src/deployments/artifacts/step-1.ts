@@ -12,8 +12,8 @@
  */
 
 import * as path from 'path';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as s3deployment from '@aws-cdk/aws-s3-deployment';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as s3deployment from 'aws-cdk-lib/aws-s3-deployment';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { AccountStacks, AccountStack } from '../../common/account-stacks';
 import { JsonOutputValue } from '../../common/json-output';

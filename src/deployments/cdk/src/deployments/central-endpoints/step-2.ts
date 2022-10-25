@@ -12,7 +12,7 @@
  */
 
 import * as c from '@aws-accelerator/common-config';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { AccountStacks } from '../../common/account-stacks';
 import {
   getStackJsonOutput,

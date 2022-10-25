@@ -11,14 +11,15 @@
  *  and limitations under the License.
  */
 
-import * as ddb from '@aws-cdk/aws-dynamodb';
-import * as kms from '@aws-cdk/aws-kms';
-import { Rule, Schedule } from '@aws-cdk/aws-events';
-import * as targets from '@aws-cdk/aws-events-targets';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import { DynamoEventSource } from '@aws-cdk/aws-lambda-event-sources';
-import { Construct, RemovalPolicy, Duration } from '@aws-cdk/core';
+ import * as ddb from 'aws-cdk-lib/aws-dynamodb';
+ import * as kms from 'aws-cdk-lib/aws-kms';
+ import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
+ import * as targets from 'aws-cdk-lib/aws-events-targets';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import * as lambda from 'aws-cdk-lib/aws-lambda';
+ import { DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+ import { RemovalPolicy, Duration } from 'aws-cdk-lib';
+ import { Construct } from 'constructs';
 
 import path from 'path';
 

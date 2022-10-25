@@ -11,9 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as path from 'path';
+ import * as cdk from 'aws-cdk-lib';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import * as path from 'path';
+ import { Construct } from 'constructs';
 
 const resourceType = 'Custom::EC2LaunchTime';
 
@@ -24,10 +25,10 @@ export interface InstanceLaunchTimeProps {
 /**
  * Custom resource implementation that get EC2 instance status.
  */
-export class InstanceLaunchTime extends cdk.Construct {
+export class InstanceLaunchTime extends Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: InstanceLaunchTimeProps) {
+  constructor(scope: Construct, id: string, props: InstanceLaunchTimeProps) {
     super(scope, id);
 
     const lambdaPath = require.resolve('@aws-accelerator/custom-resource-ec2-launch-time-runtime');

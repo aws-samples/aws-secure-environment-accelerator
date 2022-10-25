@@ -78,7 +78,7 @@ export type LaunchConfigurationProps = autoscaling.CfnLaunchConfigurationProps;
  * CloudFormation.
  */
 export class LaunchConfiguration extends autoscaling.CfnLaunchConfiguration {
-    constructor(scope: cdk.Construct, id: string, props: LaunchConfigurationProps) {
+    constructor(scope: Construct, id: string, props: LaunchConfigurationProps) {
         super(scope, id, props);
 
         if (props.launchConfigurationName) {
@@ -172,8 +172,8 @@ In the CDK code we can now resolve the path to the compiled code using the `Node
 `cdk/src/index.ts`
 
 ```typescript
-class LambdaFun extends cdk.Construct {
-    constructor(scope: cdk.Construct, id: string) {
+class LambdaFun extends Construct {
+    constructor(scope: Construct, id: string) {
         super(scope, id);
 
         // Find the runtime package folder and resolves the `main` entry of `package.json`.
@@ -213,8 +213,8 @@ Only a single Lambda function is created per custom resource, account and region
 `src/lib/custom-resources/custom-resource/cdk/index.ts`
 
 ```typescript
-class CustomResource extends cdk.Construct {
-    constructor(scope: cdk.Construct, id: string, props: CustomResourceProps) {
+class CustomResource extends Construct {
+    constructor(scope: Construct, id: string, props: CustomResourceProps) {
         super(scope, id);
 
         new cdk.CustomResource(this, 'Resource', {

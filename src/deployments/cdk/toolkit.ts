@@ -12,20 +12,21 @@
  */
 
 import path from 'path';
-import * as cdk from '@aws-cdk/core';
 import * as cxschema from '@aws-cdk/cloud-assembly-schema';
-import { CloudAssembly, CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
-import { Mode, ToolkitInfo } from 'aws-cdk';
+import { CloudFormationStackArtifact, CloudAssembly, Environment } from '@aws-cdk/cx-api';
+import { ToolkitInfo } from 'aws-cdk/lib/api/toolkit-info';
+import { Mode } from 'aws-cdk/lib/api';
 import { setLogLevel } from 'aws-cdk/lib/logging';
 import { Bootstrapper } from 'aws-cdk/lib/api/bootstrap';
 import { Command, Configuration } from 'aws-cdk/lib/settings';
 import { SdkProvider } from 'aws-cdk/lib/api/aws-auth';
 import { CloudFormationDeployments } from 'aws-cdk/lib/api/cloudformation-deployments';
-import { PluginHost } from 'aws-cdk/lib/api/plugin';
-import { debugModeEnabled } from '@aws-cdk/core/lib/debug';
+import { PluginHost } from 'aws-cdk/lib/api/plugin'
+import { debugModeEnabled } from '@aws-cdk/core/lib/debug'
 import { AssumeProfilePlugin } from '@aws-accelerator/cdk-plugin-assume-role/src/assume-role-plugin';
 import { fulfillAll } from './promise';
 import { promises as fsp } from 'fs';
+import * as cdk from '@aws-cdk/core';
 import * as AWS from 'aws-sdk';
 
 // Set microstats emitters
@@ -219,7 +220,6 @@ export class CdkToolkit {
 
   async deployStack(stack: CloudFormationStackArtifact, retries: number = 0): Promise<StackOutput[]> {
     // Register the assume role plugin
-
     const assumeRolePlugin = new AssumeProfilePlugin({ region: stack.environment.region });
     assumeRolePlugin.init(PluginHost.instance);
     this.deploymentLog(stack, 'Deploying Stack');
@@ -250,7 +250,7 @@ export class CdkToolkit {
       this.deploymentLog(stack, 'Describing Stack');
       const existingStack = await cfn
         .describeStacks({
-          StackName: stack.id,
+          StackName: stack.stackName,
         })
         .promise();
       const stackStatus = existingStack?.Stacks?.[0]?.StackStatus ?? '';

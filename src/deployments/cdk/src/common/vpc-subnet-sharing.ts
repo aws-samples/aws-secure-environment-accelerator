@@ -11,14 +11,15 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
-import * as ram from '@aws-cdk/aws-ram';
+ import * as cdk from 'aws-cdk-lib';
+ import * as ec2 from 'aws-cdk-lib/aws-ec2';
+ import * as ram from 'aws-cdk-lib/aws-ram';
 import { pascalCase } from 'pascal-case';
 import { getAccountId, Account } from '../utils/accounts';
 import { VpcCommonProps, AzSubnets } from './vpc';
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
 import * as config from '@aws-accelerator/common-config/src';
+import { Construct } from 'constructs';
 
 export interface VpcSubnetSharingProps extends VpcCommonProps {
   subnets: AzSubnets;
@@ -73,8 +74,8 @@ export function getVpcSharedAccountKeys(
 /**
  * Auxiliary construct that takes care of VPC subnet sharing.
  */
-export class VpcSubnetSharing extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: VpcSubnetSharingProps) {
+export class VpcSubnetSharing extends Construct {
+  constructor(scope: Construct, id: string, props: VpcSubnetSharingProps) {
     super(scope, id);
 
     const stack = cdk.Stack.of(this);

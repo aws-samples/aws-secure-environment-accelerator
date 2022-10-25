@@ -11,9 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as custom from '@aws-cdk/custom-resources';
-import * as iam from '@aws-cdk/aws-iam';
+ import * as cdk from 'aws-cdk-lib';
+ import * as custom from 'aws-cdk-lib/custom-resources';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import { Construct } from 'constructs';
 
 export interface ElbDeletionProtectionProps {
   loadBalancerName: string;
@@ -23,11 +24,11 @@ export interface ElbDeletionProtectionProps {
 /**
  * Custom resource implementation that Enables Deletion Protection on LoadBalancer.
  */
-export class ElbDeletionProtection extends cdk.Construct {
+export class ElbDeletionProtection extends Construct {
   private readonly loadBalancerName: string;
   private readonly loadBalancerArn: string;
 
-  constructor(scope: cdk.Construct, id: string, props: ElbDeletionProtectionProps) {
+  constructor(scope: Construct, id: string, props: ElbDeletionProtectionProps) {
     super(scope, id);
     this.loadBalancerName = props.loadBalancerName;
     this.loadBalancerArn = props.loadBalancerArn;

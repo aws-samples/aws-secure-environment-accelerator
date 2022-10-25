@@ -12,9 +12,10 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::CreateHostedZone';
 
@@ -31,7 +32,7 @@ export type CreateHostedZoneRuntimeProps = Omit<CreateHostedZoneProps, 'roleArn'
 /**
  * Custom resource that will create Resolver Rule.
  */
-export class CreateHostedZone extends cdk.Construct {
+export class CreateHostedZone extends Construct {
   private readonly resource: cdk.CustomResource;
   private role: iam.IRole;
 

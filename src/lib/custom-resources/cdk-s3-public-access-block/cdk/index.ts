@@ -11,9 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as custom from '@aws-cdk/custom-resources';
-import * as iam from '@aws-cdk/aws-iam';
+ import * as cdk from 'aws-cdk-lib';
+ import * as custom from 'aws-cdk-lib/custom-resources';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import { Construct } from 'constructs';
 
 export interface S3PublicAccessBlockProps {
   blockPublicAcls: boolean;
@@ -26,8 +27,8 @@ export interface S3PublicAccessBlockProps {
   accountId?: string;
 }
 
-export class S3PublicAccessBlock extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: S3PublicAccessBlockProps) {
+export class S3PublicAccessBlock extends Construct {
+  constructor(scope: Construct, id: string, props: S3PublicAccessBlockProps) {
     super(scope, id);
 
     const { accountId, blockPublicAcls, blockPublicPolicy, ignorePublicAcls, restrictPublicBuckets } = props;

@@ -11,13 +11,14 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import { CfnMicrosoftAD } from '@aws-cdk/aws-directoryservice';
-import { MadDeploymentConfig } from '@aws-accelerator/common-config/src';
-import * as iam from '@aws-cdk/aws-iam';
+ import * as cdk from 'aws-cdk-lib';
+ import { CfnMicrosoftAD } from 'aws-cdk-lib/aws-directoryservice';
+ import { MadDeploymentConfig } from '@aws-accelerator/common-config/src';
+ import * as iam from 'aws-cdk-lib/aws-iam';
 import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
 import { LogResourcePolicy } from '@aws-accelerator/custom-resource-logs-resource-policy';
 import { DirectoryServiceLogSubscription } from '@aws-accelerator/custom-resource-ds-log-subscription';
+import { Construct } from 'constructs';
 
 export interface ActiveDirectoryProps extends cdk.StackProps {
   madDeploymentConfig: MadDeploymentConfig;
@@ -29,11 +30,11 @@ export interface ActiveDirectoryProps extends cdk.StackProps {
   roleArn: string;
 }
 
-export class ActiveDirectory extends cdk.Construct {
+export class ActiveDirectory extends Construct {
   readonly directoryId: string;
   readonly dnsIps: string[];
 
-  constructor(scope: cdk.Construct, id: string, props: ActiveDirectoryProps) {
+  constructor(scope: Construct, id: string, props: ActiveDirectoryProps) {
     super(scope, id);
     const { madDeploymentConfig, subnetInfo, password, roleArn } = props;
 

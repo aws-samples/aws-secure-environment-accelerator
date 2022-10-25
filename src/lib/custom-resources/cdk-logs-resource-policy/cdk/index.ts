@@ -11,9 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as custom from '@aws-cdk/custom-resources';
-import * as iam from '@aws-cdk/aws-iam';
+ import * as cdk from 'aws-cdk-lib';
+ import * as custom from 'aws-cdk-lib/custom-resources';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import { Construct } from 'constructs';
 
 export interface LogResourcePolicyProps {
   policyName: string;
@@ -24,11 +25,11 @@ export interface LogResourcePolicyProps {
  * Custom resource implementation that create logs resource policy. Awaiting
  * https://github.com/aws-cloudformation/aws-cloudformation-coverage-roadmap/issues/249
  */
-export class LogResourcePolicy extends cdk.Construct {
+export class LogResourcePolicy extends Construct {
   private readonly policyName: string;
   private readonly policyDocument: iam.PolicyDocument;
 
-  constructor(scope: cdk.Construct, id: string, props: LogResourcePolicyProps) {
+  constructor(scope: Construct, id: string, props: LogResourcePolicyProps) {
     super(scope, id);
     this.policyName = props.policyName;
     this.policyDocument = new iam.PolicyDocument({

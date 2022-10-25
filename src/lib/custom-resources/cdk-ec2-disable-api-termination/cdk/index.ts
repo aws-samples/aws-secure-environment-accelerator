@@ -11,9 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as custom from '@aws-cdk/custom-resources';
-import * as iam from '@aws-cdk/aws-iam';
+ import * as cdk from 'aws-cdk-lib';
+ import * as custom from 'aws-cdk-lib/custom-resources';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import { Construct } from 'constructs';
 
 export interface EC2DisableApiTerminationProps {
   ec2Name: string;
@@ -23,11 +24,11 @@ export interface EC2DisableApiTerminationProps {
 /**
  * Custom resource implementation that Enables/Disables Deletion Protection on EC instances.
  */
-export class EC2DisableApiTermination extends cdk.Construct {
+export class EC2DisableApiTermination extends Construct {
   private readonly ec2Id: string;
   private readonly ec2Name: string;
 
-  constructor(scope: cdk.Construct, id: string, props: EC2DisableApiTerminationProps) {
+  constructor(scope: Construct, id: string, props: EC2DisableApiTerminationProps) {
     super(scope, id);
     this.ec2Id = props.ec2Id;
     this.ec2Name = props.ec2Name;

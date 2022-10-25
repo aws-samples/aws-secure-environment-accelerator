@@ -12,9 +12,10 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::SecurityHubSendInvites';
 
@@ -31,10 +32,10 @@ export interface SecurityHubSendInvitesProps {
 /**
  * Custom resource that has an image ID attribute for the image with the given properties.
  */
-export class SecurityHubSendInvites extends cdk.Construct {
+export class SecurityHubSendInvites extends Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: SecurityHubSendInvitesProps) {
+  constructor(scope: Construct, id: string, props: SecurityHubSendInvitesProps) {
     super(scope, id);
 
     const sendInvite = this.lambdaFunction(props.roleArn);

@@ -11,11 +11,12 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as sfn from '@aws-cdk/aws-stepfunctions';
+ import * as cdk from 'aws-cdk-lib';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import * as lambda from 'aws-cdk-lib/aws-lambda';
+ import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
 import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-tasks';
+import { Construct } from 'constructs';
 
 export namespace CreateStackTask {
   export interface Props {
@@ -31,7 +32,7 @@ export class CreateStackTask extends sfn.StateMachineFragment {
   readonly startState: sfn.State;
   readonly endStates: sfn.INextable[];
 
-  constructor(scope: cdk.Construct, id: string, props: CreateStackTask.Props) {
+  constructor(scope: Construct, id: string, props: CreateStackTask.Props) {
     super(scope, id);
 
     const { role, lambdaCode, functionPayload, suffix, waitSeconds = 10 } = props;

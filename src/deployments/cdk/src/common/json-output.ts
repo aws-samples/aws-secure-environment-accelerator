@@ -11,7 +11,8 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
+ import * as cdk from 'aws-cdk-lib';
+ import { Construct } from 'constructs';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Producer = () => any;
@@ -29,8 +30,8 @@ export interface JsonOutputProps extends Omit<cdk.CfnOutputProps, 'value'> {
  * Auxiliary construct that emits outputs that can be read by the `add-tags-to-shared-resources` step in the
  * state machine.
  */
-export class JsonOutputValue extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: JsonOutputProps) {
+export class JsonOutputValue extends Construct {
+  constructor(scope: Construct, id: string, props: JsonOutputProps) {
     super(scope, id);
 
     let value;

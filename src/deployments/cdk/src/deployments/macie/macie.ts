@@ -11,7 +11,7 @@
  *  and limitations under the License.
  */
 
-import * as iam from '@aws-cdk/aws-iam';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';

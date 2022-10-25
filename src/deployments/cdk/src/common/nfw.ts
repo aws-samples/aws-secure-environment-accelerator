@@ -11,11 +11,12 @@
  *  and limitations under the License.
  */
 
-import * as nfw from '@aws-cdk/aws-networkfirewall';
-import { Construct, Fn } from '@aws-cdk/core';
+ import * as nfw from 'aws-cdk-lib/aws-networkfirewall';
+ import { Fn } from 'aws-cdk-lib';
+ import { Construct } from 'constructs';
 import { AzSubnet } from './vpc';
 import * as defaults from '../deployments/defaults';
-import * as logs from '@aws-cdk/aws-logs';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
 
 export interface NfwProps {

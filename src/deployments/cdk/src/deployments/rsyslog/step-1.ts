@@ -11,8 +11,8 @@
  *  and limitations under the License.
  */
 
-import * as iam from '@aws-cdk/aws-iam';
-import * as ssm from '@aws-cdk/aws-ssm';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { ServiceLinkedRole } from '@aws-accelerator/cdk-constructs/src/iam';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { CfnSleep } from '@aws-accelerator/custom-resource-cfn-sleep';

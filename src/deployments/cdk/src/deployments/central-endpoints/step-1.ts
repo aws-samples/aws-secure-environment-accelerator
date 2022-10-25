@@ -13,12 +13,12 @@
 
 import * as c from '@aws-accelerator/common-config';
 import { AccountStacks } from '../../common/account-stacks';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { trimSpecialCharacters } from '@aws-accelerator/common-outputs/src/secrets';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '@aws-accelerator/common/src/util/constants';
-import * as r53 from '@aws-cdk/aws-route53';
+import * as r53 from 'aws-cdk-lib/aws-route53';
 import { CfnHostedZoneOutput } from './outputs';
 
 export interface CentralEndpointsStep1Props {

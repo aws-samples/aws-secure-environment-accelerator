@@ -12,10 +12,10 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import { GuardDutyFrequency } from '@aws-accelerator/custom-resource-guardduty-admin-setup-runtime';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::GuardDutyAdminSetup';
 
@@ -37,10 +37,10 @@ export interface GuardDutyAdminSetupProps {
  * Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
  * Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
  */
-export class GuardDutyAdminSetup extends cdk.Construct {
+export class GuardDutyAdminSetup extends Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: GuardDutyAdminSetupProps) {
+  constructor(scope: Construct, id: string, props: GuardDutyAdminSetupProps) {
     super(scope, id);
 
     const handlerProperties = {

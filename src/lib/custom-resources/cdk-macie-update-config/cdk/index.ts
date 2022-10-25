@@ -11,11 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import { HandlerProperties } from '@aws-accelerator/custom-resource-macie-update-config-runtime';
+ import * as cdk from 'aws-cdk-lib';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import * as lambda from 'aws-cdk-lib/aws-lambda';
+ import { HandlerProperties } from '@aws-accelerator/custom-resource-macie-export-config-runtime';
+ import { Construct } from 'constructs';
 
 const resourceType = 'Custom::MacieUpdateConfig';
 
@@ -26,10 +26,10 @@ export interface MacieUpdateConfigProps {
 /**
  * Custom resource implementation that turn on auto enable for Macie
  */
-export class MacieUpdateConfig extends cdk.Construct {
+export class MacieUpdateConfig extends Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: MacieUpdateConfigProps) {
+  constructor(scope: Construct, id: string, props: MacieUpdateConfigProps) {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = props;

@@ -11,9 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as custom from '@aws-cdk/custom-resources';
-import * as iam from '@aws-cdk/aws-iam';
+ import * as cdk from 'aws-cdk-lib';
+ import * as custom from 'aws-cdk-lib/custom-resources';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import { Construct } from 'constructs';
 
 export interface EC2ModifyMetadataOptionsProps {
   ec2Name: string;
@@ -27,8 +28,8 @@ export interface EC2ModifyMetadataOptionsProps {
 /**
  * Custom resource implementation that add the possibility to modify the metadata options on the ec2.
  */
-export class EC2ModifyMetadataOptions extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, readonly props: EC2ModifyMetadataOptionsProps) {
+export class EC2ModifyMetadataOptions extends Construct {
+  constructor(scope: Construct, id: string, readonly props: EC2ModifyMetadataOptionsProps) {
     super(scope, id);
 
     const physicalResourceId = custom.PhysicalResourceId.of(`${props.ec2Name}-ModifyMetadataOptions`);

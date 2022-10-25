@@ -11,8 +11,8 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
+import * as cdk from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 import * as config from '@aws-accelerator/common-config/src';
 import * as t from '@aws-accelerator/common-types';
@@ -22,6 +22,7 @@ import {
   AssignedVpcCidrPool,
   getSubnetCidrPools,
 } from '@aws-accelerator/common-outputs/src/cidr-pools';
+import { Construct } from 'constructs';
 
 export interface NaclProps {
   accountKey: string;
@@ -34,8 +35,8 @@ export interface NaclProps {
   subnetPools: AssignedSubnetCidrPool[];
 }
 
-export class Nacl extends cdk.Construct {
-  constructor(parent: cdk.Construct, name: string, props: NaclProps) {
+export class Nacl extends Construct {
+  constructor(parent: Construct, name: string, props: NaclProps) {
     super(parent, name);
     const { accountKey, vpcConfig, vpcId, subnetConfig, subnets, vpcConfigs, vpcPools, subnetPools } = props;
     const naclRules = subnetConfig.nacls;

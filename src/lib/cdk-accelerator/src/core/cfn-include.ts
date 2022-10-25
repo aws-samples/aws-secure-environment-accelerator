@@ -11,8 +11,9 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as cfn_inc from '@aws-cdk/cloudformation-include';
+ import * as cdk from 'aws-cdk-lib';
+ import * as cfn_inc from 'aws-cdk-lib/cloudformation-include';
+ import { Construct } from 'constructs';
 
 export namespace CfnInclude {
   export interface Props {
@@ -20,8 +21,8 @@ export namespace CfnInclude {
   }
 }
 
-export class CfnInclude extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: CfnInclude.Props) {
+export class CfnInclude extends Construct {
+  constructor(scope: Construct, id: string, props: CfnInclude.Props) {
     super(scope, id);
 
     new cfn_inc.CfnInclude(this, 'include', {

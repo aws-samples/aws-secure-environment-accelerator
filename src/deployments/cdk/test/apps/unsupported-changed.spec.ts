@@ -14,8 +14,8 @@
 import 'jest';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as cfnspec from '@aws-cdk/cfnspec';
+import * as cdk from 'aws-cdk-lib';
+import * as cfnspec from 'aws-cdk-lib/cfnspec';
 import { S3 } from '@aws-accelerator/common/src/aws/s3';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
@@ -93,7 +93,7 @@ beforeAll(async () => {
       stackResources[stack.node.uniqueId] = resourcesToList(template.Resources);
 
       // Render all nested stacks
-      // See https://github.com/aws/aws-cdk/blob/master/packages/@aws-cdk/assert/lib/synth-utils.ts#L52
+      // See https://github.com/aws/aws-cdk/blob/master/packages/aws-cdk-lib/assert/lib/synth-utils.ts#L52
       const nestedStacks = stack.node.findAll().filter(cdk.NestedStack.isNestedStack);
       for (const nestedStack of nestedStacks) {
         const nestedTemplateFile = path.join(assembly.directory, nestedStack.templateFile);

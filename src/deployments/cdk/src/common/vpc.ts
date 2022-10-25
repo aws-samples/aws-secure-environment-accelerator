@@ -12,8 +12,8 @@
  */
 
 import hashSum from 'hash-sum';
-import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
+import * as cdk from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as config from '@aws-accelerator/common-config/src';
 import { Region } from '@aws-accelerator/common-types';
 import * as constructs from '@aws-accelerator/cdk-constructs/src/vpc';
@@ -45,6 +45,7 @@ import {
 } from '@aws-accelerator/common-outputs/src/cidr-pools';
 import { Nfw } from './nfw';
 import { AlbIpForwarding } from './alb-ip-forwarding';
+import { Construct } from 'constructs';
 
 export interface VpcCommonProps {
   /**
@@ -140,7 +141,7 @@ export interface VpcProps extends VpcCommonProps {
 export class VpcStack extends cdk.NestedStack {
   readonly vpc: Vpc;
 
-  constructor(scope: cdk.Construct, name: string, props: VpcProps) {
+  constructor(scope: Construct, name: string, props: VpcProps) {
     super(scope, name);
 
     // Create the VPC
@@ -174,7 +175,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
   readonly nfw?: Nfw;
   readonly ddbKmsKey: string;
 
-  constructor(scope: cdk.Construct, name: string, vpcProps: VpcProps) {
+  constructor(scope: Construct, name: string, vpcProps: VpcProps) {
     super(scope, name);
 
     const props = { vpcProps };

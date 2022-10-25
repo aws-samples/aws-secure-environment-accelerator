@@ -11,14 +11,14 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+ import * as cdk from 'aws-cdk-lib';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import * as kinesis from '@aws-cdk/aws-kinesis';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as logs from '@aws-cdk/aws-logs';
-import * as kinesisfirehose from '@aws-cdk/aws-kinesisfirehose';
+import * as kinesis from 'aws-cdk-lib/aws-kinesis';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as logs from 'aws-cdk-lib/aws-logs';
+import * as kinesisfirehose from 'aws-cdk-lib/aws-kinesisfirehose';
 import { AccountStacks } from '../../../common/account-stacks';
 import { Account } from '../../../utils/accounts';
 import { JsonOutputValue } from '../../../common/json-output';
@@ -27,9 +27,10 @@ import * as c from '@aws-accelerator/common-config';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { CfnLogDestinationOutput } from './outputs';
-import * as kms from '@aws-cdk/aws-kms';
+import * as kms from 'aws-cdk-lib/aws-kms';
 import { LogBucketOutputTypeOutputFinder } from '@aws-accelerator/common-outputs/src/buckets';
 import { DefaultKmsOutputFinder } from '@aws-accelerator/common-outputs/src/kms';
+import { Construct } from 'constructs';
 
 import path from 'path';
 
@@ -130,7 +131,7 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
  * 5.15b - READY - Centralize CWL - Part 2
  */
 async function cwlSettingsInLogArchive(props: {
-  scope: cdk.Construct;
+  scope: Construct;
   accountIds: string[];
   bucketArn: string;
   logStreamRoleArn: string;

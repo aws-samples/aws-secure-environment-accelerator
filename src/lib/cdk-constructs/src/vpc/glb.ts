@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as elb from '@aws-cdk/aws-elasticloadbalancingv2';
-import * as ec2 from '@aws-cdk/aws-ec2';
-import { RegionInfo, Default } from '@aws-cdk/region-info';
+ import * as cdk from 'aws-cdk-lib';
+ import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+ import * as ec2 from 'aws-cdk-lib/aws-ec2';
+ import { RegionInfo, Default } from 'aws-cdk-lib/region-info';
+ import { Construct } from 'constructs';
 
 export interface GatewayLoadBalancerProps extends cdk.StackProps {
   name: string;
@@ -37,7 +38,7 @@ export class GatewayLoadBalancer extends cdk.Construct {
   private readonly listeners: elb.CfnListener[] = [];
   private readonly endpointService: ec2.CfnVPCEndpointService;
 
-  constructor(scope: cdk.Construct, id: string, private readonly props: GatewayLoadBalancerProps) {
+  constructor(scope: Construct, id: string, private readonly props: GatewayLoadBalancerProps) {
     super(scope, id);
 
     const { name, subnetIds, ipType, crossZone, tags } = props;

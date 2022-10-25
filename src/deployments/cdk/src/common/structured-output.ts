@@ -12,7 +12,8 @@
  */
 
 import * as t from 'io-ts';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { StructuredValue, findValuesFromOutputs } from '@aws-accelerator/common-outputs/src/structured-output';
 
@@ -26,11 +27,11 @@ export interface StructuredOutputFilter<T> {
   accountKey?: string;
 }
 
-export type CfnStructuredOutputClass<T> = new (scope: cdk.Construct, id: string, value: T) => cdk.Construct;
+export type CfnStructuredOutputClass<T> = new (scope: Construct, id: string, value: T) => cdk.Construct;
 
 export function createCfnStructuredOutput<T>(type: t.Type<T>): CfnStructuredOutputClass<T> {
-  class Impl extends cdk.Construct {
-    constructor(scope: cdk.Construct, id: string, value: T) {
+  class Impl extends Construct {
+    constructor(scope: Construct, id: string, value: T) {
       super(scope, id);
 
       new StructuredOutput(this, 'Output', {
@@ -45,8 +46,8 @@ export function createCfnStructuredOutput<T>(type: t.Type<T>): CfnStructuredOutp
 /**
  * Wrapper around JsonOutputValue that uses io-ts to encode and decode data in the JSON output value.
  */
-export class StructuredOutput<T> extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: StructuredOutputProps<T>) {
+export class StructuredOutput<T> extends Construct {
+  constructor(scope: Construct, id: string, props: StructuredOutputProps<T>) {
     super(scope, id);
 
     const value: StructuredValue<T> = {

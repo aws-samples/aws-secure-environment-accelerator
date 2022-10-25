@@ -11,7 +11,7 @@
  *  and limitations under the License.
  */
 
-import * as iam from '@aws-cdk/aws-iam';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as c from '@aws-accelerator/common-config/src';
 import { AccountStacks, AccountStack } from '../../common/account-stacks';
 import { createIamRoleOutput } from './outputs';

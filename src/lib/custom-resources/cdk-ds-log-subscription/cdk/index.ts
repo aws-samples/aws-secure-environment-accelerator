@@ -11,11 +11,12 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as custom from '@aws-cdk/custom-resources';
-import * as ds from '@aws-cdk/aws-directoryservice';
-import * as iam from '@aws-cdk/aws-iam';
-import * as logs from '@aws-cdk/aws-logs';
+ import * as cdk from 'aws-cdk-lib';
+ import * as custom from 'aws-cdk-lib/custom-resources';
+ import * as ds from 'aws-cdk-lib/aws-directoryservice';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import * as logs from 'aws-cdk-lib/aws-logs';
+ import { Construct } from 'constructs';
 
 export interface DirectoryServiceLogSubscriptionProps {
   directory: string | ds.CfnMicrosoftAD;
@@ -28,8 +29,8 @@ export type LogGroupOrName = string | logs.LogGroup | logs.CfnLogGroup;
 /**
  * Custom resource implementation that creates log subscription for directory service.
  */
-export class DirectoryServiceLogSubscription extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: DirectoryServiceLogSubscriptionProps) {
+export class DirectoryServiceLogSubscription extends Construct {
+  constructor(scope: Construct, id: string, props: DirectoryServiceLogSubscriptionProps) {
     super(scope, id);
 
     const { directory, logGroup } = props;
@@ -65,10 +66,10 @@ export class DirectoryServiceLogSubscription extends cdk.Construct {
       ]),
     });
 
-    if (logGroup instanceof cdk.Construct) {
+    if (logGroup instanceof Construct) {
       awsCustomResource.node.addDependency(logGroup);
     }
-    if (directory instanceof cdk.Construct) {
+    if (directory instanceof Construct) {
       awsCustomResource.node.addDependency(directory);
     }
   }

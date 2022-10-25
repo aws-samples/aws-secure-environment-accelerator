@@ -11,11 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import { HandlerProperties } from '@aws-accelerator/custom-resource-macie-create-member-runtime';
+ import * as cdk from 'aws-cdk-lib';
+ import * as iam from 'aws-cdk-lib/aws-iam';
+ import * as lambda from 'aws-cdk-lib/aws-lambda';
+ import { HandlerProperties } from '@aws-accelerator/custom-resource-macie-create-member-runtime';
+ import { Construct } from 'constructs';
 
 const resourceType = 'Custom::MacieCreateMember';
 
@@ -28,10 +28,10 @@ export interface MacieCreateMemberProps {
 /**
  * Custom resource implementation that create members for Macie
  */
-export class MacieCreateMember extends cdk.Construct {
+export class MacieCreateMember extends Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: MacieCreateMemberProps) {
+  constructor(scope: Construct, id: string, props: MacieCreateMemberProps) {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = props;
