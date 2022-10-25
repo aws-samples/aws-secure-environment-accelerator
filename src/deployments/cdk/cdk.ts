@@ -2,7 +2,7 @@ import mri from 'mri';
 import { CdkToolkit } from './toolkit';
 import * as app from './src/app';
 import microstats from 'microstats';
-import { debugModeEnabled } from 'aws-cdk-lib/lib/debug';
+import { debugModeEnabled } from '@aws-cdk/core/lib/debug'
 import * as v8 from 'v8';
 const fs = require('fs').promises;
 
