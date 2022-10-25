@@ -10519,8 +10519,8 @@ packages:
       xml2js: 0.4.19
     dev: false
 
-  /aws-sdk/2.1239.0:
-    resolution: {integrity: sha512-746OlzNxjaMux93cTr5//WyY8t2HwRuJOO41qKDhXmklZibFDBc/3v/8CYzb1jsEYy77AO2J045+TkP9N10Wcw==}
+  /aws-sdk/2.1240.0:
+    resolution: {integrity: sha512-WmZHnvka7SFKOwnGV0tDwjBPz5j9jJ7KU4BfvOZ/1y+hwcXsUY2JjKj9T7KKMjjG/L3m2H5b9JpS+r/gtcjnog==}
     engines: {node: '>= 10.0.0'}
     dependencies:
       buffer: 4.9.2
@@ -11459,7 +11459,7 @@ packages:
       '@aws-cdk/cloud-assembly-schema': 2.38.0
       '@aws-cdk/cx-api': 2.38.0
       archiver: 5.3.1
-      aws-sdk: 2.1239.0
+      aws-sdk: 2.1240.0
       glob: 7.2.3
       mime: 2.6.0
       yargs: 16.2.0

@@ -96,6 +96,8 @@ export class SecretsContainer extends Construct {
    * Create a secret in the stack with the given ID and the given props.
    */
   createSecret(id: string, props: SecretsContainerProps) {
+    console.log('(((((()))))))');
+    console.log(props);
     const secret = new secrets.Secret(this, id, {
       ...props,
       // The secret needs a physical name to enable cross account sharing
