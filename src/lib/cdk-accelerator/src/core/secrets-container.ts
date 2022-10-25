@@ -50,6 +50,10 @@ export class SecretsContainer extends Construct {
   constructor(scope: Construct, name: string) {
     super(scope, name);
 
+    console.log('*****');
+    console.log(this.principals);
+    console.log('*****');
+
     this.keyAlias = createEncryptionKeyName(`Secrets-Key`);
     this.encryptionKey = new kms.Key(this, `EncryptionKey`, {
       alias: `alias/${this.keyAlias}`,
