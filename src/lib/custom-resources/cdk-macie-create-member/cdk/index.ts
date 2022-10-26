@@ -16,6 +16,7 @@
  import * as lambda from 'aws-cdk-lib/aws-lambda';
  import { HandlerProperties } from '@aws-accelerator/custom-resource-macie-create-member-runtime';
  import { Construct } from 'constructs';
+ import * as path from 'path';
 
 const resourceType = 'Custom::MacieCreateMember';
 
