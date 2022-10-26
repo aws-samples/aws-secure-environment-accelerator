@@ -16,6 +16,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { HandlerProperties, MacieFrequency, MacieStatus } from '@aws-accelerator/custom-resource-macie-enable-runtime';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::MacieEnable';
 
