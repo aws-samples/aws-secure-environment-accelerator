@@ -11,10 +11,12 @@
  *  and limitations under the License.
  */
 
- import * as cdk from 'aws-cdk-lib';
- import * as iam from 'aws-cdk-lib/aws-iam';
- import * as lambda from 'aws-cdk-lib/aws-lambda';
- import { Construct } from 'constructs';
+
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
+import * as path from 'path';
 
 const resourceType = 'Custom::S3PutBucketVersioning';
 
