@@ -215,7 +215,7 @@ Multiple options exist for downloading the GitHub Accelerator codebase and pushi
     - Do NOT download the code off the main GitHub branch, this will leave you in a completely unsupported state (and with beta code)
 3. Push the extracted codebase into the newly created CodeCommit repository, maintaining the file/folder hierarchy
 4. Set the default CodeCommit branch for the new repository to main
-5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.4`)
+5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.5`)
 
 ### 1.4.3. AWS Internal (Employee) Accounts Only
 
@@ -302,7 +302,7 @@ If deploying to an internal AWS employee account and installing the solution wit
 ## 1.6. Installation
 
 1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
-    - We only support new installations of v1.3.9 or above (older releases continue to function)
+    - We only support new installations of v1.5.5 or above (older releases continue to function)
 2. Download the CloudFormation (CFN) template for the release you plan to install (either `AcceleratorInstallerXXX.template.json` for GitHub or `AcceleratorInstallerXXX-CodeCommit.template.json` for CodeCommit)
 3. Use the provided CloudFormation template to deploy a new stack in your Management (root) AWS account
     - As previously stated we do not support installation in sub-accounts
@@ -318,7 +318,7 @@ If deploying to an internal AWS employee account and installing the solution wit
     - Add an `Email` address to be used for State Machine Status notification
     - The `GitHub Branch` should point to the release you selected
         - if upgrading, change it to point to the desired release
-        - the latest stable branch is currently `release/v1.5.4`, case sensitive
+        - the latest stable branch is currently `release/v1.5.5`, case sensitive
         - click `Next`
 7. Finish deploying the stack
     - Apply a tag on the stack, Key=`Accelerator`, Value=`ASEA` (case sensitive).
@@ -367,12 +367,6 @@ If deploying to an internal AWS employee account and installing the solution wit
 
 Current Issues:
 
--   **NEW 2022-08-07** An issue with the version of cfn-init in the "latest" AWS standard Windows AMI will cause the state machine to fail during a new installation when deploying an RDGW host. RDGW hosts in existing deployments will fail to fully initialize if the state machine is or has been recently run and the auto-scaling group subsequently refreshes the host (default every 7 days).
-
-    -   To temporarily workaround this issue, assume an administrative role in your `operations` account, open Systems Manager Parameter Store, and `Create parameter` with a Name of `/asea/windows-ami` and a value of `ami-0d336ea070bc06fb8` (which is the previous good AMI in ca-central-1), accepting the other default values. Update your config file to point to this new parameter by changing `image-path` (under \deployments\mad) to `/asea/windows-ami` instead of `/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base`. Rerun your state machine. If you have an existing RDGW instance it should be terminated to allow the auto-scaling group to redeploy it.
-	-   In other regions you will need to lookup the previous working ami-id (you cannot use `ami-0d336ea070bc06fb8`)
-    -   This config file entry should be reverted and state machine rerun once the next (validated fixed) AWS Windows AMI is released to ensure you are always using the latest Windows AMI. **NOTE: Issue still exists 2022-10-05.**
-
 -   If dns-resolver-logging is enabled, VPC names containing spaces are not supported at this time as the VPC name is used as part of the log group name and spaces are not supported in log group names. By default in many of the sample config files, the VPC name is auto-generated from the OU name using a variable. In this situation, spaces are also not permitted in OU names (i.e. if any account in the OU has a VPC with resolver logging enabled and the VPC is using the OU as part of its name)
 
 -   On larger deployments we are occasionally seeing state machine failures when `Creating Config Recorders`. Simply rerun the state machine with the input of `{"scope": "FULL", "mode": "APPLY"}`.
@@ -383,8 +377,13 @@ Current Issues:
 
 Issues in Older Releases:
 
--   New installs to releases prior to v1.5.4 are no longer supported.
--   Upgrades to releases prior to v1.3.8 are no longer supported.
+-   New installs to releases prior to v1.5.5 are no longer supported.
+-   Upgrades to releases prior to v1.5.5 are no longer supported.
+-   Upgrades to v1.3.9 in preparation for an upgrade to v1.5.5 may be possible with manual workarounds.
+-   FROM 2022-08-07 to 2022-10-12: An issue with the version of cfn-init in the "latest" AWS standard Windows AMI will cause the state machine to fail during a new installation when deploying an RDGW host. RDGW hosts in existing deployments will fail to fully initialize if the state machine is or has been recently run and the auto-scaling group subsequently refreshes the host (default every 7 days).
+
+    -   To temporarily workaround this issue, assume an administrative role in your `operations` account, open Systems Manager Parameter Store, and `Create parameter` with a Name of `/asea/windows-ami` and a value of `ami-0d336ea070bc06fb8` (which is the previous good AMI in ca-central-1), accepting the other default values. Update your config file to point to this new parameter by changing `image-path` (under \deployments\mad) to `/asea/windows-ami` instead of `/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base`. Rerun your state machine. If you have an existing RDGW instance it should be terminated to allow the auto-scaling group to redeploy it. In other regions you will need to lookup the previous working ami-id (you cannot use `ami-0d336ea070bc06fb8`)
+    -   **This issue was resolved with the 2022-10-12 Windows AMI [release](https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/ec2-windows-ami-version-history.html). Customers that implemented this workaround must revert the above config file entry and rerun their state machines (the above AMI has been deprecated).**
 
 ## 1.7. Post-Installation
 
@@ -392,8 +391,8 @@ The Accelerator installation is complete, but several manual steps remain:
 
 1.  Enable and configure AWS SSO in your `home` region (i.e. ca-central-1)
 
-    - **NOTE: AWS SSO has been renamed to AWS IAM Identity Center (IdC). The IdC GUI has also been reworked. The below steps are no longer click-by-click accurate. An update to the below documentation is planned, which will also include instructions to delegate AWS IdC administration to the Operations account enabling connecting IdC directly to MAD, rather than through an ADC.**
-	
+    -   **NOTE: AWS SSO has been renamed to AWS IAM Identity Center (IdC). The IdC GUI has also been reworked. The below steps are no longer click-by-click accurate. An update to the below documentation is planned, which will also include instructions to delegate AWS IdC administration to the Operations account enabling connecting IdC directly to MAD, rather than through an ADC.**
+
     -   Login to the AWS Console using your Organization Management account
     -   Navigate to AWS Single Sign-On, click `Enable SSO`
     -   Set the SSO directory to AD ("Settings" => "Identity Source" => "Identity Source" => click `Change`, Select Active Directory, and select your domain from the list)
