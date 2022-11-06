@@ -13,7 +13,7 @@
 
 import * as cdk from 'aws-cdk-lib';
 import { JsonOutputValue, JsonOutputProps } from './json-output';
-import { Construct } from 'constructs';
+import { Construct, IDependable } from 'constructs';
 
 export interface Tag {
   key: string;
@@ -32,7 +32,7 @@ export interface AddTagsToResourcesOutputProps extends Omit<JsonOutputProps, 'va
   /**
    * List of dependencies that need to be resolved before calling `produceResources`.
    */
-  dependencies: cdk.IDependable[];
+  dependencies: IDependable[];
   /**
    * Function used to produce resources with their tags. You need to define the resources as a function so that the
    * resources can be calculated lazily.
