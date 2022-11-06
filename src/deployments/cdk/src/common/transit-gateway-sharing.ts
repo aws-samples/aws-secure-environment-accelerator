@@ -11,9 +11,9 @@
  *  and limitations under the License.
  */
 
- import * as cdk from 'aws-cdk-lib';
- import * as ram from 'aws-cdk-lib/aws-ram';
- import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import * as ram from 'aws-cdk-lib/aws-ram';
+import { Construct } from 'constructs';
 
 export interface TransitGatewaySharingProps {
   name: string;
