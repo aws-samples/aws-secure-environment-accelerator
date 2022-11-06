@@ -17,6 +17,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as c from '@aws-accelerator/common-config/src';
 import { AccountStacks } from '../../../common/account-stacks';
 import { FirewallPort, CfnFirewallPortOutput } from './outputs';
+import { Construct } from 'constructs';
 
 export interface FirewallStep1Props {
   accountStacks: AccountStacks;

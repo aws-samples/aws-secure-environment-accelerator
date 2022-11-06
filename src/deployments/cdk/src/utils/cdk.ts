@@ -13,6 +13,7 @@
 
 import * as cdk from 'aws-cdk-lib';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import { Construct } from 'constructs';
 
 export function overrideLogicalId(construct: Construct, logicalId: string) {
   const bucket = findChildOfType(s3.CfnBucket, construct);
