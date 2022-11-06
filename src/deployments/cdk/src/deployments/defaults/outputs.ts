@@ -41,11 +41,7 @@ export interface RegionalBucketAttributes extends s3.BucketAttributes {
 }
 
 export namespace RegionalBucket {
-  export function fromBucketAttributes(
-    scope: Construct,
-    id: string,
-    attrs: RegionalBucketAttributes,
-  ): RegionalBucket {
+  export function fromBucketAttributes(scope: Construct, id: string, attrs: RegionalBucketAttributes): RegionalBucket {
     return Object.assign(s3.Bucket.fromBucketAttributes(scope, id, attrs), {
       region: attrs.region,
     });

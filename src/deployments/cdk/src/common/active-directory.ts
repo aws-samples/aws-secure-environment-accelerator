@@ -11,10 +11,10 @@
  *  and limitations under the License.
  */
 
- import * as cdk from 'aws-cdk-lib';
- import { CfnMicrosoftAD } from 'aws-cdk-lib/aws-directoryservice';
- import { MadDeploymentConfig } from '@aws-accelerator/common-config/src';
- import * as iam from 'aws-cdk-lib/aws-iam';
+import * as cdk from 'aws-cdk-lib';
+import { CfnMicrosoftAD } from 'aws-cdk-lib/aws-directoryservice';
+import { MadDeploymentConfig } from '@aws-accelerator/common-config/src';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
 import { LogResourcePolicy } from '@aws-accelerator/custom-resource-logs-resource-policy';
 import { DirectoryServiceLogSubscription } from '@aws-accelerator/custom-resource-ds-log-subscription';

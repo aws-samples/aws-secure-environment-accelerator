@@ -11,10 +11,10 @@
  *  and limitations under the License.
  */
 
- import * as ec2 from 'aws-cdk-lib/aws-ec2';
- import * as route53 from 'aws-cdk-lib/aws-route53';
- import * as cdk from 'aws-cdk-lib';
- import { Construct } from 'constructs';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 
 export interface InterfaceEndpointProps {
   serviceName: string;

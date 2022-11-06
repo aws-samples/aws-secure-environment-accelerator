@@ -11,9 +11,9 @@
  *  and limitations under the License.
  */
 
- import * as cdk from 'aws-cdk-lib';
- import * as iam from 'aws-cdk-lib/aws-iam';
- import { IConstruct, Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import { IConstruct, Construct } from 'constructs';
 
 export interface IInstanceProfile extends IConstruct {
   readonly instanceProfileName: string;

@@ -11,10 +11,10 @@
  *  and limitations under the License.
  */
 
- import * as cdk from 'aws-cdk-lib';
- import * as custom from 'aws-cdk-lib/custom-resources';
- import * as iam from 'aws-cdk-lib/aws-iam';
- import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import * as custom from 'aws-cdk-lib/custom-resources';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import { Construct } from 'constructs';
 
 export interface VpnAttachmentsProps {
   vpnConnectionId: string;

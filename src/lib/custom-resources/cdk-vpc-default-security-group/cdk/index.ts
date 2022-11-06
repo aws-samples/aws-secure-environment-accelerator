@@ -11,10 +11,10 @@
  *  and limitations under the License.
  */
 
- import * as cdk from 'aws-cdk-lib';
- import * as iam from 'aws-cdk-lib/aws-iam';
- import * as path from 'path';
- import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as path from 'path';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::VpcDefaultSecurityGroup';
 

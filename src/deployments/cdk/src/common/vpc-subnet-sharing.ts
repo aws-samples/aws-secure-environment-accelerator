@@ -11,9 +11,9 @@
  *  and limitations under the License.
  */
 
- import * as cdk from 'aws-cdk-lib';
- import * as ec2 from 'aws-cdk-lib/aws-ec2';
- import * as ram from 'aws-cdk-lib/aws-ram';
+import * as cdk from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as ram from 'aws-cdk-lib/aws-ram';
 import { pascalCase } from 'pascal-case';
 import { getAccountId, Account } from '../utils/accounts';
 import { VpcCommonProps, AzSubnets } from './vpc';

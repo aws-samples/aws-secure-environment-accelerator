@@ -52,11 +52,7 @@ export async function step1(props: CertificatesStep1Props) {
   }
 }
 
-function createCertificate(props: {
-  centralBucket: s3.IBucket;
-  certificate: c.CertificateConfig;
-  scope: Construct;
-}) {
+function createCertificate(props: { centralBucket: s3.IBucket; certificate: c.CertificateConfig; scope: Construct }) {
   const { scope, centralBucket, certificate } = props;
 
   const certificatePrettyName = pascalCase(certificate.name);

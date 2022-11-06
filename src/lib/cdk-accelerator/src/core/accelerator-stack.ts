@@ -13,7 +13,7 @@
 
 import * as cdk from 'aws-cdk-lib';
 import { AcceleratorNameTagger, AcceleratorProtectedTagger, LambdaEnvironmentVariables, LambdaDefaultTimeout } from '.';
-import { Construct,IConstruct } from 'constructs';
+import { Construct, IConstruct } from 'constructs';
 
 export interface AcceleratorStackProps extends cdk.StackProps {
   acceleratorName: string;
