@@ -75,7 +75,7 @@ function createCertificate(props: { centralBucket: s3.IBucket; certificate: c.Ce
     resource = new certificatemanager.Certificate(scope, `Cert${certificatePrettyName}`, {
       domainName: certificate.domain,
       subjectAlternativeNames: certificate.san,
-      validationMethod: validationMethodFromConfig(certificate.validation),
+      validation: validationMethodFromConfig(certificate.validation),
     });
   } else {
     console.warn(`Unknown certificate config: ${certificate}`);
