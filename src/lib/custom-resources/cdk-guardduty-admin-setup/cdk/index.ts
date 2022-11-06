@@ -15,6 +15,7 @@ import * as path from 'path';
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { GuardDutyFrequency } from '@aws-accelerator/custom-resource-guardduty-admin-setup-runtime';
 import { Construct } from 'constructs';
 
 const resourceType = 'Custom::GuardDutyAdminSetup';
