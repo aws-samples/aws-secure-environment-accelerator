@@ -80,10 +80,11 @@ export async function step1(props: SSMStep1Props) {
         continue;
       }
 
+      // Removing trustAccountIdentities: true, since this is now default.
+      // https://docs.aws.amazon.com/cdk/api/v1/docs/@aws-cdk_aws-kms.Key.html#trustaccountidentitiesspan-classapi-icon-api-icon-deprecated-titlethis-api-element-is-deprecated-its-use-is-not-recommended%EF%B8%8Fspan
       const keyAlias = createEncryptionKeyName('SSM-Key');
       const ssmKey = new Key(accountStack, 'SSM-Key', {
         alias: `alias/${keyAlias}`,
-        trustAccountIdentities: true,
         description: 'Key used to encrypt/decrypt SSM',
         enableKeyRotation: true,
       });
