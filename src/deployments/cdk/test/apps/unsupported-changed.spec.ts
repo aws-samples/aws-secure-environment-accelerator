@@ -15,7 +15,7 @@ import 'jest';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as cdk from 'aws-cdk-lib';
-import * as cfnspec from 'aws-cdk-lib/cfnspec';
+import * as cfnspec from '@aws-cdk/cfnspec';
 import { S3 } from '@aws-accelerator/common/src/aws/s3';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
@@ -90,7 +90,8 @@ beforeAll(async () => {
       const artifact = assembly.getStackArtifact(stack.artifactId);
       const template = artifact.template;
       // eslint-disable-next-line deprecation/deprecation
-      stackResources[stack.node.uniqueId] = resourcesToList(template.Resources);
+      stackResources[stack.node.addr] = resourcesToList(template.Resources);
+      stack.node.id;
 
       // Render all nested stacks
       // See https://github.com/aws/aws-cdk/blob/master/packages/@aws-cdk/assert/lib/synth-utils.ts#L52
@@ -99,7 +100,7 @@ beforeAll(async () => {
         const nestedTemplateFile = path.join(assembly.directory, nestedStack.templateFile);
         const nestedTemplate = JSON.parse(fs.readFileSync(nestedTemplateFile).toString('utf-8'));
         // eslint-disable-next-line deprecation/deprecation
-        stackResources[nestedStack.node.uniqueId] = resourcesToList(nestedTemplate.Resources);
+        stackResources[nestedStack.node.addr] = resourcesToList(nestedTemplate.Resources);
       }
     }
   }

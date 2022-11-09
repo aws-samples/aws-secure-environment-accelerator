@@ -56,9 +56,8 @@ test('should add the Name tag with the correct suffix to ec2.CfnVpc', () => {
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  Node.prepare(stack.node);
-
-  expect(stack).to(
+  // Node.prepare(stack.node);
+  Node.expect(stack).to(
     haveResourceLike('AWS::EC2::VPC', {
       Tags: [
         {

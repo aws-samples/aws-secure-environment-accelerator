@@ -96,9 +96,9 @@ function createCertificate(props: { centralBucket: s3.IBucket; certificate: c.Ce
   }
 }
 
-function validationMethodFromConfig(validation: c.CertificateValidation): certificatemanager.ValidationMethod {
+function validationMethodFromConfig(validation: c.CertificateValidation): certificatemanager.CertificateValidation {
   if (validation === 'EMAIL') {
-    return certificatemanager.validation.EMAIL;
+    return certificatemanager.CertificateValidation.fromEmail();
   }
-  return certificatemanager.validation.DNS;
+  return certificatemanager.CertificateValidation.fromDns();
 }
