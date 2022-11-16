@@ -45,7 +45,8 @@ export interface ResourceWithLogicalId extends Resource {
  * @param stack
  */
 export function stackToCloudFormation(stack: cdk.Stack): Template {
-  return SynthUtils.toCloudFormation(stack) as Template;
+  const template = cdk.assertions.Template.fromStack(stack);
+  return template.toJSON() as Template;
 }
 
 /**
