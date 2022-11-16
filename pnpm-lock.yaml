@@ -1971,6 +1971,7 @@ importers:
 
   src/lib/custom-resources/cdk-macie-export-config:
     specifiers:
+      '@aws-accelerator/custom-resource-macie-enable-runtime': workspace:*
       '@aws-accelerator/custom-resource-macie-export-config-runtime': workspace:*
       '@types/node': 14.14.31
       aws-cdk-lib: 2.38.0
@@ -1980,6 +1981,7 @@ importers:
       ts-node: 9.1.1
       typescript: 4.2.4
     dependencies:
+      '@aws-accelerator/custom-resource-macie-enable-runtime': link:../cdk-macie-enable/runtime
       '@aws-accelerator/custom-resource-macie-export-config-runtime': link:runtime
       aws-cdk-lib: 2.38.0_constructs@10.0.12
       constructs: 10.0.12
@@ -1994,6 +1996,7 @@ importers:
     specifiers:
       '@aws-accelerator/custom-resource-cfn-utils': workspace:*
       '@aws-accelerator/custom-resource-macie-enable-runtime': workspace:*
+      '@aws-accelerator/custom-resource-macie-export-config-runtime': workspace:*
       '@aws-accelerator/custom-resource-runtime-cfn-response': workspace:*
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -2004,6 +2007,7 @@ importers:
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       '@aws-accelerator/custom-resource-macie-enable-runtime': link:../../cdk-macie-enable/runtime
+      '@aws-accelerator/custom-resource-macie-export-config-runtime': 'link:'
       '@aws-accelerator/custom-resource-runtime-cfn-response': link:../../runtime-cfn-response
       aws-lambda: 1.0.6
       aws-sdk: 2.944.0
@@ -2015,6 +2019,7 @@ importers:
 
   src/lib/custom-resources/cdk-macie-update-config:
     specifiers:
+      '@aws-accelerator/custom-resource-macie-export-config-runtime': workspace:*
       '@aws-accelerator/custom-resource-macie-update-config-runtime': workspace:*
       '@types/node': 14.14.31
       aws-cdk-lib: 2.38.0
@@ -2027,6 +2032,7 @@ importers:
       aws-cdk-lib: 2.38.0_constructs@10.0.12
       constructs: 10.0.12
     devDependencies:
+      '@aws-accelerator/custom-resource-macie-export-config-runtime': link:../cdk-macie-export-config/runtime
       '@aws-accelerator/custom-resource-macie-update-config-runtime': link:runtime
       '@types/node': 14.14.31
       jest: 25.2.4

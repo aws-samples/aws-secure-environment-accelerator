@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@aws-accelerator/custom-resource-macie-enable-runtime": "workspace:*",
+    "@aws-accelerator/custom-resource-macie-export-config-runtime": "workspace:*",
     "@aws-accelerator/custom-resource-cfn-utils": "workspace:*",
     "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:*",
     "aws-lambda": "1.0.6",
