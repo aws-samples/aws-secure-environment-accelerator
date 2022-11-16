@@ -15,7 +15,7 @@ import * as path from 'path';
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { HandlerProperties } from '@aws-accelerator/custom-resource-macie-export-config-runtime';
+import { HandlerProperties } from '@aws-accelerator/custom-resource-macie-update-config-runtime';
 import { Construct } from 'constructs';
 
 const resourceType = 'Custom::MacieUpdateConfig';
