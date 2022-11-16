@@ -888,6 +888,136 @@ exports[`there should not be any unsupported resource changes for AWS::Budgets::
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedServicesPhase5 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8a5fb84040643ff687a1481dcd4761a8ab634c833 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8b50be1e8bd950617bd0b8773517f1623e0d627ee 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8c7cedb57866232853eac854211c5c6807548a4ce 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8c97a91961003f5ed6e0ccc73b5eb8fc9e060adc1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8d99cd6a62923d62db604e9e20625e67190dd06e4 1`] = `
+Array [
+  Object {
+    "LogicalId": "OrganizationBudgetD31584F9",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8dba0b53a4fc184aca1ebb56fa501c7dbf13fba0d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8e774da255f94842d0dec0767ec3429525684ef0b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8e24479da7429f5d1c4de5f386dae63e5f134f37b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8f742b6c7d4ad4a8067cb5d24bc82d6064234e39b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8f27857cd34605370621d70319dd54612e9c5eb72 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8fe437359753fcbadaccec95064c5092b7c274f51 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c80cf7d773f8eabf62ff39a81f018a3e8a4cf830b2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c81f8e2d6d77ee7600b94a52ceb313b7e53086ef7c 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c84beb2ab1dae8482eb27d67e570bd742c129e3a92 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c85c4fb6b9574c47d5ce67693c01a0d4ff91b42563 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c85d9889f7a197d73f231068dc4e0fe04835bd28e3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c86ae2c46e35b26718a74860b4325aa41db7d4f42d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c86fd1fcc6e99e180c0fa2d5cf54a501a50853770e 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c88c8e25223b5cd1a2a53fd554f5818df33a889f95 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c89a81b7f23a638da164c98957c2c5f7ce81977954 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c89ea5324a205afbf99aea4b7283a6ac250545e6c1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c820bc2759ce294d3b17d9f5f45f672da05cf3d426 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c837ad36afd5528e5602573c8bda4388988cb4a520 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8093a8d1dee2d8d263e971b3a5b19cadc30575089 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8437fd9068fafcbaca168fecf41809531ffced1ba 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8632afa02f648e7f7ea10591bc7843ffdd9ad9be2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c8975c7870b7600e759371981a763a27ec6082445b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c81861da76e5a0a73ec7a0c2c13a2bcdcf04c8d875 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c84650f4ddc5310aafa6215d788aaf744204c47e2b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c883628d6f76b46df0c84fc0d0aeca27861209b1e9 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c85636255ec6a4b0b17d11d0d09611bb07a45024e5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: c88425641194ba276b986af5cc9fc493511e7faa73 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: FunAcctPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: FunAcctPhase1 1`] = `Array []`;
@@ -1282,6 +1412,70 @@ exports[`there should not be any unsupported resource changes for AWS::Directory
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedServicesPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedServicesPhase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8a5fb84040643ff687a1481dcd4761a8ab634c833 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8b50be1e8bd950617bd0b8773517f1623e0d627ee 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8c7cedb57866232853eac854211c5c6807548a4ce 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8c97a91961003f5ed6e0ccc73b5eb8fc9e060adc1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8d99cd6a62923d62db604e9e20625e67190dd06e4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8dba0b53a4fc184aca1ebb56fa501c7dbf13fba0d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8e774da255f94842d0dec0767ec3429525684ef0b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8e24479da7429f5d1c4de5f386dae63e5f134f37b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8f742b6c7d4ad4a8067cb5d24bc82d6064234e39b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8f27857cd34605370621d70319dd54612e9c5eb72 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8fe437359753fcbadaccec95064c5092b7c274f51 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c80cf7d773f8eabf62ff39a81f018a3e8a4cf830b2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c81f8e2d6d77ee7600b94a52ceb313b7e53086ef7c 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c84beb2ab1dae8482eb27d67e570bd742c129e3a92 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c85c4fb6b9574c47d5ce67693c01a0d4ff91b42563 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c85d9889f7a197d73f231068dc4e0fe04835bd28e3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c86ae2c46e35b26718a74860b4325aa41db7d4f42d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c86fd1fcc6e99e180c0fa2d5cf54a501a50853770e 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c88c8e25223b5cd1a2a53fd554f5818df33a889f95 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c89a81b7f23a638da164c98957c2c5f7ce81977954 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c89ea5324a205afbf99aea4b7283a6ac250545e6c1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c820bc2759ce294d3b17d9f5f45f672da05cf3d426 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c837ad36afd5528e5602573c8bda4388988cb4a520 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8093a8d1dee2d8d263e971b3a5b19cadc30575089 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8437fd9068fafcbaca168fecf41809531ffced1ba 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8632afa02f648e7f7ea10591bc7843ffdd9ad9be2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c8975c7870b7600e759371981a763a27ec6082445b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c81861da76e5a0a73ec7a0c2c13a2bcdcf04c8d875 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c84650f4ddc5310aafa6215d788aaf744204c47e2b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c883628d6f76b46df0c84fc0d0aeca27861209b1e9 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c85636255ec6a4b0b17d11d0d09611bb07a45024e5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: c88425641194ba276b986af5cc9fc493511e7faa73 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: FunAcctPhase0 1`] = `Array []`;
 
@@ -1802,6 +1996,100 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedServicesPhase5 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8a5fb84040643ff687a1481dcd4761a8ab634c833 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8b50be1e8bd950617bd0b8773517f1623e0d627ee 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8c7cedb57866232853eac854211c5c6807548a4ce 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8c97a91961003f5ed6e0ccc73b5eb8fc9e060adc1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8d99cd6a62923d62db604e9e20625e67190dd06e4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8dba0b53a4fc184aca1ebb56fa501c7dbf13fba0d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8e774da255f94842d0dec0767ec3429525684ef0b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8e24479da7429f5d1c4de5f386dae63e5f134f37b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8f742b6c7d4ad4a8067cb5d24bc82d6064234e39b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8f27857cd34605370621d70319dd54612e9c5eb72 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8fe437359753fcbadaccec95064c5092b7c274f51 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c80cf7d773f8eabf62ff39a81f018a3e8a4cf830b2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c81f8e2d6d77ee7600b94a52ceb313b7e53086ef7c 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c84beb2ab1dae8482eb27d67e570bd742c129e3a92 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c85c4fb6b9574c47d5ce67693c01a0d4ff91b42563 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c85d9889f7a197d73f231068dc4e0fe04835bd28e3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c86ae2c46e35b26718a74860b4325aa41db7d4f42d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c86fd1fcc6e99e180c0fa2d5cf54a501a50853770e 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c88c8e25223b5cd1a2a53fd554f5818df33a889f95 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c89a81b7f23a638da164c98957c2c5f7ce81977954 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c89ea5324a205afbf99aea4b7283a6ac250545e6c1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c820bc2759ce294d3b17d9f5f45f672da05cf3d426 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c837ad36afd5528e5602573c8bda4388988cb4a520 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8093a8d1dee2d8d263e971b3a5b19cadc30575089 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8437fd9068fafcbaca168fecf41809531ffced1ba 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8632afa02f648e7f7ea10591bc7843ffdd9ad9be2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c8975c7870b7600e759371981a763a27ec6082445b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c81861da76e5a0a73ec7a0c2c13a2bcdcf04c8d875 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c84650f4ddc5310aafa6215d788aaf744204c47e2b 1`] = `
+Array [
+  Object {
+    "LogicalId": "Ec2InstanceAwoperations",
+    "Properties": Object {
+      "AvailabilityZone": undefined,
+      "CpuOptions": undefined,
+      "ElasticGpuSpecifications": undefined,
+      "ElasticInferenceAccelerators": undefined,
+      "EnclaveOptions": undefined,
+      "HibernationOptions": undefined,
+      "HostResourceGroupArn": undefined,
+      "ImageId": Object {
+        "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestamznamihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter",
+      },
+      "Ipv6AddressCount": undefined,
+      "Ipv6Addresses": undefined,
+      "KeyName": undefined,
+      "LaunchTemplate": undefined,
+      "LicenseSpecifications": undefined,
+      "NetworkInterfaces": undefined,
+      "PlacementGroupName": undefined,
+      "PrivateIpAddress": undefined,
+      "SecurityGroups": undefined,
+      "SubnetId": Object {
+        "Ref": "SubnetAwoperations",
+      },
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c883628d6f76b46df0c84fc0d0aeca27861209b1e9 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c85636255ec6a4b0b17d11d0d09611bb07a45024e5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: c88425641194ba276b986af5cc9fc493511e7faa73 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: FunAcctPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: FunAcctPhase1 1`] = `Array []`;
@@ -2171,6 +2459,80 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedServicesPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedServicesPhase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8a5fb84040643ff687a1481dcd4761a8ab634c833 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8b50be1e8bd950617bd0b8773517f1623e0d627ee 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8c7cedb57866232853eac854211c5c6807548a4ce 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8c97a91961003f5ed6e0ccc73b5eb8fc9e060adc1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8d99cd6a62923d62db604e9e20625e67190dd06e4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8dba0b53a4fc184aca1ebb56fa501c7dbf13fba0d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8e774da255f94842d0dec0767ec3429525684ef0b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8e24479da7429f5d1c4de5f386dae63e5f134f37b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8f742b6c7d4ad4a8067cb5d24bc82d6064234e39b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8f27857cd34605370621d70319dd54612e9c5eb72 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8fe437359753fcbadaccec95064c5092b7c274f51 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c80cf7d773f8eabf62ff39a81f018a3e8a4cf830b2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c81f8e2d6d77ee7600b94a52ceb313b7e53086ef7c 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c84beb2ab1dae8482eb27d67e570bd742c129e3a92 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c85c4fb6b9574c47d5ce67693c01a0d4ff91b42563 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c85d9889f7a197d73f231068dc4e0fe04835bd28e3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c86ae2c46e35b26718a74860b4325aa41db7d4f42d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c86fd1fcc6e99e180c0fa2d5cf54a501a50853770e 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c88c8e25223b5cd1a2a53fd554f5818df33a889f95 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c89a81b7f23a638da164c98957c2c5f7ce81977954 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c89ea5324a205afbf99aea4b7283a6ac250545e6c1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c820bc2759ce294d3b17d9f5f45f672da05cf3d426 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c837ad36afd5528e5602573c8bda4388988cb4a520 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8093a8d1dee2d8d263e971b3a5b19cadc30575089 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8437fd9068fafcbaca168fecf41809531ffced1ba 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8632afa02f648e7f7ea10591bc7843ffdd9ad9be2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c8975c7870b7600e759371981a763a27ec6082445b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c81861da76e5a0a73ec7a0c2c13a2bcdcf04c8d875 1`] = `
+Array [
+  Object {
+    "LogicalId": "TgwMain627BB489",
+    "Properties": Object {
+      "AmazonSideAsn": 65521,
+      "MulticastSupport": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c84650f4ddc5310aafa6215d788aaf744204c47e2b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c883628d6f76b46df0c84fc0d0aeca27861209b1e9 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c85636255ec6a4b0b17d11d0d09611bb07a45024e5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: c88425641194ba276b986af5cc9fc493511e7faa73 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: FunAcctPhase0 1`] = `Array []`;
 
@@ -2550,6 +2912,70 @@ exports[`there should not be any unsupported resource changes for AWS::ElasticLo
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedServicesPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedServicesPhase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8a5fb84040643ff687a1481dcd4761a8ab634c833 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8b50be1e8bd950617bd0b8773517f1623e0d627ee 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8c7cedb57866232853eac854211c5c6807548a4ce 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8c97a91961003f5ed6e0ccc73b5eb8fc9e060adc1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8d99cd6a62923d62db604e9e20625e67190dd06e4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8dba0b53a4fc184aca1ebb56fa501c7dbf13fba0d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8e774da255f94842d0dec0767ec3429525684ef0b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8e24479da7429f5d1c4de5f386dae63e5f134f37b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8f742b6c7d4ad4a8067cb5d24bc82d6064234e39b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8f27857cd34605370621d70319dd54612e9c5eb72 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8fe437359753fcbadaccec95064c5092b7c274f51 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c80cf7d773f8eabf62ff39a81f018a3e8a4cf830b2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c81f8e2d6d77ee7600b94a52ceb313b7e53086ef7c 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c84beb2ab1dae8482eb27d67e570bd742c129e3a92 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c85c4fb6b9574c47d5ce67693c01a0d4ff91b42563 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c85d9889f7a197d73f231068dc4e0fe04835bd28e3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c86ae2c46e35b26718a74860b4325aa41db7d4f42d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c86fd1fcc6e99e180c0fa2d5cf54a501a50853770e 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c88c8e25223b5cd1a2a53fd554f5818df33a889f95 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c89a81b7f23a638da164c98957c2c5f7ce81977954 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c89ea5324a205afbf99aea4b7283a6ac250545e6c1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c820bc2759ce294d3b17d9f5f45f672da05cf3d426 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c837ad36afd5528e5602573c8bda4388988cb4a520 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8093a8d1dee2d8d263e971b3a5b19cadc30575089 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8437fd9068fafcbaca168fecf41809531ffced1ba 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8632afa02f648e7f7ea10591bc7843ffdd9ad9be2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c8975c7870b7600e759371981a763a27ec6082445b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c81861da76e5a0a73ec7a0c2c13a2bcdcf04c8d875 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c84650f4ddc5310aafa6215d788aaf744204c47e2b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c883628d6f76b46df0c84fc0d0aeca27861209b1e9 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c85636255ec6a4b0b17d11d0d09611bb07a45024e5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: c88425641194ba276b986af5cc9fc493511e7faa73 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: FunAcctPhase0 1`] = `Array []`;
 
@@ -3008,6 +3434,97 @@ exports[`there should not be any unsupported resource changes for AWS::S3::Bucke
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedServicesPhase5 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8a5fb84040643ff687a1481dcd4761a8ab634c833 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8b50be1e8bd950617bd0b8773517f1623e0d627ee 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8c7cedb57866232853eac854211c5c6807548a4ce 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8c97a91961003f5ed6e0ccc73b5eb8fc9e060adc1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8d99cd6a62923d62db604e9e20625e67190dd06e4 1`] = `
+Array [
+  Object {
+    "LogicalId": "configcacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8dba0b53a4fc184aca1ebb56fa501c7dbf13fba0d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8e774da255f94842d0dec0767ec3429525684ef0b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8e24479da7429f5d1c4de5f386dae63e5f134f37b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8f742b6c7d4ad4a8067cb5d24bc82d6064234e39b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8f27857cd34605370621d70319dd54612e9c5eb72 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8fe437359753fcbadaccec95064c5092b7c274f51 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c80cf7d773f8eabf62ff39a81f018a3e8a4cf830b2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c81f8e2d6d77ee7600b94a52ceb313b7e53086ef7c 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c84beb2ab1dae8482eb27d67e570bd742c129e3a92 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c85c4fb6b9574c47d5ce67693c01a0d4ff91b42563 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c85d9889f7a197d73f231068dc4e0fe04835bd28e3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c86ae2c46e35b26718a74860b4325aa41db7d4f42d 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
+    },
+  },
+  Object {
+    "LogicalId": "aescacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c86fd1fcc6e99e180c0fa2d5cf54a501a50853770e 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c88c8e25223b5cd1a2a53fd554f5818df33a889f95 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c89a81b7f23a638da164c98957c2c5f7ce81977954 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c89ea5324a205afbf99aea4b7283a6ac250545e6c1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c820bc2759ce294d3b17d9f5f45f672da05cf3d426 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c837ad36afd5528e5602573c8bda4388988cb4a520 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8093a8d1dee2d8d263e971b3a5b19cadc30575089 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8437fd9068fafcbaca168fecf41809531ffced1ba 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8632afa02f648e7f7ea10591bc7843ffdd9ad9be2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c8975c7870b7600e759371981a763a27ec6082445b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c81861da76e5a0a73ec7a0c2c13a2bcdcf04c8d875 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c84650f4ddc5310aafa6215d788aaf744204c47e2b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c883628d6f76b46df0c84fc0d0aeca27861209b1e9 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c85636255ec6a4b0b17d11d0d09611bb07a45024e5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: c88425641194ba276b986af5cc9fc493511e7faa73 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: FunAcctPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: FunAcctPhase1 1`] = `Array []`;
@@ -3434,6 +3951,137 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedServicesPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedServicesPhase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8a5fb84040643ff687a1481dcd4761a8ab634c833 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8b50be1e8bd950617bd0b8773517f1623e0d627ee 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8c7cedb57866232853eac854211c5c6807548a4ce 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8c97a91961003f5ed6e0ccc73b5eb8fc9e060adc1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8d99cd6a62923d62db604e9e20625e67190dd06e4 1`] = `
+Array [
+  Object {
+    "LogicalId": "SecretsbgUser1UserPswdPolicyC9835C06",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsbgUser1UserPswdF10CD199",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsbgUser2UserPswdPolicy2131F530",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsbgUser2UserPswd08D94AA3",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsOpsUser1UserPswdPolicy903155AD",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsOpsUser1UserPswdD5EAD264",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsOpsUser2UserPswdPolicyAD9B103E",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsOpsUser2UserPswdD05A1573",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordPolicy73965873",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsMadPassword5CC78627",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordadconnectorusrPolicy889AF319",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsMadPasswordadconnectorusrB8347327",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordUser1Policy18726F39",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsMadPasswordUser1291E3AF7",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordUser2PolicyEC783CD1",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsMadPasswordUser29026EDF3",
+      },
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8dba0b53a4fc184aca1ebb56fa501c7dbf13fba0d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8e774da255f94842d0dec0767ec3429525684ef0b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8e24479da7429f5d1c4de5f386dae63e5f134f37b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8f742b6c7d4ad4a8067cb5d24bc82d6064234e39b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8f27857cd34605370621d70319dd54612e9c5eb72 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8fe437359753fcbadaccec95064c5092b7c274f51 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c80cf7d773f8eabf62ff39a81f018a3e8a4cf830b2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c81f8e2d6d77ee7600b94a52ceb313b7e53086ef7c 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c84beb2ab1dae8482eb27d67e570bd742c129e3a92 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c85c4fb6b9574c47d5ce67693c01a0d4ff91b42563 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c85d9889f7a197d73f231068dc4e0fe04835bd28e3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c86ae2c46e35b26718a74860b4325aa41db7d4f42d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c86fd1fcc6e99e180c0fa2d5cf54a501a50853770e 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c88c8e25223b5cd1a2a53fd554f5818df33a889f95 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c89a81b7f23a638da164c98957c2c5f7ce81977954 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c89ea5324a205afbf99aea4b7283a6ac250545e6c1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c820bc2759ce294d3b17d9f5f45f672da05cf3d426 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c837ad36afd5528e5602573c8bda4388988cb4a520 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8093a8d1dee2d8d263e971b3a5b19cadc30575089 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8437fd9068fafcbaca168fecf41809531ffced1ba 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8632afa02f648e7f7ea10591bc7843ffdd9ad9be2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c8975c7870b7600e759371981a763a27ec6082445b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c81861da76e5a0a73ec7a0c2c13a2bcdcf04c8d875 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c84650f4ddc5310aafa6215d788aaf744204c47e2b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c883628d6f76b46df0c84fc0d0aeca27861209b1e9 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c85636255ec6a4b0b17d11d0d09611bb07a45024e5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: c88425641194ba276b986af5cc9fc493511e7faa73 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: FunAcctPhase0 1`] = `Array []`;
 
@@ -3863,3 +4511,118 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedServicesPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedServicesPhase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8a5fb84040643ff687a1481dcd4761a8ab634c833 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8b50be1e8bd950617bd0b8773517f1623e0d627ee 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8c7cedb57866232853eac854211c5c6807548a4ce 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8c97a91961003f5ed6e0ccc73b5eb8fc9e060adc1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8d99cd6a62923d62db604e9e20625e67190dd06e4 1`] = `
+Array [
+  Object {
+    "LogicalId": "SecretsbgUser1UserPswdF10CD199",
+    "Properties": Object {
+      "Name": "PBMMAccel/master/user/password/bgUser1",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsbgUser2UserPswd08D94AA3",
+    "Properties": Object {
+      "Name": "PBMMAccel/master/user/password/bgUser2",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsOpsUser1UserPswdD5EAD264",
+    "Properties": Object {
+      "Name": "PBMMAccel/master/user/password/OpsUser1",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsOpsUser2UserPswdD05A1573",
+    "Properties": Object {
+      "Name": "PBMMAccel/master/user/password/OpsUser2",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPassword5CC78627",
+    "Properties": Object {
+      "Name": "PBMMAccel/operations/mad/password",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordadconnectorusrB8347327",
+    "Properties": Object {
+      "Name": "PBMMAccel/operations/mad/adconnector-usr/password",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordUser1291E3AF7",
+    "Properties": Object {
+      "Name": "PBMMAccel/operations/mad/User1/password",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordUser29026EDF3",
+    "Properties": Object {
+      "Name": "PBMMAccel/operations/mad/User2/password",
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8dba0b53a4fc184aca1ebb56fa501c7dbf13fba0d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8e774da255f94842d0dec0767ec3429525684ef0b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8e24479da7429f5d1c4de5f386dae63e5f134f37b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8f742b6c7d4ad4a8067cb5d24bc82d6064234e39b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8f27857cd34605370621d70319dd54612e9c5eb72 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8fe437359753fcbadaccec95064c5092b7c274f51 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c80cf7d773f8eabf62ff39a81f018a3e8a4cf830b2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c81f8e2d6d77ee7600b94a52ceb313b7e53086ef7c 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c84beb2ab1dae8482eb27d67e570bd742c129e3a92 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c85c4fb6b9574c47d5ce67693c01a0d4ff91b42563 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c85d9889f7a197d73f231068dc4e0fe04835bd28e3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c86ae2c46e35b26718a74860b4325aa41db7d4f42d 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c86fd1fcc6e99e180c0fa2d5cf54a501a50853770e 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c88c8e25223b5cd1a2a53fd554f5818df33a889f95 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c89a81b7f23a638da164c98957c2c5f7ce81977954 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c89ea5324a205afbf99aea4b7283a6ac250545e6c1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c820bc2759ce294d3b17d9f5f45f672da05cf3d426 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c837ad36afd5528e5602573c8bda4388988cb4a520 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8093a8d1dee2d8d263e971b3a5b19cadc30575089 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8437fd9068fafcbaca168fecf41809531ffced1ba 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8632afa02f648e7f7ea10591bc7843ffdd9ad9be2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c8975c7870b7600e759371981a763a27ec6082445b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c81861da76e5a0a73ec7a0c2c13a2bcdcf04c8d875 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c84650f4ddc5310aafa6215d788aaf744204c47e2b 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c883628d6f76b46df0c84fc0d0aeca27861209b1e9 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c85636255ec6a4b0b17d11d0d09611bb07a45024e5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: c88425641194ba276b986af5cc9fc493511e7faa73 1`] = `Array []`;

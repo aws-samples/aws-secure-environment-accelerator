@@ -95,7 +95,6 @@
     "proxy-agent": "5.0.0",
     "@aws-cdk/cloud-assembly-schema": "2.38.0",
     "@aws-cdk/assert": "1.172"
-
   },
   "devDependencies": {
     "@aws-accelerator/cdk-plugin-assume-role": "workspace:*",
