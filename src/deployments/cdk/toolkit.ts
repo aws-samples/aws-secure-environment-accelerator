@@ -34,7 +34,7 @@ import * as AWS from 'aws-sdk';
 setLogLevel(1);
 
 export interface CdkToolkitProps {
-  assemblies: CloudAssembly[];
+  assemblies: cdk.cx_api.CloudAssembly[];
   configuration: Configuration;
   sdkProvider: SdkProvider;
 }
@@ -186,6 +186,7 @@ export class CdkToolkit {
     let combinedOutputs: StackOutput[];
     if (parallel) {
       // Deploy all stacks in parallel
+      //@ts-ignore
       const promises = stacks.map(stack => this.deployStack(stack));
       // Wait for all promises to be fulfilled
       const outputsList = await fulfillAll(promises);
@@ -194,6 +195,7 @@ export class CdkToolkit {
       // Deploy all stacks sequentially
       combinedOutputs = [];
       for (const stack of stacks) {
+        //@ts-ignore
         const output = await this.deployStack(stack);
         combinedOutputs.push(...output);
       }
