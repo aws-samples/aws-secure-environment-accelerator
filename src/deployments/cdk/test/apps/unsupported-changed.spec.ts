@@ -90,8 +90,8 @@ beforeAll(async () => {
       const artifact = assembly.getStackArtifact(stack.artifactId);
       const template = artifact.template;
       // eslint-disable-next-line deprecation/deprecation
-      stackResources[stack.node.addr] = resourcesToList(template.Resources);
-      stack.node.id;
+      const stackUniqueId = cdk.Names.uniqueId(stack);
+      stackResources[stackUniqueId] = resourcesToList(template.Resources);
 
       // Render all nested stacks
       // See https://github.com/aws/aws-cdk/blob/master/packages/@aws-cdk/assert/lib/synth-utils.ts#L52
@@ -100,7 +100,8 @@ beforeAll(async () => {
         const nestedTemplateFile = path.join(assembly.directory, nestedStack.templateFile);
         const nestedTemplate = JSON.parse(fs.readFileSync(nestedTemplateFile).toString('utf-8'));
         // eslint-disable-next-line deprecation/deprecation
-        stackResources[nestedStack.node.addr] = resourcesToList(nestedTemplate.Resources);
+        const uniqueId = cdk.Names.uniqueId(nestedStack);
+        stackResources[uniqueId] = resourcesToList(nestedTemplate.Resources);
       }
     }
   }
