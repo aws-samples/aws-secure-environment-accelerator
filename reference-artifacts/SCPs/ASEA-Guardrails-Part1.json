@@ -36,9 +36,7 @@
         "iam:ListRoles",
         "iam:GetInstanceProfile",
         "iam:GetLoginProfile",
-        "iam:ListInstanceProfiles",
-        "iam:Tag*",
-        "iam:Untag*"
+        "iam:ListInstanceProfiles"
       ],
       "Resource": "*",
       "Condition": {
