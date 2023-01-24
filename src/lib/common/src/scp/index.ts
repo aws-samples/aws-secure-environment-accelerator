@@ -378,6 +378,7 @@ export class ServiceControlPolicy {
                 `arn:aws:iam::*:role/${props.organizationAdminRole || 'AWSCloudFormationStackSetExecutionRole'}`,
                 `arn:aws:iam::*:role/${props.acceleratorPrefix}*`,
                 'arn:aws:iam::*:role/aws*',
+                'arn:aws:iam::*:role/stacksets-exec*'
               ],
             },
           },
