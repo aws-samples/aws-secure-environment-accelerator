@@ -90,14 +90,15 @@ const dnslookup = async (host: string): Promise<string[]> => {
     dns.lookup(host, { all: true, family: 4 }, (err, addresses) => {
       if (err) {
         reject(err);
+      } else {
+        resolve(
+          addresses
+            .map(item => {
+              return item.address;
+            })
+            .sort(),
+        );
       }
-      resolve(
-        addresses
-          .map(item => {
-            return item.address;
-          })
-          .sort(),
-      );
     });
   });
 };
@@ -127,7 +128,12 @@ export const handler = async (_event: any, _context: any) => {
   for (const targetGroupRecord of targetGroupRecords) {
     try {
       // Get Hostname Lookup
-      targetGroupRecord.dnsLookupIps = (await dnslookup(targetGroupRecord.targetAlbDnsName)) ?? [];
+      targetGroupRecord.dnsLookupIps = [];
+      try {
+        targetGroupRecord.dnsLookupIps = await dnslookup(targetGroupRecord.targetAlbDnsName);
+      } catch (err) {
+        console.log(err);
+      }
       // Get Ip Addresses to add to current IP List
       targetGroupRecord.ipAddList =
         targetGroupRecord.dnsLookupIps?.filter(ip => {
