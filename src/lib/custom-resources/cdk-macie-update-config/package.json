@@ -12,12 +12,12 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@aws-cdk/aws-iam": "1.174.0",
-    "@aws-cdk/aws-lambda": "1.174.0",
-    "@aws-cdk/core": "1.174.0"
+    "aws-cdk-lib": "2.38.0",
+    "constructs": "10.0.12"
   },
   "devDependencies": {
     "@aws-accelerator/custom-resource-macie-update-config-runtime": "workspace:*",
+    "@aws-accelerator/custom-resource-macie-export-config-runtime": "workspace:*",
     "@types/node": "14.14.31",
     "jest": "25.2.4",
     "ts-jest": "25.3.0",
@@ -25,8 +25,6 @@
     "typescript": "4.2.4"
   },
   "peerDependencies": {
-    "@aws-cdk/aws-iam": "1.174.0",
-    "@aws-cdk/core": "1.174.0",
-    "@aws-cdk/custom-resources": "1.174.0"
+    "aws-cdk-lib": "2.38.0"
   }
 }

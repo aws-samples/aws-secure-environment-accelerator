@@ -12,10 +12,11 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { HandlerProperties } from '@aws-accelerator/custom-resource-guardduty-create-publish-runtime';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::GuardDutyCreatePublish';
 
@@ -28,10 +29,10 @@ export interface GuardDutyCreatePublishProps {
 /**
  * Custom resource implementation that enable admin for Guard Duty
  */
-export class GuardDutyCreatePublish extends cdk.Construct {
+export class GuardDutyCreatePublish extends Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: GuardDutyCreatePublishProps) {
+  constructor(scope: Construct, id: string, props: GuardDutyCreatePublishProps) {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = {

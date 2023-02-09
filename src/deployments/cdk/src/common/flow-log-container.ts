@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import { Construct } from 'constructs';
 
 export interface FlowLogContainerProps {
   bucket: s3.IBucket;
@@ -24,11 +25,11 @@ export interface FlowLogContainerProps {
 /**
  * Auxiliary construct that keeps allows us to create a single flow log bucket per account.
  */
-export class FlowLogContainer extends cdk.Construct {
+export class FlowLogContainer extends Construct {
   readonly bucket: s3.IBucket;
   readonly role: iam.Role;
 
-  constructor(scope: cdk.Construct, id: string, props: FlowLogContainerProps) {
+  constructor(scope: Construct, id: string, props: FlowLogContainerProps) {
     super(scope, id);
 
     this.bucket = props.bucket;

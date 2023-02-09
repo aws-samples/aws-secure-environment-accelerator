@@ -12,10 +12,11 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as events from '@aws-cdk/aws-events';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as events from 'aws-cdk-lib/aws-events';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::CentralLoggingSubscriptionFilter';
 
@@ -32,7 +33,7 @@ export interface CentralLoggingSubscriptionFilterProps {
 /**
  * Custom resource to create subscription filter in all existing log groups
  */
-export class CentralLoggingSubscriptionFilter extends cdk.Construct {
+export class CentralLoggingSubscriptionFilter extends Construct {
   private readonly resource: cdk.CustomResource;
   private readonly role: iam.IRole;
   private readonly cloudWatchEnventLambdaPath =
@@ -40,7 +41,7 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
   private readonly cloudFormationCustomLambaPath =
     '@aws-accelerator/custom-resource-logs-add-subscription-filter-runtime';
 
-  constructor(scope: cdk.Construct, id: string, props: CentralLoggingSubscriptionFilterProps) {
+  constructor(scope: Construct, id: string, props: CentralLoggingSubscriptionFilterProps) {
     super(scope, id);
 
     // Since this is deployed organization wide, this role is required

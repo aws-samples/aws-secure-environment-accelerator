@@ -12,10 +12,10 @@
  */
 
 import { pascalCase } from 'pascal-case';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as ec2 from '@aws-cdk/aws-ec2';
-import * as iam from '@aws-cdk/aws-iam';
-import * as cdk from '@aws-cdk/core';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as cdk from 'aws-cdk-lib';
 import { Vpc } from '@aws-accelerator/cdk-constructs/src/vpc';
 import { InstanceProfile } from '@aws-accelerator/cdk-constructs/src/iam';
 import * as c from '@aws-accelerator/common-config/src';

@@ -13,16 +13,16 @@
 
 import * as c from '@aws-accelerator/common-config';
 import { AccountStack, AccountStacks } from '../../common/account-stacks';
-import * as sns from '@aws-cdk/aws-sns';
-import * as kms from '@aws-cdk/aws-kms';
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as kms from 'aws-cdk-lib/aws-kms';
 import { createSnsTopicName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { SNS_NOTIFICATION_TYPES } from '@aws-accelerator/common/src/util/constants';
 import * as path from 'path';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as cdk from '@aws-cdk/core';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
-import * as iam from '@aws-cdk/aws-iam';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { CfnSnsTopicOutput } from './outputs';
 import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
 import { Organizations } from '@aws-accelerator/custom-resource-organization';

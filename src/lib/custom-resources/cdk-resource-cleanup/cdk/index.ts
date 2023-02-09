@@ -12,10 +12,11 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { HandlerProperties } from '@aws-accelerator/custom-resource-cleanup-runtime';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::ResourceCleanup';
 
@@ -30,11 +31,11 @@ export interface ResourceCleanupProps {
 /**
  * Custom resource that will create Metric Filter on LogGroup.
  */
-export class ResourceCleanup extends cdk.Construct {
+export class ResourceCleanup extends Construct {
   private readonly resource: cdk.CustomResource;
   private role: iam.IRole;
 
-  constructor(scope: cdk.Construct, id: string, props: ResourceCleanupProps) {
+  constructor(scope: Construct, id: string, props: ResourceCleanupProps) {
     super(scope, id);
     this.role = iam.Role.fromRoleArn(this, `${resourceType}Role`, props.roleArn);
 

@@ -12,9 +12,10 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::SecurityHubEnable';
 
@@ -26,10 +27,10 @@ export interface SecurityHubEnableProps {
 /**
  * Custom resource that will enable SecurityHub and disable controls.
  */
-export class SecurityHubEnable extends cdk.Construct {
+export class SecurityHubEnable extends Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: SecurityHubEnableProps) {
+  constructor(scope: Construct, id: string, props: SecurityHubEnableProps) {
     super(scope, id);
 
     const enableHub = this.lambdaFunction(props.roleArn);

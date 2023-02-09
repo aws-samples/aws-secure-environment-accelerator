@@ -12,9 +12,10 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::SSMDocument';
 
@@ -30,10 +31,10 @@ export type SSMDocumentRuntimeProps = Omit<SSMDocumentProps, 'roleArn'>;
 /**
  * Custom resource that will create SSM Document.
  */
-export class SSMDocument extends cdk.Construct {
+export class SSMDocument extends Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: SSMDocumentProps) {
+  constructor(scope: Construct, id: string, props: SSMDocumentProps) {
     super(scope, id);
 
     const runtimeProps: SSMDocumentRuntimeProps = props;

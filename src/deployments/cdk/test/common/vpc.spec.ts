@@ -13,7 +13,7 @@
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import 'jest';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { parse } from '@aws-accelerator/common-types';
 import { VpcConfigType } from '@aws-accelerator/common-config';
 import { resourcesToList, stackToCloudFormation } from '../jest';

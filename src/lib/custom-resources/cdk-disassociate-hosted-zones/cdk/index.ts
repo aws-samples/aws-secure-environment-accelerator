@@ -12,9 +12,10 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::DisAssociateHostedZones';
 
@@ -34,11 +35,11 @@ export type DisAssociateHostedZonesRuntimeProps = Omit<DisAssociateHostedZonesPr
 /**
  * Custom resource that will DisAssociate Hosted Zones to VPC
  */
-export class DisAssociateHostedZones extends cdk.Construct {
+export class DisAssociateHostedZones extends Construct {
   private readonly resource: cdk.CustomResource;
   private role: iam.IRole;
 
-  constructor(scope: cdk.Construct, id: string, props: DisAssociateHostedZonesProps) {
+  constructor(scope: Construct, id: string, props: DisAssociateHostedZonesProps) {
     super(scope, id);
     this.role = iam.Role.fromRoleArn(this, `${resourceType}Role`, props.roleArn);
 

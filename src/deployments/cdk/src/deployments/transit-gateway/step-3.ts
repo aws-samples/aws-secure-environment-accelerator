@@ -21,10 +21,11 @@ import {
 import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
-import * as ec2 from '@aws-cdk/aws-ec2';
-import * as cdk from '@aws-cdk/core';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as cdk from 'aws-cdk-lib';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { TgwVpnAttachmentsOutputFinder } from '../firewall/cluster/outputs';
+import { Construct } from 'constructs';
 
 export interface TransitGatewayStep3Props {
   accountStacks: AccountStacks;
@@ -192,7 +193,7 @@ export async function step3(props: TransitGatewayStep3Props) {
 }
 
 function CreateRoutes(props: {
-  scope: cdk.Construct;
+  scope: Construct;
   cidr: string;
   routeName: string;
   transitGateway: TransitGatewayOutput;
@@ -213,7 +214,7 @@ function CreateRoutes(props: {
 }
 
 function CreateRoute(props: {
-  scope: cdk.Construct;
+  scope: Construct;
   cidr: string;
   routeName: string;
   transitGateway: TransitGatewayOutput;
@@ -276,7 +277,7 @@ function CreateAssociations(
 }
 
 function CreateTransitGatewayRoute(props: {
-  scope: cdk.Construct;
+  scope: Construct;
   name: string;
   routeId: string;
   cidrBlock: string;
