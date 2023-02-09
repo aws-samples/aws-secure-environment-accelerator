@@ -18,6 +18,7 @@ import { CentralLoggingSubscriptionFilter } from '@aws-accelerator/custom-resour
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { LogDestinationOutputFinder } from '@aws-accelerator/common-outputs/src/log-destination';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface CentralLoggingToS3Step2Props {
   accountStacks: AccountStacks;
@@ -86,6 +87,7 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
         ruleName,
         logRetention,
         roleArn: subscriptionRoleOutput.roleArn,
+        uuid: uuidv4(),
       });
     }
   }

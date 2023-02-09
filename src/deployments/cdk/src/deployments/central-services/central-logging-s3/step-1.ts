@@ -35,19 +35,18 @@ import path from 'path';
 
 export interface CentralLoggingToS3Step1Props {
   accountStacks: AccountStacks;
-  accounts: Account[];
   logBucket: s3.IBucket;
   outputs: StackOutput[];
   config: c.AcceleratorConfig;
+  rootOrgId: string;
 }
 
 /**
  * Enable Central Logging to S3 in "log-archive" account Step 1
  */
 export async function step1(props: CentralLoggingToS3Step1Props) {
-  const { accountStacks, accounts, logBucket, config, outputs } = props;
+  const { accountStacks, logBucket, config, outputs, rootOrgId } = props;
   // Setup for CloudWatch logs storing in logs account
-  const allAccountIds = accounts.map(account => account.id);
   const centralLogServices = config['global-options']['central-log-services'];
   const cwlRegionsConfig = config['global-options']['additional-cwl-regions'];
   const homeRegion = config['global-options']['central-log-services'].region;
@@ -112,7 +111,6 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
 
     await cwlSettingsInLogArchive({
       scope: logAccountStack,
-      accountIds: allAccountIds,
       bucketArn: logBucket.bucketArn,
       shardCount: regionConfig['kinesis-stream-shard-count'],
       logStreamRoleArn: cwlLogStreamRoleOutput.roleArn,
@@ -121,6 +119,7 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
       region,
       encryptionKey,
       homeRegionEncryptionKey,
+      rootOrgId,
     });
   }
 }
@@ -131,7 +130,6 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
  */
 async function cwlSettingsInLogArchive(props: {
   scope: cdk.Construct;
-  accountIds: string[];
   bucketArn: string;
   logStreamRoleArn: string;
   kinesisStreamRoleArn: string;
@@ -140,10 +138,10 @@ async function cwlSettingsInLogArchive(props: {
   shardCount?: number;
   dynamicS3LogPartitioning?: c.S3LogPartition[];
   region: string;
+  rootOrgId: string;
 }) {
   const {
     scope,
-    accountIds,
     bucketArn,
     logStreamRoleArn,
     kinesisStreamRoleArn,
@@ -152,6 +150,7 @@ async function cwlSettingsInLogArchive(props: {
     region,
     encryptionKey,
     homeRegionEncryptionKey,
+    rootOrgId,
   } = props;
 
   // Create Kinesis Stream for Logs streaming
@@ -166,26 +165,29 @@ async function cwlSettingsInLogArchive(props: {
   });
 
   const destinationName = createName({
-    name: 'LogDestination',
+    name: 'LogDestinationOrg',
     suffixLength: 0,
   });
 
-  const destinatinPolicy = {
+  const destinationPolicy = {
     Version: '2012-10-17',
     Statement: [
       {
         Effect: 'Allow',
-        Principal: {
-          AWS: accountIds,
-        },
+        Principal: '*',
         Action: 'logs:PutSubscriptionFilter',
         Resource: `arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:destination:${destinationName}`,
+        Condition: {
+          StringEquals: {
+            'aws:PrincipalOrgID': [rootOrgId],
+          },
+        },
       },
     ],
   };
-  const destinationPolicyStr = JSON.stringify(destinatinPolicy);
+  const destinationPolicyStr = JSON.stringify(destinationPolicy);
   // Create AWS Logs Destination
-  const logDestination = new logs.CfnDestination(scope, 'Log-Destination', {
+  const logDestination = new logs.CfnDestination(scope, 'Log-Destination-Org', {
     destinationName,
     targetArn: logsStream.streamArn,
     roleArn: logStreamRoleArn,
@@ -269,7 +271,7 @@ async function cwlSettingsInLogArchive(props: {
   });
 
   // Store LogDestination ARN in output so that subsequent phases can access the output
-  new CfnLogDestinationOutput(scope, `CloudWatchCentralLoggingOutput`, {
+  new CfnLogDestinationOutput(scope, `CloudWatchCentralLoggingOrgOutput`, {
     destinationArn: logDestination.attrArn,
     destinationName: logDestination.destinationName,
     destinationKey: 'CwlCentralLogDestination',
