@@ -2,7 +2,10 @@ import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { Organizations } from '@aws-accelerator/custom-resource-organization';
-import { createEncryptionKeyName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import {
+  createEncryptionKeyName,
+  createPolicyName,
+} from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import * as kms from 'aws-cdk-lib/aws-kms';
@@ -14,7 +17,6 @@ import path from 'path';
 import { getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
 import { IamRoleNameOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
-import { createPolicyName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 export interface MetadataServiceProps {
   acceleratorPrefix: string;
   accountStacks: AccountStacks;
@@ -46,7 +48,7 @@ export function createMetadataService(props: MetadataServiceProps) {
   )}-metadata-bucket`;
   const bucket = new s3.Bucket(logAccountStack, 'MetadataBucket', {
     encryptionKey,
-    bucketName: bucketName,
+    bucketName,
     blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     removalPolicy: cdk.RemovalPolicy.RETAIN,
     objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,

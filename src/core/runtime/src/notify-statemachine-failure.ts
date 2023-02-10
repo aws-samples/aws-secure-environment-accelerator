@@ -67,7 +67,7 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
       console.log('Trying to convert JSON Input string to JSON object');
       errorCauseReturn.Input = JSON.parse(errorCauseReturn.Input);
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error while converting JSON string to JSON Object');
     console.error(error.message);
   }

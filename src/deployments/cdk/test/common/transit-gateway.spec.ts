@@ -16,7 +16,6 @@ import 'jest';
 import * as cdk from 'aws-cdk-lib';
 import { TransitGateway } from '@aws-accelerator/cdk-constructs/src/vpc';
 import { resourcesToList, stackToCloudFormation } from '../jest';
-
 test('the TransitGateway creation should create Transit Gateway with appropriate configurations', () => {
   const stack = new cdk.Stack();
 

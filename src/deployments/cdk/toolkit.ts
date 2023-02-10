@@ -13,7 +13,7 @@
 
 import path from 'path';
 import * as cxschema from '@aws-cdk/cloud-assembly-schema';
-import { CloudFormationStackArtifact, CloudAssembly, Environment } from '@aws-cdk/cx-api';
+import { CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
 import { ToolkitInfo } from 'aws-cdk/lib/api/toolkit-info';
 import { Mode } from 'aws-cdk/lib/api';
 import { setLogLevel } from 'aws-cdk/lib/logging';
@@ -106,11 +106,11 @@ export class CdkToolkit {
       .assumeRole({ RoleArn: roleArn, RoleSessionName: 'acceleratorAssumeRoleSession' })
       .promise();
 
-    process.env['AWS_ACCESS_KEY_ID'] = assumeRoleCredential.Credentials!.AccessKeyId!;
-    process.env['AWS_ACCESS_KEY'] = assumeRoleCredential.Credentials!.AccessKeyId!;
-    process.env['AWS_SECRET_KEY'] = assumeRoleCredential.Credentials!.SecretAccessKey!;
-    process.env['AWS_SECRET_ACCESS_KEY'] = assumeRoleCredential.Credentials!.SecretAccessKey!;
-    process.env['AWS_SESSION_TOKEN'] = assumeRoleCredential.Credentials!.SessionToken;
+    process.env.AWS_ACCESS_KEY_ID = assumeRoleCredential.Credentials!.AccessKeyId!;
+    process.env.AWS_ACCESS_KEY = assumeRoleCredential.Credentials!.AccessKeyId!;
+    process.env.AWS_SECRET_KEY = assumeRoleCredential.Credentials!.SecretAccessKey!;
+    process.env.AWS_SECRET_ACCESS_KEY = assumeRoleCredential.Credentials!.SecretAccessKey!;
+    process.env.AWS_SESSION_TOKEN = assumeRoleCredential.Credentials!.SessionToken;
 
     const sdkProvider = await SdkProvider.withAwsCliCompatibleDefaults({
       profile: configuration.settings.get(['profile']),
@@ -186,7 +186,7 @@ export class CdkToolkit {
     let combinedOutputs: StackOutput[];
     if (parallel) {
       // Deploy all stacks in parallel
-      //@ts-ignore
+      // @ts-ignore
       const promises = stacks.map(stack => this.deployStack(stack));
       // Wait for all promises to be fulfilled
       const outputsList = await fulfillAll(promises);
@@ -195,7 +195,7 @@ export class CdkToolkit {
       // Deploy all stacks sequentially
       combinedOutputs = [];
       for (const stack of stacks) {
-        //@ts-ignore
+        // @ts-ignore
         const output = await this.deployStack(stack);
         combinedOutputs.push(...output);
       }

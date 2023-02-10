@@ -47,6 +47,7 @@ export class CentralLoggingSubscriptionFilter extends Construct {
     // Since this is deployed organization wide, this role is required
     // https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CreateSubscriptionFilter-IAMrole.html
     const subscriptionFilterRole = new iam.Role(this, 'SubscriptionFilterRole', {
+      // eslint-disable-next-line no-template-curly-in-string
       assumedBy: new iam.ServicePrincipal(cdk.Fn.sub('logs.${AWS::Region}.amazonaws.com')),
       description: 'Role used by Subscription Filter to allow access to CloudWatch Destination',
       inlinePolicies: {

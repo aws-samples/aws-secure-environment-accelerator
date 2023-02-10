@@ -113,7 +113,7 @@ async function createOrUpdateReportDefinition(event: CloudFormationCustomResourc
         })
         .promise(),
     );
-  } catch (e) {
+  } catch (e: any) {
     if (e.code === 'DuplicateReportNameException') {
       console.log(`Report already exists. Modifying the existing report`);
 

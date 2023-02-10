@@ -115,7 +115,7 @@ export function errorHandler(
         data: response?.data,
         physicalResourceId: response?.physicalResourceId,
       });
-    } catch (e) {
+    } catch (e: any) {
       console.error('Sending failure response');
       console.error(e);
 

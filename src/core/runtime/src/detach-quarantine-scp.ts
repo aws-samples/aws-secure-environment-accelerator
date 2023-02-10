@@ -46,7 +46,7 @@ export const handler = async (input: DetachQuarantineScpInput): Promise<string> 
     console.log(`Detaching policy "${policyName}" from account "${account.name}"`);
     try {
       await organizations.detachPolicy(policyId, account.id);
-    } catch (e) {
+    } catch (e: any) {
       if (e.code === 'PolicyNotAttachedException') {
         console.log(`"${policyName}" is not attached to account "${account.name}"`);
         continue;

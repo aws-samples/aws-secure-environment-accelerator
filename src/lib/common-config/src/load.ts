@@ -32,7 +32,7 @@ export async function loadAcceleratorConfig(props: {
     const file = await codecommit.getFile(repositoryName, filePath, commitId);
     const source = file.fileContent.toString();
     return AcceleratorConfig.fromString(source);
-  } catch (e) {
+  } catch (e: any) {
     throw new Error(
       `Unable to load configuration file "${filePath}" in Repository ${repositoryName}\n${e.message} code:${e.code}`,
     );
@@ -58,7 +58,7 @@ export async function loadAcceleratorConfigWithS3Attempt(props: {
       });
 
       return AcceleratorConfig.fromString(s3GetResponseString);
-    } catch (e) {
+    } catch (e: any) {
       console.log(`Unable to load configuration file "${s3KeyName}" from S3\n${e.message} code:${e.code}`);
     }
   }

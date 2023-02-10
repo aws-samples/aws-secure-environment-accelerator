@@ -34,7 +34,7 @@ export const handler = async (input: any): Promise<string> => {
   if (process.env.EXCLUSIONS) {
     try {
       exclusions = JSON.parse(process.env.EXCLUSIONS);
-    } catch (error) {
+    } catch (error: any) {
       console.warn(error.message);
     }
   }
@@ -90,7 +90,7 @@ async function putLogRetentionPolicy(logGroupName: string, retentionInDays: numb
         })
         .promise(),
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error while updating retention policy on "${logGroupName}": ${error.message}`);
   }
 }

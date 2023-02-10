@@ -102,7 +102,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     console.log('Update SSM Document Request: ', updateDocumentRequest);
     await throttlingBackOff(() => ssm.updateDocument(updateDocumentRequest).promise());
     console.log('Update SSM Document Success');
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'DuplicateDocumentContent') {
       console.log(`SSM Document is Already latest :${docuemntName}`);
     } else if (error.code === 'InvalidDocument') {

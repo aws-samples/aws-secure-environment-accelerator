@@ -31,7 +31,7 @@ test('should add the Name tag with the correct suffix to ec2.Vpc', () => {
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  //Node.prepare(stack.node);
+  // Node.prepare(stack.node);
 
   stack.node.validate();
   expect(stack).to(
@@ -84,7 +84,7 @@ test('should add the Name tag with the correct suffix to ec2.Subnet', () => {
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  //Node.prepare(stack.node);
+  // Node.prepare(stack.node);
   stack.node.validate();
 
   expect(stack).to(
@@ -113,7 +113,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnSubnet', () => {
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
   stack.node.validate();
-  //Node.prepare(stack.node);
+  // Node.prepare(stack.node);
 
   expect(stack).to(
     haveResourceLike('AWS::EC2::Subnet', {
@@ -138,7 +138,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnRouteTable', () 
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  //Node.prepare(stack.node);
+  // Node.prepare(stack.node);
   stack.node.validate();
 
   expect(stack).to(
@@ -162,7 +162,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnTransitGateway',
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  //Node.prepare(stack.node);
+  // Node.prepare(stack.node);
   stack.node.validate();
 
   expect(stack).to(
@@ -188,7 +188,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnTransitGatewayRo
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  //Node.prepare(stack.node);
+  // Node.prepare(stack.node);
   stack.node.validate();
 
   expect(stack).to(
@@ -214,7 +214,7 @@ test('should not add suffix if the suffix is already there', () => {
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  //Node.prepare(stack.node);
+  // Node.prepare(stack.node);
   stack.node.validate();
 
   expect(stack).to(

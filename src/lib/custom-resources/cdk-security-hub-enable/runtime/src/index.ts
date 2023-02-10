@@ -49,7 +49,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   try {
     await throttlingBackOff(() => hub.enableSecurityHub().promise());
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'ResourceConflictException') {
       console.log('Account is already subscribed to Security Hub');
     } else {
@@ -83,7 +83,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   try {
     await throttlingBackOff(() => hub.enableSecurityHub().promise());
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'ResourceConflictException') {
       console.log('Account is already subscribed to Security Hub');
     } else {

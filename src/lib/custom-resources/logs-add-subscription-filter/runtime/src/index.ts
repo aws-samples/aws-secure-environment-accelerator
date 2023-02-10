@@ -159,7 +159,7 @@ async function removeSubscriptionFilter(logGroupName: string, filterName: string
         })
         .promise(),
     );
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'ResourceNotFoundException') {
       // No Subscription filter for this logGroup
     } else {
@@ -182,7 +182,7 @@ async function addSubscriptionFilter(logGroupName: string, destinationArn: strin
         })
         .promise(),
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error while adding subscription filter to log group ${logGroupName}: ${error.message}`);
   }
 }
@@ -215,7 +215,7 @@ async function getSubscriptionFilters(logGroupName: string): Promise<Subscriptio
         .promise(),
     );
     return subscriptionFilters.subscriptionFilters;
-  } catch (error) {
+  } catch (error: any) {
     console.log(`Error while retrieving subscription filters: ${error.message}`);
   }
 }
@@ -230,7 +230,7 @@ async function putLogRetentionPolicy(logGroupName: string, retentionInDays: numb
         })
         .promise(),
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error while updating retention policy on "${logGroupName}": ${error.message}`);
   }
 }

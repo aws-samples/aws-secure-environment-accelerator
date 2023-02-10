@@ -22,7 +22,7 @@
     "@aws-accelerator/config": "workspace:*",
     "@aws-accelerator/common": "workspace:*",
     "@aws-accelerator/common-config": "workspace:*",
-    "@aws-accelerator/common-outputs": "workspace:*",    
+    "@aws-accelerator/common-outputs": "workspace:*",
     "@aws-accelerator/custom-resource-cfn-utils": "workspace:*",
     "aws-lambda": "1.0.6",
     "aws-sdk": "2.944.0",
@@ -33,6 +33,8 @@
   "devDependencies": {
     "@types/aws-lambda": "8.10.76",
     "@types/node": "14.14.31",
+    "@types/lodash": "4.14.191",
+    "@types/uuid": "9.0.0",
     "esbuild": "0.11.18",
     "eslint": "7.25.0",
     "jest": "25.2.4",
