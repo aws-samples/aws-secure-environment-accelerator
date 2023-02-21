@@ -190,7 +190,7 @@ export namespace InitialSetup {
       // The role used by the build should allow this session duration
       const buildTimeout = cdk.Duration.hours(4);
       const roleName = createRoleName('L-SFN-MasterRole');
-      const roleArn = `arn:${stack.partition}::${stack.account}/role/${roleName}`;
+      const roleArn = `arn:${stack.partition}:iam::${stack.account}/role/${roleName}`;
 
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
