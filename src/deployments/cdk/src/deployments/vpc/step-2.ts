@@ -156,13 +156,14 @@ function createVpcFlowLog(props: {
     customFields,
   } = props;
   for (const [index, logDestination] of logDestinations.entries()) {
-    const flowLogs = new ec2.CfnFlowLog(scope, `FlowLog${vpcName}${logDestinationTypes[index]}`, {
-      deliverLogsPermissionArn: roleArn,
+    const logDestinationType = logDestinationTypes[index];
+    const flowLogs = new ec2.CfnFlowLog(scope, `FlowLog${vpcName}${logDestinationType}`, {
+      deliverLogsPermissionArn: logDestinationType == ec2.FlowLogDestinationType.CLOUD_WATCH_LOGS ? roleArn : undefined,
       resourceId: vpcId,
       resourceType: 'VPC',
       trafficType,
       logDestination,
-      logDestinationType: logDestinationTypes[index],
+      logDestinationType: logDestinationType,
     });
     flowLogs.addPropertyOverride('MaxAggregationInterval', aggregationInterval);
     if (customFields) {
