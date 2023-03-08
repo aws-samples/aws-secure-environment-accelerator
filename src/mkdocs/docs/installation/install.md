@@ -213,7 +213,7 @@ Multiple options exist for downloading the GitHub Accelerator codebase and pushi
 1. In your AWS Organization Management account, open CodeCommit and create a new repository named `aws-secure-environment-accelerator`
 2. Go to GitHub and download the repository `Source code` zip or tarball for the [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) you wish to deploy
     - Do NOT download the code off the main GitHub branch, this will leave you in a completely unsupported state (and with beta code)
-3. Push the extracted codebase into the newly created CodeCommit repository, maintaining the file/folder hierarchy
+3. Push the extracted codebase into the newly created CodeCommit repository, maintaining the file/folder hierarchy (ensuring that the root of the repository on code commit looks the same as the root of the repository on github)
 4. Set the default CodeCommit branch for the new repository to main
 5. Create a branch following the Accelerator naming format for your release (i.e. `release/v1.5.5`)
 
