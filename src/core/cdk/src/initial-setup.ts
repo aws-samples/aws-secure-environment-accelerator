@@ -194,7 +194,7 @@ export namespace InitialSetup {
 
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
-        roleName: roleName,
+        roleName,
         assumedBy: new iam.CompositePrincipal(
           // TODO Only add root role for development environments
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
