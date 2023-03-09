@@ -11,9 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as custom from '@aws-cdk/custom-resources';
-import * as iam from '@aws-cdk/aws-iam';
+import * as cdk from 'aws-cdk-lib';
+import * as custom from 'aws-cdk-lib/custom-resources';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import { Construct } from 'constructs';
 
 export interface VpnAttachmentsProps {
   vpnConnectionId: string;
@@ -23,10 +24,10 @@ export interface VpnAttachmentsProps {
 /**
  * Custom resource implementation that retrive IPs for a created DNS Endpoint.
  */
-export class VpnAttachments extends cdk.Construct {
+export class VpnAttachments extends Construct {
   private readonly resource: custom.AwsCustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: VpnAttachmentsProps) {
+  constructor(scope: Construct, id: string, props: VpnAttachmentsProps) {
     super(scope, id);
     const { vpnConnectionId } = props;
 

@@ -11,8 +11,8 @@
  *  and limitations under the License.
  */
 
-import { IBucket } from '@aws-cdk/aws-s3';
-import * as iam from '@aws-cdk/aws-iam';
+import { IBucket } from 'aws-cdk-lib/aws-s3';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { AccountStacks, AccountStack } from '../../common/account-stacks';
 import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';

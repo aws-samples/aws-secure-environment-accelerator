@@ -10,11 +10,11 @@
  *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
  *  and limitations under the License.
  */
-
-import * as cdk from '@aws-cdk/core';
-import * as elb from '@aws-cdk/aws-elasticloadbalancingv2';
+import * as cdk from 'aws-cdk-lib';
+import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { ElbDeletionProtection } from '@aws-accelerator/custom-resource-elb-deletion-protection';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import { Construct } from 'constructs';
 
 export interface NetworkLoadBalancerProps extends cdk.StackProps {
   nlbName: string;
@@ -24,11 +24,11 @@ export interface NetworkLoadBalancerProps extends cdk.StackProps {
   aesLogArchiveBucket: s3.IBucket;
 }
 
-export class NetworkLoadBalancer extends cdk.Construct {
+export class NetworkLoadBalancer extends Construct {
   private readonly resource: elb.CfnLoadBalancer;
   private readonly listeners: elb.CfnListener[] = [];
 
-  constructor(scope: cdk.Construct, id: string, private readonly props: NetworkLoadBalancerProps) {
+  constructor(scope: Construct, id: string, private readonly props: NetworkLoadBalancerProps) {
     super(scope, id);
 
     const { nlbName, scheme, subnetIds, ipType, aesLogArchiveBucket } = props;

@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as elb from '@aws-cdk/aws-elasticloadbalancingv2';
+import * as cdk from 'aws-cdk-lib';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { ElbDeletionProtection } from '@aws-accelerator/custom-resource-elb-deletion-protection';
+import { Construct } from 'constructs';
 
 export interface ApplicationLoadBalancerProps extends cdk.StackProps {
   albName: string;
@@ -24,11 +25,11 @@ export interface ApplicationLoadBalancerProps extends cdk.StackProps {
   ipType: string;
 }
 
-export class ApplicationLoadBalancer extends cdk.Construct {
+export class ApplicationLoadBalancer extends Construct {
   private readonly resource: elb.CfnLoadBalancer;
   private readonly listeners: elb.CfnListener[] = [];
 
-  constructor(scope: cdk.Construct, id: string, private readonly props: ApplicationLoadBalancerProps) {
+  constructor(scope: Construct, id: string, private readonly props: ApplicationLoadBalancerProps) {
     super(scope, id);
 
     const { albName, scheme, subnetIds, securityGroupIds, ipType, tags } = props;

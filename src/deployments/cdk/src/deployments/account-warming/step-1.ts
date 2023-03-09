@@ -11,14 +11,15 @@
  *  and limitations under the License.
  */
 
-import * as ec2 from '@aws-cdk/aws-ec2';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as c from '@aws-accelerator/common-config/src';
 import { AccountStacks } from '../../common/account-stacks';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { StructuredOutput } from '../../common/structured-output';
 import { InstanceTimeOutputType, InstanceStatusOutput, getTimeDiffInMinutes } from './outputs';
 import { InstanceLaunchTime } from '@aws-accelerator/custom-resource-ec2-launch-time';
+import { Construct } from 'constructs';
 
 export interface InstanceStep1Props {
   accountStacks: AccountStacks;
@@ -82,7 +83,7 @@ export async function step1(props: InstanceStep1Props) {
   }
 }
 
-const createInstance = (scope: cdk.Construct, accountKey: string): ec2.CfnInstance => {
+const createInstance = (scope: Construct, accountKey: string): ec2.CfnInstance => {
   const vpc = new ec2.CfnVPC(scope, `Vpc_Aw_${accountKey}`, {
     cidrBlock: '10.10.10.0/24',
   });
@@ -109,7 +110,7 @@ const createInstance = (scope: cdk.Construct, accountKey: string): ec2.CfnInstan
   return instance;
 };
 
-const getLaunchTime = (scope: cdk.Construct, instanceId: string, accountKey: string): InstanceLaunchTime => {
+const getLaunchTime = (scope: Construct, instanceId: string, accountKey: string): InstanceLaunchTime => {
   const instance = new InstanceLaunchTime(scope, `InstanceStatus${accountKey}`, {
     instanceId,
   });

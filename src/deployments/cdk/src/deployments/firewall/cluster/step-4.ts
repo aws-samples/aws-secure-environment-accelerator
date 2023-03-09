@@ -13,7 +13,7 @@
 
 import { Vpc } from '@aws-accelerator/cdk-constructs/src/vpc';
 import * as c from '@aws-accelerator/common-config/src';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import {
   getStackJsonOutput,
   OUTPUT_SUBSCRIPTION_REQUIRED,
@@ -22,11 +22,11 @@ import {
 import { AccountStacks, AccountStack } from '../../../common/account-stacks';
 import { createIamInstanceProfileName } from '../../../common/iam-assets';
 import { LaunchConfiguration } from '@aws-accelerator/cdk-constructs/src/autoscaling';
-import * as elb from '@aws-cdk/aws-autoscaling';
+import * as elb from 'aws-cdk-lib/aws-autoscaling';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { LoadBalancerOutputFinder } from '@aws-accelerator/common-outputs/src/elb';
 import { DynamicSecretOutputFinder } from '@aws-accelerator/common-outputs/src/secrets';
-import * as cloudwatch from '@aws-cdk/aws-cloudwatch';
+import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import { Account } from '../../../utils/accounts';
 import { getDynamicReplaceableValue } from '../../../common/replacements';
 

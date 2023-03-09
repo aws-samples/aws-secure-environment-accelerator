@@ -11,7 +11,7 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { PhaseDeploy } from './apps/shared';
 import { AccountStacks } from './common/account-stacks';
 import { loadAccounts, getAccountId } from './utils/accounts';

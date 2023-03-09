@@ -13,8 +13,8 @@
 
 import * as c from '@aws-accelerator/common-config';
 import { AccountStacks } from '../../common/account-stacks';
-import * as cdk from '@aws-cdk/core';
-import * as cloudwatch from '@aws-cdk/aws-cloudwatch';
+import * as cdk from 'aws-cdk-lib';
+import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
 import { createName, createSnsTopicName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 

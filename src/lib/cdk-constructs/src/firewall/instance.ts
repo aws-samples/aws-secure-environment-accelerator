@@ -12,15 +12,16 @@
  */
 
 import { IPv4CidrRange } from 'ip-num';
-import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { S3Template } from '@aws-accelerator/custom-resource-s3-template';
 import { IInstanceProfile } from '../iam';
 import { Subnet, SecurityGroup } from '../vpc';
 import { CfnSleep } from '@aws-accelerator/custom-resource-cfn-sleep';
 import { EC2DisableApiTermination } from '@aws-accelerator/custom-resource-ec2-disable-api-termination';
 import { EC2ModifyMetadataOptions } from '@aws-accelerator/custom-resource-ec2-modify-metadata-options';
+import { Construct } from 'constructs';
 
 export interface FirewallVpnTunnelOptions {
   cgwTunnelInsideAddress1: string;
@@ -68,12 +69,12 @@ export interface FirewallInstanceProps {
   userData?: string;
 }
 
-export class FirewallInstance extends cdk.Construct {
+export class FirewallInstance extends Construct {
   private readonly resource: ec2.CfnInstance;
   private readonly template?: S3Template;
   private readonly networkInterfacesProps: ec2.CfnInstance.NetworkInterfaceProperty[] = [];
   readonly instanceName: string;
-  constructor(scope: cdk.Construct, id: string, private readonly props: FirewallInstanceProps) {
+  constructor(scope: Construct, id: string, private readonly props: FirewallInstanceProps) {
     super(scope, id);
 
     const { configuration, blockDeviceMappings, userData } = props;

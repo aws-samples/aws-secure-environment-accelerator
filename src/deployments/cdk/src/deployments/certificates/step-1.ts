@@ -11,15 +11,16 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as certificatemanager from '@aws-cdk/aws-certificatemanager';
-import * as secrets from '@aws-cdk/aws-secretsmanager';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import * as certificatemanager from 'aws-cdk-lib/aws-certificatemanager';
+import * as secrets from 'aws-cdk-lib/aws-secretsmanager';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as c from '@aws-accelerator/common-config/src';
 import { AcmImportCertificate } from '@aws-accelerator/custom-resource-acm-import-certificate';
 import { AccountStacks } from '../../common/account-stacks';
 import { pascalCase } from 'pascal-case';
 import { createCertificateSecretName, CfnAcmOutput } from './outputs';
+import { Construct } from 'constructs';
 
 export interface CertificatesStep1Props {
   accountStacks: AccountStacks;
@@ -51,11 +52,7 @@ export async function step1(props: CertificatesStep1Props) {
   }
 }
 
-function createCertificate(props: {
-  centralBucket: s3.IBucket;
-  certificate: c.CertificateConfig;
-  scope: cdk.Construct;
-}) {
+function createCertificate(props: { centralBucket: s3.IBucket; certificate: c.CertificateConfig; scope: Construct }) {
   const { scope, centralBucket, certificate } = props;
 
   const certificatePrettyName = pascalCase(certificate.name);
@@ -78,7 +75,7 @@ function createCertificate(props: {
     resource = new certificatemanager.Certificate(scope, `Cert${certificatePrettyName}`, {
       domainName: certificate.domain,
       subjectAlternativeNames: certificate.san,
-      validationMethod: validationMethodFromConfig(certificate.validation),
+      validation: validationMethodFromConfig(certificate.validation),
     });
   } else {
     console.warn(`Unknown certificate config: ${certificate}`);
@@ -99,9 +96,9 @@ function createCertificate(props: {
   }
 }
 
-function validationMethodFromConfig(validation: c.CertificateValidation): certificatemanager.ValidationMethod {
+function validationMethodFromConfig(validation: c.CertificateValidation): certificatemanager.CertificateValidation {
   if (validation === 'EMAIL') {
-    return certificatemanager.ValidationMethod.EMAIL;
+    return certificatemanager.CertificateValidation.fromEmail();
   }
-  return certificatemanager.ValidationMethod.DNS;
+  return certificatemanager.CertificateValidation.fromDns();
 }

@@ -54,7 +54,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   try {
     await throttlingBackOff(() => ec2.runInstances(instanceParams).promise());
     console.log('Create Firewall Instance Success');
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'OptInRequired') {
       status = error.code;
     }

@@ -59,7 +59,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
           })
           .promise(),
       );
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'ResourceExistsException') {
         console.warn(`Resolver Rule ${ruleId} is already Associated to ${vpcId}`);
       } else {
@@ -91,7 +91,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
           })
           .promise(),
       );
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'ResourceExistsException') {
         console.warn(`Resolver Rule ${ruleId} is already Associated to ${vpcId}`);
       } else {
@@ -112,7 +112,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
           })
           .promise(),
       );
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'ResourceNotFoundException') {
         console.warn(`Resolver Rule ${ruleId} is not Associated to ${vpcId}`);
       } else {
@@ -146,7 +146,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
           })
           .promise(),
       );
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'ResourceNotFoundException') {
         console.warn(`Resolver Rule ${ruleId} is not Associated to ${vpcId}`);
       } else {

@@ -12,10 +12,11 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { HandlerProperties } from '@aws-accelerator/custom-resource-cfn-sleep-runtime';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::Sleep';
 
@@ -26,8 +27,8 @@ export interface CfnSleepProps {
 /**
  * Custom resource that has an image ID attribute for the image with the given properties.
  */
-export class CfnSleep extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: CfnSleepProps) {
+export class CfnSleep extends Construct {
+  constructor(scope: Construct, id: string, props: CfnSleepProps) {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = {

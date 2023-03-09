@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as sfn from '@aws-cdk/aws-stepfunctions';
-import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
+import * as cdk from 'aws-cdk-lib';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
+import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
+import { Construct } from 'constructs';
 
 export namespace CodeTask {
   /**
@@ -46,7 +47,7 @@ export class CodeTask extends sfn.StateMachineFragment {
   public readonly startState: tasks.LambdaInvoke;
   public readonly endStates: sfn.INextable[];
 
-  constructor(scope: cdk.Construct, id: string, props: CodeTask.Props) {
+  constructor(scope: Construct, id: string, props: CodeTask.Props) {
     super(scope, id);
 
     const func = new lambda.Function(this, 'Handler', {
@@ -57,13 +58,13 @@ export class CodeTask extends sfn.StateMachineFragment {
       ...props.functionProps,
     });
 
-    const funcAlias = new lambda.Alias(this, 'LambdaAlias', {
-      aliasName: 'live',
-      version: func.currentVersion,
-    });
+    // const funcAlias = new lambda.Alias(this, 'LambdaAlias', {
+    //   aliasName: 'live',
+    //   version: func.currentVersion,
+    // });
 
     const task = new tasks.LambdaInvoke(this, id, {
-      lambdaFunction: funcAlias,
+      lambdaFunction: func,
       payload: sfn.TaskInput.fromObject(props.functionPayload!),
       payloadResponseOnly: true,
       ...props,

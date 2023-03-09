@@ -11,13 +11,13 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import * as c from '@aws-accelerator/common-config/src';
 import { AccountStack } from '../../common/account-stacks';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as path from 'path';
-import * as iam from '@aws-cdk/aws-iam';
-import * as events from '@aws-cdk/aws-events';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as events from 'aws-cdk-lib/aws-events';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { Context } from '../../utils/context';
 

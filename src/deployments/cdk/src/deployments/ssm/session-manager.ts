@@ -11,12 +11,12 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { AccountStacks } from '../../common/account-stacks';
-import { Key } from '@aws-cdk/aws-kms';
-import { AccountPrincipal, ServicePrincipal } from '@aws-cdk/aws-iam';
+import { Key } from 'aws-cdk-lib/aws-kms';
+import { AccountPrincipal, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
 import {
   createLogGroupName,
@@ -80,10 +80,11 @@ export async function step1(props: SSMStep1Props) {
         continue;
       }
 
+      // Removing trustAccountIdentities: true, since this is now default.
+      // https://docs.aws.amazon.com/cdk/api/v1/docs/@aws-cdk_aws-kms.Key.html#trustaccountidentitiesspan-classapi-icon-api-icon-deprecated-titlethis-api-element-is-deprecated-its-use-is-not-recommended%EF%B8%8Fspan
       const keyAlias = createEncryptionKeyName('SSM-Key');
       const ssmKey = new Key(accountStack, 'SSM-Key', {
         alias: `alias/${keyAlias}`,
-        trustAccountIdentities: true,
         description: 'Key used to encrypt/decrypt SSM',
         enableKeyRotation: true,
       });

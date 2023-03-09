@@ -13,16 +13,17 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as codebuild from '@aws-cdk/aws-codebuild';
-import * as codecommit from '@aws-cdk/aws-codecommit';
-import * as codepipeline from '@aws-cdk/aws-codepipeline';
-import * as actions from '@aws-cdk/aws-codepipeline-actions';
-import * as iam from '@aws-cdk/aws-iam';
-import * as kms from '@aws-cdk/aws-kms';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import * as codebuild from 'aws-cdk-lib/aws-codebuild';
+import * as codecommit from 'aws-cdk-lib/aws-codecommit';
+import * as codepipeline from 'aws-cdk-lib/aws-codepipeline';
+import * as actions from 'aws-cdk-lib/aws-codepipeline-actions';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as kms from 'aws-cdk-lib/aws-kms';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { publicDecrypt } from 'crypto';
+import { Construct } from 'constructs';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -65,7 +66,7 @@ export namespace Installer {
   }
 }
 class Installer extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props: Installer.Props) {
+  constructor(scope: Construct, id: string, props: Installer.Props) {
     super(scope, id, props);
 
     const { repoSource, acceleratorVersion } = props;

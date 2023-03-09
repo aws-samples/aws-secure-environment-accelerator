@@ -12,10 +12,10 @@
  */
 
 import { AccountStack } from '../../common/account-stacks';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as cdk from '@aws-cdk/core';
-import * as events from '@aws-cdk/aws-events';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as events from 'aws-cdk-lib/aws-events';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 
 export interface RemoveAccountProps {

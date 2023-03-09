@@ -15,7 +15,7 @@
 import 'jest';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { AccountStacks } from '../../src/common/account-stacks';

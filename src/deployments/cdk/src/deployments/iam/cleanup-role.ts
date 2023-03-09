@@ -12,7 +12,7 @@
  */
 
 import * as c from '@aws-accelerator/common-config/src';
-import * as iam from '@aws-cdk/aws-iam';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { AccountStacks, AccountStack } from '../../common/account-stacks';
 import { createIamRoleOutput } from './outputs';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';

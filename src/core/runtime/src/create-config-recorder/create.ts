@@ -171,7 +171,7 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
           }
           try {
             await configService.deleteDeliveryChannel(channel.name!);
-          } catch (error) {
+          } catch (error: any) {
             errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
           }
         }
@@ -188,7 +188,7 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
       console.log(`${accountId}::${region}:: Enabling Config Recorder`);
       const enableConfig = await enableConfigRecorder(configService, accountId, region, acceleratorRecorderName);
       errors.push(...enableConfig);
-    } catch (error) {
+    } catch (error: any) {
       errors.push(
         `${accountId}:${region}: ${error.code}: ${
           CustomErrorMessage.find(cm => cm.code === error.code)?.message || error.message
@@ -287,7 +287,7 @@ async function createConfigRecorder(props: {
         },
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
   }
   return errors;
@@ -313,7 +313,7 @@ async function createDeliveryChannel(
         },
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
   }
   return errors;
@@ -330,7 +330,7 @@ async function enableConfigRecorder(
   // Start Recorder
   try {
     await configService.startRecorder({ ConfigurationRecorderName: recorderName });
-  } catch (error) {
+  } catch (error: any) {
     errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
   }
   return errors;
@@ -354,7 +354,7 @@ async function createAggregator(
         AllAwsRegions: true,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
   }
 
@@ -374,7 +374,7 @@ async function deleteAggregator(
     await configService.deleteAggregator({
       ConfigurationAggregatorName: aggregatorName,
     });
-  } catch (error) {
+  } catch (error: any) {
     errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
   }
   return errors;
@@ -402,7 +402,7 @@ async function disableAndDeleteConfigRecorders(props: {
       await configService.stopRecorder({
         ConfigurationRecorderName: recorder.name!,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.warn(`${accountId}:${region}: ${error.code}: ${error.message}`);
     }
 
@@ -411,7 +411,7 @@ async function disableAndDeleteConfigRecorders(props: {
         `${accountId}::${region}:: Deleting Config Recorder "${recorder.name}" which is not managed by Accelerator`,
       );
       await configService.deleteConfigurationRecorder(recorder.name!);
-    } catch (error) {
+    } catch (error: any) {
       errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
     }
   }

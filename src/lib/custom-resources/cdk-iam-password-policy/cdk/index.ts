@@ -11,9 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::IAMPasswordPolicy';
 
@@ -32,8 +33,8 @@ export interface PasswordPolicyProperties {
 /**
  * Custom resource implementation that set/update IAM account password policy
  */
-export class IamPasswordPolicy extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: PasswordPolicyProperties) {
+export class IamPasswordPolicy extends Construct {
+  constructor(scope: Construct, id: string, props: PasswordPolicyProperties) {
     super(scope, id);
 
     const {

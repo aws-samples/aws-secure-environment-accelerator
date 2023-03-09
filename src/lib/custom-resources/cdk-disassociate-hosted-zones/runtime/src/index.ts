@@ -134,7 +134,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
     try {
       console.log(`DisAssociating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
       await throttlingBackOff(() => vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps).promise());
-    } catch (e) {
+    } catch (e: any) {
       if (e.code === 'NoSuchHostedZone') {
         console.warn(`Hosted Zone not found: "${hostedZoneAccountId}:${hostedZoneId}"`);
       } else if (e.code === 'VPCAssociationNotFound') {

@@ -11,10 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as ssm from '@aws-cdk/aws-ssm';
-import * as cdk from '@aws-cdk/core';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as nlb from '@aws-cdk/aws-elasticloadbalancingv2';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
+import * as cdk from 'aws-cdk-lib';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as nlb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { NetworkLoadBalancer, RsysLogAutoScalingGroup, Vpc } from '@aws-accelerator/cdk-constructs/src/vpc';
 import { AcceleratorConfig, RsyslogConfig } from '@aws-accelerator/common-config/src';
 import { AccountStacks } from '../../common/account-stacks';
@@ -31,6 +31,7 @@ import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-rol
 import { Context } from '../../utils/context';
 import { CfnLoadBalancerOutput } from '../alb/outputs';
 import { AesBucketOutput } from '../defaults';
+import { Construct } from 'constructs';
 
 export interface RSysLogStep1Props {
   accountStacks: AccountStacks;
@@ -230,7 +231,7 @@ export function createAsg(
   });
 }
 
-export function createTargetGroupForInstance(scope: cdk.Construct, targetGroupName: string, vpcId: string) {
+export function createTargetGroupForInstance(scope: Construct, targetGroupName: string, vpcId: string) {
   return new nlb.CfnTargetGroup(scope, `TgRsyslog${targetGroupName}`, {
     name: targetGroupName,
     targetType: 'instance',

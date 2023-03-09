@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
 
 const resourceType = 'Custom::S3PutBucketVersioning';
 
@@ -29,11 +30,11 @@ export type S3PutBucketVersioningRuntimeProps = Omit<S3PutBucketVersioningProps,
 /**
  * Custom resource that will create SSM Document.
  */
-export class S3PutBucketVersioning extends cdk.Construct {
+export class S3PutBucketVersioning extends Construct {
   private readonly resource: cdk.CustomResource;
   private role: iam.IRole;
 
-  constructor(scope: cdk.Construct, id: string, props: S3PutBucketVersioningProps) {
+  constructor(scope: Construct, id: string, props: S3PutBucketVersioningProps) {
     super(scope, id);
     this.role = iam.Role.fromRoleArn(this, `${resourceType}Role`, props.roleArn);
 

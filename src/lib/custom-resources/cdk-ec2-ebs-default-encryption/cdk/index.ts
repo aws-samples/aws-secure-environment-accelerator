@@ -12,11 +12,12 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as kms from '@aws-cdk/aws-kms';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as kms from 'aws-cdk-lib/aws-kms';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { HandlerProperties } from '@aws-accelerator/custom-resource-ec2-ebs-default-encryption-runtime';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::EBSDefaultEncryption';
 
@@ -24,8 +25,8 @@ export interface EbsDefaultEncryptionProps {
   key: kms.IKey;
 }
 
-export class EbsDefaultEncryption extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, private readonly props: EbsDefaultEncryptionProps) {
+export class EbsDefaultEncryption extends Construct {
+  constructor(scope: Construct, id: string, private readonly props: EbsDefaultEncryptionProps) {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = {

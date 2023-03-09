@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::TGWCreatePeeringAttachment';
 
@@ -30,11 +31,11 @@ export interface TransitGatewayCreatePeeringAttachmentProps {
 /**
  * Custom resource implementation that creates transit gateway peering attachment
  */
-export class TransitGatewayCreatePeeringAttachment extends cdk.Construct {
+export class TransitGatewayCreatePeeringAttachment extends Construct {
   private readonly resource: cdk.CustomResource;
   private readonly role: iam.IRole;
 
-  constructor(scope: cdk.Construct, id: string, props: TransitGatewayCreatePeeringAttachmentProps) {
+  constructor(scope: Construct, id: string, props: TransitGatewayCreatePeeringAttachmentProps) {
     super(scope, id);
 
     const { transitGatewayId, targetTransitGatewayId, targetAccountId, targetRegion, tagValue } = props;

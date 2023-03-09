@@ -772,10 +772,10 @@
             "MaxPasswordAge": "90",
             "MinimumPasswordLength": "14",
             "PasswordReusePrevention": "24",
-            "RequireLowercaseCharacters": "TRUE",
-            "RequireNumbers": "TRUE",
-            "RequireSymbols": "TRUE",
-            "RequireUppercaseCharacters": "TRUE"
+            "RequireLowercaseCharacters": "true",
+            "RequireNumbers": "true",
+            "RequireSymbols": "true",
+            "RequireUppercaseCharacters": "true"
           }
         },
         {

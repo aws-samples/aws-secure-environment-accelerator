@@ -205,7 +205,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
       putFiles: updateFiles,
       parentCommitId: configCommitId,
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'NoChangeException') {
       console.log(`No Change in Configuration form Previous Execution`);
     } else {

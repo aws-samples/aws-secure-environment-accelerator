@@ -206,7 +206,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
           if (workLoadAccount.split('\n').length + 7 > 2000) {
             useNewConfigFile = true;
           }
-        } catch (error) {
+        } catch (error: any) {
           if (error.code === 'FileDoesNotExistException') {
             useNewConfigFile = false;
           }
@@ -286,7 +286,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
           );
           accountFileString = accountFileResponse.fileContent.toString();
           accountFile = getFormattedObject(accountFileString, format);
-        } catch (error) {
+        } catch (error: any) {
           if (error.code === 'FileDoesNotExistException') {
             accountFile = {};
           } else {
@@ -322,7 +322,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
           parentCommitId: rawConfigResponse.commitId,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'NoChangeException') {
         console.log(`No Change in Configuration form Previous Execution`);
       } else {
@@ -372,7 +372,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
         commitMessage: `Adding account to configuration through Move-Account`,
         parentCommitId: rawConfigResponse.commitId,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'NoChangeException') {
         console.log(`No Change in Configuration form Previous Execution`);
       } else {
@@ -402,7 +402,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
       commitMessage: `Updating Raw Config in SM after Move Account`,
       parentCommitId: latestCommitId,
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'NoChangeException') {
       console.log(`No Change in Configuration form Previous Execution`);
     } else {

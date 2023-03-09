@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as sfn from '@aws-cdk/aws-stepfunctions';
+import * as cdk from 'aws-cdk-lib/core';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
+import { Construct } from 'constructs';
 
 import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-tasks';
 
@@ -33,7 +34,7 @@ export class AddTagsToResourcesTask extends sfn.StateMachineFragment {
   readonly startState: sfn.State;
   readonly endStates: sfn.INextable[];
 
-  constructor(scope: cdk.Construct, id: string, props: AddTagsToResourcesTask.Props) {
+  constructor(scope: Construct, id: string, props: AddTagsToResourcesTask.Props) {
     super(scope, id);
 
     const { role, lambdaCode, name, permissions, waitSeconds = 60 } = props;
@@ -74,7 +75,7 @@ export class AddTagsToResourcesTask extends sfn.StateMachineFragment {
     // Create Map task to iterate
     const mapTask = new sfn.Map(this, `${name} Map`, {
       itemsPath: '$.accounts',
-      //resultPath: '$.errors',
+      // resultPath: '$.errors',
       resultPath: '$.results',
       maxConcurrency: 10,
       parameters: {
@@ -126,8 +127,7 @@ export class AddTagsToResourcesTask extends sfn.StateMachineFragment {
       .when(sfn.Condition.stringEquals('$.status', 'SUCCESS'), pass)
       .otherwise(fail);
 
-    let chain: sfn.Chain;
-    chain = sfn.Chain.start(ddbTask).next(mapTask).next(verifyddbTask).next(isDdbTaskSuccess);
+    const chain = sfn.Chain.start(ddbTask).next(mapTask).next(verifyddbTask).next(isDdbTaskSuccess);
     this.startState = chain.startState;
     this.endStates = chain.endStates;
   }

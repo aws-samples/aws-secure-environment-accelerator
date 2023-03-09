@@ -14,7 +14,7 @@
 import path from 'path';
 import tempy from 'tempy';
 import { pascalCase } from 'pascal-case';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-stack';
 import { Context } from '../utils/context';
 import { Account, getAccountId } from '../utils/accounts';
