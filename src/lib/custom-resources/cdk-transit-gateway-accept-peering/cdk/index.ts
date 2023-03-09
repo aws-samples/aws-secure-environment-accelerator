@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::TGWAcceptPeeringAttachment';
 
@@ -27,11 +28,11 @@ export interface TransitGatewayAcceptPeeringAttachmentProps {
 /**
  * Custom resource implementation that accepts transit gateway peering attachment
  */
-export class TransitGatewayAcceptPeeringAttachment extends cdk.Construct {
+export class TransitGatewayAcceptPeeringAttachment extends Construct {
   private readonly resource: cdk.CustomResource;
   private readonly role: iam.IRole;
 
-  constructor(scope: cdk.Construct, id: string, props: TransitGatewayAcceptPeeringAttachmentProps) {
+  constructor(scope: Construct, id: string, props: TransitGatewayAcceptPeeringAttachmentProps) {
     super(scope, id);
 
     this.role = iam.Role.fromRoleArn(scope, `${resourceType}Role`, props.roleArn);

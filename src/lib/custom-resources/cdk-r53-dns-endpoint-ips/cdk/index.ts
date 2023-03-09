@@ -11,9 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as custom from '@aws-cdk/custom-resources';
-import * as iam from '@aws-cdk/aws-iam';
+import * as cdk from 'aws-cdk-lib';
+import * as custom from 'aws-cdk-lib/custom-resources';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import { Construct } from 'constructs';
 
 export interface R53DnsEndpointIpsProps {
   resolverEndpointId: string;
@@ -22,10 +23,10 @@ export interface R53DnsEndpointIpsProps {
 /**
  * Custom resource implementation that retrive IPs for a created DNS Endpoint.
  */
-export class R53DnsEndpointIps extends cdk.Construct {
+export class R53DnsEndpointIps extends Construct {
   private readonly resource: custom.AwsCustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: R53DnsEndpointIpsProps) {
+  constructor(scope: Construct, id: string, props: R53DnsEndpointIpsProps) {
     super(scope, id);
     const { resolverEndpointId } = props;
 

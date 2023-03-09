@@ -80,7 +80,7 @@ export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
         const deleteErrors = await deleteVpc(ec2, vpc.VpcId!, accountId, region);
         errors.push(...deleteErrors);
       }
-    } catch (error) {
+    } catch (error: any) {
       errors.push(
         `${accountId}:${region}: ${error.code}: ${
           CustomErrorMessage.find(cm => cm.code === error.code)?.message || error.message
@@ -109,7 +109,7 @@ async function deleteVpc(ec2: EC2, vpcId: string, accountId: string, region: str
   for (const subnet of subnets) {
     try {
       await ec2.deleteSubnet(subnet.SubnetId!);
-    } catch (error) {
+    } catch (error: any) {
       errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
     }
   }
@@ -120,14 +120,14 @@ async function deleteVpc(ec2: EC2, vpcId: string, accountId: string, region: str
     try {
       await ec2.detachInternetGateway(vpcId, igw.InternetGatewayId!);
       await ec2.deleteInternetGateway(igw.InternetGatewayId!);
-    } catch (error) {
+    } catch (error: any) {
       errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
     }
   }
   // Deleting VPC
   try {
     await ec2.deleteVpc(vpcId);
-  } catch (error) {
+  } catch (error: any) {
     errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
   }
   return errors;

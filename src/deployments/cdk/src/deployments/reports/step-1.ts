@@ -11,7 +11,7 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { CurReportDefinition } from '@aws-accelerator/custom-resource-cur-report-definition';
 import { createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';

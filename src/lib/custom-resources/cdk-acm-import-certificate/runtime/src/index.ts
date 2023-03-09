@@ -117,7 +117,7 @@ async function importCertificate(
         .promise(),
     );
     return response.CertificateArn!;
-  } catch (e) {
+  } catch (e: any) {
     if (e.code === 'LimitExceededException' && properties.ignoreLimitExceededException === true) {
       console.warn(`Ignoring limit exceeded exception`);
       return physicalResourceId || 'LimitExceeded';

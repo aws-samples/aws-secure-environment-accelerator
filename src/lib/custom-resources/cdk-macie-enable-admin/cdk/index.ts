@@ -12,10 +12,11 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { HandlerProperties } from '@aws-accelerator/custom-resource-macie-enable-admin-runtime';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::MacieAdmin';
 
@@ -24,10 +25,10 @@ export interface MacieEnableAdminProps {
   roleArn: string;
 }
 
-export class MacieEnableAdmin extends cdk.Construct {
+export class MacieEnableAdmin extends Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: MacieEnableAdminProps) {
+  constructor(scope: Construct, id: string, props: MacieEnableAdminProps) {
     super(scope, id);
     const handlerProperties: HandlerProperties = {
       accountId: props.accountId,

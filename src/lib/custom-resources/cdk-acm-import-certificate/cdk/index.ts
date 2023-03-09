@@ -12,11 +12,12 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { HandlerProperties } from '@aws-accelerator/custom-resource-acm-import-certificate-runtime';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::AcmImportCertificate';
 
@@ -39,12 +40,12 @@ export interface AcmImportCertificateProps {
 /**
  * Custom resource implementation that creates log subscription for directory service.
  */
-export class AcmImportCertificate extends cdk.Construct implements cdk.ITaggable {
+export class AcmImportCertificate extends Construct implements cdk.ITaggable {
   tags: cdk.TagManager = new cdk.TagManager(cdk.TagType.KEY_VALUE, 'AcmImportCertificate');
 
   private resource: cdk.CustomResource | undefined;
 
-  constructor(scope: cdk.Construct, id: string, private readonly props: AcmImportCertificateProps) {
+  constructor(scope: Construct, id: string, private readonly props: AcmImportCertificateProps) {
     super(scope, id);
 
     this.tags.setTag('Name', props.name);
@@ -52,20 +53,6 @@ export class AcmImportCertificate extends cdk.Construct implements cdk.ITaggable
     props.certificateBucket.grantRead(this.role);
     props.privateKeyBucket.grantRead(this.role);
     props.certificateChainBucket?.grantRead(this.role);
-  }
-
-  get certificateArn(): string {
-    // Return a lazy value as the resource only gets created in the onPrepare phase
-    return cdk.Lazy.string({
-      produce: () => this.resource!.getAttString('CertificateArn'),
-    });
-  }
-
-  get role(): iam.IRole {
-    return this.lambdaFunction.role!;
-  }
-
-  protected onPrepare() {
     const handlerProperties: HandlerProperties = {
       certificateBucketName: this.props.certificateBucket.bucketName,
       certificateBucketPath: this.props.certificateBucketPath,
@@ -124,5 +111,16 @@ export class AcmImportCertificate extends cdk.Construct implements cdk.ITaggable
       role,
       timeout: cdk.Duration.seconds(60),
     });
+  }
+
+  get certificateArn(): string {
+    // Return a lazy value as the resource only gets created in the onPrepare phase
+    return cdk.Lazy.string({
+      produce: () => this.resource!.getAttString('CertificateArn'),
+    });
+  }
+
+  get role(): iam.IRole {
+    return this.lambdaFunction.role!;
   }
 }

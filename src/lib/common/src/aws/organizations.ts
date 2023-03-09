@@ -290,7 +290,7 @@ export class Organizations {
           })
           .promise(),
       );
-    } catch (e) {
+    } catch (e: any) {
       if (e.code === 'AccountAlreadyRegisteredException') {
         // ignore error
       } else {

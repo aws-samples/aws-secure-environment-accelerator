@@ -17,7 +17,8 @@ import { AccountStacks } from '../../../common/account-stacks';
 import { Ec2MarketPlaceSubscriptionCheck } from '@aws-accelerator/custom-resource-ec2-marketplace-subscription-validation';
 import { JsonOutputValue } from '../../../common/json-output';
 import { AmiSubscriptionOutput } from '@aws-accelerator/common-outputs/src/stack-output';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 
 export interface FirewallSubscriptionStep1Props {
   accountKey: string;
@@ -83,7 +84,7 @@ export async function step1(props: FirewallSubscriptionStep1Props) {
   }
 }
 
-const checkStatus = (scope: cdk.Construct, imageId: string, subnetId: string, id: string): string => {
+const checkStatus = (scope: Construct, imageId: string, subnetId: string, id: string): string => {
   const subscriptionCheckResponse = new Ec2MarketPlaceSubscriptionCheck(scope, id, {
     imageId,
     subnetId,

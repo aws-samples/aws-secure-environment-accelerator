@@ -11,8 +11,9 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
+import * as cdk from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import { Construct } from 'constructs';
 
 export interface TransitGatewayAttachmentProps {
   name: string;
@@ -21,10 +22,10 @@ export interface TransitGatewayAttachmentProps {
   transitGatewayId: string;
 }
 
-export class TransitGatewayAttachment extends cdk.Construct {
+export class TransitGatewayAttachment extends Construct {
   public readonly resource: ec2.CfnTransitGatewayAttachment;
 
-  constructor(parent: cdk.Construct, name: string, props: TransitGatewayAttachmentProps) {
+  constructor(parent: Construct, name: string, props: TransitGatewayAttachmentProps) {
     super(parent, name);
 
     this.resource = new ec2.CfnTransitGatewayAttachment(this, 'Resource', props);
@@ -44,8 +45,8 @@ export interface TransitGatewayRouteProps {
   cidr?: string;
 }
 
-export class TransitGatewayRoute extends cdk.Construct {
-  constructor(parent: cdk.Construct, name: string, props: TransitGatewayRouteProps) {
+export class TransitGatewayRoute extends Construct {
+  constructor(parent: Construct, name: string, props: TransitGatewayRouteProps) {
     super(parent, name);
 
     for (const [index, route] of props.tgwRouteAssociates?.entries() || []) {

@@ -12,11 +12,12 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { HandlerProperties } from '@aws-accelerator/custom-resource-s3-update-logarchive-policy-runtime';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::S3UpdateLogArchivePolicy';
 
@@ -32,20 +33,13 @@ export interface LogArchiveReadAccessProps {
 /**
  * Adds IAM roles with {'ssm-log-archive-read-only-access': true} to the LogArchive bucket policy
  */
-export class S3UpdateLogArchivePolicy extends cdk.Construct {
+export class S3UpdateLogArchivePolicy extends Construct {
   private resource: cdk.CustomResource | undefined;
 
-  constructor(scope: cdk.Construct, id: string, private readonly props: LogArchiveReadAccessProps) {
+  constructor(scope: Construct, id: string, private readonly props: LogArchiveReadAccessProps) {
     super(scope, id);
 
     const { roles, logBucket, aesLogBucket, acceleratorPrefix } = props;
-  }
-
-  get role(): iam.IRole {
-    return this.lambdaFunction.role!;
-  }
-
-  protected onPrepare() {
     const handlerProperties: HandlerProperties = {
       roles: this.props.roles,
       logBucketArn: this.props.logBucket.bucketArn,
@@ -108,5 +102,9 @@ export class S3UpdateLogArchivePolicy extends cdk.Construct {
       role,
       timeout: cdk.Duration.seconds(60),
     });
+  }
+
+  get role(): iam.IRole {
+    return this.lambdaFunction.role!;
   }
 }

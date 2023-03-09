@@ -12,8 +12,8 @@
  */
 
 import { pascalCase } from 'pascal-case';
-import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
+import * as cdk from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as c from '@aws-accelerator/common-config/src';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { TransitGatewayOutputFinder, TransitGatewayOutput } from '@aws-accelerator/common-outputs/src/transit-gateway';
@@ -21,6 +21,8 @@ import { VpnTunnelOptions } from '@aws-accelerator/custom-resource-ec2-vpn-tunne
 import { VpnAttachments } from '@aws-accelerator/custom-resource-ec2-vpn-attachment';
 import { AccountStacks } from '../../../common/account-stacks';
 import { AddTagsToResourcesOutput, AddTagsToResource } from '../../../common/add-tags-to-resources-output';
+import { Construct } from 'constructs';
+
 import {
   FirewallPort,
   FirewallVpnConnection,
@@ -114,7 +116,7 @@ export async function step2(props: FirewallStep2Props) {
  * Create customer gateway and VPN connections for the firewall EIPs of step 1 or customer provided ips from configuration file.
  */
 async function createCustomerGateways(props: {
-  scope: cdk.Construct;
+  scope: Construct;
   firewallAccountKey: string;
   firewallConfig: c.FirewallEC2ConfigType | c.FirewallCGWConfigType;
   transitGateway: TransitGatewayOutput;

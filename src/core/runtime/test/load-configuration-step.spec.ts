@@ -68,7 +68,7 @@ test('the handler should throw an error when the Accelerator config name does no
       acceleratorPrefix: 'PBMMAccel-',
       parametersTableName: 'PBMMAccel-Parameters',
     });
-  } catch (e) {
+  } catch (e: any) {
     expect(e.message).toMatch('does not match the name in the Accelerator configuration');
   }
 });
@@ -87,7 +87,7 @@ test('the handler should throw an error when the Accelerator config OU does not 
       acceleratorPrefix: 'PBMMAccel-',
       parametersTableName: 'PBMMAccel-Parameters',
     });
-  } catch (e) {
+  } catch (e: any) {
     expect(e.message).toMatch('is not in OU');
   }
 });

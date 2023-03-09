@@ -11,15 +11,16 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import { Construct } from 'constructs';
 
 export type ServiceLinkedRoleProps = iam.CfnServiceLinkedRoleProps;
 
-export class ServiceLinkedRole extends cdk.Construct {
+export class ServiceLinkedRole extends Construct {
   private readonly resource: iam.CfnServiceLinkedRole;
 
-  constructor(scope: cdk.Construct, id: string, props: ServiceLinkedRoleProps) {
+  constructor(scope: Construct, id: string, props: ServiceLinkedRoleProps) {
     super(scope, id);
 
     this.resource = new iam.CfnServiceLinkedRole(this, 'Resource', props);

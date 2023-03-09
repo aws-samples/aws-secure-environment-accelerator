@@ -133,7 +133,7 @@ export class AccountVendingMachine {
           ],
         }),
       );
-    } catch (e) {
+    } catch (e: any) {
       console.log('Exception Message: ' + e.message);
       if (e.message === 'A stack named ' + accountName + ' already exists.') {
         return {

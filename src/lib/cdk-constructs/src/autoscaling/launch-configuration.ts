@@ -12,8 +12,9 @@
  */
 
 import hashSum from 'hash-sum';
-import * as cdk from '@aws-cdk/core';
-import * as autoscaling from '@aws-cdk/aws-autoscaling';
+import * as cdk from 'aws-cdk-lib';
+import * as autoscaling from 'aws-cdk-lib/aws-autoscaling';
+import { Construct } from 'constructs';
 
 export type LaunchConfigurationProps = autoscaling.CfnLaunchConfigurationProps;
 
@@ -30,7 +31,7 @@ interface LaunchConfigurationCustomProps extends LaunchConfigurationProps {
  * the launch configuration properties. The hash makes sure the launch configuration gets replaced correctly by CloudFormation.
  */
 export class LaunchConfiguration extends autoscaling.CfnLaunchConfiguration {
-  constructor(scope: cdk.Construct, id: string, props: LaunchConfigurationCustomProps) {
+  constructor(scope: Construct, id: string, props: LaunchConfigurationCustomProps) {
     super(scope, id, props);
 
     const hash = hashSum({ ...props, path: this.node.path });

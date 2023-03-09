@@ -11,9 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { Keypair } from '@aws-accelerator/custom-resource-ec2-keypair';
 import { createName, createSecretPrefix } from './accelerator-name-generator';
+import { Construct } from 'constructs';
 
 export interface AcceleratorKeypairProps {
   name: string;
@@ -22,10 +23,10 @@ export interface AcceleratorKeypairProps {
 /**
  * Wrapper around Keypair that automatically adds the Accelerator prefix to the secret.
  */
-export class AcceleratorKeypair extends cdk.Construct {
+export class AcceleratorKeypair extends Construct {
   private readonly resource: Keypair;
 
-  constructor(scope: cdk.Construct, id: string, props: AcceleratorKeypairProps) {
+  constructor(scope: Construct, id: string, props: AcceleratorKeypairProps) {
     super(scope, id);
 
     const keyName = createName({

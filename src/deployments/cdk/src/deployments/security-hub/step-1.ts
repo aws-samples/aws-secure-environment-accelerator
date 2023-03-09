@@ -18,11 +18,11 @@ import { SecurityHub } from '@aws-accelerator/cdk-constructs/src/security-hub';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
-import * as cdk from '@aws-cdk/core';
-import * as eventBridge from '@aws-cdk/aws-events';
-import * as targets from '@aws-cdk/aws-events-targets';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as iam from '@aws-cdk/aws-iam';
+import * as cdk from 'aws-cdk-lib';
+import * as eventBridge from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 import path from 'path';
 

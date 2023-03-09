@@ -13,9 +13,8 @@
 
 import { S3 } from '@aws-accelerator/common/src/aws/s3';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
-import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { StackOutput, getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { TagResources } from '@aws-accelerator/common/src/aws/resource-tagging';
-import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 
 const ALLOWED_RESOURCE_TYPES = ['subnet', 'security-group', 'vpc', 'tgw-attachment'];
 
@@ -79,7 +78,7 @@ async function loadDDBScanFromS3(bucket: string, key: string): Promise<StackOutp
       Key: key,
     });
     return JSON.parse(ddbScanResults);
-  } catch (e) {
+  } catch (e: any) {
     throw new Error(`Cannot find"${key}" in bucket "${bucket}": code:${e.code}`);
   }
 }
@@ -102,7 +101,7 @@ async function tagResources(
       console.log(`Tagging resource "${resourceId}" in account "${accountId}"`);
       if (ALLOWED_RESOURCE_TYPES.includes(resourceType)) {
         try {
-          //This instantiation is here because of region specificity
+          // This instantiation is here because of region specificity
           const tagResources = new TagResources(credentials, region);
           await tagResources.createTags({
             Resources: [resourceId],

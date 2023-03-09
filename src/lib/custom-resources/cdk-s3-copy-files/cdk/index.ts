@@ -12,11 +12,12 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { HandlerProperties } from '@aws-accelerator/custom-resource-s3-copy-files-runtime';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::S3CopyFiles';
 
@@ -44,8 +45,8 @@ export interface S3CopyFilesProps {
 /**
  * Custom resource that has an VPN tunnel options attribute for the VPN connection with the given ID.
  */
-export class S3CopyFiles extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, private readonly props: S3CopyFilesProps) {
+export class S3CopyFiles extends Construct {
+  constructor(scope: Construct, id: string, private readonly props: S3CopyFilesProps) {
     super(scope, id);
 
     props.destinationBucket.grantReadWrite(this.role);

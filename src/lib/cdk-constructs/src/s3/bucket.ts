@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as kms from '@aws-cdk/aws-kms';
-import * as iam from '@aws-cdk/aws-iam';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import * as kms from 'aws-cdk-lib/aws-kms';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import { Construct } from 'constructs';
 
 export interface BucketProps {
   bucketName?: string;
@@ -35,7 +36,7 @@ export interface BucketProps {
 export class Bucket extends s3.Bucket {
   private readonly resource: s3.CfnBucket;
 
-  constructor(scope: cdk.Construct, id: string, props: BucketProps) {
+  constructor(scope: Construct, id: string, props: BucketProps) {
     super(scope, id, {
       bucketName: props.bucketName,
       encryptionKey: props.encryptionKey,

@@ -78,7 +78,7 @@ export type LaunchConfigurationProps = autoscaling.CfnLaunchConfigurationProps;
  * CloudFormation.
  */
 export class LaunchConfiguration extends autoscaling.CfnLaunchConfiguration {
-    constructor(scope: cdk.Construct, id: string, props: LaunchConfigurationProps) {
+    constructor(scope: Construct, id: string, props: LaunchConfigurationProps) {
         super(scope, id, props);
 
         if (props.launchConfigurationName) {
@@ -172,8 +172,8 @@ In the CDK code we can now resolve the path to the compiled code using the `Node
 `cdk/src/index.ts`
 
 ```typescript
-class LambdaFun extends cdk.Construct {
-    constructor(scope: cdk.Construct, id: string) {
+class LambdaFun extends Construct {
+    constructor(scope: Construct, id: string) {
         super(scope, id);
 
         // Find the runtime package folder and resolves the `main` entry of `package.json`.
@@ -204,7 +204,7 @@ We create custom resources for functionality that is not supported natively by C
 1. Custom resource that calls an SDK method;
 2. Custom resource that needs additional functionality and is backed by a custom Lambda function.
 
-CDK has a helper construct for the first type of custom resources. See [CDK `AwsCustomResource` documentation](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_custom-resources.AwsCustomResource.html). This helper construct is for example used in the custom resource [`ds-log-subscription`](../../../../src/lib/custom-resources/cdk-cdk-ds-log-subscription/).
+CDK has a helper construct for the first type of custom resources. See [CDK `AwsCustomResource` documentation](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-cdk-lib_custom-resources.AwsCustomResource.html). This helper construct is for example used in the custom resource [`ds-log-subscription`](../../../../src/lib/custom-resources/cdk-cdk-ds-log-subscription/).
 
 The second type of custom resources requires a custom Lambda function runtime as described in the previous section. For example [`acm-import-certificate`](../../../../src/lib/custom-resources/cdk-acm-import-certificate) is backed by a custom Lambda function.
 
@@ -213,8 +213,8 @@ Only a single Lambda function is created per custom resource, account and region
 `src/lib/custom-resources/custom-resource/cdk/index.ts`
 
 ```typescript
-class CustomResource extends cdk.Construct {
-    constructor(scope: cdk.Construct, id: string, props: CustomResourceProps) {
+class CustomResource extends Construct {
+    constructor(scope: Construct, id: string, props: CustomResourceProps) {
         super(scope, id);
 
         new cdk.CustomResource(this, 'Resource', {

@@ -69,7 +69,7 @@ export const handler = async (input: CreateStackInput) => {
    */
 
   if (parametersTableName) {
-    const accounts = await loadAccounts(parametersTableName!, dynamodb);
+    const accounts = await loadAccounts(parametersTableName, dynamodb);
     if (accounts.find(acc => acc.id === accountId)?.key! === 'management') {
       templateBody = await getTemplateBody(managementAccountTemplate!);
     }

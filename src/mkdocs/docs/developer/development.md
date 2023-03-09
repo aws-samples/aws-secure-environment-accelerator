@@ -367,7 +367,7 @@ export async function step1(props: CertificatesStep1Props) {
 
 #### 1.7.4.5. `Vpc` and `ImportedVpc`
 
-`Vpc` is an interface in the `src/lib/cdk-constructs/src/vpc/vpc.ts` file that attempts to define an interface for a VPC. The goal of the interface is to be implemented by a `cdk.Construct` that implements the interface. This CDK issue provides more background [https://github.com/aws/aws-cdk/issues/5927].
+`Vpc` is an interface in the `src/lib/cdk-constructs/src/vpc/vpc.ts` file that attempts to define an interface for a VPC. The goal of the interface is to be implemented by a `Construct` that implements the interface. This CDK issue provides more background [https://github.com/aws/aws-cdk/issues/5927].
 
 Another goal of the interface is to provide an interface on top of imported VPC outputs. This is what the `ImportedVpc` class implements. The class loads outputs from VPC in a previous phase and implements the `Vpc` interface on top of those outputs.
 

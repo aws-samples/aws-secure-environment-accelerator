@@ -139,7 +139,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
     try {
       console.log(`Associating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
       await throttlingBackOff(() => vpcRoute53.associateVPCWithHostedZone(hostedZoneProps).promise());
-    } catch (e) {
+    } catch (e: any) {
       if (e.code === 'ConflictingDomainExists') {
         console.info('Domain already added; ignore this error and continue');
       } else {
@@ -198,7 +198,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
     try {
       console.log(`Associating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
       await throttlingBackOff(() => vpcRoute53.associateVPCWithHostedZone(hostedZoneProps).promise());
-    } catch (e) {
+    } catch (e: any) {
       if (e.code === 'ConflictingDomainExists') {
         console.info('Domain already added; ignore this error and continue');
       } else {
@@ -226,7 +226,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
     if (vpcAccountId !== hostedZoneAccountId) {
       try {
         await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise());
-      } catch (e) {
+      } catch (e: any) {
         if (e.code === 'NoSuchHostedZone') {
           console.info(`No Domain exists with ID "${hostedZoneId}"; ignore this error and continue`);
           continue;
@@ -240,7 +240,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
     try {
       console.log(`Disassociating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
       await throttlingBackOff(() => vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps).promise());
-    } catch (e) {
+    } catch (e: any) {
       if (e.code === 'VPCAssociationNotFound') {
         console.warn(`The specified VPC "${vpcId}" and hosted zone "${hostedZoneId}" are not currently associated.`);
       } else if (e.code === 'NoSuchHostedZone') {
@@ -257,7 +257,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
     if (vpcAccountId !== hostedZoneAccountId) {
       try {
         await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise());
-      } catch (e) {
+      } catch (e: any) {
         if (e.code === 'VPCAssociationNotFound') {
           console.warn(`The specified VPC "${vpcId}" and hosted zone "${hostedZoneId}" are not currently associated.`);
         } else if (e.code === 'NoSuchHostedZone') {
@@ -312,7 +312,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     if (vpcAccountId !== hostedZoneAccountId) {
       try {
         await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise());
-      } catch (e) {
+      } catch (e: any) {
         console.error(`Ignoring error while deleting Association and stack ${hostedZoneId} to VPC "${vpcName}"`);
         console.error(e);
         continue;
@@ -323,7 +323,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     try {
       console.log(`Disassociating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
       await throttlingBackOff(() => vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps).promise());
-    } catch (e) {
+    } catch (e: any) {
       console.error(`Ignoring error while deleting Association and stack ${hostedZoneId} to VPC "${vpcName}"`);
       console.error(e);
       if (e.code === 'NoSuchHostedZone') {
