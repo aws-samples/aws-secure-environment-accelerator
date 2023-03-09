@@ -83,25 +83,12 @@ export const handler = async (input: ScheduledEvent) => {
     return 'INVALID_REQUEST';
   }
 
-  // describe policy
-  const policyResponse = await organizations.describePolicy(policyId);
-  const policy = policyResponse.Policy;
-  if (!policy) {
-    console.error(`Invalid PolicyId provided ${policyId}`);
-    return false;
-  }
-
-  if (!isServiceControlPolicy(policy)) {
-    console.log('The policy is NOT of type SERVICE_CONTROL_POLICY; No operation required');
-    return 'NO_OPERATION_REQUIRED';
-  }
-
-  if (isControlTowerSCP(policy)) {
-    console.log('Policy Changes Performed by Control Tower; No operation required');
+  if (await isControlTowerSCP(policyId)) {
+    console.log('Policy Changes Performed by Control Tower, No operation required');
     return 'NO_OPERATION_REQUIRED';
   }
   const eventName = requestDetail.eventName;
-  if (!['DeletePolicy', 'AttachPolicy'].includes(eventName) && !isAcceleratorScp(policy, scpNames)) {
+  if (!['DeletePolicy', 'AttachPolicy'].includes(eventName) && !(await isAcceleratorScp(policyId, scpNames))) {
     console.log(`SCP ${policyId} is not managed by Accelerator`);
     return 'SUCCESS';
   }
@@ -168,7 +155,7 @@ export const handler = async (input: ScheduledEvent) => {
     );
     console.log(`SCP Names for Target are :: ${acclScpNames}`);
     if (eventName === 'AttachPolicy') {
-      if (isAcceleratorScp(policy, acclScpNames)) {
+      if (await isAcceleratorScp(policyId, acclScpNames)) {
         console.log('Accelerator Managed policy is attached');
         return 'IGNORE';
       }
@@ -176,7 +163,7 @@ export const handler = async (input: ScheduledEvent) => {
       console.log(`Detaching target "${targetId}" from policy "${policyId}"`);
       await organizations.detachPolicy(policyId, targetId);
     } else {
-      if (!isAcceleratorScp(policy, acclScpNames)) {
+      if (!(await isAcceleratorScp(policyId, acclScpNames))) {
         console.log('Non Accelerator Managed policy is detached');
         return 'IGNORE';
       }
@@ -249,39 +236,30 @@ export const handler = async (input: ScheduledEvent) => {
   return 'SUCCESS';
 };
 
-function isAcceleratorScp(policy: any, scpNames: string[]): boolean {
-  const policyName = policy.PolicySummary?.Name;
-  if (!policyName) {
-    console.error(`isAcceleratorScp - Invalid policy name`);
+async function isAcceleratorScp(policyId: string, scpNames: string[]): Promise<boolean> {
+  const policyResponse = await organizations.describePolicy(policyId);
+  const policy = policyResponse.Policy;
+  if (!policy) {
+    console.error(`Invalid PolicyId provided ${policyId}`);
     return false;
   }
-  if (policyName !== FULL_AWS_ACCESS_POLICY_NAME && !scpNames.includes(policyName!)) {
+  const policyName = policy.PolicySummary?.Name;
+  if (!policyName) {
+    return false;
+  }
+  if (policyName !== FULL_AWS_ACCESS_POLICY_NAME && !scpNames.includes(policy.PolicySummary?.Name!)) {
     console.error(`Policy is not handled through Accelerator`);
     return false;
   }
   return true;
 }
 
-function isControlTowerSCP(policy: any): boolean {
+async function isControlTowerSCP(policyId: string): Promise<boolean> {
+  const policyResponse = await organizations.describePolicy(policyId);
+  const policy = policyResponse.Policy;
+
   const policyName = policy?.PolicySummary?.Name;
   if (policyName?.startsWith('aws-guardrails-')) {
-    return true;
-  }
-  return false;
-}
-
-/**
- * Checks if the policy type is SERVICE_CONTROL_POLICY.
- * @see https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/organizations.html#Organizations.Client.describe_policy
- */
-function isServiceControlPolicy(policy: any): boolean {
-  const policyType: string = policy?.PolicySummary?.Type;
-  if (!policyType) {
-    console.error(`isServiceControlPolicy - Invalid policy type`);
-    return false;
-  }
-  console.log(`isServiceControlPolicy - Policy type : ${policyType}`);
-  if (policyType === 'SERVICE_CONTROL_POLICY') {
     return true;
   }
   return false;
