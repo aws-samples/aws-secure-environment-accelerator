@@ -24,6 +24,7 @@ export const handler = async (input: any): Promise<string> => {
 
   const logGroupName = input.detail.requestParameters.logGroupName as string;
   const logDestinationArn = process.env.LOG_DESTINATION;
+  const subscriptionFilterRoleArn = process.env.SUBSCRIPTION_FILTER_ROLE_ARN;
   if (!logDestinationArn) {
     console.warn(`Log Destination is not parent in env for this account`);
     const newLocal = `Log Destination is not parent in env for this account`;
@@ -40,7 +41,11 @@ export const handler = async (input: any): Promise<string> => {
   if (isExcluded(exclusions, logGroupName)) {
     return `No Need of Subscription Filter for "${logGroupName}"`;
   }
-  await addSubscriptionFilter(logGroupName, logDestinationArn);
+
+  if (subscriptionFilterRoleArn) {
+    await addSubscriptionFilter(logGroupName, logDestinationArn, subscriptionFilterRoleArn);
+  }
+
   const logRetention = process.env.LOG_RETENTION;
   if (logRetention) {
     // Update Log Retention Policy
@@ -49,7 +54,7 @@ export const handler = async (input: any): Promise<string> => {
   return 'SUCCESS';
 };
 
-async function addSubscriptionFilter(logGroupName: string, destinationArn: string) {
+async function addSubscriptionFilter(logGroupName: string, destinationArn: string, subscriptionFilterRoleArn: string) {
   // Adding subscription filter
   await throttlingBackOff(() =>
     logs
@@ -58,6 +63,7 @@ async function addSubscriptionFilter(logGroupName: string, destinationArn: strin
         logGroupName,
         filterName: `${CloudWatchRulePrefix}${logGroupName}`,
         filterPattern: '',
+        roleArn: subscriptionFilterRoleArn,
       })
       .promise(),
   );
