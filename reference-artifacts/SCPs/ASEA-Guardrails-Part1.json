@@ -8,7 +8,8 @@
         "ec2:DeleteSecurityGroup",
         "ec2:RevokeSecurityGroup*",
         "ec2:AuthorizeSecurityGroup*",
-        "ec2:CreateSecurityGroup"
+        "ec2:CreateSecurityGroup",
+        "ec2:DeleteTags"
       ],
       "Resource": "*",
       "Condition": {
@@ -221,7 +222,8 @@
         "ec2:DeleteSubnet",
         "ec2:DeleteRoute",
         "ec2:DetachInternetGateway",
-        "ec2:DisassociateRouteTable"
+        "ec2:DisassociateRouteTable",
+        "ec2:DeleteTags"
       ],
       "Resource": "*",
       "Condition": {
