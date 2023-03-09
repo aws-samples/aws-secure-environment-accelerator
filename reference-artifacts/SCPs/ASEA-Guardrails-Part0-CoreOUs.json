@@ -102,12 +102,9 @@
       "Action": [
         "acm:DeleteCert*",
         "acm:ExportCert*",
-        "acm:AddTagsToCert*",
         "acm:RemoveTagsFromCert*",
         "elasticloadbalancing:DeleteLoadBal*",
-        "elasticloadbalancing:DeleteTargetG*",
-        "elasticloadbalancing:AddTags",
-        "elasticloadbalancing:RemoveTags"
+        "elasticloadbalancing:DeleteTargetG*"
       ],
       "Resource": "*",
       "Condition": {
