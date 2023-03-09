@@ -1703,7 +1703,7 @@
           {
             "name": "Firewall",
             "deploy": true,
-            "image-id": "ami-02bedc73195b4f137",
+            "image-id": "ami-02b5eb49ec4cae519",
             "instance-sizes": "c5n.xlarge",
             "region": "${HOME_REGION}",
             "security-group": "Firewalls",
@@ -1777,7 +1777,7 @@
         ],
         "xxfirewall-manager": {
           "name": "FirewallMgr",
-          "image-id": "ami-0a0e17ee05506072e",
+          "image-id": "ami-080f1f0299ba8924f",
           "instance-sizes": "c5.xlarge",
           "block-device-mappings": ["/dev/sda1", "/dev/sdb"],
           "region": "${HOME_REGION}",
