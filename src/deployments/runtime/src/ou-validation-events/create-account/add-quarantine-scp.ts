@@ -57,7 +57,7 @@ async function addQuarantineScp(
   console.log(`Attaching SCP "QNO SCP" to account "${accountId}"`);
   try {
     await organizations.attachPolicy(policyId, accountId);
-  } catch (e) {
+  } catch (e: any) {
     console.warn(`Exception while attachPolicy`);
     if (e.errorType === 'DuplicatePolicyAttachmentException') {
       return;

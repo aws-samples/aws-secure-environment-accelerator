@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import { IConstruct, Construct } from 'constructs';
 
-export interface IInstanceProfile extends cdk.IConstruct {
+export interface IInstanceProfile extends IConstruct {
   readonly instanceProfileName: string;
 }
 
@@ -24,10 +25,10 @@ export interface InstanceProfileProps {
   path: string;
 }
 
-export class InstanceProfile extends cdk.Construct implements IInstanceProfile {
+export class InstanceProfile extends Construct implements IInstanceProfile {
   readonly instanceProfileName: string;
 
-  constructor(scope: cdk.Construct, id: string, private readonly props: InstanceProfileProps) {
+  constructor(scope: Construct, id: string, private readonly props: InstanceProfileProps) {
     super(scope, id);
 
     const resource = new iam.CfnInstanceProfile(this, 'Resource', {
@@ -39,7 +40,7 @@ export class InstanceProfile extends cdk.Construct implements IInstanceProfile {
     this.instanceProfileName = resource.ref;
   }
 
-  static fromInstanceRoleName(scope: cdk.Construct, id: string, props: ImportedInstanceProfileProps) {
+  static fromInstanceRoleName(scope: Construct, id: string, props: ImportedInstanceProfileProps) {
     return new ImportedInstanceProfile(scope, id, props);
   }
 }
@@ -48,10 +49,10 @@ export interface ImportedInstanceProfileProps {
   instanceProfileName: string;
 }
 
-class ImportedInstanceProfile extends cdk.Construct implements IInstanceProfile {
+class ImportedInstanceProfile extends Construct implements IInstanceProfile {
   readonly instanceProfileName = this.props.instanceProfileName;
 
-  constructor(scope: cdk.Construct, id: string, private readonly props: ImportedInstanceProfileProps) {
+  constructor(scope: Construct, id: string, private readonly props: ImportedInstanceProfileProps) {
     super(scope, id);
   }
 }

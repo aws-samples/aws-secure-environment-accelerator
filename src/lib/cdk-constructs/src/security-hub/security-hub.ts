@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { SecurityHubEnable } from '@aws-accelerator/custom-resource-security-hub-enable';
 import { SecurityHubSendInvites } from '@aws-accelerator/custom-resource-security-hub-send-invites';
 import { SecurityHubAcceptInvites } from '@aws-accelerator/custom-resource-security-hub-accept-invites';
+import { Construct } from 'constructs';
 
 export interface SubAccount {
   AccountId: string;
@@ -44,8 +45,8 @@ export interface SecurityHubProps {
   masterAccountId?: string;
 }
 
-export class SecurityHub extends cdk.Construct {
-  constructor(scope: cdk.Construct, name: string, props: SecurityHubProps) {
+export class SecurityHub extends Construct {
+  constructor(scope: Construct, name: string, props: SecurityHubProps) {
     super(scope, name);
     const { account, subAccountIds, masterAccountId, standards, roleArn } = props;
 

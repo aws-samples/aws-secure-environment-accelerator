@@ -54,7 +54,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         })
         .promise(),
     );
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'NoSuchEntity') {
       console.log(error.message);
       const crossRole = await throttlingBackOff(() =>
@@ -118,7 +118,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
         })
         .promise(),
     );
-  } catch (error) {
+  } catch (error: any) {
     console.warn('Exception while delete role', event.ResourceProperties.roleName);
     console.warn(error);
   }

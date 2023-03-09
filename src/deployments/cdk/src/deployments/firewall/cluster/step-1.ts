@@ -12,11 +12,12 @@
  */
 
 import { pascalCase } from 'pascal-case';
-import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
+import * as cdk from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as c from '@aws-accelerator/common-config/src';
 import { AccountStacks } from '../../../common/account-stacks';
 import { FirewallPort, CfnFirewallPortOutput } from './outputs';
+import { Construct } from 'constructs';
 
 export interface FirewallStep1Props {
   accountStacks: AccountStacks;
@@ -72,7 +73,7 @@ export async function step1(props: FirewallStep1Props) {
  * Create firewall for the given VPC and config in the given scope.
  */
 async function createFirewallEips(props: {
-  scope: cdk.Construct;
+  scope: Construct;
   vpcConfig: c.VpcConfig;
   firewallConfig: c.FirewallEC2ConfigType;
 }) {

@@ -12,10 +12,11 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { HandlerProperties } from '@aws-accelerator/custom-resource-ec2-marketplace-subscription-validation-runtime';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::MarketPlaceSubscriptionCheck';
 
@@ -30,9 +31,9 @@ export type Attribute = 'Status';
 /**
  * Custom resource that has an image ID attribute for the image with the given properties.
  */
-export class Ec2MarketPlaceSubscriptionCheck extends cdk.Construct {
+export class Ec2MarketPlaceSubscriptionCheck extends Construct {
   private readonly resource: cdk.CustomResource;
-  constructor(scope: cdk.Construct, id: string, props: Ec2MarketPlaceSubscriptionCheckProps) {
+  constructor(scope: Construct, id: string, props: Ec2MarketPlaceSubscriptionCheckProps) {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = {

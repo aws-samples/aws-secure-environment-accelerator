@@ -104,7 +104,7 @@ export class CloudFormation {
   async updateStack(input: cfn.UpdateStackInput): Promise<cfn.UpdateStackOutput | undefined> {
     try {
       await throttlingBackOff(() => this.client.updateStack(input).promise());
-    } catch (error) {
+    } catch (error: any) {
       if (error.message === 'No updates are to be performed.') {
         console.debug(`No updates are to be performed`);
         return;
@@ -128,7 +128,7 @@ export class CloudFormation {
           .promise(),
       );
       return response.StackSet;
-    } catch (e) {
+    } catch (e: any) {
       console.warn(`Ignoring error in describeStack`);
       console.warn(e);
       return undefined;

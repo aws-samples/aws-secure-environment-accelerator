@@ -12,10 +12,11 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as config from '@aws-cdk/aws-config';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as config from 'aws-cdk-lib/aws-config';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 export interface CustomRuleProps extends Omit<config.CustomRuleProps, 'lambdaFunction'> {
   roleArn: string;
@@ -23,13 +24,13 @@ export interface CustomRuleProps extends Omit<config.CustomRuleProps, 'lambdaFun
   runtimeFileLocation: string;
 }
 
-export class CustomRule extends cdk.Construct {
+export class CustomRule extends Construct {
   private readonly constructName: string;
   private role: iam.IRole;
   private runtimeFileLocation: string;
   private lambdaRuntime: string;
   resource: config.CustomRule;
-  constructor(scope: cdk.Construct, name: string, props: CustomRuleProps) {
+  constructor(scope: Construct, name: string, props: CustomRuleProps) {
     super(scope, name);
     this.constructName = `${name}Lambda`;
     this.role = iam.Role.fromRoleArn(this, `${name}Role`, props.roleArn);

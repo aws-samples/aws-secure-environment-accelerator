@@ -2,8 +2,8 @@ import mri from 'mri';
 import { CdkToolkit } from './toolkit';
 import * as app from './src/app';
 import microstats from 'microstats';
-import { debugModeEnabled } from '@aws-cdk/core/lib/debug';
 import * as v8 from 'v8';
+import { debugModeEnabled } from '@aws-cdk/core/lib/debug';
 const fs = require('fs').promises;
 
 // eslint-disable-next-line

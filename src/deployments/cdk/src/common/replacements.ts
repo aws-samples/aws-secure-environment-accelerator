@@ -12,7 +12,7 @@
  */
 
 import * as c from '@aws-accelerator/common-config';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { LogBucketOutput, AccountBucketOutputFinder } from '../deployments/defaults/outputs';
 import { IamPolicyOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';

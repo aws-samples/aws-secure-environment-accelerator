@@ -12,8 +12,9 @@
  */
 
 import hashSum from 'hash-sum';
-import * as cdk from '@aws-cdk/core';
-import * as budgets from '@aws-cdk/aws-budgets';
+import * as cdk from 'aws-cdk-lib';
+import * as budgets from 'aws-cdk-lib/aws-budgets';
+import { Construct } from 'constructs';
 
 export interface BudgetProps {
   readonly budget: budgets.CfnBudget.BudgetDataProperty;
@@ -24,8 +25,8 @@ export interface BudgetProps {
  * Wrapper around CfnBudget. The construct adds a hash to the budget name that is based on the budget properties.
  * The hash makes sure the budget gets replaced correctly by CloudFormation.
  */
-export class Budget extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: BudgetProps) {
+export class Budget extends Construct {
+  constructor(scope: Construct, id: string, props: BudgetProps) {
     super(scope, id);
 
     const hash = hashSum({ ...props, path: this.node.path });

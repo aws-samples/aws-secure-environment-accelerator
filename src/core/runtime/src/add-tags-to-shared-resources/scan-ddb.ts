@@ -56,15 +56,15 @@ export const handler = async (input: ScanDDBRequestInput) => {
     });
     console.log(JSON.stringify(fileUploadResult));
     console.log(`DynamoDB scan results saved to ${s3Bucket}/${key}`);
-  } catch (e) {
+  } catch (e: any) {
     throw new Error(`Unable to write DynamoDB output to ${s3Bucket}\n${e.message} code:${e.code}`);
   }
 
   const output: ScanDDBOutput = {
-    accounts: accounts,
-    assumeRoleName: assumeRoleName,
-    outputTableName: outputTableName,
-    s3Bucket: s3Bucket,
+    accounts,
+    assumeRoleName,
+    outputTableName,
+    s3Bucket,
     s3Key: key,
   };
 

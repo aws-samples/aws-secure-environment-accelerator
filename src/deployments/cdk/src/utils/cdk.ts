@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import { Construct } from 'constructs';
 
-export function overrideLogicalId(construct: cdk.Construct, logicalId: string) {
+export function overrideLogicalId(construct: Construct, logicalId: string) {
   const bucket = findChildOfType(s3.CfnBucket, construct);
   const sanitized = logicalId.replace(/[^a-zA-Z0-9+]+/gi, '');
   bucket.overrideLogicalId(sanitized);
@@ -23,7 +24,7 @@ export function overrideLogicalId(construct: cdk.Construct, logicalId: string) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Type<T> = new (...args: any[]) => T;
 
-export function findChildOfType<T>(type: Type<T>, construct: cdk.Construct): T {
+export function findChildOfType<T>(type: Type<T>, construct: Construct): T {
   if (construct instanceof type) {
     return construct;
   }

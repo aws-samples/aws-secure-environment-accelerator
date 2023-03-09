@@ -11,8 +11,8 @@
  *  and limitations under the License.
  */
 
-import * as iam from '@aws-cdk/aws-iam';
-import * as secrets from '@aws-cdk/aws-secretsmanager';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as secrets from 'aws-cdk-lib/aws-secretsmanager';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { SecretsContainer } from '@aws-accelerator/cdk-accelerator/src/core/secrets-container';
 import { getAccountId, Account } from '../../utils/accounts';

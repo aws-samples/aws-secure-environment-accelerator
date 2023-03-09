@@ -12,9 +12,10 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::SSMDocumentShare';
 
@@ -27,10 +28,10 @@ export interface SSMDocumentShareProps {
 /**
  * Custom resource that will create SSM Document.
  */
-export class SSMDocumentShare extends cdk.Construct {
+export class SSMDocumentShare extends Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: SSMDocumentShareProps) {
+  constructor(scope: Construct, id: string, props: SSMDocumentShareProps) {
     super(scope, id);
     const { roleArn, name, accountIds } = props;
     const ssmDocumentShareLambda = this.lambdaFunction(roleArn);

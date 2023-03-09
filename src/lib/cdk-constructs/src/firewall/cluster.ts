@@ -11,12 +11,13 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as ec2 from '@aws-cdk/aws-ec2';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { IInstanceProfile } from '../iam';
 import { FirewallInstance, FirewallConfigurationProps } from './instance';
+import { Construct } from 'constructs';
 
 export type FirewallClusterConfigurationProps = Omit<FirewallConfigurationProps, 'configPath'>;
 
@@ -33,10 +34,10 @@ export interface FirewallClusterProps {
   blockDeviceMappings: ec2.CfnInstance.BlockDeviceMappingProperty[];
 }
 
-export class FirewallCluster extends cdk.Construct {
+export class FirewallCluster extends Construct {
   readonly instances: FirewallInstance[] = [];
 
-  constructor(scope: cdk.Construct, id: string, private readonly props: FirewallClusterProps) {
+  constructor(scope: Construct, id: string, private readonly props: FirewallClusterProps) {
     super(scope, id);
   }
 

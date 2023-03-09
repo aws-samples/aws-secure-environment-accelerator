@@ -12,11 +12,11 @@
  */
 
 import * as c from '@aws-accelerator/common-config/src';
-import * as iam from '@aws-cdk/aws-iam';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { AccountStacks } from '../../common/account-stacks';
 import { createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CfnIamRoleOutput } from './outputs';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 
 export interface CwlCentralLoggingRoleProps {
   acceleratorPrefix: string;

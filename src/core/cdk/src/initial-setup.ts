@@ -11,23 +11,19 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as codebuild from '@aws-cdk/aws-codebuild';
-import * as dynamodb from '@aws-cdk/aws-dynamodb';
-import * as fs from 'fs';
-import * as iam from '@aws-cdk/aws-iam';
-import * as kms from '@aws-cdk/aws-kms';
-import * as lambda from '@aws-cdk/aws-lambda';
 import * as path from 'path';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as s3assets from '@aws-cdk/aws-s3-assets';
-import * as secrets from '@aws-cdk/aws-secretsmanager';
-import * as sfn from '@aws-cdk/aws-stepfunctions';
-import * as sns from '@aws-cdk/aws-sns';
-import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
-
-import { AcceleratorStack, AcceleratorStackProps } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-stack';
+import * as cdk from 'aws-cdk-lib';
+import * as codebuild from 'aws-cdk-lib/aws-codebuild';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as s3assets from 'aws-cdk-lib/aws-s3-assets';
+import * as secrets from 'aws-cdk-lib/aws-secretsmanager';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
+import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { CdkDeployProject, PrebuiltCdkDeployProject } from '@aws-accelerator/cdk-accelerator/src/codebuild';
+import { AcceleratorStack, AcceleratorStackProps } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-stack';
 import { createName, createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 
 import { AddTagsToResourcesTask } from './tasks/add-tags-to-resources-task';
@@ -38,8 +34,12 @@ import { CreateControlTowerAccountTask } from './tasks/create-control-tower-acco
 import { CreateOrganizationAccountTask } from './tasks/create-organization-account-task';
 import { CreateStackTask } from './tasks/create-stack-task';
 import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
+import { Construct } from 'constructs';
+import * as fs from 'fs';
+import * as sns from 'aws-cdk-lib/aws-sns';
 import { StoreOutputsTask } from './tasks/store-outputs-task';
 import { StoreOutputsToSSMTask } from './tasks/store-outputs-to-ssm-task';
+import * as kms from 'aws-cdk-lib/aws-kms';
 
 const VPC_CIDR_POOL_TABLE = 'cidr-vpc-assign';
 const SUBNET_CIDR_POOL_TABLE = 'cidr-subnet-assign';
@@ -75,7 +75,7 @@ export namespace InitialSetup {
 }
 
 export class InitialSetup extends AcceleratorStack {
-  constructor(scope: cdk.Construct, id: string, props: InitialSetup.Props) {
+  constructor(scope: Construct, id: string, props: InitialSetup.Props) {
     super(scope, id, props);
 
     new InitialSetup.Pipeline(this, 'Pipeline', props);
@@ -85,8 +85,8 @@ export class InitialSetup extends AcceleratorStack {
 export namespace InitialSetup {
   export type PipelineProps = CommonProps;
 
-  export class Pipeline extends cdk.Construct {
-    constructor(scope: cdk.Construct, id: string, props: PipelineProps) {
+  export class Pipeline extends Construct {
+    constructor(scope: Construct, id: string, props: PipelineProps) {
       super(scope, id);
 
       const { enablePrebuiltProject } = props;
@@ -189,18 +189,18 @@ export namespace InitialSetup {
       // This is the maximum time before a build times out
       // The role used by the build should allow this session duration
       const buildTimeout = cdk.Duration.hours(4);
-
-      const roleArnRoot = `arn:aws:iam::${stack.account}:root`;
+      const roleName = createRoleName('L-SFN-MasterRole');
+      const roleArn = `arn:${stack.partition}:iam::${stack.account}:role/${roleName}`;
 
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
-        roleName: createRoleName('L-SFN-MasterRole'),
+        roleName,
         assumedBy: new iam.CompositePrincipal(
           // TODO Only add root role for development environments
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
           new iam.ServicePrincipal('events.amazonaws.com'),
-          new iam.ArnPrincipal(roleArnRoot),
+          new iam.ArnPrincipal(roleArn),
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
         maxSessionDuration: buildTimeout,
@@ -271,7 +271,6 @@ export namespace InitialSetup {
           SUBNET_CIDR_ASSIGNED_POOL: subnetCidrPoolTable.tableName,
           CIDR_POOL: cidrPoolTable.tableName,
           DEPLOY_STACK_PAGE_SIZE: props.pageSize,
-          BACKOFF_START_DELAY: props.backoff || '',
           COMPUTE_TYPE: props.codebuildComputeType,
         },
       });
@@ -567,8 +566,6 @@ export namespace InitialSetup {
       );
 
       const accountsPath = path.join(__dirname, 'assets', 'execution-role.template.json');
-      const managementAccountPath = path.join(__dirname, 'assets', 'management-execution-role.template.json');
-      const managementAccountExecutionRoleContent = fs.readFileSync(managementAccountPath);
       const executionRoleContent = fs.readFileSync(accountsPath);
 
       const installRolesStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}InstallRoles_sm`, {
@@ -590,16 +587,14 @@ export namespace InitialSetup {
             RoleName: props.stateMachineExecutionRole,
             MaxSessionDuration: `${buildTimeout.toSeconds()}`,
             // TODO Only add root role for development environments
-            AssumedByRoleArn: `${pipelineRole.roleArn},arn:aws:iam::${stack.account}:root`,
+            AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
             AcceleratorPrefix: props.acceleratorPrefix.endsWith('-')
               ? props.acceleratorPrefix.slice(0, -1).toLowerCase()
               : props.acceleratorPrefix.toLowerCase(),
           },
           stackTemplate: executionRoleContent.toString(),
-          managementAccountTemplate: managementAccountExecutionRoleContent.toString(),
           'accountId.$': '$.accountId',
           'assumeRoleName.$': '$.organizationAdminRole',
-          parametersTableName: parametersTable.tableName,
         }),
         resultPath: 'DISCARD',
       });
@@ -1007,7 +1002,7 @@ export namespace InitialSetup {
         }),
       );
 
-      //State Machine and associated resources for Adding Tags to Shared Resources
+      // State Machine and associated resources for Adding Tags to Shared Resources
       const addTagsToSharedResourcesStateMachine = new sfn.StateMachine(this, 'Add Tags To Resources Sfn', {
         stateMachineName: `${props.acceleratorPrefix}AddTagsToSharedResources_sfn`,
         definition: new AddTagsToResourcesTask(this, 'AddTagsToSharedResources', {

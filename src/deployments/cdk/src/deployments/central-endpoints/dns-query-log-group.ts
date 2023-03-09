@@ -11,8 +11,8 @@
  *  and limitations under the License.
  */
 
-import * as iam from '@aws-cdk/aws-iam';
-import * as cdk from '@aws-cdk/core';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as cdk from 'aws-cdk-lib';
 
 import { VpcConfig } from '@aws-accelerator/common-config';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';

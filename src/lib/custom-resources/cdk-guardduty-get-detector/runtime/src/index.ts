@@ -57,7 +57,7 @@ async function getDetectorId(): Promise<string | undefined> {
     if (detectors.DetectorIds && detectors.DetectorIds.length > 0) {
       return detectors.DetectorIds[0];
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error(`Error occurred while listing Detectors ${e.code}: ${e.message}`);
     throw e;
   }

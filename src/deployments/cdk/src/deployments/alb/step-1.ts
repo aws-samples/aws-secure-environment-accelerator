@@ -13,11 +13,11 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as alb from '@aws-cdk/aws-elasticloadbalancingv2';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import * as alb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { ApplicationLoadBalancer, GatewayLoadBalancer } from '@aws-accelerator/cdk-constructs/src/vpc';
 import { CfnLoadBalancerOutput } from './outputs';
 import {
@@ -38,6 +38,7 @@ import { FirewallInstanceOutputFinder } from '../firewall/cluster/outputs';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { ModifyVpcEndpointServicePermissions } from '@aws-accelerator/custom-resource-modify-vpc-endpoint-service-permissions';
 import { getAccountId, Account } from '@aws-accelerator/common-outputs/src/accounts';
+import { Construct } from 'constructs';
 
 export interface ElbStep1Props {
   accountStacks: AccountStacks;
@@ -413,7 +414,7 @@ export function getTargetGroupArn(props: {
 /**
  * Creates or gets the existing ELB Lambda role.
  */
-export function createLambdaRole(scope: cdk.Construct) {
+export function createLambdaRole(scope: Construct) {
   const constructName = 'ElbLambdaAccessRole';
   const stack = cdk.Stack.of(scope);
   const child = stack.node.tryFindChild(constructName);
@@ -447,7 +448,7 @@ export function createLambdaRole(scope: cdk.Construct) {
 }
 
 export function getLambdaFunctionArn(
-  scope: cdk.Construct,
+  scope: Construct,
   fileName: string,
   role: iam.Role,
   albName: string,
@@ -469,7 +470,7 @@ export function getLambdaFunctionArn(
 }
 
 export function createTargetGroupForInstance(
-  scope: cdk.Construct,
+  scope: Construct,
   target: ElbTargetConfig,
   targetGroupName: string,
   vpcId: string,
@@ -495,7 +496,7 @@ export function createTargetGroupForInstance(
 }
 
 export function createTargetGroupForLambda(
-  scope: cdk.Construct,
+  scope: Construct,
   target: ElbTargetConfig,
   targetGroupName: string,
   lambdaFunctionArn: string,

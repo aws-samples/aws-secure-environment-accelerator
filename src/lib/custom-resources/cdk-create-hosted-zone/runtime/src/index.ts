@@ -67,7 +67,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
         .promise(),
     );
     hostedZoneId = hostedZone.HostedZone.Id;
-  } catch (e) {
+  } catch (e: any) {
     console.log(e);
     if (e.code === 'ConflictingDomainExists') {
       const hostedZone = await throttlingBackOff(() =>
@@ -118,7 +118,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
         })
         .promise(),
     );
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
   }
 }

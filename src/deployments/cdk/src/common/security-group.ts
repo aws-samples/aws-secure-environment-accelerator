@@ -11,8 +11,8 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
+import * as cdk from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as config from '@aws-accelerator/common-config/src';
 import * as t from '@aws-accelerator/common-types';
 import * as constructs from '@aws-accelerator/cdk-constructs/src/vpc';
@@ -22,6 +22,7 @@ import {
   AssignedVpcCidrPool,
   getSubnetCidrPools,
 } from '@aws-accelerator/common-outputs/src/cidr-pools';
+import { Construct } from 'constructs';
 
 export interface NameToSecurityGroupMap {
   [key: string]: ec2.CfnSecurityGroup;
@@ -79,13 +80,13 @@ export interface SecurityGroupProps {
   sharedAccountKey?: string;
 }
 
-export class SecurityGroup extends cdk.Construct {
+export class SecurityGroup extends Construct {
   readonly securityGroupNameMapping: NameToSecurityGroupMap = {};
   readonly securityGroups: constructs.SecurityGroup[] = [];
   readonly subnetPools: AssignedSubnetCidrPool[] = [];
   readonly vpcPools: AssignedVpcCidrPool[] = [];
 
-  constructor(parent: cdk.Construct, name: string, props: SecurityGroupProps) {
+  constructor(parent: Construct, name: string, props: SecurityGroupProps) {
     super(parent, name);
     const {
       securityGroups,

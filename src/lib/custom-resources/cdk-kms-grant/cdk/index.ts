@@ -12,11 +12,12 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as kms from '@aws-cdk/aws-kms';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as kms from 'aws-cdk-lib/aws-kms';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { HandlerProperties } from '@aws-accelerator/custom-resource-kms-grant-runtime';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::KMSGrant';
 
@@ -48,10 +49,10 @@ export interface GrantProps {
   roleName?: string;
 }
 
-export class Grant extends cdk.Construct {
+export class Grant extends Construct {
   private resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, private readonly props: GrantProps) {
+  constructor(scope: Construct, id: string, private readonly props: GrantProps) {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = {

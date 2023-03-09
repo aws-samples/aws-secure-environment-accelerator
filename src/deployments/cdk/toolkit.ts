@@ -12,10 +12,10 @@
  */
 
 import path from 'path';
-import * as cdk from '@aws-cdk/core';
 import * as cxschema from '@aws-cdk/cloud-assembly-schema';
-import { CloudAssembly, CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
-import { Mode, ToolkitInfo } from 'aws-cdk';
+import { CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
+import { ToolkitInfo } from 'aws-cdk/lib/api/toolkit-info';
+import { Mode } from 'aws-cdk/lib/api';
 import { setLogLevel } from 'aws-cdk/lib/logging';
 import { Bootstrapper } from 'aws-cdk/lib/api/bootstrap';
 import { Command, Configuration } from 'aws-cdk/lib/settings';
@@ -26,6 +26,7 @@ import { debugModeEnabled } from '@aws-cdk/core/lib/debug';
 import { AssumeProfilePlugin } from '@aws-accelerator/cdk-plugin-assume-role/src/assume-role-plugin';
 import { fulfillAll } from './promise';
 import { promises as fsp } from 'fs';
+import * as cdk from 'aws-cdk-lib';
 import * as AWS from 'aws-sdk';
 
 // Set microstats emitters
@@ -33,7 +34,7 @@ import * as AWS from 'aws-sdk';
 setLogLevel(1);
 
 export interface CdkToolkitProps {
-  assemblies: CloudAssembly[];
+  assemblies: cdk.cx_api.CloudAssembly[];
   configuration: Configuration;
   sdkProvider: SdkProvider;
 }
@@ -105,11 +106,11 @@ export class CdkToolkit {
       .assumeRole({ RoleArn: roleArn, RoleSessionName: 'acceleratorAssumeRoleSession' })
       .promise();
 
-    process.env['AWS_ACCESS_KEY_ID'] = assumeRoleCredential.Credentials!.AccessKeyId!;
-    process.env['AWS_ACCESS_KEY'] = assumeRoleCredential.Credentials!.AccessKeyId!;
-    process.env['AWS_SECRET_KEY'] = assumeRoleCredential.Credentials!.SecretAccessKey!;
-    process.env['AWS_SECRET_ACCESS_KEY'] = assumeRoleCredential.Credentials!.SecretAccessKey!;
-    process.env['AWS_SESSION_TOKEN'] = assumeRoleCredential.Credentials!.SessionToken;
+    process.env.AWS_ACCESS_KEY_ID = assumeRoleCredential.Credentials!.AccessKeyId!;
+    process.env.AWS_ACCESS_KEY = assumeRoleCredential.Credentials!.AccessKeyId!;
+    process.env.AWS_SECRET_KEY = assumeRoleCredential.Credentials!.SecretAccessKey!;
+    process.env.AWS_SECRET_ACCESS_KEY = assumeRoleCredential.Credentials!.SecretAccessKey!;
+    process.env.AWS_SESSION_TOKEN = assumeRoleCredential.Credentials!.SessionToken;
 
     const sdkProvider = await SdkProvider.withAwsCliCompatibleDefaults({
       profile: configuration.settings.get(['profile']),
@@ -185,6 +186,7 @@ export class CdkToolkit {
     let combinedOutputs: StackOutput[];
     if (parallel) {
       // Deploy all stacks in parallel
+      // @ts-ignore
       const promises = stacks.map(stack => this.deployStack(stack));
       // Wait for all promises to be fulfilled
       const outputsList = await fulfillAll(promises);
@@ -193,6 +195,7 @@ export class CdkToolkit {
       // Deploy all stacks sequentially
       combinedOutputs = [];
       for (const stack of stacks) {
+        // @ts-ignore
         const output = await this.deployStack(stack);
         combinedOutputs.push(...output);
       }
@@ -219,7 +222,6 @@ export class CdkToolkit {
 
   async deployStack(stack: CloudFormationStackArtifact, retries: number = 0): Promise<StackOutput[]> {
     // Register the assume role plugin
-
     const assumeRolePlugin = new AssumeProfilePlugin({ region: stack.environment.region });
     assumeRolePlugin.init(PluginHost.instance);
     this.deploymentLog(stack, 'Deploying Stack');
@@ -250,7 +252,7 @@ export class CdkToolkit {
       this.deploymentLog(stack, 'Describing Stack');
       const existingStack = await cfn
         .describeStacks({
-          StackName: stack.id,
+          StackName: stack.stackName,
         })
         .promise();
       const stackStatus = existingStack?.Stacks?.[0]?.StackStatus ?? '';

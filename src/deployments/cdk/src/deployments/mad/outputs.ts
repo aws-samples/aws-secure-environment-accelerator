@@ -11,7 +11,7 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import * as t from 'io-ts';
 import { createMadPasswordSecretName, createMadUserPasswordSecretName } from '@aws-accelerator/common-outputs/src/mad';
 import { createCfnStructuredOutput } from '../../common/structured-output';

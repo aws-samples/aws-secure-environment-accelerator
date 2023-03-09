@@ -11,8 +11,9 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as r53Resolver from '@aws-cdk/aws-route53resolver';
+import * as cdk from 'aws-cdk-lib';
+import * as r53Resolver from 'aws-cdk-lib/aws-route53resolver';
+import { Construct } from 'constructs';
 
 export interface ResolverRuleProps {
   vpcId: string;
@@ -26,10 +27,10 @@ export interface ResolverRuleProps {
 /**
  * Auxiliary construct that creates a Route53 resolver rule for the and associates it with the given VPC.
  */
-export class ResolverRule extends cdk.Construct {
+export class ResolverRule extends Construct {
   private readonly rule: r53Resolver.CfnResolverRule;
 
-  constructor(parent: cdk.Construct, id: string, props: ResolverRuleProps) {
+  constructor(parent: Construct, id: string, props: ResolverRuleProps) {
     super(parent, id);
     const targetIps = props.ipAddresses.map(ip => ({
       ip,

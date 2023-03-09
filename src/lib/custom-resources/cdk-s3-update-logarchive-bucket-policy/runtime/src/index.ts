@@ -77,7 +77,7 @@ async function getBucketPolicy(logBucketName: string) {
       return JSON.parse(response.Policy);
     }
     return {};
-  } catch (err) {
+  } catch (err: any) {
     console.error(err, err.stack);
     throw err;
   }
@@ -91,7 +91,7 @@ async function putBucketPolicy(logBucketName: string, policy: string) {
         Policy: policy,
       })
       .promise();
-  } catch (err) {
+  } catch (err: any) {
     console.error(err, err.stack);
     throw err;
   }
@@ -110,7 +110,7 @@ async function getKmsKeyPolicy(keyArn: string | undefined) {
         return JSON.parse(response.Policy);
       }
       return {};
-    } catch (err) {
+    } catch (err: any) {
       console.error(err, err.stack);
       throw err;
     }
@@ -128,7 +128,7 @@ async function putKmsKeyPolicy(keyArn: string | undefined, policy: string) {
           PolicyName: 'default',
         })
         .promise();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err, err.stack);
       throw err;
     }
