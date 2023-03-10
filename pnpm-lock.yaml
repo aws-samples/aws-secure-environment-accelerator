@@ -343,8 +343,8 @@ importers:
       '@aws-accelerator/installer': 'link:'
       '@types/jest': 25.2.3
       '@types/node': 14.14.31
-      aws-cdk: 2.38.0
-      aws-cdk-lib: 2.38.0
+      aws-cdk: 2.38.1
+      aws-cdk-lib: 2.38.1
       aws-sdk: 2.944.0
       constructs: 10.0.12
       eslint: 7.25.0
@@ -354,12 +354,12 @@ importers:
       typescript: 4.2.4
     dependencies:
       '@aws-accelerator/installer': 'link:'
-      aws-cdk-lib: 2.38.0_constructs@10.0.12
+      aws-cdk-lib: 2.38.1_constructs@10.0.12
       constructs: 10.0.12
     devDependencies:
       '@types/jest': 25.2.3
       '@types/node': 14.14.31
-      aws-cdk: 2.38.0
+      aws-cdk: 2.38.1
       aws-sdk: 2.944.0
       eslint: 7.25.0
       jest: 25.2.4
@@ -10021,12 +10021,40 @@ packages:
       - semver
       - yaml
 
+  /aws-cdk-lib/2.38.1_constructs@10.0.12:
+    resolution: {integrity: sha512-vEgJBUzL1yqlSMYGjipl+eRwy900x3RmbVzTcxKdCZvhtBMQ1hqJAMgVswvoyA5EnvfELLlz9ufm+qdKGs9DxQ==}
+    engines: {node: '>= 14.15.0'}
+    peerDependencies:
+      constructs: ^10.0.0
+    dependencies:
+      constructs: 10.0.12
+    dev: false
+    bundledDependencies:
+      - '@balena/dockerignore'
+      - case
+      - fs-extra
+      - ignore
+      - jsonschema
+      - minimatch
+      - punycode
+      - semver
+      - yaml
+
   /aws-cdk/2.38.0:
     resolution: {integrity: sha512-ncudJGNEfl8WH3C+3tZTMStOl463ZEdxv/5SLsrsyuFQPYMl6pTVVgV0FK6Zx76dJmFVk8kCyzwc8DWUoJhWcw==}
     engines: {node: '>= 14.15.0'}
     hasBin: true
     optionalDependencies:
       fsevents: 2.3.2
+    dev: false
+
+  /aws-cdk/2.38.1:
+    resolution: {integrity: sha512-bIHRCkmbXBmJWw1Gq5UsAUUYKABuE/ah1iAA14hXLS8+9AJlF/Ptn+NsUCt9K5v17cRqtUoeaOAMAPrZs8l+YA==}
+    engines: {node: '>= 14.15.0'}
+    hasBin: true
+    optionalDependencies:
+      fsevents: 2.3.2
+    dev: true
 
   /aws-lambda/1.0.6:
     resolution: {integrity: sha512-Z9lmZBiDYejzjMWuQSDXuZWAqAun6vGt7WApB1r0f8tLNf0IlTGsH30qENfP1kXeTbbMgPpt1bPEeMZjYDTXxQ==}
@@ -10844,7 +10872,7 @@ packages:
       minipass-pipeline: 1.2.4
       mkdirp: 1.0.4
       p-map: 4.0.0
-      promise-inflight: 1.0.1_bluebird@3.7.2
+      promise-inflight: 1.0.1
       rimraf: 3.0.2
       ssri: 8.0.1
       tar: 6.1.0
@@ -18249,6 +18277,15 @@ packages:
   /progress/2.0.3:
     resolution: {integrity: sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==}
     engines: {node: '>=0.4.0'}
+    dev: true
+
+  /promise-inflight/1.0.1:
+    resolution: {integrity: sha1-mEcocL8igTL8vdhoEputEsPAKeM=}
+    peerDependencies:
+      bluebird: '*'
+    peerDependenciesMeta:
+      bluebird:
+        optional: true
     dev: true
 
   /promise-inflight/1.0.1_bluebird@3.7.2:
