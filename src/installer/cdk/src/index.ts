@@ -51,7 +51,7 @@ async function main() {
         `Invalid value for repo_source: ${repoSource} Must repo_source must be one of [github|codecommit]`,
       );
     }
-    new Installer(app, `InstallerStack-${repoSource}`, {
+    new Installer(app, `AcceleratorInstaller${repoSource === RepositorySources.CODECOMMIT ? '-CodeCommit' : ''}`, {
       stackName: `AcceleratorInstaller${repoSource === RepositorySources.CODECOMMIT ? '-CodeCommit' : ''}`,
       repoSource,
       acceleratorVersion,
