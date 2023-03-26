@@ -86,6 +86,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -1826,6 +1830,7 @@
 <li>OU and account names can ONLY be customized during initial installation. These values MUST match with the values supplied in the Accelerator config file.<ol>
 <li>Go to the AWS Control Tower console and click <code>Set up landing zone</code></li>
 <li>Select your <code>home</code> region (i.e. <code>ca-central-1</code>) - the Accelerator home region must match the Control Tower home region</li>
+<li>Leave the Region deny setting set to <code>Not enabled</code> - the Accelerator needs a customized region deny policy</li>
 <li>Select <em>all</em> regions for <code>Additional AWS Regions for governance</code>, click <code>Next</code><ul>
 <li>The Control Tower and Accelerator regions MUST be properly aligned</li>
 <li>If a region is not <code>governed</code> by Control Tower, it must NOT be listed in <code>control-tower-supported-regions</code></li>
@@ -1845,7 +1850,8 @@
 <li>For the <code>Foundational OU</code>, leave the default value <code>Security</code></li>
 <li>For the <code>Additional OU</code> provide the value <code>Infrastructure</code>, click <code>Next</code></li>
 <li>Enter the email addresses for your <code>Log Archive</code> and <code>Audit</code> accounts, change the <code>Audit</code> account name to <code>Security</code>, click <code>Next</code> - OU and account names can ONLY be customized during initial installation. OU names, account names and email addresses _must* match identically with the values supplied in the Accelerator config file.</li>
-<li>Click setup and wait ~60 minutes for the Control Tower installation to complete</li>
+<li>Select <code>Enabled</code> for AWS CloudTrail configuration (if not selected), click <code>Next</code></li>
+<li>Click <code>Set up landing zone</code> and wait ~60 minutes for the Control Tower installation to complete</li>
 <li>Select <code>Add or register organizational units</code>, Click <code>Add an OU</code></li>
 <li>Type <code>Dev</code>, click <code>Add</code>, wait until the OU is finished provisioning (or it will error)</li>
 <li>Repeat step 9 for each OU (i.e. <code>Test</code>, <code>Prod</code>, <code>Central</code>, <code>Sandbox</code>)</li>
@@ -1927,7 +1933,7 @@
 </li>
 <li>Push the extracted codebase into the newly created CodeCommit repository, maintaining the file/folder hierarchy</li>
 <li>Set the default CodeCommit branch for the new repository to main</li>
-<li>Create a branch following the Accelerator naming format for your release (i.e. <code>release/v1.5.3</code>)</li>
+<li>Create a branch following the Accelerator naming format for your release (i.e. <code>release/v1.5.4</code>)</li>
 </ol>
 <h3 id="143-aws-internal-employee-accounts-only">1.4.3. AWS Internal (Employee) Accounts Only<a class="headerlink" href="#143-aws-internal-employee-accounts-only" title="Permanent link">(link)</a></h3>
 <p>If deploying to an internal AWS employee account and installing the solution with a 3rd party firewall, you need to enable Private Marketplace (PMP) before starting:</p>
@@ -2058,7 +2064,7 @@
 <li>Add an <code>Email</code> address to be used for State Machine Status notification</li>
 <li>The <code>GitHub Branch</code> should point to the release you selected<ul>
 <li>if upgrading, change it to point to the desired release</li>
-<li>the latest stable branch is currently <code>release/v1.5.3</code>, case sensitive</li>
+<li>the latest stable branch is currently <code>release/v1.5.4</code>, case sensitive</li>
 <li>click <code>Next</code></li>
 </ul>
 </li>
@@ -2131,14 +2137,30 @@
 <h3 id="161-known-installation-issues">1.6.1. Known Installation Issues<a class="headerlink" href="#161-known-installation-issues" title="Permanent link">(link)</a></h3>
 <p>Current Issues:</p>
 <ul>
-<li>If dns-resolver-logging is enabled, VPC names containing spaces are not supported at this time as the VPC name is used as part of the log group name and spaces are not supported in log group names. By default in many of the sample config files, the VPC name is auto-generated from the OU name using a variable. In this situation, spaces are also not permitted in OU names (i.e. if any account in the OU has a VPC with resolver logging enabled and the VPC is using the OU as part of its name)</li>
-<li>On larger deployments we are occasionally seeing state machine failures when <code>Creating Config Recorders</code>. Simply rerun the state machine with the input of <code>{"scope": "FULL", "mode": "APPLY"}</code>.</li>
-<li>Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of <code>{"scope": "FULL", "mode": "APPLY"}</code></li>
-<li>If the State Machine fails on an initial execution of NEW-ACCOUNTS, it must be re-run to target the failed accounts (i.e. with <code>{"scope": "FULL", "mode": "APPLY"}</code>) or the new sub-accounts will fail to be properly guardrailed</li>
+<li>
+<p><strong>NEW 2022-08-07</strong> An issue with the version of cfn-init in the "latest" AWS standard Windows AMI will cause the state machine to fail during a new installation when deploying an RDGW host. RDGW hosts in existing deployments will fail to fully initialize if the state machine is or has been recently run and the auto-scaling group subsequently refreshes the host (default every 7 days).</p>
+<ul>
+<li>To temporarily workaround this issue, assume an administrative role in your <code>operations</code> account, open Systems Manager Parameter Store, and <code>Create parameter</code> with a Name of <code>/asea/windows-ami</code> and a value of <code>ami-0d336ea070bc06fb8</code> (which is the previous good AMI in ca-central-1), accepting the other default values. Update your config file to point to this new parameter by changing <code>image-path</code> (under \deployments\mad) to <code>/asea/windows-ami</code> instead of <code>/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base</code>. Rerun your state machine. If you have an existing RDGW instance it should be terminated to allow the auto-scaling group to redeploy it.</li>
+<li>In other regions you will need to lookup the previous working ami-id (you cannot use <code>ami-0d336ea070bc06fb8</code>)</li>
+<li>This config file entry should be reverted and state machine rerun once the next (validated fixed) AWS Windows AMI is released to ensure you are always using the latest Windows AMI. <strong>NOTE: Issue still exists 2022-10-05.</strong></li>
+</ul>
+</li>
+<li>
+<p>If dns-resolver-logging is enabled, VPC names containing spaces are not supported at this time as the VPC name is used as part of the log group name and spaces are not supported in log group names. By default in many of the sample config files, the VPC name is auto-generated from the OU name using a variable. In this situation, spaces are also not permitted in OU names (i.e. if any account in the OU has a VPC with resolver logging enabled and the VPC is using the OU as part of its name)</p>
+</li>
+<li>
+<p>On larger deployments we are occasionally seeing state machine failures when <code>Creating Config Recorders</code>. Simply rerun the state machine with the input of <code>{"scope": "FULL", "mode": "APPLY"}</code>.</p>
+</li>
+<li>
+<p>Occasionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine with the input of <code>{"scope": "FULL", "mode": "APPLY"}</code></p>
+</li>
+<li>
+<p>If the State Machine fails on an initial execution of NEW-ACCOUNTS, it must be re-run to target the failed accounts (i.e. with <code>{"scope": "FULL", "mode": "APPLY"}</code>) or the new sub-accounts will fail to be properly guardrailed</p>
+</li>
 </ul>
 <p>Issues in Older Releases:</p>
 <ul>
-<li>New installs to releases prior to v1.3.9 are no longer supported.</li>
+<li>New installs to releases prior to v1.5.4 are no longer supported.</li>
 <li>Upgrades to releases prior to v1.3.8 are no longer supported.</li>
 </ul>
 <h2 id="17-post-installation">1.7. Post-Installation<a class="headerlink" href="#17-post-installation" title="Permanent link">(link)</a></h2>
@@ -2147,7 +2169,12 @@
 <li>
 <p>Enable and configure AWS SSO in your <code>home</code> region (i.e. ca-central-1)</p>
 <ul>
-<li>Login to the AWS Console using your Organization Management account</li>
+<li>
+<p><strong>NOTE: AWS SSO has been renamed to AWS IAM Identity Center (IdC). The IdC GUI has also been reworked. The below steps are no longer click-by-click accurate. An update to the below documentation is planned, which will also include instructions to delegate AWS IdC administration to the Operations account enabling connecting IdC directly to MAD, rather than through an ADC.</strong></p>
+</li>
+<li>
+<p>Login to the AWS Console using your Organization Management account</p>
+</li>
 <li>Navigate to AWS Single Sign-On, click <code>Enable SSO</code></li>
 <li>Set the SSO directory to AD ("Settings" =&gt; "Identity Source" =&gt; "Identity Source" =&gt; click <code>Change</code>, Select Active Directory, and select your domain from the list)</li>
 <li>Under "Identity Source" section, Click <code>Edit</code> beside "Attribute mappings", then set the <code>email</code> attribute to: <code>${dir:email}</code> and click <code>Save Changes</code></li>
@@ -2395,7 +2422,7 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tracking", "navigation.instant", "navigation.indexes", "navigation.top"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tracking", "navigation.instant", "navigation.indexes", "navigation.top"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.19047be9.min.js"></script>

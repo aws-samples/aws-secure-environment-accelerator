@@ -84,6 +84,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -1558,20 +1562,21 @@
 <li>Supports AWS Organizations nested <a href="https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html">OU's</a> and importing existing AWS accounts</li>
 <li>Performs 'account warming' to establish initial limits, when required</li>
 <li>Automatically submits limit increases, when required (complies with initial limits until increased)</li>
-<li>Leverages AWS Control Tower <strong>(NEW)</strong></li>
+<li>Leverages AWS Control Tower</li>
 </ul>
 <h3 id="122-creates-networking">1.2.2. Creates Networking<a class="headerlink" href="#122-creates-networking" title="Permanent link">(link)</a></h3>
 <ul>
 <li>Transit Gateways and TGW route tables (incl. inter-region TGW peering)</li>
 <li>Centralized and/or Local (bespoke) VPC's</li>
 <li>Subnets, Route tables, NACLs, Security groups, NATGWs, IGWs, VGWs, CGWs</li>
+<li><strong>NEW</strong> Outpost, Local Zone and Wavelength support</li>
 <li>VPC Endpoints (Gateway and Interface, Centralized or Local)</li>
 <li>Route 53 Private and Public Zones, Resolver Rules and Endpoints, VPC Endpoint Overloaded Zones</li>
 <li>All completely and individually customizable (per account, VPC, subnet, or OU)</li>
 <li>Layout and customize your VPCs, subnets, CIDRs and connectivity the way you want</li>
-<li>Static or Dynamic <strong>(NEW)</strong> VPC and subnet CIDR assignments</li>
+<li>Static or Dynamic VPC and subnet CIDR assignments</li>
 <li>Deletes default VPC's (worldwide)</li>
-<li>AWS Network Firewall <strong>(NEW)</strong></li>
+<li>AWS Network Firewall</li>
 </ul>
 <h3 id="123-cross-account-object-sharing">1.2.3. Cross-Account Object Sharing<a class="headerlink" href="#123-cross-account-object-sharing" title="Permanent link">(link)</a></h3>
 <ul>
@@ -1622,13 +1627,13 @@
 <li>Imports or requests certificates into AWS Certificate Manager</li>
 <li>Deploys both perimeter and account level ALB's w/Lambda health checks, certificates and TLS policies</li>
 <li>Deploys &amp; configures 3rd party firewall clusters and management instances (leverages marketplace)<ul>
-<li>Gateway Load Balancer w/auto-scaling <strong>(NEW)</strong> and VPN IPSec BGP ECMP deployment options</li>
+<li>Gateway Load Balancer w/auto-scaling and VPN IPSec BGP ECMP deployment options</li>
 </ul>
 </li>
 <li>Protects Accelerator deployed and managed objects</li>
 <li>Sets Up SNS Alerting topics (High, Medium, Low, Blackhole priorities)</li>
 <li>Deploys CloudWatch Log Metrics and Alarms</li>
-<li>Deploys customer provided custom config rules (2 provided out-of-box, No EC2 Instance Profile)</li>
+<li>Deploys customer provided custom config rules (2 provided out-of-box, no EC2 Instance Profile/Permissions)</li>
 </ul>
 <h3 id="127-centralized-logging-and-alerting">1.2.7. Centralized Logging and Alerting<a class="headerlink" href="#127-centralized-logging-and-alerting" title="Permanent link">(link)</a></h3>
 <ul>
@@ -1644,18 +1649,19 @@
 <li>GuardDuty Findings</li>
 <li>Macie Discovery results</li>
 <li>ALB Logs</li>
-<li>SSM Inventory <strong>(NEW)</strong></li>
-<li>Security Hub findings <strong>(NEW)</strong></li>
+<li>SSM Inventory</li>
+<li>Security Hub findings</li>
 <li>SSM Session Logs (also sent to CWL)</li>
 <li>Resolver Query Logs (also sent to CWL)</li>
 </ul>
 </li>
-<li>Email alerting for CloudTrail Metric Alarms, Firewall Manager Events <strong>(NEW)</strong>, Security Hub Findings incl. Guardduty Findings <strong>(NEW)</strong></li>
+<li>Email alerting for CloudTrail Metric Alarms, Firewall Manager Events, Security Hub Findings incl. GuardDuty Findings</li>
+<li><strong>NEW</strong> Optionally collect Organization and ASEA configuration and metadata in a new restricted log archive bucket</li>
 </ul>
 <h2 id="13-relationship-with-aws-landing-zone-solution-alz">1.3. Relationship with AWS Landing Zone Solution (ALZ)<a class="headerlink" href="#13-relationship-with-aws-landing-zone-solution-alz" title="Permanent link">(link)</a></h2>
 <p>The ALZ was an AWS Solution designed to deploy a multi-account AWS architecture for customers based on best practices and lessons learned from some of AWS' largest customers. The AWS Accelerator draws on design patterns from the Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it, nor does it leverage any code from the ALZ. The Accelerator is a standalone solution with no dependence on ALZ.</p>
 <h2 id="14-relationship-with-aws-control-tower">1.4. Relationship with AWS Control Tower<a class="headerlink" href="#14-relationship-with-aws-control-tower" title="Permanent link">(link)</a></h2>
-<p>The AWS Secure Environment Accelerator now leverages AWS Control Tower! <strong>(NEW)</strong></p>
+<p>The AWS Secure Environment Accelerator now leverages AWS Control Tower!</p>
 <p>With the release of v1.5.0, the AWS Accelerator adds the capability to be deployed on top of AWS Control Tower. Customers get the benefits of the fully managed capabilities of AWS Control Tower combined with the power and flexibility of the Accelerators Networking and Security orchestration.</p>
 <h2 id="15-accelerator-installation-process-summary">1.5. Accelerator Installation Process (Summary)<a class="headerlink" href="#15-accelerator-installation-process-summary" title="Permanent link">(link)</a></h2>
 <p>This summarizes the installation process, the full installation document can be found in the documentation section below.</p>
@@ -1718,7 +1724,7 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.tracking", "navigation.instant", "navigation.indexes", "navigation.top"], "search": "assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.tracking", "navigation.instant", "navigation.indexes", "navigation.top"], "search": "assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
       <script src="assets/javascripts/bundle.19047be9.min.js"></script>
