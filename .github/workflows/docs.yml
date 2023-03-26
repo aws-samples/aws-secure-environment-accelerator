@@ -33,7 +33,7 @@ jobs:
       run:
         working-directory: ./src/mkdocs
     if: ${{ github.event_name == 'release' }}
-    needs: [lint, test]
+    needs: [test]
     steps:
       - uses: actions/checkout@v3
       - name: set up Python 3.10
