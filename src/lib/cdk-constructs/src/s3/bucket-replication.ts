@@ -17,6 +17,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import { ReplicationRules, EncryptionConfiguration } from 'aws-sdk/clients/s3';
 import { S3PutBucketReplication } from '@aws-accelerator/custom-resource-s3-put-bucket-replication';
 import { Construct } from 'constructs';
+import { PolicyDocument } from 'aws-cdk-lib/aws-iam';
 
 export interface BucketReplicationProps {
   bucket: s3.IBucket;
@@ -48,77 +49,12 @@ export class BucketReplication extends Construct {
     this.s3PutReplicationRole = props.s3PutReplicationRole;
     // Get the underlying resource
     this.resource = (props.bucket as unknown) as s3.CfnBucket;
-
-    if (this.replicationRules.length === 0) {
-      // No need to create the replication role and rules if there are no rules
-      return;
-    }
-
-    const replicationRole = new iam.Role(this, 'ReplicationRole', {
-      roleName: this.replicationRoleName,
-      assumedBy: new iam.ServicePrincipal('s3.amazonaws.com'),
-    });
-
-    // Grant the replication role the actions to replicate the objects in the bucket
-    replicationRole.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: [
-          's3:GetObjectLegalHold',
-          's3:GetObjectRetention',
-          's3:GetObjectVersion',
-          's3:GetObjectVersionAcl',
-          's3:GetObjectVersionForReplication',
-          's3:GetObjectVersionTagging',
-          's3:GetReplicationConfiguration',
-          's3:ListBucket',
-          's3:ReplicateDelete',
-          's3:ReplicateObject',
-          's3:ReplicateTags',
-        ],
-        resources: [this.bucket.bucketArn, this.bucket.arnForObjects('*')],
-      }),
-    );
-
-    // Grant access for the ReplicationRole to read and write
-    if (this.bucket.encryptionKey) {
-      this.bucket.encryptionKey.grantEncryptDecrypt(replicationRole);
-    }
-
-    // Allow the replication role to replicate objects to the destination bucket
-    replicationRole.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: [
-          's3:GetBucketVersioning',
-          's3:GetObjectVersionTagging',
-          's3:ObjectOwnerOverrideToBucketOwner',
-          's3:PutBucketVersioning',
-          's3:ReplicateDelete',
-          's3:ReplicateObject',
-          's3:ReplicateTags',
-        ],
-        resources: this.destinationS3Resources,
-      }),
-    );
-
-    // Allow the replication role to encrypt with the destination KMS key
-    if (this.destinationKmsResources.length > 0) {
-      replicationRole.addToPrincipalPolicy(
-        new iam.PolicyStatement({
-          actions: ['kms:Encrypt'],
-          resources: this.destinationKmsResources,
-        }),
-      );
-    }
-
-    new S3PutBucketReplication(this, `PutS3BucketReplication`, {
-      bucketName: this.bucket.bucketName,
-      replicationRole: replicationRole.roleArn,
-      roleArn: this.s3PutReplicationRole,
-      rules: this.replicationRules,
-    });
+    console.log('()()()()()()');
+    console.log(props)
   }
 
   replicateFrom(principals: iam.IPrincipal[], organizationId: string, prefix: string) {
+    this.preReplicationSteps()
     this.bucket.addToResourcePolicy(
       new iam.PolicyStatement({
         actions: [
@@ -169,6 +105,7 @@ export class BucketReplication extends Construct {
    */
   replicateTo(props: { destinationBucket: s3.IBucket; destinationAccountId: string; id: string; prefix?: string }) {
     const { destinationBucket, destinationAccountId, prefix, id } = props;
+    this.preReplicationSteps()
 
     // The permissions to replicate the objects will be added in the onPrepare method
     this.destinationS3Resources.push(destinationBucket.bucketArn);
@@ -203,6 +140,84 @@ export class BucketReplication extends Construct {
           Owner: 'Destination',
         },
       },
+    });
+  }
+
+  async preReplicationSteps() {
+    // if (this.replicationRules.length === 0) {
+    //   // No need to create the replication role and rules if there are no rules
+    //   console.log(this.replicationRules);
+    //   console.log('^^^^^^^^^^');
+    //   return;
+    // }
+
+    const replicationRole = new iam.Role(this, 'ReplicationRole', {
+      roleName: this.replicationRoleName,
+      assumedBy: new iam.ServicePrincipal('s3.amazonaws.com'),
+      //managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AWSLambdaBasicExecutionRole')]
+    });
+
+    console.log('*****');
+    console.log(this.bucket.bucketArn);
+
+    // Grant the replication role the actions to replicate the objects in the bucket
+    await replicationRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          's3:GetObjectLegalHold',
+          's3:GetObjectRetention',
+          's3:GetObjectVersion',
+          's3:GetObjectVersionAcl',
+          's3:GetObjectVersionForReplication',
+          's3:GetObjectVersionTagging',
+          's3:GetReplicationConfiguration',
+          's3:ListBucket',
+          's3:ReplicateDelete',
+          's3:ReplicateObject',
+          's3:ReplicateTags',
+        ],
+        resources: [this.bucket.bucketArn, this.bucket.arnForObjects('*')],
+      }),
+    );
+
+    // Grant access for the ReplicationRole to read and write
+    if (this.bucket.encryptionKey) {
+      this.bucket.encryptionKey.grantEncryptDecrypt(replicationRole);
+    }
+
+    // Allow the replication role to replicate objects to the destination bucket
+    replicationRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          's3:GetBucketVersioning',
+          's3:GetObjectVersionTagging',
+          's3:ObjectOwnerOverrideToBucketOwner',
+          's3:PutBucketVersioning',
+          's3:ReplicateDelete',
+          's3:ReplicateObject',
+          's3:ReplicateTags',
+        ],
+        resources: this.destinationS3Resources,
+      }),
+    );
+
+    // Allow the replication role to encrypt with the destination KMS key
+    if (this.destinationKmsResources.length > 0) {
+      replicationRole.addToPrincipalPolicy(
+        new iam.PolicyStatement({
+          actions: ['kms:Encrypt'],
+          resources: this.destinationKmsResources,
+        }),
+      );
+    }
+
+    console.log('888888888---------88888888888');
+
+    new S3PutBucketReplication(this, `PutS3BucketReplication`, {
+      bucketName: this.bucket.bucketName,
+      replicationRole: replicationRole.roleArn,
+      roleArn: this.s3PutReplicationRole,
+      rules: this.replicationRules,
     });
   }
 }
