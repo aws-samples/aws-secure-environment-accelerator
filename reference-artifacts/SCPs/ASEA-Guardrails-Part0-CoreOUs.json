@@ -81,10 +81,10 @@
       "Resource": "*",
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/ASEA-*"]
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
         },
         "ForAnyValue:StringLike": {
-          "kms:ResourceAliases": "alias/ASEA*"
+          "kms:ResourceAliases": "alias/${ACCELERATOR_PREFIX_ND}*"
         }
       }
     },
