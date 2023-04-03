@@ -14,6 +14,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/mkdocs
     steps:
       - uses: actions/checkout@v3
       - name: set up Python 3.10
