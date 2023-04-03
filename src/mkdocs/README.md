@@ -24,7 +24,7 @@ pip install --upgrade pip && pip install -r requirements.txt
 ### Mike
 
 Mike is used to version the website. The CI step `deploy`
-in [pages.yaml](./.github/workflows/pages.yaml#L42) is
+in [docs.yml](../../.github/workflows/docs.yml#L33) is
 responsible for deploying the versioned content using
 a github actions bot onto the `gh-pages` branch.
 
@@ -55,7 +55,7 @@ git push -u origin vX.X.X
 ```
 
 Next, generate a release from the git UI. This will trigger
-a deployment of the docs site (see [pages.yaml](.github/workflows/pages.yaml#L42)).
+a deployment of the docs site (see [docs.yml](../../.github/workflows/docs.yml#L33)).
 
 #### Important Note Regarding the gh-pages Branch
 
