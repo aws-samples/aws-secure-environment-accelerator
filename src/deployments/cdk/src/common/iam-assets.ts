@@ -251,7 +251,7 @@ export class IamAssets extends Construct {
       );
     } else {
       const iamPolicies = iamConfig.policies;
-      for (const iamPolicy of iamPolicies!) {
+      for (const iamPolicy of iamPolicies || []) {
         if (!iamPolicy) {
           console.log(
             `IAM config - policies is not defined for account with key - ${accountKey}. Skipping Policies creation.`,
