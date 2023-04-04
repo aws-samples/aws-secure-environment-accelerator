@@ -19,7 +19,7 @@ jobs:
         working-directory: ./src/mkdocs
     steps:
       - uses: actions/checkout@v3
-      - name: set up Python 3.10
+      - name: set up Python
         uses: actions/setup-python@v3
         with:
           python-version: 3.11
@@ -39,7 +39,7 @@ jobs:
     needs: [test]
     steps:
       - uses: actions/checkout@v3
-      - name: set up Python 3.10
+      - name: set up Python
         uses: actions/setup-python@v3
         with:
           python-version: 3.11
