@@ -98,7 +98,12 @@ export class BucketReplication extends Construct {
    * Replicate to the given cross account bucket. No permissions are added to the destination bucket or destination
    * encryption key.
    */
-  replicateTo(props: { destinationBucket: cdk.aws_s3.IBucket; destinationAccountId: string; id: string; prefix?: string }) {
+  replicateTo(props: {
+    destinationBucket: cdk.aws_s3.IBucket;
+    destinationAccountId: string;
+    id: string;
+    prefix?: string;
+  }) {
     const { destinationBucket, destinationAccountId, prefix, id } = props;
 
     // The permissions to replicate the objects will be added in the onPrepare method
@@ -143,12 +148,12 @@ export class BucketReplication extends Construct {
       return;
     }
     let replicationRole = this.node.tryFindChild('ReplicationRole') as cdk.aws_iam.Role;
-    if(!replicationRole){
+    if (!replicationRole) {
       replicationRole = new cdk.aws_iam.Role(this, 'ReplicationRole', {
-      roleName: this.replicationRoleName,
-      assumedBy: new cdk.aws_iam.ServicePrincipal('s3.amazonaws.com'),
-    });
-  }
+        roleName: this.replicationRoleName,
+        assumedBy: new cdk.aws_iam.ServicePrincipal('s3.amazonaws.com'),
+      });
+    }
 
     // Grant the replication role the actions to replicate the objects in the bucket
     replicationRole.addToPrincipalPolicy(
@@ -201,13 +206,13 @@ export class BucketReplication extends Construct {
       );
     }
     let s3BucketReplication = this.node.tryFindChild('PutS3BucketReplication') as S3PutBucketReplication;
-    if(!s3BucketReplication){
-    s3BucketReplication = new S3PutBucketReplication(this, `PutS3BucketReplication`, {
-      bucketName: this.bucket.bucketName,
-      replicationRole: replicationRole.roleArn,
-      roleArn: this.s3PutReplicationRole,
-      rules: this.replicationRules,
-    });
-  }
+    if (!s3BucketReplication) {
+      s3BucketReplication = new S3PutBucketReplication(this, `PutS3BucketReplication`, {
+        bucketName: this.bucket.bucketName,
+        replicationRole: replicationRole.roleArn,
+        roleArn: this.s3PutReplicationRole,
+        rules: this.replicationRules,
+      });
+    }
   }
 }
