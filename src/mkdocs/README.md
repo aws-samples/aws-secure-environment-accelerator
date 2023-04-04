@@ -42,13 +42,6 @@ git commit -m "feat: added foo"
 git push -u origin feat/your-feature
 ```
 
-Do not forget to update any tag references in links throughout the documentation.
-These can be updated using the provided [versioner script](versioner.sh)
-
-```bash
-./versioner.sh -o vX.X.X -n vX.X.X
-```
-
 Updating these references to your new release tags ensures
 that embedded links in the documentation are pointing to
 the correct versioned resource.
@@ -58,11 +51,13 @@ Once the changes are merged onto the main branch,
 a github workflow is triggered which will lint and
 test that the site builds correctly. Once you have verified
 that the actions have all run successfully, create a git tag
-and push it:
+and push it.  Do not forget to update any tag references in links throughout the documentation.
+These can be updated using the provided [versioner script](versioner.sh)
 
 ```bash
-git tag vX.X.X
-git push -u origin vX.X.X
+./versioner.sh -o vX.X.X -n vY.Y.Y
+git tag vY.Y.Y
+git push -u origin vY.Y.Y
 ```
 
 Next, generate a release from the git UI. This will trigger
