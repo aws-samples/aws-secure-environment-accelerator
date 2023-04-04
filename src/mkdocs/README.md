@@ -42,6 +42,17 @@ git commit -m "feat: added foo"
 git push -u origin feat/your-feature
 ```
 
+Do not forget to update any tag references in links throughout the documentation.
+These can be updated using the provided [versioner script](versioner.sh)
+
+```bash
+./versioner.sh -o vX.X.X -n vX.X.X
+```
+
+Updating these references to your new release tags ensures
+that embedded links in the documentation are pointing to
+the correct versioned resource.
+
 Open a pull request, and then merge.
 Once the changes are merged onto the main branch,
 a github workflow is triggered which will lint and

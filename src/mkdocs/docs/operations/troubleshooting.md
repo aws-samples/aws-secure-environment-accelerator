@@ -84,7 +84,7 @@ In case you want to troubleshoot errors that occurred in CloudFormation, the bes
 
 When a native resource fails to create or update there are no additional logs available except what is displayed in the `Status reason` column. When a custom resource fails to create or update -- i.e. not a native CloudFormation resource but a resource backed by a custom Lambda function -- then we can find additional logs in CloudWatch.
 
-Often the stack failure occurrs in a managed account instead of the root account. See [Switch To a Managed Account](/common-tasks.md#12-switch-to-a-managed-account) to switch to the CloudFormation console in the managed account.
+Often the stack failure occurrs in a managed account instead of the root account. See [Switch To a Managed Account](./common-tasks.md#12-switch-to-a-managed-account) to switch to the CloudFormation console in the managed account.
 
 ### 1.2.4. Custom Resource
 

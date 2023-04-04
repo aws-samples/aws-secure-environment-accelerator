@@ -8,3 +8,17 @@ aws-landing-zone-configuration.zip
 .idea
 .envrc
 .vscode
+
+# Ignore files built locally for mkdocs
+# with the exception of legacy readme
+# which points to the docs site.
+docs/*
+!readme.md
+public
+
+# Ignore python development files
+venv
+
+# bash
+.swp
+find

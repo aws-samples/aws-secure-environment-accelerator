@@ -143,7 +143,7 @@ This summarizes the installation process, the full installation document can be 
     -   CloudFormation to deploy and start the Code Pipeline (~5 mins)
     -   Code Pipeline to download the Accelerator codebase and install the Accelerator State Machine (~10 mins)
     -   The Accelerator State Machine to finish execution (~1.25 hrs Standalone version, ~2.25 hrs Control Tower Version)
--   Perform required one-time [post installation](./installation/install.md#post-installation) activities (configure AWS SSO, set firewall passwords, etc.)
+-   Perform required one-time [post installation](./installation/install.md#17-post-installation) activities (configure AWS SSO, set firewall passwords, etc.)
 -   On an ongoing basis:
     -   Use AWS Organizations to create new AWS accounts, which will automatically be guardrailed by the Accelerator
     -   Update the config file in CodeCommit and run the Accelerator State Machine to:

@@ -18,7 +18,7 @@ This section contains information on the installation and upgrade procedures for
 - Functionality
     -   [Services](../installation/services-list.md)
     -   [Pricing](../pricing/sample_pricing.md)
-    -   [Architecture Diagrams](../architectures/pbmm/diagrams.md)
+    -   [Architecture Diagrams](../architectures/sensitive/diagrams.md)
     -   [Key Account & Capability Overview](../installation/what-we-do-where.md)
     -   [Centralized Logging Details](../installation/log-file-locations.md)
     -   [Accelerator Object Naming](../installation/object-naming.md)
