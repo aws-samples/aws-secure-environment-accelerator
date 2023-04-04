@@ -53,11 +53,11 @@ nav:
       - Administrator Immersion Day: https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-administrators
       - Workload Team Immersion Day: https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-members
   - Configuration File Schema:
-      - Open Schema (Link): /aws-secure-environment-accelerator/v1.5.6/schema/en/index.html
+      - Open Schema (Link): /aws-secure-environment-accelerator/v1.5.6-a/schema/en/index.html
   - Contributing & Governance:
       - Open Page (Link): https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md
   - Documentation PDF:
-      - Open PDF: /aws-secure-environment-accelerator/v1.5.6/pdf/accelerator-docs.pdf
+      - Open PDF: /aws-secure-environment-accelerator/v1.5.6-a/pdf/accelerator-docs.pdf
 
 theme:
   name: material

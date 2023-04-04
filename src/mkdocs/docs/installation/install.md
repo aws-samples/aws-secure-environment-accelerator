@@ -491,7 +491,7 @@ The Accelerator installation is complete, but several manual steps remain:
             -   Set additional `DevX-ALB-FQDN`, `TestX-ALB-FQDN` and `ProdX-ALB-FQDN` to point to workload account ALB FQDNs
                 -   Two of each type of ALB FQDN records have been created, when you need more, you need to create BOTH an additional FQDN and a new VIP, per ALB
                 -   Each new VIP will use a new high port (i.e. 7007, 7008, etc.), all of which map back to port 443
-            -   Detailed steps can be read [here](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/v1.5.6/src/mkdocs/docs/guides/fortigate/public-facing-workload-via-fortigate.md).
+            -   Detailed steps can be read [here](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/v1.5.6-a/src/mkdocs/docs/guides/fortigate/public-facing-workload-via-fortigate.md).
 
     **Checkpoint**
 
