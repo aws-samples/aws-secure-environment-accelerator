@@ -31,13 +31,13 @@ The folder structure of the project is as follows:
 -   `src/core/runtime` See [Initial Setup Stack](#14-initial-setup-stack) and [Phase Steps and Phase Stacks](#15-phase-steps-and-phase-stacks);
 -   `src/deployments/runtime` See [Phase Steps and Phase Stacks](#15-phase-steps-and-phase-stacks);
 -   `src/deployments/cdk`: See [Phase Steps and Phase Stacks](#15-phase-steps-and-phase-stacks);
--   `src/lib/accelerator-cdk`: See [Libraries & Tools](#17-libraries-tools);
--   `src/lib/cdk-constructs`: See [Libraries & Tools](#17-libraries-tools);
+-   `src/lib/accelerator-cdk`: See [Libraries & Tools](#17-libraries-and-tools);
+-   `src/lib/cdk-constructs`: See [Libraries & Tools](#17-libraries-and-tools);
 -   `src/lib/cdk-plugin-assume-role`: See [CDK Assume Role Plugin](#171-cdk-assume-role-plugin).
--   `src/lib/common-config`: See [Libraries & Tools](#17-libraries-tools);
--   `src/lib/common-outputs`: See [Libraries & Tools](#17-libraries-tools);
--   `src/lib/common-types`: See [Libraries & Tools](#17-libraries-tools);
--   `src/lib/common`: See [Libraries & Tools](#17-libraries-tools);
+-   `src/lib/common-config`: See [Libraries & Tools](#17-libraries-and-tools);
+-   `src/lib/common-outputs`: See [Libraries & Tools](#17-libraries-and-tools);
+-   `src/lib/common-types`: See [Libraries & Tools](#17-libraries-and-tools);
+-   `src/lib/common`: See [Libraries & Tools](#17-libraries-and-tools);
 -   `src/lib/custom-resources/**/cdk`: See [Custom Resources](#176-custom-resources);
 -   `src/lib/custom-resources/**/runtime`: See [Custom Resources](#176-custom-resources);
 
@@ -159,9 +159,9 @@ The `Phase` stacks are deployed by a CodeBuild project in the `Initial Setup` st
 
 The [`codebuild-deploy.sh`](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/src/deployments/cdk/codebuild-deploy.sh) script executes the `cdk.ts` file.
 
-The [`cdk.ts`](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/src/deployments/cdk/cdk.ts) file is meant as a replacement for the `cdk` CLI command. To deploy a phase stack you would **not** run `pnpx cdk deploy` but `cdk.sh --phase 1`. See [CDK API](#cdk-api) for more information why we use the CDK API instead of using the CDK CLI.
+The [`cdk.ts`](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/src/deployments/cdk/cdk.ts) file is meant as a replacement for the `cdk` CLI command. To deploy a phase stack you would **not** run `pnpx cdk deploy` but `cdk.sh --phase 1`. See [CDK API](#172-cdk-api) for more information why we use the CDK API instead of using the CDK CLI.
 
-The `cdk.ts` command parses command line arguments and creates all the `cdk.App` for all accounts and regions for the given `--phase`. When you pass the `--region` or `--account-key` command, all the `cdk.App` for all accounts and regions will still be created, except that only the `cdk.App`s matching the parameters will be deployed. This behavior could be optimized in the future. See [Stacks with Same Name in Different Regions](#stacks-with-same-name-in-different-regions) for more information why we're creating multiple `cdk.App`s.
+The `cdk.ts` command parses command line arguments and creates all the `cdk.App` for all accounts and regions for the given `--phase`. When you pass the `--region` or `--account-key` command, all the `cdk.App` for all accounts and regions will still be created, except that only the `cdk.App`s matching the parameters will be deployed. This behavior could be optimized in the future. See [Stacks with Same Name in Different Regions](#181-stacks-with-same-name-in-different-regions) for more information why we're creating multiple `cdk.App`s.
 
 ## 1.6. Store outputs to SSM Parameter Store
 
@@ -257,7 +257,7 @@ After a `Phase-X` is deployed in all Accelerator-managed accounts, a step in the
 
 Then the next `Phase-X+1` deploys using the outputs from the previous `Phase-X` stacks.
 
-See [Creating Stack Outputs](#creating-stack-outputs) for helper constructs to create outputs.
+See [Creating Stack Outputs](#175-creating-stack-outputs) for helper constructs to create outputs.
 
 ### 1.6.3. Decoupling Configuration from Constructs
 
@@ -267,7 +267,7 @@ Later on in the project we started decoupling the Accelerator config from the co
 
 Decoupling the configuration from the constructs improves reusability and robustness of the codebase.
 
-## 1.7. Libraries & Tools
+## 1.7. Libraries and Tools
 
 ### 1.7.1. CDK Assume Role Plugin
 

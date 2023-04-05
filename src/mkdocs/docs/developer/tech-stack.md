@@ -22,11 +22,11 @@ https://pnpm.js.org/en/pnpx-cli
 
 ### 1.2.2. prettier
 
-We use [`prettier`](https://prettier.io) to format code in this repository. A GitHub action makes sure that all the code in a pull requests adheres to the configured `prettier` rules. See [Github Actions](#github-actions).
+We use [`prettier`](https://prettier.io) to format code in this repository. A GitHub action makes sure that all the code in a pull requests adheres to the configured `prettier` rules. See [Github Actions](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/v1.5.6-a/.github/workflows/lint-prettier.yml#L61).
 
 ### 1.2.3. eslint
 
-We use [`eslint`](https://eslint.org/) as a static analysis tool that checks our TypeScript code. A GitHub action makes sure that all the code in a pull requests adheres to the configured `eslint` rules. See [Github Actions](#github-actions).
+We use [`eslint`](https://eslint.org/) as a static analysis tool that checks our TypeScript code. A GitHub action makes sure that all the code in a pull requests adheres to the configured `eslint` rules. See [Github Actions](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/v1.5.6-a/.github/workflows/lint-prettier.yml#L61).
 
 ## 1.3. CloudFormation
 

@@ -1,37 +1,64 @@
 # This workflow generates the required static content and pushes it automatically to the desired branch
 # being used for GitHub Pages. The resulting commit is made by "Unknown" user.
 name: docs
-# Anytime a commit is pushed to the brach listed below this workflow is triggered 
+
+# Anytime a commit is pushed to the branch listed below this workflow is triggered
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
-    # The working directory needs to be set to the same directory that contains the mkdocs.yml file
     defaults:
       run:
         working-directory: ./src/mkdocs
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - name: set up Python
+        uses: actions/setup-python@v3
         with:
-          python-version: 3.x
-      - name: Install MkDocs and Plugins
-        run: pip install mkdocs-material mkdocs-with-pdf
-        # 
-        # CAUTION !!
-        #
-        # Proceed with care with this command.
-        #
-        # The command below is used to deploy the static content to the branch specified by the -b flag.
-        # This command is a wrapper for several git commands and is destructive to the specified branch.
-        # The 'mkdocs gh-deploy' command deletes all content on the selected branch and generates new
-        # content based on the markdown files.
-        #
-        # Make sure not to edit any files manually on teh gh-pages branch as it will cause this workflow to fail
-        # and may have unintended consequences.
-        # 
-      - name: Deploy docs to root on gh-pages branch
-        run: mkdocs gh-deploy -m "Update GitHub pages for latest documentation release" -b gh-pages --force -v
+          python-version: 3.11
+      - name: install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: test the site builds
+        run: make build
+
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/mkdocs
+    if: ${{ github.event_name == 'release' }}
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v3
+      - name: set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.11
+      - name: install dependencies for building docs site
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: get tag
+        id: tag
+        run: |
+          ref="${GITHUB_REF}"
+          tag=$(echo $GITHUB_REF | sed 's/refs\/tags\///g')
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+      - name: deploy
+      # the below steps are referenced from
+      # https://github.com/jimporter/mike#deploying-via-ci
+        run: |
+          git fetch origin gh-pages --depth=1
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          mike deploy --push --update-aliases ${{ steps.tag.outputs.tag }} latest
+          mike set-default --push latest

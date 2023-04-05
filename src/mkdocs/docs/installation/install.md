@@ -29,7 +29,7 @@ These installation instructions assume one of the prescribed architectures is be
 
 **For any deployment of the Accelerator which is intended to be used for production workloads, you must evaluate all these decisions carefully. Failure to understand these choices could cause challenges down the road. If this is a "test" or "internal" deployment of the Accelerator which will not be used for production workloads, you can leave the default config values.**
 
-**Config file [schema](/aws-secure-environment-accelerator/schema/en/index.html) documentation** (Draft)
+**Config file [schema](https://aws-samples.github.io/aws-secure-environment-accelerator/schema/en/index.html) documentation** (Draft)
 
 ### 1.3.2. OU Structure Planning
 
@@ -385,7 +385,7 @@ Issues in Older Releases:
     -   To temporarily workaround this issue, assume an administrative role in your `operations` account, open Systems Manager Parameter Store, and `Create parameter` with a Name of `/asea/windows-ami` and a value of `ami-0d336ea070bc06fb8` (which is the previous good AMI in ca-central-1), accepting the other default values. Update your config file to point to this new parameter by changing `image-path` (under \deployments\mad) to `/asea/windows-ami` instead of `/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base`. Rerun your state machine. If you have an existing RDGW instance it should be terminated to allow the auto-scaling group to redeploy it. In other regions you will need to lookup the previous working ami-id (you cannot use `ami-0d336ea070bc06fb8`)
     -   **This issue was resolved with the 2022-10-12 Windows AMI [release](https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/ec2-windows-ami-version-history.html). Customers that implemented this workaround must revert the above config file entry and rerun their state machines (the above AMI has been deprecated).**
 
-## 1.7. Post-Installation
+## 1.7. Post Installation
 
 The Accelerator installation is complete, but several manual steps remain:
 
@@ -474,7 +474,7 @@ The Accelerator installation is complete, but several manual steps remain:
     -   If deployed, login to any 3rd party firewalls and firewall manager appliances and update any default passwords;
     -   Tighten security groups on the 3rd party firewall instances (using the Accelerator configuration file), further limiting access to firewall management interfaces to a set of designated and controlled CIDR ranges;
     -   Update the firewall configuration per your organization's security requirements and best practices;
-    -   Diagrams reflecting perimeter traffic flows when NFW and/or GWLB are used can be found [here](../architectures/pbmm/diagrams.md) on slides 6 through 9.
+    -   Diagrams reflecting perimeter traffic flows when NFW and/or GWLB are used can be found [here](../architectures/sensitive/diagrams.md) on slides 6 through 9.
 
     **AWS Network Firewall**
 
@@ -491,7 +491,7 @@ The Accelerator installation is complete, but several manual steps remain:
             -   Set additional `DevX-ALB-FQDN`, `TestX-ALB-FQDN` and `ProdX-ALB-FQDN` to point to workload account ALB FQDNs
                 -   Two of each type of ALB FQDN records have been created, when you need more, you need to create BOTH an additional FQDN and a new VIP, per ALB
                 -   Each new VIP will use a new high port (i.e. 7007, 7008, etc.), all of which map back to port 443
-            -   Detailed steps can be read [here](../guides/fortigate/public-facing-workload-via-fortigate.md).
+            -   Detailed steps can be read [here](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/v1.5.6-a/src/mkdocs/docs/guides/fortigate/public-facing-workload-via-fortigate.md).
 
     **Checkpoint**
 
