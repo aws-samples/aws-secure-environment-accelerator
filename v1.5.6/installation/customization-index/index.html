@@ -1,0 +1,2117 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the AWS Secure Environment Accelerator">
+      
+      
+        <meta name="author" content="Amazon Web Services">
+      
+      
+        <link rel="canonical" href="https://aws-samples.github.io/aws-secure-environment-accelerator/v1.5.6/installation/customization-index/">
+      
+      
+        <link rel="prev" href="../install/">
+      
+      
+        <link rel="next" href="../sm_inputs/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.4">
+    
+    
+      
+        <title>Sample Configurations and Customization - AWS Secure Environment Accelerator</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.240905d7.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../css/pdf-print.css">
+    
+      <link rel="stylesheet" href="../../css/extras.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="" data-md-color-accent="">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#1-accelerator-sample-configurations-and-customization" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AWS Secure Environment Accelerator" class="md-header__button md-logo" aria-label="AWS Secure Environment Accelerator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AWS Secure Environment Accelerator
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Sample Configurations and Customization
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="" data-md-color-accent=""  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+            </label>
+          
+        
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent=""  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aws-samples/aws-secure-environment-accelerator" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws-samples/asea
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AWS Secure Environment Accelerator" class="md-nav__button md-logo" aria-label="AWS Secure Environment Accelerator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    AWS Secure Environment Accelerator
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws-samples/asea
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        About
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../">Installation & Upgrades</a>
+          
+            <label for="__nav_2">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Installation & Upgrades
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" checked>
+      
+      
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+          Installation
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          Installation
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install/" class="md-nav__link">
+        Installation Guide
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Sample Configurations and Customization
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Sample Configurations and Customization
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#11-summary" class="md-nav__link">
+    1.1. Summary
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-sample-configuration-files-with-descriptions" class="md-nav__link">
+    1.2. Sample Configuration Files with Descriptions
+  </a>
+  
+    <nav class="md-nav" aria-label="1.2. Sample Configuration Files with Descriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#121-full-configuration-configexamplejson" class="md-nav__link">
+    1.2.1. Full configuration (config.example.json)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#122-lite-weight-configuration-files" class="md-nav__link">
+    1.2.2. Lite weight configuration files
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#123-ultra-lite-sample-configuration" class="md-nav__link">
+    1.2.3. Ultra-Lite sample configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#124-multi-region-sample-configuration-configmulti-region-examplejson" class="md-nav__link">
+    1.2.4. Multi-Region sample configuration (config.multi-region-example.json)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#125-test-configuration-configtest-examplejson-use-for-testing-or-low-security-profiles" class="md-nav__link">
+    1.2.5. Test configuration (config.test-example.json) (Use for testing or Low Security Profiles)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-deployment-customizations" class="md-nav__link">
+    1.3. Deployment Customizations
+  </a>
+  
+    <nav class="md-nav" aria-label="1.3. Deployment Customizations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#131-multi-file-config-file-and-yaml-formatting-option" class="md-nav__link">
+    1.3.1. Multi-file config file and YAML formatting option
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#132-sample-snippets" class="md-nav__link">
+    1.3.2. Sample Snippets
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#133-third-party-firewall-example-configs" class="md-nav__link">
+    1.3.3. Third Party Firewall example configs
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-other-configuration-file-hints-and-tips" class="md-nav__link">
+    1.4. Other Configuration File Hints and Tips
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-config-file-and-deployment-protections" class="md-nav__link">
+    1.5. Config file and Deployment Protections
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-summary-of-example-config-file-minimum-changes-for-new-installs" class="md-nav__link">
+    1.6. Summary of Example Config File Minimum Changes for New Installs
+  </a>
+  
+    <nav class="md-nav" aria-label="1.6. Summary of Example Config File Minimum Changes for New Installs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#161-global-options" class="md-nav__link">
+    1.6.1. Global Options
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#162-mandatory-account-configs" class="md-nav__link">
+    1.6.2. Mandatory Account Configs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#163-workload-account-configs" class="md-nav__link">
+    1.6.3. Workload Account Configs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#164-organization-units" class="md-nav__link">
+    1.6.4. Organization Units
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sm_inputs/" class="md-nav__link">
+        State Machine Behavior
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multi-file-config-capabilities/" class="md-nav__link">
+        Splitting the Config File
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../existing-orgs/" class="md-nav__link">
+        Considerations with Existing Organizations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/operations-import-ALZAccount/" class="md-nav__link">
+        Importing ALZ Accounts
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/releases" class="md-nav__link">
+        Open Releases (Link)
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+      
+      
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+          Upgrades
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2_3">
+          <span class="md-nav__icon md-icon"></span>
+          Upgrades
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../upgrades/" class="md-nav__link">
+        Upgrade Guide
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v150-Upgrade/" class="md-nav__link">
+        v1.5.0 Upgrade Instructions
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+      
+      
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+          Functionality
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2_4">
+          <span class="md-nav__icon md-icon"></span>
+          Functionality
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services-list/" class="md-nav__link">
+        Services
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pricing/sample_pricing/" class="md-nav__link">
+        Pricing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/sensitive/diagrams/" class="md-nav__link">
+        Architecture Diagrams
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../what-we-do-where/" class="md-nav__link">
+        Key Account & Capability Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../log-file-locations/" class="md-nav__link">
+        Centralized Logging Details
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../object-naming/" class="md-nav__link">
+        Accelerator Object Naming
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/projects/1" class="md-nav__link">
+        Open Roadmap (Link)
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        FAQ
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../operations/">Operations & Troubleshooting</a>
+          
+            <label for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Operations & Troubleshooting
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/system-overview/" class="md-nav__link">
+        System Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/troubleshooting/" class="md-nav__link">
+        Troubleshooting
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/common-tasks/" class="md-nav__link">
+        Common Tasks
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../developer/">Developer Guide</a>
+          
+            <label for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Developer Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/development/" class="md-nav__link">
+        Development Guide
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/tech-stack/" class="md-nav__link">
+        Tech Stack
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/best-practices/" class="md-nav__link">
+        Best Practices
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/contributing-guidelines/" class="md-nav__link">
+        How to Contribute
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/release-process/" class="md-nav__link">
+        Release Process
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+      
+      
+        
+          
+            
+          
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../architectures/">Sample Sensitive Architecture</a>
+          
+            <label for="__nav_6">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Sample Sensitive Architecture
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/sensitive/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/sensitive/accounts/" class="md-nav__link">
+        Account Structure
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/sensitive/auth/" class="md-nav__link">
+        Authentication & Authorization
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/sensitive/logging/" class="md-nav__link">
+        Logging and Monitoring
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/sensitive/network/" class="md-nav__link">
+        Networking
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/sensitive/diagrams/" class="md-nav__link">
+        Architecture Diagrams
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../workshops/">Workshops</a>
+          
+            <label for="__nav_7">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Workshops
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-administrators" class="md-nav__link">
+        Administrator Immersion Day
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-members" class="md-nav__link">
+        Workload Team Immersion Day
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+      
+      
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          Configuration File Schema
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Configuration File Schema
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="/aws-secure-environment-accelerator/v1.5.6/schema/en/index.html" class="md-nav__link">
+        Open Schema (Link)
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+      
+      
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+          Contributing & Governance
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_9">
+          <span class="md-nav__icon md-icon"></span>
+          Contributing & Governance
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md" class="md-nav__link">
+        Open Page (Link)
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+      
+      
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+          Documentation PDF
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_10">
+          <span class="md-nav__icon md-icon"></span>
+          Documentation PDF
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="/aws-secure-environment-accelerator/v1.5.6/pdf/accelerator-docs.pdf" class="md-nav__link">
+        Open PDF
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#11-summary" class="md-nav__link">
+    1.1. Summary
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-sample-configuration-files-with-descriptions" class="md-nav__link">
+    1.2. Sample Configuration Files with Descriptions
+  </a>
+  
+    <nav class="md-nav" aria-label="1.2. Sample Configuration Files with Descriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#121-full-configuration-configexamplejson" class="md-nav__link">
+    1.2.1. Full configuration (config.example.json)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#122-lite-weight-configuration-files" class="md-nav__link">
+    1.2.2. Lite weight configuration files
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#123-ultra-lite-sample-configuration" class="md-nav__link">
+    1.2.3. Ultra-Lite sample configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#124-multi-region-sample-configuration-configmulti-region-examplejson" class="md-nav__link">
+    1.2.4. Multi-Region sample configuration (config.multi-region-example.json)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#125-test-configuration-configtest-examplejson-use-for-testing-or-low-security-profiles" class="md-nav__link">
+    1.2.5. Test configuration (config.test-example.json) (Use for testing or Low Security Profiles)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-deployment-customizations" class="md-nav__link">
+    1.3. Deployment Customizations
+  </a>
+  
+    <nav class="md-nav" aria-label="1.3. Deployment Customizations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#131-multi-file-config-file-and-yaml-formatting-option" class="md-nav__link">
+    1.3.1. Multi-file config file and YAML formatting option
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#132-sample-snippets" class="md-nav__link">
+    1.3.2. Sample Snippets
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#133-third-party-firewall-example-configs" class="md-nav__link">
+    1.3.3. Third Party Firewall example configs
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-other-configuration-file-hints-and-tips" class="md-nav__link">
+    1.4. Other Configuration File Hints and Tips
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-config-file-and-deployment-protections" class="md-nav__link">
+    1.5. Config file and Deployment Protections
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-summary-of-example-config-file-minimum-changes-for-new-installs" class="md-nav__link">
+    1.6. Summary of Example Config File Minimum Changes for New Installs
+  </a>
+  
+    <nav class="md-nav" aria-label="1.6. Summary of Example Config File Minimum Changes for New Installs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#161-global-options" class="md-nav__link">
+    1.6.1. Global Options
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#162-mandatory-account-configs" class="md-nav__link">
+    1.6.2. Mandatory Account Configs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#163-workload-account-configs" class="md-nav__link">
+    1.6.3. Workload Account Configs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#164-organization-units" class="md-nav__link">
+    1.6.4. Organization Units
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="1-accelerator-sample-configurations-and-customization">1. Accelerator Sample Configurations and Customization<a class="headerlink" href="#1-accelerator-sample-configurations-and-customization" title="Permanent link">(link)</a></h1>
+<h2 id="11-summary">1.1. Summary<a class="headerlink" href="#11-summary" title="Permanent link">(link)</a></h2>
+<ul>
+<li>Sample config files can be found in <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/">this</a> folder<ul>
+<li>Most of the examples reflect a medium security profile (NIST, ITSG, FEDRAMP)</li>
+</ul>
+</li>
+<li>Unsure where to start, use <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-CTNFW-example.json">config.lite-CTNFW-example.json</a> (CT w/NFW variant of option 2)</li>
+<li>Frugal and want something comprehensive to experiment with, use <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.test-example.json">config.test-example.json</a> (option 5)</li>
+<li>Config file <a href="/aws-secure-environment-accelerator/schema/en/index.html">schema</a> documentation (Draft)</li>
+<li>Estimated monthly <a href="../../pricing/sample_pricing/">pricing</a> for sample configurations</li>
+</ul>
+<h2 id="12-sample-configuration-files-with-descriptions">1.2. Sample Configuration Files with Descriptions<a class="headerlink" href="#12-sample-configuration-files-with-descriptions" title="Permanent link">(link)</a></h2>
+<h3 id="121-full-configuration-configexamplejson">1.2.1. <strong>Full configuration</strong> (<a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.example.json">config.example.json</a>)<a class="headerlink" href="#121-full-configuration-configexamplejson" title="Permanent link">(link)</a></h3>
+<ul>
+<li>
+<p>The full configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the deployed architecture solution.</p>
+</li>
+<li>
+<p>Default settings:</p>
+<ul>
+<li>AWS Control Tower: No</li>
+<li>Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)</li>
+</ul>
+</li>
+</ul>
+<h3 id="122-lite-weight-configuration-files">1.2.2. <strong>Lite weight configuration</strong> files<a class="headerlink" href="#122-lite-weight-configuration-files" title="Permanent link">(link)</a></h3>
+<ul>
+<li>
+<p>Four variants with differing central ingress/egress firewalls</p>
+<ul>
+<li><em>Variant 1: <strong>Recommended starting point</strong></em> (<a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-CTNFW-example.json">config.lite-CTNFW-example.json</a>)<ul>
+<li>Default Settings:<ul>
+<li>AWS Control Tower: Yes</li>
+<li>Firewall: AWS Network Firewall</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><em>Variant 2: <strong>Recommended for new GC PBMM customers</strong></em> (<a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json">config.lite-VPN-example.json</a>)<ul>
+<li>requires 3rd party licensing (BYOL or PAYGO)</li>
+<li>Default Settings:<ul>
+<li>AWS Control Tower: No</li>
+<li>Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><em>Variant 3:</em> (<a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-NFW-example.json">config.lite-NFW-example.json</a>)<ul>
+<li>Same as <em>Variant 1</em> config without AWS Control Tower</li>
+<li>Default Settings:<ul>
+<li>AWS Control Tower: No</li>
+<li>Firewall: AWS Network Firewall</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><em>Variant 4:</em> (<a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-GWLB-example.json">config.lite-GWLB-example.json</a>)<ul>
+<li>requires 3rd party licensing (BYOL or PAYGO)</li>
+<li>Default Settings:<ul>
+<li>AWS Control Tower: No</li>
+<li>Firewall: Gateway Load Balancer with Checkpoint firewalls in an autoscaling group</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>To reduce solution costs and allow customers to grow into more advanced AWS capabilities, we created these lite weight configurations that does not sacrifice functionality, but could limit performance. These config files:</p>
+<ul>
+<li>only deploys the 9 required centralized Interface Endpoints (removes 50 from full config). All services remain accessible using the AWS public endpoints, but require traversing the perimeter firewalls</li>
+<li>removes the perimeter VPC Interface Endpoints</li>
+<li>reduces the Fortigate instance sizes from c5n.2xl to c5n.xl (VM08 to VM04) in <em>Variant 2: IPSec VPN with Active/Active Fortinet cluster</em> option</li>
+<li>removes the Unclass ou and VPC</li>
+<li>AWS Control Tower can be implemented in all sample configs using <em>Variant 1: AWS Control Tower with AWS Network Firewall</em> as an example (new installs only).</li>
+</ul>
+</li>
+<li>
+<p>The Accelerator allows customers to easily add or change this functionality in future, as and when required without any impact</p>
+</li>
+</ul>
+<h3 id="123-ultra-lite-sample-configuration">1.2.3. <strong>Ultra-Lite sample configuration</strong><a class="headerlink" href="#123-ultra-lite-sample-configuration" title="Permanent link">(link)</a></h3>
+<ul>
+<li><em>Variant 1:</em> (<a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.ultralite-CT-example.json">config.ultralite-CT-example.json</a>)<ul>
+<li>AWS Control Tower: Yes</li>
+<li>Firewall: None</li>
+<li>Networking: None</li>
+</ul>
+</li>
+<li><em>Variant 2:</em> (<a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json">config.ultralite-example.json</a>)<ul>
+<li>AWS Control Tower: No</li>
+<li>Firewall: None</li>
+<li>Networking: None</li>
+</ul>
+</li>
+<li>
+<p>This configuration file was created to represent an extremely minimalistic Accelerator deployment, simply to demonstrate the art of the possible for an extremely simple config. This example is NOT recommended as it violates many AWS best practices. This config has:</p>
+<ul>
+<li>no <code>shared-network</code> or <code>perimeter</code> accounts</li>
+<li>no networking (VPC, TGW, ELB, SG, NACL, endpoints) or route53 (zones, resolvers) objects</li>
+<li>no Managed AD, AD Connector, rsyslog cluster, RDGW host, or 3rd party firewalls</li>
+<li>only enables/deploys AWS security services in 2 regions (ca-central-1, us-east-1) (Not recommended)</li>
+<li>only deploys 2 AWS config rules w/SSM remediation</li>
+<li>renamed log-archive (Logs), security (Audit) and operations (Ops) account names</li>
+</ul>
+</li>
+</ul>
+<h3 id="124-multi-region-sample-configuration-configmulti-region-examplejson">1.2.4. <strong>Multi-Region sample configuration</strong> (<a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.multi-region-example.json">config.multi-region-example.json</a>)<a class="headerlink" href="#124-multi-region-sample-configuration-configmulti-region-examplejson" title="Permanent link">(link)</a></h3>
+<ul>
+<li>
+<p>This configuration file was created to represent a more advanced multi-region version of the Full configuration file from configuration 1 above. This config:</p>
+<ul>
+<li>adds a TGW in us-east-1, peered to the TGW in ca-central-1</li>
+<li>adds TGW static routes, including several dummy sample static routes</li>
+<li>adds a central Endpoint VPC in us-east-1 with us-east-1 endpoints configured</li>
+<li>adds a shared VPC for all UnClass OU accounts in us-east-1, connected to the us-east-1 TGW (accessible through ca-central-1)<ul>
+<li>creates additional zones and resolver rules</li>
+</ul>
+</li>
+<li>Sends us-east-1 CloudWatch Logs to the central S3 log-archive bucket in ca-central-1</li>
+<li>Deploys SSM documents to us-east-1 and remediates configured rules in UnClass OU</li>
+<li>adds a local account specific VPC, in us-east-1, in the account MyUnClass and connects it to the us-east-1 TGW (i.e. shares TGW)<ul>
+<li>local account VPC set to use central endpoints, associates appropriate centralized hosted zones to VPC (also creates 5 local endpoints)</li>
+</ul>
+</li>
+<li>adds a VGW for DirectConnect to the perimeter VPC</li>
+<li>adds the 3rd AZ in ca-central-1 (MAD &amp; ADC in AZ a &amp; b)</li>
+</ul>
+</li>
+<li>
+<p>Default Settings:</p>
+<ul>
+<li>AWS Control Tower: No</li>
+<li>Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)</li>
+</ul>
+</li>
+</ul>
+<h3 id="125-test-configuration-configtest-examplejson-use-for-testing-or-low-security-profiles">1.2.5. <strong>Test configuration</strong> (<a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.test-example.json">config.test-example.json</a>) <strong>(Use for testing or Low Security Profiles)</strong><a class="headerlink" href="#125-test-configuration-configtest-examplejson-use-for-testing-or-low-security-profiles" title="Permanent link">(link)</a></h3>
+<ul>
+<li>
+<p>Further reduces solution costs, while demonstrating full solution functionality (NOT recommendend for production). This config file:</p>
+<ul>
+<li>uses the Lite weight configuration as the starting point (NFW variant)</li>
+<li>consolidates Dev/Test/Prod OU to a single Workloads OU/VPC</li>
+<li>only enables Security Hub, Config and Macie in ca-central-1 and us-east-1</li>
+<li>removes the Fortigate firewall cluster (per NFW variant)</li>
+<li>removes the rsyslog cluster</li>
+<li>reduces the RDGW instance sizes from t2.large to t2.medium</li>
+<li>reduces the size of the MAD from Enterprise to Standard edition</li>
+<li>removes the on-premise R53 resolvers (hybrid dns)</li>
+<li>reduced various log retention periods and the VPCFlow log interval</li>
+<li>removes the two example workload accounts</li>
+<li>adds AWS Network Firewall (NFW) and AWS NATGW for centralized ingress/egress (per NFW variant)</li>
+</ul>
+</li>
+<li>
+<p>Default Settings:</p>
+<ul>
+<li>AWS Control Tower: No</li>
+<li>Firewall: AWS Network Firewall</li>
+</ul>
+</li>
+</ul>
+<h2 id="13-deployment-customizations">1.3. Deployment Customizations<a class="headerlink" href="#13-deployment-customizations" title="Permanent link">(link)</a></h2>
+<h3 id="131-multi-file-config-file-and-yaml-formatting-option">1.3.1. <a href="../multi-file-config-capabilities/">Multi-file config file and YAML formatting option</a><a class="headerlink" href="#131-multi-file-config-file-and-yaml-formatting-option" title="Permanent link">(link)</a></h3>
+<ul>
+<li>The sample configuration files are provided as single, all encompassing, json files. The Accelerator also supports both splitting the config file into multiple component files and configuration files built using YAML instead of json. Details can be found in the linked document.</li>
+</ul>
+<h3 id="132-sample-snippets">1.3.2. <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md">Sample Snippets</a><a class="headerlink" href="#132-sample-snippets" title="Permanent link">(link)</a></h3>
+<ul>
+<li>The sample configuration files do not include the full range of supported configuration file parameters and values, additional configuration file parameters and values can be found in the sample snippets document.</li>
+</ul>
+<h3 id="133-third-party-firewall-example-configs">1.3.3. Third Party Firewall example configs<a class="headerlink" href="#133-third-party-firewall-example-configs" title="Permanent link">(link)</a></h3>
+<ul>
+<li>The Accelerator is provided with a sample 3rd party configuration file to demonstrate automated deployment of 3rd party firewall technologies. Given the code is vendor agnostic, this process should be able to be leveraged to deploy other vendors firewall appliances. When and if other options become available, we will add them here as well.<ul>
+<li>Automated <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/firewall_file_available_variables.md">firewall configuration customization</a> possibilities</li>
+<li>Sample Fortinet Fortigate firewall config <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Third-Party">file</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="14-other-configuration-file-hints-and-tips">1.4. Other Configuration File Hints and Tips<a class="headerlink" href="#14-other-configuration-file-hints-and-tips" title="Permanent link">(link)</a></h2>
+<ul>
+<li>It is critical that all accounts that are leveraged by other accounts (i.e. accounts that any workload accounts are dependant on), are included in the mandatory-accounts section of the config file (i.e. shared-network, log-archive, operations)</li>
+<li>Account pointers within the config file point to the account key (i.e. (<code>mandatory-account-configs\account-key</code>) and NOT the account name field (<code>mandatory-account-configs\account-key\account-name: "account name"</code>). This allows for easy account names, duplicate account names, and no requirement to update account pointers during account renames.</li>
+<li>If any of the account pointers within <code>global-options</code> does not point to a valid mandatory account key, the State Machine will fail with the error <code>EnvironmentVariable value cannot be null</code> before starting CodeBuild Phase -1</li>
+<li>You cannot supply (or change) configuration file values to something not supported by the AWS platform<ul>
+<li>For example, CWL retention only supports specific retention values (not any number)</li>
+<li>Shard count - can only increase/reduce by half the current limit. i.e. you can change from <code>1</code>-<code>2</code>, <code>2</code>-<code>3</code>, <code>4</code>-<code>6</code></li>
+</ul>
+</li>
+<li>Always add any new items to the END of all lists or sections in the config file, otherwise<ul>
+<li>Update validation checks will fail (VPC's, subnets, share-to, etc.)</li>
+</ul>
+</li>
+<li>To skip, remove or uninstall a component, you can often simply change the section header, instead of removing the section<ul>
+<li>change "deployments"/"firewalls" to "deployments"/"xxfirewalls" and it will uninstall the firewalls and maintain the old config file settings for future use</li>
+<li>Objects with the parameter deploy: true, support setting the value to false to remove the deployment</li>
+</ul>
+</li>
+<li>As you grow and add AWS accounts, the Kinesis Data stream in the log-archive account will need to be monitored and have its capacity (shard count) increased by setting <code>"kinesis-stream-shard-count"</code> variable under <code>"central-log-services"</code> in the config file</li>
+<li>Updates to NACL's requires changing the rule number (<code>100</code> to <code>101</code>) or they will fail to update</li>
+<li>When adding a new subnet or subnets to a VPC (including enabling an additional AZ), you need to:<ul>
+<li>increment any impacted NACL id's in the config file (<code>100</code> to <code>101</code>, <code>32000</code> to <code>32001</code>) (CFN does not allow nacl updates)</li>
+<li>make a minor change to any impacted route table names (<code>MyRouteTable</code> to <code>MyRouteTable1</code>) (CFN does not allow updates to route table associated ids)</li>
+</ul>
+</li>
+<li>The sample VPN firewall configuration uses an instance with <strong>4</strong> NIC's, make sure you use an instance size that supports 4 ENI's</li>
+<li>Firewall names, CGW names, TGW names, MAD Directory ID, account keys, and OU's must all be unique throughout the entire configuration file (also true for VPC names given NACL and security group referencing design)</li>
+<li>The configuration file <em>does</em> have validation checks in place that prevent users from making certain major unsupported configuration changes</li>
+<li><strong>The configuration file does <em>NOT</em> have extensive error checking. It is expected you know what you are doing. We eventually hope to offer a config file, wizard based GUI editor and add the validation logic in this separate tool. In most cases the State Machine will fail with an error, and you will simply need to troubleshoot, rectify and rerun the state machine.</strong></li>
+<li>You cannot move an account between top-level OU's. This would be a security violation and cause other issues. You can move accounts between sub-ou. Note: The Control Tower version of the Accelerator does NOT support sub-ou's.</li>
+<li>When using YAML configuration files, we only support the subset of yaml that converts to JSON (we do not support anchors)</li>
+<li>Security Group names were designed to be identical between environments, if you want the VPC name in the SG name, you need to do it manually in the config file</li>
+<li>Adding more than approximately 50 <em>new</em> VPC Interface Endpoints across <em>all</em> regions in any one account in any single state machine execution will cause the state machine to fail due to Route 53 throttling errors. If adding endpoints at scale, only deploy 1 region at a time. In this scenario, the stack(s) will fail to properly delete, also based on the throttling, and will require manual removal.</li>
+<li>We do not support Directory unsharing or ADC deletion, delete methods were not implemented. We only support ADC creation in mandatory accounts.</li>
+<li>If <code>use-central-endpoints</code> is changed from true to false, you cannot add a local VPC endpoint on the same state machine execution (add the endpoint on a prior or subsequent execution)</li>
+<li>If you update the 3rd party firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the management port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.</li>
+<li>Removing the AWS NFW requires 2 state machine executions, in the first you must remove all routes that reference the NFW, and in the second you can remove or xx out the NFW (also true for the GWLB implementation ).</li>
+</ul>
+<h2 id="15-config-file-and-deployment-protections">1.5. Config file and Deployment Protections<a class="headerlink" href="#15-config-file-and-deployment-protections" title="Permanent link">(link)</a></h2>
+<ul>
+<li>The config file is moved to AWS CodeCommit after the first execution of the state machine to provide strong configuration history, versioning and change control</li>
+<li>After each successful state machine execution, we record the commit id of the config file used for that execution in secrets manager</li>
+<li>On <strong><em>every</em></strong> state machine execution, before making any changes, the Accelerator compares the latest version of the config file stored in CodeCommit with the version of the config file from the last successful state machine execution (after replacing all variables)</li>
+<li>If the config file includes any changes we consider to be significant or breaking, we immediately fail the state machine<ul>
+<li>if a customer somehow accidentally uploads a different customers config file into their Accelerator CodeCommit repository, the state machine will fail</li>
+<li>if a customer makes what we consider to be a major change to the config file, the state machine will fail</li>
+<li>if a customer makes a change that we believe has a high likelihood to cause a deployment failure, the state machine will fail</li>
+</ul>
+</li>
+<li>If a customer believes they understand the full implications of the changes they are making (and has made any required manual changes to allow successful execution), we have provided protection override flags. These overrides should be used with extremely caution:<ul>
+<li>To provide maximum protection we have provided scoped override flags. Customers can provide a flag or flags to only bypass specific type(s) of config file validations or blocks. If using an override flag, we recommend customers use these scoped flags in most situations.</li>
+<li>If a customer is purposefully making extensive changes across the config file and wants to simply override all checks with a single override flag, we also have this option, but discourage it use.</li>
+<li>The various override flags and their format can be found in <a href="../sm_inputs/">here</a>.</li>
+</ul>
+</li>
+</ul>
+<h2 id="16-summary-of-example-config-file-minimum-changes-for-new-installs">1.6. Summary of Example Config File Minimum Changes for New Installs<a class="headerlink" href="#16-summary-of-example-config-file-minimum-changes-for-new-installs" title="Permanent link">(link)</a></h2>
+<p>At a minimum you should consider reviewing the following config file sections and make the required changes.</p>
+<h3 id="161-global-options">1.6.1. Global Options<a class="headerlink" href="#161-global-options" title="Permanent link">(link)</a></h3>
+<ul>
+<li>S3 Central Bucket<ul>
+<li><code>global-options/central-bucket</code>: "AWSDOC-EXAMPLE-BUCKET"</li>
+<li>replace with <code>your-bucket-name</code> as referenced in the Installation Guide <a href="../install/#15-basic-accelerator-configuration">Step #5</a></li>
+</ul>
+</li>
+<li>Central Log Services SNS Emails<ul>
+<li><code>global-options/central-log-services/sns-subscription-emails</code>: "myemail+notifyT-xxx@example.com"</li>
+<li>update the 3 email addresses (high, medium and low) as required. Each address will receives alerts or alarms of the specified level. The same email address can be used for all three.</li>
+</ul>
+</li>
+<li>The default dynamic CIDR pools (<code>global-options/cidr-pools</code>) listed below are used to assign ranges based on the subnet mask set in each VPC and subnet throughout the configuration file.<ul>
+<li><code>global-options/cidr-pools/0/cidr</code>: "10.0.0.0/13"<ul>
+<li>The main address pool used to dynamically assign CIDR ranges for most VPCs</li>
+</ul>
+</li>
+<li><code>global-options/cidr-pools/1/cidr</code>: "100.96.252.0/23"<ul>
+<li>Address pool used to dynamically assign CIDR ranges for the Managed Active Directory subnets in the Ops account</li>
+</ul>
+</li>
+<li><code>global-options/cidr-pools/2/cidr</code>: "100.96.250.0/23"<ul>
+<li>Address pool used to dynamically assign CIDR ranges for the Perimeter VPC</li>
+</ul>
+</li>
+<li><code>global-options/cidr-pools/3/cidr</code>: "10.249.1.0/24"<ul>
+<li>A non-routable pool of addresses used to dynamically assign CIDR ranges for the Active Directory Connector subnets in the Organization Management/root account</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="162-mandatory-account-configs">1.6.2. Mandatory Account Configs<a class="headerlink" href="#162-mandatory-account-configs" title="Permanent link">(link)</a></h3>
+<ul>
+<li>All mandatory accounts specific to your config file, that are present under the <code>mandatory-account-config</code> section require you to assign a unique email address for each account listed below. Replace the email values in the JSON config file for these accounts with unique email addresses.<ul>
+<li><code>mandatory-account-configs/shared-network/email</code>: "myemail+aseaT-network@example.com---------------------REPLACE------------"</li>
+<li><code>mandatory-account-configs/operations/email</code>: "myemail+aseaT-operations@example.com---------------------REPLACE------------"</li>
+<li><code>mandatory-account-configs/perimeter/email</code>: "myemail+aseaT-perimeter@example.com---------------------REPLACE------------"</li>
+<li><code>mandatory-account-configs/management/email</code>: "myemail+aseaT-management@example.com---------------------REPLACE------------" (Note: This is the email of your root account)</li>
+<li><code>mandatory-account-configs/log-archive/email</code>: "myemail+aseaT-log@example.com---------------------REPLACE------------"</li>
+<li><code>mandatory-account-configs/security/email</code>: "myemail+aseaT-sec@example.com---------------------REPLACE------------"</li>
+</ul>
+</li>
+<li>Budget Alerts email addresses need to be replaced with an email address in your organization. It can be the same email address for all budget alerts. Config located at the following path (Multiple exist for different thresholds, update all under each account):<ul>
+<li><code>mandatory-account-configs/shared-network/budget/alerts/emails</code>: "myemail+aseaT-budg@example.com"</li>
+<li><code>mandatory-account-configs/perimeter/budget/alerts/emails</code>: "myemail+aseaT-budg@example.com"</li>
+<li><code>mandatory-account-configs/management/budget/alerts/emails</code>: "myemail+aseaT-budg@example.com"</li>
+</ul>
+</li>
+<li>For the <code>shared-network</code> account, review and update the following (or delete the sections):<ul>
+<li><code>mandatory-account-configs/shared-network/vpc/on-premise-rules/zone</code>: "on-premise-privatedomain1.example.ca" (qty 2)</li>
+<li><code>mandatory-account-configs/shared-network/vpc/zones/private</code>: "cloud-hosted-privatedomain.example.ca"</li>
+<li><code>mandatory-account-configs/shared-network/vpc/zones/public</code>: "cloud-hosted-publicdomain.example.ca"</li>
+</ul>
+</li>
+<li>For the <code>operations</code> account, review and update the following:<ul>
+<li><code>mandatory-account-configs/operations/deployments/mad/dns-domain</code>: "example.local"</li>
+<li><code>mandatory-account-configs/operations/deployments/mad/netbios-domain</code>: "example"</li>
+<li><code>mandatory-account-configs/operations/deployments/mad/log-group-name</code>: "/${ACCELERATOR_PREFIX_ND}/MAD/example.local" (replace example.local)</li>
+<li><code>mandatory-account-configs/operations/deployments/mad/ad-users</code> (update user, email and group of each user as required)<ul>
+<li>do not remove or change permissions on the <code>adconnector-usr</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>For <code>perimeter</code> account, review and update the following:</p>
+<ul>
+<li><code>mandatory-account-configs/perimeter/certificates/priv-key</code>: "certs/example1-cert.key"</li>
+<li><code>mandatory-account-configs/perimeter/certificates/cert</code>: "certs/example1-cert.crt"</li>
+<li>
+<p>If you are using VPN config:</p>
+<ul>
+<li><code>mandatory-account-configs/perimeter/deployments/firewalls/image-id</code>: "ami-0d8e2e78e928def11"<ul>
+<li>Update AMI with the AMI collected from the Marketplace for <strong>Fortinet FortiGate (BYOL) Next-Generation Firewall</strong></li>
+</ul>
+</li>
+<li><code>mandatory-account-configs/perimeter/deployments/xxfirewall-manager/image-id</code>: "ami-0e9f45c3ec34c3a9a"<ul>
+<li>Update AMI with the AMI collected from the Marketplace for <strong>Fortinet FortiManager (BYOL) Centralized Security Management</strong></li>
+<li>NOTE: Default config of "xxfirewall-manager" will prevent the firewall manager from being deployed. To deploy the firewall manager remove the "xx" to set the parameter to "firewall-manager"</li>
+</ul>
+</li>
+<li><code>mandatory-account-configs/perimeter/deployments/firewalls/license</code>: ["firewall/license1.lic", "firewall/license2.lic"]<ul>
+<li>Two Fortinet FortiGate firewall licenses, if you don't have any license files, update the config file with an empty array ("license": []). Do NOT use the following: [""]</li>
+<li>Place files in a folder (eg. firewall) in the same S3 bucket in your Organization Management account as the deployment configuration file.</li>
+</ul>
+</li>
+<li><code>mandatory-account-configs/perimeter/deployments/firewalls/config</code>: "firewall/firewall-example.txt"<ul>
+<li>The Fortinet configuration file to initially configure the firewalls. Sample configuration files can be found in the <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Third-Party/">reference-artifacts/Third-Party</a> folder</li>
+<li>Place file in a folder (eg. firewall) in the same S3 bucket in your Organization Management account as the deployment configuration file.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>If you are using GWLB config:</p>
+<ul>
+<li><code>mandatory-account-configs/perimeter/deployments/firewalls/Checkpoint-Firewall - image-id</code>: "ami-0217611bf09d5b4c1"<ul>
+<li>Update AMI with the AMI collected from the Marketplace for <strong>CloudGuard Network Security for GWLB - BYOL</strong></li>
+</ul>
+</li>
+<li><code>mandatory-account-configs/perimeter/deployments/firewall-manager/image-id</code>: "ami-0071a3b4ef9ac766a"<ul>
+<li>Update AMI with the AMI collected from the Marketplace for <strong>Checkpoint Security Management</strong></li>
+</ul>
+</li>
+<li><code>mandatory-account-configs/perimeter/deployments/firewall-manager/version</code>: "R8110BYOLMGMT"<ul>
+<li>Update version based on the selected ami-id version from the Private Marketplace</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>For <code>management</code>, review and update the following:</p>
+<ul>
+<li><code>mandatory-account-configs/management/account-name</code>: "ASEA-Main"<ul>
+<li>Update this field with your Organization Management (root) account name, if it is not set to ASEA-Main.</li>
+</ul>
+</li>
+<li><code>mandatory-account-configs/management/iam/users</code><ul>
+<li>the names of your break-glass and ASEA operation users</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="163-workload-account-configs">1.6.3. Workload Account Configs<a class="headerlink" href="#163-workload-account-configs" title="Permanent link">(link)</a></h3>
+<ul>
+<li>
+<p>As mentioned in the Installation Guide, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts back into the config file and rerun the state machine.</p>
+</li>
+<li>
+<p>Review the workload accounts in the config that you selected and change the name and email as desired</p>
+<ul>
+<li>Modify <code>mydevacct1</code> with the account name of your choosing</li>
+<li>Modify <code>mydevacct1/account-name</code>: "MyDev1" with the account name</li>
+<li>Modify <code>mydevacct1/email</code>: "myemail+aseaT-dev1@example.com---------------------REPLACE------------" with a unique email address for the account</li>
+<li>Modify <code>mydevacct1/description</code>: "This is an OPTIONAL SAMPLE workload account..." with a description relevant to your account</li>
+<li>Modify <code>mydevacct1/ou</code>: "Dev" with the OU that you would like the account to be attached to</li>
+</ul>
+</li>
+</ul>
+<h3 id="164-organization-units">1.6.4. Organization Units<a class="headerlink" href="#164-organization-units" title="Permanent link">(link)</a></h3>
+<ul>
+<li>For all organization units, update the budget alerts email addresses:<ul>
+<li><code>organizational-units/core/default-budgets/alerts/emails</code>: "myemail+aseaT-budg@example.com"</li>
+<li><code>organizational-units/Central/default-budgets/alerts/emails</code>: "myemail+aseaT-budg@example.com"</li>
+<li><code>organizational-units/Dev/default-budgets/alerts/emails</code>: "myemail+aseaT-budg@example.com"</li>
+<li><code>organizational-units/Test/default-budgets/alerts/emails</code>: "myemail+aseaT-budg@example.com"</li>
+<li><code>organizational-units/Prod/default-budgets/alerts/emails</code>: "myemail+aseaT-budg@example.com"</li>
+<li><code>organizational-units/Sandbox/default-budgets/alerts/emails</code>: "myemail+aseaT-budg@example.com"</li>
+</ul>
+</li>
+<li>For organization units with <code>certificates</code>, review the certificates and update as you see fit. These certificates are used in the <code>alb</code> section under <code>alb/cert-name</code> of each OU</li>
+</ul>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+            Back to top
+          </button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tracking", "navigation.instant", "navigation.indexes", "navigation.top"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.19047be9.min.js"></script>
+      
+    
+  </body>
+</html>
