@@ -6,10 +6,10 @@ const DEV_FILE_PATH = '../../../src/deployments/cdk/';
 const DEV_OUTPUTS_FILE_PATH = `${DEV_FILE_PATH}outputs.json`;
 
 const env = process.env;
-const acceleratorPrefix = env.ACCELERATOR_PREFIX || 'ASEA-';
 const installerStackName = process.env.INSTALLER_STACK_NAME;
 const cfn = new aws.CloudFormation();
 const documentClient = new aws.DynamoDB.DocumentClient();
+const codeCommitClient = new aws.CodeCommit();
 
 export const scanDDBTable = async (tableName: string) => {
   const items: dynamodb.ItemList = [];
@@ -68,11 +68,9 @@ export const describeStack = async (cfnClient: AWS.CloudFormation, stackName: st
   }
 };
 
-const context: any = {};
-
-describeStack(cfn, installerStackName)
-  .then(stackInfo => {
-    const params = stackInfo.Stacks![0].Parameters;
+export const setContext = (stackInfo: aws.CloudFormation.DescribeStacksOutput) => {
+  const params = stackInfo.Stacks![0].Parameters;
+    const context: any = {};
     if (params) {
       for (const param of params) {
         const key = camelCase(param.ParameterKey!);
@@ -90,13 +88,24 @@ describeStack(cfn, installerStackName)
     context['cidrPoolTable'] = `${context.acceleratorPrefix}cidr-pool`;
     console.log(JSON.stringify(context, null, 2));
     return context;
-  })
-  .then(context => fs.writeFileSync(`${DEV_FILE_PATH}context.json`, JSON.stringify(context, null, 2)));
+}
 
-scanDDBTable(`${acceleratorPrefix}Outputs`)
-  .then(outputs => loadOutputs(outputs))
-  .then(parsedOutputs => fs.writeFileSync(DEV_OUTPUTS_FILE_PATH, JSON.stringify(parsedOutputs, null, 2)));
+(async function() {
+  const stackInfo = await describeStack(cfn, installerStackName);
+  const context = setContext(stackInfo);
 
-scanDDBTable(`${acceleratorPrefix}Parameters`)
-  .then(params => loadConfigs(params))
-  .then(configs => writeConfigs(configs));
+  const outputs = await scanDDBTable(`${context.acceleratorPrefix}Outputs`);
+  const parsedOutputs = loadOutputs(outputs);
+
+  const params = await scanDDBTable(`${context.acceleratorPrefix}Parameters`);
+  const configs = loadConfigs(params);
+
+  
+  const configFileBase64 = await codeCommitClient.getFile({repositoryName: context.configRepositoryName, filePath: 'raw/config.json'}).promise()
+  const configFile = configFileBase64.fileContent.toString();
+
+  fs.writeFileSync(`${DEV_FILE_PATH}context.json`, JSON.stringify(context, null, 2));
+  fs.writeFileSync(DEV_OUTPUTS_FILE_PATH, JSON.stringify(parsedOutputs, null, 2));
+  fs.writeFileSync(`${DEV_FILE_PATH}config.json`, configFile);
+  writeConfigs(configs);
+})();
