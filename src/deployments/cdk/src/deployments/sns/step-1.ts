@@ -268,6 +268,11 @@ function createSnsTopics(props: {
       grantPrincipal: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
+    // Allowing Publish from Events Service form any account
+    topic.grantPublish({
+      grantPrincipal: new iam.ServicePrincipal('events.amazonaws.com'),
+    });
+
     topic.addToResourcePolicy(
       new iam.PolicyStatement({
         principals: [new iam.AnyPrincipal()],
