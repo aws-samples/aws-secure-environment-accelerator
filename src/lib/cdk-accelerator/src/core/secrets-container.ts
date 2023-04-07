@@ -32,7 +32,7 @@ export interface SecretsContainerProps extends Omit<secrets.SecretProps, 'encryp
   /**
    * Principals to read access.
    */
-  principals: iam.IPrincipal[];
+  principals?: iam.IPrincipal[];
 }
 
 /**
@@ -96,7 +96,6 @@ export class SecretsContainer extends Construct {
    * Create a secret in the stack with the given ID and the given props.
    */
   createSecret(id: string, props: SecretsContainerProps) {
-    console.log('(((((()))))))');
     console.log(props);
     const secret = new secrets.Secret(this, id, {
       ...props,
@@ -111,7 +110,9 @@ export class SecretsContainer extends Construct {
       }),
     );
     // Keep track of the principals that need access so we can add them later to the key policy
-    this.principals.push(...props.principals);
+    if (props.principals) {
+      this.principals.push(...props.principals);
+    }
     return secret;
   }
 

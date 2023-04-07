@@ -54,7 +54,6 @@ export async function createSecrets(props: MadSecretsProps) {
         passwordLength: 16,
         requireEachIncludedType: true,
       },
-      principals: [acceleratorRole],
     });
 
     // Create the AD users passwords
