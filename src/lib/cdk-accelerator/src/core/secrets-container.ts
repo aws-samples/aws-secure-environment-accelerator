@@ -102,13 +102,15 @@ export class SecretsContainer extends Construct {
       // The secret needs a physical name to enable cross account sharing
       encryptionKey: this.encryptionKey,
     });
-    secret.addToResourcePolicy(
-      new iam.PolicyStatement({
-        actions: props.actions ?? ['secretsmanager:GetSecretValue'],
-        resources: ['*'],
-        principals: props.principals,
-      }),
-    );
+    if (id !== 'MadPassword') {
+      secret.addToResourcePolicy(
+        new iam.PolicyStatement({
+          actions: props.actions ?? ['secretsmanager:GetSecretValue'],
+          resources: ['*'],
+          principals: props.principals,
+        }),
+      );
+    }
     // Keep track of the principals that need access so we can add them later to the key policy
     if (props.principals) {
       this.principals.push(...props.principals);
