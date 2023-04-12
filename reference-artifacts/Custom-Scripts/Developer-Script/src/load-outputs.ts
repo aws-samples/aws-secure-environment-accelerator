@@ -70,27 +70,27 @@ export const describeStack = async (cfnClient: AWS.CloudFormation, stackName: st
 
 export const setContext = (stackInfo: aws.CloudFormation.DescribeStacksOutput) => {
   const params = stackInfo.Stacks![0].Parameters;
-    const context: any = {};
-    if (params) {
-      for (const param of params) {
-        const key = camelCase(param.ParameterKey!);
-        const value = param.ParameterValue!;
-        context[key] = value;
-      }
+  const context: any = {};
+  if (params) {
+    for (const param of params) {
+      const key = camelCase(param.ParameterKey!);
+      const value = param.ParameterValue!;
+      context[key] = value;
     }
-    context['acceleratorExecutionRoleName'] = `${context.acceleratorPrefix}PipelineRole`;
-    context['defaultRegion'] = process.env.AWS_REGION || 'us-west-2';
-    context['acceleratorPipelineRoleName'] = `${context.acceleratorPrefix}PipelineRole`;
-    context['acceleratorStateMachineName'] = `${context.acceleratorPrefix}MainStateMachine_sm`;
-    context['installerVersion'] = '1.5.0';
-    context['vpcCidrPoolAssignedTable'] = `${context.acceleratorPrefix}cidr-vpc-assign`;
-    context['subnetCidrPoolAssignedTable'] = `${context.acceleratorPrefix}cidr-subnet-assign`;
-    context['cidrPoolTable'] = `${context.acceleratorPrefix}cidr-pool`;
-    console.log(JSON.stringify(context, null, 2));
-    return context;
-}
+  }
+  context['acceleratorExecutionRoleName'] = `${context.acceleratorPrefix}PipelineRole`;
+  context['defaultRegion'] = process.env.AWS_REGION || 'us-west-2';
+  context['acceleratorPipelineRoleName'] = `${context.acceleratorPrefix}PipelineRole`;
+  context['acceleratorStateMachineName'] = `${context.acceleratorPrefix}MainStateMachine_sm`;
+  context['installerVersion'] = '1.5.0';
+  context['vpcCidrPoolAssignedTable'] = `${context.acceleratorPrefix}cidr-vpc-assign`;
+  context['subnetCidrPoolAssignedTable'] = `${context.acceleratorPrefix}cidr-subnet-assign`;
+  context['cidrPoolTable'] = `${context.acceleratorPrefix}cidr-pool`;
+  console.log(JSON.stringify(context, null, 2));
+  return context;
+};
 
-(async function() {
+(async function () {
   const stackInfo = await describeStack(cfn, installerStackName);
   const context = setContext(stackInfo);
 
@@ -100,8 +100,9 @@ export const setContext = (stackInfo: aws.CloudFormation.DescribeStacksOutput) =
   const params = await scanDDBTable(`${context.acceleratorPrefix}Parameters`);
   const configs = loadConfigs(params);
 
-  
-  const configFileBase64 = await codeCommitClient.getFile({repositoryName: context.configRepositoryName, filePath: 'raw/config.json'}).promise()
+  const configFileBase64 = await codeCommitClient
+    .getFile({ repositoryName: context.configRepositoryName, filePath: 'raw/config.json' })
+    .promise();
   const configFile = configFileBase64.fileContent.toString();
 
   fs.writeFileSync(`${DEV_FILE_PATH}context.json`, JSON.stringify(context, null, 2));
