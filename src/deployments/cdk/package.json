@@ -77,7 +77,7 @@
     "constructs": "10.0.12",
     "@types/js-yaml": "4.0.1",
     "@types/semver": "7.3.5",
-    "aws-sdk": "2.944.0",
+    "aws-sdk": "2.1356.0",
     "cdk-assets": "2.38.0",
     "hash-sum": "2.0.0",
     "io-ts": "2.2.16",
