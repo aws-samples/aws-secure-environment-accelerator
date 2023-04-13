@@ -254,12 +254,12 @@ importers:
       '@aws-accelerator/custom-resource-ssm-session-manager-document': link:../../lib/custom-resources/cdk-ssm-session-manager-document
       '@aws-accelerator/custom-resource-vpc-default-security-group': link:../../lib/custom-resources/cdk-vpc-default-security-group
       '@aws-accelerator/deployments': 'link:'
-      '@aws-cdk/assert': 1.172.0_jest@25.2.4
+      '@aws-cdk/assert': 1.172.0_6puo5yksfk6kv4do7hbfpuy5qm
       '@aws-cdk/cfnspec': 2.38.0
       '@aws-cdk/cloud-assembly-schema': 2.38.0
       '@aws-cdk/cloudformation-diff': 2.38.0
-      '@aws-cdk/core': 1.172.0
-      '@aws-cdk/cx-api': 2.38.0
+      '@aws-cdk/core': 1.172.0_x3alz4tw4fd6cpkh2po3z3e62i
+      '@aws-cdk/cx-api': 2.38.0_flrlwppufbdqwy6rsho7ntxyai
       '@types/js-yaml': 4.0.1
       '@types/semver': 7.3.5
       aws-cdk: 2.38.0
@@ -1412,12 +1412,12 @@ importers:
       aws-sdk: 2.1356.0
       esbuild: 0.11.18
       typescript: 4.2.4
-      xml2js: 0.4.23
+      xml2js: 0.5.0
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       aws-lambda: 1.0.6
       aws-sdk: 2.1356.0
-      xml2js: 0.4.23
+      xml2js: 0.5.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 14.14.31
@@ -3093,17 +3093,21 @@ packages:
       js-yaml: 4.1.0
     dev: true
 
-  /@aws-cdk/assert/1.172.0_jest@25.2.4:
+  /@aws-cdk/assert/1.172.0_6puo5yksfk6kv4do7hbfpuy5qm:
     resolution: {integrity: sha512-ZUdQ2H2nr825D/NSwigZzMenDUjiaSSf82GypF0WI3KUX2pr1ZqqlRz6DX52xp5NFqwRJ6g8YJ//MT4s8BYzHQ==}
     engines: {node: '>= 14.15.0'}
     peerDependencies:
+      '@aws-cdk/core': 1.172.0
+      constructs: ^3.3.69
       jest: '>=26.6.3'
     dependencies:
       '@aws-cdk/cloudformation-diff': 1.172.0
-      '@aws-cdk/core': 1.172.0
-      '@aws-cdk/cx-api': 1.172.0
-      constructs: 3.4.293
+      '@aws-cdk/core': 1.172.0_x3alz4tw4fd6cpkh2po3z3e62i
+      '@aws-cdk/cx-api': 1.172.0_flrlwppufbdqwy6rsho7ntxyai
+      constructs: 10.0.12
       jest: 25.2.4
+    transitivePeerDependencies:
+      - '@aws-cdk/cloud-assembly-schema'
     dev: false
 
   /@aws-cdk/assert/2.38.0_4qaughw43osyyrvwmbpua3fy34:
@@ -3132,14 +3136,6 @@ packages:
     dependencies:
       fs-extra: 9.1.0
       md5: 2.3.0
-
-  /@aws-cdk/cloud-assembly-schema/1.172.0:
-    resolution: {integrity: sha512-Y+o/ZYT23lcoUsLJWZmpgICxuzFHDh5oNzro7ip2GG1Gs3UlZ5rMS755f22vHBNxJ8lgTFrbsI7Wr7kDGGnyNw==}
-    engines: {node: '>= 14.15.0'}
-    dev: false
-    bundledDependencies:
-      - jsonschema
-      - semver
 
   /@aws-cdk/cloud-assembly-schema/2.38.0:
     resolution: {integrity: sha512-znyniEa2EbkPmAD2o1SvoXkIC0YZSnIwqDla80BNn89Xi1xonyPWFIVhRRKD260kYiWcENwehvyVjqWaeLGv5g==}
@@ -3177,15 +3173,19 @@ packages:
       string-width: 4.2.3
       table: 6.8.0
 
-  /@aws-cdk/core/1.172.0:
+  /@aws-cdk/core/1.172.0_x3alz4tw4fd6cpkh2po3z3e62i:
     resolution: {integrity: sha512-Hy7jNNzkNSf+oCmhhXnTcybunejTtCuGmfEFNZXsizcWBUjm0zD0K1X3kjD7Fqs0p+4xbaorCTgIB3Cu9qrF1Q==}
     engines: {node: '>= 14.15.0'}
-    dependencies:
+    peerDependencies:
       '@aws-cdk/cloud-assembly-schema': 1.172.0
       '@aws-cdk/cx-api': 1.172.0
+      constructs: ^3.3.69
+    dependencies:
+      '@aws-cdk/cloud-assembly-schema': 2.38.0
+      '@aws-cdk/cx-api': 2.38.0_flrlwppufbdqwy6rsho7ntxyai
       '@aws-cdk/region-info': 1.172.0
       '@balena/dockerignore': 1.0.2
-      constructs: 3.4.293
+      constructs: 10.0.12
       fs-extra: 9.1.0
       ignore: 5.2.0
       minimatch: 3.1.2
@@ -3196,18 +3196,23 @@ packages:
       - '@balena/dockerignore'
       - ignore
 
-  /@aws-cdk/cx-api/1.172.0:
+  /@aws-cdk/cx-api/1.172.0_flrlwppufbdqwy6rsho7ntxyai:
     resolution: {integrity: sha512-1dZpOzHM1J4wFTe4Wu+TmDx3b+WFlJyGm9DRyA3QDaqw8fIx0PEjxLbqnKb6B+UlY0Foxlu1V6jc/O1Sv929Xw==}
     engines: {node: '>= 14.15.0'}
-    dependencies:
+    peerDependencies:
       '@aws-cdk/cloud-assembly-schema': 1.172.0
+    dependencies:
+      '@aws-cdk/cloud-assembly-schema': 2.38.0
+      semver: 7.3.8
     dev: false
     bundledDependencies:
       - semver
 
-  /@aws-cdk/cx-api/2.38.0:
+  /@aws-cdk/cx-api/2.38.0_flrlwppufbdqwy6rsho7ntxyai:
     resolution: {integrity: sha512-03MRRi0a9hsDVNoAl8FE0RrJtXPK/Kx2mumoWnLc+KTTHz0Iq4KXzLbBzwXFNuj0twuBLNQiEnWGWU+XG4cS8Q==}
     engines: {node: '>= 14.15.0'}
+    peerDependencies:
+      '@aws-cdk/cloud-assembly-schema': 2.38.0
     dependencies:
       '@aws-cdk/cloud-assembly-schema': 2.38.0
       semver: 7.3.8
@@ -10860,7 +10865,7 @@ packages:
       minipass-pipeline: 1.2.4
       mkdirp: 1.0.4
       p-map: 4.0.0
-      promise-inflight: 1.0.1_bluebird@3.7.2
+      promise-inflight: 1.0.1
       rimraf: 3.0.2
       ssri: 8.0.1
       tar: 6.1.0
@@ -10976,7 +10981,7 @@ packages:
     hasBin: true
     dependencies:
       '@aws-cdk/cloud-assembly-schema': 2.38.0
-      '@aws-cdk/cx-api': 2.38.0
+      '@aws-cdk/cx-api': 2.38.0_flrlwppufbdqwy6rsho7ntxyai
       archiver: 5.3.1
       aws-sdk: 2.1240.0
       glob: 7.2.3
@@ -11384,11 +11389,6 @@ packages:
     resolution: {integrity: sha512-wVQcQgwwK7b//7yI54/3hundmXAw7RBpuy5f6yIBFNceJr8feTK6Cs2I2f3+gp3/ikszzTouLup9AzxioEEXPQ==}
     engines: {node: '>= 12.7.0'}
     bundledDependencies: []
-
-  /constructs/3.4.293:
-    resolution: {integrity: sha512-pUUNuJFQl8+47oFgDNLge8IupmPEKmSrdgADPmnyEqZBoqpui/yrxhIHTFEYDR1jFck9XzWHOBWnncs64mH7uw==}
-    engines: {node: '>= 14.17.0'}
-    dev: false
 
   /contains-path/0.1.0:
     resolution: {integrity: sha512-OKZnPGeMQy2RPaUIBPFFd71iNf4791H12MCRuVQDnzGRwCYNYmTDy5pdafo2SLAcEMKzTOQnLWG4QdcjeJUMEg==}
@@ -18262,6 +18262,15 @@ packages:
     engines: {node: '>=0.4.0'}
     dev: true
 
+  /promise-inflight/1.0.1:
+    resolution: {integrity: sha1-mEcocL8igTL8vdhoEputEsPAKeM=}
+    peerDependencies:
+      bluebird: '*'
+    peerDependenciesMeta:
+      bluebird:
+        optional: true
+    dev: true
+
   /promise-inflight/1.0.1_bluebird@3.7.2:
     resolution: {integrity: sha1-mEcocL8igTL8vdhoEputEsPAKeM=}
     peerDependencies:
@@ -18497,6 +18506,12 @@ packages:
   /react-dev-utils/11.0.4_n6ijnsce7mrujixefbdal25xom:
     resolution: {integrity: sha512-dx0LvIGHcOPtKbeiSUM4jqpBl3TcY7CDjZdfOIcKeznE7BWr9dg0iPG90G5yfVQ+p/rGNMXdbfStvzQZEVEi4A==}
     engines: {node: '>=10'}
+    peerDependencies:
+      typescript: '>=2.7'
+      webpack: '>=4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
     dependencies:
       '@babel/code-frame': 7.10.4
       address: 1.1.2
@@ -18527,9 +18542,7 @@ packages:
     transitivePeerDependencies:
       - eslint
       - supports-color
-      - typescript
       - vue-template-compiler
-      - webpack
     dev: true
 
   /react-dom/17.0.2_react@17.0.2:
@@ -21634,16 +21647,8 @@ packages:
   /xml2js/0.4.19:
     resolution: {integrity: sha512-esZnJZJOiJR9wWKMyuvSE1y6Dq5LCuJanqhxslH2bxM6duahNZ+HMpCLhBQGZkbX6xRf8x1Y2eJlgt2q3qo49Q==}
     dependencies:
-      sax: 1.2.1
-      xmlbuilder: 9.0.7
-    dev: false
-
-  /xml2js/0.4.23:
-    resolution: {integrity: sha512-ySPiMjM0+pLDftHgXY4By0uswI3SPKLDw/i3UXbnO8M/p28zqexCUoPmQFrYD+/1BzhGJSs2i1ERWKJAtiLrug==}
-    engines: {node: '>=4.0.0'}
-    dependencies:
       sax: 1.2.4
-      xmlbuilder: 11.0.1
+      xmlbuilder: 9.0.7
     dev: false
 
   /xml2js/0.5.0:
