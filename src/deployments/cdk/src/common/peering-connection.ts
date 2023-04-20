@@ -11,14 +11,15 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
+import * as cdk from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { PcxRouteConfig, PcxRouteConfigType, ResolvedVpcConfig } from '@aws-accelerator/common-config/src';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { getVpcConfig } from './get-all-vpcs';
 import { StructuredOutput } from './structured-output';
 import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
+import { Construct } from 'constructs';
 
 export namespace PeeringConnection {
   export interface PeeringConnectionRoutesProps {
@@ -41,8 +42,8 @@ export namespace PeeringConnection {
     outputs: StackOutput[];
   }
 
-  export class PeeringConnectionRoutes extends cdk.Construct {
-    constructor(scope: cdk.Construct, id: string, props: PeeringConnectionRoutesProps) {
+  export class PeeringConnectionRoutes extends Construct {
+    constructor(scope: Construct, id: string, props: PeeringConnectionRoutesProps) {
       super(scope, id);
 
       const { accountKey, vpcName, vpcConfigs, outputs } = props;

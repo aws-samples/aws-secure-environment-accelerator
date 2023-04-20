@@ -12,12 +12,13 @@
  */
 
 import 'jest';
-import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
+import * as cdk from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { expect, haveResource, haveResourceLike } from '@aws-cdk/assert';
 import { AcceleratorNameTagger } from '../../src/core';
+import { Node } from 'constructs';
 // eslint-disable-next-line
-import { Aspects } from '@aws-cdk/core';
+import { Aspects } from 'aws-cdk-lib';
 
 test('should add the Name tag with the correct suffix to ec2.Vpc', () => {
   const stack = new cdk.Stack();
@@ -26,12 +27,13 @@ test('should add the Name tag with the correct suffix to ec2.Vpc', () => {
     cidr: '10.0.0.1/24',
   });
 
-  Aspects.of(stack).add(new AcceleratorNameTagger());
+  cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  cdk.ConstructNode.prepare(stack.node);
+  // Node.prepare(stack.node);
 
+  stack.node.validate();
   expect(stack).to(
     haveResource('AWS::EC2::VPC', {
       Tags: [
@@ -51,12 +53,12 @@ test('should add the Name tag with the correct suffix to ec2.CfnVpc', () => {
     cidrBlock: '10.0.0.1/24',
   });
 
-  Aspects.of(stack).add(new AcceleratorNameTagger());
+  cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  cdk.ConstructNode.prepare(stack.node);
-
+  // Node.prepare(stack.node);
+  stack.node.validate();
   expect(stack).to(
     haveResourceLike('AWS::EC2::VPC', {
       Tags: [
@@ -78,11 +80,12 @@ test('should add the Name tag with the correct suffix to ec2.Subnet', () => {
     availabilityZone: 'ca-central-1a',
   });
 
-  Aspects.of(stack).add(new AcceleratorNameTagger());
+  cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  cdk.ConstructNode.prepare(stack.node);
+  // Node.prepare(stack.node);
+  stack.node.validate();
 
   expect(stack).to(
     haveResourceLike('AWS::EC2::Subnet', {
@@ -105,11 +108,12 @@ test('should add the Name tag with the correct suffix to ec2.CfnSubnet', () => {
     availabilityZone: 'ca-central-1a',
   });
 
-  Aspects.of(stack).add(new AcceleratorNameTagger());
+  cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  cdk.ConstructNode.prepare(stack.node);
+  stack.node.validate();
+  // Node.prepare(stack.node);
 
   expect(stack).to(
     haveResourceLike('AWS::EC2::Subnet', {
@@ -130,11 +134,12 @@ test('should add the Name tag with the correct suffix to ec2.CfnRouteTable', () 
     vpcId: '1',
   });
 
-  Aspects.of(stack).add(new AcceleratorNameTagger());
+  cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  cdk.ConstructNode.prepare(stack.node);
+  // Node.prepare(stack.node);
+  stack.node.validate();
 
   expect(stack).to(
     haveResourceLike('AWS::EC2::RouteTable', {
@@ -153,11 +158,12 @@ test('should add the Name tag with the correct suffix to ec2.CfnTransitGateway',
 
   new ec2.CfnTransitGateway(stack, 'Main', {});
 
-  Aspects.of(stack).add(new AcceleratorNameTagger());
+  cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  cdk.ConstructNode.prepare(stack.node);
+  // Node.prepare(stack.node);
+  stack.node.validate();
 
   expect(stack).to(
     haveResourceLike('AWS::EC2::TransitGateway', {
@@ -178,11 +184,12 @@ test('should add the Name tag with the correct suffix to ec2.CfnTransitGatewayRo
     transitGatewayId: '1',
   });
 
-  Aspects.of(stack).add(new AcceleratorNameTagger());
+  cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  cdk.ConstructNode.prepare(stack.node);
+  // Node.prepare(stack.node);
+  stack.node.validate();
 
   expect(stack).to(
     haveResourceLike('AWS::EC2::TransitGatewayRouteTable', {
@@ -203,11 +210,12 @@ test('should not add suffix if the suffix is already there', () => {
     cidr: '10.0.0.1/24',
   });
 
-  Aspects.of(stack).add(new AcceleratorNameTagger());
+  cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   // eslint-disable-next-line deprecation/deprecation
-  cdk.ConstructNode.prepare(stack.node);
+  // Node.prepare(stack.node);
+  stack.node.validate();
 
   expect(stack).to(
     haveResourceLike('AWS::EC2::VPC', {

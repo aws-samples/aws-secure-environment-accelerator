@@ -12,10 +12,11 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as events from '@aws-cdk/aws-events';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as events from 'aws-cdk-lib/aws-events';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::CentralLoggingSubscriptionFilter';
 
@@ -25,12 +26,14 @@ export interface CentralLoggingSubscriptionFilterProps {
   ruleName: string;
   logRetention: number;
   roleArn: string;
+  uuid: string;
+  subscriptionFilterRoleArn?: string;
 }
 
 /**
  * Custom resource to create subscription filter in all existing log groups
  */
-export class CentralLoggingSubscriptionFilter extends cdk.Construct {
+export class CentralLoggingSubscriptionFilter extends Construct {
   private readonly resource: cdk.CustomResource;
   private readonly role: iam.IRole;
   private readonly cloudWatchEnventLambdaPath =
@@ -38,9 +41,28 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
   private readonly cloudFormationCustomLambaPath =
     '@aws-accelerator/custom-resource-logs-add-subscription-filter-runtime';
 
-  constructor(scope: cdk.Construct, id: string, props: CentralLoggingSubscriptionFilterProps) {
+  constructor(scope: Construct, id: string, props: CentralLoggingSubscriptionFilterProps) {
     super(scope, id);
 
+    // Since this is deployed organization wide, this role is required
+    // https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CreateSubscriptionFilter-IAMrole.html
+    const subscriptionFilterRole = new iam.Role(this, 'SubscriptionFilterRole', {
+      // eslint-disable-next-line no-template-curly-in-string
+      assumedBy: new iam.ServicePrincipal(cdk.Fn.sub('logs.${AWS::Region}.amazonaws.com')),
+      description: 'Role used by Subscription Filter to allow access to CloudWatch Destination',
+      inlinePolicies: {
+        accessLogEvents: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              resources: ['*'],
+              actions: ['logs:PutLogEvents'],
+            }),
+          ],
+        }),
+      },
+    });
+
+    props.subscriptionFilterRoleArn = subscriptionFilterRole.roleArn;
     this.role = iam.Role.fromRoleArn(this, `${resourceType}Role`, props.roleArn);
     // Custom Resource to add subscriptin filter to existing logGroups
     this.resource = new cdk.CustomResource(this, 'CustomResource', {
@@ -56,6 +78,7 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
       EXCLUSIONS: JSON.stringify(props.globalExclusions),
       LOG_DESTINATION: props.logDestinationArn,
       LOG_RETENTION: props.logRetention.toString(),
+      SUBSCRIPTION_FILTER_ROLE_ARN: subscriptionFilterRole.roleArn,
     };
     const addSubscriptionLambda = this.ensureLambdaFunction(
       this.cloudWatchEnventLambdaPath,

@@ -1,6 +1,6 @@
 {
   "name": "@aws-accelerator/installer",
-  "version": "1.5.5",
+  "version": "1.5.6-a",
   "scripts": {
     "test": "pnpx jest",
     "synth": "pnpx cdk synth",
@@ -12,21 +12,15 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@aws-cdk/aws-codebuild": "1.174.0",
-    "@aws-cdk/aws-codecommit": "1.174.0",
-    "@aws-cdk/aws-codepipeline": "1.174.0",
-    "@aws-cdk/aws-codepipeline-actions": "1.174.0",
-    "@aws-cdk/aws-iam": "1.174.0",
-    "@aws-cdk/aws-kms": "1.174.0",
-    "@aws-cdk/aws-lambda": "1.174.0",
-    "@aws-cdk/aws-s3": "1.174.0",
-    "@aws-cdk/core": "1.174.0"
+    "@aws-accelerator/installer": "link:",
+    "aws-cdk-lib": "2.38.1",
+    "constructs": "10.0.12"
   },
   "devDependencies": {
     "@types/jest": "25.2.3",
     "@types/node": "14.14.31",
-    "aws-cdk": "1.174.0",
-    "aws-sdk": "2.944.0",
+    "aws-cdk": "2.38.1",
+    "aws-sdk": "2.1356.0",
     "eslint": "7.25.0",
     "jest": "25.2.4",
     "ts-jest": "25.3.0",

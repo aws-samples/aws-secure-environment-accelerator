@@ -11,15 +11,16 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { LaunchConfiguration } from '@aws-accelerator/cdk-constructs/src/autoscaling';
 import { MadDeploymentConfig } from '@aws-accelerator/common-config/src';
-import { CfnAutoScalingGroup } from '@aws-cdk/aws-autoscaling';
+import { CfnAutoScalingGroup } from 'aws-cdk-lib/aws-autoscaling';
 import { pascalCase } from 'pascal-case';
 import { SecurityGroup } from './security-group';
 import { createIamInstanceProfileName } from './iam-assets';
 import { AcceleratorStack } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-stack';
 import { trimSpecialCharacters } from '@aws-accelerator/common-outputs/src/secrets';
+import { Construct } from 'constructs';
 
 export interface ADUsersAndGroupsProps extends cdk.StackProps {
   madDeploymentConfig: MadDeploymentConfig;
@@ -44,8 +45,8 @@ export interface UserSecret {
   passwordSecretArn: string;
 }
 
-export class ADUsersAndGroups extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: ADUsersAndGroupsProps) {
+export class ADUsersAndGroups extends Construct {
+  constructor(scope: Construct, id: string, props: ADUsersAndGroupsProps) {
     super(scope, id);
 
     const {

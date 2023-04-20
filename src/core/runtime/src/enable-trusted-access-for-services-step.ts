@@ -93,7 +93,7 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   // as access analyzer will be created in security account, creating service linked role specifically in master.
   try {
     await iam.createServiceLinkedRole('access-analyzer.amazonaws.com');
-  } catch (e) {
+  } catch (e: any) {
     if (
       e.message ===
       'Service role name AWSServiceRoleForAccessAnalyzer has been taken in this account, please try a different suffix.'
@@ -121,7 +121,7 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
       throw new Error('Missing value in "/accelerator/first-version"');
     }
     return firstInstalVersionParam.Parameter?.Value;
-  } catch (e) {
+  } catch (e: any) {
     if (e.code === 'ParameterNotFound') {
       throw new Error('ParameterNotFound - Did you use the latest installer?');
     } else {

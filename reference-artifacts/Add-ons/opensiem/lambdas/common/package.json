@@ -17,7 +17,7 @@
     },
     "dependencies": {
         "aws-lambda": "1.0.6",
-        "aws-sdk": "2.944.0",
+        "aws-sdk": "2.1354.0",
         "lodash": "^4.17.21",
         "pascal-case": "3.1.2",
         "tar-stream": "^2.2.0",

@@ -11,11 +11,12 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import * as c from '@aws-accelerator/common-config';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account, getAccountId } from '../../utils/accounts';
-import * as iam from '@aws-cdk/aws-iam';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import { Construct } from 'constructs';
 
 export interface CentralServicesStep1Props {
   accountStacks: AccountStacks;
@@ -82,7 +83,7 @@ async function centralServicesSettingsInMaster(props: {
  * Cloud Watch Cross Account Settings in Master Account
  * 5.15b - READY - Centralize CWL - Part 1
  */
-async function cloudWatchSettingsInMaster(props: { scope: cdk.Construct; accountIds: string[]; rootOuId: string }) {
+async function cloudWatchSettingsInMaster(props: { scope: Construct; accountIds: string[]; rootOuId: string }) {
   const { scope, accountIds, rootOuId } = props;
   const accountPrincipals: iam.PrincipalBase[] = accountIds.map(accountId => {
     return new iam.AccountPrincipal(accountId);

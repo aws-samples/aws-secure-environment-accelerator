@@ -11,14 +11,14 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as kms from '@aws-cdk/aws-kms';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as targets from '@aws-cdk/aws-events-targets';
-import { Rule, Schedule } from '@aws-cdk/aws-events';
-import { RegionInfo } from '@aws-cdk/region-info';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as kms from 'aws-cdk-lib/aws-kms';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
+import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
+import { RegionInfo } from 'aws-cdk-lib/region-info';
 import { EbsDefaultEncryption } from '@aws-accelerator/custom-resource-ec2-ebs-default-encryption';
 import { S3PublicAccessBlock } from '@aws-accelerator/custom-resource-s3-public-access-block';
 import { Organizations } from '@aws-accelerator/custom-resource-organization';

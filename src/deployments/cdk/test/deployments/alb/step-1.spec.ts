@@ -13,7 +13,7 @@
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import 'jest';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { createLbName, createTargetGroupName } from '../../../src/deployments/alb/step-1';
 
 test('the ALB name should not contain more than 32 characters', () => {

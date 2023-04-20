@@ -17,7 +17,7 @@ import { SecretsContainer } from '@aws-accelerator/cdk-accelerator/src/core/secr
 import { StructuredOutput } from '../../common/structured-output';
 import { SecretEncryptionKeyOutput, SecretEncryptionKeyOutputType } from './outputs';
 import { randomAlphanumericString } from '@aws-accelerator/common/src/util/common';
-import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CfnDynamicSecretOutput } from '../mad';
 import { DynamicSecretOutputFinder } from '@aws-accelerator/common-outputs/src/secrets';

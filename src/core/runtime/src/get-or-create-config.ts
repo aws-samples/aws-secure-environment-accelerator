@@ -81,7 +81,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       if (!currentBranch.branch) {
         await codecommit.createBranch(repositoryName, branchName, previousCommit.branch?.commitId!);
       }
-    } catch (e) {
+    } catch (e: any) {
       if (e.code === 'BranchDoesNotExistException') {
         await codecommit.createBranch(repositoryName, branchName, previousCommit.branch?.commitId!);
       }
@@ -164,7 +164,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
         commitMessage: `Updating Raw Config in SM`,
         parentCommitId: currentCommit.branch?.commitId,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'NoChangeException') {
         console.log(`No Change in Configuration form Previous Execution`);
       } else {
@@ -196,7 +196,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       storeAllOutputs,
       smInput: smInput || {},
     };
-  } catch (e) {
+  } catch (e: any) {
     if (e.code !== 'FileDoesNotExistException' && e.code !== 'CommitDoesNotExistException') {
       throw new Error(e);
     }
@@ -321,7 +321,7 @@ async function isFileExist(props: {
         Key: fileName,
       });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'NoSuchKey') {
         return false;
       }
@@ -331,7 +331,7 @@ async function isFileExist(props: {
   try {
     await codecommit.getFile(repositoryName!, fileName, branchName);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     if (
       error.code === 'FileDoesNotExistException' ||
       error.code === 'CommitDoesNotExistException' ||
@@ -382,7 +382,7 @@ async function beforeStart(
   let previousAcceleratorVersion;
   try {
     previousExecutionSecret = await secrets.getSecret(commitSecretId);
-  } catch (e) {
+  } catch (e: any) {
     console.warn(e);
     if (e.code !== 'ResourceNotFoundException') {
       throw new Error(e);

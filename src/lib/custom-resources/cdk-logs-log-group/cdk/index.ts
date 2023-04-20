@@ -12,10 +12,11 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { HandlerProperties } from '@aws-accelerator/custom-resource-logs-log-group-runtime';
+import { Construct } from 'constructs';
 
 const resourceType = 'Custom::LogsLogGroup';
 
@@ -70,18 +71,15 @@ export interface LogGroupProps {
   readonly kmsKeyId?: string;
 }
 
-export class LogGroup extends cdk.Construct implements cdk.ITaggable {
+export class LogGroup extends Construct implements cdk.ITaggable {
   tags: cdk.TagManager = new cdk.TagManager(cdk.TagType.MAP, 'LogGroup');
 
   private resource: cdk.CustomResource | undefined;
   private roleArn: string;
 
-  constructor(scope: cdk.Construct, id: string, private readonly props: LogGroupProps) {
+  constructor(scope: Construct, id: string, private readonly props: LogGroupProps) {
     super(scope, id);
     this.roleArn = props.roleArn;
-  }
-
-  protected onPrepare() {
     const handlerProperties: HandlerProperties = {
       logGroupName: this.props.logGroupName,
       retention: this.props?.retention,

@@ -123,7 +123,7 @@ async function removeAccountConfig(account: Account): Promise<string> {
         ],
         parentCommitId: configResponse.commitId,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'NoChangeException') {
         console.log(`Config is already update for account: ${account.email}`);
       } else {
@@ -157,7 +157,7 @@ async function removeAccountConfig(account: Account): Promise<string> {
           ],
           parentCommitId: accountConfigResponse.commitId,
         });
-      } catch (error) {
+      } catch (error: any) {
         if (error.code === 'NoChangeException') {
           console.log(`Config is already update for account: ${accountKey}`);
         } else {

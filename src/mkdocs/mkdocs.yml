@@ -2,29 +2,29 @@ site_name: AWS Secure Environment Accelerator
 site_url: https://aws-samples.github.io/aws-secure-environment-accelerator/
 site_author: Amazon Web Services
 site_description: Documentation for the AWS Secure Environment Accelerator
-site_dir: ../../docs
+site_dir: ../../public
 
 nav:
   - About: index.md
   - Installation & Upgrades:
       - installation/index.md
-      - Installation: 
+      - Installation:
           - Installation Guide: installation/install.md
           - Sample Configurations and Customization: installation/customization-index.md
           - State Machine Behavior: installation/sm_inputs.md
-          - Splitting the Config File: installation/multi-file-config-capabilities.md          
+          - Splitting the Config File: installation/multi-file-config-capabilities.md
           - Considerations with Existing Organizations: installation/existing-orgs.md
           - Importing ALZ Accounts: operations/operations-import-ALZAccount.md
           - Open Releases (Link): https://github.com/aws-samples/aws-secure-environment-accelerator/releases
-      - Upgrades: 
+      - Upgrades:
           - Upgrade Guide: installation/upgrades.md
           - v1.5.0 Upgrade Instructions: installation/v150-Upgrade.md
       - Functionality:
           - Services: installation/services-list.md
           - Pricing: pricing/sample_pricing.md
           - Architecture Diagrams: architectures/sensitive/diagrams.md
-          - Key Account & Capability Overview: installation/what-we-do-where.md          
-          - Centralized Logging Details: installation/log-file-locations.md          
+          - Key Account & Capability Overview: installation/what-we-do-where.md
+          - Centralized Logging Details: installation/log-file-locations.md
           - Accelerator Object Naming: installation/object-naming.md
           - Open Roadmap (Link): https://github.com/aws-samples/aws-secure-environment-accelerator/projects/1
   - FAQ: faq/index.md
@@ -53,11 +53,11 @@ nav:
       - Administrator Immersion Day: https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-administrators
       - Workload Team Immersion Day: https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-members
   - Configuration File Schema:
-      - Open Schema (Link): /aws-secure-environment-accelerator/schema/en/index.html
+      - Open Schema (Link): /aws-secure-environment-accelerator/v1.5.6-a/schema/en/index.html
   - Contributing & Governance:
       - Open Page (Link): https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md
-  - Documentation PDF: 
-      - Open PDF: /aws-secure-environment-accelerator/pdf/accelerator-docs.pdf
+  - Documentation PDF:
+      - Open PDF: /aws-secure-environment-accelerator/v1.5.6-a/pdf/accelerator-docs.pdf
 
 theme:
   name: material
@@ -69,11 +69,24 @@ theme:
     - navigation.instant
     - navigation.indexes
     - navigation.top
+  palette:
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
   icon:
     repo: fontawesome/brands/github
 
 extra:
   generator: false
+  version:
+    provider: mike
 
 extra_css:
   - css/pdf-print.css

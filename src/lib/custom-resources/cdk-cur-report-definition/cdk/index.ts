@@ -12,11 +12,12 @@
  */
 
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { HandlerProperties } from '@aws-accelerator/custom-resource-cur-report-definition-runtime';
+import { Construct } from 'constructs';
 
 export type AdditionalArtifact = 'REDSHIFT' | 'QUICKSIGHT' | 'ATHENA' | string;
 export type CompressionFormat = 'ZIP' | 'GZIP' | 'Parquet' | string;
@@ -49,8 +50,8 @@ const resourceType = 'Custom::CurReportDefinition';
 /**
  * Custom resource implementation that creates log subscription for directory service.
  */
-export class CurReportDefinition extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, private readonly props: CurReportDefinitionProps) {
+export class CurReportDefinition extends Construct {
+  constructor(scope: Construct, id: string, private readonly props: CurReportDefinitionProps) {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = {

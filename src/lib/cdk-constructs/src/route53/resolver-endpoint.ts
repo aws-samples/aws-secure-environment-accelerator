@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
-import * as r53resolver from '@aws-cdk/aws-route53resolver';
+import * as cdk from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as r53resolver from 'aws-cdk-lib/aws-route53resolver';
 import { R53DnsEndpointIps } from '@aws-accelerator/custom-resource-r53-dns-endpoint-ips';
+import { Construct } from 'constructs';
 
 export interface ResolverEndpointProps {
   /**
@@ -31,12 +32,12 @@ export interface ResolverEndpointProps {
   subnetIds: string[];
 }
 
-export class ResolverEndpoint extends cdk.Construct {
+export class ResolverEndpoint extends Construct {
   private _inboundEndpoint: r53resolver.CfnResolverEndpoint | undefined;
   private _outboundEndpoint: r53resolver.CfnResolverEndpoint | undefined;
   // private _inboundEndpointIps: string[] = [];
 
-  constructor(parent: cdk.Construct, id: string, private readonly props: ResolverEndpointProps) {
+  constructor(parent: Construct, id: string, private readonly props: ResolverEndpointProps) {
     super(parent, id);
   }
 

@@ -11,10 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as kms from '@aws-cdk/aws-kms';
-import * as secrets from '@aws-cdk/aws-secretsmanager';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as kms from 'aws-cdk-lib/aws-kms';
+import * as secrets from 'aws-cdk-lib/aws-secretsmanager';
 import { Grant as KeyGrant, GrantOperation } from '@aws-accelerator/custom-resource-kms-grant';
 import { AcceleratorConfig, MadDeploymentConfig } from '@aws-accelerator/common-config/src';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';

@@ -11,8 +11,8 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import {
   IamConfig,
   IamConfigType,
@@ -21,9 +21,10 @@ import {
   IamRoleConfigType,
 } from '@aws-accelerator/common-config/src';
 import { Account, getAccountId } from '../utils/accounts';
-import { IBucket } from '@aws-cdk/aws-s3';
+import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { createPolicyName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CfnIamPolicyOutput, CfnIamRoleOutput, CfnIamUserOutput, CfnIamGroupOutput } from '../deployments/iam';
+import { Construct } from 'constructs';
 
 export interface IamAssetsProps {
   accountKey: string;
@@ -35,8 +36,8 @@ export interface IamAssetsProps {
   aesLogBucket: IBucket;
 }
 
-export class IamAssets extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: IamAssetsProps) {
+export class IamAssets extends Construct {
+  constructor(scope: Construct, id: string, props: IamAssetsProps) {
     super(scope, id);
     const { accountKey, iamConfig, iamPoliciesDefinition, accounts, userPasswords, logBucket, aesLogBucket } = props;
 
@@ -250,7 +251,7 @@ export class IamAssets extends cdk.Construct {
       );
     } else {
       const iamPolicies = iamConfig.policies;
-      for (const iamPolicy of iamPolicies!) {
+      for (const iamPolicy of iamPolicies || []) {
         if (!iamPolicy) {
           console.log(
             `IAM config - policies is not defined for account with key - ${accountKey}. Skipping Policies creation.`,

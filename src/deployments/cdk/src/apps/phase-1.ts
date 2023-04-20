@@ -11,8 +11,8 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { pascalCase } from 'pascal-case';
 import { getAccountId, Account } from '../utils/accounts';
@@ -85,12 +85,21 @@ export interface IamPolicyArtifactsOutput {
  * - Transit Gateway Peering
  * - Create LogGroup required for DNS Logging
  */
-export async function deploy({ acceleratorConfig, accountStacks, accounts, context, limiter, outputs }: PhaseInput) {
+export async function deploy({
+  acceleratorConfig,
+  accountStacks,
+  accounts,
+  context,
+  limiter,
+  outputs,
+  organizations,
+}: PhaseInput) {
   const assignedVpcCidrPools = await loadAssignedVpcCidrPool(context.vpcCidrPoolAssignedTable);
   const assignedSubnetCidrPools = await loadAssignedSubnetCidrPool(context.subnetCidrPoolAssignedTable);
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const iamConfigs = acceleratorConfig.getIamConfigs();
   const masterAccountId = getAccountId(accounts, masterAccountKey);
+  const rootOrgId = organizations[0].rootOrgId!;
   if (!masterAccountId) {
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
   }
@@ -576,10 +585,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   // Central Services step 1
   await cwlCentralLoggingToS3.step1({
     accountStacks,
-    accounts,
     logBucket,
     outputs,
     config: acceleratorConfig,
+    rootOrgId,
   });
 
   await vpcDeployment.step1({

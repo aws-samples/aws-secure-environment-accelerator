@@ -112,7 +112,7 @@ export class ServiceQuotas {
           .promise(),
       );
       return true;
-    } catch (e) {
+    } catch (e: any) {
       if (e.code === 'QuotaExceededException') {
         console.warn(`The account has too many open service quota increse requests`);
         return false;

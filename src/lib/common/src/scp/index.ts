@@ -112,7 +112,7 @@ export class ServiceControlPolicy {
           Bucket: scpBucketName,
           Key: policyKey,
         });
-      } catch (e) {
+      } catch (e: any) {
         if (e.message === 'Access Denied') {
           console.error(`Access denied to the SCP file at "s3://${scpBucketName}/${policyKey}"`);
         }

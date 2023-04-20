@@ -41,7 +41,7 @@ export const handler = async (_event: any, _context: any) => {
 
   console.log(acceleratorCurrentVersionValue);
 
-  //Get latest successful config
+  // Get latest successful config
   const lastSuccessfulCommitIdSecret = await secrets.getSecret(lastSuccessfulCommitIdSecretPath);
   const lastSuccessfulCommitIdObj = JSON.parse(lastSuccessfulCommitIdSecret.SecretString!);
   const lastSuccessfulCommitId = lastSuccessfulCommitIdObj.configCommitId;
@@ -49,9 +49,9 @@ export const handler = async (_event: any, _context: any) => {
   const aseaConfig = rawASEAConfigFile.fileContent.toString();
   const aseaConfigObj = JSON.parse(aseaConfig);
 
-  //Retrieve Log Bucket and AES Log bucket info
-  const logArchiveAccountName = aseaConfigObj['global-options']['central-log-services']['account'];
-  const logArchiveRegion = aseaConfigObj['global-options']['central-log-services']['region'];
+  // Retrieve Log Bucket and AES Log bucket info
+  const logArchiveAccountName = aseaConfigObj['global-options']['central-log-services'].account;
+  const logArchiveRegion = aseaConfigObj['global-options']['central-log-services'].region;
   const ddbOutputId = `${logArchiveAccountName}-${logArchiveRegion}-0`;
   const outputsItem = await ddb.documentClient.get({ TableName: outputsTableName, Key: { id: ddbOutputId } }).promise();
   const outputs: any[] = JSON.parse(outputsItem?.Item?.outputValue);
@@ -95,7 +95,7 @@ export const handler = async (_event: any, _context: any) => {
     });
   }
 
-  //Retrieve Account Information
+  // Retrieve Account Information
   const accountsWithOuPath: any = [];
   for (const account of accounts) {
     const accountOuParent = await organizations.listParents(account.Id!);
@@ -138,7 +138,7 @@ export const handler = async (_event: any, _context: any) => {
   if (keysToDelete.length > 0) {
     await s3.deleteObjects({ Bucket: bucketName, Delete: { Objects: keysToDelete } });
   }
-  //Delete Utens
+  // Delete Utens
   for (const item of centralBucketItems) {
     if (!item.Key?.startsWith('certs/')) {
       await s3.copyObjectWithACL(centralBucketName, item.Key!, bucketName, 'config', 'bucket-owner-full-control');

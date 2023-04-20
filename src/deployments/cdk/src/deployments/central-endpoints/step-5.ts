@@ -18,7 +18,7 @@ import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { HostedZoneOutput, HostedZoneOutputFinder } from '@aws-accelerator/common-outputs/src/hosted-zone';
 import { Account, getAccountId } from '../../utils/accounts';
 import { DisAssociateHostedZones } from '@aws-accelerator/custom-resource-disassociate-hosted-zones';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 
 export interface CentralEndpointsStep5Props {
   accountStacks: AccountStacks;

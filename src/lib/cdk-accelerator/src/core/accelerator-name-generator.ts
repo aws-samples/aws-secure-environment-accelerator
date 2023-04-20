@@ -12,7 +12,7 @@
  */
 
 import * as crypto from 'crypto';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { AcceleratorStack } from './accelerator-stack';
 import { trimSpecialCharacters } from './utils';
 

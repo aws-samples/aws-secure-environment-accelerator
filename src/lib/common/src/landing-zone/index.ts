@@ -125,7 +125,7 @@ export class LandingZoneStack {
         Bucket: bucketName,
         Key: bucketKey,
       });
-    } catch (e) {
+    } catch (e: any) {
       if (e.message === 'Access Denied') {
         console.error(`Access denied to the Landing Zone configuration file at "s3://${bucketName}/${bucketKey}"`);
         console.error(`Please make sure you have access to the KMS key "AwsLandingZoneKMSKey".`);

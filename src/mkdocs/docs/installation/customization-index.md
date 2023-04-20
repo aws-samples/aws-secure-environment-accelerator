@@ -6,7 +6,7 @@
     -   Most of the examples reflect a medium security profile (NIST, ITSG, FEDRAMP)
 -   Unsure where to start, use [config.lite-CTNFW-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-CTNFW-example.json) (CT w/NFW variant of option 2)
 -   Frugal and want something comprehensive to experiment with, use [config.test-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.test-example.json) (option 5)
--   Config file [schema](/aws-secure-environment-accelerator/schema/en/index.html) documentation (Draft)
+-   Config file [schema](https://aws-samples.github.io/aws-secure-environment-accelerator/schema/en/index.html) documentation (Draft)
 -   Estimated monthly [pricing](../pricing/sample_pricing.md) for sample configurations
 
 ## 1.2. Sample Configuration Files with Descriptions

@@ -11,12 +11,13 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
-import * as elb from '@aws-cdk/aws-elasticloadbalancingv2';
-import * as kms from '@aws-cdk/aws-kms';
+import * as cdk from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as elb from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import * as kms from 'aws-cdk-lib/aws-kms';
+import { Construct, IConstruct } from 'constructs';
 
-type Action = (value: cdk.IConstruct) => boolean;
+type Action = (value: IConstruct) => boolean;
 
 /**
  * Auxiliary interface to allow types as a method parameter.
@@ -26,12 +27,12 @@ type Type<T> = new (...args: any[]) => T;
 
 const NAME_TAG = 'Name';
 
-function addNameTagAsIdWithSuffix<T extends cdk.Construct>(
+function addNameTagAsIdWithSuffix<T extends Construct>(
   type: Type<T>,
   suffix: string,
   tagPriority: number = 100,
 ): Action {
-  return (value: cdk.IConstruct) => {
+  return (value: IConstruct) => {
     if (value instanceof type) {
       const id = value.node.id;
       // Only add the suffix if it isn't there yet
@@ -81,7 +82,7 @@ export class AcceleratorNameTagger implements cdk.IAspect {
     addNameTagAsIdWithSuffix(elb.NetworkLoadBalancer, '_nlb', 200),
   ];
 
-  visit(node: cdk.IConstruct): void {
+  visit(node: IConstruct): void {
     for (const action of AcceleratorNameTagger.ACTIONS) {
       if (action(node)) {
         // Break to only apply the first action that matches

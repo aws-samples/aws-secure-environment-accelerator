@@ -75,5 +75,3 @@ After switching to the managed account, the AWS Console header will look like th
 You can switch to the same account again quickly by clicking the name you entered previously in the menu.
 
 ![Switch Role Again Menu](img/switch-role-switched-menu.png)
-
-<a name="cdk">[1]</a>: <https://docs.aws.amazon.com/cdk/latest/guide/home.html>

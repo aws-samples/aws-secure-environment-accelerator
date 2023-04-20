@@ -1,3 +1,13 @@
+# ATTENTION
+
+The [Landing Zone Accelerator (LZA) on AWS solution](https://aws.amazon.com/solutions/implementations/landing-zone-accelerator-on-aws/) is now the recommended solution for organizations seeking to automate the deployment of a new high compliance AWS Environment.
+
+The LZA v1.3 release (03/2023) focused on delivering AWS Secure Environment Accelerator (ASEA) feature parity and delivered both [CCCS Cloud Medium](https://aws.amazon.com/solutions/implementations/landing-zone-accelerator-on-aws/#Support_for_specific_regions_and_industries) and [Trusted Secure Enclave Sensitive Edition](https://aws.amazon.com/solutions/implementations/landing-zone-accelerator-on-aws/#Support_for_specific_regions_and_industries) sample configuration files. These samples deliver similar outcomes to the ASEA sample configuration file.
+
+The LZA team is currently developing a semi-automated upgrade from ASEA to LZA. Upgrades from ASEA to LZA must occur before Q2 2024. Please monitor this site for a future LZA release that will support the ASEA to LZA semi-automated upgrade capability [here](https://aws.amazon.com/solutions/implementations/landing-zone-accelerator-on-aws/).  
+
+Please reach out to your AWS Account Team with any questions.
+
 # AWS Secure Environment Accelerator
 
 The AWS Accelerator is a tool designed to help deploy and operate secure multi-account, multi-region AWS environments on an ongoing basis. The power of the solution is the configuration file that drives the architecture deployed by the tool. This enables extensive flexibility and for the completely automated deployment of a customized architecture within AWS without changing a single line of code.
@@ -141,7 +151,7 @@ This summarizes the installation process, the full installation document can be 
   - CloudFormation to deploy and start the Code Pipeline (~5 mins)
   - Code Pipeline to download the Accelerator codebase and install the Accelerator State Machine (~10 mins)
   - The Accelerator State Machine to finish execution (~1.25 hrs Standalone version, ~2.25 hrs Control Tower Version)
-- Perform required one-time [post installation](https://aws-samples.github.io/aws-secure-environment-accelerator/installation/install/#17-post-installation) activities (configure AWS SSO, set firewall passwords, etc.)
+- Perform required one-time [post installation](./src/mkdocs/docs/installation/install.md#17-post-installation) activities (configure AWS SSO, set firewall passwords, etc.)
 - On an ongoing basis:
   - Use AWS Organizations to create new AWS accounts, which will automatically be guardrailed by the Accelerator
   - Update the config file in CodeCommit and run the Accelerator State Machine to:

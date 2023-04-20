@@ -51,7 +51,7 @@ export const handler = async (input: LoadConsolidatedInput) => {
       });
       console.log(JSON.stringify(fileUploadResult));
       result.configKey = key;
-    } catch (e) {
+    } catch (e: any) {
       throw new Error(
         `Unable to load configuration file "${configFilePath}" in Repository ${configRepositoryName}\n${e.message} code:${e.code}`,
       );

@@ -16,7 +16,7 @@ import { AccountStacks, AccountStack } from '../../common/account-stacks';
 import { AcceleratorConfig } from '@aws-accelerator/common-config';
 import { AccountBuckets } from '../defaults';
 import { Account } from '../../utils/accounts';
-import * as s3 from '@aws-cdk/aws-s3';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { FlowLogContainer } from '../../common/flow-log-container';
 import { createIamRoleOutput } from '../iam';
 import { NONE_DESTINATION_TYPE, CWL_DESTINATION_TYPE } from './outputs';

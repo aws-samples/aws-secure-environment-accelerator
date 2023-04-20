@@ -22,7 +22,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { ProvisionedProductAttributes } from 'aws-sdk/clients/servicecatalog';
-import { GetItemInput, GetItemOutput } from 'aws-sdk/clients/dynamodb';
+import { GetItemOutput } from 'aws-sdk/clients/dynamodb';
+
+// eslint-disable-next-line
 jest.mock('@aws-accelerator/common-config/src/load');
 aws.config.logger = console;
 

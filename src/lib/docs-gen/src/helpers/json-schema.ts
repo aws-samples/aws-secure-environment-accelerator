@@ -1,4 +1,4 @@
-import type { JSONSchema7 } from 'json-schema';
+import { JSONSchema7 } from 'json-schema';
 import { TypeTranslations } from '@aws-accelerator/config-i18n';
 import * as t from '@aws-accelerator/common-types';
 

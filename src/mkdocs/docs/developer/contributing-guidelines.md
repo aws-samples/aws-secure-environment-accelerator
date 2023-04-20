@@ -43,7 +43,7 @@ See [Custom Resource](./best-practices.md#135-custom-resource) and [Custom Resou
     2. Create a `runtime/webpack.config.ts` file that compiles TypeScript code to a single JavaScript file;
     3. Create a `runtime/src` folder that contains the source of the Lambda function runtime code;
 
-You can look at the `src/lib/custom-resources/cdk-acm-import-certificate` custom resource as an example.
+You can look at the [acm-import-certificate](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/v1.5.6-a/src/lib/custom-resources/cdk-acm-import-certificate) custom resource as an example.
 
 It is best practice to add tags to any resources that the custom resource creates using the `cfn-tags` library.
 

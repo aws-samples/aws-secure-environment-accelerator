@@ -67,7 +67,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
         .promise(),
     );
     resolverRuleId = ruleResponse.ResolverRule?.Id!;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error while Creating Resolver Rule "${name}"`);
     console.error(error);
     throw new Error(error);
@@ -82,7 +82,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
         })
         .promise(),
     );
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
   }
 
@@ -130,7 +130,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
         .promise(),
     );
     resolverRuleId = updateRule.ResolverRule?.Id!;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error while Updating Resolver Rule "${name}"`);
     console.error(error);
     throw new Error(error);

@@ -12,7 +12,7 @@
  */
 
 import * as AWS from 'aws-sdk';
-//AWS.config.logger = console;
+// AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceCreateEvent,
@@ -111,7 +111,7 @@ async function getDetectorId(): Promise<string | undefined> {
     if (detectors.DetectorIds && detectors.DetectorIds.length > 0) {
       return detectors.DetectorIds[0];
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error(`Error Occurred while listing Detectors ${e.code}: ${e.message}`);
     throw e;
   }
@@ -135,7 +135,7 @@ async function createMembers(memberAccounts: AccountDetail[], detectorId: string
       currentAccounts = paginate(memberAccounts, ++pageNumber, pageSize);
       console.log(`UnProcessedAccounts are : ${JSON.stringify(createMembersResp.UnprocessedAccounts)}`);
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(
       `Error Occurred while creating members in Delegator Account of GuardDuty ${error.code}: ${error.message}`,
     );
@@ -165,7 +165,7 @@ async function updateConfig(detectorId: string, s3Protection: boolean, eksProtec
         })
         .promise(),
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error Occurred while update config of GuardDuty ${error.code}: ${error.message}`);
     throw error;
   }
@@ -191,7 +191,7 @@ async function isConfigurationAutoEnabled(
       response.DataSources?.S3Logs.AutoEnable! === s3Protection &&
       response.DataSources?.Kubernetes?.AuditLogs.AutoEnable! === eksProtection
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error(
       `Error Occurred while checking configuration auto enabled of GuardDuty ${error.code}: ${error.message}`,
     );
@@ -235,7 +235,7 @@ async function updateMemberDataSource(
       );
       currentAccounts = paginate(memberAccounts, ++pageNumber, pageSize);
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error Occurred while updateMemberDetectors of GuardDuty ${error.code}: ${error.message}`);
     throw error;
   }
@@ -266,7 +266,7 @@ async function updateS3ProtectionAndFrequency(
         })
         .promise(),
     );
-  } catch (error) {
+  } catch (error: any) {
     console.warn('Error while calling guardduty.updateDetector');
     console.warn(error);
   }
@@ -288,7 +288,7 @@ async function deleteMembers(memberAccounts: AccountDetail[], detectorId: string
       );
       currentAccounts = paginate(memberAccounts, ++pageNumber, pageSize);
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(
       `Error Occurred while creating members in Delegator Account of GuardDuty ${error.code}: ${error.message}`,
     );
@@ -338,7 +338,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     await updateConfig(detectorId!, false, false, false);
     await updateMemberDataSource(memberAccounts, detectorId!, false, false);
     await deleteMembers(memberAccounts, detectorId!);
-  } catch (error) {
+  } catch (error: any) {
     console.warn('Exception while performing Delete Action');
     console.warn(error);
   }

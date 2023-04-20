@@ -11,17 +11,18 @@
  *  and limitations under the License.
  */
 
-import * as ec2 from '@aws-cdk/aws-ec2';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { AccountStacks } from '../../common/account-stacks';
 import { AccountBuckets } from '../defaults';
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
 import { createLogGroupName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { NONE_DESTINATION_TYPE, S3_DESTINATION_TYPE, BOTH_DESTINATION_TYPE } from './outputs';
+import { Construct } from 'constructs';
 
 export interface VpcStep2Props {
   accountBuckets: AccountBuckets;
@@ -134,7 +135,7 @@ function createFlowLogs(props: VpcStep2Props) {
  * @param props
  */
 function createVpcFlowLog(props: {
-  scope: cdk.Construct;
+  scope: Construct;
   vpcName: string;
   roleArn: string;
   vpcId: string;
@@ -156,13 +157,15 @@ function createVpcFlowLog(props: {
     customFields,
   } = props;
   for (const [index, logDestination] of logDestinations.entries()) {
-    const flowLogs = new ec2.CfnFlowLog(scope, `FlowLog${vpcName}${logDestinationTypes[index]}`, {
-      deliverLogsPermissionArn: roleArn,
+    const logDestinationType = logDestinationTypes[index];
+    const flowLogs = new ec2.CfnFlowLog(scope, `FlowLog${vpcName}${logDestinationType}`, {
+      deliverLogsPermissionArn:
+        logDestinationType === ec2.FlowLogDestinationType.CLOUD_WATCH_LOGS ? roleArn : undefined,
       resourceId: vpcId,
       resourceType: 'VPC',
       trafficType,
       logDestination,
-      logDestinationType: logDestinationTypes[index],
+      logDestinationType,
     });
     flowLogs.addPropertyOverride('MaxAggregationInterval', aggregationInterval);
     if (customFields) {

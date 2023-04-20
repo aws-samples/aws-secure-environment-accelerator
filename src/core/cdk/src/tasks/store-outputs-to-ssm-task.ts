@@ -11,12 +11,13 @@
  *  and limitations under the License.
  */
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as sfn from '@aws-cdk/aws-stepfunctions';
+import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
 import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-tasks';
-import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
+import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
+import { Construct } from 'constructs';
 
 export namespace StoreOutputsToSSMTask {
   export interface Props {
@@ -32,7 +33,7 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
   readonly startState: sfn.State;
   readonly endStates: sfn.INextable[];
 
-  constructor(scope: cdk.Construct, id: string, props: StoreOutputsToSSMTask.Props) {
+  constructor(scope: Construct, id: string, props: StoreOutputsToSSMTask.Props) {
     super(scope, id);
 
     const { role, lambdaCode, functionPayload, acceleratorPrefix } = props;
@@ -130,7 +131,7 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
     lambdaCode: lambda.Code,
     role: iam.IRole,
     functionPayload: { [p: string]: unknown } | undefined,
-    scope: cdk.Construct,
+    scope: Construct,
     acceleratorPrefix: string,
   ) {
     // Task that store the outputs
