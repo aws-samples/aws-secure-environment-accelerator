@@ -209,7 +209,7 @@ export namespace InitialSetup {
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
           principals: [new iam.AccountPrincipal(stack.account)],
-          actions: ['sts: assumeRole'],
+          actions: ['sts:assumeRole'],
           conditions: {
             ArnLike: {
               'aws:PrincipalARN': `arn:aws:iam::${stack.account}:role/${roleName}`,
