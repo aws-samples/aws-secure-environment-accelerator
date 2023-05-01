@@ -205,7 +205,7 @@ export namespace InitialSetup {
         maxSessionDuration: buildTimeout,
       });
 
-      pipelineRole.addToPrincipalPolicy(
+      pipelineRole.assumeRolePolicy?.addStatements(
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
           principals: [new iam.AccountPrincipal(stack.account)],
