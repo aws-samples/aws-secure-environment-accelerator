@@ -1,0 +1,1904 @@
+{
+ "Parameters": {
+  "AcceleratorPrefix": {
+   "Type": "String",
+   "Default": "ASEA-",
+   "AllowedPattern": "[a-zA-Z][a-zA-Z0-9-]{0,8}-",
+   "Description": "Accelerator prefix used for deployment."
+  },
+  "AcceleratorName": {
+   "Type": "String",
+   "Default": "ASEA",
+   "AllowedPattern": "[a-zA-Z][a-zA-Z0-9]{0,3}",
+   "Description": "Accelerator Name used for deployment."
+  },
+  "ConfigS3Bucket": {
+   "Type": "String",
+   "Default": "AWSDOC-EXAMPLE-BUCKET",
+   "Description": "The S3 bucket name that contains the initial Accelerator configuration."
+  },
+  "ConfigRepositoryName": {
+   "Type": "String",
+   "Default": "ASEA-Config-Repo",
+   "Description": "The AWS CodeCommit repository name that contains the Accelerator configuration."
+  },
+  "ConfigBranchName": {
+   "Type": "String",
+   "Default": "main",
+   "Description": "The AWS CodeCommit branch name that contains the Accelerator configuration"
+  },
+  "NotificationEmail": {
+   "Type": "String",
+   "Description": "The notification email that will get Accelerator State Machine execution notifications."
+  },
+  "CodeBuildComputeType": {
+   "Type": "String",
+   "Default": "BUILD_GENERAL1_LARGE",
+   "AllowedValues": [
+    "BUILD_GENERAL1_MEDIUM",
+    "BUILD_GENERAL1_LARGE",
+    "BUILD_GENERAL1_2XLARGE"
+   ],
+   "Description": "The compute type of the build server for the Accelerator deployments."
+  },
+  "DeploymentPageSize": {
+   "Type": "String",
+   "Default": 680,
+   "Description": "The number of stacks to deploy in parallel. This value SHOULD NOT normally be changed."
+  },
+  "BackoffStartDelay": {
+   "Type": "String",
+   "Default": 2000,
+   "Description": "The start delay for exponential backoff of API calls in milliseconds. Leave at the default of 2000 unless needed."
+  },
+  "LZAMigrationEnabled": {
+   "Type": "String",
+   "Default": false,
+   "AllowedValues": [
+    "true",
+    "false"
+   ],
+   "Description": "Setting the value to true will put the ASEA into migration mode.  Do not change the value unless starting to migrate to LZA."
+  },
+  "RepositoryName": {
+   "Type": "String",
+   "Default": "aws-secure-environment-accelerator",
+   "Description": "The name of the git repository containing the Accelerator code."
+  },
+  "RepositoryBranch": {
+   "Type": "String",
+   "Default": "release",
+   "Description": "The branch of the git repository containing the Accelerator code."
+  },
+  "GithubSecretId": {
+   "Type": "String",
+   "Default": "accelerator/github-token",
+   "Description": "The token to use to access the Github repository."
+  },
+  "GithubOwner": {
+   "Type": "String",
+   "Default": "aws-samples",
+   "Description": "The owner of the Github repository containing the Accelerator code."
+  }
+ },
+ "Resources": {
+  "InstallerProjectRole3966310A": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "codebuild.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "RoleName": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AcceleratorPrefix"
+       },
+       "CB-Installer"
+      ]
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "Accelerator",
+      "Value": {
+       "Fn::Join": [
+        "",
+        [
+         {
+          "Ref": "AcceleratorName"
+         },
+         "1"
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   "Metadata": {
+    "cfn_nag": {
+     "rules_to_suppress": [
+      {
+       "id": "W28",
+       "reason": "Using explicit name for installer"
+      }
+     ]
+    }
+   }
+  },
+  "InstallerProjectRoleDefaultPolicyB8EC5C1F": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "ecr:*",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:ecr:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":repository/aws-cdk/*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "ecr:GetAuthorizationToken",
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:iam::",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":role/cdk-*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "cloudformation:*",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:cloudformation:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":stack/*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "s3:*",
+       "Effect": "Allow",
+       "Resource": "arn:aws:s3:::cdk-*"
+      },
+      {
+       "Action": "*",
+       "Condition": {
+        "ForAnyValue:StringEquals": {
+         "aws:CalledVia": [
+          "cloudformation.amazonaws.com"
+         ]
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":logs:",
+           {
+            "Ref": "AWS::Region"
+           },
+           ":",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":log-group:/aws/codebuild/",
+           {
+            "Ref": "InstallerProject879FF821"
+           }
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":logs:",
+           {
+            "Ref": "AWS::Region"
+           },
+           ":",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":log-group:/aws/codebuild/",
+           {
+            "Ref": "InstallerProject879FF821"
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "codebuild:CreateReportGroup",
+        "codebuild:CreateReport",
+        "codebuild:UpdateReport",
+        "codebuild:BatchPutTestCases",
+        "codebuild:BatchPutCodeCoverages"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":codebuild:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":report-group/",
+          {
+           "Ref": "InstallerProject879FF821"
+          },
+          "-*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "ArtifactsBucket2AAC5544",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "ArtifactsBucket2AAC5544",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "kms:Decrypt",
+        "kms:DescribeKey"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "ArtifactsBucketCmk69DD8B67",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "kms:Decrypt",
+        "kms:Encrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "ArtifactsBucketCmk69DD8B67",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "InstallerProjectRoleDefaultPolicyB8EC5C1F",
+    "Roles": [
+     {
+      "Ref": "InstallerProjectRole3966310A"
+     }
+    ]
+   },
+   "Metadata": {
+    "cfn_nag": {
+     "rules_to_suppress": [
+      {
+       "id": "F4",
+       "reason": "Allows cloudformation to generate resources, needs full access"
+      },
+      {
+       "id": "F39",
+       "reason": "False error: assumeRole using cdk-*"
+      },
+      {
+       "id": "W12",
+       "reason": "Allows cloudformation to generate resources, needs full access"
+      },
+      {
+       "id": "W76",
+       "reason": "IAM policy is generated by CDK"
+      }
+     ]
+    }
+   }
+  },
+  "ArtifactsBucketCmk69DD8B67": {
+   "Type": "AWS::KMS::Key",
+   "Properties": {
+    "KeyPolicy": {
+     "Statement": [
+      {
+       "Action": "kms:*",
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":iam::",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":root"
+          ]
+         ]
+        }
+       },
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "kms:Decrypt",
+        "kms:Encrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*"
+       ],
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":iam::",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":root"
+          ]
+         ]
+        }
+       },
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "kms:Decrypt",
+        "kms:DescribeKey"
+       ],
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       },
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Description": "ArtifactsBucketCmk",
+    "EnableKeyRotation": true,
+    "Tags": [
+     {
+      "Key": "Accelerator",
+      "Value": {
+       "Fn::Join": [
+        "",
+        [
+         {
+          "Ref": "AcceleratorName"
+         },
+         "1"
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "AcceleratorInstaller/ArtifactsBucketCmk/Resource"
+   }
+  },
+  "ArtifactsBucketCmkAlias428B3BFB": {
+   "Type": "AWS::KMS::Alias",
+   "Properties": {
+    "AliasName": {
+     "Fn::Join": [
+      "",
+      [
+       "alias/",
+       {
+        "Ref": "AcceleratorPrefix"
+       },
+       "Installer-Key"
+      ]
+     ]
+    },
+    "TargetKeyId": {
+     "Fn::GetAtt": [
+      "ArtifactsBucketCmk69DD8B67",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AcceleratorInstaller/ArtifactsBucketCmk/Alias/Resource"
+   }
+  },
+  "InstallerProject879FF821": {
+   "Type": "AWS::CodeBuild::Project",
+   "Properties": {
+    "Artifacts": {
+     "Type": "CODEPIPELINE"
+    },
+    "Environment": {
+     "ComputeType": "BUILD_GENERAL1_MEDIUM",
+     "EnvironmentVariables": [
+      {
+       "Name": "ACCELERATOR_NAME",
+       "Type": "PLAINTEXT",
+       "Value": {
+        "Ref": "AcceleratorName"
+       }
+      },
+      {
+       "Name": "ACCELERATOR_PREFIX",
+       "Type": "PLAINTEXT",
+       "Value": {
+        "Ref": "AcceleratorPrefix"
+       }
+      },
+      {
+       "Name": "ACCELERATOR_STATE_MACHINE_NAME",
+       "Type": "PLAINTEXT",
+       "Value": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Ref": "AcceleratorPrefix"
+          },
+          "MainStateMachine_sm"
+         ]
+        ]
+       }
+      },
+      {
+       "Name": "CONFIG_REPOSITORY_NAME",
+       "Type": "PLAINTEXT",
+       "Value": {
+        "Ref": "ConfigRepositoryName"
+       }
+      },
+      {
+       "Name": "CONFIG_BRANCH_NAME",
+       "Type": "PLAINTEXT",
+       "Value": {
+        "Ref": "ConfigBranchName"
+       }
+      },
+      {
+       "Name": "CONFIG_S3_BUCKET",
+       "Type": "PLAINTEXT",
+       "Value": {
+        "Ref": "ConfigS3Bucket"
+       }
+      },
+      {
+       "Name": "ENABLE_PREBUILT_PROJECT",
+       "Type": "PLAINTEXT",
+       "Value": "true"
+      },
+      {
+       "Name": "NOTIFICATION_EMAIL",
+       "Type": "PLAINTEXT",
+       "Value": {
+        "Ref": "NotificationEmail"
+       }
+      },
+      {
+       "Name": "INSTALLER_CMK",
+       "Type": "PLAINTEXT",
+       "Value": {
+        "Fn::Join": [
+         "",
+         [
+          "alias/",
+          {
+           "Ref": "AcceleratorPrefix"
+          },
+          "Installer-Key"
+         ]
+        ]
+       }
+      },
+      {
+       "Name": "BUILD_COMPUTE_TYPE",
+       "Type": "PLAINTEXT",
+       "Value": {
+        "Ref": "CodeBuildComputeType"
+       }
+      },
+      {
+       "Name": "DEPLOY_STACK_PAGE_SIZE",
+       "Type": "PLAINTEXT",
+       "Value": {
+        "Ref": "DeploymentPageSize"
+       }
+      },
+      {
+       "Name": "BACKOFF_START_DELAY",
+       "Type": "PLAINTEXT",
+       "Value": {
+        "Ref": "BackoffStartDelay"
+       }
+      },
+      {
+       "Name": "MIGRATION_ENABLED",
+       "Type": "PLAINTEXT",
+       "Value": {
+        "Ref": "LZAMigrationEnabled"
+       }
+      }
+     ],
+     "Image": "aws/codebuild/standard:6.0",
+     "ImagePullCredentialsType": "CODEBUILD",
+     "PrivilegedMode": true,
+     "Type": "LINUX_CONTAINER"
+    },
+    "ServiceRole": {
+     "Fn::GetAtt": [
+      "InstallerProjectRole3966310A",
+      "Arn"
+     ]
+    },
+    "Source": {
+     "BuildSpec": {
+      "Fn::Join": [
+       "",
+       [
+        "{\n  \"version\": \"0.2\",\n  \"phases\": {\n    \"install\": {\n      \"runtime-versions\": {\n        \"nodejs\": 16\n      },\n      \"commands\": [\n        \"npm install --global pnpm@6.2.3\",\n        \"pnpm install --unsafe-perm --frozen-lockfile\",\n        \"pnpm recursive run build --unsafe-perm\"\n      ]\n    },\n    \"pre_build\": {\n      \"commands\": [\n        \"pnpm recursive run build --unsafe-perm\"\n      ]\n    },\n    \"build\": {\n      \"commands\": [\n        \"cd src/core/cdk\",\n        \"export CDK_NEW_BOOTSTRAP=1\",\n        \"pnpx cdk bootstrap aws://",
+        {
+         "Ref": "AWS::AccountId"
+        },
+        "/",
+        {
+         "Ref": "AWS::Region"
+        },
+        " --require-approval never --toolkit-stack-name=",
+        {
+         "Ref": "AcceleratorPrefix"
+        },
+        "CDKToolkit --cloudformation-execution-policies=arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AdministratorAccess\",\n        \"pnpx cdk deploy --require-approval never --toolkit-stack-name=",
+        {
+         "Ref": "AcceleratorPrefix"
+        },
+        "CDKToolkit\"\n      ]\n    }\n  }\n}"
+       ]
+      ]
+     },
+     "Type": "CODEPIPELINE"
+    },
+    "Cache": {
+     "Modes": [
+      "LOCAL_SOURCE_CACHE"
+     ],
+     "Type": "LOCAL"
+    },
+    "EncryptionKey": {
+     "Fn::GetAtt": [
+      "ArtifactsBucketCmk69DD8B67",
+      "Arn"
+     ]
+    },
+    "Name": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AcceleratorPrefix"
+       },
+       "InstallerProject_pl"
+      ]
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "Accelerator",
+      "Value": {
+       "Fn::Join": [
+        "",
+        [
+         {
+          "Ref": "AcceleratorName"
+         },
+         "1"
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AcceleratorInstaller/InstallerProject/Resource"
+   }
+  },
+  "ExecutionRoleName32216FBD": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "RoleName": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AcceleratorPrefix"
+       },
+       "L-SFN-Execution"
+      ]
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "Accelerator",
+      "Value": {
+       "Fn::Join": [
+        "",
+        [
+         {
+          "Ref": "AcceleratorName"
+         },
+         "1"
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   "Metadata": {
+    "cfn_nag": {
+     "rules_to_suppress": [
+      {
+       "id": "W28",
+       "reason": "Using explicit name for installer"
+      }
+     ]
+    }
+   }
+  },
+  "ExecutionRoleNameDefaultPolicyF1EBADDF": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "ssm:PutParameter",
+        "ssm:GetParameter",
+        "ssm:GetParameterHistory"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "cloudformation:DescribeStacks",
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "states:StartExecution",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:states:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":stateMachine:",
+          {
+           "Ref": "AcceleratorPrefix"
+          },
+          "MainStateMachine_sm"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "codepipeline:PutJobSuccessResult",
+        "codepipeline:PutJobFailureResult"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ExecutionRoleNameDefaultPolicyF1EBADDF",
+    "Roles": [
+     {
+      "Ref": "ExecutionRoleName32216FBD"
+     }
+    ]
+   },
+   "Metadata": {
+    "cfn_nag": {
+     "rules_to_suppress": [
+      {
+       "id": "W12",
+       "reason": "Allows stateMachine to generate resources, needs full access"
+      },
+      {
+       "id": "W76",
+       "reason": "IAM policy is generated by CDK"
+      }
+     ]
+    }
+   }
+  },
+  "ExecutionLambda949691DD": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "ZipFile": "/**\n *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.\n *\n *  Licensed under the Apache License, Version 2.0 (the \"License\"). You may not use this file except in compliance\n *  with the License. A copy of the License is located at\n *\n *      http://www.apache.org/licenses/LICENSE-2.0\n *\n *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES\n *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions\n *  and limitations under the License.\n */\n\nconst AWS = require('aws-sdk');\n\nconst codepipeline = new AWS.CodePipeline();\nconst sfn = new AWS.StepFunctions();\n\nexports.handler = async function (event, context) {\n  console.info(`Starting state machine execution...`);\n  console.info(JSON.stringify(event, null, 2));\n\n  const jobInfo = event['CodePipeline.job'];\n  const jobId = jobInfo.id;\n\n  try {\n    const userParametersString = jobInfo.data.actionConfiguration.configuration.UserParameters;\n    const userParameters = JSON.parse(userParametersString);\n    if (!userParameters.stateMachineArn) {\n      throw new Error(`\"stateMachineArn\" is missing from user parameters`);\n    }\n\n    const smInput = {\n      scope: 'FULL',\n      mode: 'APPLY',\n      verbose: '0',\n    };\n\n    await sfn\n      .startExecution({\n        stateMachineArn: userParameters.stateMachineArn,\n        input: JSON.stringify(smInput),\n      })\n      .promise();\n\n    return codepipeline\n      .putJobSuccessResult({\n        jobId,\n      })\n      .promise();\n  } catch (e) {\n    console.info(`Unexpected error while starting execution: ${e}`);\n\n    return codepipeline\n      .putJobFailureResult({\n        jobId,\n        failureDetails: {\n          externalExecutionId: context.awsRequestId,\n          type: 'JobFailed',\n          message: JSON.stringify(e),\n        },\n      })\n      .promise();\n  }\n};\n"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "ExecutionRoleName32216FBD",
+      "Arn"
+     ]
+    },
+    "FunctionName": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AcceleratorPrefix"
+       },
+       "Installer-StartExecution"
+      ]
+     ]
+    },
+    "Handler": "index.handler",
+    "Runtime": "nodejs16.x",
+    "Tags": [
+     {
+      "Key": "Accelerator",
+      "Value": {
+       "Fn::Join": [
+        "",
+        [
+         {
+          "Ref": "AcceleratorName"
+         },
+         "1"
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   "DependsOn": [
+    "ExecutionRoleNameDefaultPolicyF1EBADDF",
+    "ExecutionRoleName32216FBD"
+   ],
+   "Metadata": {
+    "cfn_nag": {
+     "rules_to_suppress": [
+      {
+       "id": "W58",
+       "reason": "CloudWatch Logs not required for installer"
+      },
+      {
+       "id": "W89",
+       "reason": "Lambda inside VPC not required for installer"
+      },
+      {
+       "id": "W92",
+       "reason": "ReservedConcurrentExecutions not required for installer"
+      }
+     ]
+    }
+   }
+  },
+  "SaveApplicationVersionLambda1535A3E2": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "ZipFile": "/**\n *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.\n *\n *  Licensed under the Apache License, Version 2.0 (the \"License\"). You may not use this file except in compliance\n *  with the License. A copy of the License is located at\n *\n *      http://www.apache.org/licenses/LICENSE-2.0\n *\n *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES\n *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions\n *  and limitations under the License.\n */\n\nconst AWS = require('aws-sdk');\n\nconst codepipeline = new AWS.CodePipeline();\nconst ssm = new AWS.SSM();\n\nexports.handler = async function (event, context) {\n  console.info(`Saving Accelerator Application Version...`);\n  console.info(JSON.stringify(event, null, 2));\n\n  const jobInfo = event['CodePipeline.job'];\n  const jobId = jobInfo.id;\n  \n  try {\n    const userParametersString = jobInfo.data.actionConfiguration.configuration.UserParameters;\n    const userParameters = JSON.parse(userParametersString);\n\n    const currentTime = new Date();\n    const versionData = {\n      Branch: userParameters.branch,\n      Repository: userParameters.repository,\n      CommitId: userParameters.commitId,\n      Owner:userParameters.owner,\n      DeployTime: currentTime.toString(),\n      AcceleratorVersion: userParameters.acceleratorVersion,\n      AcceleratorName: userParameters.acceleratorName,\n      AcceleratorPrefix: userParameters.acceleratorPrefix,\n    }\n    const param = await ssm.putParameter({\n      Name: '/accelerator/version', \n      Value: JSON.stringify(versionData, null, 2), \n      Type: 'String',\n      Overwrite: true,\n    }).promise();\n    console.log(`Updated Application Version : ${param}`);\n    try {\n      await ssm.getParameter({\n        Name: '/accelerator/first-version'\n      }).promise();\n    } catch (e) {\n      if (e.code === 'ParameterNotFound') {\n        let firstInstlVersion;\n        const parameterVersions = [];\n        let token;\n        do {\n          const response = await ssm.getParameterHistory({ Name: '/accelerator/version', NextToken: token, MaxResults: 50 }).promise();\n          token = response.NextToken;\n          if (response.Parameters) {\n            parameterVersions.push(...response.Parameters);\n          }\n        } while (token);\n        const installerVersion = parameterVersions.find(p => p.Version === 1);\n        if (installerVersion && installerVersion.Value) {\n          const installerVersionValue = JSON.parse(installerVersion.Value);\n          if (installerVersionValue.AcceleratorVersion) {\n            firstInstlVersion = installerVersionValue.AcceleratorVersion;\n          } else {\n            firstInstlVersion = '<1.2.2';\n          }\n        }\n        if (!firstInstlVersion) {\n          throw new Error('First Installed Version not found in SSM Parameter Store \"/accelerator/version\"')\n        }\n        console.log(\"Inserting Installed version param \", firstInstlVersion);\n        await ssm.putParameter({\n          Name: '/accelerator/first-version',\n          Value: firstInstlVersion,\n          Type: 'String',\n          Overwrite: false,\n          Description: 'Accelerator first installed version',\n        }).promise();\n      } else {\n        throw new Error(e);\n      }\n    }\n\n    return codepipeline\n      .putJobSuccessResult({\n        jobId,\n      })\n      .promise();\n  } catch (e) {\n    console.info(`Unexpected error while Saving Application Versio: ${e}`);\n    return codepipeline\n      .putJobFailureResult({\n        jobId,\n        failureDetails: {\n          externalExecutionId: context.awsRequestId,\n          type: 'JobFailed',\n          message: JSON.stringify(e),\n        },\n      })\n      .promise();\n  }\n};\n"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "ExecutionRoleName32216FBD",
+      "Arn"
+     ]
+    },
+    "FunctionName": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AcceleratorPrefix"
+       },
+       "Installer-SaveApplicationVersion"
+      ]
+     ]
+    },
+    "Handler": "index.handler",
+    "Runtime": "nodejs16.x",
+    "Tags": [
+     {
+      "Key": "Accelerator",
+      "Value": {
+       "Fn::Join": [
+        "",
+        [
+         {
+          "Ref": "AcceleratorName"
+         },
+         "1"
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   "DependsOn": [
+    "ExecutionRoleNameDefaultPolicyF1EBADDF",
+    "ExecutionRoleName32216FBD"
+   ],
+   "Metadata": {
+    "cfn_nag": {
+     "rules_to_suppress": [
+      {
+       "id": "W58",
+       "reason": "CloudWatch Logs not required for installer"
+      },
+      {
+       "id": "W89",
+       "reason": "Lambda inside VPC not required for installer"
+      },
+      {
+       "id": "W92",
+       "reason": "ReservedConcurrentExecutions not required for installer"
+      }
+     ]
+    }
+   }
+  },
+  "ValidateParametersLambdaDB73E174": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "ZipFile": "/**\n *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.\n *\n *  Licensed under the Apache License, Version 2.0 (the \"License\"). You may not use this file except in compliance\n *  with the License. A copy of the License is located at\n *\n *      http://www.apache.org/licenses/LICENSE-2.0\n *\n *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES\n *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions\n *  and limitations under the License.\n */\n\nconst AWS = require('aws-sdk');\nAWS.config.logger = console;\nconst codepipeline = new AWS.CodePipeline();\nconst ssm = new AWS.SSM();\nconst cfn = new AWS.CloudFormation();\n\nexports.handler = async function (event, context) {\n  console.info(`Vallidating Accelerator Perameters with previous execution...`);\n  console.info(JSON.stringify(event, null, 2));\n\n  const jobInfo = event['CodePipeline.job'];\n  const jobId = jobInfo.id;\n\n  try {\n    const userParametersString = jobInfo.data.actionConfiguration.configuration.UserParameters;\n    const userParameters = JSON.parse(userParametersString);\n    const { acceleratorName, acceleratorPrefix } = userParameters;\n    let versionParam;\n    try {\n      versionParam = await ssm\n      .getParameter({\n        Name: '/accelerator/version',\n      })\n      .promise();\n    } catch (ex) {\n      console.warn(ex);\n      if (ex.code !== 'ParameterNotFound') {\n        throw new Error(ex);\n      }\n    }\n    if (!versionParam) {\n      console.log('First run of Accelerator');\n    } else if (!versionParam.Parameter.Value) {\n      console.warn(\"Didn't find value in /accelerator/version\");\n    } else {\n      const versionParamValue = JSON.parse(versionParam.Parameter.Value);\n      if (!versionParamValue.AcceleratorName && !versionParamValue.AcceleratorPrefix) {\n        console.log(\"Didn't find AccelName and Prefix in /accelerator/version\");\n        try {\n          await cfn\n            .describeStacks({\n              StackName: `${acceleratorPrefix}InitialSetup`,\n            })\n            .promise();\n        } catch (error) {\n          throw new Error(`Invalid AcceleratorPrefix=${acceleratorPrefix} provided`);\n        }\n      } else if (\n        versionParamValue.AcceleratorName !== acceleratorName ||\n        versionParamValue.AcceleratorPrefix !== acceleratorPrefix\n      ) {\n        throw new Error(\n          `Invalid AcceleratorPrefix and Name provided. Expected values are AcceleratorName=${versionParamValue.AcceleratorName} & AcceleratorPrefix=${versionParamValue.AcceleratorPrefix}`,\n        );\n      }\n    }\n    return codepipeline\n      .putJobSuccessResult({\n        jobId,\n      })\n      .promise();\n  } catch (e) {\n    console.info(`Unexpected error while Validating Parameters: ${e}`);\n    return codepipeline\n      .putJobFailureResult({\n        jobId,\n        failureDetails: {\n          externalExecutionId: context.awsRequestId,\n          type: 'JobFailed',\n          message: e.toString(),\n        },\n      })\n      .promise();\n  }\n};\n"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "ExecutionRoleName32216FBD",
+      "Arn"
+     ]
+    },
+    "FunctionName": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AcceleratorPrefix"
+       },
+       "Installer-ValidateParameters"
+      ]
+     ]
+    },
+    "Handler": "index.handler",
+    "Runtime": "nodejs16.x",
+    "Tags": [
+     {
+      "Key": "Accelerator",
+      "Value": {
+       "Fn::Join": [
+        "",
+        [
+         {
+          "Ref": "AcceleratorName"
+         },
+         "1"
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   "DependsOn": [
+    "ExecutionRoleNameDefaultPolicyF1EBADDF",
+    "ExecutionRoleName32216FBD"
+   ],
+   "Metadata": {
+    "cfn_nag": {
+     "rules_to_suppress": [
+      {
+       "id": "W58",
+       "reason": "CloudWatch Logs not required for installer"
+      },
+      {
+       "id": "W89",
+       "reason": "Lambda inside VPC not required for installer"
+      },
+      {
+       "id": "W92",
+       "reason": "ReservedConcurrentExecutions not required for installer"
+      }
+     ]
+    }
+   }
+  },
+  "InstallerPipelineRole1F8864A8": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "codepipeline.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "RoleName": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AcceleratorPrefix"
+       },
+       "CP-Installer"
+      ]
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "Accelerator",
+      "Value": {
+       "Fn::Join": [
+        "",
+        [
+         {
+          "Ref": "AcceleratorName"
+         },
+         "1"
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   "Metadata": {
+    "cfn_nag": {
+     "rules_to_suppress": [
+      {
+       "id": "W28",
+       "reason": "Using explicit name for installer"
+      }
+     ]
+    }
+   }
+  },
+  "InstallerPipelineRoleDefaultPolicyA2A45F5C": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:DeleteObject*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging",
+        "s3:Abort*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "ArtifactsBucket2AAC5544",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "ArtifactsBucket2AAC5544",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "kms:Decrypt",
+        "kms:DescribeKey",
+        "kms:Encrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "ArtifactsBucketCmk69DD8B67",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "InstallerPipelineRole1F8864A8",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": "lambda:ListFunctions",
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "ValidateParametersLambdaDB73E174",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "ValidateParametersLambdaDB73E174",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "codebuild:BatchGetBuilds",
+        "codebuild:StartBuild",
+        "codebuild:StopBuild"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "InstallerProject879FF821",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SaveApplicationVersionLambda1535A3E2",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SaveApplicationVersionLambda1535A3E2",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "ExecutionLambda949691DD",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "ExecutionLambda949691DD",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "InstallerPipelineRoleDefaultPolicyA2A45F5C",
+    "Roles": [
+     {
+      "Ref": "InstallerPipelineRole1F8864A8"
+     }
+    ]
+   },
+   "Metadata": {
+    "cfn_nag": {
+     "rules_to_suppress": [
+      {
+       "id": "W12",
+       "reason": "Allows CodePipeline to generate resources, needs full access"
+      },
+      {
+       "id": "W76",
+       "reason": "IAM policy is generated by CDK"
+      }
+     ]
+    }
+   }
+  },
+  "ArtifactsBucket2AAC5544": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "BucketEncryption": {
+     "ServerSideEncryptionConfiguration": [
+      {
+       "ServerSideEncryptionByDefault": {
+        "KMSMasterKeyID": {
+         "Fn::GetAtt": [
+          "ArtifactsBucketCmk69DD8B67",
+          "Arn"
+         ]
+        },
+        "SSEAlgorithm": "aws:kms"
+       }
+      }
+     ]
+    },
+    "OwnershipControls": {
+     "Rules": [
+      {
+       "ObjectOwnership": "BucketOwnerPreferred"
+      }
+     ]
+    },
+    "PublicAccessBlockConfiguration": {
+     "BlockPublicAcls": true,
+     "BlockPublicPolicy": true,
+     "IgnorePublicAcls": true,
+     "RestrictPublicBuckets": true
+    },
+    "Tags": [
+     {
+      "Key": "Accelerator",
+      "Value": {
+       "Fn::Join": [
+        "",
+        [
+         {
+          "Ref": "AcceleratorName"
+         },
+         "1"
+        ]
+       ]
+      }
+     }
+    ],
+    "VersioningConfiguration": {
+     "Status": "Enabled"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "cfn_nag": {
+     "rules_to_suppress": [
+      {
+       "id": "W35",
+       "reason": "Access logs not required for installer"
+      }
+     ]
+    }
+   }
+  },
+  "ArtifactsBucketPolicy852CB646": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "ArtifactsBucket2AAC5544"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:*",
+       "Condition": {
+        "Bool": {
+         "aws:SecureTransport": "false"
+        }
+       },
+       "Effect": "Deny",
+       "Principal": {
+        "AWS": "*"
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "ArtifactsBucket2AAC5544",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "ArtifactsBucket2AAC5544",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AcceleratorInstaller/ArtifactsBucket/Policy/Resource"
+   }
+  },
+  "PipelineC660917D": {
+   "Type": "AWS::CodePipeline::Pipeline",
+   "Properties": {
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "InstallerPipelineRole1F8864A8",
+      "Arn"
+     ]
+    },
+    "Stages": [
+     {
+      "Actions": [
+       {
+        "ActionTypeId": {
+         "Category": "Source",
+         "Owner": "ThirdParty",
+         "Provider": "GitHub",
+         "Version": "1"
+        },
+        "Configuration": {
+         "Owner": {
+          "Ref": "GithubOwner"
+         },
+         "Repo": {
+          "Ref": "RepositoryName"
+         },
+         "Branch": {
+          "Ref": "RepositoryBranch"
+         },
+         "OAuthToken": {
+          "Fn::Join": [
+           "",
+           [
+            "{{resolve:secretsmanager:",
+            {
+             "Ref": "GithubSecretId"
+            },
+            ":SecretString:::}}"
+           ]
+          ]
+         },
+         "PollForSourceChanges": false
+        },
+        "Name": "GithubSource",
+        "Namespace": "Source_GithubSource_NS",
+        "OutputArtifacts": [
+         {
+          "Name": "Artifact_Source_GithubSource"
+         }
+        ],
+        "RunOrder": 1
+       }
+      ],
+      "Name": "Source"
+     },
+     {
+      "Actions": [
+       {
+        "ActionTypeId": {
+         "Category": "Invoke",
+         "Owner": "AWS",
+         "Provider": "Lambda",
+         "Version": "1"
+        },
+        "Configuration": {
+         "FunctionName": {
+          "Ref": "ValidateParametersLambdaDB73E174"
+         },
+         "UserParameters": {
+          "Fn::Join": [
+           "",
+           [
+            "{\"acceleratorName\":\"",
+            {
+             "Ref": "AcceleratorName"
+            },
+            "\",\"acceleratorPrefix\":\"",
+            {
+             "Ref": "AcceleratorPrefix"
+            },
+            "\"}"
+           ]
+          ]
+         }
+        },
+        "Name": "ValidateParameters",
+        "RoleArn": {
+         "Fn::GetAtt": [
+          "InstallerPipelineRole1F8864A8",
+          "Arn"
+         ]
+        },
+        "RunOrder": 1
+       }
+      ],
+      "Name": "ValidateParameters"
+     },
+     {
+      "Actions": [
+       {
+        "ActionTypeId": {
+         "Category": "Build",
+         "Owner": "AWS",
+         "Provider": "CodeBuild",
+         "Version": "1"
+        },
+        "Configuration": {
+         "ProjectName": {
+          "Ref": "InstallerProject879FF821"
+         }
+        },
+        "InputArtifacts": [
+         {
+          "Name": "Artifact_Source_GithubSource"
+         }
+        ],
+        "Name": "DeployAccelerator",
+        "RoleArn": {
+         "Fn::GetAtt": [
+          "InstallerPipelineRole1F8864A8",
+          "Arn"
+         ]
+        },
+        "RunOrder": 1
+       }
+      ],
+      "Name": "Deploy"
+     },
+     {
+      "Actions": [
+       {
+        "ActionTypeId": {
+         "Category": "Invoke",
+         "Owner": "AWS",
+         "Provider": "Lambda",
+         "Version": "1"
+        },
+        "Configuration": {
+         "FunctionName": {
+          "Ref": "SaveApplicationVersionLambda1535A3E2"
+         },
+         "UserParameters": {
+          "Fn::Join": [
+           "",
+           [
+            "{\"commitId\":\"#{Source_GithubSource_NS.CommitId}\",\"repository\":\"",
+            {
+             "Ref": "RepositoryName"
+            },
+            "\",\"owner\":\"",
+            {
+             "Ref": "GithubOwner"
+            },
+            "\",\"branch\":\"",
+            {
+             "Ref": "RepositoryBranch"
+            },
+            "\",\"acceleratorVersion\":\"1.5.6-a\",\"acceleratorName\":\"",
+            {
+             "Ref": "AcceleratorName"
+            },
+            "\",\"acceleratorPrefix\":\"",
+            {
+             "Ref": "AcceleratorPrefix"
+            },
+            "\"}"
+           ]
+          ]
+         }
+        },
+        "Name": "UpdateVersion",
+        "RoleArn": {
+         "Fn::GetAtt": [
+          "InstallerPipelineRole1F8864A8",
+          "Arn"
+         ]
+        },
+        "RunOrder": 1
+       }
+      ],
+      "Name": "UpdateVersion"
+     },
+     {
+      "Actions": [
+       {
+        "ActionTypeId": {
+         "Category": "Invoke",
+         "Owner": "AWS",
+         "Provider": "Lambda",
+         "Version": "1"
+        },
+        "Configuration": {
+         "FunctionName": {
+          "Ref": "ExecutionLambda949691DD"
+         },
+         "UserParameters": {
+          "Fn::Join": [
+           "",
+           [
+            "{\"stateMachineArn\":\"arn:aws:states:",
+            {
+             "Ref": "AWS::Region"
+            },
+            ":",
+            {
+             "Ref": "AWS::AccountId"
+            },
+            ":stateMachine:",
+            {
+             "Ref": "AcceleratorPrefix"
+            },
+            "MainStateMachine_sm\"}"
+           ]
+          ]
+         }
+        },
+        "Name": "ExecuteAcceleratorStateMachine",
+        "RoleArn": {
+         "Fn::GetAtt": [
+          "InstallerPipelineRole1F8864A8",
+          "Arn"
+         ]
+        },
+        "RunOrder": 1
+       }
+      ],
+      "Name": "Execute"
+     }
+    ],
+    "ArtifactStore": {
+     "EncryptionKey": {
+      "Id": {
+       "Fn::GetAtt": [
+        "ArtifactsBucketCmk69DD8B67",
+        "Arn"
+       ]
+      },
+      "Type": "KMS"
+     },
+     "Location": {
+      "Ref": "ArtifactsBucket2AAC5544"
+     },
+     "Type": "S3"
+    },
+    "Name": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AcceleratorPrefix"
+       },
+       "InstallerPipeline"
+      ]
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "Accelerator",
+      "Value": {
+       "Fn::Join": [
+        "",
+        [
+         {
+          "Ref": "AcceleratorName"
+         },
+         "1"
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   "DependsOn": [
+    "InstallerPipelineRoleDefaultPolicyA2A45F5C",
+    "InstallerPipelineRole1F8864A8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AcceleratorInstaller/Pipeline/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/02QSW7DMAxFz5K9zGYAim7TANlkY6QHKGSJBWhrMDS0KATdvTblIln9R31Rn9QRTm9w2Mmf2Ck9dYYGKB9Jqklcvlwvg7SYMIjF/ywkLZS7N7h6rL03pH75KlMVk41Qbshnq5wNybgWDFUor3HIZDSUnmY05LAPfkSV+JWGVRhpBy2hXLNTibxbzX+uIp6gvGc1ITdt1OQx0XPdcuct8BHNmRvXymth9Dkodi7eaWqJbmmHMb58H5bfeoX9boxEXcgukUW4N/0DBEwia0wBAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "AcceleratorInstaller/CDKMetadata/Default"
+   },
+   "Condition": "CDKMetadataAvailable"
+  }
+ },
+ "Conditions": {
+  "CDKMetadataAvailable": {
+   "Fn::Or": [
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "af-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-northwest-1"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "sa-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-2"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-2"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

@@ -17,9 +17,12 @@ import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEv
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-export type HandlerProperties = AWS.CUR.ReportDefinition;
+export type HandlerProperties = {
+  ReportDefinition: AWS.CUR.ReportDefinition,
+}
 
 export const handler = errorHandler(onEvent);
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
 
 const cur = new AWS.CUR({
   // CUR is only reachable through us-east-1
@@ -65,8 +68,14 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   console.log(`Deleting report definition...`);
   console.log(JSON.stringify(event, null, 2));
+
+  if (migrationEnabled) {
+    console.log('Skipping Delete.  Migration enabled');
+    return;
+  }
 
   try {
     await throttlingBackOff(() =>
@@ -86,23 +95,23 @@ async function createOrUpdateReportDefinition(event: CloudFormationCustomResourc
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   // Sometimes the RefreshClosedReports value is passed as a string
-  if (typeof properties.RefreshClosedReports === 'string') {
-    properties.RefreshClosedReports = properties.RefreshClosedReports === 'true';
+  if (typeof properties.ReportDefinition.RefreshClosedReports === 'string') {
+    properties.ReportDefinition.RefreshClosedReports = properties.ReportDefinition.RefreshClosedReports === 'true';
   }
 
   // Recreate the report definition to avoid sending additional properties
   const reportDefinition = {
-    ReportName: properties.ReportName,
-    TimeUnit: properties.TimeUnit,
-    Format: properties.Format,
-    Compression: properties.Compression,
-    AdditionalSchemaElements: properties.AdditionalSchemaElements,
-    S3Bucket: properties.S3Bucket,
-    S3Prefix: properties.S3Prefix,
-    S3Region: properties.S3Region,
-    AdditionalArtifacts: properties.AdditionalArtifacts,
-    RefreshClosedReports: properties.RefreshClosedReports,
-    ReportVersioning: properties.ReportVersioning,
+    ReportName: properties.ReportDefinition.ReportName,
+    TimeUnit: properties.ReportDefinition.TimeUnit,
+    Format: properties.ReportDefinition.Format,
+    Compression: properties.ReportDefinition.Compression,
+    AdditionalSchemaElements: properties.ReportDefinition.AdditionalSchemaElements,
+    S3Bucket: properties.ReportDefinition.S3Bucket,
+    S3Prefix: properties.ReportDefinition.S3Prefix,
+    S3Region: properties.ReportDefinition.S3Region,
+    AdditionalArtifacts: properties.ReportDefinition.AdditionalArtifacts,
+    RefreshClosedReports: properties.ReportDefinition.RefreshClosedReports,
+    ReportVersioning: properties.ReportDefinition.ReportVersioning,
   };
 
   try {
@@ -129,5 +138,5 @@ async function createOrUpdateReportDefinition(event: CloudFormationCustomResourc
       throw e;
     }
   }
-  return properties.ReportName;
+  return properties.ReportDefinition.ReportName;
 }

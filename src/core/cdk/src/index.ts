@@ -43,6 +43,7 @@ async function main() {
   const enablePrebuiltProject = 'ENABLE_PREBUILT_PROJECT' in env;
   const notificationEmail = env.NOTIFICATION_EMAIL || 'notify@example.com';
   const installerCmk = env.INSTALLER_CMK || `alias/${acceleratorPrefix}Installer-Key`;
+  const migrationEnabled = JSON.parse((env.MIGRATION_ENABLED ?? 'false').toLowerCase());
 
   // Make Sure we change version in "package.json" with respect to code releases
   const acceleratorVersion = pkg.version;
@@ -72,6 +73,7 @@ async function main() {
     codebuildComputeType,
     pageSize,
     backoff,
+    migrationEnabled,
   });
 }
 
