@@ -12,7 +12,7 @@
     "constructs": "10.0.12"
   },
   "devDependencies": {
-    "@types/node": "14.14.31"
+    "@types/node": "16.18.27"
   },
   "peerDependencies": {
     "aws-cdk-lib": "2.38.0"

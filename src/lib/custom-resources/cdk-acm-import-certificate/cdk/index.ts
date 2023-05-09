@@ -105,7 +105,7 @@ export class AcmImportCertificate extends Construct implements cdk.ITaggable {
     );
 
     return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_14_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,

@@ -353,10 +353,10 @@ def impl(accel_prefix, config_file, region, load_db, load_config, core_ou):
                     rules = config[config_section][key_name]['rules']
                     for rule in rules:
                         if rule['name'] == 'EC2-INSTANCE-PROFILE':
-                            rule['runtime'] = 'nodejs14.x'
+                            rule['runtime'] = 'nodejs16.x'
 
                         if rule['name'] == 'EC2-INSTANCE-PROFILE-PERMISSIONS':
-                            rule['runtime'] = 'nodejs14.x'
+                            rule['runtime'] = 'nodejs16.x'
                 if key_name == 'scps':
                     scp_list = config[config_section][key_name]
                     scp_list.append({

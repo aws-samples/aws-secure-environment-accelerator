@@ -178,7 +178,7 @@ export function createMetadataService(props: MetadataServiceProps) {
   );
 
   const metadataLambda = new lambda.Function(masterAccountStack, `MetadataLambda`, {
-    runtime: lambda.Runtime.NODEJS_14_X,
+    runtime: lambda.Runtime.NODEJS_16_X,
     code: lambdaCode,
     role: lambdaRole,
     handler: 'index.metadataCollection',

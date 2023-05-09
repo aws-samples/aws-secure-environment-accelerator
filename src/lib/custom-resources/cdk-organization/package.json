@@ -16,7 +16,7 @@
     "constructs": "10.0.12"
   },
   "devDependencies": {
-    "@types/node": "14.14.31",
+    "@types/node": "16.18.27",
     "jest": "25.2.4",
     "ts-jest": "25.3.0",
     "ts-node": "9.1.1",
