@@ -123,6 +123,33 @@ export class ADUsersAndGroups extends Construct {
 
     const stack = AcceleratorStack.of(this);
     const prefix = trimSpecialCharacters(stack.acceleratorPrefix);
+    const launchTemplate = new cdk.aws_ec2.CfnLaunchTemplate(this, 'RDGWLaunchTemplate', {
+      launchTemplateName: `${prefix}-RDGWLaunchTemplate`,
+      launchTemplateData: {
+        blockDeviceMappings: [
+          {
+            deviceName: '/dev/sda1',
+            ebs: {
+              volumeSize: 50,
+              volumeType: 'gp2',
+              encrypted: true,
+            },
+          },
+        ],
+        securityGroupIds: [securityGroup.securityGroups[0].id],
+        imageId: latestRdgwAmiId,
+        iamInstanceProfile: {
+          name: createIamInstanceProfileName(madDeploymentConfig['rdgw-instance-role']),
+        },
+        networkInterfaces: [
+          {
+            associatePublicIpAddress: false,
+          },
+        ],
+        instanceType: madDeploymentConfig['rdgw-instance-type'],
+        keyName: keyPairName,
+      },
+    });
 
     const launchConfig = new LaunchConfiguration(this, 'RDGWLaunchConfiguration', {
       launchConfigurationName: `${prefix}-RDGWLaunchConfiguration`,
@@ -150,7 +177,11 @@ export class ADUsersAndGroups extends Construct {
     const autoScalingGroupSize = madDeploymentConfig['num-rdgw-hosts'];
     const autoscalingGroup = new CfnAutoScalingGroup(this, 'RDGWAutoScalingGroupB', {
       autoScalingGroupName: `${prefix}-RDGWAutoScalingGroup`,
-      launchConfigurationName: launchConfig.ref,
+      // launchConfigurationName: launchConfig.ref,
+      launchTemplate: {
+        version: '1',
+        launchTemplateId: launchTemplate.ref,
+      },
       vpcZoneIdentifier: subnetIds,
       maxInstanceLifetime: madDeploymentConfig['rdgw-max-instance-age'] * 86400,
       minSize: `${madDeploymentConfig['min-rdgw-hosts']}`,
@@ -185,7 +216,9 @@ export class ADUsersAndGroups extends Construct {
     launchConfig.userData = cdk.Fn.base64(
       `<script>\n cfn-init.exe -v -c config -s ${stackId} -r ${launchConfig.logicalId} --region ${cdk.Aws.REGION} \n # Signal the status from cfn-init\n cfn-signal -e $? --stack ${props.stackName} --resource ${autoscalingGroup.logicalId} --region ${cdk.Aws.REGION}\n </script>\n`,
     );
-
+    launchTemplate.launchTemplateData.userData = cdk.Fn.base64(
+      `<script>\n cfn-init.exe -v -c config -s ${stackId} -r ${launchTemplate.logicalId} --region ${cdk.Aws.REGION} \n # Signal the status from cfn-init\n cfn-signal -e $? --stack ${props.stackName} --resource ${autoscalingGroup.logicalId} --region ${cdk.Aws.REGION}\n </script>\n`,
+    );
     launchConfig.addOverride('Metadata.AWS::CloudFormation::Init', {
       configSets: {
         config: ['setup', 'join', 'installRDS', 'createADConnectorUser', 'configurePasswordPolicy', 'finalize'],
