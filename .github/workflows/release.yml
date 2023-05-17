@@ -41,7 +41,7 @@ jobs:
         env:
           RUNNER_TEMP: /tmp/runner
         with:
-          node-version: 14
+          node-version: 16
       - name: Install pnpm
         run: |
           npm install -g pnpm@6.2.3
@@ -157,7 +157,7 @@ jobs:
         env:
           RUNNER_TEMP: /tmp/runner
         with:
-          node-version: 14
+          node-version: 16
       - name: Install pnpm
         run: |
           npm install -g pnpm@6.2.3
@@ -197,7 +197,7 @@ jobs:
         env:
           RUNNER_TEMP: /tmp/runner
         with:
-          node-version: 14
+          node-version: 16
       - name: Install pnpm
         run: |
           npm install -g pnpm@6.2.3

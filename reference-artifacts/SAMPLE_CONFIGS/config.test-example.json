@@ -692,7 +692,7 @@
           "name": "EC2-INSTANCE-PROFILE",
           "type": "custom",
           "resource-types": ["AWS::EC2::Instance"],
-          "runtime": "nodejs14.x",
+          "runtime": "nodejs16.x",
           "remediation-action": "Attach-IAM-Instance-Profile",
           "remediation": true,
           "remediation-params": {
@@ -704,7 +704,7 @@
           "name": "EC2-INSTANCE-PROFILE-PERMISSIONS",
           "type": "custom",
           "resource-types": ["AWS::IAM::Role"],
-          "runtime": "nodejs14.x",
+          "runtime": "nodejs16.x",
           "parameters": {
             "AWSManagedPolicies": "AmazonSSMManagedInstanceCore, AmazonSSMDirectoryServiceAccess, CloudWatchAgentServerPolicy",
             "CustomerManagedPolicies": "${SEA::EC2InstaceProfilePermissions}",
@@ -2699,7 +2699,7 @@
       "description": "The Workload OU is used to hold accounts containing sensitive unclassified data or workloads.",
       "share-mad-from": "operations",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Sensitive"],
-	  "ssm-inventory-collection": true,
+      "ssm-inventory-collection": true,
       "default-budgets": {
         "name": "Default Workloads Budget",
         "period": "Monthly",
@@ -3295,7 +3295,7 @@
       "type": "workload",
       "description": "The Sandbox OU offers the most cloud native, agile experience and is used for experimentation.  It is not to be used to hold production workloads or data as it offers the fewest security controls.",
       "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Sandbox"],
-	  "ssm-inventory-collection": true,
+      "ssm-inventory-collection": true,
       "default-budgets": {
         "name": "Default Sandbox Budget",
         "period": "Monthly",

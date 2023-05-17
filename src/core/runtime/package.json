@@ -4,7 +4,7 @@
   "private": true,
   "main": "dist/index.js",
   "scripts": {
-    "build": "pnpx esbuild --minify --bundle --platform=node --target=node14 --external:aws-sdk --outfile=./dist/index.js src/index.ts",
+    "build": "pnpx esbuild --minify --bundle --platform=node --target=node16 --external:aws-sdk --outfile=./dist/index.js src/index.ts",
     "test": "pnpx jest",
     "lint:typecheck": "pnpx tsc --noEmit",
     "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@types/adm-zip": "0.4.34",
-    "@types/node": "14.14.31",
+    "@types/node": "16.18.27",
     "@types/jest": "25.2.3",
     "esbuild": "0.11.18",
     "eslint": "7.25.0",

@@ -12,10 +12,9 @@
     "@aws-accelerator/custom-resource-disassociate-hosted-zones": "link:",
     "aws-cdk-lib": "2.38.0",
     "constructs": "10.0.12"
-
   },
   "devDependencies": {
-    "@types/node": "14.14.31"
+    "@types/node": "16.18.27"
   },
   "peerDependencies": {
     "@aws-accelerator/custom-resource-disassociate-hosted-zones-runtime": "workspace:*",

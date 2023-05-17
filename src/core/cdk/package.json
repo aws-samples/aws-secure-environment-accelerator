@@ -27,7 +27,7 @@
     "cdk-assets": "2.38.0"
   },
   "devDependencies": {
-    "@types/node": "14.14.31",
+    "@types/node": "16.18.27",
     "aws-cdk": "2.38.0",
     "eslint": "7.25.0",
     "jest": "25.2.4",
