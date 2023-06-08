@@ -9,7 +9,8 @@
         "aws-marketplace:AssociateProductsWithPrivate*",
         "aws-marketplace:DescribePrivate*",
         "aws-marketplace:DisassociateProducts*",
-        "aws-marketplace:ListPrivate*"
+        "aws-marketplace:ListPrivate*",
+        "aws-marketplace:StartChangeSet"
       ],
       "Resource": "*"
     },
