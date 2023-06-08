@@ -1412,12 +1412,12 @@ importers:
       aws-sdk: 2.1356.0
       esbuild: 0.11.18
       typescript: 4.2.4
-      xml2js: 0.4.23
+      xml2js: 0.5.0
     dependencies:
       '@aws-accelerator/custom-resource-cfn-utils': link:../../cdk-cfn-utils
       aws-lambda: 1.0.6
       aws-sdk: 2.1356.0
-      xml2js: 0.4.23
+      xml2js: 0.5.0
     devDependencies:
       '@types/aws-lambda': 8.10.76
       '@types/node': 16.18.27
@@ -22085,16 +22085,8 @@ packages:
   /xml2js/0.4.19:
     resolution: {integrity: sha512-esZnJZJOiJR9wWKMyuvSE1y6Dq5LCuJanqhxslH2bxM6duahNZ+HMpCLhBQGZkbX6xRf8x1Y2eJlgt2q3qo49Q==}
     dependencies:
-      sax: 1.2.1
-      xmlbuilder: 9.0.7
-    dev: false
-
-  /xml2js/0.4.23:
-    resolution: {integrity: sha512-ySPiMjM0+pLDftHgXY4By0uswI3SPKLDw/i3UXbnO8M/p28zqexCUoPmQFrYD+/1BzhGJSs2i1ERWKJAtiLrug==}
-    engines: {node: '>=4.0.0'}
-    dependencies:
       sax: 1.2.4
-      xmlbuilder: 11.0.1
+      xmlbuilder: 9.0.7
     dev: false
 
   /xml2js/0.5.0:
