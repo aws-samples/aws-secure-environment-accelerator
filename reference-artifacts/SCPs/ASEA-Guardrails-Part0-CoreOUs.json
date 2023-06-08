@@ -78,10 +78,13 @@
         "kms:PutKeyPolicy",
         "kms:ScheduleKeyDeletion"
       ],
-      "Resource": "arn:aws:kms:::alias/${ACCELERATOR_PREFIX_ND}*",
+      "Resource": "*",
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
+        },
+        "ForAnyValue:StringLike": {
+          "kms:ResourceAliases": "alias/${ACCELERATOR_PREFIX_ND}*"
         }
       }
     },

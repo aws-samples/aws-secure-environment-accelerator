@@ -9,7 +9,8 @@
         "aws-marketplace:AssociateProductsWithPrivate*",
         "aws-marketplace:DescribePrivate*",
         "aws-marketplace:DisassociateProducts*",
-        "aws-marketplace:ListPrivate*"
+        "aws-marketplace:ListPrivate*",
+        "aws-marketplace:StartChangeSet"
       ],
       "Resource": "*"
     },
@@ -257,6 +258,7 @@
         "s3:GetMultiR*",
         "s3:ListMultiR*",
         "s3:PutMultiR*",
+        "sso:DescribeRegisteredRegions",
         "sns:Publish",
         "tag:GetResources"
       ],
