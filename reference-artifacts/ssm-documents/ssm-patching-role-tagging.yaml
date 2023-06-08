@@ -1,0 +1,25 @@
+description: Updates the ASEA Role
+schemaVersion: '0.3'
+assumeRole: '{{ AutomationAssumeRole }}'
+parameters:
+  RoleName:
+    type: String
+    description: (Required) The name of the role to update
+  QSConfigID:
+    type: String
+    description: (Required) The QSConfigID
+  AutomationAssumeRole:
+    type: String
+    description: (Optional) The ARN of the role that allows Automation to perform the actions on your behalf.
+    default: ''
+mainSteps:
+  - name: PutTagOnRole
+    action: 'aws:executeAwsApi'
+    inputs:
+      Service: iam
+      Api: TagRole
+      RoleName: '{{RoleName}}'
+      Tags:
+        - Key: 'QSConfigId-{{QSConfigID}}'
+          Value: '{{QSConfigID}}'
+    isEnd: true
