@@ -15,6 +15,7 @@ import * as cdk from 'aws-cdk-lib';
 import { LaunchConfiguration } from '../../src/autoscaling';
 import { CfnAutoScalingGroup } from 'aws-cdk-lib/aws-autoscaling';
 import { Construct } from 'constructs';
+import { LaunchTemplate } from 'aws-cdk-lib/aws-ec2';
 
 export interface RsysLogAutoScalingGroupProps extends cdk.StackProps {
   latestRsyslogAmiId: string;
@@ -62,10 +63,47 @@ export class RsysLogAutoScalingGroup extends Construct {
       logGroupName: props.logGroupName,
     });
 
+    const launchTemplate = new cdk.aws_ec2.CfnLaunchTemplate(this, 'RsyslogLaunchTemplate', {
+      launchTemplateName: `${props.acceleratorPrefix}RsyslogLaunchConfiguration`,
+      launchTemplateData: {
+        networkInterfaces: [
+          {
+            deviceIndex: 0,
+            associatePublicIpAddress: false,
+
+            groups: [props.securityGroupId],
+          },
+        ],
+        metadataOptions: {
+          httpTokens: "required",
+          httpEndpoint: "enabled"
+        },
+        imageId: props.latestRsyslogAmiId,
+        iamInstanceProfile: {
+          name: createIamInstanceProfileName(props.instanceRole),
+        },
+        instanceType: props.instanceType,
+        blockDeviceMappings: [
+          {
+            deviceName: '/dev/xvda',
+            ebs: {
+              volumeSize: props.rootVolumeSize,
+              volumeType: 'gp2',
+              encrypted: true,
+            },
+          },
+        ],
+      }
+    })
+
     const autoScalingGroupSize = props.desiredInstanceHosts;
     new CfnAutoScalingGroup(this, 'RsyslogAutoScalingGroup', {
       autoScalingGroupName: `${props.acceleratorPrefix}RsyslogAutoScalingGroup`,
       launchConfigurationName: launchConfig.ref,
+      launchTemplate: {
+        launchTemplateId: launchTemplate.ref,
+        version: '1'
+      },
       vpcZoneIdentifier: props.subnetIds,
       maxInstanceLifetime: props.maxInstanceAge * 86400,
       minSize: `${props.minInstanceHosts}`,
@@ -84,7 +122,7 @@ export class RsysLogAutoScalingGroup extends Construct {
       ],
     });
 
-    let launchConfigUserData = `#!/bin/bash\necho "[v8-stable]\nname=Adiscon CentOS-6 - local packages for \\$basearch\nbaseurl=http://rpms.adiscon.com/v8-stable/epel-6/\\$basearch\nenabled=0\ngpgcheck=0\ngpgkey=http://rpms.adiscon.com/RPM-GPG-KEY-Adiscon\nprotect=1" >> /etc/yum.repos.d/rsyslog.repo\nyum update -y\nyum install -y rsyslog --enablerepo=v8-stable --setopt=v8-stable.priority=1\nchkconfig rsyslog on\naws s3 cp s3://${props.centralBucketName}/rsyslog/rsyslog.conf /etc/rsyslog.conf\nservice rsyslog restart\nwget https://s3.${cdk.Aws.REGION}.amazonaws.com/amazoncloudwatch-agent-${cdk.Aws.REGION}/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm\nrpm -U ./amazon-cloudwatch-agent.rpm\ninstanceid=$(curl http://169.254.169.254/latest/meta-data/instance-id)\necho "{\\"logs\\": {\\"logs_collected\\": {\\"files\\": {\\"collect_list\\": [{\\"file_path\\": \\"/var/log/messages\\",\\"log_group_name\\": \\"${props.logGroupName}\\",\\"log_stream_name\\": \\"$instanceid\\"}]}}}}" >> /opt/aws/amazon-cloudwatch-agent/bin/config.json\n/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -s -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json`;
+    let rsyslogUserData = `#!/bin/bash\necho "[v8-stable]\nname=Adiscon CentOS-6 - local packages for \\$basearch\nbaseurl=http://rpms.adiscon.com/v8-stable/epel-6/\\$basearch\nenabled=0\ngpgcheck=0\ngpgkey=http://rpms.adiscon.com/RPM-GPG-KEY-Adiscon\nprotect=1" >> /etc/yum.repos.d/rsyslog.repo\nyum update -y\nyum install -y rsyslog --enablerepo=v8-stable --setopt=v8-stable.priority=1\nchkconfig rsyslog on\naws s3 cp s3://${props.centralBucketName}/rsyslog/rsyslog.conf /etc/rsyslog.conf\nservice rsyslog restart\nwget https://s3.${cdk.Aws.REGION}.amazonaws.com/amazoncloudwatch-agent-${cdk.Aws.REGION}/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm\nrpm -U ./amazon-cloudwatch-agent.rpm\ninstanceid=$(curl http://169.254.169.254/latest/meta-data/instance-id)\necho "{\\"logs\\": {\\"logs_collected\\": {\\"files\\": {\\"collect_list\\": [{\\"file_path\\": \\"/var/log/messages\\",\\"log_group_name\\": \\"${props.logGroupName}\\",\\"log_stream_name\\": \\"$instanceid\\"}]}}}}" >> /opt/aws/amazon-cloudwatch-agent/bin/config.json\n/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -s -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json`;
 
     if (props.userData) {
       /* eslint-disable no-template-curly-in-string */
@@ -94,13 +132,16 @@ export class RsysLogAutoScalingGroup extends Construct {
         ['\\${SEA:CUSTOM::CentralBucket}', props.centralBucketName],
       ]);
 
-      launchConfigUserData = props.userData;
+      rsyslogUserData = props.userData;
       for (const replaceToken of replaceTokens.entries()) {
-        launchConfigUserData = launchConfigUserData.replace(new RegExp(replaceToken[0], 'g'), replaceToken[1]);
+        rsyslogUserData = rsyslogUserData.replace(new RegExp(replaceToken[0], 'g'), replaceToken[1]);
       }
     }
-
-    launchConfig.userData = cdk.Fn.base64(launchConfigUserData);
+    launchTemplate.addPropertyOverride(
+      'LaunchTemplateData.UserData',
+      cdk.Fn.base64(rsyslogUserData));
+      
+    launchConfig.userData = cdk.Fn.base64(rsyslogUserData);
   }
 }
 

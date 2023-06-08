@@ -135,6 +135,7 @@ export class ADUsersAndGroups extends Construct {
               encrypted: true,
             },
           },
+
         ],
         // securityGroupIds: [securityGroup.securityGroups[0].id],
         imageId: latestRdgwAmiId,
@@ -151,6 +152,10 @@ export class ADUsersAndGroups extends Construct {
         ],
         instanceType: madDeploymentConfig['rdgw-instance-type'],
         keyName: keyPairName,
+        metadataOptions: {
+          httpTokens: "required",
+          httpEndpoint: "enabled"
+        }
       },
     });
 
@@ -182,7 +187,7 @@ export class ADUsersAndGroups extends Construct {
       autoScalingGroupName: `${prefix}-RDGWAutoScalingGroup`,
       // launchConfigurationName: launchConfig.ref,
       launchTemplate: {
-        version: '1',
+        version: '2',
         launchTemplateId: launchTemplate.ref,
       },
       vpcZoneIdentifier: subnetIds,

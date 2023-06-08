@@ -183,6 +183,12 @@ async function createFirewallCluster(props: {
     name: `${firewallName}`,
     suffixLength: 0,
   });
+
+  const launchTemplateName = createName({
+    name: `${firewallName}lt`,
+    suffixLength: 0,
+  });
+
   const blockDeviceMappings = deviceNames.map(deviceName => ({
     deviceName,
     ebs: {
@@ -191,6 +197,33 @@ async function createFirewallCluster(props: {
       volumeSize: firewallConfig['root-volume-size'],
     },
   }));
+
+  const launchTemplate = new cdk.aws_ec2.CfnLaunchTemplate(accountStack, `FirewallLaunchConfiguration-${firewallName}`, {
+    launchTemplateName,
+    launchTemplateData: {
+      blockDeviceMappings,
+      // securityGroupIds: [securityGroup.securityGroups[0].id],
+      imageId,
+      iamInstanceProfile: {
+        name: instanceRoleName ? createIamInstanceProfileName(instanceRoleName) : undefined,
+      },
+      networkInterfaces: [
+        {
+          deviceIndex: 0,
+          associatePublicIpAddress,
+
+          groups: [securityGroup.id],
+        },
+      ],
+      instanceType,
+      keyName,
+      metadataOptions: {
+        httpTokens: "required",
+        httpEndpoint: "enabled"
+      },
+      userData: userData ? cdk.Fn.base64(userData) : undefined,
+    },
+  });
 
   // Create LaunchConfiguration
   const launchConfig = new LaunchConfiguration(accountStack, `FirewallLaunchConfiguration-${firewallName}`, {
@@ -205,6 +238,8 @@ async function createFirewallCluster(props: {
     keyName,
     userData: userData ? cdk.Fn.base64(userData) : undefined,
   });
+
+  
 
   const autoScalingGroupName = createName({
     name: `${firewallName}-asg`,
@@ -246,7 +281,10 @@ async function createFirewallCluster(props: {
   }
   const autoScalingGroup = new elb.CfnAutoScalingGroup(accountStack, `Firewall-AutoScalingGroup-${firewallName}`, {
     autoScalingGroupName,
-    launchConfigurationName: launchConfig.ref,
+    launchTemplate: {
+      version: '1',
+      launchTemplateId: launchTemplate.ref,
+    },
     vpcZoneIdentifier: subnetIds,
     maxInstanceLifetime: maxInstanceAge * 86400,
     minSize: `${minSize}`,

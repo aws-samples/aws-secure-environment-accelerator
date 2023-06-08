@@ -108,7 +108,7 @@ export async function step3(props: FirewallStep3Props) {
         continue;
       }
 
-      // TODO add region check also if vpc name is not unique accross Account
+      // TODO add region check also if vpc name is not unique across Account
       const vpcConfig = vpcConfigs.find(v => v.vpcConfig.name === firewallConfig.vpc)?.vpcConfig;
       if (!vpcConfig) {
         console.log(`Skipping firewall deployment because of missing VPC config "${firewallConfig.vpc}"`);
