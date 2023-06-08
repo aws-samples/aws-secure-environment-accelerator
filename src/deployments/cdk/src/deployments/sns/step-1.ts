@@ -202,7 +202,7 @@ function createSnsTopics(props: {
   let snsSubscriberFunc: lambda.Function | undefined;
   if (region !== centralServicesRegion || (region === centralServicesRegion && orgManagementSns)) {
     snsSubscriberFunc = new lambda.Function(accountStack, `SnsSubscriberLambda`, {
-      runtime: lambda.Runtime.NODEJS_14_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       handler: 'index.createSnsPublishToCentralRegion',
       code: lambdaCode,
       role,
@@ -220,7 +220,7 @@ function createSnsTopics(props: {
   }
 
   const ignoreActionFunc = new lambda.Function(accountStack, `IgnoreActionLambda`, {
-    runtime: lambda.Runtime.NODEJS_14_X,
+    runtime: lambda.Runtime.NODEJS_16_X,
     handler: 'index.createIgnoreAction',
     code: lambdaCode,
     role,
@@ -258,14 +258,19 @@ function createSnsTopics(props: {
           topicName,
         });
 
-    // Allowing Publish from CloudWatch Service form any account
+    // Allowing Publish from CloudWatch Service from any account
     topic.grantPublish({
       grantPrincipal: new iam.ServicePrincipal('cloudwatch.amazonaws.com'),
     });
 
-    // Allowing Publish from Lambda Service form any account
+    // Allowing Publish from Lambda Service from any account
     topic.grantPublish({
       grantPrincipal: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    });
+
+    // Allowing Publish from Events Service from any account
+    topic.grantPublish({
+      grantPrincipal: new iam.ServicePrincipal('events.amazonaws.com'),
     });
 
     topic.addToResourcePolicy(

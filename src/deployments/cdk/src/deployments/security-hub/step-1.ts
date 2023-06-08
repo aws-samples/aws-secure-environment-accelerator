@@ -179,7 +179,7 @@ const configureSecurityHubCWLs = (
     );
 
     const eventsToCwlLambda = new lambda.Function(securityMasterAccountStack, `SecurityHubPublisher`, {
-      runtime: lambda.Runtime.NODEJS_14_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       role: lambdaRole,
       code: lambdaCode,
       handler: 'index.eventToCWLPublisher',

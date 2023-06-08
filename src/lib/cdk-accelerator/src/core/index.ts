@@ -16,3 +16,5 @@ export * from './name-tagger';
 export * from './accelerator-protected-tagger';
 export * from './lambda-env-variables';
 export * from './lambda-default-timeout';
+export * from './lambda-default-memory';
+export * from './lambda-default-runtime';

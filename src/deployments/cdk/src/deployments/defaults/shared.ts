@@ -54,6 +54,8 @@ export function createDefaultS3Key(props: { accountStack: AccountStack; prefix: 
         new iam.ServicePrincipal('macie.amazonaws.com'),
         // Kinesis for usage in the log account
         new iam.ServicePrincipal('kinesis.amazonaws.com'),
+        // Events
+        new iam.ServicePrincipal('events.amazonaws.com'),
       ],
       resources: ['*'],
     }),

@@ -257,7 +257,7 @@ class Installer extends cdk.Stack {
         phases: {
           install: {
             'runtime-versions': {
-              nodejs: 14,
+              nodejs: 16,
             },
             // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
             commands: [
@@ -467,7 +467,7 @@ class Installer extends cdk.Stack {
       functionName: `${acceleratorPrefix}Installer-StartExecution`,
       role: stateMachineExecutionRole,
       // Inline code is only allowed for Node.js version 12
-      runtime: lambda.Runtime.NODEJS_14_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       code: lambda.Code.fromInline(stateMachineStartExecutionCode.toString()),
       handler: 'index.handler',
     });
@@ -498,7 +498,7 @@ class Installer extends cdk.Stack {
       functionName: `${acceleratorPrefix}Installer-SaveApplicationVersion`,
       role: stateMachineExecutionRole,
       // Inline code is only allowed for Node.js version 12
-      runtime: lambda.Runtime.NODEJS_14_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       code: lambda.Code.fromInline(saveApplicationVersionCode.toString()),
       handler: 'index.handler',
     });
@@ -528,7 +528,7 @@ class Installer extends cdk.Stack {
       functionName: `${acceleratorPrefix}Installer-ValidateParameters`,
       role: stateMachineExecutionRole,
       // Inline code is only allowed for Node.js version 12
-      runtime: lambda.Runtime.NODEJS_14_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       code: lambda.Code.fromInline(validateParametersCode.toString()),
       handler: 'index.handler',
     });

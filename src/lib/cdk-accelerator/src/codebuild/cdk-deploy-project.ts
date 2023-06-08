@@ -103,7 +103,7 @@ export class CdkDeployProject extends CdkDeployProjectBase {
         phases: {
           install: {
             'runtime-versions': {
-              nodejs: 14,
+              nodejs: 16,
             },
             commands: installPackageManagerCommands(props.packageManager),
           },

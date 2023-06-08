@@ -17,6 +17,12 @@
 
 ## 1.2. **Release Specific Upgrade Considerations:**
 
+-   Upgrades to `v1.5.6-a and above` from `v1.5.5 and below`:
+    -   In order to implement the VPC flow log fix ([#1112](https://github.com/aws-samples/aws-secure-environment-accelerator/pull/1112)) ([b5dc19c](https://github.com/aws-samples/aws-secure-environment-accelerator/commit/b5dc19cf1aa5917acb9e41a5fcf4a66b918893f6)):
+        -   Before update: for every VPC of the configuration, change the “flow-logs” option to “CWL”
+        -   Execute the State Machine using `{"scope": "FULL","mode": "APPLY"}`. Wait for successful completion
+        -   Change the “flow-logs” option to the original value (“BOTH”) (don’t re-run the state machine)
+        -   Follow the [general instructions](upgrades.md#13-summary-of-upgrade-steps-all-versions-except-v150) to upgrade ASEA  
 -   Upgrades to `v1.5.1-a and above` from `v1.5.0` or `v1.5.1`:
     -   Do not add the parameter: `"ssm-inventory-collection": true` to OUs or accounts which already have SSM Inventory configured or the state machine will fail
     -   Follow the standard upgrade steps detailed in section 1.3 below
