@@ -99,7 +99,6 @@ export class RsysLogAutoScalingGroup extends Construct {
     const autoScalingGroupSize = props.desiredInstanceHosts;
     new CfnAutoScalingGroup(this, 'RsyslogAutoScalingGroup', {
       autoScalingGroupName: `${props.acceleratorPrefix}RsyslogAutoScalingGroup`,
-      launchConfigurationName: launchConfig.ref,
       launchTemplate: {
         launchTemplateId: launchTemplate.ref,
         version: '1'
