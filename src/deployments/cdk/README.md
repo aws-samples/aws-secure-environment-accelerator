@@ -108,7 +108,6 @@ from secrets manager in your master account.
         },
     ]
 
-
 Now that we have created all the files, we can start testing the deployment.
 
 Run the following command to synthesize the CloudFormation template from CDK.

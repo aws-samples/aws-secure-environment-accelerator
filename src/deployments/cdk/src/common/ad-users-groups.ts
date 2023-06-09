@@ -135,7 +135,6 @@ export class ADUsersAndGroups extends Construct {
               encrypted: true,
             },
           },
-
         ],
         // securityGroupIds: [securityGroup.securityGroups[0].id],
         imageId: latestRdgwAmiId,
@@ -153,9 +152,9 @@ export class ADUsersAndGroups extends Construct {
         instanceType: madDeploymentConfig['rdgw-instance-type'],
         keyName: keyPairName,
         metadataOptions: {
-          httpTokens: "required",
-          httpEndpoint: "enabled"
-        }
+          httpTokens: 'required',
+          httpEndpoint: 'enabled',
+        },
       },
     });
 

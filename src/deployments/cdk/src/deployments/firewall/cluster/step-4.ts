@@ -218,8 +218,8 @@ async function createFirewallCluster(props: {
       instanceType,
       keyName,
       metadataOptions: {
-        httpTokens: "required",
-        httpEndpoint: "enabled"
+        httpTokens: 'required',
+        httpEndpoint: 'enabled',
       },
       userData: userData ? cdk.Fn.base64(userData) : undefined,
     },
@@ -238,8 +238,6 @@ async function createFirewallCluster(props: {
     keyName,
     userData: userData ? cdk.Fn.base64(userData) : undefined,
   });
-
-  
 
   const autoScalingGroupName = createName({
     name: `${firewallName}-asg`,
