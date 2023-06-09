@@ -198,7 +198,7 @@ async function createFirewallCluster(props: {
     },
   }));
 
-  const launchTemplate = new cdk.aws_ec2.CfnLaunchTemplate(accountStack, `FirewallTemplateConfiguration-${firewallName}`, {
+  const launchTemplate = new cdk.aws_ec2.CfnLaunchTemplate(accountStack, `FirewallLaunchTemplate-${firewallName}`, {
     launchTemplateName,
     launchTemplateData: {
       blockDeviceMappings,
