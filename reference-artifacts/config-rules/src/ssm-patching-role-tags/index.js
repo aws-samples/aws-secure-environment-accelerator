@@ -12,7 +12,7 @@ exports.handler = async function (event, context) {
     const invokingEvent = JSON.parse(event.invokingEvent);
     const invocationType = invokingEvent.messageType;
     const ruleParams = JSON.parse(event.ruleParameters || '{}');
-    if (!ruleParams.RoleName || !ruleParams.QSConfigID) {
+    if (!ruleParams.RoleNames || !ruleParams.QSConfigID) {
         throw new Error('Either "RoleName" or "QSConfigID" are required')
     }
     if (invocationType === 'ScheduledNotification') {
@@ -67,7 +67,7 @@ async function evaluateCompliance(props) {
     if (configurationItem.configuration) {
         const existingTags = configurationItem.configuration.tags;
         const requiredQAConfigID = ruleParams.QSConfigID;
-        const targetRoleNames = ruleParams.RoleName;
+        const targetRoleNames = ruleParams.RoleNames;
 
         const tagKey = `QSConfigId-${requiredQAConfigID}`;
 
