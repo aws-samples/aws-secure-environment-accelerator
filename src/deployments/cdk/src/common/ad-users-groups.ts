@@ -187,7 +187,7 @@ export class ADUsersAndGroups extends Construct {
       autoScalingGroupName: `${prefix}-RDGWAutoScalingGroup`,
       // launchConfigurationName: launchConfig.ref,
       launchTemplate: {
-        version: '2',
+        version: '1',
         launchTemplateId: launchTemplate.ref,
       },
       vpcZoneIdentifier: subnetIds,
