@@ -75,8 +75,8 @@ export class RsysLogAutoScalingGroup extends Construct {
           },
         ],
         metadataOptions: {
-          httpTokens: "required",
-          httpEndpoint: "enabled"
+          httpTokens: 'required',
+          httpEndpoint: 'enabled',
         },
         imageId: props.latestRsyslogAmiId,
         iamInstanceProfile: {
@@ -93,15 +93,15 @@ export class RsysLogAutoScalingGroup extends Construct {
             },
           },
         ],
-      }
-    })
+      },
+    });
 
     const autoScalingGroupSize = props.desiredInstanceHosts;
     new CfnAutoScalingGroup(this, 'RsyslogAutoScalingGroup', {
       autoScalingGroupName: `${props.acceleratorPrefix}RsyslogAutoScalingGroup`,
       launchTemplate: {
         launchTemplateId: launchTemplate.ref,
-        version: '1'
+        version: '1',
       },
       vpcZoneIdentifier: props.subnetIds,
       maxInstanceLifetime: props.maxInstanceAge * 86400,
@@ -136,10 +136,8 @@ export class RsysLogAutoScalingGroup extends Construct {
         rsyslogUserData = rsyslogUserData.replace(new RegExp(replaceToken[0], 'g'), replaceToken[1]);
       }
     }
-    launchTemplate.addPropertyOverride(
-      'LaunchTemplateData.UserData',
-      cdk.Fn.base64(rsyslogUserData));
-      
+    launchTemplate.addPropertyOverride('LaunchTemplateData.UserData', cdk.Fn.base64(rsyslogUserData));
+
     launchConfig.userData = cdk.Fn.base64(rsyslogUserData);
   }
 }
