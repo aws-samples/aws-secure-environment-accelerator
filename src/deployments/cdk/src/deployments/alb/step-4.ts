@@ -82,7 +82,7 @@ export async function step4(props: ElbStep4Props) {
             console.warn(`Didn't find vpc endpoint output for "${accountKey}/${vpcConfig.name}/${subnetDef.az}"`);
             continue;
           }
-          const destinationCidrBlock = routeConfig.destination as unknown as string;
+          const destinationCidrBlock = (routeConfig.destination as unknown) as string;
           new ec2.CfnRoute(
             accountStack,
             `Gwlb-route-${vpcConfig.name}-${subnetConfig.name}-${subnetDef.az}-${destinationCidrBlock}`,
