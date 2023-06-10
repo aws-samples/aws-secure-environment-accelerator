@@ -849,7 +849,7 @@
           "remediation-action": "SSM-Patching-Role-Tagging",
           "remediation": true,
           "remediation-params": {
-            "RoleName": "EC2-Default-SSM-AD-Role",
+            "RoleId": "RESOURCE_ID",
             "QSConfigID": "*** REPLACE AFTER QUICK SETUP ***"
           }
         }
