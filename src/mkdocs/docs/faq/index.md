@@ -939,7 +939,7 @@
 
     #### How can centralized EC2 patch management be deployed?
 
-    With Quick Setup, a capability of AWS Systems Manager, you can create patch policies powered by Patch Manager. A patch policy defines the schedule and baseline to use when automatically patching your Amazon Elastic Compute Cloud (Amazon EC2) instances and other managed nodes. This solution needs modification to deploy into the ASEA. See the guide [here](../guides/ssm-quick-setup-patching/ssm-quick-setup-patching-configuration.md) to learn how.
+    With Quick Setup, a capability of AWS Systems Manager, you can create patch policies powered by Patch Manager. A patch policy defines the schedule and baseline to use when automatically patching your Amazon Elastic Compute Cloud (Amazon EC2) instances and other managed nodes. This solution needs modification to deploy into the ASEA. See the guide [here](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/v1.5.7/src/mkdocs/docs/guides/ssm-quick-setup-patching/ssm-quick-setup-patching-configuration.md) to learn how.
 
 ## 1.7. Network Architecture
 
