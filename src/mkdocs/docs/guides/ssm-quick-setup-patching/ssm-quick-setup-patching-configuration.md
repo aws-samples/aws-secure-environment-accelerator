@@ -42,14 +42,14 @@ The following steps have been taken from the documentation [here](https://docs.a
 7. If you chose **Scan and install**, choose the **Installation schedule** to use when installing patches to the specified targets. If you choose **Use recommended defaults**, Patch Manager will install weekly patches at 2:00 AM UTC on Sunday.
 8. In the **Patch baseline** section, choose the patch baselines to use when scanning and updating your targets.
 9. In the **Patching log storage** section, select **Write output to S3 bucket** to store patching operation logs in an Amazon S3 bucket.
-10. Create a S3 bucket with SSE encryption. Choose **Browse S3** to select the bucket that you want to store patch log output in. The management account must have read access to this bucket. All non-management accounts and targets configured in the Targets section must have write access to the provided S3 bucket for logging.
+10. Create a S3 bucket with SSE encryption. Choose **Browse S3** to select the bucket that will be used to configure output patching logs. Note: The bucket you select here is just to progress past the installation; it will be switched to another bucket in later steps.
 11. In the Targets section, choose one of the following to identify the accounts and Regions for this patch policy operation.
     1.  Use **Target OUs** and specify OUs such as 'Dev', 'Test', 'Prod'
     2.  Use **Target Regions** and only select the needed regions (e.g. ca-central-1)
 12. For **Choose how you want to target instances**, choose **All managed nodes**
 13. In the **Rate control** section, leave the defaults or change as desired
-15. **Unselect** the **Add required IAM policies to existing instance profiles attached to your instances** check box.
-16. Choose **Create**
+14. **Unselect** the **Add required IAM policies to existing instance profiles attached to your instances** check box.
+15. Choose **Create**
 
 
 ### 1.2.2 Modify the Quick Setup Target Account StackSet Template
@@ -64,10 +64,21 @@ Review the CloudFormation Stack Sets, and wait for the 'AWS-QuickSetup-PatchPoli
 6. Copy & Paste all the ID's within the **Organziational unit IDs** to a text file, as this will be needed later.
 7. From the **Actions** dropdown, choose **Edit StackSet details**
 8. Click **Replace current template** and follow the steps to upload the modified saved template from step 4.
-9. Accept all defaults and progress until **Step 4 - Set deployment options**
-10. The **Organizationl units (OU)** does not maintain the original values. Add each value that was copied in step 6.
-11. Specify the same region(s) used in the original configuration (e.g. ca-central-1)
-12. Accept all other defaults, and deploy the StackSet update
+9.  Accept all defaults until **Step 2**, and update the following parameters:
+   1.  **OutputS3BucketName** -> The Central Log Archive S3 bucket in the logging account. Example, "asea-logarchive-phase0-cacentral1-lgh04fj6ulma"
+   2.  **OutputS3KeyPrefix** -> Enter "ssm-patching"
+10. Accept all other defaults and progress until **Step 4 - Set deployment options**
+11. The **Organizationl units (OU)** does not maintain the original values. Add each value that was copied in step 6.
+12. Specify the same region(s) used in the original configuration (e.g. ca-central-1)
+13. Accept all other defaults, and deploy the StackSet update
+
+Review the CloudFormation Stack Sets, and wait for the 'AWS-QuickSetup-PatchPolicy-MA-...' StackSet to succeed.
+
+1. Click on the 'AWS-QuickSetup-PatchPolicy-MA-...' StackSet, and from the **Actions** dropdown, choose **Edit StackSet details**
+2. Accept all defaults until **Step 2**, and update the following parameters:
+   1.  **OutputS3BucketName** -> The Central Log Archive S3 bucket in the logging account. Example, "asea-logarchive-phase0-cacentral1-lgh04fj6ulma"
+   2.  **OutputS3KeyPrefix** -> Enter "ssm-patching"
+3.  Accept all other defaults, and deploy the StackSet update
 
 The StackSets should be successfully deployed, and you can return to the Quick Setup Patch Policy to see the dashboard showing Success.
 
