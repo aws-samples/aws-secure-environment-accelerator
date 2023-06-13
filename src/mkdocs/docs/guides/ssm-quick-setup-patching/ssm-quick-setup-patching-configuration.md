@@ -107,15 +107,15 @@ The StackSets should be successfully deployed, and you can return to the Quick S
     "resource-types": ["AWS::IAM::Role"],
     "runtime": "nodejs16.x",
     "parameters": {
-    "RoleNames": ["EC2-Default-SSM-AD-Role", "${ACCELERATOR_PREFIX_ND}-RDGW-Role", "${ACCELERATOR_PREFIX_ND}-Rsyslog-Role"],
-    "QSConfigID": "*** REPLACE AFTER QUICK SETUP ***",
-    "ResourceId": "RESOURCE_ID"
+      "RoleNames": "EC2-Default-SSM-AD-Role, ${ACCELERATOR_PREFIX_ND}-RDGW-Role, ${ACCELERATOR_PREFIX_ND}-Rsyslog-Role",
+      "QSConfigID": "*** REPLACE AFTER QUICK SETUP ***",
+      "ResourceId": "RESOURCE_ID"
     },
     "remediation-action": "SSM-Patching-Role-Tagging",
     "remediation": true,
     "remediation-params": {
-    "RoleName": "EC2-Default-SSM-AD-Role",
-    "QSConfigID": "*** REPLACE AFTER QUICK SETUP ***"
+      "RoleId": "RESOURCE_ID",
+      "QSConfigID": "*** REPLACE AFTER QUICK SETUP ***"
     }
 }
 ```
