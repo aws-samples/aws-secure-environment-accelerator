@@ -1,0 +1,65 @@
+description: Updates the ASEA Role
+schemaVersion: '0.3'
+assumeRole: '{{ AutomationAssumeRole }}'
+parameters:
+  RoleId:
+    type: String
+    description: (Required) The name of the role to update
+  QSConfigID:
+    type: String
+    description: (Required) The QSConfigID
+  AutomationAssumeRole:
+    type: String
+    description: (Optional) The ARN of the role that allows Automation to perform the actions on your behalf.
+    default: ''
+mainSteps:
+  - name: LookupRole
+    action: 'aws:executeScript'
+    inputs:
+      Runtime: python3.8
+      Handler: getRoleName
+      InputPayload:
+        roleId: '{{RoleId}}'
+      Script: |-
+        import boto3
+        import json
+
+        iam = boto3.client('iam')
+
+        def getRoleName(event, context):
+          paginator = iam.get_paginator('list_roles')
+          page_iterator = paginator.paginate()
+          
+          returnVal = {
+            'RoleId': '',
+            'RoleName': ''
+          }
+
+          for role_page in page_iterator:
+            for role in role_page['Roles']:
+              if role['RoleId'] == event['roleId']:
+                returnVal['RoleId']   = role['RoleId']
+                returnVal['RoleName'] = role['RoleName']
+                
+                return returnVal
+          
+          return returnVal
+                
+          
+    outputs:
+      - Name: Payload
+        Selector: $.Payload
+        Type: StringMap
+      - Name: RoleName
+        Selector: $.Payload.RoleName
+        Type: String
+  - name: PutTagOnRole
+    action: 'aws:executeAwsApi'
+    inputs:
+      Service: iam
+      Api: TagRole
+      RoleName: '{{LookupRole.RoleName}}'
+      Tags:
+        - Key: 'QSConfigId-{{QSConfigID}}'
+          Value: '{{QSConfigID}}'
+    isEnd: true

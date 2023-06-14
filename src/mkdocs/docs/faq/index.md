@@ -934,6 +934,13 @@
    
    Additional endpoints may exist in other AWS regions.  Any endpoint can be added to any Accelerator configuration file, as long as it follows the standardized endpoint naming convention (e.g. com.amazonaws.{region}.{service}).
 
+
+??? faq "1.6.18. How can centralized EC2 patch management be deployed?"
+
+    #### How can centralized EC2 patch management be deployed?
+
+    With Quick Setup, a capability of AWS Systems Manager, you can create patch policies powered by Patch Manager. A patch policy defines the schedule and baseline to use when automatically patching your Amazon Elastic Compute Cloud (Amazon EC2) instances and other managed nodes. This solution needs modification to deploy into the ASEA. See the guide [here](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/v1.5.7/src/mkdocs/docs/guides/ssm-quick-setup-patching/ssm-quick-setup-patching-configuration.md) to learn how.
+
 ## 1.7. Network Architecture
 
 ??? faq "1.7.1. We want to securely connect our on-premises networks/datacenters to our AWS Cloud PBMM tenancy, what does AWS you recommend?"
