@@ -33,7 +33,7 @@ The solution, described in detail below, includes the following:
 
 The following steps have been taken from the documentation [here](https://docs.aws.amazon.com/systems-manager/latest/userguide/quick-setup-patch-manager.html) with modifications.
 
-1. Open the AWS Systems Manager console at https://console.aws.amazon.com/systems-manager/.
+1. In the Management Account, open the AWS Systems Manager console at https://console.aws.amazon.com/systems-manager/.
 2. In the navigation pane, choose **Quick Setup**.
 3. On the **Patch Manager** card, choose **Create**.
 4. For **Configuration name**, enter a name to help identify the patch policy.
@@ -85,7 +85,8 @@ The StackSets should be successfully deployed, and you can return to the Quick S
 
 ### 1.2.3 ASEA Configuration file updates
 
-> This section assumes v1.5.7 or greater as it includes the permission policy, ssm document, and custom config rule. Note that these can be manually uploaded to the config S3 bucket, and thus available to older ASEA versions.
+> This section assumes v1.5.7 or greater as it includes the permission policy, ssm document, and custom config rule. Note that these can be manually uploaded to the config S3 bucket, and thus available to older ASEA versions. If applying to a previous version, make sure to copy the following files, found in the reference-artifacts folder, to your config S3 bucket: ``config-rules/ssm-patching-role-tags.zip``, ``iam-policy/ssm-patching-quick-setup-s3-permissions.txt``, and ``ssm-documents/ssm-patching-role-tagging.yaml``
+
 
 1. Click on the 'AWS-QuickSetup-PatchPolicy-TA-...' StackSet, and click the **Parameters** tab.
 2. Locate and record the value for the **QSConfigurationId**
@@ -98,7 +99,7 @@ The StackSets should be successfully deployed, and you can return to the Quick S
 
 6. Note how the new IAM Policy is applied to different Roles. Adjust as necessary.
 
-7. Review and adjust the custom AWS Config Rule. The value record from step 1, is needed. Replace the **"*** REPLACE AFTER QUICK SETUP ***"** with the value. As an example, it may look like **vair8**.
+7. Review and adjust the custom AWS Config Rule. The value record from step 1, is needed. Replace the **"*** REPLACE AFTER QUICK SETUP ***"** with the value. It should be a 5 characters alphanumeric string such as **vair8** or **rfnce**.
 
 ```
  {
