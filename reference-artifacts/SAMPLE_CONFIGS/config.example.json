@@ -1762,7 +1762,7 @@
             "region": "${HOME_REGION}",
             "security-group": "Firewalls",
             "fw-instance-role": "Firewall-Role",
-            "fw-enforce-imdsv2": true,
+            "enforce-imdsv2": true,
             "vpc": "Perimeter",
             "ports": [
               {

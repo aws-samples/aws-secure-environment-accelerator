@@ -1886,7 +1886,7 @@
             "region": "${HOME_REGION}",
             "security-group": "Firewalls",
             "fw-instance-role": "Firewall-Role",
-            "fw-enforce-imdsv2": true,
+            "enforce-imdsv2": true,
             "vpc": "Perimeter",
             "ports": [
               {
@@ -2003,7 +2003,7 @@
           "block-device-mappings": ["/dev/xvda"],
           "version": "R8110BYOLMGMT",
           "fw-instance-role": "Firewall-Role",
-          "fw-enforce-imdsv2": true,
+          "enforce-imdsv2": true,
           "region": "${HOME_REGION}",
           "vpc": "Inspection",
           "security-group": "Inspection-GWLB",
