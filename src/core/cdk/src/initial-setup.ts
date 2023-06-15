@@ -200,11 +200,23 @@ export namespace InitialSetup {
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
           new iam.ServicePrincipal('events.amazonaws.com'),
-          new iam.ArnPrincipal(roleArn),
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
         maxSessionDuration: buildTimeout,
       });
+
+      pipelineRole.assumeRolePolicy?.addStatements(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          principals: [new iam.AccountPrincipal(stack.account)],
+          actions: ['sts:AssumeRole'],
+          conditions: {
+            ArnLike: {
+              'aws:PrincipalARN': `arn:aws:iam::${stack.account}:role/${roleName}`,
+            },
+          },
+        }),
+      );
 
       // S3 working bucket
       const s3WorkingBucket = new s3.Bucket(this, 'WorkingBucket', {

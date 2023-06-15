@@ -1,3 +1,6 @@
 {
-  "app": "pnpx ts-node src/index.ts"
+  "app": "pnpx ts-node src/index.ts",
+  "context": {
+    "@aws-cdk/core:newStyleStackSynthesis": false
+  }
 }
