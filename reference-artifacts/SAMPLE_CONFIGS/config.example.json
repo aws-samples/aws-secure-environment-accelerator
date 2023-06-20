@@ -1035,7 +1035,6 @@
               "sagemaker.api",
               "sagemaker.runtime",
               "servicecatalog",
-              "sms",
               "sns",
               "sqs",
               "storagegateway",
