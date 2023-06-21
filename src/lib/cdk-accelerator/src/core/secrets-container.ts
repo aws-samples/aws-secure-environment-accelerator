@@ -49,7 +49,7 @@ export class SecretsContainer extends Construct {
 
   constructor(scope: Construct, name: string) {
     super(scope, name);
-
+    cdk.Aspects.of(this).add({ visit: () => this.prep() });
     this.keyAlias = createEncryptionKeyName(`Secrets-Key`);
     this.encryptionKey = new kms.Key(this, `EncryptionKey`, {
       alias: `alias/${this.keyAlias}`,
@@ -80,16 +80,6 @@ export class SecretsContainer extends Construct {
         },
       }),
     );
-
-    if (this.principals.length) {
-      this.encryptionKey.addToResourcePolicy(
-        new iam.PolicyStatement({
-          actions: ['kms:Decrypt'],
-          resources: ['*'],
-          principals: this.principals,
-        }),
-      );
-    }
   }
 
   /**
@@ -115,5 +105,15 @@ export class SecretsContainer extends Construct {
 
   get alias() {
     return this.keyAlias;
+  }
+
+  protected prep(): void {
+    this.encryptionKey.addToResourcePolicy(
+      new iam.PolicyStatement({
+        actions: ['kms:Decrypt'],
+        resources: ['*'],
+        principals: this.principals,
+      }),
+    );
   }
 }
