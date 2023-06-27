@@ -10,7 +10,7 @@
         "aws-marketplace:DescribePrivate*",
         "aws-marketplace:DisassociateProducts*",
         "aws-marketplace:ListPrivate*",
-        "aws-marketplace:StartChangeSet"
+        "aws-marketplace:Start*"
       ],
       "Resource": "*"
     },
@@ -24,11 +24,11 @@
         "iam:ListMFADevices",
         "iam:ListVirtualMFADevices",
         "iam:ResyncMFADevice",
-        "aws-portal:*",
         "sts:GetSessionToken",
         "iam:DeleteVirtualMFADevice",
         "trustedadvisor:*",
-        "support:*"
+        "support:*",
+        "account:*"
       ],
       "Resource": "*",
       "Condition": {
@@ -103,9 +103,7 @@
       "Effect": "Deny",
       "Action": [
         "organizations:LeaveOrg*",
-        "aws-portal:Modify*",
-        "aws-portal:ViewAccount",
-        "aws-portal:ViewPaymentMethods",
+        "organizations:CloseAccount",
         "ds:AcceptSharedDir*",
         "ds:ShareDir*",
         "ds:EnableSso",
@@ -114,10 +112,18 @@
         "ram:AssociateResourceShare",
         "ram:CreateResourceShare",
         "ram:EnableSharingWithAwsOrg*",
-        "lightsail:*",        
+        "lightsail:*",
         "gamelift:*",
         "appflow:*",
-        "iq:*"
+        "iq:*",
+        "account:P*",
+        "account:GetAl*",
+        "account:GetC*",
+        "account:GetR*",
+        "account:C*",
+        "account:D*",
+        "account:E*",
+        "account:L*"
       ],
       "Resource": "*",
       "Condition": {
@@ -198,7 +204,6 @@
         "access-analyzer:*",
         "aws-marketplace-management:*",
         "aws-marketplace:*",
-        "aws-portal:*",
         "budgets:*",
         "ce:*",
         "chime:*",
@@ -237,7 +242,15 @@
         "s3:DescribeMultiR*",
         "s3:GetMultiR*",
         "s3:ListMultiR*",
-        "s3:PutMultiR*"
+        "s3:PutMultiR*",
+        "billing:*",
+        "freetier:*",
+        "account:*",
+        "invoicing:*",
+        "payments:GetPaymentStatus",
+        "payments:ListPaymentPreferences",
+        "tax:ListTaxRegistrations",
+        "sustainability:*"
       ],
       "Resource": "*",
       "Condition": {
