@@ -1,0 +1,9 @@
+{
+  "aseaPrefix": "<ASEA-Prefix>",
+  "repositoryName": "<ASEA-Config-Repository-Name>",
+  "assumeRoleName": "<ASEA-Role>",
+  "parametersTableName": "<ASEA-Parameters-DDB-Table-Name>",
+  "homeRegion": "<ASEA-Home-Region>",
+  "mappingFileName": "<Output-Mapping-File-Name",
+  "mappingBucketName": "<Output-Mapping-Bucket-Name>"
+}
