@@ -108,7 +108,7 @@ export class SecretsContainer extends Construct {
   }
 
   protected prep(): void {
-    if(this.principals.length === 0){
+    if (this.principals.length === 0) {
       return;
     }
 
