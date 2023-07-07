@@ -98,11 +98,14 @@ async function centralLoggingSubscription(event: CloudFormationCustomResourceEve
   await Promise.all(
     filterLogGroups.map(async logGroup => {
       // Get Subscription filter and remove
+      const filterName = `${CloudWatchRulePrefix}${logGroup.logGroupName}`;
       const subscriptinFilters = await getSubscriptionFilters(logGroup.logGroupName!);
       if (subscriptinFilters && subscriptinFilters.length > 0) {
         // Remove existing Subscription filters
         for (const subscriptinFilter of subscriptinFilters) {
-          await removeSubscriptionFilter(logGroup.logGroupName!, subscriptinFilter.filterName!);
+          if (subscriptinFilter.filterName === filterName) {
+            await removeSubscriptionFilter(logGroup.logGroupName!, subscriptinFilter.filterName);
+          }
         }
       }
       // Change Log Retention for Log Group
@@ -122,21 +125,15 @@ async function centralLoggingSubscriptionUpdate(event: CloudFormationCustomResou
   const filterLogGroups = logGroups.filter(lg => !isExcluded(globalExclusions, lg.logGroupName!));
 
   await Promise.all(
-    logGroups.map(async logGroup => {
-      // Remove "PBMM-" Subscription filter from all log Groups if exists on update
-      const filterName = `${CloudWatchRulePrefix}${logGroup.logGroupName}`;
-      await removeSubscriptionFilter(logGroup.logGroupName!, filterName);
-    }),
-  );
-
-  await Promise.all(
     filterLogGroups.map(async logGroup => {
       // Get Subscription filter and remove
       const subscriptinFilters = await getSubscriptionFilters(logGroup.logGroupName!);
+      const filterName = `${CloudWatchRulePrefix}${logGroup.logGroupName}`;
       if (subscriptinFilters && subscriptinFilters.length > 0) {
-        // Remove existing Subscription filters
         for (const subscriptinFilter of subscriptinFilters) {
-          await removeSubscriptionFilter(logGroup.logGroupName!, subscriptinFilter.filterName!);
+          if (subscriptinFilter.filterName === filterName) {
+            await removeSubscriptionFilter(logGroup.logGroupName!, subscriptinFilter.filterName);
+          }
         }
       }
       // Change Log Retention for Log Group
