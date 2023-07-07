@@ -90,7 +90,7 @@ const isExcluded = (exclusions: string[], logGroupName: string): boolean => {
 };
 
 async function centralLoggingSubscription(event: CloudFormationCustomResourceEvent): Promise<void> {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
   const { logDestinationArn, logRetention, subscriptionFilterRoleArn } = properties;
   const globalExclusions = properties.globalExclusions || [];
   const logGroups = await getLogGroups();
@@ -101,11 +101,10 @@ async function centralLoggingSubscription(event: CloudFormationCustomResourceEve
       const filterName = `${CloudWatchRulePrefix}${logGroup.logGroupName}`;
       const subscriptinFilters = await getSubscriptionFilters(logGroup.logGroupName!);
       if (subscriptinFilters && subscriptinFilters.length > 0) {
-        // Remove existing Subscription filters 
+        // Remove existing Subscription filters
         for (const subscriptinFilter of subscriptinFilters) {
-          if(subscriptinFilter.filterName === filterName)
-          {
-           await removeSubscriptionFilter(logGroup.logGroupName!, subscriptinFilter.filterName);
+          if (subscriptinFilter.filterName === filterName) {
+            await removeSubscriptionFilter(logGroup.logGroupName!, subscriptinFilter.filterName);
           }
         }
       }
@@ -119,7 +118,7 @@ async function centralLoggingSubscription(event: CloudFormationCustomResourceEve
 }
 
 async function centralLoggingSubscriptionUpdate(event: CloudFormationCustomResourceEvent): Promise<void> {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = event.ResourceProperties as unknown as HandlerProperties;
   const { logDestinationArn, logRetention, subscriptionFilterRoleArn } = properties;
   const globalExclusions = properties.globalExclusions || [];
   const logGroups = await getLogGroups();
@@ -132,9 +131,8 @@ async function centralLoggingSubscriptionUpdate(event: CloudFormationCustomResou
       const filterName = `${CloudWatchRulePrefix}${logGroup.logGroupName}`;
       if (subscriptinFilters && subscriptinFilters.length > 0) {
         for (const subscriptinFilter of subscriptinFilters) {
-          if(subscriptinFilter.filterName === filterName)
-          {
-           await removeSubscriptionFilter(logGroup.logGroupName!, subscriptinFilter.filterName);
+          if (subscriptinFilter.filterName === filterName) {
+            await removeSubscriptionFilter(logGroup.logGroupName!, subscriptinFilter.filterName);
           }
         }
       }
