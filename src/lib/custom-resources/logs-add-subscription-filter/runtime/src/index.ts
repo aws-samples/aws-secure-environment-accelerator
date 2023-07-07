@@ -11,20 +11,17 @@
  *  and limitations under the License.
  */
 
-import * as AWS from "aws-sdk";
+import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
-import { LogGroup, SubscriptionFilters } from "aws-sdk/clients/cloudwatchlogs";
+import { LogGroup, SubscriptionFilters } from 'aws-sdk/clients/cloudwatchlogs';
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceCreateEvent,
   CloudFormationCustomResourceUpdateEvent,
   CloudFormationCustomResourceDeleteEvent,
-} from "aws-lambda";
-import { errorHandler } from "@aws-accelerator/custom-resource-runtime-cfn-response";
-import {
-  throttlingBackOff,
-  CloudWatchRulePrefix,
-} from "@aws-accelerator/custom-resource-cfn-utils";
+} from 'aws-lambda';
+import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff, CloudWatchRulePrefix } from '@aws-accelerator/custom-resource-cfn-utils';
 
 export interface HandlerProperties {
   logDestinationArn: string;
@@ -38,18 +35,16 @@ export const handler = errorHandler(onEvent);
 const logs = new AWS.CloudWatchLogs();
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
-  console.log(
-    `Add Subscription to point LogDestination in log-archive account...`
-  );
+  console.log(`Add Subscription to point LogDestination in log-archive account...`);
   console.log(JSON.stringify(event, null, 2));
 
   // eslint-disable-next-line default-case
   switch (event.RequestType) {
-    case "Create":
+    case 'Create':
       return onCreate(event);
-    case "Update":
+    case 'Update':
       return onUpdate(event);
-    case "Delete":
+    case 'Delete':
       return onDelete(event);
   }
 }
@@ -57,38 +52,35 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
   await centralLoggingSubscription(event);
   return {
-    physicalResourceId: "CWLCentralLoggingSubscriptionFilter",
+    physicalResourceId: 'CWLCentralLoggingSubscriptionFilter',
   };
 }
 
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   await centralLoggingSubscriptionUpdate(event);
   return {
-    physicalResourceId: "CWLCentralLoggingSubscriptionFilter",
+    physicalResourceId: 'CWLCentralLoggingSubscriptionFilter',
   };
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-  if (event.PhysicalResourceId !== "CWLCentralLoggingSubscriptionFilter") {
+  if (event.PhysicalResourceId !== 'CWLCentralLoggingSubscriptionFilter') {
     return;
   }
   // Remove Subscription that are added
   const logGroups = await getLogGroups();
   await Promise.all(
-    logGroups.map(async (logGroup) => {
+    logGroups.map(async logGroup => {
       // Delete Subscription filter from logGroup
       const filterName = `${CloudWatchRulePrefix}${logGroup.logGroupName}`;
       await removeSubscriptionFilter(logGroup.logGroupName!, filterName);
-    })
+    }),
   );
 }
 
 const isExcluded = (exclusions: string[], logGroupName: string): boolean => {
   for (const exclusion of exclusions || []) {
-    if (
-      exclusion.endsWith("*") &&
-      logGroupName.startsWith(exclusion.slice(0, -1))
-    ) {
+    if (exclusion.endsWith('*') && logGroupName.startsWith(exclusion.slice(0, -1))) {
       return true;
     } else if (logGroupName === exclusion) {
       return true;
@@ -97,32 +89,22 @@ const isExcluded = (exclusions: string[], logGroupName: string): boolean => {
   return false;
 };
 
-async function centralLoggingSubscription(
-  event: CloudFormationCustomResourceEvent
-): Promise<void> {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
-  const { logDestinationArn, logRetention, subscriptionFilterRoleArn } =
-    properties;
+async function centralLoggingSubscription(event: CloudFormationCustomResourceEvent): Promise<void> {
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const { logDestinationArn, logRetention, subscriptionFilterRoleArn } = properties;
   const globalExclusions = properties.globalExclusions || [];
   const logGroups = await getLogGroups();
-  const filterLogGroups = logGroups.filter(
-    (lg) => !isExcluded(globalExclusions, lg.logGroupName!)
-  );
+  const filterLogGroups = logGroups.filter(lg => !isExcluded(globalExclusions, lg.logGroupName!));
   await Promise.all(
-    filterLogGroups.map(async (logGroup) => {
+    filterLogGroups.map(async logGroup => {
       // Get Subscription filter and remove
       const filterName = `${CloudWatchRulePrefix}${logGroup.logGroupName}`;
-      const subscriptinFilters = await getSubscriptionFilters(
-        logGroup.logGroupName!
-      );
+      const subscriptinFilters = await getSubscriptionFilters(logGroup.logGroupName!);
       if (subscriptinFilters && subscriptinFilters.length > 0) {
         // Remove existing Subscription filters
         for (const subscriptinFilter of subscriptinFilters) {
           if (subscriptinFilter.filterName === filterName) {
-            await removeSubscriptionFilter(
-              logGroup.logGroupName!,
-              subscriptinFilter.filterName
-            );
+            await removeSubscriptionFilter(logGroup.logGroupName!, subscriptinFilter.filterName);
           }
         }
       }
@@ -130,41 +112,27 @@ async function centralLoggingSubscription(
       await putLogRetentionPolicy(logGroup.logGroupName!, logRetention);
       // Add Subscription filter to logGroup
       console.log(`Adding subscription filter for ${logGroup.logGroupName}`);
-      await addSubscriptionFilter(
-        logGroup.logGroupName!,
-        logDestinationArn,
-        subscriptionFilterRoleArn!
-      );
-    })
+      await addSubscriptionFilter(logGroup.logGroupName!, logDestinationArn, subscriptionFilterRoleArn!);
+    }),
   );
 }
 
-async function centralLoggingSubscriptionUpdate(
-  event: CloudFormationCustomResourceEvent
-): Promise<void> {
-  const properties = event.ResourceProperties as unknown as HandlerProperties;
-  const { logDestinationArn, logRetention, subscriptionFilterRoleArn } =
-    properties;
+async function centralLoggingSubscriptionUpdate(event: CloudFormationCustomResourceEvent): Promise<void> {
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const { logDestinationArn, logRetention, subscriptionFilterRoleArn } = properties;
   const globalExclusions = properties.globalExclusions || [];
   const logGroups = await getLogGroups();
-  const filterLogGroups = logGroups.filter(
-    (lg) => !isExcluded(globalExclusions, lg.logGroupName!)
-  );
+  const filterLogGroups = logGroups.filter(lg => !isExcluded(globalExclusions, lg.logGroupName!));
 
   await Promise.all(
-    filterLogGroups.map(async (logGroup) => {
+    filterLogGroups.map(async logGroup => {
       // Get Subscription filter and remove
-      const subscriptinFilters = await getSubscriptionFilters(
-        logGroup.logGroupName!
-      );
+      const subscriptinFilters = await getSubscriptionFilters(logGroup.logGroupName!);
       const filterName = `${CloudWatchRulePrefix}${logGroup.logGroupName}`;
       if (subscriptinFilters && subscriptinFilters.length > 0) {
         for (const subscriptinFilter of subscriptinFilters) {
           if (subscriptinFilter.filterName === filterName) {
-            await removeSubscriptionFilter(
-              logGroup.logGroupName!,
-              subscriptinFilter.filterName
-            );
+            await removeSubscriptionFilter(logGroup.logGroupName!, subscriptinFilter.filterName);
           }
         }
       }
@@ -172,19 +140,12 @@ async function centralLoggingSubscriptionUpdate(
       await putLogRetentionPolicy(logGroup.logGroupName!, logRetention);
       // Add Subscription filter to logGroup
       console.log(`Adding subscription filter for ${logGroup.logGroupName}`);
-      await addSubscriptionFilter(
-        logGroup.logGroupName!,
-        logDestinationArn,
-        subscriptionFilterRoleArn!
-      );
-    })
+      await addSubscriptionFilter(logGroup.logGroupName!, logDestinationArn, subscriptionFilterRoleArn!);
+    }),
   );
 }
 
-async function removeSubscriptionFilter(
-  logGroupName: string,
-  filterName: string
-) {
+async function removeSubscriptionFilter(logGroupName: string, filterName: string) {
   // Remove existing subscription filter
   try {
     await throttlingBackOff(() =>
@@ -193,10 +154,10 @@ async function removeSubscriptionFilter(
           logGroupName,
           filterName,
         })
-        .promise()
+        .promise(),
     );
   } catch (error: any) {
-    if (error.code === "ResourceNotFoundException") {
+    if (error.code === 'ResourceNotFoundException') {
       // No Subscription filter for this logGroup
     } else {
       console.warn(error.message);
@@ -204,11 +165,7 @@ async function removeSubscriptionFilter(
   }
 }
 
-async function addSubscriptionFilter(
-  logGroupName: string,
-  destinationArn: string,
-  subscriptionFilterRoleArn: string
-) {
+async function addSubscriptionFilter(logGroupName: string, destinationArn: string, subscriptionFilterRoleArn: string) {
   try {
     // Adding subscription filter
     await throttlingBackOff(() =>
@@ -217,15 +174,13 @@ async function addSubscriptionFilter(
           destinationArn,
           logGroupName,
           filterName: `${CloudWatchRulePrefix}${logGroupName}`,
-          filterPattern: "",
+          filterPattern: '',
           roleArn: subscriptionFilterRoleArn,
         })
-        .promise()
+        .promise(),
     );
   } catch (error: any) {
-    console.error(
-      `Error while adding subscription filter to log group ${logGroupName}: ${error.message}`
-    );
+    console.error(`Error while adding subscription filter to log group ${logGroupName}: ${error.message}`);
   }
 }
 
@@ -238,7 +193,7 @@ async function getLogGroups(): Promise<LogGroup[]> {
         .describeLogGroups({
           nextToken: token,
         })
-        .promise()
+        .promise(),
     );
     token = response.nextToken;
     logGroups.push(...response.logGroups!);
@@ -246,9 +201,7 @@ async function getLogGroups(): Promise<LogGroup[]> {
   return logGroups;
 }
 
-async function getSubscriptionFilters(
-  logGroupName: string
-): Promise<SubscriptionFilters | undefined> {
+async function getSubscriptionFilters(logGroupName: string): Promise<SubscriptionFilters | undefined> {
   // Get existing subscription filter for logGroup
   try {
     const subscriptionFilters = await throttlingBackOff(() =>
@@ -256,20 +209,15 @@ async function getSubscriptionFilters(
         .describeSubscriptionFilters({
           logGroupName,
         })
-        .promise()
+        .promise(),
     );
     return subscriptionFilters.subscriptionFilters;
   } catch (error: any) {
-    console.log(
-      `Error while retrieving subscription filters: ${error.message}`
-    );
+    console.log(`Error while retrieving subscription filters: ${error.message}`);
   }
 }
 
-async function putLogRetentionPolicy(
-  logGroupName: string,
-  retentionInDays: number
-) {
+async function putLogRetentionPolicy(logGroupName: string, retentionInDays: number) {
   try {
     await throttlingBackOff(() =>
       logs
@@ -277,11 +225,9 @@ async function putLogRetentionPolicy(
           logGroupName,
           retentionInDays,
         })
-        .promise()
+        .promise(),
     );
   } catch (error: any) {
-    console.error(
-      `Error while updating retention policy on "${logGroupName}": ${error.message}`
-    );
+    console.error(`Error while updating retention policy on "${logGroupName}": ${error.message}`);
   }
 }
