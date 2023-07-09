@@ -10,25 +10,36 @@ async function main() {
     console.log('Usage: index.ts <command>');
     return;
   }
-  const command = process.argv.slice(2)[0];
+  const command = args[0];
+  if (command === 'snapshot' && args.length < 2 && !['pre', 'post', 'report', 'reset'].includes(args[1])) {
+    console.log('Usage: index.ts snapshot pre|post|report|reset');
+    return;
+  }
   const config = JSON.parse(await readFile(path.join(__dirname, 'input-config', 'input-config.json'), 'utf8'));
-  if (command === 'resource-mapping') {
-    await new ResourceMapping(config).process();
-  }
-  if (command === 'convert-config') {
-    await new ConvertAseaConfig(config).process();
-  }
-  if (command === 'snapshot-pre') {
-    await new Snapshot(config).pre();
-  }
-  if (command === 'snapshot-post') {
-    await new Snapshot(config).post();
-  }
-  if (command === 'snapshot-report') {
-    await new Snapshot(config).report();
-  }
-  if (command === 'snapshot-reset') {
-    await new Snapshot(config).reset();
+  switch (command) {
+    case 'resource-mapping':
+      await new ResourceMapping(config).process();
+      break;
+    case 'convert-config':
+      await new ConvertAseaConfig(config).process();
+      break;
+    case 'snapshot':
+      const snapshot = new Snapshot(config);
+      switch (args[1]) {
+        case 'pre':
+          await snapshot.pre();
+          break;
+        case 'post':
+          await snapshot.post();
+          break;
+        case 'report':
+          await snapshot.report();
+          break;
+        case 'reset':
+          await snapshot.reset();
+          break;
+      }
+      break;
   }
 }
 

@@ -97,7 +97,7 @@ export const CidrConfigType = t.interface({
 
 export type CidrConfig = t.TypeOf<typeof CidrConfigType>;
 
-export const SubnetDefinitionConfig = t.interface({
+export const SubnetDefinitionConfigType = t.interface({
   'az': t.union([t.availabilityZone, t.nonEmptyString]),
   'outpost-arn': t.optional(t.nonEmptyString),
   'cidr': t.optional(CidrConfigType),
@@ -126,9 +126,11 @@ export const SubnetConfigType = t.interface({
   'name': t.nonEmptyString,
   'share-to-ou-accounts': t.defaulted(t.boolean, false),
   'share-to-specific-accounts': t.optional(t.array(t.nonEmptyString)),
-  'definitions': t.array(SubnetDefinitionConfig),
+  'definitions': t.array(SubnetDefinitionConfigType),
   'nacls': t.optional(t.array(NaclConfigType)),
 });
+
+export type SubnetDefinitionConfig = t.TypeOf<typeof SubnetDefinitionConfigType>;
 
 export type SubnetConfig = t.TypeOf<typeof SubnetConfigType>;
 
@@ -175,6 +177,8 @@ export const RouteConfig = t.interface({
   'type': t.optional(RouteTargetType),
   'target-id': t.optional(t.nonEmptyString),
 });
+
+export type RouteConfigType = t.TypeOf<typeof RouteConfig>;
 
 export const RouteTableConfigType = t.interface({
   name: t.nonEmptyString,
@@ -1139,7 +1143,12 @@ export interface ResolvedConfigBase {
   /**
    * The resolved account key where the VPC should be deployed.
    */
-  accountKey: string;
+  accountKey?: string;
+
+  /**
+   * Accounts to be excluded for deployment
+   */
+  excludeAccounts?: string[];
 }
 
 export interface ResolvedVpcConfig extends ResolvedConfigBase {
@@ -1148,6 +1157,7 @@ export interface ResolvedVpcConfig extends ResolvedConfigBase {
    */
   vpcConfig: VpcConfig;
 }
+
 export class AcceleratorConfig {
   static fromBuffer(content: Buffer): AcceleratorConfig {
     return this.fromString(content.toString());
@@ -1254,17 +1264,30 @@ export class AcceleratorConfig {
       for (const vpcConfig of ouConfig.vpc || []) {
         const destinationAccountKey = vpcConfig.deploy;
         if (destinationAccountKey === 'local') {
+          const excludeAccounts = [];
           // When deploy is 'local' then the VPC should be deployed in all accounts in the OU
           for (const [accountKey, accountConfig] of this.getAccountConfigsForOu(ouKey)) {
             if (vpcConfig['opt-in']) {
               if (!accountConfig['opt-in-vpcs'] || !accountConfig['opt-in-vpcs'].includes(vpcConfig.name)) {
+                if (vpcConfig['cidr-src'] !== 'dynamic') {
+                  excludeAccounts.push(accountKey);
+                }
                 continue;
               }
             }
+            if (vpcConfig['cidr-src'] === 'dynamic') {
+              vpcConfigs.push({
+                ouKey,
+                accountKey,
+                vpcConfig,
+              });
+            }
+          }
+          if (vpcConfig['cidr-src'] !== 'dynamic') {
             vpcConfigs.push({
               ouKey,
-              accountKey,
               vpcConfig,
+              excludeAccounts,
             });
           }
         } else {

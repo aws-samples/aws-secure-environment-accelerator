@@ -14,7 +14,10 @@
     "test": "npx yarn test",
     "test:watch": "npx yarn test:watch",
     "upgrade": "npx yarn upgrade",
-    "watch": "npx yarn watch"
+    "watch": "npx yarn watch",
+    "resource-mapping": "ts-node src/index.ts resource-mapping",
+    "convert-config": "ts-node src/index.ts convert-config",
+    "snapshot": "ts-node src/index.ts snapshot"
   },
   "devDependencies": {
     "@types/fast-json-stable-stringify": "^2.1.0",

@@ -6,6 +6,7 @@ export interface VpcAssignedCidr {
   cidr: string;
   region: string;
   'account-key': string;
+  'account-ou-key': string;
   pool: string;
 }
 
@@ -18,6 +19,7 @@ export interface SubnetAssignedCidr {
   'region': string;
   'subnet-name': string;
   'account-key': string;
+  'account-ou-key': string;
 }
 
 export async function loadVpcAssignedCidrs(tableName: string, client: DynamoDB): Promise<VpcAssignedCidr[]> {
