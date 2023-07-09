@@ -6861,7 +6861,6 @@ export class FirewallManagerConfig implements t.TypeOf<typeof NetworkConfigTypes
    */
   readonly notificationChannels: FirewallManagerNotificationChannelConfig[] | undefined = undefined;
 }
-
 /**
  * Network Configuration.
  * Used to define a network configuration for the accelerator.

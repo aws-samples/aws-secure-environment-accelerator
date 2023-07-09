@@ -8,7 +8,6 @@ import { STS } from './common/aws/sts';
 import { Account } from './common/outputs/accounts';
 import { loadAccounts } from './common/utils/accounts';
 import { Config } from './config';
-import { string } from 'io-ts';
 
 interface Environment {
   accountId: string;
@@ -68,6 +67,7 @@ export class ResourceMapping {
   private readonly parametersTableName: string;
   private readonly configRepositoryName: string;
   private readonly assumeRoleName: string;
+  private driftedResources: any[] = [];
   constructor(config: Config) {
     this.mappingFileBucketName = config.mappingBucketName!;
     this.mappingFileName = config.mappingFileName!;
@@ -97,9 +97,10 @@ export class ResourceMapping {
     const environmentStackAndResourcesMap = await this.getEnvironmentMetaData(environments, environmentsStackMap);
     const aseaMapping = this.createAseaMapping(environmentStackAndResourcesMap, environmentsStackMap);
     await this.detectDrift(environmentStackAndResourcesMap, cfnClients);
-
     const aseaMappingString = JSON.stringify(aseaMapping, null, 4);
+    const driftDetectionCsv = this.convertToCSV(this.driftedResources);
     await this.writeToS3(aseaMappingString, this.mappingFileName);
+    await this.writeToS3(driftDetectionCsv, 'AllDriftDetectedResources.csv');
   }
 
   createAseaMapping(stackAndResourceMap: Map<string, StacksAndResourceMap>, stackMap: Map<string, string[]>) {
@@ -251,6 +252,11 @@ export class ResourceMapping {
     const driftDetectionFileName = `${s3Prefix}/${stackAndResourceMap.stackName}-drift-detection.csv`;
     const resourceFileName = `${s3Prefix}/${stackAndResourceMap.stackName}-resources.csv`;
     const resourceFileCSV = this.convertToCSV(stackAndResourceMap.resourceMap);
+    for (const resource of driftDetectionResources) {
+      if (resource.DriftStatus === 'MODIFIED') {
+        this.driftedResources.push(resource);
+      }
+    }
 
     await this.writeToS3(driftDetectionCsv, driftDetectionFileName);
     await this.writeToS3(resourceFileCSV, resourceFileName);
@@ -314,12 +320,10 @@ export class ResourceMapping {
         LogicalResourceId: resource.logicalResourceId,
       };
       try {
-        driftDetectionResponse = await cloudformation.detectStackResourceDrift(detectStackResourceDriftInput).promise();
+        driftDetectionResponse = await throttlingBackOff(() => cloudformation.detectStackResourceDrift(detectStackResourceDriftInput).promise());
         driftDetectionResourceList.push({
           LogicalResourceId: resource.logicalResourceId,
           DriftStatus: driftDetectionResponse.StackResourceDrift.StackResourceDriftStatus,
-          // ActualProperties: JSON.stringify(driftDetectionResponse.StackResourceDrift.ActualProperties) ?? 'None',
-          // Expectedproperties: JSON.stringify(driftDetectionResponse.StackResourceDrift.ExpectedProperties) ?? 'None',
           PropertyDifferences: JSON.stringify(driftDetectionResponse.StackResourceDrift.PropertyDifferences) ?? 'None',
         });
       } catch (e: any) {
@@ -327,16 +331,12 @@ export class ResourceMapping {
           driftDetectionResourceList.push({
             LogicalResourceId: resource.logicalResourceId,
             DriftStatus: 'NOT_SUPPORTED',
-            // ActualProperties: 'None',
-            // Expectedproperties: 'None',
             PropertyDifferences: 'None',
           });
         } else {
           driftDetectionResourceList.push({
             LogicalResourceId: resource.logicalResourceId,
-            DriftStatus: 'ERROR',
-            // ActualProperties: 'None',
-            // Expectedproperties: 'None',
+            DriftStatus: e,
             PropertyDifferences: 'None',
           });
         }
@@ -389,7 +389,7 @@ export class ResourceMapping {
       let val: string;
       const values = headers.map((header) => {
         //const val = row[header];
-        if (header === 'resourceMetadata') {
+        if (header === 'resourceMetadata' || header === 'PropertyDifferences') {
           val = JSON.stringify(row[header]).replace(/,/g, '|');
         } else {
           val = JSON.stringify(row[header]);

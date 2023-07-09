@@ -11,9 +11,16 @@ import {
   IamUserConfig,
   ImportCertificateConfigType,
   NaclConfig,
+  PcxRouteConfig,
+  ResolvedVpcConfig,
+  RouteTableConfig,
   SecurityGroupRuleConfig,
   SecurityGroupSourceConfig,
+  SubnetConfig,
+  SubnetDefinitionConfig,
   SubnetSourceConfig,
+  TgwDeploymentConfig,
+  TransitGatewayRouteConfig,
   VpcConfig,
 } from './asea-config';
 import { loadAseaConfig } from './asea-config/load';
@@ -26,7 +33,6 @@ import {
   loadSubnetAssignedCidrs,
   loadVpcAssignedCidrs,
 } from './common/outputs/load-assigned-cidrs';
-import { StackOutput, findValuesFromOutputs, loadOutputs } from './common/outputs/load-outputs';
 import { loadAccounts } from './common/utils/accounts';
 import {
   createNaclName,
@@ -34,7 +40,11 @@ import {
   createSubnetName,
   createTgwAttachName,
   createVpcName,
+  nfwRouteName,
+  peeringConnectionName,
   subnetsCidrsTableName,
+  transitGatewayName,
+  transitGatewayPeerName,
   vpcCidrsTableName,
 } from './common/utils/naming';
 import { Config } from './config';
@@ -119,22 +129,22 @@ export class ConvertAseaConfig {
   private readonly aseaPrefix: string;
   private readonly centralBucketName: string;
   private readonly parametersTable: string;
-  private readonly outputsTable: string;
   private readonly s3: S3;
   private readonly dynamoDb: DynamoDB;
   private accounts: Account[] = [];
-  private outputs: StackOutput[] = [];
   private vpcAssignedCidrs: VpcAssignedCidr[] = [];
   private subnetAssignedCidrs: SubnetAssignedCidr[] = [];
   private readonly outputFolder: string;
   private readonly mappingFileBucketName: string;
   private readonly acceleratorName: string;
+  private vpcConfigs: ResolvedVpcConfig[] = [];
+  private accountVpcConfigs: ResolvedVpcConfig[] = [];
+  private ouVpcConfigs: ResolvedVpcConfig[] = [];
   constructor(config: Config) {
     this.aseaConfigRepositoryName = config.repositoryName;
     this.region = config.homeRegion;
     this.centralBucketName = config.centralBucket!;
     this.parametersTable = `${config.aseaPrefix}Parameters`;
-    this.outputsTable = `${config.aseaPrefix}Outputs`;
     this.aseaPrefix = config.aseaPrefix!;
     this.acceleratorName = config.acceleratorName!;
     this.mappingFileBucketName = config.mappingBucketName!;
@@ -150,9 +160,11 @@ export class ConvertAseaConfig {
       defaultRegion: this.region,
     });
     this.accounts = await loadAccounts(this.parametersTable, this.dynamoDb);
-    this.outputs = await loadOutputs(this.outputsTable, this.dynamoDb);
     this.vpcAssignedCidrs = await loadVpcAssignedCidrs(vpcCidrsTableName(this.aseaPrefix), this.dynamoDb);
     this.subnetAssignedCidrs = await loadSubnetAssignedCidrs(subnetsCidrsTableName(this.aseaPrefix), this.dynamoDb);
+    this.accountVpcConfigs = aseaConfig.getVpcConfigs();
+    this.ouVpcConfigs = aseaConfig.getVpcConfigs();
+    this.vpcConfigs = [...this.accountVpcConfigs, ...this.ouVpcConfigs];
     await this.prepareGlobalConfig(aseaConfig);
     await this.prepareIamConfig(aseaConfig);
     await this.prepareAccountConfig(aseaConfig);
@@ -181,7 +193,10 @@ export class ConvertAseaConfig {
     const dynamicLogPartitioning = centralizeLogging['dynamic-s3-log-partitioning'];
     if (dynamicLogPartitioning) {
       // Save dynamic-partitioning/log-filters.json
-      await writeConfig(path.join(this.outputFolder, 'dynamic-partitioning', 'log-filters.json'), JSON.stringify(dynamicLogPartitioning));
+      await writeConfig(
+        path.join(this.outputFolder, 'dynamic-partitioning', 'log-filters.json'),
+        JSON.stringify(dynamicLogPartitioning),
+      );
     }
     const globalConfigAttributes: { [key: string]: unknown } = {
       externalLandingZoneResources: {
@@ -663,8 +678,6 @@ export class ConvertAseaConfig {
       return { sharedAccounts, sharedOrganizationalUnits };
     };
 
-    // Read VPCs here to reuse when needed
-    const vpcConfigs = aseaConfig.getVpcConfigs();
     let userDataScriptsCopied = false;
     for (const [accountKey, accountConfig] of aseaConfig.getAccountConfigs()) {
       const customerManagedPolicies = aseaConfig.getCustomerManagedPoliciesByAccount(accountKey);
@@ -744,7 +757,7 @@ export class ConvertAseaConfig {
             await writeConfig(path.join(this.outputFolder, userData.scriptFilePath), content);
           }
         }
-        const vpc = vpcConfigs
+        const vpc = this.vpcConfigs
           // Filter VPC by name and region
           .filter(
             ({ vpcConfig }) =>
@@ -994,7 +1007,10 @@ export class ConvertAseaConfig {
         ],
       });
       const quarantineScpName = `${this.aseaPrefix}Quarantine-New-Object`;
-      await writeConfig(path.join(this.outputFolder, LZA_SCP_CONFIG_PATH, `${quarantineScpName}.json`), quarantineScpContent);
+      await writeConfig(
+        path.join(this.outputFolder, LZA_SCP_CONFIG_PATH, `${quarantineScpName}.json`),
+        quarantineScpContent,
+      );
       organizationConfig.serviceControlPolicies.push({
         name: quarantineScpName,
         description: 'Quarantine policy - Apply to ACCOUNTS that need to be quarantined',
@@ -1031,8 +1047,7 @@ export class ConvertAseaConfig {
         requireNumbers: globalOptions['iam-password-policies']?.['require-numbers'] || true,
         minimumPasswordLength: globalOptions['iam-password-policies']?.['minimum-password-length'] || 14,
         passwordReusePrevention: globalOptions['iam-password-policies']?.['password-reuse-prevention'] || 24,
-        maxPasswordAge:
-          globalOptions['iam-password-policies']?.['max-password-age'] || 90,
+        maxPasswordAge: globalOptions['iam-password-policies']?.['max-password-age'] || 90,
       },
       cloudWatch: {
         metricSets: [],
@@ -1041,7 +1056,6 @@ export class ConvertAseaConfig {
       awsConfig: {
         enableConfigurationRecorder: true,
         enableDeliveryChannel: true,
-        overrideExisting: true,
         ruleSets: [],
       },
       centralSecurityServices: {
@@ -1234,10 +1248,6 @@ export class ConvertAseaConfig {
       });
     };
     const setDefaultEBSVolumeEncryptionConfig = async () => {
-      const existingEbsKeys = findValuesFromOutputs({
-        outputs: this.outputs,
-        predicate: (o) => o.type === 'EbsKms',
-      });
       securityConfigAttributes.keyManagementService = {
         keySets: [
           {
@@ -1248,7 +1258,7 @@ export class ConvertAseaConfig {
             enableKeyRotation: true,
             enabled: true,
             deploymentTargets: {
-              accounts: existingEbsKeys.map((o) => this.getAccountKeyforLza(globalOptions, o.accountKey)), // Confirm about regions. ASEA will only deploy in VPC region
+              organizationalUnits: ['Root'],
             },
           },
         ],
@@ -1319,16 +1329,16 @@ export class ConvertAseaConfig {
           complianceResourceTypes: configRule['resource-types'].length > 0 ? configRule['resource-types'] : undefined,
           remediation: configRule.remediation
             ? {
-              targetId: configRule['remediation-action']!,
-              parameters: this.replaceAccelLookupValuesForRedemption(configRule['remediation-params']),
-              maximumAutomaticAttempts: configRule['remediation-attempts'],
-              retryAttemptSeconds: configRule['remediation-retry-seconds'],
-              automatic: true,
-              rolePolicyFile: '/** TODO: Create Policy **/',
-              targetAccountName: undefined,
-              targetDocumentLambda: undefined,
-              targetVersion: undefined,
-            }
+                targetId: configRule['remediation-action']!,
+                parameters: this.replaceAccelLookupValuesForRedemption(configRule['remediation-params']),
+                maximumAutomaticAttempts: configRule['remediation-attempts'],
+                retryAttemptSeconds: configRule['remediation-retry-seconds'],
+                automatic: true,
+                rolePolicyFile: '/** TODO: Create Policy **/',
+                targetAccountName: undefined,
+                targetDocumentLambda: undefined,
+                targetVersion: undefined,
+              }
             : undefined,
           customRule: undefined,
           deployTo: deployToOus,
@@ -1376,12 +1386,31 @@ export class ConvertAseaConfig {
     const accountsConfig = aseaConfig.getAccountConfigs();
     const globalOptions = aseaConfig['global-options'];
     const organizationalUnitsConfig = aseaConfig.getOrganizationConfigs();
+    // Creating default policy for vpc endpoints
+    await writeConfig(
+      path.join(this.outputFolder, 'vpc-endpoint-policies', 'default.json'),
+      JSON.stringify({
+        Statement: [
+          {
+            Effect: 'Allow',
+            Principal: '*',
+            Action: 'ec2:*',
+            Resource: '*',
+          },
+        ],
+      }),
+    );
     const networkConfigAttributes: { [key: string]: any } = {
       defaultVpc: {
         delete: true,
         excludeAccounts: [],
       },
-      endpointPolicies: [],
+      endpointPolicies: [
+        {
+          name: 'Default',
+          document: 'vpc-endpoint-policies/default.json',
+        },
+      ],
       vpcs: [],
     };
     const setCertificatesConfig = async () => {
@@ -1446,39 +1475,109 @@ export class ConvertAseaConfig {
       }
       networkConfigAttributes.certificates = certificates;
     };
-    const setTransitGatewaysConfig = async () => {
-      const tgwAccountConfigs = accountsConfig.filter(([_accountKey, accountConfig]) => (accountConfig.deployments?.tgw?.length || 0) > 0);
+    const setTransitGatewaysAndPeeringConfig = async () => {
+      const getTransitGatewayRouteAttachment = (
+        route: TransitGatewayRouteConfig,
+        accountKey: string,
+        tgwConfig: TgwDeploymentConfig,
+      ) => {
+        if (route['target-vpc']) {
+          return {
+            account: this.getAccountKeyforLza(globalOptions, route['target-account'] || accountKey),
+            vpcName: createVpcName(route['target-vpc']),
+          };
+        } else if (route['target-vpn']) {
+          return {
+            vpnConnectionName: route['target-vpn'],
+          };
+        } else if (route['target-tgw']) {
+          if (tgwConfig['tgw-attach'] && tgwConfig['tgw-attach']['associate-to-tgw'] === route['target-tgw']) {
+            return {
+              transitGatewayPeeringName: transitGatewayPeerName(tgwConfig.name, route['target-tgw']),
+            };
+          }
+          return {
+            transitGatewayPeeringName: transitGatewayPeerName(route['target-tgw'], tgwConfig.name),
+          };
+        } else {
+          return;
+        }
+      };
+      const prepareTransitGatewayRoutes = (
+        routes: TransitGatewayRouteConfig[],
+        accountKey: string,
+        tgwConfig: TgwDeploymentConfig,
+      ) => {
+        const lzaRoutes: any[] = [];
+        routes.forEach((route) => {
+          lzaRoutes.push({
+            destinationCidrBlock: route.destination,
+            blackhole: route['blackhole-route'],
+            attachment: getTransitGatewayRouteAttachment(route, accountKey, tgwConfig),
+          });
+        });
+        return lzaRoutes;
+      };
+      const tgwAccountConfigs = accountsConfig.filter(
+        ([_accountKey, accountConfig]) => (accountConfig.deployments?.tgw?.length || 0) > 0,
+      );
       if (tgwAccountConfigs.length === 0) return;
       const transitGateways: any[] = [];
+      const transitGatewayPeering: any[] = [];
       for (const [accountKey, accountConfig] of tgwAccountConfigs) {
+        const lzaAccountKey = this.getAccountKeyforLza(globalOptions, accountKey);
         const tgwConfigs = accountConfig.deployments?.tgw!;
-        tgwConfigs.map(tgwConfig => {
+        tgwConfigs.forEach((tgwConfig) => {
           transitGateways.push({
-            name: tgwConfig.name,
-            account: this.getAccountKeyforLza(globalOptions, accountKey),
+            name: transitGatewayName(tgwConfig.name),
+            account: lzaAccountKey,
             region: tgwConfig.region,
             asn: tgwConfig.asn,
-            dnsSupport: tgwConfig.features?.['DNS-support']? 'enable': 'disable',
-            vpnEcmpSupport: tgwConfig.features?.['VPN-ECMP-support']? 'enable': 'disable',
-            defaultRouteTableAssociation: tgwConfig.features?.['Default-route-table-association']? 'enable': 'disable',
-            defaultRouteTablePropagation: tgwConfig.features?.['Default-route-table-propagation']? 'enable': 'disable',
-            autoAcceptSharingAttachments: tgwConfig.features?.['DNS-support']? 'enable': 'disable',
-            routeTables: tgwConfig['tgw-routes']?.map(tr => ({
-              name: tr.name,
-              routes: tr.routes?.map(r => ({
-                destinationCidrBlock: r.destination,
-                blackhole: r['blackhole-route'],
-                // attachment:
-              })),
+            dnsSupport: tgwConfig.features?.['DNS-support'] ? 'enable' : 'disable',
+            vpnEcmpSupport: tgwConfig.features?.['VPN-ECMP-support'] ? 'enable' : 'disable',
+            defaultRouteTableAssociation: tgwConfig.features?.['Default-route-table-association']
+              ? 'enable'
+              : 'disable',
+            defaultRouteTablePropagation: tgwConfig.features?.['Default-route-table-propagation']
+              ? 'enable'
+              : 'disable',
+            autoAcceptSharingAttachments: tgwConfig.features?.['DNS-support'] ? 'enable' : 'disable',
+            routeTables: tgwConfig['route-tables']?.map((routeTableName) => ({
+              name: routeTableName,
+              routes: prepareTransitGatewayRoutes(
+                tgwConfig['tgw-routes']
+                  ?.filter((r) => ['{TGW_ALL}', routeTableName].includes(r.name))
+                  .flatMap((routeTable) => routeTable.routes || []) || [],
+                accountKey,
+                tgwConfig,
+              ),
             })),
           });
+          if (tgwConfig['tgw-attach']) {
+            const tgwPeeringConfig = tgwConfig['tgw-attach'];
+            transitGatewayPeering.push({
+              name: transitGatewayPeerName(tgwConfig.name, tgwPeeringConfig['associate-to-tgw']),
+              requester: {
+                transitGatewayName: transitGatewayName(tgwConfig.name),
+                account: lzaAccountKey,
+                region: tgwConfig.region,
+                routeTableAssociations: tgwPeeringConfig['tgw-rt-associate-local'][0], // ASEA has list of route tables to associate to peering
+              },
+              accepter: {
+                transitGatewayName: transitGatewayName(tgwPeeringConfig['associate-to-tgw']),
+                account: this.getAccountKeyforLza(globalOptions, tgwPeeringConfig.account),
+                region: tgwPeeringConfig.region,
+                routeTableAssociations: tgwPeeringConfig['tgw-rt-associate-remote'][0], // ASEA has list of route tables to associate to peering
+                autoAccept: true,
+              },
+            });
+          }
         });
       }
       networkConfigAttributes.transitGateways = transitGateways;
+      networkConfigAttributes.transitGatewayPeering = transitGatewayPeering;
     };
     const setVpcConfig = async () => {
-      const vpcConfigs = aseaConfig.getVpcConfigs();
-      if (vpcConfigs.length === 0) return;
       const defaultVpcFlowLogsConfig = globalOptions['vpc-flow-logs'];
       const prepareNatGatewayConfig = (vpcConfig: VpcConfig) => {
         if (!vpcConfig.natgw) return;
@@ -1488,7 +1587,7 @@ export class ConvertAseaConfig {
           subnet: createSubnetName(vpcConfig.name, s.subnetName, s.az),
         }));
       };
-      const prepareSecurityGroupRules = (rules: SecurityGroupRuleConfig[], accountKey: string) => {
+      const prepareSecurityGroupRules = (rules: SecurityGroupRuleConfig[], accountKey?: string) => {
         const lzaRules: SecurityGroupRuleType[] = [];
         for (const rule of rules) {
           const lzaRule: SecurityGroupRuleType = {
@@ -1507,13 +1606,13 @@ export class ConvertAseaConfig {
               });
             } else if (SubnetSourceConfig.is(source)) {
               lzaRule.sources.push({
-                account: this.getAccountKeyforLza(globalOptions, source.account || accountKey),
+                account: this.getAccountKeyforLza(globalOptions, source.account || accountKey || ''),
                 subnets: source.subnet.flatMap((sourceSubnet) =>
                   aseaConfig
-                    .getAzSubnets(source.account || accountKey, source.vpc, sourceSubnet)
+                    .getAzSubnets(source.account || accountKey || '', source.vpc, sourceSubnet)
                     .map((s) => createSubnetName(source.vpc, s.subnetName, s.az)),
                 ),
-                vpc: source.vpc,
+                vpc: createVpcName(source.vpc),
               });
             } else {
               lzaRule.sources.push(source);
@@ -1524,7 +1623,7 @@ export class ConvertAseaConfig {
         return lzaRules;
       };
 
-      const prepareSecurityGroupsConfig = (vpcConfig: VpcConfig, accountKey: string) => {
+      const prepareSecurityGroupsConfig = (vpcConfig: VpcConfig, accountKey?: string) => {
         const securityGroups = vpcConfig['security-groups'];
         if (!securityGroups) return [];
         return securityGroups.map((sg) => ({
@@ -1534,7 +1633,7 @@ export class ConvertAseaConfig {
           // description: '', // Prepare description if needed
         }));
       };
-      const prepareNaclRules = (rules: NaclConfig[], accountKey: string) => {
+      const prepareNaclRules = (rules: NaclConfig[], accountKey?: string) => {
         const lzaRules: (LzaNaclInboundRuleType | LzaNaclOutboundRuleType)[] = [];
         for (const rule of rules) {
           for (const dest of rule['cidr-blocks']) {
@@ -1551,7 +1650,7 @@ export class ConvertAseaConfig {
               });
               ruleNumber += 200;
             } else {
-              const destinationVpcConfig = vpcConfigs.find(
+              const destinationVpcConfig = this.vpcConfigs.find(
                 (v) => v.accountKey === dest.account && v.vpcConfig.name === dest.vpc,
               );
               const ruleSubnets = destinationVpcConfig?.vpcConfig.subnets
@@ -1559,9 +1658,9 @@ export class ConvertAseaConfig {
                 .flatMap((s) => this.getAzSubnets(destinationVpcConfig?.vpcConfig!, s.name));
               for (const ruleSubnet of ruleSubnets || []) {
                 const target = {
-                  account: this.getAccountKeyforLza(globalOptions, dest.account || accountKey),
+                  account: this.getAccountKeyforLza(globalOptions, dest.account || accountKey || ''),
                   subnet: createSubnetName(dest.vpc, ruleSubnet.subnetName, ruleSubnet.az),
-                  vpc: dest.vpc,
+                  vpc: createVpcName(dest.vpc),
                 };
                 lzaRules.push({
                   rule: ruleNumber,
@@ -1579,7 +1678,7 @@ export class ConvertAseaConfig {
         }
         return lzaRules;
       };
-      const prepareNaclConfig = (vpcConfig: VpcConfig, accountKey: string) => {
+      const prepareNaclConfig = (vpcConfig: VpcConfig, accountKey?: string) => {
         const naclSubnetConfigs = vpcConfig.subnets?.filter((s) => !!s.nacls);
         if (!naclSubnetConfigs) return;
         const nacls = [];
@@ -1614,44 +1713,35 @@ export class ConvertAseaConfig {
           customFields: defaultVpcFlowLogsConfig['custom-fields'],
         };
       };
-      const prepareSubnetConfig = (vpcConfig: VpcConfig, ouKey: string, accountKey: string) => {
+      const prepareSubnetConfig = (vpcConfig: VpcConfig, ouKey: string, accountKey?: string) => {
         if (!vpcConfig.subnets) return;
         const lzaSubnets: SubnetType[] = [];
         for (const subnetConfig of vpcConfig.subnets) {
           lzaSubnets.push(
             ...subnetConfig.definitions
               .filter((s) => !s.disabled)
-              .map((d) => {
-                let ipv4CidrBlock: string;
-                if (vpcConfig['cidr-src'] === 'provided' || d.cidr?.value) {
-                  ipv4CidrBlock = d.cidr?.value?.toCidrString()!;
-                } else {
-                  ipv4CidrBlock = this.subnetAssignedCidrs.find(
-                    (sc) =>
-                      sc['account-key'] === accountKey &&
-                      sc.region === vpcConfig.region &&
-                      sc['vpc-name'] === vpcConfig.name &&
-                      sc['subnet-name'] === subnetConfig.name &&
-                      sc.az === d.az &&
-                      sc['subnet-pool'] === d.cidr?.pool,
-                  )?.cidr!;
-                }
-                return {
-                  name: createSubnetName(vpcConfig.name, subnetConfig.name, d.az),
-                  availabilityZone: `${vpcConfig.region}${d.az}`,
-                  ipv4CidrBlock,
-                  routeTable: d['route-table'],
-                  shareTargets:
-                    subnetConfig['share-to-ou-accounts'] || subnetConfig['share-to-specific-accounts']
-                      ? {
+              .map((d) => ({
+                name: createSubnetName(vpcConfig.name, subnetConfig.name, d.az),
+                availabilityZone: d.az,
+                ipv4CidrBlock: this.getSubnetCidr({
+                  accountKey,
+                  cidrSrc: vpcConfig['cidr-src'],
+                  region: vpcConfig.region,
+                  subnetDefinition: d,
+                  subnetName: subnetConfig.name,
+                  vpcName: vpcConfig.name,
+                }),
+                routeTable: d['route-table'],
+                shareTargets:
+                  subnetConfig['share-to-ou-accounts'] || subnetConfig['share-to-specific-accounts']
+                    ? {
                         organizationalUnits: subnetConfig['share-to-ou-accounts'] ? [ouKey] : undefined,
                         accounts: subnetConfig['share-to-specific-accounts']?.map((lAccountKey) =>
                           this.getAccountKeyforLza(globalOptions, lAccountKey),
                         ),
                       }
-                      : undefined,
-                };
-              }),
+                    : undefined,
+              })),
           );
         }
         return lzaSubnets;
@@ -1659,107 +1749,202 @@ export class ConvertAseaConfig {
       const prepareTgwAttachConfig = (vpcConfig: VpcConfig) => {
         const tgwAttach = vpcConfig['tgw-attach'];
         if (!tgwAttach) return;
-        return [{
-          name: createTgwAttachName(vpcConfig.name, tgwAttach['associate-to-tgw']),
-          transitGateway: {
-            name: tgwAttach['associate-to-tgw'],
-            account: tgwAttach.account,
+        return [
+          {
+            name: createTgwAttachName(vpcConfig.name, tgwAttach['associate-to-tgw']),
+            transitGateway: {
+              name: transitGatewayName(tgwAttach['associate-to-tgw']),
+              account: tgwAttach.account,
+            },
+            subnets: tgwAttach['attach-subnets']
+              ?.flatMap((s) => this.getAzSubnets(vpcConfig, s))
+              .map((s) => createSubnetName(vpcConfig.name, s.subnetName, s.az)),
+            routeTableAssociations: tgwAttach['tgw-rt-associate'],
+            routeTablePropagations: tgwAttach['tgw-rt-propagate'],
           },
-          subnets: tgwAttach['attach-subnets']
-            ?.flatMap((s) => this.getAzSubnets(vpcConfig, s))
-            .map((s) => createSubnetName(vpcConfig.name, s.subnetName, s.az)),
-          routeTableAssociations: tgwAttach['tgw-rt-associate'],
-          routeTablePropagations: tgwAttach['tgw-rt-propagate'],
-        }];
+        ];
       };
-      // const prepareRouteTableConfig = (vpcConfig: VpcConfig) => {
-      //   const routeTables = vpcConfig['route-tables'];
-      //   if (!routeTables) return;
-      //   return routeTables.map(rt => ({
-      //     name: rt.name,
-      //     routes: rt.routes?.map(r => ({
-      //       name: r.name,
-      //       destination: r.destination,
-      //       target: r.target,
-      //     })),
-      //   }));
-      // };
+      const prepareRouteTableConfig = (vpcConfig: VpcConfig, accountKey?: string) => {
+        const prepareRoutes = (routeTable: RouteTableConfig) => {
+          const lzaRoutes = [];
+          for (const route of routeTable.routes || []) {
+            if (route.target.startsWith('NFW_')) {
+              lzaRoutes.push({
+                // ASEA only supports cidr destination for NFW Gateway
+                name: nfwRouteName(routeTable.name, route.destination as unknown as string),
+                type: 'networkFirewall',
+                destination: route.destination,
+                target: route.target,
+              });
+            } else if (route.target === 'IGW') {
+              lzaRoutes.push({
+                name: `${routeTable.name}_${route.target}`,
+                type: 'internetGateway',
+                destination: route.destination,
+              });
+            } else if (route.target === 'VGW') {
+              lzaRoutes.push({
+                name: `${routeTable.name}_${route.target}`,
+                type: 'virtualPrivateGateway',
+                destination: route.destination,
+              });
+            } else if (route.target.toLowerCase() === 's3') {
+              lzaRoutes.push({
+                name: 'S3Route',
+                type: 'gatewayEndpoint',
+                target: 's3',
+              });
+            } else if (route.target.toLowerCase() === 'dynamodb') {
+              lzaRoutes.push({
+                name: 'DynamoDBRoute',
+                type: 'gatewayEndpoint',
+                target: 'dynamodb',
+              });
+            } else if (route.target === 'TGW') {
+              lzaRoutes.push({
+                name: `${routeTable.name}_${route.target}`,
+                type: 'transitGateway',
+                destination: route.destination,
+                target: transitGatewayName(vpcConfig['tgw-attach']!['associate-to-tgw']),
+              });
+            } else if (route.target.startsWith('NATGW_')) {
+              lzaRoutes.push({
+                name: `${routeTable.name}_natgw_route`,
+                type: 'natGateway',
+                destination: route.destination,
+                target: `NATGW_${vpcConfig.natgw!.subnet.name}_${vpcConfig.natgw!.subnet.az}_natgw`,
+              });
+            } else if (route.target === 'pcx') {
+              const destination = route.destination as unknown as PcxRouteConfig;
+              const pcxName = vpcConfig.pcx
+                ? peeringConnectionName(vpcConfig.name, destination.vpc)
+                : peeringConnectionName(destination.vpc, vpcConfig.name);
+              let destinationVpcConfig: VpcConfig;
+              let destinationSubnet: SubnetConfig;
+              if (destination.account === accountKey && vpcConfig.name === destination.vpc) {
+                destinationVpcConfig = vpcConfig;
+                destinationSubnet = vpcConfig.subnets?.find((subnet) => subnet.name === destination.subnet)!;
+              } else {
+                destinationVpcConfig = this.vpcConfigs.find(
+                  (v) => v.accountKey === destination.account && v.vpcConfig.name === destination.vpc,
+                )!.vpcConfig;
+                destinationSubnet = destinationVpcConfig.subnets?.find((subnet) => subnet.name === destination.subnet)!;
+              }
+              destinationSubnet.definitions
+                .filter((subnetDef) => !subnetDef.disabled)
+                .forEach((subnetDef) => {
+                  lzaRoutes.push({
+                    name: `${routeTable.name}_pcx_${destination.vpc}_${subnetDef.az}`, // ASEA Used index of subnet. Using az here. Need to change if we can't retrieve routeId
+                    type: 'vpcPeering',
+                    target: pcxName,
+                    destination: this.getSubnetCidr({
+                      accountKey: destination.account,
+                      cidrSrc: destinationVpcConfig['cidr-src'],
+                      region: destinationVpcConfig.region,
+                      vpcName: destinationVpcConfig.name,
+                      subnetName: destinationSubnet.name,
+                      subnetDefinition: subnetDef,
+                    }),
+                  });
+                });
+            }
+          }
+          return lzaRoutes;
+        };
+        const routeTables = vpcConfig['route-tables'];
+        if (!routeTables) return;
+        const lzaRouteTables = [];
+        for (const routeTable of routeTables) {
+          lzaRouteTables.push({
+            name: routeTable.name,
+            routes: prepareRoutes(routeTable),
+          });
+        }
+        return lzaRouteTables;
+      };
+      const prepareVpcConfig = ({ accountKey, ouKey, vpcConfig, excludeAccounts }: ResolvedVpcConfig) => {
+        return {
+          name: createVpcName(vpcConfig.name),
+          account: accountKey ? this.getAccountKeyforLza(globalOptions, accountKey) : undefined,
+          deploymentTargets: !accountKey
+            ? {
+                organizationalUnitsConfig: ouKey,
+                excludedAccounts: excludeAccounts?.map((excludeAccountKey) =>
+                  this.getAccountKeyforLza(globalOptions, excludeAccountKey),
+                ),
+              }
+            : undefined,
+          cidrs: this.getVpcCidr({ accountKey, vpcConfig, ouKey }),
+          region: vpcConfig.region,
+          defaultSecurityGroupRulesDeletion: true,
+          enableDnsHostnames: true,
+          enableDnsSupport: true,
+          gatewayEndpoints:
+            vpcConfig['gateway-endpoints'] && vpcConfig['gateway-endpoints'].length > 0
+              ? {
+                  defaultPolicy: 'Default',
+                  endpoints: vpcConfig['gateway-endpoints'].map((service) => ({ service })),
+                }
+              : undefined,
+          instanceTenancy: vpcConfig['dedicated-tenancy'] ? 'dedicated' : 'default',
+          interfaceEndpoints: vpcConfig['interface-endpoints']
+            ? {
+                defaultPolicy: 'Default',
+                endpoints: vpcConfig['interface-endpoints'].endpoints.map((service) => ({ service })),
+                subnets: vpcConfig.subnets
+                  ?.find((s) => s.name === vpcConfig['interface-endpoints']?.subnet)
+                  ?.definitions.filter((s) => !s.disabled)
+                  .map((s) => createSubnetName(vpcConfig.name, vpcConfig['interface-endpoints']?.subnet!, s.az)),
+                central: vpcConfig['central-endpoint'],
+                allowedCidrs: vpcConfig['interface-endpoints']['allowed-cidrs'],
+              }
+            : undefined,
+          internetGateway: vpcConfig.igw,
+          useCentralEndpoints: vpcConfig['use-central-endpoints'],
+          natGateways: prepareNatGatewayConfig(vpcConfig),
+          securityGroups: prepareSecurityGroupsConfig(vpcConfig, accountKey),
+          networkAcls: prepareNaclConfig(vpcConfig, accountKey),
+          vpcFlowLogs: prepareVpcFlowLogs(vpcConfig['flow-logs']),
+          subnets: prepareSubnetConfig(vpcConfig, ouKey, accountKey),
+          transitGatewayAttachments: prepareTgwAttachConfig(vpcConfig),
+          virtualPrivateGateway: vpcConfig.vgw?.asn,
+          routeTables: prepareRouteTableConfig(vpcConfig, accountKey),
+          // TODO: Comeback after customizationConfig
+          // loadBalancers:
+          // targetGroups:
+        };
+      };
       const lzaVpcConfigs = [];
-      for (const { accountKey, vpcConfig, ouKey } of vpcConfigs) {
+      const lzaVpcTemplatesConfigs = [];
+      for (const { accountKey, vpcConfig, ouKey, excludeAccounts } of this.accountVpcConfigs) {
         if (vpcConfig.deploy !== 'local' && vpcConfig.deploy !== accountKey) {
           console.error(
             `Invalid VPC configuration found VPC: "${vpcConfig.name}" in Account: "${accountKey}" and OU: "${ouKey}"`,
           );
           continue;
         }
-        const cidrs: string[] = [];
-        if (vpcConfig['cidr-src'] === 'provided') {
-          cidrs.push(...vpcConfig.cidr.map((c) => c.value!.toCidrString()));
+        if (!!accountKey) {
+          lzaVpcConfigs.push(prepareVpcConfig({ accountKey, vpcConfig, ouKey }));
         } else {
-          vpcConfig.cidr.map((c) => {
-            if (c.value) {
-              cidrs.push(c.value.toCidrString());
-            } else {
-              cidrs.push(
-                this.vpcAssignedCidrs.find(
-                  (vc) =>
-                    vc['account-key'] === accountKey &&
-                    vc.pool === c.pool &&
-                    vc.region === vpcConfig.region &&
-                    vc['vpc-name'] === vpcConfig.name &&
-                    vc.status === 'assigned',
-                )?.cidr!,
-              );
-            }
-          });
+          lzaVpcTemplatesConfigs.push(prepareVpcConfig({ ouKey, vpcConfig, excludeAccounts, accountKey }));
         }
-        const lzaAccountKey = this.getAccountKeyforLza(globalOptions, accountKey);
-        lzaVpcConfigs.push({
-          name: createVpcName(vpcConfig.name),
-          account: lzaAccountKey,
-          cidrs,
-          region: vpcConfig.region,
-          defaultSecurityGroupRulesDeletion: true,
-          enableDnsHostnames: true,
-          enableDnsSupport: true,
-          gatewayEndpoints: vpcConfig['gateway-endpoints']
-            ? {
-              defaultPolicy: 'Default',
-              endpoints: vpcConfig['gateway-endpoints'].map((service) => ({ service })),
-            }
-            : undefined,
-          instanceTenancy: vpcConfig['dedicated-tenancy'] ? 'dedicated' : 'default',
-          interfaceEndpoints: vpcConfig['interface-endpoints']
-            ? {
-              defaultPolicy: 'Default',
-              endpoints: vpcConfig['interface-endpoints'].endpoints.map((service) => ({ service })),
-              subnets: vpcConfig.subnets
-                ?.find((s) => s.name === vpcConfig['interface-endpoints']?.subnet)
-                ?.definitions.filter((s) => !s.disabled)
-                .map((s) => createSubnetName(vpcConfig.name, vpcConfig['interface-endpoints']?.subnet!, s.az)),
-              central: vpcConfig['central-endpoint'],
-              allowedCidrs: vpcConfig['interface-endpoints']['allowed-cidrs'],
-            }
-            : undefined,
-          internetGateway: vpcConfig.igw,
-          useCentralEndpoints: vpcConfig['use-central-endpoints'],
-          natGateways: prepareNatGatewayConfig(vpcConfig),
-          securityGroups: prepareSecurityGroupsConfig(vpcConfig, accountKey),
-          networkAcls: prepareNaclConfig(vpcConfig, lzaAccountKey),
-          vpcFlowLogs: prepareVpcFlowLogs(vpcConfig['flow-logs']),
-          subnets: prepareSubnetConfig(vpcConfig, ouKey, accountKey),
-          transitGatewayAttachments: prepareTgwAttachConfig(vpcConfig),
-          virtualPrivateGateway: vpcConfig.vgw?.asn,
-          // TODO: Comeback after customizationConfig
-          // loadBalancers:
-          // targetGroups:
-        });
       }
       networkConfigAttributes.vpcs = lzaVpcConfigs;
+      networkConfigAttributes.vpcTemplates = lzaVpcTemplatesConfigs;
+    };
+    const setVpcPeeringConfig = async () => {
+      if (this.accountVpcConfigs.length === 0) return;
+      networkConfigAttributes.vpcPeering = this.accountVpcConfigs
+        .filter(({ vpcConfig }) => !!vpcConfig.pcx)
+        .map(({ vpcConfig }) => ({
+          name: peeringConnectionName(vpcConfig.name, vpcConfig.pcx!['source-vpc']),
+          vpcs: [createVpcName(vpcConfig.name), createVpcName(vpcConfig.pcx!['source-vpc'])],
+        }));
     };
     await setCertificatesConfig();
     await setVpcConfig();
-    await setTransitGatewaysConfig();
+    await setTransitGatewaysAndPeeringConfig();
+    await setVpcPeeringConfig();
     const networkConfig = NetworkConfig.loadFromString(JSON.stringify(networkConfigAttributes));
     const yamlConfig = yaml.dump(networkConfig);
     await writeConfig(path.join(this.outputFolder, NetworkConfig.FILENAME), yamlConfig);
@@ -1812,5 +1997,66 @@ export class ConvertAseaConfig {
           ...d,
         })) || []
     );
+  }
+
+  private getVpcCidr({ accountKey, vpcConfig, ouKey }: { accountKey?: string; vpcConfig: VpcConfig; ouKey?: string }) {
+    const cidrs: string[] = [];
+    if (vpcConfig['cidr-src'] === 'provided') {
+      cidrs.push(...vpcConfig.cidr.map((c) => c.value!.toCidrString()));
+    } else {
+      vpcConfig.cidr.map((c) => {
+        if (c.value) {
+          cidrs.push(c.value.toCidrString());
+        } else {
+          cidrs.push(
+            this.vpcAssignedCidrs.find(
+              (vc) =>
+                ((accountKey && vc['account-key'] === accountKey) ||
+                  (ouKey && vc['account-ou-key'] === `organizational-unit/${ouKey}`)) &&
+                vc.pool === c.pool &&
+                vc.region === vpcConfig.region &&
+                vc['vpc-name'] === vpcConfig.name &&
+                vc.status === 'assigned',
+            )?.cidr!,
+          );
+        }
+      });
+    }
+    return cidrs;
+  }
+
+  private getSubnetCidr({
+    accountKey,
+    cidrSrc,
+    region,
+    subnetDefinition,
+    subnetName,
+    vpcName,
+    ouKey,
+  }: {
+    cidrSrc: string;
+    region: string;
+    vpcName: string;
+    subnetName: string;
+    subnetDefinition: SubnetDefinitionConfig;
+    accountKey?: string;
+    ouKey?: string;
+  }) {
+    let ipv4CidrBlock: string;
+    if (cidrSrc === 'provided' || subnetDefinition.cidr?.value) {
+      ipv4CidrBlock = subnetDefinition.cidr?.value?.toCidrString()!;
+    } else {
+      ipv4CidrBlock = this.subnetAssignedCidrs.find(
+        (sc) =>
+          ((accountKey && sc['account-key'] === accountKey) ||
+            (ouKey && sc['account-ou-key'] === `organizational-unit/${ouKey}`)) &&
+          sc.region === region &&
+          sc['vpc-name'] === vpcName &&
+          sc['subnet-name'] === subnetName &&
+          sc.az === subnetDefinition.az &&
+          sc['subnet-pool'] === subnetDefinition.cidr?.pool,
+      )?.cidr!;
+    }
+    return ipv4CidrBlock;
   }
 }
