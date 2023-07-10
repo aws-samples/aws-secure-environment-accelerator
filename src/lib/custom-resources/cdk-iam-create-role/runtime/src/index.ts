@@ -21,6 +21,8 @@ const iam = new AWS.IAM();
 
 export const handler = errorHandler(onEvent);
 
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
+
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Create IAM Role...`);
   console.log(JSON.stringify(event, null, 2));
@@ -88,7 +90,11 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-  console.log(`Nothing to do for delete...`);
+  if (migrationEnabled) {
+    console.log('Skipping delete. Migration enabled.')
+    return;
+  }
+  console.log(`Deleting role`);
   if (event.PhysicalResourceId !== `IAM-Role-${event.ResourceProperties.roleName}`) {
     return;
   }
