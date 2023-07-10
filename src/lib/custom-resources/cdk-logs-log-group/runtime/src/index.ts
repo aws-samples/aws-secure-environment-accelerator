@@ -30,6 +30,8 @@ export const handler = errorHandler(onEvent);
 
 const logs = new AWS.CloudWatchLogs();
 
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
+
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Creating log group...`);
   console.log(JSON.stringify(event, null, 2));
@@ -122,6 +124,10 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Deleting CloudWatch LogGroup ...`);
   console.log(JSON.stringify(event, null, 2));
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  if (migrationEnabled) {
+    console.log('Skipping Delete. Migration enabled');
+    return;
+  }
   const { logGroupName } = properties;
   if (event.PhysicalResourceId !== logGroupName) {
     return;

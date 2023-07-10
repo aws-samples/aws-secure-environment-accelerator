@@ -49,6 +49,8 @@ export interface HandlerProperties {
 
 export const handler = errorHandler(onEvent);
 
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
+
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`GuardDuty Deligated Admin Account Setup...`);
   console.log(JSON.stringify(event, null, 2));
@@ -327,6 +329,10 @@ function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log('Delete Action GuardDuty Admin Setup');
+  if (migrationEnabled) {
+    console.log('Skipping delete. Migration enabled.');
+    return;
+  }
   if (event.PhysicalResourceId !== physicalResourceId) {
     return;
   }
