@@ -33,6 +33,8 @@ export interface HandlerProperties {
 
 export const handler = errorHandler(onEvent);
 
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
+
 const kms = new AWS.KMS();
 const s3 = new AWS.S3();
 const logArchiveReadOnlySid = 'SSM Log Archive Read Only Roles';
@@ -228,6 +230,10 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
+  if (migrationEnabled) {
+    console.log('Skipping delete event. Migration enabled.');
+    return {};
+  }
   const props = getPropertiesFromEvent(event);
   let bucketPolicy = await getBucketPolicy(props.logBucketName);
   let keyPolicy = await getKmsKeyPolicy(props.logBucketKmsKeyArn);

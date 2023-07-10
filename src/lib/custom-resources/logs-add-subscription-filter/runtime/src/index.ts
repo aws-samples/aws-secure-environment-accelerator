@@ -31,6 +31,7 @@ export interface HandlerProperties {
 }
 
 export const handler = errorHandler(onEvent);
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
 
 const logs = new AWS.CloudWatchLogs();
 
@@ -65,6 +66,9 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   if (event.PhysicalResourceId !== 'CWLCentralLoggingSubscriptionFilter') {
+    return;
+  }
+  if (migrationEnabled) {
     return;
   }
   // Remove Subscription that are added
