@@ -21,6 +21,8 @@ const ssm = new AWS.SSM();
 
 export const handler = errorHandler(onEvent);
 
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
+
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Updating SSM Parameter Store throughput...`);
   console.log(JSON.stringify(event, null, 2));
@@ -56,6 +58,10 @@ async function onCreateOrUpdate(_: CloudFormationCustomResourceEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
+  if (migrationEnabled) {
+    console.log('Skipping delete. Migration enabled');
+    return;
+  }
   if (event.PhysicalResourceId === '/ssm/parameter-store/high-throughput-enabled') {
     try {
       await throttlingBackOff(() =>

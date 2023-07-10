@@ -31,6 +31,7 @@ export interface HandlerProperties {
 }
 
 export const handler = errorHandler(onEvent);
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Create Guard Duty Publish destination...`);
@@ -54,6 +55,13 @@ function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
+  if (migrationEnabled) {
+    console.log('Skipping delete. Migration enabled.');
+    return {
+      physicalResourceId: getPhysicalId(event),
+      data: {},
+    };
+  }
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   await deletePublishDestination(properties);
   return {

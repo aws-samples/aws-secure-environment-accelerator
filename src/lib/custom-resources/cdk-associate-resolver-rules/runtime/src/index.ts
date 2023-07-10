@@ -31,6 +31,8 @@ const route53Resolver = new AWS.Route53Resolver();
 
 export const handler = errorHandler(onEvent);
 
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
+
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Associating HostedZones to VPC..`);
   console.log(JSON.stringify(event, null, 2));
@@ -130,6 +132,10 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Deleting Log Group Metric filter...`);
+  if (migrationEnabled) {
+    console.log('Skipping delete.  Migration enabled.');
+    return;
+  }
   console.log(JSON.stringify(event, null, 2));
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { resolverRuleIds, vpcId } = properties;

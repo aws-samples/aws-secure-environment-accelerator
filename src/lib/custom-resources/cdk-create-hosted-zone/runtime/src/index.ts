@@ -27,6 +27,7 @@ export interface HandlerProperties {
 const route53 = new AWS.Route53();
 
 export const handler = errorHandler(onEvent);
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Create Hosted Zone..`);
@@ -93,6 +94,10 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Deleting Hosted Zone...`);
+  if (migrationEnabled) {
+    console.log('Skipping delete. Migration enabled.');
+    return;
+  }
   console.log(JSON.stringify(event, null, 2));
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { vpcId, domain, region } = properties;

@@ -31,6 +31,7 @@ export interface HandlerProperties {
 }
 
 export const handler = errorHandler(onEvent);
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Generating keypair...`);
@@ -83,6 +84,10 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
+  if (migrationEnabled) {
+    console.log('Skipping delete. Migration enabled');
+    return;
+  }
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const physicalResourceId = getPhysicalId(event);
   if (physicalResourceId !== event.PhysicalResourceId) {

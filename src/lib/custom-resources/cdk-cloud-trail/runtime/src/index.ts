@@ -34,6 +34,8 @@ const cloudTrail = new AWS.CloudTrail();
 
 export const handler = errorHandler(onEvent);
 
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
+
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Creating CloudTrail ...`);
   console.log(JSON.stringify(event, null, 2));
@@ -140,6 +142,10 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Deleting CloudTrail ...`);
+  if (migrationEnabled) {
+    console.log('Skipping delete. Migration enabled');
+    return;
+  }
   console.log(JSON.stringify(event, null, 2));
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { cloudTrailName } = properties;

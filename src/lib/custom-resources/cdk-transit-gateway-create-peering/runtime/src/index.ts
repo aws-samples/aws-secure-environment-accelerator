@@ -22,6 +22,7 @@ import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-respo
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 export const handler = errorHandler(onEvent);
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
 
 const ec2 = new AWS.EC2();
 
@@ -76,6 +77,10 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Deleting the transit gateway peering attachment...`);
+  if (migrationEnabled) {
+    console.log('Skipping delete. Migration enabled');
+    return;
+  }
   await throttlingBackOff(() =>
     ec2
       .deleteTransitGatewayPeeringAttachment({

@@ -31,6 +31,8 @@ const physicalResourceId = `FMS-Notification-Channel`;
 const fms = new AWS.FMS();
 export const handler = errorHandler(onEvent);
 
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
+
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`FMS Notification Channel..`);
   console.log(JSON.stringify(event, null, 2));
@@ -81,6 +83,12 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Deleting FMS Notification channel...`);
+  if (migrationEnabled) {
+    console.log('Skipping delete. Migration enabled.');
+    return {
+      physicalResourceId,
+    };
+  }
   console.log(JSON.stringify(event, null, 2));
   if (event.PhysicalResourceId !== physicalResourceId) {
     return {

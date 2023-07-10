@@ -22,6 +22,7 @@ const kms = new AWS.KMS();
 export type HandlerProperties = AWS.KMS.CreateGrantRequest;
 
 export const handler = errorHandler(onEvent);
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Creating KMS grant...`);
@@ -67,6 +68,10 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
+  if (migrationEnabled) {
+    console.log('Skipping delete. Migration enabled');
+    return;
+  }
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   // When the grant fails to create, the physical resource ID will not be set

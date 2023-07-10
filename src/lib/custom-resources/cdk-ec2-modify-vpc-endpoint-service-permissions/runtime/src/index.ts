@@ -30,6 +30,7 @@ export interface HandlerProperties {
 const ec2 = new AWS.EC2();
 
 export const handler = errorHandler(onEvent);
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`ModifyVpcEndpointServicePermissionsProps to Ec2 Endpoint Service..`);
@@ -84,6 +85,10 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
+  if (migrationEnabled) {
+    console.log('Skipping delete. Migration enabled.');
+    return;
+  }
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { allowedPrincipals, serviceId } = properties;
   if (event.PhysicalResourceId !== `ModifyVpcEndpointServicePermissions-${serviceId}`) {

@@ -92,8 +92,10 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
   const supportedRegions = acceleratorConfig['global-options']['supported-regions'];
   const excludeRegions = acceleratorConfig['global-options']['central-security-services']['config-excl-regions'];
   const regions = supportedRegions.filter(r => excludeRegions && !excludeRegions.includes(r));
+  const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
   console.log(`${accountId}: Excluding Config Recorder for regions from account "${accountId}"...`);
   console.log(`${accountId}: ${JSON.stringify(excludeRegions, null, 2)}`);
+  console.log(`Migration Enabled: ${migrationEnabled}`);
 
   const globalOptions = acceleratorConfig['global-options'];
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
@@ -256,8 +258,10 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
       console.log(
         `Config Aggregrator '${aggregatorName}' found in '${accountKey}' and config-aggr is false. Deleting...'`,
       );
-      const disableAggregator = await deleteAggregator(configService, accountId, centralSecurityRegion, aggregatorName);
-      errors.push(...disableAggregator);
+      if (!migrationEnabled) {
+        const disableAggregator = await deleteAggregator(configService, accountId, centralSecurityRegion, aggregatorName);
+        errors.push(...disableAggregator);
+      }
     }
   }
 

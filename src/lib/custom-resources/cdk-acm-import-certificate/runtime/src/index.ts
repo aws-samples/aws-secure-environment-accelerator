@@ -41,6 +41,8 @@ export const handler = errorHandler(onEvent);
 const acm = new AWS.ACM();
 const s3 = new AWS.S3();
 
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
+
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Importing certificate...`);
   console.log(JSON.stringify(event, null, 2));
@@ -77,6 +79,10 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
+  if (migrationEnabled) {
+    console.log('Skipping delete.  Migration enabled.');
+    return;
+  }
   await throttlingBackOff(() =>
     acm
       .deleteCertificate({
