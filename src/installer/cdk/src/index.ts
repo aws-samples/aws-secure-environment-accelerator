@@ -122,6 +122,13 @@ class Installer extends cdk.Stack {
       default: 2000,
     });
 
+    const migrationEnabled = new cdk.CfnParameter(this, 'LZA Migration Enabled', {
+      description:
+        'Setting the value to true will put the ASEA into migration mode.  Do not change the value unless starting to migrate to LZA.',
+      default: false,
+      allowedValues: ['true', 'false'],
+    });
+
     const stateMachineName = `${acceleratorPrefix}MainStateMachine_sm`;
 
     // The state machine name has to match the name of the state machine in initial setup
@@ -281,7 +288,7 @@ class Installer extends cdk.Stack {
         },
       }),
       environment: {
-        buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
+        buildImage: codebuild.LinuxBuildImage.STANDARD_6_0,
         privileged: true, // Allow access to the Docker daemon
         computeType: codebuild.ComputeType.MEDIUM,
         environmentVariables: {
@@ -332,6 +339,10 @@ class Installer extends cdk.Stack {
           BACKOFF_START_DELAY: {
             type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
             value: backoffStartDelay.valueAsString,
+          },
+          MIGRATION_ENABLED: {
+            type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+            value: migrationEnabled.valueAsString,
           },
         },
       },

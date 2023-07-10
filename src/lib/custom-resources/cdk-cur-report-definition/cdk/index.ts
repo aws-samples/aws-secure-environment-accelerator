@@ -55,17 +55,19 @@ export class CurReportDefinition extends Construct {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = {
-      ReportName: this.props.reportName,
-      TimeUnit: this.props.timeUnit,
-      Format: this.props.format,
-      Compression: this.props.compression,
-      AdditionalSchemaElements: this.props.additionalSchemaElements,
-      S3Bucket: this.props.bucket.bucketName,
-      S3Prefix: this.props.bucketPrefix,
-      S3Region: this.props.bucketRegion,
-      AdditionalArtifacts: this.props.additionalArtifacts,
-      RefreshClosedReports: this.props.refreshClosedReports,
-      ReportVersioning: this.props.reportVersioning,
+      ReportDefinition: {
+        ReportName: this.props.reportName,
+        TimeUnit: this.props.timeUnit,
+        Format: this.props.format,
+        Compression: this.props.compression,
+        AdditionalSchemaElements: this.props.additionalSchemaElements,
+        S3Bucket: this.props.bucket.bucketName,
+        S3Prefix: this.props.bucketPrefix,
+        S3Region: this.props.bucketRegion,
+        AdditionalArtifacts: this.props.additionalArtifacts,
+        RefreshClosedReports: this.props.refreshClosedReports,
+        ReportVersioning: this.props.reportVersioning,
+      },
     };
 
     new cdk.CustomResource(this, 'Resource', {
