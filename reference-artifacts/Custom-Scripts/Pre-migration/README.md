@@ -135,6 +135,7 @@ The Resource Mapping script will generate the ASEA mapping file which will be us
 
 ### Commands
 ```
+cd <root-dir>
 yarn run resource-mapping
 ```
 ### Outputs
@@ -204,6 +205,7 @@ In order to do this, the tool does the following:
 
 ### Commands
 ```
+cd <root-dir>
 yarn run snapshot pre|post|report|reset
 ```
 
@@ -251,6 +253,7 @@ These artifacts and configuration files will be utilized later in the process as
 
 ### Commands
 ```
+cd <root-dir>
 yarn run convert-config
 ```
 ### Outputs
