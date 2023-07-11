@@ -130,7 +130,7 @@ export async function getS3BucketReplication(
     const hash = computeHash(jsonResults);
     return { jsonData: jsonResults, hash: hash };
   } catch (e: any) {
-    if (e.Code === 'NoSuchBucketReplication') {
+    if (e.Code === 'NoSuchBucketReplication' || e.name === 'ReplicationCnfigurationNotFoundError') {
       const jsonResults = '{}';
       const hash = computeHash(jsonResults);
       return { jsonData: jsonResults, hash: hash };
