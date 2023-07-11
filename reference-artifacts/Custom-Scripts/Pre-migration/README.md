@@ -36,8 +36,10 @@ https://github.com/aws-samples/aws-secure-environment-accelerator.git
 
     git clone https://github.com/aws-samples/aws-secure-environment-accelerator.git
 
-### Deploy the migration ASEA Installer Stack
+### Disable ASEA Custom Resource Delete Behaviors
+To complete the migration process, we will need to disable ASEA Custom Resource deletions. In order to do this, we have added a new parameter called `LZAMigrationEnabled`. Setting this to true during CloudFormation stack update will enable this behavior. In order disable the resources, complete the following:
 
+Deploy the migration ASEA Installer Stack
 - Checkout the branch `lza-pre-migragtion` and navigate to the directory which contains the CloudFormation installer template:
 
   ```
@@ -56,7 +58,7 @@ https://github.com/aws-samples/aws-secure-environment-accelerator.git
   - `Upload a Template File` under `Specify Template Section`
   - Select `Choose File` and navigate to the `cloudformation/AcceleratorInstaller.template.json` file.
   - Click `Next`
-- On the `Specify Stack Details` in the Parameters section update only the parameter named LZAMigrationEnabled. Change the value to `true`.
+- On the `Specify Stack Details` in the Parameters section update only the parameter named `LZAMigrationEnabled`. Change the value to `true`.
   - Click `Next`
 - On the `Configure Stack Options` don't make any changes.
   - Click `Next`
