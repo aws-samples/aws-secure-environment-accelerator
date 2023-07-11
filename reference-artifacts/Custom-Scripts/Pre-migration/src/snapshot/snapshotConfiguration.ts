@@ -48,32 +48,36 @@ export async function snapshotConfiguration(
   // process account services
   for (const account of accounts) {
     const accountPromises = [];
-    if (account.Id !== currentAccountId) {
-      const credentials = await getCredentials(account.Id!, roleName);
-      accountPromises.push(
-        snapshotAccountResources(tableName, homeRegion, prefix, account.Id!, preMigration, credentials),
-      );
-    } else {
-      accountPromises.push(
-        snapshotAccountResources(tableName, homeRegion, prefix, account.Id!, preMigration, undefined),
-      );
+    if(account.Status !== 'SUSPENDED') {
+      if (account.Id !== currentAccountId) {
+        const credentials = await getCredentials(account.Id!, roleName);
+        accountPromises.push(
+          snapshotAccountResources(tableName, homeRegion, prefix, account.Id!, preMigration, credentials),
+        );
+      } else {
+        accountPromises.push(
+          snapshotAccountResources(tableName, homeRegion, prefix, account.Id!, preMigration, undefined),
+        );
+      }
+      await Promise.all(accountPromises);
     }
-    await Promise.all(accountPromises);
   }
 
   // process regional services
   for (const account of accounts) {
     const regionPromises = [];
     for (const region of regions) {
-      if (account.Id !== currentAccountId) {
-        const credentials = await getCredentials(account.Id!, roleName);
-        regionPromises.push(
-          snapshotRegionResources(tableName, homeRegion, prefix, account.Id!, region, preMigration, credentials),
-        );
-      } else {
-        regionPromises.push(
-          snapshotRegionResources(tableName, homeRegion, prefix, account.Id!, region, preMigration, undefined),
-        );
+      if(account.Status !== 'SUSPENDED'){
+        if (account.Id !== currentAccountId) {
+          const credentials = await getCredentials(account.Id!, roleName);
+          regionPromises.push(
+            snapshotRegionResources(tableName, homeRegion, prefix, account.Id!, region, preMigration, credentials),
+          );
+        } else {
+          regionPromises.push(
+            snapshotRegionResources(tableName, homeRegion, prefix, account.Id!, region, preMigration, undefined),
+          );
+        }
       }
     }
     await Promise.all(regionPromises);
