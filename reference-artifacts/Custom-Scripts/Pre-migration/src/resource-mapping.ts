@@ -320,7 +320,9 @@ export class ResourceMapping {
         LogicalResourceId: resource.logicalResourceId,
       };
       try {
-        driftDetectionResponse = await throttlingBackOff(() => cloudformation.detectStackResourceDrift(detectStackResourceDriftInput).promise());
+        driftDetectionResponse = await throttlingBackOff(() =>
+          cloudformation.detectStackResourceDrift(detectStackResourceDriftInput).promise(),
+        );
         driftDetectionResourceList.push({
           LogicalResourceId: resource.logicalResourceId,
           DriftStatus: driftDetectionResponse.StackResourceDrift.StackResourceDriftStatus,
@@ -348,21 +350,27 @@ export class ResourceMapping {
   async describeCloudFormationStack(cloudformation: CloudFormation, stackName: string) {
     const logicalAndPhysicalResourceIdsList: LogicalAndPhysicalResourceIds[] = [];
 
-    const describeStackResourcesInput = {
-      StackName: stackName,
-    };
-
-    const stackResources = await cloudformation.describeStackResources(describeStackResourcesInput).promise();
-
-    if (stackResources.StackResources) {
-      for (const stackResource of stackResources.StackResources) {
-        logicalAndPhysicalResourceIdsList.push({
-          logicalResourceId: stackResource.LogicalResourceId,
-          physicalResourceId: stackResource.PhysicalResourceId!,
-          resourceType: stackResource.ResourceType,
-        });
+    let nextToken: string | undefined;
+    do {
+      const listResult = await throttlingBackOff(() =>
+        cloudformation
+          .listStackResources({
+            StackName: stackName,
+            NextToken: nextToken,
+          })
+          .promise(),
+      );
+      if (listResult.StackResourceSummaries) {
+        for (const stackResource of listResult.StackResourceSummaries) {
+          logicalAndPhysicalResourceIdsList.push({
+            logicalResourceId: stackResource.LogicalResourceId,
+            physicalResourceId: stackResource.PhysicalResourceId!,
+            resourceType: stackResource.ResourceType,
+          });
+        }
       }
-    }
+      nextToken = listResult.NextToken;
+    } while (nextToken);
 
     return logicalAndPhysicalResourceIdsList;
   }
