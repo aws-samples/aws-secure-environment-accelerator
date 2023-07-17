@@ -11,11 +11,10 @@ After the configuration files are generated, these files will be placed in a Cod
 Once the LZA is installed, customers resources will continue to exist and are still modifiable, but interaction with ASEA resources are handled specifically through the LZA configuration files. Management of LZA native environments and migration environments should see almost no difference between the configuration files in these environments.
 
 ## Pre-Requisites
-
-- Deploy Cloud9 VPC and Setup Cloud9 Environment following instructions here:
-
-  - https://catalog.workshops.aws/landing-zone-accelerator/en-US/workshop-advanced/lza-best-practices/create-ide-environment/setup-cloud9-environment
-
+The execution of pre-migration script requires the installation of some development tools (i.e. NodeJS, TypeScript, etc). If you do not want to install these tools in your local environment, we suggest using a Cloud9 environment which has most of the tools pre-installed. 
+The steps to deploy a Cloud9 VPC environment can be found here
+    - https://catalog.workshops.aws/landing-zone-accelerator/en-US/workshop-advanced/lza-best-practices/create-ide-environment/setup-cloud9-environment
+    
 - Ensure you are logged into the Cloud9 terminal
 
 - Complete the `Verify and configure software tools` section to ensure Yarn is installed

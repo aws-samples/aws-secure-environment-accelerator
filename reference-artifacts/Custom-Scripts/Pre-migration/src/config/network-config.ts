@@ -374,7 +374,7 @@ export class NetworkConfigTypes {
   );
 
   static readonly networkAclSubnetSelection = t.interface({
-    account: t.nonEmptyString,
+    account: t.optional(t.nonEmptyString),
     vpc: t.nonEmptyString,
     subnet: t.nonEmptyString,
     region: t.optional(t.region),
