@@ -65,7 +65,8 @@ export const isThrottlingError = (
   e.name === 'InternalException' ||
   e.name === 'ECONNRESET' ||
   e.name === 'EPIPE' ||
-  e.name === 'ETIMEDOUT';
+  e.name === 'ETIMEDOUT' ||
+  e.name === 'Rate exceeded';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function delay(ms: number): Promise<any> {
