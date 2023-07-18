@@ -19,15 +19,6 @@ The steps to deploy a Cloud9 VPC environment can be found here
 
 - Complete the `Verify and configure software tools` section to ensure Yarn is installed
 
-- Install `ts-node`
-  ```
-  yarn add ts-node
-  ```
-- Validate `ts-node` is installed
-  ```
-  yarn ts-node --version
-  ```
-
 ### Clone The ASEA Repo
 
 In order to prepare the ASEA environment for migration you will need to clone the ASEA GitHub repository:
@@ -36,7 +27,11 @@ https://github.com/aws-samples/aws-secure-environment-accelerator.git
     git clone https://github.com/aws-samples/aws-secure-environment-accelerator.git
 
 ### Disable ASEA Custom Resource Delete Behaviors
-To complete the migration process, we will need to disable ASEA Custom Resource deletions. In order to do this, we have added a new parameter called `LZAMigrationEnabled`. Setting this to true during CloudFormation stack update will enable this behavior. In order disable the resources, complete the following:
+To complete the migration process, we will need to upgrade to the latest ASEA version and then disable ASEA Custom Resource deletions. In order to upgrade to the latest ASEA version, you will need to ensure you have completed the prerequisite steps from release `1.5.6.a` here: https://github.com/aws-samples/aws-secure-environment-accelerator/releases/tag/v1.5.6-a
+
+
+After completing the premigration steps, we will need to re-run the ASEA Installer stack.
+with a new parameter called `LZAMigrationEnabled`. Setting this to true during CloudFormation stack update will disable the ASEA Custom Resource deletion behavior. In order disable the resources, complete the following:
 
 Deploy the migration ASEA Installer Stack
 - Checkout the branch `lza-pre-migragtion` and navigate to the directory which contains the CloudFormation installer template:
@@ -57,14 +52,17 @@ Deploy the migration ASEA Installer Stack
   - `Upload a Template File` under `Specify Template Section`
   - Select `Choose File` and navigate to the `cloudformation/AcceleratorInstaller.template.json` file.
   - Click `Next`
-- On the `Specify Stack Details` in the Parameters section update only the parameter named `LZAMigrationEnabled`. Change the value to `true`.
+- On the `Specify Stack Details` in the Parameters section update the following parameters: 
+  - ``
+  - Set `LZAMigrationEnabled` to `true`.
+  - Set `RepositoryBranch` to `lza-pre-migragtion`
   - Click `Next`
 - On the `Configure Stack Options` don't make any changes.
   - Click `Next`
 - On the `Review`
   - In `Capabilities` section, select the box `I acknowledge the AWS CloudFormation might create IAM resources with custom names.`
   - Click `Next`
-- Wait for the stack to finish updating
+- Wait for the stack to finish updating.
 
 ### Execute the ASEA installer pipeline and state machine
 
