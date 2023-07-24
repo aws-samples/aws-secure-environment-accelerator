@@ -1,4 +1,4 @@
-# ASEA to LZA Migration
+# ASEA to LZA Migration (Alpha)
 
 ## Migration Overview
 
@@ -10,77 +10,21 @@ After the configuration files are generated, these files will be placed in a Cod
 
 Once the LZA is installed, customers resources will continue to exist and are still modifiable, but interaction with ASEA resources are handled specifically through the LZA configuration files. Management of LZA native environments and migration environments should see almost no difference between the configuration files in these environments.
 
-## Pre-Requisites
-The execution of pre-migration script requires the installation of some development tools (i.e. NodeJS, TypeScript, etc). If you do not want to install these tools in your local environment, we suggest using a Cloud9 environment which has most of the tools pre-installed. 
-The steps to deploy a Cloud9 VPC environment can be found here
-    - https://catalog.workshops.aws/landing-zone-accelerator/en-US/workshop-advanced/lza-best-practices/create-ide-environment/setup-cloud9-environment
-    
-- Ensure you are logged into the Cloud9 terminal
+### Pre-Requisites
 
+- You are running the latest version of ASEA. If you are not running version 1.5xx then upgrade before starting the migration process
+- Deploy Cloud9 VPC and Setup Cloud9 Environment following instructions here:
+  - https://catalog.workshops.aws/landing-zone-accelerator/en-US/workshop-advanced/lza-best-practices/create-ide-environment/setup-cloud9-environment
+- Ensure you are logged into the Cloud9 terminal
 - Complete the `Verify and configure software tools` section to ensure Yarn is installed
 
 ### Clone The ASEA Repo
 
 In order to prepare the ASEA environment for migration you will need to clone the ASEA GitHub repository:
 https://github.com/aws-samples/aws-secure-environment-accelerator.git
+git clone https://github.com/aws-samples/aws-secure-environment-accelerator.git
 
-    git clone https://github.com/aws-samples/aws-secure-environment-accelerator.git
-
-### Disable ASEA Custom Resource Delete Behaviors
-To complete the migration process, we will need to upgrade to the latest ASEA version and then disable ASEA Custom Resource deletions. In order to upgrade to the latest ASEA version, you will need to ensure you have completed the prerequisite steps from release `1.5.6.a` here: https://github.com/aws-samples/aws-secure-environment-accelerator/releases/tag/v1.5.6-a
-
-
-After completing the premigration steps, we will need to re-run the ASEA Installer stack.
-with a new parameter called `LZAMigrationEnabled`. Setting this to true during CloudFormation stack update will disable the ASEA Custom Resource deletion behavior. In order disable the resources, complete the following:
-
-Deploy the migration ASEA Installer Stack
-- Checkout the branch `lza-pre-migragtion` and navigate to the directory which contains the CloudFormation installer template:
-
-  ```
-  cd aws-secure-environment-accelerator
-  git checkout lza-pre-migragtion
-  cd reference-artifacts/Custom-Scripts/Pre-migration/cloudformation
-  ```
-
-  You will need to update the existing CloudFormation Installer stack:
-
-- Navigate to the AWS CloudFormation console
-- Select the existing installer stack then `Update Stack`
-- On the `Update Stack` page, select the radio button for:
-  - `Replace current template` under `Prepare Template Section`
-  - Click `Next`
-  - `Upload a Template File` under `Specify Template Section`
-  - Select `Choose File` and navigate to the `cloudformation/AcceleratorInstaller.template.json` file.
-  - Click `Next`
-- On the `Specify Stack Details` in the Parameters section update the following parameters: 
-  - ``
-  - Set `LZAMigrationEnabled` to `true`.
-  - Set `RepositoryBranch` to `lza-pre-migragtion`
-  - Click `Next`
-- On the `Configure Stack Options` don't make any changes.
-  - Click `Next`
-- On the `Review`
-  - In `Capabilities` section, select the box `I acknowledge the AWS CloudFormation might create IAM resources with custom names.`
-  - Click `Next`
-- Wait for the stack to finish updating.
-
-### Execute the ASEA installer pipeline and state machine
-
-- Navigate to AWS CodePipeline console
-- Locate the ASEA-InstallerPipeline under the Pipeline/Pipelines section
-- Select the pipeline and then click on `Release change`
-- Wait for the pipeline execution to complete
-- The last step of the pipeline will start the ASEA main state machine
-- Monitor the progress of the main state machine
-- Navigate to the AWS Step Function console
-- The `ASEA-MainStateMachine_sm` should be running
-- Wait until the `ASEA-MainStateMachine_sm` is finished before moving to the next section
-
-### Disable ASEA State Machine
-
-TBD
-
-### Install the project dependencies and build the project
+### Install the migration scripts project dependencies and build the project
 
 - Ensure you are still on the `lza-pre-migragtion` branch and navigate to the directory which contains the migration scripts:
   ```
@@ -103,13 +47,10 @@ Prior to running the mapping script, a CloudFormation script will need to be dep
 - Public access blocked
 - Bucket policy to scope down access to specific users
 - Bucket policy to require encrpytion while writing objects
-
-The script exists under:
-`<rootDir>/src/cloudformation/mapping-output-bucket.yml`
-
-In order to deploy the script, you will need to:
-
-- Navigate to the AWS CloudFormation console
+  The script exists under:
+  `<rootDir>/src/cloudformation/mapping-output-bucket.yml`
+  In order to deploy the script, you will need to:
+- Navigate to the AWS CloudFormation console in the home region of the management account
 - Select `Create Stack`
 - On the `Create Stack` page, select the radio buttons for:
   - `Template is Ready` under `Prepare Template Section`
@@ -127,9 +68,10 @@ After deploying the `mapping-output-bucket.yml` template the S3 Bucket Resource 
 
 - Navigate to S3 in the AWS Console
 - Select the bucket that you created in the previous step
-- Click on `Properties`
+- Click on `Properties` tab
 - Ensure that `Bucket Versioning` is enabled
 - Ensure that `Default Encryption` is set to `Amazon S3 managed keys (SSE-S3)`
+- Click on `Permissions` tab
 - Ensure that Block Public Access is enabled
 - Ensure that an S3 Bucket Policy is created and validate the bucket policy
 
@@ -140,39 +82,37 @@ After deploying the `mapping-output-bucket.yml` template the S3 Bucket Resource 
 Prior to running the pre-migration scripts, you will need temporary IAM credentials in order to run the script. In order to retrieve these, follow the instructions here and set the temporary credentials in your environment:
 https://aws.amazon.com/blogs/security/aws-single-sign-on-now-enables-command-line-interface-access-for-aws-accounts-using-corporate-credentials/
 
-### Update Configuration File
+### Update Migration Scripts Configuration File
 
 - Navigate to:
   `<rootDir>/src/input-config/input-config.example.json`
-
 - Modify the values below:
-  - _`aseaPrefix`_ - The ASEA prefix used for ASEA deployed resources. This can be found in the initial ASEA Installer CloudFormation template `Parameters` under `AcceleratorPrefix`. Ex: `ASEA`
+  - _\__`aseaPrefix`_\__ - The ASEA prefix used for ASEA deployed resources. This can be found in the initial ASEA Installer CloudFormation template `Parameters` under `AcceleratorPrefix`. Ex: `ASEA`
     - Note: This value should not include the trailing `'-'` character
-  - _`repositoryName`_ - The ASEA Repository name used to store ASEA Configuration files. This can be found either in the initial ASEA Installer CloudFormation template `Parameters` under `ConfigRepositoryName` or in the CodeCommit Service.
-  - - `assumeRoleName`\* - The name of the role which will be assumed during the migration process.
-  - _`parametersTableName`_ - The name of the DynamoDB Table where ASEA account metadata is stored. This can be found by:
+  - _\__`repositoryName`_\__ - The ASEA Repository name used to store ASEA Configuration files. This can be found either in the initial ASEA Installer CloudFormation template `Parameters` under `ConfigRepositoryName` or in the CodeCommit Service.
+  - - `assumeRoleName`\* - The name of the role which will be assumed during the migration process. Ex: `<prefix-name>-PipelineRole`
+  - _\__`parametersTableName`_\__ - The name of the DynamoDB Table where ASEA account metadata is stored. This can be found by:
     - Navigating to the DynamoDB service home page
     - Selecting `Tables` from the drop down on the left side of the console.
     - Finding the table name similar to `<prefix-name>-Parameters`.
-  - _`homeRegion`_ - Home Region for ASEA. This field can be retrieved from the ASEA Configuration file.
-  - _`mappingFileName`_ - Name of the S3 key to write the mapping output to. Ex: `aseaMapping.json`
-  - _`mappingBucketName`_ - Name of the S3 bucket to write the mapping output to. Ex: `asea-mapping-outputs`
-  - _`centralBucket`_ - Name of ASEA created phase-0 central bucket, will be used to copy and convert assets for LZA.
-  - _`configOutputFolder`_ - Output location to save converted configuration.
-
-Example `input-config.example.json` file:
+  - _\__`homeRegion`_\__ - Home Region for ASEA. This field can be retrieved from the ASEA Configuration file
+  - _\__`mappingBucketName`_\__ - Name of the S3 bucket to write the mapping output to. Ex: `asea-mapping-outputs`
+  - _\__`centralBucket`_\__ - Name of ASEA created phase-0 central bucket, will be used to copy and convert assets for LZA.
+  - _\__`configOutputFolder`_\__ - Output location to save converted configuration. Ex: `lza-config` -_`operationsAccountId`_- Operations Account Id. -_`installerStackName`_-The name of the installer CloudFormation stack.
+    Example `input-config.example.json` file:
 
 ```
 {
-  "aseaPrefix": "<ASEA-Prefix>",
-  "repositoryName": "<ASEA-Config-Repository-Name>",
-  "assumeRoleName": "<ASEA-Role>",
-  "parametersTableName": "<ASEA-Parameters-DDB-Table-Name>",
-  "homeRegion": "<ASEA-Home-Region>",
-  "mappingFileName": "<Output-Mapping-File-Name>",
-  "mappingBucketName": "<Output-Mapping-Bucket-Name>",
-  "centralBucket": "<ASEA-Phase0-Central-Bucket>",
-  "configOutputFolder": "<Output-Location-For-Converted-Config>"
+  "aseaPrefix": "ASEA",
+  "repositoryName": "ASEA-Config-Repo",
+  "assumeRoleName": "ASEA-PipelineRole",
+  "parametersTableName": "ASEA-Parameters",
+  "homeRegion": "ca-central-1",
+  "mappingBucketName": "asea-migration-012345678901",
+  "centralBucket": "asea-management-phase0-configcacentral1-1rjiguh96w1xz",
+  "configOutputFolder": "lza-config",
+  “operationsAccountId”: “012345678901”,
+  “installerStackName: ”ASEA-Installer“,
 }
 ```
 
@@ -200,7 +140,7 @@ cd <root-dir>
 yarn run resource-mapping
 ```
 
-### Outputs
+### Confirm Outputs
 
 After running the `resource-mapping` script, the following artifacts should be generated inside the S3 bucket which has been deployed via CloudFormation and passed in the config file as `mappingBucketName`:
 
@@ -208,21 +148,17 @@ After running the `resource-mapping` script, the following artifacts should be g
 - Drift Detection File (per account/per region/per stack)
 - Stack Resource File (per account/per region/per stack)
 - Aggregate Drift Detection File (All drifted resources)
-
-In order to validate the output artifacts, the following items will need to be verified inside the S3 Bucket (_Output-Mapping-Bucket_):
-
+  In order to validate the output artifacts, the following items will need to be verified inside the S3 Bucket (_*Output-Mapping-Bucket*_):
 - Resource Mapping File
-  - Look for file which matches _Output-Mapping-File-Name_ from configuration file.
+  - Look for file which matches _*Output-Mapping-File-Name*_ from configuration file.
   - Spot Check that file has correct accounts, regions, and stacks
 - Aggregated Drift Detection File
-
   - Look for a file named `AllDriftDetectedResources.csv`
   - Ensure that the resources listed in the CSV file match up with the specific CloudFormation drift-detection status of the CloudFormation resources in each individual stack. The possible values for the resources are:
     - IN_SYNC - there is no drift detected in the CloudFormation Resource
     - MODIFIED - drift has been detected in the CloudFormation Resource. The metadata in the `PropertyDifferences` column describes the drift that needs to be fixed.
     - NOT_SUPPORTED means that CloudFormation does not support drift-detection on that specific resource.
   - If there is drift detected, this drift needs to be manually fixed. The specific resource and configurations which need to be addressed will be available in the drift-detection.csv file under `PropertyDifferences` or by Detecting Drift manually in the CloudFormation console (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/detect-drift-stack.html)
-
 - Drift Detection Files
   For a more granular look at Drift Detection, this is available on an account/region/stack basis as well: - Navigate to `migration/<account-name>/<region>/<stack-name>/<stack-name>-drift-detection.csv` - Ensure that the resources listed in the CSV file match up with the CloudFormation drift-detection status of the CloudFormation resources in the stack. The possible values for the resources are: - IN_SYNC - there is no drift detected in the CloudFormation Resource - MODIFIED - drift has been detected in the CloudFormation Resource. The metadata in the `PropertyDifferences` column describes the drift that needs to be fixed. - NOT_SUPPORTED means that CloudFormation does not support drift-detection on that specific resource. - If there is drift detected, this drift needs to be manually fixed. The specific resource and configurations which need to be addressed will be available in the drift-detection.csv file under `PropertyDifferences` or by Detecting Drift manually in the CloudFormation console (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/detect-drift-stack.html)
   Stack Resource List Output
@@ -233,23 +169,14 @@ In order to validate the output artifacts, the following items will need to be v
 ### Overview
 
 The above section covers Drift Detection on CloudFormation native resources. However, ASEA and LZA both utilize many Lambda-backed custom-resources as well. To successfully detect drift during the migration process, there is a snapshot tool that records the state of custom resources.
-
-The snapshot tool supports the following commands:
-
-    - yarn run snapshot pre
-    - yarn run snapshot post
-    - yarn run snapshot report
-    - yarn run snapshot reset
-
+The snapshot tool supports the following commands: - yarn run snapshot pre - yarn run snapshot post - yarn run snapshot report - yarn run snapshot reset
 Each subcommand of the snapshot tool and its associated actions can be found below:
 
-- `yarn run snapshot pre` - This command should be run _`before`_ the migration process. Describes all custom resource states before the migration and saves the results in `${aseaPrefix}-config-snapshot`
-- `yarn run snapshot post` - This command should be run _`after`_ the migration process. Describes all custom resource states after the migration and saves the results in `${aseaPrefix}-config-snapshot`
-- `yarn run snapshot report` - This command should be run _`after`_ the pre and post snapshot commands have been run. Runs a diff on the Pre and Post snapshot resources and outputs a list of the diffs.
+- `yarn run snapshot pre` - This command should be run _\__`before`_\__ the migration process. Describes all custom resource states before the migration and saves the results in `${aseaPrefix}-config-snapshot`
+- `yarn run snapshot post` - This command should be run _\__`after`_\__ the migration process. Describes all custom resource states after the migration and saves the results in `${aseaPrefix}-config-snapshot`
+- `yarn run snapshot report` - This command should be run _\__`after`_\__ the pre and post snapshot commands have been run. Runs a diff on the Pre and Post snapshot resources and outputs a list of the diffs.
 - `yarn run snapshot reset` - Deletes the DynamoDB table `${aseaPrefix}-config-snapshot`
-
-In order to do this, the tool does the following:
-
+  In order to do this, the tool does the following:
 - Creates DynamoDB table in the `${homeRegion}` to store snapshot data. The table is named `${aseaPrefix}-config-snapshot`:
 - Assume a role into each account and makes AWS api calls to describe the state of each service managed by a custom resources. In each account/region:
   - For each custom resource type, retrieve associated AWS resource, attributes, and state
@@ -265,10 +192,10 @@ In order to do this, the tool does the following:
 
 ```
 cd <root-dir>
-yarn run snapshot pre|post|report|reset
+yarn run snapshot pre
 ```
 
-### Outputs
+### Confirm Outputs
 
 In order to validate the snapshot behaviors, you will need to do the following:
 
@@ -279,31 +206,7 @@ In order to validate the snapshot behaviors, you will need to do the following:
 
 #### Snapshot-Pre
 
-After running the snapshot pre command, ensure that the DynamoDB table `${aseaPrefix}-config-snapshot` has been created. This table should be populated with the following fields:
-
-    -   AccountRegion
-    -   ResourceName
-    -   PreMigrationJson
-    -   PreMigrationHash
-
-#### Snapshot-Post
-
-After running the snapshot post command, ensure that the DynamoDB table `${aseaPrefix}-config-snapshot` has been updated. This table should be populated with the following fields:
-
-    -   AccountRegion
-    -   ResourceName
-    -   PreMigrationJson
-    -   PreMigrationHash
-    -   PostMigrationJson
-    -   PostMigrationHash
-
-#### Snapshot-Report
-
-After running the snapshot pre and post commands, you can run the `yarn run snapshot report` command. This command will compare the `PreMigrationJson` and `PostMigrationJson` fields in DynamoDB and output the difference to the console.
-
-#### Snapshot-Reset
-
-After running the command `yarn run snapshot reset` - Validate that the `${aseaPrefix}-config-snapshot` has been deleted.
+After running the snapshot pre command, ensure that the DynamoDB table `${aseaPrefix}-config-snapshot` has been created. This table should be populated with the following fields: - AccountRegion - ResourceName - PreMigrationJson - PreMigrationHash
 
 ## Convert Configuration
 
@@ -315,10 +218,8 @@ In order to accomplish the migration, the existing ASEA configuration file needs
 - Decides the ASEA Object Type
 - Maps object and resource metadata file to LZA Object
 - Creates proper Deployment Targets for the LZA Object (This defines which accounts the resource will be deployed to)
-
-Once the entire ASEA configuration file has been converted, the output LZA configuration files will be stored locally in the current directory in a new sub-directory with the name of the `configOutputFolder` field in the configuration file.
-
-These artifacts and configuration files will be utilized later in the process as the input artifacts for the Landing Zone Accelerator Deployment.
+  Once the entire ASEA configuration file has been converted, the output LZA configuration files will be stored locally in the current directory in a new sub-directory with the name of the `configOutputFolder` field in the configuration file.
+  These artifacts and configuration files will be utilized later in the process as the input artifacts for the Landing Zone Accelerator Deployment.
 
 ### Commands
 
@@ -327,7 +228,7 @@ cd <root-dir>
 yarn run convert-config
 ```
 
-### Outputs
+### Confirm Outputs
 
 After running the `convert-config` script, the following artifacts should be generated in the current directory in a subdirectory with the name of the value passed to `configOutputFolder`:
 
@@ -347,32 +248,107 @@ After running the `convert-config` script, the following artifacts should be gen
 - SSM Documents
   - `ssm-documents/*`
 
+### Disable ASEA Custom Resource Delete Behaviors
+
+To complete the migration process, we will need to disable ASEA Custom Resource deletions. In order to do this, we have added a new parameter called `LZAMigrationEnabled`. Setting this to true during CloudFormation stack update will enable this behavior. In order disable the resources, complete the following:
+
+#### Update the SCP Guardrails-Part1.json
+
+Update the ASEA SCP Configuration file <Prefix>-Guardrails-Part1.json
+You will need to add the organization administrative role to the portion of the SCP that controls SSM. This will permit the LZA installation to create and update SSM parameters.
+
+- Edit your SCP configuration file <Prefix>-Guardrails-Part1.json
+- Locate the Policy statement where the `Sid` is `SSM. `
+- Modify the `Condition` statement.
+- You will be changing the condition statement from this value
+  - `"aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]`
+- To this value
+  - `"aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}"]`
+- Save the SCP configuration file and push it to your configuration repository
+
+#### Deploy the migration ASEA Installer Stack
+
+- Checkout the branch `lza-pre-migragtion` and navigate to the directory which contains the CloudFormation installer template:
+  ```
+  cd aws-secure-environment-accelerator
+  git checkout lza-pre-migragtion
+  cd reference-artifacts/Custom-Scripts/Pre-migration/cloudformation
+  ```
+  You will need to update the existing CloudFormation Installer stack:
+- Navigate to the AWS CloudFormation console
+- Select the existing installer stack then `Update Stack`
+- On the `Update Stack` page, select the radio button for:
+  - `Replace current template` under `Prepare Template Section`
+  - Click `Next`
+  - `Upload a Template File` under `Specify Template Section`
+  - Select `Choose File` and navigate to the `cloudformation/AcceleratorInstaller.template.json` file.
+  - Click `Next`
+- On the `Specify Stack Details` in the Parameters section update only the parameter named `LZAMigrationEnabled`. Change the value to `true`.
+  - Click `Next`
+- On the `Configure Stack Options` don't make any changes.
+  - Click `Next`
+- On the `Review`
+  - In `Capabilities` section, select the box `I acknowledge the AWS CloudFormation might create IAM resources with custom names.`
+  - Click `Next`
+- Wait for the stack to finish updating
+
+### Execute the ASEA installer pipeline and state machine
+
+- Navigate to AWS CodePipeline console
+- Locate the ASEA-InstallerPipeline under the Pipeline/Pipelines section
+- Select the pipeline and then click on `Release change`
+- Wait for the pipeline execution to complete
+- The last step of the pipeline will start the ASEA main state machine
+- Monitor the progress of the main state machine
+- Navigate to the AWS Step Function console
+- The `ASEA-MainStateMachine_sm` should be running
+- Wait until the `ASEA-MainStateMachine_sm` is finished before moving to the next section
+
+### Prepare ASEA Environment
+
+#### Overview
+
+This step will prepare the ASEA environment for migration to the Landing Zone Accelerator on AWS. In this step the migration scripts tool will be deleting the CDK Toolkit CloudFormation stacks in the Management account. Which includes deleting ECR images from the CDK Toolkit ECR repository. Deleting the ASEA CloudFormation installer stack and finally the ASEA InitialSetup stack. You will also be emptying the ASEA assets bucket in order for the installer CloudFormation stack to be deleted.
+In order to empty the artifacts S3 bucket you will need to navigate to S3 console.
+
+    * Find the bucket that has the string `artifactsbucket in the name`
+    * Click the radio button next to the bucket
+    * Click the `Empty` button in the upper right
+    * Type the string `permanently delete` in the confirmation text box
+    * Click the `Empty` button
+    * Wait until a green bar appears with the text `Successfully emptied bucket`
+    * Switch back to you Cloud 9 environment and run the commands below
+
+#### Commands
+
+```
+cd <root-dir>
+yarn run asea-prep
+```
+
+#### Disable CloudWatch Events Rule
+
+In order to prevent conflicts between ASEA and LZA during the migration you will need to disable a CloudWatch Events rule that was created by ASEA.
+
+- Navigate to the CloudWatch console in the management account `us-east-1` region
+- Click on `Events`
+- Click on `Rules`
+- Click on the radio button next to the rule that starts with `<Prefix>-ASEA-AccountsStack-284695-RevertScpChangesModifySc`
+- Then click on the `Actions` drop down menu and select `Disable`
+- The `Status` for the rule should change from green to gray
+
 ## Installing the Landing Zone Accelerator
 
 ### Prerequisites
 
-### Create Code Commit Repository
+#### Create Code Commit Repository
 
 - Create a Code Commit Repository in your `${homeRegion}`
   - https://docs.aws.amazon.com/codecommit/latest/userguide/how-to-create-repository.html
 - Upload generated LZA Configs and artifacts
   - These are the configs and artifacts output by the `convert-config` script.
 
-### Delete ASEA CDK-Toolkit
-
-- Delete the ${Prefix}-CDK-Toolkit in both the $HOME_REGION and $GLOBAL_REGION
-- For $HOME_REGION
-  - Navigate to the CloudFormation homepage
-  - In the top right corner, select your $HOME_REGION from the region selector drop down.
-  - In the CloudFormation dashboard, locate and select the ${Prefix}-CDK-Toolkit stack
-  - Click on the Delete button.
-- For $GLOBAL_REGION:
-  - Navigate to the CloudFormation service homepage
-  - In the top right corner, select your $GLOBAL_REGION from the region selector drop down.
-  - In the CloudFormation dashboard, locate and select the ${Prefix}-CDK-Toolkit stack.
-  - Click on the Delete button.
-
-### Clone the LZA Repository
+#### Clone the LZA Repository
 
 - Clone the LZA Repository from: https://github.com/awslabs/landing-zone-accelerator-on-aws
   From your home directory (ensure this is not inside the ASEA repository)
@@ -383,7 +359,7 @@ git clone https://github.com/awslabs/landing-zone-accelerator-on-aws.git
 
 - Checkout the `` branch
 
-### Synthesizing the LZA Installer Stack
+#### Synthesizing the LZA Installer Stack
 
 The Installer Stack, a CDK Application, can be deployed through a CloudFormation template produced by your CLI by navigating to the directory for the installer and running a CDK synthesis. The template can either be deployed directly via the AWS CLI or console. Below are the commands for completing the deployment of the Installer stack.
 
@@ -398,11 +374,10 @@ yarn install && yarn lerna link
 
 ```
 cd <rootDir>/source/packages/@aws-accelerator/installer
-yarn build && yarn cdk synth --context enable-asea-migration-true
+yarn build && yarn cdk synth —context enable-asea-migration=true
 ```
 
 This above command will build and synthesize the LZA installer stack, in addition, the `--context enable-asea-migration-true` will add ASEA migration specific stages to the LZA pipeline.
-
 After running these commands, the Installer stack template will be saved to <rootDir>/source/packages/@aws-accelerator/installer/cdk.out/AWSAccelerator-InstallerStack.template.json
 
 - https://github.com/awslabs/landing-zone-accelerator-on-aws#1-build-the-installer-stack-for-deployment
@@ -413,9 +388,7 @@ Once you have completed the prerequisites and synthesized the LZA Installer stac
 
 - For more details on the deployment pipelines, take a look here:
   https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/deployment-pipelines.html
-
 - In order to deploy the CloudFormation stack, you will need to do the following:
-
 - Navigate to the CloudFormation service in the `${homeRegion}`.
 - Click `Create Stack` in the top right corner. Select `With new resources(standard)`
   - Select the radio button for `Template is Ready`
@@ -423,16 +396,19 @@ Once you have completed the prerequisites and synthesized the LZA Installer stac
   - Select the template which was synthesized in the previous step. This template should reside here:
     `<rootDir>/source/packages/@aws-accelerator/installer/cdk.out/AWSAccelerator-InstallerStack.template.json`
   - Once you have selected the template file, you will need to enter the stack parameters, use the default values except for the following:
-    - _`Branch Name`_ - This needs to point to the ASEA Migration branch which is -insert-branch-name-here-
-    - _`Accelerator Resource name prefix`_ - This needs to match the prefix used for the ASEA deployment. Do NOT include the additional `'-'`.
-    - _`Existing Config Repository Name`_ - This will be the name of the CodeCommit repository you created in the `Create Code Commit Repository` section above.
+    - _\__`Branch Name`_\__ - This needs to point to the ASEA Migration branch which is -insert-branch-name-here- -_ `Management Account Email` _-This needs to be the email address of organizations management account -_`Log Archive Account Email`_-This needs to be the email address of the Central Log account -_`Audit Account Email`_-This needs to be the email address of the Security/Audit account -_`Control Tower Environment`_-Should be set to `No` unless you have Control Tower enabled in your environment
+
+*     - *_*`Accelerator Resource name prefix`*_* - This needs to match the prefix used for the ASEA deployment. Do NOT include the additional `'-'`.
+* -_`Use Existing Config Repository`_-This needs to be set to `Yes`
+*     - *_*`Existing Config Repository Name`*_* - This will be the name of the CodeCommit repository you created in the `Create Code Commit Repository` section above.
+* -_`Existing Config Repository Branch Name`_-This should be set to `main`
 
 ### Run the LZA Pipeline
 
 - For general LZA Pipeline deployment details, refer to the LZA Implementation Guide here: https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/awsaccelerator-pipeline.html
 - During the Landing Zone Accelerator pipeline deployment, there are two ASEA migration specific stages -- `ImportAseaResources` and `PostImportAseaResources`. These two stages allow the LZA to manage and interact with resources that were originally managed in the scope of ASEA.
-- _`ImportAseaResources`_ - This stage uses the `CFNInclude` module to include the original ASEA Managed CloudFormation resources. This allows the resources to be managed in the context of the LZA CDK Application. SSM Parameters are created for these resources so that they can be interacted with during the LZA Pipeline run.
-- _`PostImportAseaResources`_ - This stage runs at the end of the LZA Pipeline, it allows the LZA pipeline to modify original ASEA Managed Cloudformation resources. This requires a seperate stage because it allows the prior LZA stages to interact with ASEA resources and then modifies all ASEA resources (as opposed to CFN Including the ASEA resources in every stage).
+- _\__`ImportAseaResources`_\__ - This stage uses the `CFNInclude` module to include the original ASEA Managed CloudFormation resources. This allows the resources to be managed in the context of the LZA CDK Application. SSM Parameters are created for these resources so that they can be interacted with during the LZA Pipeline run.
+- _\__`PostImportAseaResources`_\__ - This stage runs at the end of the LZA Pipeline, it allows the LZA pipeline to modify original ASEA Managed Cloudformation resources. This requires a seperate stage because it allows the prior LZA stages to interact with ASEA resources and then modifies all ASEA resources (as opposed to CFN Including the ASEA resources in every stage).
 
 ## Disabling the ASEA State Machine
 
@@ -444,7 +420,7 @@ WIP
 
 The existing ASEA to LZA upgrade process relies on a combination of automated and manual mechanisms to accomplish the upgrade. This is due to AWS service limits as well as resource collisions of resources which exist in both the ASEA and LZA solutions.
 
-### Problem
+## Problems
 
 If an issue occurs during the upgrade process, there needs to be a rollback plan in place. Since the migration process utilizes both automated and manual steps, we will roll back in an automated fashion where possible and require manual steps for others. The high-level rollback steps are below.
 
@@ -476,3 +452,46 @@ If an issue occurs during the upgrade process, there needs to be a rollback plan
   - Run the ASEA State Machine
   - After the InstallerPipeline has successfully run, the ASEA State Machine will be kicked off which will ensure that ASEA features are rolled back to match the ASEA configuration.
 - Cleanup LZA and associated resources https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/uninstall-the-solution.html
+
+## Post AWS LZA Deployment
+
+### Overview
+
+At this point the migration to LZA is complete. Further updates to the environment will require updating the LZA configuration and then executing the LZA pipeline. The custom resource snapshot migration tool may be executed to report on any changes.
+
+#### Post Migration Snapshot
+
+To create the post migration snapshot you will be using the migration tools in your Cloud 9 environment again. There are two steps. The first step will update the snapshot DynamoDb with the configuration of the resources post migration. After updating the resources you will run another command to report on the differences.
+
+### Commands
+
+```
+cd <root-dir>
+yarn run snapshot post
+```
+
+After running the snapshot post command, ensure that the DynamoDB table `${aseaPrefix}-config-snapshot` has been updated. This table should be populated with the following fields: - AccountRegion - ResourceName - PreMigrationJson - PreMigrationHash - PostMigrationJson - PostMigrationHash
+
+#### Post Migration Snapshot Report
+
+This command will generate a report that shows any difference in configuration of the monitored resources.
+
+### Commands
+
+```
+cd <root-dir>
+yarn run snapshot report
+```
+
+#### Snapshot Reset
+
+Once you are satisfied that the migration is successful you can delete the snapshot data. You may retain this data as long as you would like. The data is stored in a DynamoDb table and will only be charged for the storage.
+
+### Commands
+
+```
+cd <root-dir>
+yarn run snapshot reset
+```
+
+---
