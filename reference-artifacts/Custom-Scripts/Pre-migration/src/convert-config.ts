@@ -1614,11 +1614,13 @@ export class ConvertAseaConfig {
       for (const configRule of globalOptions['aws-config'].rules) {
         const deployToOus: string[] = [];
         const excludedAccounts: string[] = [];
+        const excludedRegions = new Set<string>();
         let excludeRemediateRegions: string[] = [];
         organizationalUnits.forEach(([ouKey, ouConfig]) => {
           const matchedConfig = ouConfig['aws-config'].find((c) => c.rules.includes(configRule.name));
           if (!matchedConfig) return;
           deployToOus.push(ouKey);
+          matchedConfig['excl-regions'].forEach((r) => excludedRegions.add(r));
           excludeRemediateRegions = (this.globalOptions?.['supported-regions'] ?? []).filter(
             (region) => !matchedConfig['remediate-regions']?.includes(region),
           );
@@ -1692,7 +1694,7 @@ export class ConvertAseaConfig {
           customRule: customRuleProps,
           deployTo: deployToOus,
           excludedAccounts,
-          excludedRegions: excludeRemediateRegions,
+          excludedRegions: Array.from(excludedRegions),
         };
         rulesWithTarget.push(rule);
       }

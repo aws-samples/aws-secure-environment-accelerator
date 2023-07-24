@@ -12,6 +12,7 @@
  */
 
 import { KMSClient, ListAliasesCommand, GetKeyPolicyCommand, PutKeyPolicyCommand } from '@aws-sdk/client-kms';
+import { EventBridgeClient, DisableRuleCommand } from '@aws-sdk/client-eventbridge';
 
 import {
   CloudFormationClient,
@@ -170,7 +171,33 @@ export async function setSSMMigrationParameter(region: string) {
   const command = new PutParameterCommand(parameterInput);
   try {
     await client.send(command);
+    console.log('Added migration SSM parameter');
   } catch (err) {
     console.log(err);
   }
+}
+
+export async function disableASEARules(prefix: string) {
+  const globalRegion = 'us-east-1';
+  const client = new EventBridgeClient({ region: globalRegion });
+  const suffixes = [
+    'CreateAccount_rule',
+    'CreateOrganizationalUnit_rule',
+    'MoveAccount_rule',
+    'PolicyChanges_rule',
+    'RemoveAccount_rule',
+  ];
+
+  const disableRuleCommands: DisableRuleCommand[] = suffixes.map((suffix) => {
+    return new DisableRuleCommand({
+      Name: `${prefix}-${suffix}`,
+    });
+  });
+
+  const disableRulePromises = disableRuleCommands.map((command) => {
+    console.log(`Disabling rule ${command.input.Name}`);
+    client.send(command);
+  });
+  await Promise.all(disableRulePromises);
+  console.log(`Disabled Rules`);
 }

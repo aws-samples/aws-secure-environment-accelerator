@@ -41,5 +41,6 @@ export class Preparation {
     await aseaPrep.deleteCloudformationStack(this.installerStackName, this.homeRegion);
     await aseaPrep.deleteCloudformationStack(`${this.aseaPrefix}-InitialSetup`, this.homeRegion);
     await aseaPrep.setSSMMigrationParameter(this.homeRegion);
+    await aseaPrep.disableASEARules(this.aseaPrefix);
   }
 }
