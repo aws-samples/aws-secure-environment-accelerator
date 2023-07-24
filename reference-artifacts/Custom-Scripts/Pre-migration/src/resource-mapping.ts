@@ -63,14 +63,12 @@ export class ResourceMapping {
   private sts: STS;
   private readonly region: string;
   private readonly mappingFileBucketName: string;
-  private readonly mappingFileName: string;
   private readonly parametersTableName: string;
   private readonly configRepositoryName: string;
   private readonly assumeRoleName: string;
   private driftedResources: any[] = [];
   constructor(config: Config) {
     this.mappingFileBucketName = config.mappingBucketName!;
-    this.mappingFileName = config.mappingFileName!;
     this.region = config.homeRegion;
     this.parametersTableName = config.parametersTableName;
     this.configRepositoryName = config.repositoryName;
@@ -99,7 +97,7 @@ export class ResourceMapping {
     await this.detectDrift(environmentStackAndResourcesMap, cfnClients);
     const aseaMappingString = JSON.stringify(aseaMapping, null, 4);
     const driftDetectionCsv = this.convertToCSV(this.driftedResources);
-    await this.writeToS3(aseaMappingString, this.mappingFileName);
+    await this.writeToS3(aseaMappingString, 'mapping.json');
     await this.writeToS3(driftDetectionCsv, 'AllDriftDetectedResources.csv');
   }
 
@@ -388,7 +386,6 @@ export class ResourceMapping {
 
     /* Using push() method we push fetched
              data into csvRows[] array */
-    //csvRows.push(headers.join(','));
     csvRows.push(headers.join(','));
 
     // Loop to get value of each objects key
@@ -396,14 +393,12 @@ export class ResourceMapping {
       console.log(`row: ${JSON.stringify(row)}`);
       let val: string;
       const values = headers.map((header) => {
-        //const val = row[header];
         if (header === 'resourceMetadata' || header === 'PropertyDifferences') {
           val = JSON.stringify(row[header]).replace(/,/g, '|');
         } else {
           val = JSON.stringify(row[header]);
         }
         return `${val}`;
-        //return `"${val}"`;
       });
 
       // To add, separator between each value

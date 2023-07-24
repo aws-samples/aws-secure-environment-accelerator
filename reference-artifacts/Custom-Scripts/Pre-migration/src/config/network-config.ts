@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/member-ordering */
 /**
  *  Copyright 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -13,8 +12,8 @@
  */
 
 import * as fs from 'fs';
-import * as path from 'path';
 import * as yaml from 'js-yaml';
+import * as path from 'path';
 
 import * as t from './common-types';
 import * as CustomizationsConfig from './customizations-config';
@@ -210,7 +209,7 @@ export class NetworkConfigTypes {
     destinationPrefixList: t.optional(t.nonEmptyString),
     type: t.optional(this.routeTableEntryTypeEnum),
     target: t.optional(t.nonEmptyString),
-    targetAvailabilityZone: t.optional(t.nonEmptyString),
+    targetAvailabilityZone: t.optional(t.union([t.nonEmptyString, t.number])),
   });
 
   static readonly routeTableConfig = t.interface({
@@ -228,7 +227,7 @@ export class NetworkConfigTypes {
   static readonly subnetConfig = t.interface({
     name: t.nonEmptyString,
     availabilityZone: t.optional(t.union([t.nonEmptyString, t.number])),
-    routeTable: t.nonEmptyString,
+    routeTable: t.optional(t.nonEmptyString),
     ipv4CidrBlock: t.optional(t.nonEmptyString),
     mapPublicIpOnLaunch: t.optional(t.boolean),
     ipamAllocation: t.optional(this.ipamAllocationConfig),
@@ -912,6 +911,7 @@ export class NetworkConfigTypes {
     domain: t.optional(t.nonEmptyString),
     san: t.optional(t.array(t.nonEmptyString)),
     deploymentTargets: t.deploymentTargets,
+    isExisting: t.optional(t.boolean),
   });
 
   static readonly networkConfig = t.interface({
@@ -983,7 +983,8 @@ export class DefaultVpcsConfig implements t.TypeOf<typeof NetworkConfigTypes.def
  * ```
  */
 export class TransitGatewayRouteTableVpcEntryConfig
-implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableVpcEntryConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableVpcEntryConfig>
+{
   /**
    * The friendly name of the account where the VPC resides.
    *
@@ -1016,7 +1017,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableVpcEntryCo
  * ```
  */
 export class TransitGatewayRouteTableDxGatewayEntryConfig
-implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableDxGatewayEntryConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableDxGatewayEntryConfig>
+{
   /**
    * The name of the Direct Connect Gateway
    *
@@ -1042,7 +1044,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableDxGatewayE
  * ```
  */
 export class TransitGatewayRouteTableVpnEntryConfig
-implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableVpnEntryConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableVpnEntryConfig>
+{
   /**
    * The name of the VPN connection
    *
@@ -1068,7 +1071,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableVpnEntryCo
  * ```
  */
 export class TransitGatewayRouteTableTgwPeeringEntryConfig
-implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableTgwPeeringEntryConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableTgwPeeringEntryConfig>
+{
   /**
    * The name of the Transit Gateway peering connection
    *
@@ -1107,7 +1111,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableTgwPeering
  * ```
  */
 export class TransitGatewayRouteEntryConfig
-implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteEntryConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteEntryConfig>
+{
   /**
    * The destination CIDR block for the route table entry.
    *
@@ -1148,11 +1153,11 @@ implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteEntryConfig> {
    * @see {@link TransitGatewayRouteTableVpcEntryConfig} {@link TransitGatewayRouteTableDxGatewayEntryConfig} {@link TransitGatewayRouteTableVpnEntryConfig}
    */
   readonly attachment:
-  | TransitGatewayRouteTableVpcEntryConfig
-  | TransitGatewayRouteTableDxGatewayEntryConfig
-  | TransitGatewayRouteTableVpnEntryConfig
-  | TransitGatewayRouteTableTgwPeeringEntryConfig
-  | undefined = undefined;
+    | TransitGatewayRouteTableVpcEntryConfig
+    | TransitGatewayRouteTableDxGatewayEntryConfig
+    | TransitGatewayRouteTableVpnEntryConfig
+    | TransitGatewayRouteTableTgwPeeringEntryConfig
+    | undefined = undefined;
 }
 
 /**
@@ -1170,7 +1175,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteEntryConfig> {
  * ```
  */
 export class TransitGatewayRouteTableConfig
-implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableConfig>
+{
   /**
    * A friendly name for the Transit Gateway route table.
    *
@@ -1209,7 +1215,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayRouteTableConfig> {
  * ```
  */
 export class TransitGatewayPeeringRequesterConfig
-implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayPeeringRequesterConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayPeeringRequesterConfig>
+{
   /**
    * The friendly name of the requester transit gateway
    *
@@ -1269,7 +1276,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayPeeringRequesterConf
  * ```
  */
 export class TransitGatewayPeeringAccepterConfig
-implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayPeeringAccepterConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayPeeringAccepterConfig>
+{
   /**
    *  The friendly name of the accepter transit gateway
    *
@@ -1648,7 +1656,8 @@ export class DxVirtualInterfaceConfig implements t.TypeOf<typeof NetworkConfigTy
  * ```
  */
 export class DxTransitGatewayAssociationConfig
-implements t.TypeOf<typeof NetworkConfigTypes.dxTransitGatewayAssociationConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.dxTransitGatewayAssociationConfig>
+{
   /**
    * The friendly name of the transit gateway to associate.
    *
@@ -2155,11 +2164,13 @@ export class RouteTableEntryConfig implements t.TypeOf<typeof NetworkConfigTypes
    * The Availability Zone (AZ) the target resides in.
    *
    * @remarks
-   * Include only the letter of the AZ name (i.e. 'a' for 'us-east-1a').
+   * Include only the letter of the AZ name (i.e. 'a' for 'us-east-1a') to target a subnet created in a specific AZ. Use an integer
+   * (i.e. 1) for subnets using a physical mapping ID to an AZ. Please reference the documentation {@link https://docs.aws.amazon.com/ram/latest/userguide/working-with-az-ids.html | Availability Zone IDs for your AWS resources}
+   *  for more information.
    *
    * Note: Leave undefined for targets of route entry types other than `networkFirewall`.
    */
-  readonly targetAvailabilityZone: string | undefined = undefined;
+  readonly targetAvailabilityZone: string | number | undefined = undefined;
 }
 
 /**
@@ -2263,15 +2274,15 @@ export class SubnetConfig implements t.TypeOf<typeof NetworkConfigTypes.subnetCo
    * Please be aware that any downstream dependencies may cause this property update to fail.
    *
    * Include only the letter of the AZ name (i.e. 'a' for 'us-east-1a') to have the subnet created in a specific AZ. Use an integer
-   * (i.e. 1) for a physical mapping ID to an AZ. Please reference the documentation {@link https://docs.aws.amazon.com/ram/latest/userguide/working-with-az-ids.html }
-   * for more information.
+   * (i.e. 1) for a physical mapping ID to an AZ. Please reference the documentation {@link https://docs.aws.amazon.com/ram/latest/userguide/working-with-az-ids.html | Availability Zone IDs for your AWS resources}
+   *  for more information.
    */
   readonly availabilityZone: string | number | undefined = undefined;
 
   /**
    * The friendly name of the route table to associate with the subnet.
    */
-  readonly routeTable: string = '';
+  readonly routeTable: string | undefined = undefined;
   /**
    * The IPAM pool configuration for the subnet.
    *
@@ -2426,7 +2437,8 @@ export class NatGatewayConfig implements t.TypeOf<typeof NetworkConfigTypes.natG
  * ```
  */
 export class TransitGatewayAttachmentTargetConfig
-implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayAttachmentTargetConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayAttachmentTargetConfig>
+{
   /**
    * A friendly name for the attachment target Transit Gateway.
    *
@@ -2461,7 +2473,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayAttachmentTargetConf
  * ```
  */
 export class TransitGatewayAttachmentOptionsConfig
-implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayAttachmentOptionsConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayAttachmentOptionsConfig>
+{
   /**
    * (OPTIONAL) Enable to configure appliance mode for the attachment. This option is disabled by default.
    *
@@ -2631,7 +2644,8 @@ export class OutpostsConfig implements t.TypeOf<typeof NetworkConfigTypes.outpos
  * ```
  */
 export class TransitGatewayAttachmentConfig
-implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayAttachmentConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.transitGatewayAttachmentConfig>
+{
   /**
    * A friendly name for the Transit Gateway attachment.
    *
@@ -2758,7 +2772,8 @@ export class GatewayEndpointConfig implements t.TypeOf<typeof NetworkConfigTypes
  * ```
  */
 export class InterfaceEndpointServiceConfig
-implements t.TypeOf<typeof NetworkConfigTypes.interfaceEndpointServiceConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.interfaceEndpointServiceConfig>
+{
   /**
    * The name of the service to create the endpoint for.
    *
@@ -3704,7 +3719,8 @@ export class EndpointPolicyConfig implements t.TypeOf<typeof NetworkConfigTypes.
  * ```
  */
 export class VpnTunnelOptionsSpecificationsConfig
-implements t.TypeOf<typeof NetworkConfigTypes.vpnTunnelOptionsSpecificationsConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.vpnTunnelOptionsSpecificationsConfig>
+{
   /**
    * (OPTIONAL): The Secrets Manager name that stores the pre-shared key (PSK), that exists in the
    * same account and region that the VPN Connection will be created in.
@@ -5229,7 +5245,8 @@ export class NfwRuleSourceListConfig implements t.TypeOf<typeof NetworkConfigTyp
  * ```
  */
 export class NfwRuleSourceStatefulRuleHeaderConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatefulRuleHeaderConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatefulRuleHeaderConfig>
+{
   /**
    * The destination CIDR range to inspect for.
    *
@@ -5299,7 +5316,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatefulRuleHeaderCon
  * ```
  */
 export class NfwRuleSourceStatefulRuleOptionsConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatefulRuleOptionsConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatefulRuleOptionsConfig>
+{
   /**
    * A Suricata-compatible keyword.
    */
@@ -5336,7 +5354,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatefulRuleOptionsCo
  * ```
  */
 export class NfwRuleSourceStatefulRuleConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatefulRuleConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatefulRuleConfig>
+{
   /**
    * The action type for the stateful rule.
    *
@@ -5375,7 +5394,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatefulRuleConfig> {
  * ```
  */
 export class NfwRuleSourceCustomActionDimensionConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceCustomActionDimensionConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceCustomActionDimensionConfig>
+{
   /**
    * An array of values of the custom metric dimensions to log.
    */
@@ -5401,7 +5421,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceCustomActionDimension
  * ```
  */
 export class NfwRuleSourceCustomActionDefinitionConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceCustomActionDefinitionConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceCustomActionDefinitionConfig>
+{
   /**
    * A Network Firewall custom action dimensions configuration.
    *
@@ -5432,7 +5453,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceCustomActionDefinitio
  * ```
  */
 export class NfwRuleSourceCustomActionConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceCustomActionConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceCustomActionConfig>
+{
   /**
    * A Network Firewall custom action definition configuration.
    *
@@ -5461,7 +5483,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceCustomActionConfig> {
  * ```
  */
 export class NfwRuleSourceStatelessPortRangeConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessPortRangeConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessPortRangeConfig>
+{
   /**
    * The port to start from in the range.
    */
@@ -5488,7 +5511,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessPortRangeCon
  * ```
  */
 export class NfwRuleSourceStatelessTcpFlagsConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessTcpFlagsConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessTcpFlagsConfig>
+{
   /**
    * An array of TCP flags.
    *
@@ -5536,7 +5560,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessTcpFlagsConf
  * ```
  */
 export class NfwRuleSourceStatelessMatchAttributesConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessMatchAttributesConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessMatchAttributesConfig>
+{
   /**
    * (OPTIONAL) An array of Network Firewall stateless port range configurations.
    *
@@ -5609,7 +5634,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessMatchAttribu
  * ```
  */
 export class NfwRuleSourceStatelessRuleDefinitionConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessRuleDefinitionConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessRuleDefinitionConfig>
+{
   /**
    * An array of actions to take using the stateless rule engine.
    */
@@ -5656,7 +5682,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessRuleDefiniti
  * ```
  */
 export class NfwRuleSourceStatelessRuleConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessRuleConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessRuleConfig>
+{
   /**
    * The priority number for the rule.
    *
@@ -5709,7 +5736,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleSourceStatelessRuleConfig> 
  * ```
  */
 export class NfwStatelessRulesAndCustomActionsConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwStatelessRulesAndCustomActionsConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwStatelessRulesAndCustomActionsConfig>
+{
   /**
    * An array of Network Firewall stateless rule configurations.
    *
@@ -5853,7 +5881,8 @@ export class NfwRuleSourceConfig implements t.TypeOf<typeof NetworkConfigTypes.n
  * ```
  */
 export class NfwRuleVariableDefinitionConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleVariableDefinitionConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwRuleVariableDefinitionConfig>
+{
   /**
    * A name for the rule variable.
    */
@@ -6079,7 +6108,8 @@ export class NfwRuleGroupConfig implements t.TypeOf<typeof NetworkConfigTypes.nf
  * ```
  */
 export class NfwStatefulRuleGroupReferenceConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwStatefulRuleGroupReferenceConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwStatefulRuleGroupReferenceConfig>
+{
   /**
    * The friendly name of the rule group.
    *
@@ -6110,7 +6140,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.nfwStatefulRuleGroupReferenceConfi
  * ```
  */
 export class NfwStatelessRuleGroupReferenceConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwStatelessRuleGroupReferenceConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwStatelessRuleGroupReferenceConfig>
+{
   /**
    * The friendly name of the rule group.
    *
@@ -6149,7 +6180,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.nfwStatelessRuleGroupReferenceConf
  * ```
  */
 export class NfwFirewallPolicyPolicyConfig
-implements t.TypeOf<typeof NetworkConfigTypes.nfwFirewallPolicyPolicyConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.nfwFirewallPolicyPolicyConfig>
+{
   /**
    * An array of default actions to take on packets evaluated by the stateless engine.
    *
@@ -6164,8 +6196,8 @@ implements t.TypeOf<typeof NetworkConfigTypes.nfwFirewallPolicyPolicyConfig> {
    * If using a custom action, the action must be defined in the `statelessCustomActions` property.
    */
   readonly statelessFragmentDefaultActions:
-  | string[]
-  | t.TypeOf<typeof NetworkConfigTypes.nfwStatelessRuleActionType>[] = [];
+    | string[]
+    | t.TypeOf<typeof NetworkConfigTypes.nfwStatelessRuleActionType>[] = [];
   /**
    * (OPTIONAL) An array of default actions to take on packets evaluated by the stateful engine.
    */
@@ -6758,7 +6790,8 @@ export class ElbAccountIdsConfig implements t.TypeOf<typeof NetworkConfigTypes.e
  * An optional Firewall Manager Service Config
  */
 export class FirewallManagerNotificationChannelConfig
-implements t.TypeOf<typeof NetworkConfigTypes.firewallManagerNotificationChannelConfig> {
+  implements t.TypeOf<typeof NetworkConfigTypes.firewallManagerNotificationChannelConfig>
+{
   /**
    * Enables the FMS notification channel. Defaults to enabled.
    */
@@ -6846,6 +6879,11 @@ export class CertificateConfig implements t.TypeOf<typeof NetworkConfigTypes.cer
    * ACM deployment target. This should be provided to deploy ACM into OUs or account.
    */
   readonly deploymentTargets: t.DeploymentTargets = new t.DeploymentTargets();
+
+  /**
+   * Is ACM cert existing (Imported/Requested). All existing certificates should have SSM Parameter of format /acm/<name>/arn created in account and region
+   */
+  readonly isExisting: boolean | undefined = false;
 }
 /**
  * *{@link NetworkConfig} / {@link FirewallManagerConfig}*

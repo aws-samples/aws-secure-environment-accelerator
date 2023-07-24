@@ -6,7 +6,8 @@ export interface Config {
   aseaPrefix?: string;
   acceleratorName?: string;
   mappingBucketName?: string;
-  mappingFileName?: string;
   centralBucket?: string;
   configOutputFolder?: string;
+  operationsAccountId?: string;
+  installerStackName?: string;
 }

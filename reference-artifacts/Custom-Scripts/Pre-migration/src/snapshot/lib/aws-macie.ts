@@ -42,8 +42,15 @@ export async function getMacieOrganizationAdminAccounts(
   } else {
     serviceClient = new Macie2Client({ region: region });
   }
-  const results = await throttlingBackOff(() => serviceClient.send(new ListOrganizationAdminAccountsCommand({})));
-  const jsonResults = await stringify(results.adminAccounts, { space: 1 });
+  let jsonResults: string = '{}';
+  try {
+    const results = await throttlingBackOff(() => serviceClient.send(new ListOrganizationAdminAccountsCommand({})));
+    jsonResults = await stringify(results.adminAccounts, { space: 1 });
+  } catch (e: any) {
+    if (e.name === 'AccessDeniedException') {
+      // catch exception if not enabled
+    }
+  }
   const hash = computeHash(jsonResults);
   return { jsonData: jsonResults, hash: hash };
 }
@@ -58,16 +65,23 @@ export async function getMacieStatus(
   } else {
     serviceClient = new Macie2Client({ region: region });
   }
-  const results = await throttlingBackOff(() => serviceClient.send(new GetMacieSessionCommand({})));
-  const jsonResults = await stringify(
-    {
-      createdAt: results.createdAt,
-      findingPublishingFrequency: results.findingPublishingFrequency,
-      serviceRole: results.serviceRole,
-      status: results.status,
-    },
-    { space: 1 },
-  );
+  let jsonResults: string = '{}';
+  try {
+    const results = await throttlingBackOff(() => serviceClient.send(new GetMacieSessionCommand({})));
+    jsonResults = await stringify(
+      {
+        createdAt: results.createdAt,
+        findingPublishingFrequency: results.findingPublishingFrequency,
+        serviceRole: results.serviceRole,
+        status: results.status,
+      },
+      { space: 1 },
+    );
+  } catch (e: any) {
+    if (e.name === 'AccessDeniedException') {
+      // catch exception if not enabled
+    }
+  }
   const hash = computeHash(jsonResults);
   return { jsonData: jsonResults, hash: hash };
 }
@@ -82,10 +96,17 @@ export async function getMacieExportConfig(
   } else {
     serviceClient = new Macie2Client({ region: region });
   }
-  const results = await throttlingBackOff(() =>
-    serviceClient.send(new GetClassificationExportConfigurationCommand({})),
-  );
-  const jsonResults = await stringify(results.configuration, { space: 1 });
+  let jsonResults: string = '{}';
+  try {
+    const results = await throttlingBackOff(() =>
+      serviceClient.send(new GetClassificationExportConfigurationCommand({})),
+    );
+    jsonResults = await stringify(results.configuration, { space: 1 });
+  } catch (e: any) {
+    if (e.name === 'AccessDeniedException') {
+      // catch exception if not enabled
+    }
+  }
   const hash = computeHash(jsonResults);
   return { jsonData: jsonResults, hash: hash };
 }
@@ -101,17 +122,16 @@ export async function getMacieOrganizationConfig(
     serviceClient = new Macie2Client({ region: region });
   }
   let results: DescribeOrganizationConfigurationCommandOutput | undefined;
+  let jsonResults: string = '{}';
   try {
     results = await throttlingBackOff(() => serviceClient.send(new DescribeOrganizationConfigurationCommand({})));
+    if (results) {
+      jsonResults = await stringify(results.autoEnable, { space: 1 });
+    }
   } catch (e) {
     if (e instanceof AccessDeniedException) {
       // catch exception if not organization admin account
     }
-  }
-
-  let jsonResults: string = '{}';
-  if (results) {
-    jsonResults = await stringify(results.autoEnable, { space: 1 });
   }
   const hash = computeHash(jsonResults);
   return { jsonData: jsonResults, hash: hash };
@@ -134,15 +154,14 @@ export async function getMacieClassicationScopes(
   let jsonResults: string = '{}';
   try {
     listScopesResults = await throttlingBackOff(() => serviceClient.send(new ListClassificationScopesCommand({})));
+    for (const scope of listScopesResults!.classificationScopes!) {
+      const scopeResults = await serviceClient.send(new GetClassificationScopeCommand({ id: scope.id }));
+      results.push({ id: scopeResults.id, name: scopeResults.name, s3: scopeResults.s3 });
+    }
+    jsonResults = await stringify(results, { space: 1 });
   } catch (e) {
     if (e instanceof AccessDeniedException) {
       //handle exception when not the macie organization account
-    } else {
-      for (const scope of listScopesResults!.classificationScopes!) {
-        const scopeResults = await serviceClient.send(new GetClassificationScopeCommand({ id: scope.id }));
-        results.push({ id: scopeResults.id, name: scopeResults.name, s3: scopeResults.s3 });
-      }
-      jsonResults = await stringify(results, { space: 1 });
     }
   }
   const hash = computeHash(jsonResults);

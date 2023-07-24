@@ -76,11 +76,16 @@ import {
 } from './config/network-config';
 import { OrganizationConfig, OrganizationConfigType } from './config/organization-config';
 import { AwsConfigRule, SecurityConfig } from './config/security-config';
+import { StackOutput, findValuesFromOutputs, loadOutputs } from './common/outputs/load-outputs';
+import { SSM } from './common/aws/ssm';
+import { STS } from './common/aws/sts';
+import { Region } from './config/common-types';
 
 const IAM_POLICY_CONFIG_PATH = 'iam-policy';
 const SCP_CONFIG_PATH = 'scp';
 const SSM_DOCUMENTS_CONFIG_PATH = 'ssm-documents';
 const MAD_CONFIG_SCRIPTS = 'config/scripts';
+const CONFIG_RULES_PATH = 'config-rules';
 const LZA_SCP_CONFIG_PATH = 'service-control-policies';
 const LZA_MAD_CONFIG_SCRIPTS = 'ad-config-scripts/';
 const LZA_CONFIG_RULES = 'custom-config-rules';
@@ -92,11 +97,19 @@ const LOG_RETENTION = [
  * Assets required for LZA configuration
  * - Config Rule remediation role policies
  */
-const ConfigRuleRolePolicies: { [key: string]: string } = {
+const ConfigRuleRemediationAssets: { [key: string]: string } = {
   'Attach-IAM-Instance-Profile': path.join(LZA_CONFIG_RULES, 'attach-ec2-instance-profile-remediation-role.json'),
   'Attach-IAM-Role-Policy': path.join(LZA_CONFIG_RULES, 'ec2-instance-profile-permissions-remediation-role.json'),
   'SSM-ELB-Enable-Logging': path.join(LZA_CONFIG_RULES, 'elb-logging-enabled-remediation-role.json'),
   'Put-S3-Encryption': path.join(LZA_CONFIG_RULES, 'bucket-sse-enabled-remediation-role.json'),
+};
+
+const ConfigRuleDetectionAssets: { [key: string]: string } = {
+  'EC2-INSTANCE-PROFILE': path.join(LZA_CONFIG_RULES, 'attach-ec2-instance-profile-detection-role.json'),
+  'EC2-INSTANCE-PROFILE-PERMISSIONS': path.join(
+    LZA_CONFIG_RULES,
+    'ec2-instance-profile-permissions-detection-role.json',
+  ),
 };
 
 type LzaNaclRuleType = {
@@ -152,6 +165,12 @@ async function writeConfig(filePath: string, config: string) {
   fs.writeFileSync(filePath, config);
 }
 
+async function writeFile(filePath: string, data: any) {
+  const dirname = path.dirname(filePath);
+  if (!fs.existsSync(dirname)) fs.mkdirSync(dirname, { recursive: true });
+  fs.writeFileSync(filePath, data);
+}
+
 export class ConvertAseaConfig {
   private readonly aseaConfigRepositoryName: string;
   private readonly region: string;
@@ -159,8 +178,10 @@ export class ConvertAseaConfig {
   private readonly centralBucketName: string;
   private readonly parametersTable: string;
   private readonly s3: S3;
+  private readonly sts: STS;
   private readonly dynamoDb: DynamoDB;
   private accounts: Account[] = [];
+  private outputs: StackOutput[] = [];
   private vpcAssignedCidrs: VpcAssignedCidr[] = [];
   private subnetAssignedCidrs: SubnetAssignedCidr[] = [];
   private readonly outputFolder: string;
@@ -168,6 +189,8 @@ export class ConvertAseaConfig {
   private readonly acceleratorName: string;
   private vpcConfigs: ResolvedVpcConfig[] = [];
   private globalOptions: GlobalOptionsConfig | undefined;
+  private ssmClients: { [region: string]: SSM } = {};
+  private lzaAccountKeys: string[] | undefined;
   constructor(config: Config) {
     this.aseaConfigRepositoryName = config.repositoryName;
     this.region = config.homeRegion;
@@ -176,9 +199,32 @@ export class ConvertAseaConfig {
     this.parametersTable = `${this.aseaPrefix}Parameters`;
     this.acceleratorName = config.acceleratorName!;
     this.mappingFileBucketName = config.mappingBucketName!;
+    this.sts = new STS();
     this.s3 = new S3(undefined, this.region);
     this.dynamoDb = new DynamoDB(undefined, this.region);
     this.outputFolder = config.configOutputFolder ?? 'converted';
+  }
+
+  async putParameter(name: string, value: string, accountKey?: string, region?: string) {
+    const parameterRegion = region ?? this.region;
+    const parameterAccountId = getAccountId(
+      this.accounts,
+      accountKey ?? this.globalOptions?.['aws-org-management'].account!,
+    )!;
+    const ssmClientKey = `${accountKey}-${parameterRegion}`;
+    if (!this.ssmClients[ssmClientKey]) {
+      const credentials = await this.sts.getCredentialsForAccountAndRole(
+        parameterAccountId,
+        `${this.aseaPrefix}PipelineRole`,
+      );
+      this.ssmClients[ssmClientKey] = new SSM(credentials, parameterRegion);
+    }
+    await this.ssmClients[ssmClientKey].putParameter({
+      Name: name,
+      Value: value,
+      Type: 'String',
+      Overwrite: true,
+    });
   }
 
   async process() {
@@ -190,12 +236,13 @@ export class ConvertAseaConfig {
     this.accounts = await loadAccounts(this.parametersTable, this.dynamoDb);
     this.vpcAssignedCidrs = await loadVpcAssignedCidrs(vpcCidrsTableName(this.aseaPrefix), this.dynamoDb);
     this.subnetAssignedCidrs = await loadSubnetAssignedCidrs(subnetsCidrsTableName(this.aseaPrefix), this.dynamoDb);
+    this.outputs = await loadOutputs(`${this.aseaPrefix}Outputs`, this.dynamoDb);
     this.vpcConfigs = aseaConfig.getVpcConfigs();
     this.globalOptions = aseaConfig['global-options'];
     await this.copyAdditionalAssets();
     await this.prepareGlobalConfig(aseaConfig);
     await this.prepareIamConfig(aseaConfig);
-    await this.prepareAccountConfig(aseaConfig);
+    this.lzaAccountKeys = await this.prepareAccountConfig(aseaConfig);
     await this.prepareOrganizationConfig(aseaConfig);
     await this.prepareSecurityConfig(aseaConfig);
     await this.prepareNetworkConfig(aseaConfig);
@@ -207,7 +254,10 @@ export class ConvertAseaConfig {
   private async copyAdditionalAssets() {
     const dirname = path.join(this.outputFolder, LZA_CONFIG_RULES);
     if (!fs.existsSync(dirname)) fs.mkdirSync(dirname, { recursive: true });
-    for (const fileName of Object.values(ConfigRuleRolePolicies)) {
+    for (const fileName of Object.values(ConfigRuleRemediationAssets)) {
+      fs.copyFileSync(path.join(__dirname, 'assets', fileName), path.join(this.outputFolder, fileName));
+    }
+    for (const fileName of Object.values(ConfigRuleDetectionAssets)) {
       fs.copyFileSync(path.join(__dirname, 'assets', fileName), path.join(this.outputFolder, fileName));
     }
   }
@@ -446,7 +496,7 @@ export class ConvertAseaConfig {
       cdkOptions: {
         centralizeBuckets: true,
         useManagementAccessRole: false,
-        customDeploymentRole: `${this.aseaPrefix}DeploymentRole`,
+        customDeploymentRole: `${this.aseaPrefix}LZA-DeploymentRole`,
         forceBootstrap: true,
       }, // TODO: Config default
       logging: {
@@ -1136,6 +1186,7 @@ export class ConvertAseaConfig {
       accountIds: [],
       workloadAccounts: [],
     };
+    const accountKeys: string[] = [];
     Object.entries(aseaConfig['mandatory-account-configs']).forEach(([accountKey, accountConfig]) => {
       accountsConfig.mandatoryAccounts.push({
         name: this.getAccountKeyforLza(aseaConfig['global-options'], accountKey),
@@ -1144,6 +1195,7 @@ export class ConvertAseaConfig {
         organizationalUnit: accountConfig.ou,
         warm: false,
       });
+      accountKeys.push(this.getAccountKeyforLza(aseaConfig['global-options'], accountKey));
     });
     Object.entries(aseaConfig['workload-account-configs']).forEach(([accountKey, accountConfig]) => {
       accountsConfig.workloadAccounts.push({
@@ -1153,10 +1205,12 @@ export class ConvertAseaConfig {
         organizationalUnit: accountConfig.ou,
         warm: false,
       });
+      accountKeys.push(accountKey);
     });
 
     const yamlConfig = yaml.dump(accountsConfig, { noRefs: true });
     await writeConfig(path.join(this.outputFolder, AccountsConfig.FILENAME), yamlConfig);
+    return accountKeys;
   }
 
   /**
@@ -1304,6 +1358,7 @@ export class ConvertAseaConfig {
       awsConfig: {
         enableConfigurationRecorder: true,
         enableDeliveryChannel: true,
+        overrideExisting: true,
         ruleSets: [],
       },
       centralSecurityServices: {
@@ -1318,7 +1373,7 @@ export class ConvertAseaConfig {
           enable: true,
         },
         auditManager: {
-          enable: true,
+          enable: false,
           excludeRegions: [],
           defaultReportsConfiguration: {
             enable: true,
@@ -1458,7 +1513,7 @@ export class ConvertAseaConfig {
           metrics: values.map((v) => ({
             filterName: v['filter-name'],
             logGroupName: v['loggroup-name'],
-            filterPattern: v['filter-pattern'],
+            filterPattern: v['filter-pattern'].trim(),
             metricNamespace: v['metric-namespace'],
             metricName: v['metric-name'],
             metricValue: v['metric-value'],
@@ -1490,23 +1545,33 @@ export class ConvertAseaConfig {
         return [...item.accounts, ...item.regions];
       });
       Object.entries(consolidatedAlarms).forEach(([_groupKey, values]) => {
-        securityConfigAttributes.cloudWatch.alarmSets.push({
-          regions: values[0].regions,
-          deploymentTargets: { accounts: values[0].accounts.map((a) => this.getAccountKeyforLza(globalOptions, a)) },
-          alarms: values.map((v) => ({
-            alarmName: v['alarm-name'],
-            alarmDescription: v['alarm-description'],
-            snsTopicName: `${this.aseaPrefix}Notification-${v['sns-alert-level']}`,
-            metricName: v['metric-name'],
-            namespace: v.namespace,
-            comparisonOperator: v['comparison-operator'],
-            evaluationPeriods: v['evaluation-periods'],
-            period: v.period,
-            statistic: v.statistic,
-            threshold: v.threshold,
-            treatMissingData: v['treat-missing-data'],
-          })),
+        const alarmAccountKeys = values[0].accounts.map((account) => {
+          return this.getAccountKeyforLza(globalOptions, account);
         });
+
+        const existingAlarmAccounts = alarmAccountKeys.filter((alarmAccount) => {
+          return this.lzaAccountKeys?.includes(alarmAccount);
+        });
+
+        if (existingAlarmAccounts.length > 0) {
+          securityConfigAttributes.cloudWatch.alarmSets.push({
+            regions: values[0].regions,
+            deploymentTargets: { accounts: values[0].accounts.map((a) => this.getAccountKeyforLza(globalOptions, a)) },
+            alarms: values.map((v) => ({
+              alarmName: v['alarm-name'],
+              alarmDescription: v['alarm-description'],
+              snsTopicName: `${this.aseaPrefix}Notification-${v['sns-alert-level']}`,
+              metricName: v['metric-name'],
+              namespace: v.namespace,
+              comparisonOperator: v['comparison-operator'],
+              evaluationPeriods: v['evaluation-periods'],
+              period: v.period,
+              statistic: v.statistic,
+              threshold: v.threshold,
+              treatMissingData: v['treat-missing-data'],
+            })),
+          });
+        }
       });
     };
     const setDefaultEBSVolumeEncryptionConfig = async () => {
@@ -1549,12 +1614,14 @@ export class ConvertAseaConfig {
       for (const configRule of globalOptions['aws-config'].rules) {
         const deployToOus: string[] = [];
         const excludedAccounts: string[] = [];
-        const excludedRegions = new Set<string>();
+        let excludeRemediateRegions: string[] = [];
         organizationalUnits.forEach(([ouKey, ouConfig]) => {
           const matchedConfig = ouConfig['aws-config'].find((c) => c.rules.includes(configRule.name));
           if (!matchedConfig) return;
           deployToOus.push(ouKey);
-          matchedConfig['excl-regions'].forEach((r) => excludedRegions.add(r));
+          excludeRemediateRegions = (this.globalOptions?.['supported-regions'] ?? []).filter(
+            (region) => !matchedConfig['remediate-regions']?.includes(region),
+          );
         });
         deployToOus.forEach((ouKey) => {
           for (const [accountKey, accountConfig] of aseaConfig.getAccountConfigsForOu(ouKey)) {
@@ -1567,32 +1634,65 @@ export class ConvertAseaConfig {
             }
           }
         });
+        const defaultSourcePath = `${configRule.name.toLowerCase()}.zip`;
+        let customRuleProps;
+        if (configRule.type === 'custom') {
+          const aseaFilePath = path.join(CONFIG_RULES_PATH, configRule['runtime-path'] ?? defaultSourcePath);
+          const lzaFilePath = path.join(
+            this.outputFolder,
+            LZA_CONFIG_RULES,
+            configRule['runtime-path'] ?? defaultSourcePath,
+          );
+          const configSource = await this.s3.getObjectBody({
+            Bucket: this.centralBucketName,
+            Key: aseaFilePath,
+          });
+          await writeFile(lzaFilePath, configSource);
+          customRuleProps = {
+            lambda: {
+              handler: 'index.handler',
+              rolePolicyFile: ConfigRuleDetectionAssets[configRule.name] ?? '/** TODO: Create Policy **/',
+              runtime: configRule.runtime!,
+              sourceFilePath: path.join(LZA_CONFIG_RULES, configRule['runtime-path'] ?? defaultSourcePath),
+              timeout: undefined,
+            },
+            maximumExecutionFrequency: configRule['max-frequency'] ?? 'TwentyFour_Hours',
+            periodic: !!configRule['max-frequency'],
+            configurationChanges: !!configRule['resource-types'].length,
+            triggeringResources: {
+              lookupKey: 'ResourceTypes',
+              lookupType: 'ResourceTypes',
+              lookupValue: configRule['resource-types'],
+            },
+          };
+        }
         const rule: AwsConfigRule & { deployTo?: string[]; excludedAccounts?: string[]; excludedRegions?: string[] } = {
           name: configRule.name,
           description: undefined,
           identifier: undefined,
-          type: configRule.type,
+          type: configRule.type === 'custom' ? 'Custom' : undefined,
           inputParameters: this.replaceAccelLookupValues(configRule.parameters),
           tags: undefined,
-          complianceResourceTypes: configRule['resource-types'].length > 0 ? configRule['resource-types'] : undefined,
+          complianceResourceTypes: configRule.type === 'managed' ? configRule['resource-types'] : undefined,
           remediation: configRule.remediation
             ? {
                 targetId: configRule['remediation-action']!,
                 parameters: this.replaceAccelLookupValuesForRedemption(configRule['remediation-params']),
-                maximumAutomaticAttempts: configRule['remediation-attempts'],
-                retryAttemptSeconds: configRule['remediation-retry-seconds'],
+                maximumAutomaticAttempts: configRule['remediation-attempts'] ?? 5,
+                retryAttemptSeconds: configRule['remediation-retry-seconds'] ?? 60,
                 automatic: true,
                 rolePolicyFile:
-                  ConfigRuleRolePolicies[configRule['remediation-action']!] ?? '/** TODO: Create Policy **/',
+                  ConfigRuleRemediationAssets[configRule['remediation-action']!] ?? '/** TODO: Create Policy **/',
                 targetAccountName: undefined,
                 targetDocumentLambda: undefined,
                 targetVersion: undefined,
+                excludeRegions: excludeRemediateRegions as Region[],
               }
             : undefined,
-          customRule: undefined,
+          customRule: customRuleProps,
           deployTo: deployToOus,
           excludedAccounts,
-          excludedRegions: Array.from(excludedRegions),
+          excludedRegions: excludeRemediateRegions,
         };
         rulesWithTarget.push(rule);
       }
@@ -1607,13 +1707,7 @@ export class ConvertAseaConfig {
         };
         securityConfigAttributes.awsConfig.ruleSets.push({
           deploymentTargets,
-          rules: values.map((cr) => ({
-            name: cr.name,
-            type: cr.type,
-            inputParameters: cr.inputParameters,
-            complianceResourceTypes: cr.complianceResourceTypes,
-            remediation: cr.remediation,
-          })),
+          rules: values,
         });
       });
     };
@@ -1679,7 +1773,9 @@ export class ConvertAseaConfig {
         deploymentTargets?: {
           accounts: string[];
           organizationalUnits: string[];
+          excludedRegions?: string[];
         };
+        isExisting: true;
       };
       const certificates: CertificateType[] = [];
       const processedCertificates = new Set<string>();
@@ -1697,25 +1793,14 @@ export class ConvertAseaConfig {
             organizationalUnits: organizationalUnitsConfig
               .filter(([_ouKey, ouConfig]) => !!ouConfig.certificates?.find((c) => c.name === certificate.name))
               .map(([ouKey]) => ouKey),
+            excludedRegions: this.globalOptions?.['supported-regions'].filter((region) => region !== this.region) ?? [],
           },
+          isExisting: true,
         };
         if (ImportCertificateConfigType.is(certificate)) {
           certificateConfig.privKey = certificate['priv-key'];
           certificateConfig.cert = certificate.cert;
           certificateConfig.chain = certificate.chain;
-          /**
-           * Certificate Private Key and certificate are not needed since certificates are already imported
-           */
-          // const privateKeyData = await this.s3.getObjectBodyAsString({
-          //   Bucket: this.centralBucketName,
-          //   Key: certificate['priv-key'],
-          // });
-          // await writeConfig(path.join(this.outputFolder, certificate['priv-key']), privateKeyData);
-          // const certData = await this.s3.getObjectBodyAsString({
-          //   Bucket: this.centralBucketName,
-          //   Key: certificate.cert,
-          // });
-          // await writeConfig(path.join(this.outputFolder, certificate.cert), certData);
         } else {
           certificateConfig.domain = certificate.domain;
           certificateConfig.validation = certificate.validation;
@@ -1723,17 +1808,34 @@ export class ConvertAseaConfig {
         }
         return certificateConfig;
       };
-      for (const [_accountKey, accountConfig] of accountsConfig) {
+      for (const [accountKey, accountConfig] of accountsConfig) {
         if (!accountConfig.certificates) continue;
         for (const certificate of accountConfig.certificates) {
+          const certificateOutput = findValuesFromOutputs({
+            outputs: this.outputs,
+            accountKey,
+            region: this.region,
+            predicate: (o) => o.type === 'Acm' && o.value.certificateName === certificate.name,
+          })?.[0];
+          await this.putParameter(`/acm/${certificate.name}/arn`, certificateOutput.value.certificateArn, accountKey);
           if (processedCertificates.has(certificate.name)) return;
           certificates.push(await getTransformedCertificate(certificate));
           processedCertificates.add(certificate.name);
         }
       }
-      for (const [_ouKey, ouConfig] of organizationalUnitsConfig) {
+      for (const [ouKey, ouConfig] of organizationalUnitsConfig) {
         if (!ouConfig.certificates) continue;
+        const organizationAccounts = this.accounts.filter((account) => account.ou === ouKey);
         for (const certificate of ouConfig.certificates) {
+          for (const { key: accountKey } of organizationAccounts ?? []) {
+            const certificateOutput = findValuesFromOutputs({
+              outputs: this.outputs,
+              accountKey,
+              region: this.region,
+              predicate: (o) => o.type === 'Acm' && o.value.certificateName === certificate.name,
+            })?.[0];
+            await this.putParameter(`/acm/${certificate.name}/arn`, certificateOutput.value.certificateArn, accountKey);
+          }
           if (processedCertificates.has(certificate.name)) return;
           certificates.push(await getTransformedCertificate(certificate));
           processedCertificates.add(certificate.name);
