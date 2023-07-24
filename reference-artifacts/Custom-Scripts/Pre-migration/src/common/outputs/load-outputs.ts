@@ -40,7 +40,7 @@ export async function loadOutputs(tableName: string, client: DynamoDB): Promise<
 
 export function parseValueFromOutput(output: StackOutput) {
   try {
-    if (output.outputValue && output.outputValue.startsWith('{')) {
+    if (output.outputValue?.startsWith('{')) {
       return {
         ...output,
         ...JSON.parse(output.outputValue),
