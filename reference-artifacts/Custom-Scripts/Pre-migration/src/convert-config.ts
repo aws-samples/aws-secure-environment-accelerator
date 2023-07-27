@@ -79,7 +79,7 @@ import { AwsConfigRule, SecurityConfig } from './config/security-config';
 import { StackOutput, findValuesFromOutputs, loadOutputs } from './common/outputs/load-outputs';
 import { SSM } from './common/aws/ssm';
 import { STS } from './common/aws/sts';
-import { Region } from './config/common-types';
+import { Region, ShareTargets } from './config/common-types';
 
 const IAM_POLICY_CONFIG_PATH = 'iam-policy';
 const SCP_CONFIG_PATH = 'scp';
@@ -1819,7 +1819,11 @@ export class ConvertAseaConfig {
             region: this.region,
             predicate: (o) => o.type === 'Acm' && o.value.certificateName === certificate.name,
           })?.[0];
-          await this.putParameter(`/acm/${certificate.name}/arn`, certificateOutput.value.certificateArn, accountKey);
+          await this.putParameter(
+            `/${this.aseaPrefix.slice(0, -1)}/acm/${certificate.name}/arn`,
+            certificateOutput.value.certificateArn,
+            accountKey,
+          );
           if (processedCertificates.has(certificate.name)) return;
           certificates.push(await getTransformedCertificate(certificate));
           processedCertificates.add(certificate.name);
@@ -1836,7 +1840,11 @@ export class ConvertAseaConfig {
               region: this.region,
               predicate: (o) => o.type === 'Acm' && o.value.certificateName === certificate.name,
             })?.[0];
-            await this.putParameter(`/acm/${certificate.name}/arn`, certificateOutput.value.certificateArn, accountKey);
+            await this.putParameter(
+              `/${this.aseaPrefix.slice(0, -1)}/acm/${certificate.name}/arn`,
+              certificateOutput.value.certificateArn,
+              accountKey,
+            );
           }
           if (processedCertificates.has(certificate.name)) return;
           certificates.push(await getTransformedCertificate(certificate));
@@ -1888,6 +1896,27 @@ export class ConvertAseaConfig {
         });
         return lzaRoutes;
       };
+
+      const prepareTransitGatewayShareTargets = (accountKey: string, tgwConfig: TgwDeploymentConfig) => {
+        const attachVpcConfig = this.vpcConfigs.filter(
+          ({ vpcConfig }) =>
+            vpcConfig['tgw-attach'] &&
+            vpcConfig['tgw-attach'].account === accountKey &&
+            vpcConfig['tgw-attach']['associate-to-tgw'] === tgwConfig.name &&
+            vpcConfig['tgw-attach']['associate-type'] === 'ATTACH',
+        );
+
+        const shareTargets: ShareTargets = {
+          organizationalUnits: [],
+          accounts: [],
+        };
+        attachVpcConfig.forEach(({ ouKey, accountKey: vpcAccountKey }) => {
+          if (vpcAccountKey && accountKey !== vpcAccountKey)
+            shareTargets.accounts.push(this.getAccountKeyforLza(this.globalOptions!, vpcAccountKey));
+          if (!vpcAccountKey) shareTargets.organizationalUnits.push(ouKey);
+        });
+        return shareTargets;
+      };
       const tgwAccountConfigs = accountsConfig.filter(
         ([_accountKey, accountConfig]) => (accountConfig.deployments?.tgw?.length || 0) > 0,
       );
@@ -1922,6 +1951,7 @@ export class ConvertAseaConfig {
                 tgwConfig,
               ),
             })),
+            shareTargets: prepareTransitGatewayShareTargets(accountKey, tgwConfig),
           });
           if (tgwConfig['tgw-attach']) {
             const tgwPeeringConfig = tgwConfig['tgw-attach'];
