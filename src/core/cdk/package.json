@@ -22,7 +22,7 @@
     "@aws-accelerator/accelerator-runtime": "workspace:*",
     "@aws-accelerator/cdk-accelerator": "workspace:*",
     "aws-cdk": "2.38.0",
-    "aws-cdk-lib": "2.38.0",
+    "aws-cdk-lib": "2.80.0",
     "constructs": "10.0.12",
     "cdk-assets": "2.38.0"
   },

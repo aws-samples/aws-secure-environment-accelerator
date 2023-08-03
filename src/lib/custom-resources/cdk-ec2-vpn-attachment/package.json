@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@aws-accelerator/custom-resource-ec2-vpn-attachment": "link:",
-    "aws-cdk-lib": "2.38.0",
+    "aws-cdk-lib": "2.80.0",
     "constructs": "10.0.12"
   },
   "devDependencies": {
@@ -24,6 +24,6 @@
     "typescript": "4.2.4"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "2.38.0"
+    "aws-cdk-lib": "2.80.0"
   }
 }

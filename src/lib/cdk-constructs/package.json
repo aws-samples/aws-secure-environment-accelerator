@@ -28,7 +28,7 @@
     "@aws-accelerator/custom-resource-security-hub-accept-invites": "workspace:*",
     "@aws-accelerator/custom-resource-security-hub-enable": "workspace:*",
     "@aws-accelerator/custom-resource-security-hub-send-invites": "workspace:*",
-    "aws-cdk-lib": "2.38.0",
+    "aws-cdk-lib": "2.80.0",
     "constructs": "10.0.12",
     "aws-sdk": "2.1356.0",
     "hash-sum": "2.0.0",

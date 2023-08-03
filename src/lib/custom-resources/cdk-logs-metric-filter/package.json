@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@aws-accelerator/custom-resource-logs-metric-filter-runtime": "workspace:*",
-    "aws-cdk-lib": "2.38.0",
+    "aws-cdk-lib": "2.80.0",
     "constructs": "10.0.12"
   },
   "devDependencies": {
@@ -17,6 +17,6 @@
   },
   "peerDependencies": {
     "@aws-accelerator/custom-resource-logs-metric-filter-runtime": "workspace:*",
-    "aws-cdk-lib": "2.38.0"
+    "aws-cdk-lib": "2.80.0"
   }
 }

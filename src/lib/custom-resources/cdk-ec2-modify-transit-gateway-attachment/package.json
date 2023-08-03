@@ -10,7 +10,7 @@
   "dependencies": {
     "@aws-accelerator/custom-resource-ec2-modify-transit-gateway-vpc-attachment": "link:",
     "@aws-accelerator/custom-resource-ec2-modify-transit-gateway-vpc-attachment-runtime": "workspace:*",
-    "aws-cdk-lib": "2.38.0",
+    "aws-cdk-lib": "2.80.0",
     "constructs": "10.0.12"
   },
   "devDependencies": {
@@ -18,6 +18,6 @@
   },
   "peerDependencies": {
     "@aws-accelerator/custom-resource-ec2-modify-transit-gateway-vpc-attachment-runtime": "workspace:*",
-    "aws-cdk-lib": "2.38.0"
+    "aws-cdk-lib": "2.80.0"
   }
 }
