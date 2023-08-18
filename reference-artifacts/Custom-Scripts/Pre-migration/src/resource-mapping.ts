@@ -252,7 +252,12 @@ export class ResourceMapping {
     const resourceFileCSV = this.convertToCSV(stackAndResourceMap.resourceMap);
     for (const resource of driftDetectionResources) {
       if (resource.DriftStatus === 'MODIFIED') {
-        this.driftedResources.push(resource);
+        this.driftedResources.push({
+          Account: stackAndResourceMap.environment.accountId,
+          Region: stackAndResourceMap.region,
+          StackName: stackAndResourceMap.stackName,
+          ...resource,
+        });
       }
     }
 
