@@ -8,12 +8,12 @@
     "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.38.0",
-    "constructs": "10.0.12"
+    "aws-cdk-lib": "2.95.1",
+    "constructs": "10.2.70"
   },
   "devDependencies": {
     "@aws-accelerator/custom-resource-ssm-create-document-runtime": "workspace:*",
-    "@types/node": "16.18.27"
+    "@types/node": "20.6.0"
   },
   "peerDependencies": {
     "aws-cdk-lib": "2.38.0"

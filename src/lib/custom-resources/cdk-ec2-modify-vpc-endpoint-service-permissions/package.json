@@ -10,11 +10,11 @@
   "dependencies": {
     "@aws-accelerator/custom-resource-modify-vpc-endpoint-service-permissions": "link:",
     "@aws-accelerator/custom-resource-modify-vpc-endpoint-service-permissions-runtime": "workspace:*",
-    "aws-cdk-lib": "2.38.0",
-    "constructs": "10.0.12"
+    "aws-cdk-lib": "2.95.1",
+    "constructs": "10.2.70"
   },
   "devDependencies": {
-    "@types/node": "16.18.27"
+    "@types/node": "20.6.0"
   },
   "peerDependencies": {
     "@aws-accelerator/custom-resource-modify-vpc-endpoint-service-permissions-runtime": "workspace:*",

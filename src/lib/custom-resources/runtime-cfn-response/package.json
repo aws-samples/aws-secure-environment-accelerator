@@ -8,13 +8,13 @@
     "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
   },
   "dependencies": {
-    "aws-lambda": "1.0.6",
-    "exponential-backoff": "3.1.0"
+    "aws-lambda": "1.0.7",
+    "exponential-backoff": "3.1.1"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.76",
-    "@types/node": "16.18.27",
-    "typescript": "4.2.4"
+    "@types/aws-lambda": "8.10.120",
+    "@types/node": "20.6.0",
+    "typescript": "5.2.2"
   },
   "peerDependencies": {
     "aws-lambda": "1.0.6",

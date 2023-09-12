@@ -9,10 +9,10 @@
     "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
   },
   "dependencies": {
-    "io-ts": "2.2.16"
+    "io-ts": "2.2.20"
   },
   "devDependencies": {
-    "ts-node": "9.1.1",
-    "typescript": "4.2.4"
+    "ts-node": "10.9.1",
+    "typescript": "5.2.2"
   }
 }
