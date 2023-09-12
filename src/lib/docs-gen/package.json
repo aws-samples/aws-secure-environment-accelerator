@@ -13,7 +13,7 @@
     "gen-ts-from-json-schema-fr": "pnpx ts-node scripts/generate-typescript-from-schema.ts ./output-schema/schema-fr.json ./output-ts/fr/ts-fr.ts",
     "gen-i18n-from-json-schema-all": "pnpm run gen-i18n-from-json-schema-en && pnpm run gen-i18n-from-json-schema-fr",
     "gen-i18n-from-json-schema-en": "pnpx ts-node scripts/generate-translation-file.ts en ./output-schema/schema-en.json ./output-translations/translation-en.json",
-    "gen-i18n-from-json-schema-fr": "pnpx ts-node scripts/generate-translation-file.ts fr ./output-schema/schema-fr.json ./output-translations/translation-fr.json",
+    "gen-i18n-from-json-schema-fr": "pnpx ts-node scripts/generate-translation-file.ts fr ./output-schema/schema-fr.json ./output-translations/translation-fr.json"
   },
   "keywords": [],
   "license": "MIT",
