@@ -14,7 +14,6 @@
     "gen-i18n-from-json-schema-all": "pnpm run gen-i18n-from-json-schema-en && pnpm run gen-i18n-from-json-schema-fr",
     "gen-i18n-from-json-schema-en": "pnpx ts-node scripts/generate-translation-file.ts en ./output-schema/schema-en.json ./output-translations/translation-en.json",
     "gen-i18n-from-json-schema-fr": "pnpx ts-node scripts/generate-translation-file.ts fr ./output-schema/schema-fr.json ./output-translations/translation-fr.json",
-    "build": "pnpm run gen-docs"
   },
   "keywords": [],
   "license": "MIT",
