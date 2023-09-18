@@ -1,5 +1,5 @@
 /**
- *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  Copyright 2023 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
  *  with the License. A copy of the License is located at
@@ -26,7 +26,7 @@ export async function loadAseaConfig(props: {
   const codecommit = new CodeCommit(undefined, defaultRegion);
   try {
     const file = await codecommit.getFile({ repositoryName, filePath });
-    const source = file.fileContent.toString();
+    const source = file.fileContent!.toString();
     return AcceleratorConfig.fromString(source);
   } catch (e: any) {
     throw new Error(
