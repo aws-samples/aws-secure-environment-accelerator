@@ -24,9 +24,9 @@ export class Snapshot {
   private readonly preMigrationSnapshot: boolean;
 
   constructor(config: Config) {
-    this.aseaPrefix = config.aseaPrefix ?? 'ASEA';
+    this.aseaPrefix = config.aseaPrefix ?? 'ASEA-';
     this.roleName = config.assumeRoleName ?? 'OrganizationAccountAccessRole';
-    this.tableName = `${this.aseaPrefix}-config-snapshot`;
+    this.tableName = `${this.aseaPrefix}config-snapshot`;
     this.homeRegion = config.homeRegion ?? 'ca-central-1';
     this.preMigrationSnapshot = false;
   }

@@ -1,4 +1,19 @@
+/**
+ *  Copyright 2023 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
 /* eslint-disable @typescript-eslint/member-ordering */
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import { CodeCommitClient, CreateCommitCommand, GetBranchCommand, PutFileEntry } from '@aws-sdk/client-codecommit';
 import { CloudFormation } from 'aws-sdk';
 import { loadAseaConfig } from './asea-config/load';
 import aws from './common/aws/aws-client';
@@ -7,6 +22,7 @@ import { DynamoDB } from './common/aws/dynamodb';
 import { STS } from './common/aws/sts';
 import { Account } from './common/outputs/accounts';
 import { loadAccounts } from './common/utils/accounts';
+import * as convert from './common/utils/conversion';
 import { Config } from './config';
 
 interface Environment {
@@ -57,27 +73,42 @@ interface ASEAMapping {
   numberOfResourcesInTemplate: number;
 }
 
+interface ResourceMappingFile {
+  accountId: string;
+  region: string;
+  stackName: string;
+  path: string;
+  fileName: string;
+}
+
 export class ResourceMapping {
   private readonly s3: aws.S3;
+  private readonly codecommit: CodeCommitClient;
   private readonly dynamodb: DynamoDB;
   private sts: STS;
   private readonly region: string;
-  private readonly mappingFileBucketName: string;
+  private readonly mappingBucketName: string;
   private readonly parametersTableName: string;
   private readonly configRepositoryName: string;
   private readonly assumeRoleName: string;
+  private readonly mappingRepositoryName: string;
+  private readonly outputsDirectory: string;
+  private readonly resourceMappingFiles: ResourceMappingFile[] = [];
   private driftedResources: any[] = [];
   constructor(config: Config) {
-    this.mappingFileBucketName = config.mappingBucketName!;
+    this.mappingBucketName = config.mappingBucketName!;
     this.region = config.homeRegion;
     this.parametersTableName = config.parametersTableName;
     this.configRepositoryName = config.repositoryName;
     this.assumeRoleName = config.assumeRoleName ?? 'OrganizationAccountAccessRole';
+    this.mappingRepositoryName = config.mappingRepositoryName;
+    this.outputsDirectory = './outputs';
     this.dynamodb = new DynamoDB(undefined, this.region);
     this.sts = new STS();
     this.s3 = new aws.S3({
       region: this.region,
     });
+    this.codecommit = new CodeCommitClient({ region: this.region });
   }
 
   async process() {
@@ -86,7 +117,7 @@ export class ResourceMapping {
       repositoryName: this.configRepositoryName,
       defaultRegion: this.region,
     });
-    await this.validateS3Bucket(this.mappingFileBucketName);
+    await this.validateS3Bucket(this.mappingBucketName);
     const enabledRegions = configFile['global-options']['supported-regions'];
     const accountList = await this.getAccountListFromDDB(this.parametersTableName);
     const environments = this.getEnvironments(accountList, enabledRegions);
@@ -95,10 +126,11 @@ export class ResourceMapping {
     const environmentStackAndResourcesMap = await this.getEnvironmentMetaData(environments, environmentsStackMap);
     const aseaMapping = this.createAseaMapping(environmentStackAndResourcesMap, environmentsStackMap);
     await this.detectDrift(environmentStackAndResourcesMap, cfnClients);
-    const aseaMappingString = JSON.stringify(aseaMapping, null, 4);
+    const aseaMappingString = JSON.stringify(aseaMapping, null);
     const driftDetectionCsv = this.convertToCSV(this.driftedResources);
     await this.writeToS3(aseaMappingString, 'mapping.json');
     await this.writeToS3(driftDetectionCsv, 'AllDriftDetectedResources.csv');
+    await this.writeToCodeCommit(driftDetectionCsv, 'AllDriftDetectedResources.csv');
   }
 
   createAseaMapping(stackAndResourceMap: Map<string, StacksAndResourceMap>, stackMap: Map<string, string[]>) {
@@ -218,9 +250,27 @@ export class ResourceMapping {
         );
       }
       const stackAndResourcesList = await Promise.all(stackAndResourcesMapPromises);
+      const putFiles: PutFileEntry[] = [];
       for (const item of stackAndResourcesList) {
+        const filePath = `resource-mapping/${item.environment.accountId}`;
+        const fileName = `${item.environment.accountId}-${item.environment.region}-${item.stackName}.json`;
+        putFiles.push({
+          filePath: `${filePath}/${fileName}`,
+          fileContent: convert.encodeBase64(JSON.stringify(item)),
+        });
         stackAndResourceMap.set(`${item.environment.accountId}-${item.environment.region}-${item.stackName}`, item);
       }
+      const getBranchCommand = await this.codecommit.send(
+        new GetBranchCommand({ repositoryName: this.mappingRepositoryName, branchName: 'main' }),
+      );
+      await this.codecommit.send(
+        new CreateCommitCommand({
+          repositoryName: this.mappingRepositoryName,
+          parentCommitId: getBranchCommand.branch!.commitId,
+          branchName: 'main',
+          putFiles: putFiles,
+        }),
+      );
     }
     return stackAndResourceMap;
   }
@@ -395,7 +445,6 @@ export class ResourceMapping {
 
     // Loop to get value of each objects key
     for (const row of data) {
-      console.log(`row: ${JSON.stringify(row)}`);
       let val: string;
       const values = headers.map((header) => {
         if (header === 'resourceMetadata' || header === 'PropertyDifferences') {
@@ -490,7 +539,7 @@ export class ResourceMapping {
         this.s3
           .putObject({
             Body: prettifiedMapping,
-            Bucket: this.mappingFileBucketName,
+            Bucket: this.mappingBucketName,
             Key: fileName,
             ServerSideEncryption: 'AES256',
           })
@@ -498,6 +547,54 @@ export class ResourceMapping {
       );
     } catch (error) {
       console.warn(error);
+    }
+  }
+
+  async writeToOutputsDirectory(prettifiedMapping: string, fileName: string): Promise<void> {
+    const outputPath = this.outputsDirectory + '/' + path.parse(fileName).dir;
+    await fs.mkdir(outputPath, { recursive: true });
+    await fs.writeFile(path.join(this.outputsDirectory, fileName), prettifiedMapping);
+  }
+
+  async writeToCodeCommit(prettifiedMapping: string, fileName: string): Promise<void> {
+    const getBranchCommand = await this.codecommit.send(
+      new GetBranchCommand({ repositoryName: this.mappingRepositoryName, branchName: 'main' }),
+    );
+    try {
+      await throttlingBackOff(() =>
+        this.codecommit.send(
+          new CreateCommitCommand({
+            repositoryName: this.mappingRepositoryName,
+            parentCommitId: getBranchCommand.branch!.commitId,
+            branchName: 'main',
+            putFiles: [
+              {
+                filePath: fileName,
+                fileContent: convert.encodeBase64(prettifiedMapping),
+              },
+            ],
+          }),
+        ),
+      );
+    } catch (error: any) {
+      console.error('Failed to write to codecommit');
+      console.error(error);
+      throw new Error(error);
+    }
+  }
+
+  async putResourceMappingToCodeCommit(): Promise<void> {
+    for (const resourceMappingFile of this.resourceMappingFiles) {
+      const prettifiedMapping = await fs.readFile(
+        `${this.outputsDirectory}/${resourceMappingFile.path}/${resourceMappingFile.fileName}`,
+        'utf-8',
+      );
+      console.log(`Writing file ${resourceMappingFile.fileName} to codecommit`);
+
+      await this.writeToCodeCommit(
+        prettifiedMapping,
+        `resource-mapping/${resourceMappingFile.accountId}/${resourceMappingFile.fileName}`,
+      );
     }
   }
 
@@ -537,7 +634,7 @@ export class ResourceMapping {
 
   async getS3Prefix(stack: string, region: string): Promise<string> {
     const lowerCaseStackName = stack.toLowerCase();
-    const migrationFilePrefix = 'migration';
+    const migrationFilePrefix = 'migration-resources';
     if (lowerCaseStackName.includes('network')) {
       return `${migrationFilePrefix}/network/${region}/${stack}`;
     } else if (lowerCaseStackName.includes('operations')) {

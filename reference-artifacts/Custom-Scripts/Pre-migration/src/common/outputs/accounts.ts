@@ -45,3 +45,12 @@ export function getAccountArn(accounts: Account[], accountKey: string): string |
   }
   return account.id;
 }
+
+export function getAccountEmail(accounts: Account[], accountKey: string): string | undefined {
+  const account = accounts.find((a) => a.key === accountKey);
+  if (!account) {
+    console.warn(`Cannot find account with key "${accountKey}"`);
+    return;
+  }
+  return account.email;
+}

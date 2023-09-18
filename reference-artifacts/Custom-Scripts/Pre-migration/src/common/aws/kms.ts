@@ -10,17 +10,22 @@
  *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
  *  and limitations under the License.
  */
+import * as kms from 'aws-sdk/clients/kms';
+import aws from './aws-client';
+import { throttlingBackOff } from './backoff';
 
-import { TableOperations } from '../common/dynamodb';
-import { ChangedResources } from '../common/types';
+export class KMS {
+  private readonly client: aws.KMS;
 
-export async function getChangedResources(tableName: string, homeRegion: string): Promise<void> {
-  const snapshotTable = new TableOperations(tableName, homeRegion);
-  const changedResources: ChangedResources = [];
-  const keys = await snapshotTable.getChangedKeys();
-  for (const key of keys) {
-    const result = await snapshotTable.getDataForKey(key);
-    changedResources.push(result);
+  public constructor(credentials?: aws.Credentials, region?: string) {
+    this.client = new aws.KMS({
+      credentials,
+      region,
+    });
   }
-  console.log(`${JSON.stringify(changedResources, null, ' ')}`);
+
+  async getKeyPolicy(input: kms.GetKeyPolicyRequest) {
+    const response = await throttlingBackOff(() => this.client.getKeyPolicy(input).promise());
+    return JSON.parse(response.Policy ?? '{"Version": "2012-10-17", "Statement": []}');
+  }
 }

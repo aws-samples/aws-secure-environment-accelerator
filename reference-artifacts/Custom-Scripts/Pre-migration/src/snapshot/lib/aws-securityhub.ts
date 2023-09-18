@@ -13,23 +13,27 @@
 
 import {
   DescribeHubCommand,
+  DescribeHubCommandOutput,
   DescribeOrganizationConfigurationCommand,
   DescribeOrganizationConfigurationCommandOutput,
   DescribeStandardsControlsCommand,
   GetAdministratorAccountCommand,
+  GetAdministratorAccountCommandOutput,
   GetEnabledStandardsCommand,
+  GetEnabledStandardsCommandOutput,
   GetFindingAggregatorCommand,
   InvalidAccessException,
   ListFindingAggregatorsCommand,
+  ListFindingAggregatorsCommandOutput,
   SecurityHubClient,
   StandardsControl,
   StandardsSubscription,
 } from '@aws-sdk/client-securityhub';
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 
-import { SnapshotData } from '../common/types';
-import { computeHash } from '../common/hash';
 import { throttlingBackOff } from '../../common/aws/backoff';
+import { computeHash } from '../common/hash';
+import { SnapshotData } from '../common/types';
 
 const stringify = require('fast-json-stable-stringify');
 
@@ -77,16 +81,26 @@ export async function getSecurityHubStatus(
     serviceClient = new SecurityHubClient({ region: region });
   }
 
-  const results = await throttlingBackOff(() => serviceClient.send(new DescribeHubCommand({})));
+  let results: DescribeHubCommandOutput | undefined;
+  try {
+    results = await throttlingBackOff(() => serviceClient.send(new DescribeHubCommand({})));
+  } catch (e: any) {
+    if (e instanceof InvalidAccessException) {
+      // catch exception if security hub is not enabled
+    }
+  }
 
-  const jsonResults = await stringify(
-    {
-      HubArn: results.HubArn,
-      AutoEnableControls: results.AutoEnableControls,
-      ControlFindingGenerator: results.ControlFindingGenerator,
-    },
-    { space: 1 },
-  );
+  let jsonResults: string = '{}';
+  if (results) {
+    jsonResults = await stringify(
+      {
+        HubArn: results.HubArn,
+        AutoEnableControls: results.AutoEnableControls,
+        ControlFindingGenerator: results.ControlFindingGenerator,
+      },
+      { space: 1 },
+    );
+  }
   const hash = computeHash(jsonResults);
   return { jsonData: jsonResults, hash: hash };
 }
@@ -103,13 +117,20 @@ export async function getSecurityHubStandardsSubscriptions(
   }
 
   const standardsSubscriptions: StandardsSubscription[] = [];
+  let results: GetEnabledStandardsCommandOutput | undefined;
   let nextToken: string | undefined = undefined;
   do {
-    const results = await throttlingBackOff(() =>
-      serviceClient.send(new GetEnabledStandardsCommand({ NextToken: nextToken })),
-    );
-    nextToken = results.NextToken;
-    if (results.StandardsSubscriptions) {
+    try {
+      results = await throttlingBackOff(() =>
+        serviceClient.send(new GetEnabledStandardsCommand({ NextToken: nextToken })),
+      );
+      nextToken = results.NextToken;
+    } catch (e: any) {
+      if (e instanceof InvalidAccessException) {
+        // catch exception if not security hub is not enabled
+      }
+    }
+    if (results?.StandardsSubscriptions) {
       standardsSubscriptions.push(...results.StandardsSubscriptions);
     }
   } while (nextToken);
@@ -131,13 +152,20 @@ export async function getSecurityHubDisabledControls(
   }
 
   const subscriptionArns: string[] = [];
+  let results: GetEnabledStandardsCommandOutput | undefined;
   let nextToken: string | undefined = undefined;
   do {
-    const results = await throttlingBackOff(() =>
-      serviceClient.send(new GetEnabledStandardsCommand({ NextToken: nextToken })),
-    );
-    nextToken = results.NextToken;
-    if (results.StandardsSubscriptions) {
+    try {
+      results = await throttlingBackOff(() =>
+        serviceClient.send(new GetEnabledStandardsCommand({ NextToken: nextToken })),
+      );
+      nextToken = results.NextToken;
+    } catch (e: any) {
+      if (e instanceof InvalidAccessException) {
+        // catch exception if not security hub is not enabled
+      }
+    }
+    if (results?.StandardsSubscriptions) {
       for (const subscriptionStandard of results.StandardsSubscriptions) {
         subscriptionArns.push(subscriptionStandard.StandardsSubscriptionArn!);
       }
@@ -148,7 +176,7 @@ export async function getSecurityHubDisabledControls(
   let controlsNextToken: string | undefined = undefined;
   for (const subscriptionArn of subscriptionArns) {
     do {
-      const results = await throttlingBackOff(() =>
+      const standardsResults = await throttlingBackOff(() =>
         serviceClient.send(
           new DescribeStandardsControlsCommand({
             StandardsSubscriptionArn: subscriptionArn,
@@ -156,9 +184,9 @@ export async function getSecurityHubDisabledControls(
           }),
         ),
       );
-      controlsNextToken = results.NextToken;
-      if (results.Controls) {
-        const filteredControls = results.Controls.filter((item) => item.ControlStatus === 'DISABLED');
+      controlsNextToken = standardsResults.NextToken;
+      if (standardsResults.Controls) {
+        const filteredControls = standardsResults.Controls.filter((item) => item.ControlStatus === 'DISABLED');
         disabledControls.push(...filteredControls);
       }
     } while (controlsNextToken);
@@ -180,9 +208,19 @@ export async function getSecurityHubAdministratorAccount(
     serviceClient = new SecurityHubClient({ region: region });
   }
 
-  const results = await throttlingBackOff(() => serviceClient.send(new GetAdministratorAccountCommand({})));
+  let results: GetAdministratorAccountCommandOutput | undefined;
+  try {
+    results = await throttlingBackOff(() => serviceClient.send(new GetAdministratorAccountCommand({})));
+  } catch (e: any) {
+    if (e.code === 'BadRequestException') {
+      // catch exception if security hub is not enabled
+    }
+  }
 
-  const jsonResults = await stringify(results.Administrator, { space: 1 });
+  let jsonResults: string = '{}';
+  if (results) {
+    jsonResults = await stringify(results.Administrator, { space: 1 });
+  }
   const hash = computeHash(jsonResults);
   return { jsonData: jsonResults, hash: hash };
 }
@@ -200,12 +238,19 @@ export async function getSecurityHubFindingAggregators(
 
   const findingAggregatorArns: string[] = [];
   let nextToken: string | undefined = undefined;
+  let results: ListFindingAggregatorsCommandOutput | undefined;
   do {
-    const results = await throttlingBackOff(() =>
-      serviceClient.send(new ListFindingAggregatorsCommand({ NextToken: nextToken })),
-    );
-    nextToken = results.NextToken;
-    if (results.FindingAggregators) {
+    try {
+      results = await throttlingBackOff(() =>
+        serviceClient.send(new ListFindingAggregatorsCommand({ NextToken: nextToken })),
+      );
+      nextToken = results.NextToken;
+    } catch (e: any) {
+      if (e instanceof InvalidAccessException) {
+        // catch exception if not security hub is not enabled
+      }
+    }
+    if (results?.FindingAggregators) {
       for (const findingAggregator of results.FindingAggregators) {
         findingAggregatorArns.push(findingAggregator.FindingAggregatorArn!);
       }

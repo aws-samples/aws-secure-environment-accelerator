@@ -1,3 +1,15 @@
+/**
+ *  Copyright 2023 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
 export interface Config {
   repositoryName: string;
   parametersTableName: string;
@@ -5,9 +17,37 @@ export interface Config {
   assumeRoleName?: string;
   aseaPrefix?: string;
   acceleratorName?: string;
-  mappingBucketName?: string;
   centralBucket?: string;
-  configOutputFolder?: string;
   operationsAccountId?: string;
   installerStackName?: string;
+  mappingRepositoryName: string;
+  mappingBucketName: string;
+  lzaConfigRepositoryName: string;
+  lzaCodeRepositorySource?: string;
+  lzaCodeRepositoryOwner?: string;
+  lzaCodeRepositoryName?: string;
+  lzaCodeRepositoryBranch?: string;
+  managementAccountEmail?: string;
+  logArchiveAccountEmail?: string;
+  auditAccountEmail?: string;
+  controlTowerEnabled?: string;
+  aseaConfigBucketName: string;
+}
+
+export interface PostMigrationCommandConfig {
+  /**
+   * ASEA Configuration repository name.
+   * Note: Can be changed to LZA repository name after automating Configuration commit for LZA
+   */
+  repositoryName: string;
+
+  /**
+   * ASEA Prefix
+   */
+  aseaPrefix: string;
+
+  /**
+   * Region where ASEA is installed
+   */
+  homeRegion: string;
 }

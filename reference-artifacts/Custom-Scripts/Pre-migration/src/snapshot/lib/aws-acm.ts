@@ -14,9 +14,9 @@
 import { ACMClient, CertificateSummary, ListCertificatesCommand } from '@aws-sdk/client-acm';
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 
-import { SnapshotData } from '../common/types';
-import { computeHash } from '../common/hash';
 import { throttlingBackOff } from '../../common/aws/backoff';
+import { computeHash } from '../common/hash';
+import { SnapshotData } from '../common/types';
 
 const stringify = require('fast-json-stable-stringify');
 

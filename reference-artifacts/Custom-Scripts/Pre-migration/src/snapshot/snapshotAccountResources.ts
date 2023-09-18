@@ -12,6 +12,7 @@
  */
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 
+import { TableOperations } from './common/dynamodb';
 import { getAccessAnalyzer } from './lib/aws-access-analyzer';
 import { describeAggregator } from './lib/aws-config';
 import { getFmsNotificationChannel } from './lib/aws-fms';
@@ -20,8 +21,6 @@ import { getAccountPasswordPolicy, getIamRoles } from './lib/aws-iam';
 import { getMacieClassicationScopes, getMacieOrganizationConfig } from './lib/aws-macie';
 import { getS3PublicAccessBlock, snapshotS3Resources } from './lib/aws-s3';
 import { getSecurityHubOrganizationConfig } from './lib/aws-securityhub';
-
-import { TableOperations } from './common/dynamodb';
 
 export async function snapshotAccountResources(
   tableName: string,

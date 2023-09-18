@@ -11,7 +11,6 @@
  *  and limitations under the License.
  */
 
-import { S3ControlClient, GetPublicAccessBlockCommand } from '@aws-sdk/client-s3-control';
 import {
   S3Client,
   GetBucketLifecycleConfigurationCommand,
@@ -21,12 +20,13 @@ import {
   GetBucketReplicationCommand,
   ListBucketsCommand,
 } from '@aws-sdk/client-s3';
+import { S3ControlClient, GetPublicAccessBlockCommand } from '@aws-sdk/client-s3-control';
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 
-import { SnapshotData } from '../common/types';
-import { computeHash } from '../common/hash';
-import { TableOperations } from '../common/dynamodb';
 import { throttlingBackOff } from '../../common/aws/backoff';
+import { TableOperations } from '../common/dynamodb';
+import { computeHash } from '../common/hash';
+import { SnapshotData } from '../common/types';
 
 const stringify = require('fast-json-stable-stringify');
 

@@ -11,16 +11,11 @@
  *  and limitations under the License.
  */
 
-import { TableOperations } from '../common/dynamodb';
-import { ChangedResources } from '../common/types';
+export function encodeBase64(text: any): Uint8Array {
+  const base64 = Buffer.from(text, 'binary').toString('base64');
+  return Uint8Array.from(Buffer.from(base64, 'base64'));
+}
 
-export async function getChangedResources(tableName: string, homeRegion: string): Promise<void> {
-  const snapshotTable = new TableOperations(tableName, homeRegion);
-  const changedResources: ChangedResources = [];
-  const keys = await snapshotTable.getChangedKeys();
-  for (const key of keys) {
-    const result = await snapshotTable.getDataForKey(key);
-    changedResources.push(result);
-  }
-  console.log(`${JSON.stringify(changedResources, null, ' ')}`);
+export function decodeBase64(bytes: Uint8Array): string {
+  return Buffer.from(bytes).toString('binary');
 }
