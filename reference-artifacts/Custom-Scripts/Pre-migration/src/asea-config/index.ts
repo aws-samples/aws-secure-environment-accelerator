@@ -1217,6 +1217,22 @@ export class AcceleratorConfig {
     return Object.entries(this['organizational-units']);
   }
 
+  /**
+   * Helper function to return all certificates.
+   * This function will not return where these accounts are deployed. It only returns list of certificates in configuration.
+   */
+  getCertificatesConfig() {
+    const certificates: CertificateConfig[] = [];
+    for (const [_accountKey, accountConfig] of this.getAccountConfigs()) {
+      certificates.push(...(accountConfig.certificates ?? []));
+    }
+
+    for (const [_ouKey, ouConfig] of this.getOrganizationConfigs()) {
+      certificates.push(...(ouConfig.certificates ?? []));
+    }
+    return certificates;
+  }
+
   get managementAccountConfig(): MandatoryAccountConfig {
     const managementAccountName = this['global-options']['aws-org-management'].account;
     return this['mandatory-account-configs'][managementAccountName];

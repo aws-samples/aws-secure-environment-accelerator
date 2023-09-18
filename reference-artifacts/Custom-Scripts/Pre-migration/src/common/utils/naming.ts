@@ -1,3 +1,16 @@
+/**
+ *  Copyright 2023 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ *  with the License. A copy of the License is located at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
+ *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
+ *  and limitations under the License.
+ */
+
 // Subnets in ASEA are named as ${subnetName}_${vpcName}_az${subnetDefinition.az}_net
 export const createSubnetName = (vpcName: string, subnetName: string, az: string) =>
   `${subnetName}_${vpcName}_az${az}_net`;
@@ -37,3 +50,9 @@ export const createNetworkFirewallName = (firewallName: string, prefix: string) 
 
 export const createNetworkFirewallRuleGroupName = (groupName: string, firewallName: string, prefix: string) =>
   `${prefix}${firewallName}-${groupName}`;
+
+export const createScpName = (accelPrefix: string, name: string) => `${accelPrefix}${name}`;
+
+export const createSsmDocumentName = (accelPrefix: string, name: string) => `${accelPrefix}LZA-${name}`;
+
+export const createConfigRuleName = (accelPrefix: string, name: string) => `${accelPrefix}LZA-${name}`;

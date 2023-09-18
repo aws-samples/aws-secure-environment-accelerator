@@ -14,9 +14,11 @@
 import { readFile } from 'fs/promises';
 import * as path from 'path';
 import { ConvertAseaConfig } from './convert-config';
+import { MigrationConfig } from './migration-config';
+import { PostMigration } from './post-migration';
+import { Preparation } from './preparation';
 import { ResourceMapping } from './resource-mapping';
 import { Snapshot } from './snapshot';
-import { Preparation } from './preparation';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -27,6 +29,12 @@ async function main() {
   const command = args[0];
   if (command === 'snapshot' && args.length < 2 && !['pre', 'post', 'report', 'reset'].includes(args[1])) {
     console.log('Usage: index.ts snapshot pre|post|report|reset');
+    return;
+  }
+  if (command === 'migration-config') {
+    console.log('Creating migration tool configuration file');
+    const migrationConfig = new MigrationConfig();
+    await migrationConfig.configure();
     return;
   }
   const config = JSON.parse(await readFile(path.join(__dirname, 'input-config', 'input-config.json'), 'utf8'));
@@ -40,6 +48,10 @@ async function main() {
     case 'asea-prep':
       const preparation = new Preparation(config);
       await preparation.prepareAsea();
+      break;
+    case 'lza-prep':
+      const lzaPreparation = new Preparation(config);
+      await lzaPreparation.prepareLza();
       break;
     case 'snapshot':
       const snapshot = new Snapshot(config);
@@ -57,6 +69,9 @@ async function main() {
           await snapshot.reset();
           break;
       }
+      break;
+    case 'post-migration':
+      await new PostMigration(config).process();
       break;
   }
 }

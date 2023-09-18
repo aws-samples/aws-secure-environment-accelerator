@@ -15,12 +15,12 @@ import { Account, OrganizationsClient, ListAccountsCommand } from '@aws-sdk/clie
 import { AssumeRoleCommand, GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 
+import { throttlingBackOff } from '../common/aws/backoff';
+import { TableOperations } from './common/dynamodb';
+import { regions } from './common/types';
 import { snapshotAccountResources } from './snapshotAccountResources';
 import { snapshotGlobalResources } from './snapshotGlobalResources';
 import { snapshotRegionResources } from './snapshotRegionalResources';
-import { regions } from './common/types';
-import { TableOperations } from './common/dynamodb';
-import { throttlingBackOff } from '../common/aws/backoff';
 
 let snapshotTable: TableOperations;
 let stsClient: STSClient;
@@ -48,7 +48,7 @@ export async function snapshotConfiguration(
   // process account services
   for (const account of accounts) {
     const accountPromises = [];
-    if(account.Status !== 'SUSPENDED') {
+    if (account.Status !== 'SUSPENDED') {
       if (account.Id !== currentAccountId) {
         const credentials = await getCredentials(account.Id!, roleName);
         accountPromises.push(
@@ -67,7 +67,7 @@ export async function snapshotConfiguration(
   for (const account of accounts) {
     const regionPromises = [];
     for (const region of regions) {
-      if(account.Status !== 'SUSPENDED'){
+      if (account.Status !== 'SUSPENDED') {
         if (account.Id !== currentAccountId) {
           const credentials = await getCredentials(account.Id!, roleName);
           regionPromises.push(

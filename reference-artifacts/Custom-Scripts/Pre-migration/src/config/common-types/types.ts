@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 /**
  *  Copyright 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -93,9 +92,9 @@ export class DefaultedType<T extends t.Any> extends t.Type<T['_A'], T['_O'], T['
 }
 
 export class OptionalType<T extends t.Any> extends t.Type<
-T['_A'] | undefined,
-T['_O'] | undefined,
-T['_I'] | undefined
+  T['_A'] | undefined,
+  T['_O'] | undefined,
+  T['_I'] | undefined
 > {
   constructor(readonly type: T, name?: string) {
     super(
@@ -324,6 +323,150 @@ export class DeploymentTargets implements t.TypeOf<typeof deploymentTargets> {
    * Use this property to explicitly define one or more accounts to exclude from deployment.
    */
   readonly excludedAccounts: string[] = [];
+}
+
+/**
+ * Imported Bucket configuration with S3 managed key encryption.
+ */
+export const importedS3ManagedEncryptionKeyBucketConfig = t.interface({
+  name: nonEmptyString,
+  applyAcceleratorManagedBucketPolicy: optional(t.boolean),
+});
+
+/**
+ * Imported Bucket configuration withS3 managed key encryption.
+ *
+ * @remarks Use this configuration to use existing bucket, a bucket not created by accelerator solution.
+ */
+export class ImportedS3ManagedEncryptionKeyBucketConfig
+  implements t.TypeOf<typeof importedS3ManagedEncryptionKeyBucketConfig>
+{
+  /**
+   * Imported bucket name
+   */
+  readonly name: string = '';
+  /**
+   * Flag indicating Accelerator to apply solution generated policy to imported bucket.
+   *
+   * @remarks
+   * Accelerator solution creates bucket resource policy based on various security services enabled by the solution.
+   * Example when macie is enabled, macie service will need access to the bucket,
+   * accelerator solution dynamically generate policy statements based on various services require access to the bucket.
+   *
+   * Default value is false, accelerator managed policy will NOT be applied to bucket resource policy.
+   * When external policy files are provided through s3ResourcePolicyAttachments policy files,
+   * solution will add policies from the files to the imported bucket resource policy.
+   * If no external policy files are provided and value for this parameter is left to false, solution will not make changes to bucket resource policy.
+   * When value is set to true, accelerator solution will replace bucket resource policy with accelerator managed policies along with policies from external policy files if provided.
+   *
+   */
+  readonly applyAcceleratorManagedBucketPolicy: boolean | undefined = undefined;
+}
+
+/**
+ * Imported Bucket configuration with CMK enabled.
+ */
+export const importedCustomerManagedEncryptionKeyBucketConfig = t.interface({
+  name: nonEmptyString,
+  applyAcceleratorManagedBucketPolicy: optional(t.boolean),
+  createAcceleratorManagedKey: optional(t.boolean),
+});
+
+/**
+ * Imported Bucket configuration with CMK enabled.
+ *
+ * @remarks Use this configuration to use existing bucket, a bucket not created by accelerator solution.
+ */
+export class ImportedCustomerManagedEncryptionKeyBucketConfig
+  implements t.TypeOf<typeof importedCustomerManagedEncryptionKeyBucketConfig>
+{
+  /**
+   * Imported bucket name
+   */
+  readonly name: string = '';
+  /**
+   * Flag indicating Accelerator to apply solution generated policy to imported bucket.
+   *
+   * @remarks
+   * Accelerator solution creates bucket resource policy based on various security services enabled by the solution.
+   * Example when macie is enabled, macie service will need access to the bucket,
+   * accelerator solution dynamically generate policy statements based on various services require access to the bucket.
+   *
+   * Default value is false, accelerator managed policy will NOT be applied to bucket resource policy.
+   * When external policy files are provided through s3ResourcePolicyAttachments policy files,
+   * solution will add policies from the files to the imported bucket resource policy.
+   * If no external policy files are provided and value for this parameter is left to false, solution will not make changes to bucket resource policy.
+   * When value is set to true, accelerator solution will replace bucket resource policy with accelerator managed policies along with policies from external policy files if provided.
+   *
+   */
+  readonly applyAcceleratorManagedBucketPolicy: boolean | undefined = undefined;
+  /**
+   * Flag indicating solution should create CMK and apply to imported bucket.
+   *
+   * @remarks
+   * When the value is false, solution will not create KSM key, instead existing bucket encryption will be used and modified based on other parameters.
+   * When the value is true, solution will create KMS key and apply solution managed policy to the key.
+   * Once Accelerator pipeline executed with the value set to true, changing the value back to false, will case stack failure.
+   * Set this value to true when this will no longer be changed to false.
+   *
+   * @default
+   * false
+   */
+  readonly createAcceleratorManagedKey: boolean | undefined = undefined;
+}
+
+/**
+ * Custom policy overrides configuration for S3 resource
+ */
+export const customS3ResourcePolicyOverridesConfig = t.interface({
+  policy: optional(nonEmptyString),
+});
+
+/**
+ * Custom policy overrides configuration for S3 resource policy
+ *
+ * @remarks Use this configuration to use provide files with JSON string to override bucket resource policy.
+ */
+export class CustomS3ResourcePolicyOverridesConfig implements t.TypeOf<typeof customS3ResourcePolicyOverridesConfig> {
+  /**
+   * S3 resource policy file
+   *
+   * @remarks
+   * S3 resource policy file containing JSON string with policy statements. Solution will overwrite bucket resource policy with the context of the file.
+   */
+  readonly policy: string | undefined = undefined;
+}
+
+/**
+ * Custom policy overrides configuration for S3 resource and KMS
+ */
+export const customS3ResourceAndKmsPolicyOverridesConfig = t.interface({
+  s3Policy: optional(nonEmptyString),
+  kmsPolicy: optional(nonEmptyString),
+});
+
+/**
+ * Custom policy overrides configuration  for S3 resource and KMS
+ *
+ * @remarks Use this configuration to use provide files with JSON string to override bucket and KSM key policy.
+ */
+export class CustomS3ResourceAndKmsPolicyOverridesConfig
+  implements t.TypeOf<typeof customS3ResourceAndKmsPolicyOverridesConfig>
+{
+  /**
+   * S3 resource policy file
+   *
+   * @remarks
+   * S3 resource policy file containing JSON string with policy statements. Solution will overwrite bucket resource policy with the context of the file.
+   */
+  readonly s3Policy: string | undefined = undefined;
+  /**
+   * KSM policy file
+   *
+   * @remarks
+   * S3 bucket encryption policy file containing JSON string with policy statements. Solution will overwrite bucket encryption key policy with the context of the file.
+   */
+  readonly kmsPolicy: string | undefined = undefined;
 }
 
 export const storageClass = enums('storageClass', [
@@ -661,12 +804,63 @@ export type CfnResourceType = {
    */
   resourceMetadata: { [key: string]: any };
 };
+
 export type AseaStackInfo = {
   accountId: string;
   accountKey: string;
   region: string;
-  stackName: string;
-  resources: CfnResourceType[];
-  templatePath: string;
   phase: number;
+  stackName: string;
+  templatePath: string;
+  resources: CfnResourceType[];
+  nestedStack?: boolean;
 };
+
+/**
+ * ASEA ResourceTypes used in Resource Mapping
+ */
+export enum AseaResourceType {
+  IAM_POLICY = 'IAM_POLICY',
+  IAM_ROLE = 'IAM_ROLE',
+  IAM_GROUP = 'IAM_GROUP',
+  IAM_USER = 'IAM_USER',
+  EC2_VPC = 'EC2_VPC',
+  EC2_VPC_CIDR = 'EC2_VPC_CIDR',
+  EC2_SUBNET = 'EC2_SUBNET',
+  EC2_IGW = 'EC2_VPC_IGW',
+  EC2_VPN_GW = 'EC2_VPC_VPN_GW',
+  EC2_SECURITY_GROUP = 'EC2_SECURITY_GROUP',
+  EC2_SECURITY_GROUP_INGRESS = 'EC2_SECURITY_GROUP_INGRESS',
+  EC2_SECURITY_GROUP_EGRESS = 'EC2_SECURITY_GROUP_EGRESS',
+  EC2_VPC_PEERING = 'EC2_VPC_PEERING_CONNECTION',
+  ROUTE_TABLE = 'ROUTE_TABLE',
+  TRANSIT_GATEWAY = 'TRANSIT_GATEWAY',
+  TRANSIT_GATEWAY_ROUTE_TABLE = 'TRANSIT_GATEWAY_ROUTE_TABLE',
+  TRANSIT_GATEWAY_ROUTE = 'TRANSIT_GATEWAY_ROUTE',
+  TRANSIT_GATEWAY_ATTACHMENT = 'TRANSIT_GATEWAY_ATTACHMENT',
+  TRANSIT_GATEWAY_PROPAGATION = 'TRANSIT_GATEWAY_PROPAGATION',
+  TRANSIT_GATEWAY_ASSOCIATION = 'TRANSIT_GATEWAY_ASSOCIATION',
+  NAT_GATEWAY = 'NAT_GATEWAY',
+  NFW = 'NETWORK_FIREWALL',
+  NFW_POLICY = 'NETWORK_FIREWALL_POLICY',
+  NFW_RULE_GROUP = 'NETWORK_FIREWALL_RULE_GROUP',
+  VPC_ENDPOINT = 'VPC_ENDPOINT',
+  ROUTE_53_PHZ_ID = 'ROUTE_53_PHZ',
+}
+
+/**
+ * Consolidated type for ASEA Resource mapping
+ */
+export type AseaResourceMapping = {
+  accountId: string;
+  region: string;
+  resourceType: string;
+  resourceIdentifier: string;
+};
+
+export enum AseaResourceTypePaths {
+  IAM = '/iam/',
+  VPC = '/network/vpc/',
+  VPC_PEERING = '/network/vpcPeering/',
+  TRANSIT_GATEWAY = '/network/transitGateways/',
+}

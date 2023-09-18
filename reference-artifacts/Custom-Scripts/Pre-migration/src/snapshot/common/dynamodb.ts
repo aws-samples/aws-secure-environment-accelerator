@@ -30,8 +30,8 @@ import {
   DynamoDBDocumentPaginationConfiguration,
 } from '@aws-sdk/lib-dynamodb';
 
-import { DbWrite, ResourceData, TableKey, TableKeys } from './types';
 import { throttlingBackOff } from '../../common/aws/backoff';
+import { DbWrite, ResourceData, TableKey, TableKeys } from './types';
 
 let dynamodbClient: DynamoDBClient;
 let tableName: string | undefined = undefined;
@@ -150,7 +150,7 @@ export class TableOperations {
     const keys: TableKeys = [];
     for await (const page of paginator) {
       for (const item of page.Items!) {
-        if (item.PreMigrationHash !== item.PostMigrationHash) {
+        if (item.PreMigrationHash && item.PreMigrationHash !== item.PostMigrationHash) {
           keys.push({ hashKey: item.AccountRegion, sortKey: item.ResourceName });
         }
       }
