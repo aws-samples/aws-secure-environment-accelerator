@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/member-ordering */
 /**
  *  Copyright 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -14,19 +13,28 @@
 
 import * as fs from 'fs';
 import * as os from 'os';
+import * as yaml from 'js-yaml';
 import * as path from 'path';
 import * as AWS from 'aws-sdk';
-import * as yaml from 'js-yaml';
-
+import { STSClient, AssumeRoleCommand, AssumeRoleCommandInput, AssumeRoleCommandOutput } from '@aws-sdk/client-sts';
+import { SSMClient, GetParametersByPathCommand } from '@aws-sdk/client-ssm';
 
 import * as t from './common-types';
+import { throttlingBackOff } from '../common/aws/backoff';
 
 /**
  * Global configuration items.
  */
 export abstract class GlobalConfigTypes {
+  static readonly controlTowerControlConfig = t.interface({
+    identifier: t.nonEmptyString,
+    enable: t.boolean,
+    deploymentTargets: t.deploymentTargets,
+  });
+
   static readonly controlTowerConfig = t.interface({
     enable: t.boolean,
+    controls: t.optional(t.array(this.controlTowerControlConfig)),
   });
 
   static readonly cloudTrailSettingsConfig = t.interface({
@@ -62,12 +70,15 @@ export abstract class GlobalConfigTypes {
   static readonly cdkOptionsConfig = t.interface({
     centralizeBuckets: t.boolean,
     useManagementAccessRole: t.boolean,
+    customDeploymentRole: t.optional(t.string),
+    forceBootstrap: t.optional(t.boolean),
   });
 
   static readonly externalLandingZoneResourcesConfig = t.interface({
     importExternalLandingZoneResources: t.boolean,
     mappingFileBucket: t.optional(t.string),
-    acceleratorPrefix: t.string,
+    acceleratorPrefix: t.nonEmptyString,
+    acceleratorName: t.nonEmptyString,
   });
 
   static readonly sessionManagerConfig = t.interface({
@@ -80,18 +91,25 @@ export abstract class GlobalConfigTypes {
   });
 
   static readonly accessLogBucketConfig = t.interface({
-    lifecycleRules: t.array(t.lifecycleRuleConfig),
+    lifecycleRules: t.optional(t.array(t.lifecycleRuleConfig)),
+    s3ResourcePolicyAttachments: t.optional(t.array(t.resourcePolicyStatement)),
+    importedBucket: t.optional(t.importedS3ManagedEncryptionKeyBucketConfig),
+    customPolicyOverrides: t.optional(t.customS3ResourcePolicyOverridesConfig),
   });
 
   static readonly centralLogBucketConfig = t.interface({
-    lifecycleRules: t.array(t.lifecycleRuleConfig),
+    lifecycleRules: t.optional(t.array(t.lifecycleRuleConfig)),
     s3ResourcePolicyAttachments: t.optional(t.array(t.resourcePolicyStatement)),
     kmsResourcePolicyAttachments: t.optional(t.array(t.resourcePolicyStatement)),
+    importedBucket: t.optional(t.importedCustomerManagedEncryptionKeyBucketConfig),
+    customPolicyOverrides: t.optional(t.customS3ResourceAndKmsPolicyOverridesConfig),
   });
 
   static readonly elbLogBucketConfig = t.interface({
-    lifecycleRules: t.array(t.lifecycleRuleConfig),
+    lifecycleRules: t.optional(t.array(t.lifecycleRuleConfig)),
     s3ResourcePolicyAttachments: t.optional(t.array(t.resourcePolicyStatement)),
+    importedBucket: t.optional(t.importedS3ManagedEncryptionKeyBucketConfig),
+    customPolicyOverrides: t.optional(t.customS3ResourcePolicyOverridesConfig),
   });
 
   static readonly cloudWatchLogsExclusionConfig = t.interface({
@@ -106,6 +124,7 @@ export abstract class GlobalConfigTypes {
     dynamicPartitioning: t.optional(t.nonEmptyString),
     enable: t.optional(t.boolean),
     exclusions: t.optional(t.array(GlobalConfigTypes.cloudWatchLogsExclusionConfig)),
+    replaceLogDestinationArn: t.optional(t.nonEmptyString),
   });
 
   static readonly loggingConfig = t.interface({
@@ -186,6 +205,7 @@ export abstract class GlobalConfigTypes {
   static readonly vaultConfig = t.interface({
     name: t.nonEmptyString,
     deploymentTargets: t.deploymentTargets,
+    policy: t.optional(t.nonEmptyString),
   });
 
   static readonly backupConfig = t.interface({
@@ -207,10 +227,24 @@ export abstract class GlobalConfigTypes {
     deploymentTargets: t.deploymentTargets,
   });
 
+  static readonly ssmParameterConfig = t.interface({
+    name: t.nonEmptyString,
+    path: t.nonEmptyString,
+    value: t.nonEmptyString,
+  });
+
+  static readonly ssmParametersConfig = t.interface({
+    parameters: t.array(this.ssmParameterConfig),
+    deploymentTargets: t.deploymentTargets,
+  });
+
   static readonly acceleratorMetadataConfig = t.interface({
     enable: t.boolean,
     account: t.string,
     readOnlyAccessRoleArns: t.optional(t.array(t.string)),
+  });
+  static readonly acceleratorSettingsConfig = t.interface({
+    maxConcurrentStacks: t.optional(t.number),
   });
 
   static readonly globalConfig = t.interface({
@@ -229,8 +263,10 @@ export abstract class GlobalConfigTypes {
     snsTopics: t.optional(GlobalConfigTypes.snsConfig),
     ssmInventory: t.optional(GlobalConfigTypes.ssmInventoryConfig),
     tags: t.optional(t.array(t.tag)),
+    ssmParameters: t.optional(t.array(GlobalConfigTypes.ssmParametersConfig)),
     limits: t.optional(t.array(this.serviceQuotaLimitsConfig)),
     acceleratorMetadata: t.optional(GlobalConfigTypes.acceleratorMetadataConfig),
+    acceleratorSettings: t.optional(GlobalConfigTypes.acceleratorSettingsConfig),
   });
 }
 
@@ -254,6 +290,49 @@ export class ControlTowerConfig implements t.TypeOf<typeof GlobalConfigTypes.con
    * the log archive account, and the audit account.
    */
   readonly enable: boolean = true;
+  /**
+   * A list of Control Tower controls to enable.
+   *
+   * Only Strongly recommended and Elective controls are permitted, with the exception of the Region deny guardrail. Please see this page for more information: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-controltower-enabledcontrol.html
+   */
+  readonly controls: ControlTowerControlConfig[] = [];
+}
+
+/**
+ * {@link GlobalConfig} / {@link ControlTowerConfig} / {@link ControlTowerControlConfig}
+ * Control Tower controls
+ *
+ * @see ControlTowerControlConfig
+ *
+ * This allows you to enable Strongly Recommended or Elective Controls
+ * https://docs.aws.amazon.com/controltower/latest/userguide/optional-controls.html
+ *
+ * @remarks AWS Control Tower is limited to 10 concurrent operations, where enabling a control for one Organizational Unit constitutes a single operation.
+ * To avoid throttling, please enable controls in batches of 10 or fewer each pipeline run. Keep in mind other Control Tower operations may use up some of the available quota.
+ *
+ * @example
+ * controlTowerControls:
+ *   - identifier: AWS-GR_RESTRICT_ROOT_USER_ACCESS_KEYS
+ *     enable: true
+ *     deploymentTargets:
+ *       organizationalUnits:
+ *         - Workloads
+ */
+export abstract class ControlTowerControlConfig
+  implements t.TypeOf<typeof GlobalConfigTypes.controlTowerControlConfig>
+{
+  /**
+   * Control Tower control identifier, for Strongly Recommended or Elective controls this should start with AWS-GR
+   */
+  readonly identifier: string = '';
+  /**
+   * Control enabled
+   */
+  readonly enable: boolean = true;
+  /**
+   * Control Tower control deployment targets, controls can only be deployed to Organizational Units
+   */
+  readonly deploymentTargets: t.DeploymentTargets = new t.DeploymentTargets();
 }
 
 /**
@@ -268,7 +347,8 @@ export class ControlTowerConfig implements t.TypeOf<typeof GlobalConfigTypes.con
  * ```
  */
 export class externalLandingZoneResourcesConfig
-implements t.TypeOf<typeof GlobalConfigTypes.externalLandingZoneResourcesConfig> {
+  implements t.TypeOf<typeof GlobalConfigTypes.externalLandingZoneResourcesConfig>
+{
   /**
    *
    *
@@ -280,9 +360,19 @@ implements t.TypeOf<typeof GlobalConfigTypes.externalLandingZoneResourcesConfig>
 
   readonly mappingFileBucket = '';
 
-  readonly acceleratorPrefix = '';
+  readonly acceleratorPrefix = 'ASEA';
+  readonly acceleratorName = 'ASEA';
 
-  templateMap: Map<string, t.AseaStackInfo> = new Map<string, t.AseaStackInfo>();
+  templateMap: t.AseaStackInfo[] = [];
+  resourceList: t.AseaResourceMapping[] = [];
+  /**
+   * List of accountIds deployed using external Accelerator
+   */
+  accountsDeployedExternally: string[] = [];
+  /**
+   * SSM Parameter mapping for resource types managed in both accelerators
+   */
+  resourceParameters: { [key: string]: { [key: string]: string } } = {};
 }
 
 /**
@@ -341,6 +431,15 @@ export class cdkOptionsConfig implements t.TypeOf<typeof GlobalConfigTypes.cdkOp
    * The roles created and leveraged by CDK by default can be found [here](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html#bootstrapping-contract).
    */
   readonly useManagementAccessRole = true;
+  /**
+   * Creates a deployment role in all accounts in the home region with the name specified in the parameter. This role is used by the LZA for all CDK deployment tasks.
+   */
+  readonly customDeploymentRole = undefined;
+
+  /**
+   * Forces the Accelerator to deploy the bootstrapping stack and circumvent the ssm parameter check. This option is needed when adding or removing a custom deployment role
+   */
+  readonly forceBootstrap = undefined;
 }
 /**
  * *{@link GlobalConfig} / {@link LoggingConfig} / {@link CloudTrailConfig} / ({@link AccountCloudTrailConfig}) / {@link CloudTrailSettingsConfig}*
@@ -504,7 +603,7 @@ export class CloudTrailConfig implements t.TypeOf<typeof GlobalConfigTypes.cloud
 }
 
 /**
- * *{@link GlobalConfig} / {@link LoggingConfig} / {@link SessionManagerConfig}*
+ * *{@link GlobalConfig} / {@link LoggingConfig} / {@link ServiceQuotaLimitsConfig}*
  *
  * AWS Service Quotas configuration
  */
@@ -581,6 +680,8 @@ export class SessionManagerConfig implements t.TypeOf<typeof GlobalConfigTypes.s
  * @example
  * ```
  * accessLogBucket:
+ *   s3ResourcePolicyAttachments:
+ *     - policy: s3-policies/policy1.json
  *   lifecycleRules:
  *     - enabled: true
  *       id: AccessLifecycle
@@ -594,13 +695,59 @@ export class SessionManagerConfig implements t.TypeOf<typeof GlobalConfigTypes.s
  *       transitions:
  *         - storageClass: GLACIER
  *           transitionAfter: 365
+ *   importedBucket:
+ *     name: existing-access-log-bucket
+ *     applyAcceleratorManagedBucketPolicy: true
  * ```
  */
 export class AccessLogBucketConfig implements t.TypeOf<typeof GlobalConfigTypes.accessLogBucketConfig> {
   /**
    * Declaration of (S3 Bucket) Lifecycle rules.
    */
-  readonly lifecycleRules: t.LifeCycleRule[] = [];
+  readonly lifecycleRules: t.LifeCycleRule[] | undefined = undefined;
+  /**
+   * JSON policy files.
+   *
+   * @remarks
+   * Policy statements from these files will be added to the bucket resource policy.
+   * This property can not be used when customPolicyOverrides.s3Policy property has value.
+   */
+  readonly s3ResourcePolicyAttachments: t.ResourcePolicyStatement[] | undefined = undefined;
+  /**
+   * Imported bucket configuration.
+   *
+   * @remarks
+   * Use this configuration when accelerator will import existing AccessLogs bucket.
+   *
+   * Use the following configuration to imported AccessLogs bucket, manage bucket resource policy through solution.
+   * ```
+   * importedBucket:
+   *    name: existing-access-log-bucket
+   *    applyAcceleratorManagedBucketPolicy: true
+   * ```
+   *
+   * @default
+   * undefined
+   */
+  readonly importedBucket: t.ImportedS3ManagedEncryptionKeyBucketConfig | undefined = undefined;
+  /**
+   * Custom policy overrides configuration.
+   *
+   * @remarks
+   * Use this configuration to provide JSON string policy file for bucket resource policy.
+   * Bucket resource policy will be over written by content of this file, so when using these option policy files must contain complete policy document.
+   * When customPolicyOverrides.s3Policy defined importedBucket.applyAcceleratorManagedBucketPolicy can not be set to true also s3ResourcePolicyAttachments property can not be defined.
+   *
+   * Use the following configuration to apply custom bucket resource policy overrides through policy JSON file.
+   * ```
+   * customPolicyOverrides:
+   *   s3Policy: path/to/policy.json
+   * ```
+   *
+   * @default
+   * undefined
+   */
+  readonly customPolicyOverrides: t.CustomS3ResourcePolicyOverridesConfig | undefined = undefined;
 }
 
 /**
@@ -611,6 +758,7 @@ export class AccessLogBucketConfig implements t.TypeOf<typeof GlobalConfigTypes.
  * @example
  * ```
  * centralLogBucket:
+ *   applyAcceleratorManagedPolicy: true
  *   lifecycleRules:
  *     - enabled: true
  *       id: CentralLifecycle
@@ -628,6 +776,10 @@ export class AccessLogBucketConfig implements t.TypeOf<typeof GlobalConfigTypes.
  *     - policy: s3-policies/policy1.json
  *   kmsResourcePolicyAttachments:
  *     - policy: kms-policies/policy1.json
+ *   importedBucket:
+ *     name: central-log-bucket
+ *     applyAcceleratorManagedBucketPolicy: true
+ *     createAcceleratorManagedKey: false
  * ```
  */
 export class CentralLogBucketConfig implements t.TypeOf<typeof GlobalConfigTypes.centralLogBucketConfig> {
@@ -635,9 +787,64 @@ export class CentralLogBucketConfig implements t.TypeOf<typeof GlobalConfigTypes
    * Declaration of (S3 Bucket) Lifecycle rules.
    * Configure additional resource policy attachments
    */
-  readonly lifecycleRules: t.LifeCycleRule[] = [];
+  readonly lifecycleRules: t.LifeCycleRule[] | undefined = undefined;
+  /**
+   * JSON policy files.
+   *
+   * @remarks
+   * Policy statements from these files will be added to the bucket resource policy.
+   * This property can not be used when customPolicyOverrides.s3Policy property has value.
+   */
   readonly s3ResourcePolicyAttachments: t.ResourcePolicyStatement[] | undefined = undefined;
+  /**
+   * JSON policy files.
+   *
+   * @remarks
+   * Policy statements from these files will be added to the bucket encryption key policy.
+   * This property can not be used when customPolicyOverrides.kmsPolicy property has value.
+   * When imported CentralLogs bucket used with createAcceleratorManagedKey set to false, this property can not have any value.
+   */
   readonly kmsResourcePolicyAttachments: t.ResourcePolicyStatement[] | undefined = undefined;
+
+  /**
+   * Imported bucket configuration.
+   *
+   * @remarks
+   * Use this configuration when accelerator will import existing CentralLogs bucket.
+   *
+   * Use the following configuration to imported CentralLogs bucket, manage bucket resource policy and kms policy through solution.
+   * ```
+   * importedBucket:
+   *    name: existing-central-log-bucket
+   *    applyAcceleratorManagedBucketPolicy: true
+   *    createAcceleratorManagedKey: true
+   * ```
+   *
+   * @default
+   * undefined
+   */
+  readonly importedBucket: t.ImportedCustomerManagedEncryptionKeyBucketConfig | undefined = undefined;
+  /**
+   * Custom policy overrides configuration.
+   *
+   * @remarks
+   * Use this configuration to provide JSON string policy file for bucket resource policy and KMS key policy.
+   * Bucket resource policy and kms key policy will be over written by content of this file, so when using these option policy files must contain complete policy document.
+   * When customPolicyOverrides.s3Policy defined importedBucket.applyAcceleratorManagedBucketPolicy can not be set to true also s3ResourcePolicyAttachments property can not be defined.
+   * When customPolicyOverrides.kmsPolicy defined kmsResourcePolicyAttachments property can not be defined.
+   *
+   *
+   * Use the following configuration to apply custom bucket resource policy and KMS policy overrides through policy JSON file.
+   * ```
+   * customPolicyOverrides:
+   *   s3Policy: path/to/policy.json
+   *   kmsPolicy: kms/full-central-logs-bucket-key-policy.json
+   * ```
+   *
+   * @default
+   * undefined
+   */
+  readonly customPolicyOverrides: t.CustomS3ResourceAndKmsPolicyOverridesConfig | undefined = undefined;
 }
 
 /**
@@ -648,6 +855,7 @@ export class CentralLogBucketConfig implements t.TypeOf<typeof GlobalConfigTypes
  * @example
  * ```
  * elbLogBucket:
+ *   applyAcceleratorManagedPolicy: true
  *   lifecycleRules:
  *     - enabled: true
  *       id: ElbLifecycle
@@ -663,6 +871,9 @@ export class CentralLogBucketConfig implements t.TypeOf<typeof GlobalConfigTypes
  *           transitionAfter: 365
  *   s3ResourcePolicyAttachments:
  *     - policy: s3-policies/policy1.json
+ *   importedBucket:
+ *     name: elb-logs-bucket
+ *     applyAcceleratorManagedBucketPolicy: true
  * ```
  */
 export class ElbLogBucketConfig implements t.TypeOf<typeof GlobalConfigTypes.elbLogBucketConfig> {
@@ -670,8 +881,50 @@ export class ElbLogBucketConfig implements t.TypeOf<typeof GlobalConfigTypes.elb
    * Declaration of (S3 Bucket) Lifecycle rules.
    * Configure additional resource policy attachments
    */
-  readonly lifecycleRules: t.LifeCycleRule[] = [];
+  readonly lifecycleRules: t.LifeCycleRule[] | undefined = undefined;
+  /**
+   * JSON policy files.
+   *
+   * @remarks
+   * Policy statements from these files will be added to the bucket resource policy.
+   * This property can not be used when customPolicyOverrides.s3Policy property has value.
+   */
   readonly s3ResourcePolicyAttachments: t.ResourcePolicyStatement[] | undefined = undefined;
+  /**
+   * Imported bucket configuration.
+   *
+   * @remarks
+   * Use this configuration when accelerator will import existing ElbLogs bucket.
+   *
+   * Use the following configuration to imported ElbLogs bucket, manage bucket resource policy through solution.
+   * ```
+   * importedBucket:
+   *    name: existing-elb-log-bucket
+   *    applyAcceleratorManagedBucketPolicy: true
+   * ```
+   *
+   * @default
+   * undefined
+   */
+  readonly importedBucket: t.ImportedS3ManagedEncryptionKeyBucketConfig | undefined = undefined;
+  /**
+   * Custom policy overrides configuration.
+   *
+   * @remarks
+   * Use this configuration to provide JSON string policy file for bucket resource policy.
+   * Bucket resource policy will be over written by content of this file, so when using these option policy files must contain complete policy document.
+   * When customPolicyOverrides.s3Policy defined importedBucket.applyAcceleratorManagedBucketPolicy can not be set to true also s3ResourcePolicyAttachments property can not be defined.
+   *
+   * Use the following configuration to apply custom bucket resource policy overrides through policy JSON file.
+   * ```
+   * customPolicyOverrides:
+   *   s3Policy: path/to/policy.json
+   * ```
+   *
+   * @default
+   * undefined
+   */
+  readonly customPolicyOverrides: t.CustomS3ResourcePolicyOverridesConfig | undefined = undefined;
 }
 /**
  * *{@link GlobalConfig} / {@link LoggingConfig} / {@link CloudWatchLogsConfig}/ {@link CloudWatchLogsExclusionConfig}*
@@ -708,10 +961,12 @@ export class CloudWatchLogsExclusionConfig implements t.TypeOf<typeof GlobalConf
    */
   readonly accounts: string[] | undefined = undefined;
   /**
-   * Exclude replication on all logs. By default this is set to true.
+   * Exclude replication on all logs. By default this is set to false.
    *
    * @remarks
-   * If undefined, this is set to true. When set to false, it disables replication on entire OU or account for that region. Setting OU as `Root` with no region specified and making this false will fail validation since that usage is redundant. Instead use the {@link CloudWatchLogsConfig | enable} parameter in cloudwatch log config which will disable replication across all accounts in all regions.
+   * If undefined, this is set to false. When set to true, it disables replication on entire OU or account for that region.
+   * Setting OU as `Root` with no region specified and making this true will fail validation since that usage is redundant.
+   * Instead use the {@link CloudWatchLogsConfig | enable} parameter in cloudwatch log config which will disable replication across all accounts in all regions.
    */
   readonly excludeAll: boolean | undefined = undefined;
   /**
@@ -735,6 +990,7 @@ export class CloudWatchLogsExclusionConfig implements t.TypeOf<typeof GlobalConf
  *   # default is true, if undefined this is set to true
  *   # if set to false, no replication is performed which is useful in test or temporary environments
  *   enable: true
+ *   replaceLogDestinationArn: arn:aws:logs:us-east-1:111111111111:destination:ReplaceDestination
  *   exclusions:
  *    # in these OUs do not do log replication
  *    - organizationalUnits:
@@ -772,6 +1028,19 @@ export class CloudWatchLogsConfig implements t.TypeOf<typeof GlobalConfigTypes.c
    * Exclude Log Groups during replication
    */
   readonly exclusions: CloudWatchLogsExclusionConfig[] | undefined = undefined;
+  /**
+   * Customer defined log subscription filter destination arn, that is associated with with the existing log group.
+   * Accelerator solution needs to disassociate this destination before configuring solution defined subscription filter destination.
+   *
+   * @default
+   * undefined
+   *
+   * @remarks
+   * When no value provided, accelerator solution will not attempt to remove existing customer defined log subscription filter destination.
+   * When existing log group(s) have two subscription filter destinations defined, and none of that is solution configured subscription filter destination,
+   * then solution will fail to configure log replication for such log groups and as a result pipeline will fail.
+   */
+  readonly replaceLogDestinationArn: string | undefined = undefined;
 }
 
 /**
@@ -923,7 +1192,7 @@ export class CostAndUsageReportConfig implements t.TypeOf<typeof GlobalConfigTyp
  *       useBlended: false
  *       useAmortized: false
  *       unit: USD
- *       notification:
+ *       notifications:
  *       - type: ACTUAL
  *         thresholdType: PERCENTAGE
  *         threshold: 90
@@ -1108,7 +1377,7 @@ export class ReportConfig implements t.TypeOf<typeof GlobalConfigTypes.reportCon
    *       useBlended: false
    *       useAmortized: false
    *       unit: USD
-   *       notification:
+   *       notifications:
    *       - type: ACTUAL
    *         thresholdType: PERCENTAGE
    *         threshold: 90
@@ -1123,7 +1392,7 @@ export class ReportConfig implements t.TypeOf<typeof GlobalConfigTypes.reportCon
 /**
  * *{@link GlobalConfig} / {@link BackupConfig} / {@link VaultConfig}*
  *
- * Backup vault configuration
+ * AWS Backup vault configuration
  *
  * @example
  * ```
@@ -1131,6 +1400,7 @@ export class ReportConfig implements t.TypeOf<typeof GlobalConfigTypes.reportCon
  *   deploymentTargets:
  *     organizationalUnits:
  *      - Root
+ *   policy: policies/backup-vault-policy.json
  * ```
  */
 export class VaultConfig implements t.TypeOf<typeof GlobalConfigTypes.vaultConfig> {
@@ -1143,6 +1413,11 @@ export class VaultConfig implements t.TypeOf<typeof GlobalConfigTypes.vaultConfi
    * Which OU's or Accounts the vault will be deployed to
    */
   readonly deploymentTargets: t.DeploymentTargets = new t.DeploymentTargets();
+
+  /**
+   * The path to a JSON file defining Backup Vault access policy
+   */
+  readonly policy: string = '';
 }
 
 /**
@@ -1264,6 +1539,33 @@ export class AcceleratorMetadataConfig implements t.TypeOf<typeof GlobalConfigTy
 }
 
 /**
+ * *{@link GlobalConfig} / {@link AcceleratorSettingsConfig}*
+ *
+ * @example
+ *
+ * Accelerator Settings Configuration
+ * Allows setting additional properties for accelerator
+ *
+ * @example
+ * ```
+ * acceleratorSettings:
+ *  maxConcurrentStacks: 250
+ * ```
+ *
+ */
+
+export class AcceleratorSettingsConfig implements t.TypeOf<typeof GlobalConfigTypes.acceleratorSettingsConfig> {
+  /**
+   * Accelerator Settings
+   */
+
+  /**
+   * Set maximum number of concurrent stacks that can be processed at a time while transpiling the application.
+   * If no value is specified it defaults to 250
+   */
+  readonly maxConcurrentStacks: number | undefined = undefined;
+}
+/**
  * *{@link GlobalConfig} / {@link SsmInventoryConfig}*
  *
  * @example
@@ -1286,6 +1588,66 @@ export class SsmInventoryConfig implements t.TypeOf<typeof GlobalConfigTypes.ssm
    * Configure the Deployment Targets
    */
   readonly deploymentTargets: t.DeploymentTargets = new t.DeploymentTargets();
+}
+
+/**
+ * *{@link GlobalConfig} / {@link ssmParametersConfig}*
+ *
+ * @example
+ * ```
+ * ssmParameters:
+ *   - deploymentTargets:
+ *       organizationalUnits:
+ *         - Workloads
+ *     parameters:
+ *       - name: MyWorkloadParameter
+ *         path: /my/custom/path/variable
+ *         value: 'MySSMParameterValue'
+ * ```
+ *
+ */
+
+export class SsmParametersConfig implements t.TypeOf<typeof GlobalConfigTypes.ssmParametersConfig> {
+  /**
+   * A list of SSM parameters to create
+   */
+  readonly parameters: SsmParameterConfig[] = [];
+  /**
+   * Configure the Deployment Targets
+   */
+  readonly deploymentTargets: t.DeploymentTargets = new t.DeploymentTargets();
+}
+
+/**
+ * *{@link GlobalConfig} / {@link ssmParametersConfig} / {@link ssmParameterConfig}*
+ *
+ * @example
+ * ```
+ * ssmParameters:
+ *   - deploymentTargets:
+ *       organizationalUnits:
+ *         - Workloads
+ *     parameters:
+ *       - name: WorkloadsSsmParameter
+ *         path: /my/custom/path/variable
+ *         value: 'MySSMParameterValue'
+ * ```
+ *
+ */
+
+export class SsmParameterConfig implements t.TypeOf<typeof GlobalConfigTypes.ssmParameterConfig> {
+  /**
+   * The friendly name of the SSM Parameter, this is used to generate the CloudFormation Logical Id.
+   */
+  readonly name = '';
+  /**
+   * The path or name used when creating SSM Parameter.
+   */
+  readonly path = '';
+  /**
+   * The value of the SSM Parameter
+   */
+  readonly value = '';
 }
 
 /**
@@ -1389,7 +1751,7 @@ export class GlobalConfig implements t.TypeOf<typeof GlobalConfigTypes.globalCon
    *   importExternalLandingZoneResources: false
    * ```
    */
-  readonly externalLandingZoneResources = new externalLandingZoneResourcesConfig();
+  readonly externalLandingZoneResources: externalLandingZoneResourcesConfig | undefined = undefined;
 
   /**
    * AWS ControlTower configuration
@@ -1460,7 +1822,7 @@ export class GlobalConfig implements t.TypeOf<typeof GlobalConfigTypes.globalCon
    *       useBlended: false
    *       useAmortized: false
    *       unit: USD
-   *       notification:
+   *       notifications:
    *       - type: ACTUAL
    *         thresholdType: PERCENTAGE
    *         threshold: 90
@@ -1487,6 +1849,25 @@ export class GlobalConfig implements t.TypeOf<typeof GlobalConfigTypes.globalCon
    *             accounts:
    */
   readonly limits: ServiceQuotaLimitsConfig[] | undefined = undefined;
+
+  /**
+   * SSM parameter configurations
+   *
+   * Create SSM parameters through the LZA. Parameters can be deployed to Organizational Units or Accounts using deploymentTargets
+   *
+   * @example
+   * ```
+   * ssmParameters:
+   *   - deploymentTargets:
+   *       organizationalUnits:
+   *         - Workloads
+   *     parameters:
+   *       - name: WorkloadParameter
+   *         path: /my/custom/path/variable
+   *         value: 'MySSMParameterValue'
+   * ```
+   */
+  readonly ssmParameters: SsmParametersConfig[] | undefined;
 
   /**
    * Backup Vaults Configuration
@@ -1577,6 +1958,19 @@ export class GlobalConfig implements t.TypeOf<typeof GlobalConfigTypes.globalCon
   readonly acceleratorMetadata: AcceleratorMetadataConfig | undefined = undefined;
 
   /**
+   * Accelerator Settings Configuration
+   * Allows setting additional properties for accelerator
+   *
+   * @example
+   * ```
+   * acceleratorSettings:
+   *  maxConcurrentStacks: 250
+   * ```
+   *
+   */
+  readonly acceleratorSettings: AcceleratorSettingsConfig | undefined = undefined;
+
+  /**
    *
    * @param props
    * @param values
@@ -1597,7 +1991,7 @@ export class GlobalConfig implements t.TypeOf<typeof GlobalConfigTypes.globalCon
     } else {
       this.homeRegion = props.homeRegion;
       this.enabledRegions = [props.homeRegion as t.Region];
-      this.controlTower = props.controlTower;
+      this.controlTower = { ...props.controlTower, controls: [] };
       this.managementAccountAccessRole = props.managementAccountAccessRole;
     }
   }
@@ -1645,41 +2039,146 @@ export class GlobalConfig implements t.TypeOf<typeof GlobalConfigTypes.globalCon
     }
   }
 
-  /**
-   * Load from object
-   * @param globalConfig
-   */
-  static fromObject<S>(content: S): GlobalConfig {
-    const values = t.parse(GlobalConfigTypes.globalConfig, content);
-    return new GlobalConfig(
-      {
-        homeRegion: values.homeRegion,
-        controlTower: values.controlTower,
-        managementAccountAccessRole: values.managementAccountAccessRole,
-      },
-      values,
-    );
+  /**	
+   * Load from object	
+   * @param globalConfig	
+   */	
+  static fromObject<S>(content: S): GlobalConfig {	
+    const values = t.parse(GlobalConfigTypes.globalConfig, content);	
+    return new GlobalConfig(	
+      {	
+        homeRegion: values.homeRegion,	
+        controlTower: values.controlTower,	
+        managementAccountAccessRole: values.managementAccountAccessRole,	
+      },	
+      values,	
+    );	
+  }
+
+  public async saveAseaResourceMapping(resources: t.AseaResourceMapping[]) {
+    if (
+      !this.externalLandingZoneResources?.importExternalLandingZoneResources ||
+      !this.externalLandingZoneResources.mappingFileBucket
+    ) {
+      throw new Error(
+        `saveAseaResourceMapping can only be called when importExternalLandingZoneResources set as true and mappingFileBucket is provided`,
+      );
+    }
+    const s3Client = new AWS.S3({ region: this.homeRegion });
+    await s3Client
+      .putObject({
+        Bucket: this.externalLandingZoneResources.mappingFileBucket,
+        Key: 'aseaResources.json',
+        Body: JSON.stringify(resources),
+        ServerSideEncryption: 'AES256',
+      })
+      .promise();
   }
 
   public async loadExternalMapping(loadFromCache: boolean) {
-    const aseaMappingPath = './cdk.out/aseaMapping.json';
+    if (!this.externalLandingZoneResources?.importExternalLandingZoneResources) return;
+    this.externalLandingZoneResources.accountsDeployedExternally = [];
+    const tempDirPath = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'asea-assets'));
+    const aseaMappingPath = path.join(tempDirPath, 'aseaMapping.json');
+    const aseaResourceListPath = path.join(tempDirPath, 'aseaResources.json');
+    if (!this.externalLandingZoneResources) {
+      return;
+    }
     if (loadFromCache && fs.existsSync(aseaMappingPath)) {
       const mapping = this.readJsonFromDisk(aseaMappingPath);
       this.externalLandingZoneResources.templateMap = await this.setTemplateMap(mapping);
+      this.externalLandingZoneResources.resourceList = this.readJsonFromDisk(aseaResourceListPath);
     } else {
-      const mapping = await this.loadExternalMappingFromS3();
+      const s3Client = new AWS.S3({ region: this.homeRegion });
+      const mapping = await this.loadExternalMappingFromS3(s3Client);
       this.externalLandingZoneResources.templateMap = await this.setTemplateMap(mapping);
+      this.externalLandingZoneResources.resourceList =
+        (await this.readJsonFromExternalS3<t.AseaResourceMapping[]>('aseaResources.json', s3Client)) || [];
       fs.writeFileSync(aseaMappingPath, JSON.stringify(mapping, null, 2));
+      fs.writeFileSync(aseaResourceListPath, JSON.stringify(this.externalLandingZoneResources.resourceList, null, 2));
     }
     return;
   }
 
-  private async loadExternalMappingFromS3() {
+  async loadLzaResources(partition: string, prefix: string) {
+    if (!this.externalLandingZoneResources?.importExternalLandingZoneResources) return;
+    if (!this.externalLandingZoneResources.resourceParameters) {
+      this.externalLandingZoneResources.resourceParameters = {};
+    }
+    const lzaResourcesPromises = [];
+    for (const region of this.enabledRegions) {
+      lzaResourcesPromises.push(
+        this.loadRegionLzaResources(
+          region,
+          partition,
+          prefix,
+          this.externalLandingZoneResources?.accountsDeployedExternally || [],
+        ),
+      );
+    }
+    await Promise.all(lzaResourcesPromises);
+  }
+
+  private async loadRegionLzaResources(region: string, partition: string, prefix: string, accounts: string[]) {
+    const getSsmPath = (resourceType: t.AseaResourceTypePaths) => `/${prefix}${resourceType}`;
+    if (!this.externalLandingZoneResources?.importExternalLandingZoneResources) return;
+    for (const accountId of accounts) {
+      const crossAccountCredentials = await this.getCrossAccountCredentials(
+        accountId,
+        region,
+        partition,
+        this.managementAccountAccessRole,
+      );
+      const ssmClient = await this.getCrossAccountSsmClient(region, crossAccountCredentials);
+      // Get Resources which are there in both external Accelerator and LZA
+      // Can load only resources which are maintained in both
+      // Loading all to avoid reading SSM Params multiple times
+      // Can also use DynamoDB for resource status instead of SSM Parameters,
+      // But with DynamoDB knowing resource creation status in CloudFormation is difficult
+      const ssmPromises = [
+        this.getParametersByPath(getSsmPath(t.AseaResourceTypePaths.IAM), ssmClient),
+        this.getParametersByPath(getSsmPath(t.AseaResourceTypePaths.VPC), ssmClient),
+        this.getParametersByPath(getSsmPath(t.AseaResourceTypePaths.TRANSIT_GATEWAY), ssmClient),
+        this.getParametersByPath(getSsmPath(t.AseaResourceTypePaths.VPC_PEERING), ssmClient),
+      ];
+      const ssmResults = await Promise.all(ssmPromises);
+      this.externalLandingZoneResources.resourceParameters[`${accountId}-${region}`] = ssmResults.reduce(
+        (resources, result) => {
+          return { ...resources, ...result };
+        },
+        {},
+      );
+    }
+  }
+
+  private async getParametersByPath(path: string, ssmClient: SSMClient) {
+    const parameters: { [key: string]: string } = {};
+    let nextToken: string | undefined = undefined;
+    do {
+      const parametersOutput = await throttlingBackOff(() =>
+        ssmClient.send(
+          new GetParametersByPathCommand({
+            Path: path,
+            MaxResults: 10,
+            NextToken: nextToken,
+            Recursive: true,
+          }),
+        ),
+      );
+      nextToken = parametersOutput.NextToken;
+      parametersOutput.Parameters?.forEach(parameter => (parameters[parameter.Name!] = parameter.Value!));
+    } while (nextToken);
+    return parameters;
+  }
+
+  private async loadExternalMappingFromS3(s3Client?: AWS.S3) {
     if (
       this.externalLandingZoneResources?.importExternalLandingZoneResources &&
       this.externalLandingZoneResources.mappingFileBucket
     ) {
-      const s3Client = new AWS.S3({ region: this.homeRegion });
+      if (!s3Client) {
+        s3Client = new AWS.S3({ region: this.homeRegion });
+      }
       const mappingFile = await s3Client
         .getObject({
           Bucket: this.externalLandingZoneResources.mappingFileBucket,
@@ -1696,35 +2195,118 @@ export class GlobalConfig implements t.TypeOf<typeof GlobalConfigTypes.globalCon
       return JSON.parse(mappingFile.Body.toString());
     }
   }
+
+  private async readJsonFromExternalS3<T>(objectKey: string, s3Client?: AWS.S3): Promise<T | undefined> {
+    if (
+      !this.externalLandingZoneResources?.importExternalLandingZoneResources ||
+      !this.externalLandingZoneResources.mappingFileBucket
+    ) {
+      throw new Error(
+        `readJsonFromExternalS3 can only be called when importExternalLandingZoneResources set as true and mappingFileBucket is provided`,
+      );
+    }
+    if (!s3Client) {
+      s3Client = new AWS.S3({ region: this.homeRegion });
+    }
+    try {
+      const response = await s3Client
+        .getObject({
+          Bucket: this.externalLandingZoneResources.mappingFileBucket,
+          Key: objectKey,
+        })
+        .promise();
+      if (!response.Body) {
+        console.error(
+          `Could not load mapping file from path s3://${this.externalLandingZoneResources.mappingFileBucket}/${objectKey}`,
+        );
+        return;
+      }
+      return JSON.parse(response.Body.toString());
+    } catch (e) {
+      if ((e as AWS.AWSError).code === 'NoSuchKey') return;
+      throw e;
+    }
+  }
+
   private readJsonFromDisk(mappingFilePath: string) {
     const mappingFile = fs.readFileSync(mappingFilePath).toString();
     return JSON.parse(mappingFile);
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async setTemplateMap(mappingJson: any): Promise<Map<string, t.AseaStackInfo>> {
-    const aseaStackMap = new Map<string, t.AseaStackInfo>();
+  private async setTemplateMap(mappingJson: any): Promise<t.AseaStackInfo[]> {
+    const aseaStacks: t.AseaStackInfo[] = [];
     for (const account of mappingJson) {
+      this.externalLandingZoneResources?.accountsDeployedExternally.push(account.accountId);
       for (const stack of account.stacksAndResourceMapList) {
-        let phase = stack.stackName[stack.stackName.indexOf('Phase') + 5];
+        const phaseIdentifierIndex = stack.stackName.indexOf('Phase') + 5;
+        let phase = stack.stackName[phaseIdentifierIndex];
         if (phase === '-') {
           phase = -1;
         }
         phase = Number(phase);
         const tempDirPath = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'asea-templates-'));
-        const stackKey = `${account.accountId}-${stack.phase}-${stack.region}`;
-        const templatePath = path.join(tempDirPath, `${stackKey}.json`);
+        const templatePath = path.join(tempDirPath, `${stack.stackName}.json`);
+        // Delete outputs from template. IMPORT_ASEA_RESOURCES stage will write required information into SSM Parameter Store.
+        // delete stack.template.Outputs;
         await fs.promises.writeFile(templatePath, JSON.stringify(stack.template, null, 2));
-        aseaStackMap.set(stackKey, {
+        aseaStacks.push({
           accountId: account.accountId,
           accountKey: account.accountKey,
           region: stack.region,
           stackName: stack.stackName,
-          resources: stack.resourceMap,
+          resources: stack.resourceMap as t.CfnResourceType[],
           templatePath,
           phase,
+          /**
+           * ASEA creates Nested stacks only for Phase1 and Phase2 and "stack.stackName.substring(phaseIdentifierIndex)" doesn't include accountName in it.
+           * It is safe to use string include to check if stack is nestedStack or not.
+           * Other option is to check for resource type in "Resources.physicalResourceId" using stackName
+           */
+          nestedStack: stack.stackName.substring(phaseIdentifierIndex).includes('NestedStack'),
         });
       }
     }
-    return aseaStackMap;
+    return aseaStacks;
+  }
+
+  private async getCrossAccountCredentials(
+    accountId: string,
+    region: string,
+    partition: string,
+    managementAccountAccessRole: string,
+    sessionName = 'acceleratorResourceMapping',
+  ) {
+    const stsClient = new STSClient({ region: region });
+    const stsParams: AssumeRoleCommandInput = {
+      RoleArn: `arn:${partition}:iam::${accountId}:role/${managementAccountAccessRole}`,
+      RoleSessionName: sessionName,
+      DurationSeconds: 900,
+    };
+    let assumeRoleCredential: AssumeRoleCommandOutput | undefined = undefined;
+    try {
+      assumeRoleCredential = await throttlingBackOff(() => stsClient.send(new AssumeRoleCommand(stsParams)));
+      if (assumeRoleCredential) {
+        return assumeRoleCredential;
+      } else {
+        throw new Error(
+          `Error assuming role ${managementAccountAccessRole} in account ${accountId} for bootstrap checks`,
+        );
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      console.error(JSON.stringify(e));
+      throw new Error(e.message);
+    }
+  }
+
+  private async getCrossAccountSsmClient(region: string, assumeRoleCredential: AssumeRoleCommandOutput) {
+    return new SSMClient({
+      credentials: {
+        accessKeyId: assumeRoleCredential.Credentials!.AccessKeyId!,
+        secretAccessKey: assumeRoleCredential.Credentials!.SecretAccessKey!,
+        sessionToken: assumeRoleCredential.Credentials?.SessionToken,
+      },
+      region: region,
+    });
   }
 }

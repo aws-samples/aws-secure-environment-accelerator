@@ -27,12 +27,11 @@ import {
 } from '@aws-sdk/client-ec2';
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 
-import { getHostedZonesForVpc } from './aws-route53';
-
-import { SnapshotData } from '../common/types';
-import { computeHash } from '../common/hash';
-import { TableOperations } from '../common/dynamodb';
 import { throttlingBackOff } from '../../common/aws/backoff';
+import { TableOperations } from '../common/dynamodb';
+import { computeHash } from '../common/hash';
+import { SnapshotData } from '../common/types';
+import { getHostedZonesForVpc } from './aws-route53';
 
 const stringify = require('fast-json-stable-stringify');
 
