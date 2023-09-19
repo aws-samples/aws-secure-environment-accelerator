@@ -35,6 +35,7 @@ import {
   TgwDeploymentConfig,
   TransitGatewayRouteConfig,
   VpcConfig,
+  VpcFlowLogsDestinationConfig,
 } from './asea-config';
 import { loadAseaConfig } from './asea-config/load';
 import { throttlingBackOff } from './common/aws/backoff';
@@ -1430,14 +1431,12 @@ export class ConvertAseaConfig {
     await this.writeConfig(IamConfig.FILENAME, yamlConfig);
   }
 
-
   private async addSSMWriteAccessPolicy(aseaConfig: AcceleratorConfig, policySets: PolicySetConfigType[]) {
-     // Add policy for SSMWriteAccessPolicy
-     if (this.globalOptions && this.globalOptions['aws-config']) {
+    // Add policy for SSMWriteAccessPolicy
+    if (this.globalOptions && this.globalOptions['aws-config']) {
       const policyFileName = 'ssm-write-access-policy.json';
       const localPolicyFilePath = path.join(this.outputFolder, IAM_POLICY_CONFIG_PATH, policyFileName);
       const policyFilePath = path.join(IAM_POLICY_CONFIG_PATH, policyFileName);
-
 
       const centralLogBucketOutput = findValuesFromOutputs({
         outputs: this.outputs,
@@ -1447,71 +1446,63 @@ export class ConvertAseaConfig {
       })?.[0];
 
       const policyContent = {
-      Version: '2012-10-17',
-      Statement: [
+        Version: '2012-10-17',
+        Statement: [
           {
-              Action: [
-                  'kms:DescribeKey',
-                  'kms:GenerateDataKey*',
-                  'kms:Decrypt',
-                  'kms:Encrypt',
-                  'kms:ReEncrypt*',
-              ],
-              Resource: centralLogBucketOutput.value.encryptionKeyArn,
-              Effect: 'Allow',
+            Action: ['kms:DescribeKey', 'kms:GenerateDataKey*', 'kms:Decrypt', 'kms:Encrypt', 'kms:ReEncrypt*'],
+            Resource: centralLogBucketOutput.value.encryptionKeyArn,
+            Effect: 'Allow',
           },
           {
-              Action: 'kms:Decrypt',
-              Resource: '*',
-              Effect: 'Allow',
+            Action: 'kms:Decrypt',
+            Resource: '*',
+            Effect: 'Allow',
           },
           {
-              Action: 's3:GetEncryptionConfiguration',
-              Resource: centralLogBucketOutput.value.bucketArn,
-              Effect: 'Allow',
+            Action: 's3:GetEncryptionConfiguration',
+            Resource: centralLogBucketOutput.value.bucketArn,
+            Effect: 'Allow',
           },
           {
-              Action: [
-                  's3:PutObject',
-                  's3:PutObjectAcl',
-              ],
-              Resource: `${centralLogBucketOutput.value.bucketArn}/*`,
-              Effect: 'Allow',
+            Action: ['s3:PutObject', 's3:PutObjectAcl'],
+            Resource: `${centralLogBucketOutput.value.bucketArn}/*`,
+            Effect: 'Allow',
           },
-      ],
-  };
+        ],
+      };
 
-  const policyDocumentAsString = JSON.stringify(policyContent, null, 2);
+      const policyDocumentAsString = JSON.stringify(policyContent, null, 2);
 
-  fs.writeFileSync(localPolicyFilePath, policyDocumentAsString );
+      fs.writeFileSync(localPolicyFilePath, policyDocumentAsString);
 
-  await this.writeConfig(policyFilePath, policyDocumentAsString);
+      await this.writeConfig(policyFilePath, policyDocumentAsString);
 
+      const organizationalUnits = Object.entries(aseaConfig['organizational-units']);
+      const deployToOus: string[] = [];
+      const excludedRegions: string[] = [];
+      organizationalUnits.forEach(([ouKey, ouConfig]) => {
+        const matchedConfig = ouConfig['aws-config'].find((c) => c.rules.includes('EC2-INSTANCE-PROFILE-PERMISSIONS'));
+        if (!matchedConfig) return;
+        deployToOus.push(ouKey);
+        matchedConfig['excl-regions'].forEach((r) => {
+          if (!excludedRegions.includes(r)) excludedRegions.push(r);
+        });
+      });
 
-  const organizationalUnits = Object.entries(aseaConfig['organizational-units']);
-  const deployToOus: string[] = [];
-  const excludedRegions: string[] = [];
-  organizationalUnits.forEach(([ouKey, ouConfig]) => {
-    const matchedConfig = ouConfig['aws-config'].find((c) => c.rules.includes('EC2-INSTANCE-PROFILE-PERMISSIONS'));
-    if (!matchedConfig) return;
-    deployToOus.push(ouKey);
-    matchedConfig['excl-regions'].forEach((r) => { if (!excludedRegions.includes(r)) excludedRegions.push(r);});
-  });
-
-    policySets.push({
-      deploymentTargets: {
-        accounts: undefined,
-        organizationalUnits: deployToOus,
-        excludedAccounts: undefined,
-        excludedRegions: excludedRegions,
-      },
-      policies: [
-        {
-          name: this.aseaPrefix + 'SSMWriteAccessPolicy',
-          policy: policyFilePath,
+      policySets.push({
+        deploymentTargets: {
+          accounts: undefined,
+          organizationalUnits: deployToOus,
+          excludedAccounts: undefined,
+          excludedRegions: excludedRegions,
         },
-      ],
-    });
+        policies: [
+          {
+            name: this.aseaPrefix + 'SSMWriteAccessPolicy',
+            policy: policyFilePath,
+          },
+        ],
+      });
     }
   }
 
@@ -1788,6 +1779,9 @@ export class ConvertAseaConfig {
           enable: true,
           destinationType: 'S3',
           exportFrequency: centralSecurityConfig['guardduty-frequency'],
+          overrideGuardDutyPrefix: {
+            useCustomPrefix: true,
+          },
         },
       };
     };
@@ -1870,7 +1864,6 @@ export class ConvertAseaConfig {
       };
     };
 
-
     const setCloudWatchConfig = async () => {
       if (!globalOptions.cloudwatch) return;
       const consolidatedMetrics = _.groupBy(globalOptions.cloudwatch.metrics, function (item) {
@@ -1945,7 +1938,6 @@ export class ConvertAseaConfig {
       });
     };
 
-
     const setDefaultEBSVolumeEncryptionConfig = async () => {
       securityConfigAttributes.centralSecurityServices.ebsDefaultVolumeEncryption = {
         enable: true,
@@ -1976,7 +1968,6 @@ export class ConvertAseaConfig {
         };
       }
     };
-
 
     const setConfigRulesConfig = async () => {
       if (!globalOptions['aws-config']) return;
@@ -2063,12 +2054,11 @@ export class ConvertAseaConfig {
                 excludeRegions: excludeRemediateRegions as Region[],
               }
             : undefined,
-            deployTo: deployToOus,
+          deployTo: deployToOus,
           customRule: customRuleProps,
           excludedAccounts,
           excludedRegions: Array.from(excludedRegions),
         };
-
 
         rulesWithTarget.push(rule);
       }
@@ -2082,9 +2072,8 @@ export class ConvertAseaConfig {
           excludedAccounts: values[0].excludedAccounts,
         };
 
-
         // Remove deployTo, excludedRegions and excludedAccounts from rules
-        let onlyRules: Partial< typeof values> = [];
+        let onlyRules: Partial<typeof values> = [];
         for (const ruleItem of values) {
           onlyRules.push({
             name: ruleItem.name,
@@ -2496,7 +2485,27 @@ export class ConvertAseaConfig {
           CWL: ['cloud-watch-logs'],
           BOTH: ['s3', 'cloud-watch-logs'],
         };
-        if (destinationType === 'NONE') return;
+        if (destinationType === 'NONE') {
+          return;
+        } else if (destinationType === 'S3' || 'BOTH') {
+          const vpcFlowLogsS3BucketConfig = {
+            overrideS3LogPath: '${ACCEL_LOOKUP::ACCOUNT_ID}/${ACCEL_LOOKUP::VPC_NAME}',
+          };
+
+          const destinationsConfig: VpcFlowLogsDestinationConfig = {
+            s3: vpcFlowLogsS3BucketConfig,
+            cloudWatchLogs: undefined,
+          };
+
+          return {
+            trafficType: defaultVpcFlowLogsConfig.filter,
+            maxAggregationInterval: defaultVpcFlowLogsConfig.interval,
+            destinations: destinationTypes[destinationType],
+            destinationsConfig: destinationsConfig,
+            defaultFormat: defaultVpcFlowLogsConfig['default-format'],
+            customFields: defaultVpcFlowLogsConfig['custom-fields'],
+          };
+        }
         return {
           trafficType: defaultVpcFlowLogsConfig.filter,
           maxAggregationInterval: defaultVpcFlowLogsConfig.interval,
@@ -2820,11 +2829,11 @@ export class ConvertAseaConfig {
       if (key === 'LogDestination' || key === 'KMSMasterKey') {
         paramType = 'StringList';
       }
-        parameters.push({
-          name: key,
-          value: parsedValue,
-          type: paramType,
-        });
+      parameters.push({
+        name: key,
+        value: parsedValue,
+        type: paramType,
+      });
     });
     return parameters;
   }
@@ -2837,12 +2846,14 @@ export class ConvertAseaConfig {
     return params;
   }
 
-
   private applyReplacements(value: string) {
     value = value.replace('${SEA::LogArchiveAesBucket}', '${ACCEL_LOOKUP::Bucket:elbLogs}');
     value = value.replace('${SEA::S3BucketEncryptionKey}', '${ACCEL_LOOKUP::KMS}');
     value = value.replace('EC2-Default-SSM-AD-Role-ip', '${ACCEL_LOOKUP::InstanceProfile:EC2-Default-SSM-AD-Role}');
-    value = value.replace('${SEA::EC2InstaceProfilePermissions}', '${ACCEL_LOOKUP::CustomerManagedPolicy:ASEA-SSMWriteAccessPolicy}');
+    value = value.replace(
+      '${SEA::EC2InstaceProfilePermissions}',
+      '${ACCEL_LOOKUP::CustomerManagedPolicy:ASEA-SSMWriteAccessPolicy}',
+    );
     return value;
   }
 
