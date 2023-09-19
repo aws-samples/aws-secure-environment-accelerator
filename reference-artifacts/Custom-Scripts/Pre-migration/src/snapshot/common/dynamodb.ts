@@ -145,12 +145,19 @@ export class TableOperations {
     };
     const params: ScanCommandInput = {
       TableName: tableName,
+      Select: 'SPECIFIC_ATTRIBUTES',
+      ProjectionExpression: 'AccountRegion,ResourceName,PreMigrationHash,PostMigrationHash,PreMigrationConfig',
     };
     const paginator = paginateScan(paginatorConfig, params);
     const keys: TableKeys = [];
     for await (const page of paginator) {
       for (const item of page.Items!) {
-        if (item.PreMigrationHash && item.PreMigrationHash !== item.PostMigrationHash) {
+        if (item.PreMigrationHash !== item.PostMigrationHash &&
+          item.PreMigrationHash &&
+          item.PreMigrationConfig !== '[]' &&
+          item.PreMigrationConfig !== '{}' &&
+          !item.ResourceName.startsWith('cloudwatch-log-group') &&
+          !item.ResourceName.startsWith('subscription-filters')) {
           keys.push({ hashKey: item.AccountRegion, sortKey: item.ResourceName });
         }
       }

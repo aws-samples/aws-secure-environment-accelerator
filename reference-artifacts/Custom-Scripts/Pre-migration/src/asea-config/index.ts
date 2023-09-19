@@ -960,11 +960,28 @@ export type FlowLogsFilterTypes = t.TypeOf<typeof FlowLogsFilterTypes>;
 export const FlowLogsIntervalTypes = t.enums('FlowLogsIntervalTypes', [60, 600]);
 export type FlowLogsIntervalTypes = t.TypeOf<typeof FlowLogsIntervalTypes>;
 
+const vpcFlowLogsS3BucketConfig = t.interface({
+  overrideS3LogPath: t.optional(t.nonEmptyString),
+});
+
+const vpcFlowLogsCloudWatchLogsConfig = t.interface({
+  retentionInDays: t.optional(t.number),
+  kms: t.optional(t.nonEmptyString),
+});
+
+const VpcFlowLogsDestinationConfig = t.interface({
+  s3: t.optional(vpcFlowLogsS3BucketConfig),
+  cloudWatchLogs: t.optional(vpcFlowLogsCloudWatchLogsConfig),
+});
+
+export type VpcFlowLogsDestinationConfig = t.TypeOf<typeof VpcFlowLogsDestinationConfig>;
+
 export const VpcFlowLogsConfigType = t.interface({
   'filter': FlowLogsFilterTypes,
   'interval': FlowLogsIntervalTypes,
   'default-format': t.boolean,
   'custom-fields': t.array(t.nonEmptyString),
+  'destinationsConfig': t.optional(VpcFlowLogsDestinationConfig),
 });
 export type VpcFlowLogsConfig = t.TypeOf<typeof VpcFlowLogsConfigType>;
 
