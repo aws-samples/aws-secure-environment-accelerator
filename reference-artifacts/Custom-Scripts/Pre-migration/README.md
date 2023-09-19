@@ -156,6 +156,8 @@ To complete the migration process, we will need to disable ASEA Custom Resource 
 
 ## Resource Mapping and Drift Detection Scripts
 
+> **⚠️ Warning**: Do Not run the resource mapping scripts until the `ASEA-MainStateMachine_sm` has completed successfully!
+
 ### Overview
 
 The Resource Mapping script will generate the ASEA mapping file which will be used throughout the ASEA to LZA Migration process. In order to accomplish this task, the script needs to do the following:
