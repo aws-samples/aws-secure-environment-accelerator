@@ -10,30 +10,36 @@ After the configuration files are generated, these files will be placed in a Cod
 
 Once the LZA is installed, customers resources will continue to exist and are still modifiable, but interaction with ASEA resources are handled specifically through the LZA configuration files. Management of LZA native environments and migration environments should see almost no difference between the configuration files in these environments.
 
-### Pre-Requisites
+### Prerequisites
 
 - You are running the latest version of ASEA. If you are not running version 1.5xx then upgrade before starting the migration process
 - Deploy Cloud9 VPC and Setup Cloud9 Environment following instructions here:
-  - https://catalog.workshops.aws/landing-zone-accelerator/en-US/workshop-advanced/lza-best-practices/create-ide-environment/setup-cloud9-environment
+  - <https://catalog.workshops.aws/landing-zone-accelerator/en-US/workshop-advanced/lza-best-practices/create-ide-environment/setup-cloud9-environment>
 - Ensure you are logged into the Cloud9 terminal
 - Complete the `Verify and configure software tools` section to ensure Yarn is installed
 
 ### Clone The ASEA Repo
 
 In order to prepare the ASEA environment for migration you will need to clone the ASEA GitHub repository:
-https://github.com/aws-samples/aws-secure-environment-accelerator.git
+<https://github.com/aws-samples/aws-secure-environment-accelerator.git>
+
+```bash
 git clone https://github.com/aws-samples/aws-secure-environment-accelerator.git
+```
 
 ### Install the migration scripts project dependencies and build the project
 
-- Ensure you are still on the `asea-lza-migration` branch and navigate to the directory which contains the migration scripts:
-  ```
+- Ensure you are still on the `lza-migration` branch and navigate to the directory which contains the migration scripts:
+
+  ```bash
   cd aws-secure-environment-accelerator
   git checkout lza-migration
   cd reference-artifacts/Custom-Scripts/Pre-migration/src
   ```
+
 - Install dependencies and build the project:
-  ```
+
+  ```bash
   yarn install
   yarn build
   ```
@@ -43,15 +49,15 @@ git clone https://github.com/aws-samples/aws-secure-environment-accelerator.git
 ### Retrieve Temporary IAM Credentials via AWS Identity Center
 
 Prior to running the pre-migration scripts, you will need temporary IAM credentials in order to run the script. In order to retrieve these, follow the instructions here and set the temporary credentials in your environment:
-https://aws.amazon.com/blogs/security/aws-single-sign-on-now-enables-command-line-interface-access-for-aws-accounts-using-corporate-credentials/
+<https://aws.amazon.com/blogs/security/aws-single-sign-on-now-enables-command-line-interface-access-for-aws-accounts-using-corporate-credentials/>
 
 ### Create Migration Tool Configuration File and Prepare Environment
 
-Creates the confiruation file used by the migration tool. The configuration file will be created in the directory `<root-dir>/src/input-config/input-config.json`. This command will also deploy a CloudFormation template and create two CodeCommit repositories. The CloudFormation template will create an S3 bucket for the resource mapping files. The first CodeCommit repository will also be used for the resource mapping files. The second CodeCommit repository will be used for the Landing Zone Accelerator configuration files that will be created in a later step.
+Creates the configuration file used by the migration tool. The configuration file will be created in the directory `<root-dir>/src/input-config/input-config.json`. This command will also deploy a CloudFormation template and create two CodeCommit repositories. The CloudFormation template will create an S3 bucket for the resource mapping files. The first CodeCommit repository will also be used for the resource mapping files. The second CodeCommit repository will be used for the Landing Zone Accelerator configuration files that will be created in a later step.
 
 ### Commands
 
-```
+```bash
 cd <root-dir>
 yarn run migration-config
 ```
@@ -74,7 +80,7 @@ yarn run migration-config
   - `aseaConfigBucketName` - Name of ASEA created phase-0 central bucket, will be used to copy and convert assets for LZA.
   - `operationsAccountId` - Operations Account Id.
   - `installerStackName` - The name of the ASEA installer CloudFormation stack.
-  - `centralBucket` - The name of the ASEA Phase 0 configuration bucket. Ex: `asea-managment-phase0-configcentral1-ocqiyas45i27`
+  - `centralBucket` - The name of the ASEA Phase 0 configuration bucket. Ex: `asea-management-phase0-configcentral1-ocqiyas45i27`
   - `mappingRepositoryName` - The name of the CodeCommit repository resource mapping repository. Ex. `ASEA-Mappings`. Do not modify this value.
   - `lzaConfigRepositoryName` - The name of the CodeCommit repository that will store the LZA configuration files. Ex. `ASEA-LZA-config`. Do not modify this value.
   - `lzaCodeRepositorySource` - This value will be used when deploying the LZA installer CloudFormation stack. Ex. `github`
@@ -97,7 +103,7 @@ yarn run migration-config
 - Ensure that Block Public Access is enabled
 - Ensure that an S3 Bucket Policy is created and validate the bucket policy
 
-### Confirm Creation of 2 CodeCommit Repositorys
+### Confirm Creation of 2 CodeCommit Repositories
 
 - Navigate to CodeCommit in the AWS Console
 - Confirm that the CodeCommit repository for resource mapping exists. `<prefix-name>-Mappings`
@@ -110,11 +116,13 @@ To complete the migration process, we will need to disable ASEA Custom Resource 
 #### Deploy the migration ASEA Installer Stack
 
 - Checkout the branch `lza-migration` and navigate to the directory which contains the CloudFormation installer template:
-  ```
+  
+  ```bash
   cd aws-secure-environment-accelerator
   git checkout lza-migration
   cd reference-artifacts/Custom-Scripts/Pre-migration/cloudformation
   ```
+
   You will need to update the existing CloudFormation Installer stack:
 - Navigate to the AWS CloudFormation console
 - Select the existing installer stack then `Update Stack`
@@ -163,7 +171,7 @@ The Resource Mapping script will generate the ASEA mapping file which will be us
 
 ### Commands
 
-```
+```bash
 cd <root-dir>
 yarn run resource-mapping
 ```
@@ -220,7 +228,7 @@ Each subcommand of the snapshot tool and its associated actions can be found bel
 
 ### Commands
 
-```
+```bash
 cd <root-dir>
 yarn run snapshot pre
 ```
@@ -242,7 +250,7 @@ After running the snapshot pre command, ensure that the DynamoDB table `${aseaPr
 
 ### Overview
 
-In order to accomplish the migration, the existing ASEA configuration file needs to be converted into LZA configuration files (https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/using-configuration-files.html). The `convert-config` script parses through the ASEA configuration file and for each resource block does the following:
+In order to accomplish the migration, the existing ASEA configuration file needs to be converted into LZA configuration files (<https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/using-configuration-files.html>). The `convert-config` script parses through the ASEA configuration file and for each resource block does the following:
 
 - Reads in the ASEA configuration object
 - Decides the ASEA Object Type
@@ -252,7 +260,7 @@ In order to accomplish the migration, the existing ASEA configuration file needs
 
 ### Commands
 
-```
+```bash
 cd <root-dir>
 yarn run convert-config
 ```
@@ -275,42 +283,13 @@ Comment `subnetAssociations` in `vpcs.networkAcls.subnetAssociations: []`
 
 e.g:
 
-```
+```yaml
 networkAcls:
-      - name: Data_Central_nacl
-        subnetAssociations: []
-          # - Data_Central_aza_net
-          # - Data_Central_azb_net
-          # - Data_Central_azd_net
-```
-
-**Disable VPC Interface Endpoints (In vpcs and vpcTemplates):**
-During migration LZA creates new VPC Interface Endpoints. To avoid recreating VPC InteraceEndpoints, we will need to comment out the following in NetworkConfig.yaml and add an empty array:
-
-```
-endpoints in vpcs.interfaceEndpoints.endpoints
-```
-
-Note: We can still create VPC Interface Endpoints natively from LZA.
-
-```
-vpcs:
-  - name: Endpoint_vpc
-    account: shared-network
-    cidrs:
-      - 10.0.0.0/22
-    region: ca-central-1
-    defaultSecurityGroupRulesDeletion: true
-    enableDnsHostnames: true
-    enableDnsSupport: true
-    instanceTenancy: default
-    interfaceEndpoints:
-      defaultPolicy: Default
-      endpoints:[]
-        # - service: ec2
-        # - service: ec2messages
-        # - service: ssm
-        # - service: ssmmessages
+  - name: Data_Central_nacl
+    subnetAssociations: []
+      # - Data_Central_aza_net
+      # - Data_Central_azb_net
+      # - Data_Central_azd_net
 ```
 
 ### Confirm Outputs
@@ -333,7 +312,6 @@ After running the `convert-config` script, the following artifacts should be gen
 - SSM Documents
   - `ssm-documents/*`
 
-
 ### Prepare ASEA Environment
 
 #### Overview
@@ -341,17 +319,17 @@ After running the `convert-config` script, the following artifacts should be gen
 This step will prepare the ASEA environment for migration to the Landing Zone Accelerator on AWS. In this step the migration scripts tool will be deleting the CDK Toolkit CloudFormation stacks in the Management account. Which includes deleting ECR images from the CDK Toolkit ECR repository. Deleting the ASEA CloudFormation installer stack and finally the ASEA InitialSetup stack. You will also be emptying the ASEA assets bucket in order for the installer CloudFormation stack to be deleted.
 In order to empty the artifacts S3 bucket you will need to navigate to S3 console.
 
-    * Find the bucket that has the string `artifactsbucket in the name`
-    * Click the radio button next to the bucket
-    * Click the `Empty` button in the upper right
-    * Type the string `permanently delete` in the confirmation text box
-    * Click the `Empty` button
-    * Wait until a green bar appears with the text `Successfully emptied bucket`
-    * Switch back to you Cloud 9 environment and run the commands below
+- Find the bucket that has the string `artifactsbucket in the name`
+- Click the radio button next to the bucket
+- Click the `Empty` button in the upper right
+- Type the string `permanently delete` in the confirmation text box
+- Click the `Empty` button
+- Wait until a green bar appears with the text `Successfully emptied bucket`
+- Switch back to you Cloud 9 environment and run the commands below
 
 #### Commands
 
-```
+```bash
 cd <root-dir>
 yarn run asea-prep
 ```
@@ -363,11 +341,11 @@ yarn run asea-prep
 You are ready to deploy AWS Landing Zone Accelerator. This step will deploy a CloudFormation template creates two AWS CodePipeline pipelines, an installer and the core deployment pipeline, along with associated dependencies. This solution uses AWS CodeBuild to build and deploy a series of CDK-based CloudFormation stacks that are responsible for deploying supported resources in the multi-account, multi-Region environment. The CloudFormation template will first create the `${prefix-name}-Installer`, which in turn will create the accelerator pipeline, `${prefix-name}-Pipeline`
 
 - For more details on the deployment pipelines, take a look here:
-  https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/deployment-pipelines.html
+  <https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/deployment-pipelines.html>
 
 #### Commands
 
-```
+```bash
 cd <root-dir>
 yarn run lza-prep
 ```
@@ -378,10 +356,10 @@ Navigate to the AWS CloudFormation console and confirm that the stack named `<pr
 
 ### Run the LZA Pipeline
 
-- For general LZA Pipeline deployment details, refer to the LZA Implementation Guide here: https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/awsaccelerator-pipeline.html
+- For general LZA Pipeline deployment details, refer to the LZA Implementation Guide here: <https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/awsaccelerator-pipeline.html>
 - During the Landing Zone Accelerator pipeline deployment, there are two ASEA migration specific stages `ImportAseaResources` and `PostImportAseaResources`. These two stages allow the LZA to manage and interact with resources that were originally managed in the scope of ASEA.
   - `ImportAseaResources` - This stage uses the `CFNInclude` module to include the original ASEA Managed CloudFormation resources. This allows the resources to be managed in the context of the LZA CDK Application. SSM Parameters are created for these resources so that they can be interacted with during the LZA Pipeline run.
-  - `PostImportAseaResources` - This stage runs at the end of the LZA Pipeline, it allows the LZA pipeline to modify original ASEA Managed Cloudformation resources. This requires a seperate stage because it allows the prior LZA stages to interact with ASEA resources and then modifies all ASEA resources (as opposed to CFN Including the ASEA resources in every stage).
+  - `PostImportAseaResources` - This stage runs at the end of the LZA Pipeline, it allows the LZA pipeline to modify original ASEA Managed Cloudformation resources. This requires a separate stage because it allows the prior LZA stages to interact with ASEA resources and then modifies all ASEA resources (as opposed to CFN Including the ASEA resources in every stage).
 
 ## ASEA to LZA Migration Rollback Strategy
 
@@ -407,7 +385,7 @@ If an issue occurs during the upgrade process, there needs to be a rollback plan
   - In the CloudFormation dashboard, locate and select the `${Prefix}-CDK-Toolkit` stack.
   - Click on the Delete button.
 - Run ASEA Installer Stack
-  - Download the Installer Stack from: https://github.com/aws-samples/aws-secure-environment-accelerator/releases
+  - Download the Installer Stack from: <https://github.com/aws-samples/aws-secure-environment-accelerator/releases>
   - Navigate to the CloudFormation homepage
   - Click on the “Create Stack” button
   - Choose the option “Upload a template file” and click on the “Choose file” button.
@@ -420,7 +398,7 @@ If an issue occurs during the upgrade process, there needs to be a rollback plan
   - This pipeline runs a CodeBuild job which does a number of things – most importantly, create the ASEA State Machine.
   - Run the ASEA State Machine
   - After the InstallerPipeline has successfully run, the ASEA State Machine will be kicked off which will ensure that ASEA features are rolled back to match the ASEA configuration.
-- Cleanup LZA and associated resources https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/uninstall-the-solution.html
+- Cleanup LZA and associated resources <https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/uninstall-the-solution.html>
 
 ## Post AWS LZA Deployment
 
@@ -434,7 +412,7 @@ To create the post migration snapshot you will be using the migration tools in y
 
 ### Commands
 
-```
+```bash
 cd <root-dir>
 yarn run snapshot post
 ```
@@ -447,7 +425,7 @@ This command will generate a report that shows any difference in configuration o
 
 ### Commands
 
-```
+```bash
 cd <root-dir>
 yarn run snapshot report
 ```
@@ -458,7 +436,7 @@ Once you are satisfied that the migration is successful you can delete the snaps
 
 ### Commands
 
-```
+```bash
 cd <root-dir>
 yarn run snapshot reset
 ```
@@ -473,7 +451,7 @@ This step will perform post migration actions which includes following
 
 #### Commands
 
-```
+```bash
 cd <root-dir>
 yarn run post-migration
 ```
@@ -481,6 +459,7 @@ yarn run post-migration
 ## Troubleshooting
 
 ### Failure in ImportASEAResourceStage
-If the LZA pipeline fails in the ImportASEAResources stage and you need to restart the pipeline from the begininng.  You will need to remove a file from the asea-lza-resource-mapping-<accountId> bucket. The name of the file is `asearesources.json`.  Download a copy of the file and then delete it from the S3 bucket.  The file will be recreated when the pipeline is rerun.
+
+If the LZA pipeline fails in the ImportASEAResources stage and you need to restart the pipeline from the beginning.  You will need to remove a file from the `asea-lza-resource-mapping-<accountId>` bucket. The name of the file is `asearesources.json`.  Download a copy of the file and then delete it from the S3 bucket.  The file will be recreated when the pipeline is rerun.
 
 ---

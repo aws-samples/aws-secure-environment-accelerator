@@ -22,5 +22,6 @@ export async function getChangedResources(tableName: string, homeRegion: string)
     const result = await snapshotTable.getDataForKey(key);
     changedResources.push(result);
   }
+
   console.log(`${JSON.stringify(changedResources, null, ' ')}`);
 }
