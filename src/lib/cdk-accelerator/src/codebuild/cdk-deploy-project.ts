@@ -20,6 +20,7 @@ import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3assets from 'aws-cdk-lib/aws-s3-assets';
 import { Construct } from 'constructs';
+//import { temporaryDirectory } from 'tempy';
 
 export type PackageManager = 'pnpm';
 
