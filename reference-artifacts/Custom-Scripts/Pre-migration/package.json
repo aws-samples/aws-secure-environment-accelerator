@@ -18,14 +18,18 @@
     "resource-mapping": "ts-node src/index.ts resource-mapping",
     "convert-config": "ts-node src/index.ts convert-config",
     "snapshot": "ts-node src/index.ts snapshot",
-    "asea-prep": "ts-node src/index.ts asea-prep"
+    "asea-prep": "ts-node src/index.ts asea-prep",
+    "lza-prep": "ts-node src/index.ts lza-prep",
+    "post-migration": "ts-node src/index.ts post-migration",
+    "migration-config": "ts-node src/index migration-config",
+    "all": "ts-node src/index migration-config; ts-node src/index snapshot pre"
   },
   "devDependencies": {
     "@types/fast-json-stable-stringify": "^2.1.0",
     "@types/jest": "^29.1.2",
     "@types/js-yaml": "4.0.5",
     "@types/lodash": "4.14.195",
-    "@types/node": "^14",
+    "@types/node": "^18",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
     "eslint": "^8",
@@ -48,18 +52,19 @@
     "@aws-sdk/client-cloudtrail": "^3.370.0",
     "@aws-sdk/client-cloudwatch": "^3.370.0",
     "@aws-sdk/client-cloudwatch-logs": "^3.370.0",
+    "@aws-sdk/client-codecommit": "^3.370.0",
     "@aws-sdk/client-config-service": "^3.370.0",
     "@aws-sdk/client-cost-and-usage-report-service": "^3.370.0",
     "@aws-sdk/client-dynamodb": "^3.370.0",
     "@aws-sdk/client-ec2": "^3.370.0",
     "@aws-sdk/client-ecr": "^3.370.0",
+    "@aws-sdk/client-eventbridge": "^3.370.0",
     "@aws-sdk/client-fms": "^3.370.0",
     "@aws-sdk/client-guardduty": "^3.370.0",
     "@aws-sdk/client-iam": "^3.370.0",
     "@aws-sdk/client-kms": "^3.370.0",
     "@aws-sdk/client-macie2": "^3.370.0",
     "@aws-sdk/client-organizations": "^3.370.0",
-    "@aws-sdk/client-eventbridge": "^3.370.0",
     "@aws-sdk/client-route-53": "^3.370.0",
     "@aws-sdk/client-route53resolver": "^3.370.0",
     "@aws-sdk/client-s3": "^3.370.0",
@@ -119,7 +124,7 @@
     "preset": "ts-jest",
     "globals": {
       "ts-jest": {
-        "tsconfig": "tsconfig.dev.json"
+        "tsconfig": "tsconfig.json"
       }
     }
   },
