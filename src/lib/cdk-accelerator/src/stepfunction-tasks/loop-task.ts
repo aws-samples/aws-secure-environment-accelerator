@@ -83,7 +83,7 @@ export class LoopTask extends sfn.StateMachineFragment {
     const statusPath = `${verifyPath}.${verifyStatusField}`;
 
     this.deploy = new CodeTask(this, `Exec`, {
-      resultPath: 'DISCARD',
+      resultPath: sfn.JsonPath.DISCARD,
       functionPayload,
       functionProps: {
         code: executeStepCode,

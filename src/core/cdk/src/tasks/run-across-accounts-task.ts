@@ -105,7 +105,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
     });
 
     const pass = new sfn.Pass(this, `${name} Success`, {
-      resultPath: 'DISCARD',
+      resultPath: sfn.JsonPath.DISCARD,
     });
 
     const fail = new sfn.Fail(this, `${name} Failed`);

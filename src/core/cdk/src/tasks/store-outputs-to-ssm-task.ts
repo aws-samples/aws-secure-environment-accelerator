@@ -59,7 +59,7 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
 
     const storeAccountOutputs = new sfn.Map(this, `Store Account Outputs To SSM`, {
       itemsPath: `$.accounts`,
-      resultPath: 'DISCARD',
+      resultPath: sfn.JsonPath.DISCARD,
       maxConcurrency: 10,
       parameters: {
         'accountId.$': '$$.Map.Item.Value',
@@ -114,7 +114,7 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
           'accountsTableName.$': '$.accountsTableName',
           'configDetails.$': '$.configDetails',
         }),
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       },
     );
     getAccountInfoTask.next(storeOutputsToSSMTaskRegionMapperTask);
@@ -148,7 +148,7 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
     // Mapped by region
     const storeAccountRegionOutputs = new sfn.Map(this, `Store Account Region Outputs To SSM`, {
       itemsPath: `$.regions`,
-      resultPath: 'DISCARD',
+      resultPath: sfn.JsonPath.DISCARD,
       maxConcurrency: 10,
       parameters: {
         'account.$': '$.account',

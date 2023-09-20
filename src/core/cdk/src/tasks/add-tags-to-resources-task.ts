@@ -118,7 +118,7 @@ export class AddTagsToResourcesTask extends sfn.StateMachineFragment {
     });
 
     const pass = new sfn.Pass(this, `${name} Verify DDB Success`, {
-      resultPath: 'DISCARD',
+      resultPath: sfn.JsonPath.DISCARD,
     });
 
     const fail = new sfn.Fail(this, `${name} Verify DDB Failed`);

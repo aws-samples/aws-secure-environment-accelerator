@@ -79,7 +79,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
 
     const createRootBootstrapInRegion = new sfn.Map(this, `Bootstrap Operations Account`, {
       itemsPath: `$.regions`,
-      resultPath: 'DISCARD',
+      resultPath: sfn.JsonPath.DISCARD,
       maxConcurrency: 20,
       parameters: {
         'accountId.$': '$.operationsAccount.id',
@@ -124,7 +124,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         assumeRoleName,
         'region.$': '$.region',
       }),
-      resultPath: 'DISCARD',
+      resultPath: sfn.JsonPath.DISCARD,
     });
     createRootBootstrapInRegion.iterator(bootstrapOpsTask);
 
@@ -143,7 +143,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
 
     const createBootstrapInAccount = new sfn.Map(this, `Bootstrap Account Map`, {
       itemsPath: `$.accounts`,
-      resultPath: 'DISCARD',
+      resultPath: sfn.JsonPath.DISCARD,
       maxConcurrency: 10,
       parameters: {
         'accountId.$': '$$.Map.Item.Value',
@@ -174,7 +174,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
           'regions.$': '$.regions',
           'acceleratorPrefix.$': '$.acceleratorPrefix',
         }),
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       },
     );
     createBootstrapInAccount.iterator(bootstrapAccountRegionMapperTask);
@@ -226,13 +226,13 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         ignoreRegion: cdk.Aws.REGION,
         assumeRoleName,
       }),
-      resultPath: 'DISCARD',
+      resultPath: sfn.JsonPath.DISCARD,
     });
 
     // Mapped by region
     const createBootstrapInRegion = new sfn.Map(this, `Bootstrap Account Region Map`, {
       itemsPath: `$.regions`,
-      resultPath: 'DISCARD',
+      resultPath: sfn.JsonPath.DISCARD,
       maxConcurrency: 17,
       parameters: {
         'accountId.$': '$.accountId',

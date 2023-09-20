@@ -98,7 +98,7 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
     const fail = new sfn.Fail(this, 'Account Creation Failed');
 
     const attachQuarantineScpTask = new CodeTask(scope, 'Attach Quarantine SCP To Account', {
-      resultPath: 'DISCARD',
+      resultPath: sfn.JsonPath.DISCARD,
       functionProps: {
         role,
         code: lambdaCode,

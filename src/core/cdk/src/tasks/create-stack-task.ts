@@ -53,7 +53,7 @@ export class CreateStackTask extends sfn.StateMachineFragment {
     );
 
     const deployTask = new CodeTask(scope, `Deploy ${suffix || 'Stack'}`, {
-      resultPath: 'DISCARD',
+      resultPath: sfn.JsonPath.DISCARD,
       functionPayload,
       functionProps: {
         role,
