@@ -76,7 +76,6 @@ export class Preparation {
     await createLZAInstallerCloudFormationStack(
       `${this.aseaPrefix}LZA-Installer`,
       installerStackParameters,
-      //'../../outputs',
       `https://${this.config.aseaConfigBucketName}.s3.amazonaws.com/AWSAccelerator-InstallerStack.template`,
       this.homeRegion,
     );
