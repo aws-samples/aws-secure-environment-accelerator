@@ -141,6 +141,9 @@ export async function getLZAInstallerStackTemplate(bucketName: string, outputPat
     template.Body as Readable,
     fs.createWriteStream(path.join(__dirname, outputPath, 'AWSAccelerator-InstallerStack.template')),
   );
+
+  // remove this code when we have a proper template in the S3 bucket
+  fs.copyFileSync(path.join(__dirname, '../cloudformation', 'AWSAccelerator-InstallerStack.template'), path.join(__dirname, outputPath, 'AWSAccelerator-InstallerStack.template'), force);
 }
 
 export async function putLZAInstallerStackTemplate(bucketName: string, templatePath: string, region: string) {
