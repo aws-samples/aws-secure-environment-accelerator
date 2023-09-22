@@ -73,7 +73,6 @@ importers:
       adm-zip: 0.5.10
       aws-sdk: 2.1455.0
       esbuild: 0.19.2
-      eslint: 8.49.0
       ip-num: 1.5.1
       jest: 29.7.0
       original-fs: 1.2.0
@@ -96,7 +95,6 @@ importers:
       '@types/node': 20.6.0
       '@types/uuid': 9.0.3
       esbuild: 0.19.2
-      eslint: 8.49.0
       jest: 29.7.0_8c0dd78a258711e581b5bd8ebc61ae59
       ts-jest: 29.1.1_84dfa29e09e31cdeb299b7e1b2ad8375
       ts-node: 10.9.1_53e95d8699e5f109d23885d3a3113560
