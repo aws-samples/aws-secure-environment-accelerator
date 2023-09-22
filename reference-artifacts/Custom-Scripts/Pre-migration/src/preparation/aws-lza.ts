@@ -143,7 +143,7 @@ export async function getLZAInstallerStackTemplate(bucketName: string, outputPat
   );
 
   // remove this code when we have a proper template in the S3 bucket
-  fs.copyFileSync(path.join(__dirname, '../cloudformation', 'AWSAccelerator-InstallerStack.template'), path.join(__dirname, outputPath, 'AWSAccelerator-InstallerStack.template'), fs.constants.COPYFILE_FICLONE_FORCE);
+  fs.copyFileSync(path.join(__dirname, '../cloudformation', 'AWSAccelerator-InstallerStack.template'), path.join(__dirname, outputPath, 'AWSAccelerator-InstallerStack.template'));
 }
 
 export async function putLZAInstallerStackTemplate(bucketName: string, templatePath: string, region: string) {
