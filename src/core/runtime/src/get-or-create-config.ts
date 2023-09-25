@@ -411,3 +411,23 @@ async function beforeStart(
     throw new Error('Input mode: "APPLY" is required when "scope" is provided');
   }
 }
+
+const event = {
+  "repositoryName": "ASEA-Config-Repo",
+  "s3Bucket": "crissupb-asea-630374747290",
+  "branchName": "main",
+  "acceleratorVersion": "1.5.7-b",
+  "acceleratorPrefix": "ASEA-",
+  "acceleratorName": "ASEA",
+  "region": "ca-central-1",
+  "smInput": {
+      "scope": "FULL",
+      "mode": "APPLY",
+      "verbose": "0"
+  },
+  "executionArn": "arn:aws:states:ca-central-1:630374747290:execution:ASEA-MainStateMachine_sm:287e4565-b261-44aa-b057-f8fe5b2d9559",
+  "stateMachineArn": "arn:aws:states:ca-central-1:630374747290:stateMachine:ASEA-MainStateMachine_sm"
+}
+
+handler(event);
+

@@ -195,7 +195,7 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
  */
 function installPackageManagerCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
-    return ['npm install --global pnpm@6.2.3'];
+    return ['npm install --global pnpm@8.7.6'];
   }
   throw new Error(`Unsupported package manager ${packageManager}`);
 }
@@ -206,7 +206,7 @@ function installPackageManagerCommands(packageManager: PackageManager) {
 function installDependenciesCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
     // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-    return ['pnpm install --unsafe-perm --frozen-lockfile', 'pnpm recursive run build --unsafe-perm'];
+    return ['pnpm install --frozen-lockfile', 'pnpm recursive run build'];
   }
   throw new Error(`Unsupported package manager ${packageManager}`);
 }
