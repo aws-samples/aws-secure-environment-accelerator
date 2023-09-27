@@ -204,8 +204,7 @@ function installPackageManagerCommands(packageManager: PackageManager) {
  */
 function installDependenciesCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
-    // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-    return ['pnpm install --unsafe-perm --frozen-lockfile', 'pnpm recursive run build --unsafe-perm'];
+    return ['pnpm install --frozen-lockfile', 'pnpm recursive run build'];
   }
   throw new Error(`Unsupported package manager ${packageManager}`);
 }

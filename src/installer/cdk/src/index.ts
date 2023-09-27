@@ -259,16 +259,14 @@ class Installer extends cdk.Stack {
             'runtime-versions': {
               nodejs: 16,
             },
-            // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
             commands: [
               'npm install --global pnpm@8.8.0',
-              'pnpm install --unsafe-perm --frozen-lockfile',
-              'pnpm recursive run build --unsafe-perm',
+              'pnpm install --frozen-lockfile',
+              'pnpm recursive run build',
             ],
           },
           pre_build: {
-            // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-            commands: ['pnpm recursive run build --unsafe-perm'],
+            commands: ['pnpm recursive run build'],
           },
           build: {
             commands: [
