@@ -24,8 +24,8 @@
     "@aws-accelerator/common-types": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "16.18.27",
-    "eslint": "7.25.0",
+    "@types/node": "18.18.0",
+    "eslint": "8.5.0",
     "fp-ts": "2.10.5",
     "io-ts": "2.2.16",
     "jest": "25.2.4",

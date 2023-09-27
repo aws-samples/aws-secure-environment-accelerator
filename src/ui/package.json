@@ -64,7 +64,7 @@
     "@types/lodash.get": "~4.4.6",
     "@types/lodash.merge": "^4.6.6",
     "@types/lodash.set": "~4.3.6",
-    "@types/node": "^14.17.5",
+    "@types/node": "18.18.0",
     "@types/react": "^17.0.14",
     "@types/react-dom": "^17.0.9",
     "@types/react-router": "^5.1.16",

@@ -38,7 +38,7 @@
     "@babel/node": "^7.15.8",
     "@babel/preset-env": "^7.15.8",
     "@babel/preset-typescript": "^7.15.0",
-    "@types/node": "^16.10.3",
+    "@types/node": "18.18.0",
     "json-schema-to-typescript": "^10.1.5",
     "ts-node": "^10.2.1",
     "typedoc": "^0.21.9",

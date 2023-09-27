@@ -32,11 +32,11 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.76",
-    "@types/node": "16.18.27",
+    "@types/node": "18.18.0",
     "@types/lodash": "4.14.191",
     "@types/uuid": "9.0.0",
     "esbuild": "0.11.18",
-    "eslint": "7.25.0",
+    "eslint": "8.5.0",
     "jest": "25.2.4",
     "ts-jest": "25.3.0",
     "ts-node": "9.1.1",

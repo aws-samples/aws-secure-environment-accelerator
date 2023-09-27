@@ -13,7 +13,7 @@
     "constructs": "10.0.12"
   },
   "devDependencies": {
-    "@types/node": "16.18.27"
+    "@types/node": "18.18.0"
   },
   "peerDependencies": {
     "@aws-accelerator/custom-resource-s3-put-bucket-versioning-runtime": "workspace:*",

@@ -15,7 +15,7 @@
     "aws-sdk": "2.1356.0"
   },
   "devDependencies": {
-    "@types/node": "16.18.27",
+    "@types/node": "18.18.0",
     "esbuild": "0.11.18",
     "typescript": "4.2.4"
   }

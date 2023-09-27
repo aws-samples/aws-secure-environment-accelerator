@@ -18,7 +18,7 @@
   "devDependencies": {
     "@aws-accelerator/custom-resource-macie-update-config-runtime": "workspace:*",
     "@aws-accelerator/custom-resource-macie-export-config-runtime": "workspace:*",
-    "@types/node": "16.18.27",
+    "@types/node": "18.18.0",
     "jest": "25.2.4",
     "ts-jest": "25.3.0",
     "ts-node": "9.1.1",
