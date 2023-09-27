@@ -261,7 +261,7 @@ class Installer extends cdk.Stack {
             },
             // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
             commands: [
-              'npm install --global pnpm@6.2.3',
+              'npm install --global pnpm@8.8.0',
               'pnpm install --unsafe-perm --frozen-lockfile',
               'pnpm recursive run build --unsafe-perm',
             ],

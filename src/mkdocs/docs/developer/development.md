@@ -57,7 +57,7 @@ new codebuild.PipelineProject(stack, 'InstallerProject', {
                     nodejs: 14,
                 },
                 // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-                commands: ['npm install --global pnpm@6.2.3', 'pnpm install --unsafe-perm --frozen-lockfile'],
+                commands: ['npm install --global pnpm@8.8.0', 'pnpm install --unsafe-perm --frozen-lockfile'],
             },
             pre_build: {
                 // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
