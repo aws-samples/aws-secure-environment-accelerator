@@ -44,7 +44,7 @@ jobs:
           node-version: 16
       - name: Install pnpm
         run: |
-          npm install -g pnpm@8.8.0
+          npm install -g pnpm@7.33.6
       - name: Generate Changelog
         id: changelog
         env:
@@ -160,7 +160,7 @@ jobs:
           node-version: 16
       - name: Install pnpm
         run: |
-          npm install -g pnpm@8.8.0
+          npm install -g pnpm@7.33.6
       - name: Build SEA-Config-Schema project
         id: build
         env:
@@ -200,7 +200,7 @@ jobs:
           node-version: 16
       - name: Install pnpm
         run: |
-          npm install -g pnpm@8.8.0
+          npm install -g pnpm@7.33.6
       - name: Build SEA-GUI project
         id: build
         env:

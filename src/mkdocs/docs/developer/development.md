@@ -56,7 +56,7 @@ new codebuild.PipelineProject(stack, 'InstallerProject', {
                 'runtime-versions': {
                     nodejs: 14,
                 },
-                commands: ['npm install --global pnpm@8.8.0', 'pnpm install --frozen-lockfile'],
+                commands: ['npm install --global pnpm@7.33.6', 'pnpm install --frozen-lockfile'],
             },
             pre_build: {
                 commands: ['pnpm recursive run build'],
