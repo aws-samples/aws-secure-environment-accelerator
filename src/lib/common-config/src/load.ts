@@ -11,9 +11,9 @@
  *  and limitations under the License.
  */
 
-import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
+import { CodeCommit } from './util/codecommit';
 import { AcceleratorConfig } from '.';
-import { S3 } from '@aws-accelerator/common/src/aws/s3';
+import { S3 } from './util/s3';
 
 const s3 = new S3();
 

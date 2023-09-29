@@ -11,7 +11,7 @@
  *  and limitations under the License.
  */
 
-import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
+import { CodeCommit } from '../util/codecommit';
 import { AcceleratorConfig } from '..';
 import { compareConfiguration, Diff, getAccountNames } from './config-diff';
 import * as validate from './validate';

@@ -7,8 +7,8 @@ packages:
   - src/lib/cdk-accelerator
   - src/lib/cdk-constructs
   - src/lib/cdk-plugin-assume-role
-  - src/lib/common
   - src/lib/common-config
+  - src/lib/common
   - src/lib/common-outputs
   - src/lib/common-types
   - src/lib/config

@@ -21,12 +21,13 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@aws-accelerator/common": "workspace:*",
     "@aws-accelerator/common-outputs": "workspace:*",
     "@aws-accelerator/common-types": "workspace:*",
     "@aws-accelerator/config": "workspace:*",
     "@types/deep-diff": "1.0.0",
-    "deep-diff": "1.0.2"
+    "aws-sdk": "2.1354.0",
+    "deep-diff": "1.0.2",
+    "exponential-backoff": "3.1.0"
   },
   "devDependencies": {
     "@types/node": "18.18.0",

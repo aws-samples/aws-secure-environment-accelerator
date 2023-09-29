@@ -16,7 +16,7 @@ import { Diff } from 'deep-diff';
 import { LHS, RHS } from './config-diff';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
-import { loadAssignedVpcCidrPool, loadAssignedSubnetCidrPool } from '@aws-accelerator/common/src/util/common';
+import { loadAssignedVpcCidrPool, loadAssignedSubnetCidrPool } from '../util/cidr-pool';
 import { AcceleratorConfig } from '..';
 
 /**
