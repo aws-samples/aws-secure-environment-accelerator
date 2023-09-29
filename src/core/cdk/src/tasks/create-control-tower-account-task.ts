@@ -66,6 +66,7 @@ export class CreateControlTowerAccountTask extends sfn.StateMachineFragment {
 
     const createTaskResultPath = '$.createOutput';
     const createTaskStatusPath = `${createTaskResultPath}.status`;
+    console.log(`createTaskStatusPath ${createTaskStatusPath}`);
     const createTask = new CodeTask(scope, `Start Control Tower Account Creation`, {
       resultPath: createTaskResultPath,
       functionProps: {

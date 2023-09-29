@@ -271,7 +271,7 @@ do_cmd cd $installer_dir
 # do_cmd npm install aws-cdk@$cdk_version
 
 # Install pnpm
-do_cmd npm install -g pnpm@6.2.3
+do_cmd npm install -g pnpm@8.9.0
 do_cmd pnpm install
 
 # Add local install to PATH

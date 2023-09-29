@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-const AWS = require('aws-sdk');
+const { CodePipeline, PutJobSuccessResultCommand, PutJobFailureResultCommand } = require("@aws-sdk/client-codepipeline");
+const { SSM, GetParameterCommand, PutParameterCommand, GetParameterHistoryCommand } = require("@aws-sdk/client-ssm");
 
-const codepipeline = new AWS.CodePipeline();
-const ssm = new AWS.SSM();
+const codepipeline = new CodePipeline();
+const ssm = new SSM();
 
 exports.handler = async function (event, context) {
   console.info(`Saving Accelerator Application Version...`);
@@ -22,7 +23,7 @@ exports.handler = async function (event, context) {
 
   const jobInfo = event['CodePipeline.job'];
   const jobId = jobInfo.id;
-  
+
   try {
     const userParametersString = jobInfo.data.actionConfiguration.configuration.UserParameters;
     const userParameters = JSON.parse(userParametersString);
@@ -32,30 +33,30 @@ exports.handler = async function (event, context) {
       Branch: userParameters.branch,
       Repository: userParameters.repository,
       CommitId: userParameters.commitId,
-      Owner:userParameters.owner,
+      Owner: userParameters.owner,
       DeployTime: currentTime.toString(),
       AcceleratorVersion: userParameters.acceleratorVersion,
       AcceleratorName: userParameters.acceleratorName,
       AcceleratorPrefix: userParameters.acceleratorPrefix,
     }
-    const param = await ssm.putParameter({
-      Name: '/accelerator/version', 
-      Value: JSON.stringify(versionData, null, 2), 
+    const param = await ssm.send(new PutParameterCommand({
+      Name: '/accelerator/version',
+      Value: JSON.stringify(versionData, null, 2),
       Type: 'String',
       Overwrite: true,
-    }).promise();
+    }));
     console.log(`Updated Application Version : ${param}`);
     try {
-      await ssm.getParameter({
+      await ssm.send(new GetParameterCommand({
         Name: '/accelerator/first-version'
-      }).promise();
+      }));
     } catch (e) {
-      if (e.code === 'ParameterNotFound') {
+      if (e.name === 'ParameterNotFound') {
         let firstInstlVersion;
         const parameterVersions = [];
         let token;
         do {
-          const response = await ssm.getParameterHistory({ Name: '/accelerator/version', NextToken: token, MaxResults: 50 }).promise();
+          const response = await ssm.send(new GetParameterHistoryCommand({ Name: '/accelerator/version', NextToken: token, MaxResults: 50 }));
           token = response.NextToken;
           if (response.Parameters) {
             parameterVersions.push(...response.Parameters);
@@ -74,34 +75,29 @@ exports.handler = async function (event, context) {
           throw new Error('First Installed Version not found in SSM Parameter Store "/accelerator/version"')
         }
         console.log("Inserting Installed version param ", firstInstlVersion);
-        await ssm.putParameter({
+        await ssm.send(new PutParameterCommand({
           Name: '/accelerator/first-version',
           Value: firstInstlVersion,
           Type: 'String',
           Overwrite: false,
           Description: 'Accelerator first installed version',
-        }).promise();
+        }));
       } else {
         throw new Error(e);
       }
     }
 
-    return codepipeline
-      .putJobSuccessResult({
-        jobId,
-      })
-      .promise();
+    return codepipeline.send(new PutJobSuccessResultCommand({ jobId }));
   } catch (e) {
     console.info(`Unexpected error while Saving Application Versio: ${e}`);
-    return codepipeline
-      .putJobFailureResult({
-        jobId,
-        failureDetails: {
-          externalExecutionId: context.awsRequestId,
-          type: 'JobFailed',
-          message: JSON.stringify(e),
-        },
-      })
-      .promise();
+    return codepipeline.send(new PutJobFailureResultCommand({
+      jobId,
+      failureDetails: {
+        externalExecutionId: context.awsRequestId,
+        type: 'JobFailed',
+        message: JSON.stringify(e),
+      },
+    }
+    ));
   }
 };

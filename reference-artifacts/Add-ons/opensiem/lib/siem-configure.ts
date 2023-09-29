@@ -87,7 +87,7 @@ export class OpenSearchSiemConfigure extends Construct {
     });
 
     return new lambda.Function(stack, `ConfigureLambda`, {
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       code: lambda.Code.fromAsset('lambdas/siem-config/dist'),
       role: lambdaRole,
       handler: 'index.handler',

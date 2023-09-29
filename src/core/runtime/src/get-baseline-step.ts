@@ -180,6 +180,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
     assignedVpcCidrPools: AssignedVpcCidrPool[],
     ouKey?: string,
   ) => {
+    console.log('In lookupCidrs');
     let existingCidrs = assignedVpcCidrPools.filter(
       vp =>
         vp.region === vpcConfig.region &&
@@ -255,6 +256,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
         }
       }
     }
+    console.log('Finished lookupCidrs');
   };
 
   const dynamicCidrs = async (
@@ -262,6 +264,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
     vpcConfig: VpcConfig,
     assignedVpcCidrPools: AssignedVpcCidrPool[],
   ) => {
+    console.log('In dynamicCidrs');
     const vpcCidr: { [key: string]: string } = {};
     for (const vpcCidrObj of vpcConfig.cidr) {
       const currentPool = cidrPools.find(cp => cp.region === vpcConfig.region && cp.pool === vpcCidrObj.pool);
@@ -285,7 +288,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
           )
           .map(vp => vp.cidr);
         const pool = poolFromCidr(currentPool.cidr);
-        const currentPoolCidrRange = pool.getCidrRange(IPv4Prefix.fromNumber(vpcCidrObj.size!));
+        const currentPoolCidrRange = pool.getCidrRange(IPv4Prefix.fromNumber(BigInt(vpcCidrObj.size!)));
         vpcCidr[vpcCidrObj.pool] = getAvailableCidr(usedCidrs, currentPoolCidrRange);
         if (
           IPv4CidrRange.fromCidr(currentPool.cidr)
@@ -340,7 +343,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
               sp['account-ou-key'] === `account/${accountKey}`),
         );
         if (!existingSubnet) {
-          const currentSubnetCidrRange = subnetPool.getCidrRange(IPv4Prefix.fromNumber(subnetDef.cidr.size!));
+          const currentSubnetCidrRange = subnetPool.getCidrRange(IPv4Prefix.fromNumber(BigInt(subnetDef.cidr.size!)));
           subnetCidr = getAvailableCidr(usedSubnetCidrs, currentSubnetCidrRange);
           if (
             IPv4CidrRange.fromCidr(vpcCidr[subnetDef.cidr.pool])
@@ -368,6 +371,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
         }
       }
     }
+    console.log('Finished dynamicCidrs');
   };
 
   // creating an IPv4 range from CIDR notation
@@ -376,7 +380,7 @@ async function assignDynamicCidrs(input: AssignCidrInput) {
       continue;
     }
     const assignedVpcCidrPools = await loadAssignedVpcCidrPool(vpcCidrPoolAssignedTable);
-
+    console.log('Back from loadAssignedVpcCidrPool');
     if (vpcConfig['cidr-src'] === 'lookup') {
       await lookupCidrs(accountKey, vpcConfig, assignedVpcCidrPools, ouKey);
     } else if (vpcConfig['cidr-src'] === 'dynamic') {

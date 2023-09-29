@@ -299,16 +299,19 @@ export async function vpcReplacements(props: { rawConfigStr: string }): Promise<
 }
 
 export async function loadAssignedVpcCidrPool(tableName: string, client?: DynamoDB) {
+  console.log('In loadAssignedVpcCidrPool');
   if (!client) {
     client = new DynamoDB();
   }
   const assignedVpcCidrPools = await client.scan({
     TableName: tableName,
   });
+  console.log('Finished loadAssignedVpcCidrPool');
   return (assignedVpcCidrPools as unknown) as AssignedVpcCidrPool[];
 }
 
 export async function loadAssignedSubnetCidrPool(tableName: string, client?: DynamoDB) {
+  console.log('In loadAssignedSubnetCidrPool');
   if (!client) {
     client = new DynamoDB();
   }
@@ -319,6 +322,7 @@ export async function loadAssignedSubnetCidrPool(tableName: string, client?: Dyn
 }
 
 export async function loadCidrPools(tableName: string, client?: DynamoDB): Promise<CidrPool[]> {
+  console.log('In loadCidrPools');
   if (!client) {
     client = new DynamoDB();
   }

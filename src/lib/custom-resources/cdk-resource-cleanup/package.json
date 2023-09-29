@@ -9,14 +9,14 @@
   },
   "dependencies": {
     "@aws-accelerator/custom-resource-cleanup-runtime": "workspace:*",
-    "aws-cdk-lib": "2.38.0",
-    "constructs": "10.0.12"
+    "aws-cdk-lib": "2.101.0",
+    "constructs": "10.2.70"
   },
   "devDependencies": {
-    "@types/node": "16.18.27"
+    "@types/node": "20.8.0"
   },
   "peerDependencies": {
     "@aws-accelerator/custom-resource-cleanup-runtime": "workspace:*",
-    "aws-cdk-lib": "2.38.0"
+    "aws-cdk-lib": "2.101.0"
   }
 }

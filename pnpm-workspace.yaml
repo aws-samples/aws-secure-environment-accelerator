@@ -17,5 +17,4 @@ packages:
   - src/lib/custom-resources/*/*
   - src/lib/io-ts-annotations
   - src/lib/io-ts-json-schema-gen
-  - src/ui
   - src/lib/docs-gen
