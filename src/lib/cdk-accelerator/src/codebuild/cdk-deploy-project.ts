@@ -204,7 +204,7 @@ function installPackageManagerCommands(packageManager: PackageManager) {
  */
 function installDependenciesCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
-    return ['pnpm install --frozen-lockfile', 'pnpm recursive run build'];
+    return ['pnpm install --no-frozen-lockfile', 'pnpm recursive run build'];
   }
   throw new Error(`Unsupported package manager ${packageManager}`);
 }
