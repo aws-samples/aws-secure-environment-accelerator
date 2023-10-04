@@ -10,17 +10,17 @@
   "dependencies": {
     "@aws-accelerator/custom-resource-acm-import-certificate": "link:",
     "@aws-accelerator/custom-resource-acm-import-certificate-runtime": "workspace:*",
-    "aws-cdk-lib": "2.38.0",
+    "aws-cdk-lib": "2.52.1",
     "constructs": "10.0.12"
   },
   "devDependencies": {
-    "@types/node": "16.18.27",
+    "@types/node": "18.11.9",
     "esbuild": "0.11.18",
     "ts-node": "9.1.1",
     "typescript": "4.2.4"
   },
   "peerDependencies": {
     "@aws-accelerator/custom-resource-acm-import-certificate-runtime": "workspace:*",
-    "aws-cdk-lib": "2.38.0"
+    "aws-cdk-lib": "2.52.1"
   }
 }

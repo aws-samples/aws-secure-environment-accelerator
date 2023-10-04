@@ -22,7 +22,7 @@ import { Command, Configuration } from 'aws-cdk/lib/settings';
 import { SdkProvider } from 'aws-cdk/lib/api/aws-auth';
 import { CloudFormationDeployments } from 'aws-cdk/lib/api/cloudformation-deployments';
 import { PluginHost } from 'aws-cdk/lib/api/plugin';
-import { debugModeEnabled } from '@aws-cdk/core/lib/debug';
+// import { debugModeEnabled } from 'aws-cdk-lib/core/lib/debug';
 import { AssumeProfilePlugin } from '@aws-accelerator/cdk-plugin-assume-role/src/assume-role-plugin';
 import { fulfillAll } from './promise';
 import { promises as fsp } from 'fs';
@@ -246,9 +246,9 @@ export class CdkToolkit {
     } else if (stackExists) {
       const sdk = await this.props.sdkProvider.forEnvironment(stack.environment, Mode.ForWriting);
       const cfn = sdk.sdk.cloudFormation();
-      if (debugModeEnabled()) {
-        cfn.config.logger = console;
-      }
+      // if (debugModeEnabled()) {
+      //   cfn.config.logger = console;
+      // }
       this.deploymentLog(stack, 'Describing Stack');
       const existingStack = await cfn
         .describeStacks({

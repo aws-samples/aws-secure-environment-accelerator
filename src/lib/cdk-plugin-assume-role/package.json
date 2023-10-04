@@ -4,19 +4,19 @@
   "private": true,
   "main": "dist/index.js",
   "scripts": {
-    "build": "pnpx esbuild --minify --bundle --platform=node --target=node16 --external:aws-sdk --outfile=./dist/index.js src/index.ts",
+    "build": "pnpx esbuild --minify --bundle --platform=node --target=node18 --outfile=./dist/index.js src/index.ts",
     "lint:typecheck": "pnpx tsc --noEmit",
     "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
   },
   "dependencies": {
     "@aws-accelerator/cdk-plugin-assume-role": "link:",
-    "aws-cdk": "2.38.0",
+    "aws-cdk": "2.52.1",
     "aws-sdk": "2.1356.0",
     "colors": "1.4.0",
     "exponential-backoff": "3.1.0"
   },
   "devDependencies": {
-    "@types/node": "16.18.27",
+    "@types/node": "18.11.9",
     "esbuild": "0.11.18",
     "typescript": "4.2.4"
   }

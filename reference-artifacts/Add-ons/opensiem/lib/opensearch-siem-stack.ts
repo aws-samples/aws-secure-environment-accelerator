@@ -398,7 +398,7 @@ export class OpenSearchSiemStack extends Stack {
       );
 
       const geoIpDownloader = new lambda.Function(scope, 'GeoIpDownloaderLambda', {
-        runtime: lambda.Runtime.NODEJS_16_X,
+        runtime: lambda.Runtime.NODEJS_18_X,
         role: lambdaRole,
         code: lambda.Code.fromAsset('lambdas/siem-geoip/dist'),
         handler: 'index.geoIpDownloader',

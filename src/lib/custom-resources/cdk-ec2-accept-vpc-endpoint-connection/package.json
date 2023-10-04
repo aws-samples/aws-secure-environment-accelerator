@@ -10,14 +10,14 @@
   "dependencies": {
     "@aws-accelerator/custom-resource-accept-vpc-endpoint-connection": "link:",
     "@aws-accelerator/custom-resource-accept-vpc-endpoint-connection-runtime": "workspace:*",
-    "aws-cdk-lib": "2.38.0",
+    "aws-cdk-lib": "2.52.1",
     "constructs": "10.0.12"
   },
   "devDependencies": {
-    "@types/node": "16.18.27"
+    "@types/node": "18.11.9"
   },
   "peerDependencies": {
     "@aws-accelerator/custom-resource-accept-vpc-endpoint-connection-runtime": "workspace:*",
-    "aws-cdk-lib": "2.38.0"
+    "aws-cdk-lib": "2.52.1"
   }
 }

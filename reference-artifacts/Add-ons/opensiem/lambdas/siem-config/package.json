@@ -4,7 +4,7 @@
   "private": true,
   "main": "dist/index.js",
   "scripts": {
-    "build": "npx esbuild --minify --bundle --platform=node --target=node16 --external:aws-sdk --outfile=./dist/index.js src/index.ts",
+    "build": "npx esbuild --minify --bundle --platform=node --target=node18 --outfile=./dist/index.js src/index.ts",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"
@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.76",
-    "@types/node": "16.18.27",
+    "@types/node": "18.11.9",
     "esbuild": "0.11.18",
     "typescript": "4.2.4"
   }

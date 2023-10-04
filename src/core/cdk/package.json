@@ -21,14 +21,14 @@
     "@aws-accelerator/accelerator": "link:",
     "@aws-accelerator/accelerator-runtime": "workspace:*",
     "@aws-accelerator/cdk-accelerator": "workspace:*",
-    "aws-cdk": "2.38.0",
-    "aws-cdk-lib": "2.38.0",
+    "aws-cdk": "2.52.1",
+    "aws-cdk-lib": "2.52.1",
     "constructs": "10.0.12",
-    "cdk-assets": "2.38.0"
+    "cdk-assets": "2.52.1"
   },
   "devDependencies": {
-    "@types/node": "16.18.27",
-    "aws-cdk": "2.38.0",
+    "@types/node": "18.11.9",
+    "aws-cdk": "2.52.1",
     "eslint": "7.25.0",
     "jest": "25.2.4",
     "ts-jest": "25.3.0",

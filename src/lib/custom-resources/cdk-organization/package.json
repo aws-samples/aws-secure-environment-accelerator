@@ -12,17 +12,17 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.38.0",
+    "aws-cdk-lib": "2.52.1",
     "constructs": "10.0.12"
   },
   "devDependencies": {
-    "@types/node": "16.18.27",
+    "@types/node": "18.11.9",
     "jest": "25.2.4",
     "ts-jest": "25.3.0",
     "ts-node": "9.1.1",
     "typescript": "4.2.4"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "2.38.0"
+    "aws-cdk-lib": "2.52.1"
   }
 }

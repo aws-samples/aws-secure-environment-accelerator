@@ -103,7 +103,7 @@ export class CdkDeployProject extends CdkDeployProjectBase {
         phases: {
           install: {
             'runtime-versions': {
-              nodejs: 16,
+              nodejs: 18,
             },
             commands: installPackageManagerCommands(props.packageManager),
           },
@@ -146,7 +146,7 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
     fs.writeFileSync(
       path.join(this.projectTmpDir, 'Dockerfile'),
       [
-        'FROM public.ecr.aws/bitnami/node:14',
+        'FROM public.ecr.aws/bitnami/node:18',
         // Install the package manager
         ...installPackageManagerCommands(props.packageManager).map(cmd => `RUN ${cmd}`),
         `WORKDIR ${appDir}`,

@@ -29,7 +29,7 @@
     "deep-diff": "1.0.2"
   },
   "devDependencies": {
-    "@types/node": "16.18.27",
+    "@types/node": "18.11.9",
     "eslint": "7.25.0",
     "jest": "25.2.4",
     "ts-jest": "25.3.0",

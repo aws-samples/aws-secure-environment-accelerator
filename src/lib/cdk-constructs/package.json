@@ -28,7 +28,7 @@
     "@aws-accelerator/custom-resource-security-hub-accept-invites": "workspace:*",
     "@aws-accelerator/custom-resource-security-hub-enable": "workspace:*",
     "@aws-accelerator/custom-resource-security-hub-send-invites": "workspace:*",
-    "aws-cdk-lib": "2.38.0",
+    "aws-cdk-lib": "2.52.1",
     "constructs": "10.0.12",
     "aws-sdk": "2.1356.0",
     "hash-sum": "2.0.0",
@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@types/hash-sum": "1.0.0",
-    "@types/node": "16.18.27",
+    "@types/node": "18.11.9",
     "eslint": "7.25.0",
     "jest": "25.2.4",
     "ts-jest": "25.3.0",
