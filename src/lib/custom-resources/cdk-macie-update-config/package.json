@@ -19,10 +19,10 @@
     "@aws-accelerator/custom-resource-macie-update-config-runtime": "workspace:*",
     "@aws-accelerator/custom-resource-macie-export-config-runtime": "workspace:*",
     "@types/node": "18.11.9",
-    "jest": "25.2.4",
-    "ts-jest": "25.3.0",
+    "jest": "29.7.0",
+    "ts-jest": "29.1.1",
     "ts-node": "9.1.1",
-    "typescript": "4.2.4"
+    "typescript": "5.2.2"
   },
   "peerDependencies": {
     "aws-cdk-lib": "2.52.1"
