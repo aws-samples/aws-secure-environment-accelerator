@@ -20,7 +20,7 @@ import { setLogLevel } from 'aws-cdk/lib/logging';
 import { Bootstrapper } from 'aws-cdk/lib/api/bootstrap';
 import { Command, Configuration } from 'aws-cdk/lib/settings';
 import { SdkProvider } from 'aws-cdk/lib/api/aws-auth';
-import { CloudFormationDeployments } from 'aws-cdk/lib/api/cloudformation-deployments';
+import { Deployments } from 'aws-cdk/lib/api/deployments';
 import { PluginHost } from 'aws-cdk/lib/api/plugin';
 // import { debugModeEnabled } from 'aws-cdk-lib/core/lib/debug';
 import { AssumeProfilePlugin } from '@aws-accelerator/cdk-plugin-assume-role/src/assume-role-plugin';
@@ -53,7 +53,7 @@ interface Tag {
 }
 
 export class CdkToolkit {
-  private readonly cloudFormation: CloudFormationDeployments;
+  private readonly cloudFormation: Deployments;
   private readonly toolkitStackName: string | undefined;
   private readonly toolkitBucketName: string | undefined;
   private readonly toolkitKmsKey: string | undefined;
@@ -61,7 +61,7 @@ export class CdkToolkit {
   private readonly tags: Tag[] | undefined;
 
   constructor(private readonly props: CdkToolkitProps) {
-    this.cloudFormation = new CloudFormationDeployments({
+    this.cloudFormation = new Deployments({
       sdkProvider: props.sdkProvider,
     });
 

@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@aws-accelerator/custom-resource-elb-deletion-protection": "link:",
-    "aws-cdk-lib": "2.79.1",
+    "aws-cdk-lib": "2.79.0",
     "constructs": "10.0.12"
   },
   "devDependencies": {
@@ -19,6 +19,6 @@
     "typescript": "5.2.2"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "2.79.1"
+    "aws-cdk-lib": "2.79.0"
   }
 }

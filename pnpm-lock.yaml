@@ -57,14 +57,14 @@ importers:
         specifier: workspace:*
         version: link:../../lib/cdk-accelerator
       aws-cdk:
-        specifier: 2.79.1
-        version: 2.79.1
+        specifier: 2.80.0
+        version: 2.80.0
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       cdk-assets:
-        specifier: 2.79.1
-        version: 2.79.1
+        specifier: 2.99.1
+        version: 2.99.1
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -318,19 +318,19 @@ importers:
         version: 'link:'
       '@aws-cdk/assert':
         specifier: 2.68.0
-        version: 2.68.0(aws-cdk-lib@2.79.1)(constructs@10.0.12)(jest@29.7.0)
+        version: 2.68.0(aws-cdk-lib@2.80.0)(constructs@10.0.12)(jest@29.7.0)
       '@aws-cdk/cfnspec':
         specifier: 2.72.1
         version: 2.72.1
       '@aws-cdk/cloud-assembly-schema':
-        specifier: 2.79.1
-        version: 2.79.1
+        specifier: 2.80.0
+        version: 2.80.0
       '@aws-cdk/cloudformation-diff':
-        specifier: 2.79.1
-        version: 2.79.1
+        specifier: 2.80.0
+        version: 2.80.0
       '@aws-cdk/cx-api':
-        specifier: 2.79.1
-        version: 2.79.1(@aws-cdk/cloud-assembly-schema@2.79.1)
+        specifier: 2.80.0
+        version: 2.80.0(@aws-cdk/cloud-assembly-schema@2.80.0)
       '@types/js-yaml':
         specifier: 4.0.1
         version: 4.0.1
@@ -338,17 +338,17 @@ importers:
         specifier: 7.3.5
         version: 7.3.5
       aws-cdk:
-        specifier: 2.79.1
-        version: 2.79.1
+        specifier: 2.80.0
+        version: 2.80.0
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       aws-sdk:
         specifier: 2.1356.0
         version: 2.1356.0
       cdk-assets:
-        specifier: 2.79.1
-        version: 2.79.1
+        specifier: 2.99.1
+        version: 2.99.1
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -496,8 +496,8 @@ importers:
         specifier: 'link:'
         version: 'link:'
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -509,8 +509,8 @@ importers:
         specifier: 18.11.9
         version: 18.11.9
       aws-cdk:
-        specifier: 2.79.1
-        version: 2.79.1
+        specifier: 2.80.0
+        version: 2.80.0
       aws-sdk:
         specifier: 2.1356.0
         version: 2.1356.0
@@ -539,8 +539,8 @@ importers:
         specifier: workspace:*
         version: link:../custom-resources/cdk-ec2-keypair
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -553,7 +553,7 @@ importers:
     devDependencies:
       '@aws-cdk/assert':
         specifier: 2.68.0
-        version: 2.68.0(aws-cdk-lib@2.79.1)(constructs@10.0.12)(jest@29.7.0)
+        version: 2.68.0(aws-cdk-lib@2.80.0)(constructs@10.0.12)(jest@29.7.0)
       '@types/glob':
         specifier: 7.1.3
         version: 7.1.3
@@ -615,8 +615,8 @@ importers:
         specifier: workspace:*
         version: link:../custom-resources/cdk-security-hub-send-invites
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       aws-sdk:
         specifier: 2.1356.0
         version: 2.1356.0
@@ -658,8 +658,8 @@ importers:
         specifier: 'link:'
         version: 'link:'
       aws-cdk:
-        specifier: 2.79.1
-        version: 2.79.1
+        specifier: 2.80.0
+        version: 2.80.0
       aws-sdk:
         specifier: 2.1356.0
         version: 2.1356.0
@@ -896,8 +896,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -955,8 +955,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1005,8 +1005,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1055,8 +1055,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1124,8 +1124,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1177,8 +1177,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1227,8 +1227,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1277,8 +1277,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1330,8 +1330,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1377,8 +1377,8 @@ importers:
         specifier: 'link:'
         version: 'link:'
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1402,8 +1402,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1449,8 +1449,8 @@ importers:
         specifier: 'link:'
         version: 'link:'
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1477,8 +1477,8 @@ importers:
         specifier: workspace:*
         version: link:../ec2-ebs-default-encryption/lambda
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1530,8 +1530,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1580,8 +1580,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1633,8 +1633,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1683,8 +1683,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1745,8 +1745,8 @@ importers:
         specifier: 'link:'
         version: 'link:'
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1773,8 +1773,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1823,8 +1823,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1870,8 +1870,8 @@ importers:
         specifier: 'link:'
         version: 'link:'
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1901,8 +1901,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1954,8 +1954,8 @@ importers:
         specifier: 'link:'
         version: 'link:'
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -1979,8 +1979,8 @@ importers:
         specifier: workspace:^0.0.1
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2032,8 +2032,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2088,8 +2088,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2144,8 +2144,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2200,8 +2200,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2256,8 +2256,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2306,8 +2306,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2353,8 +2353,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2403,8 +2403,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2453,8 +2453,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2497,8 +2497,8 @@ importers:
   src/lib/custom-resources/cdk-logs-resource-policy:
     dependencies:
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2519,8 +2519,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2575,11 +2575,11 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk:
-        specifier: 2.79.1
-        version: 2.79.1
+        specifier: 2.80.0
+        version: 2.80.0
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2606,8 +2606,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2693,8 +2693,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2752,8 +2752,8 @@ importers:
   src/lib/custom-resources/cdk-macie-update-config:
     dependencies:
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2817,8 +2817,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2873,8 +2873,8 @@ importers:
   src/lib/custom-resources/cdk-organization:
     dependencies:
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2898,8 +2898,8 @@ importers:
   src/lib/custom-resources/cdk-r53-dns-endpoint-ips:
     dependencies:
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2914,8 +2914,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -2961,8 +2961,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3008,8 +3008,8 @@ importers:
   src/lib/custom-resources/cdk-s3-public-access-block:
     dependencies:
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3027,8 +3027,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3074,8 +3074,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3121,8 +3121,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3171,8 +3171,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3218,8 +3218,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3262,8 +3262,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3309,8 +3309,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3356,8 +3356,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3397,8 +3397,8 @@ importers:
   src/lib/custom-resources/cdk-ssm-create-document:
     dependencies:
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3447,8 +3447,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3494,8 +3494,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3541,8 +3541,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3588,8 +3588,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3638,8 +3638,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3688,8 +3688,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3735,8 +3735,8 @@ importers:
         specifier: workspace:*
         version: link:lambda
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -3788,8 +3788,8 @@ importers:
         specifier: workspace:*
         version: link:runtime
       aws-cdk-lib:
-        specifier: 2.79.1
-        version: 2.79.1(constructs@10.0.12)
+        specifier: 2.80.0
+        version: 2.80.0(constructs@10.0.12)
       constructs:
         specifier: 10.0.12
         version: 10.0.12
@@ -4168,7 +4168,7 @@ packages:
       js-yaml: 4.1.0
     dev: true
 
-  /@aws-cdk/assert@2.68.0(aws-cdk-lib@2.79.1)(constructs@10.0.12)(jest@29.7.0):
+  /@aws-cdk/assert@2.68.0(aws-cdk-lib@2.80.0)(constructs@10.0.12)(jest@29.7.0):
     resolution: {integrity: sha512-bEztvoYdVp17I/ClYRGZa4wlEP/qNNq4Q+Z7EKwRL0cLDmvq4EI1m1N8LhUPAH7B6YXp5d1164gC6Nr0lV8bbA==}
     engines: {node: '>= 14.15.0'}
     peerDependencies:
@@ -4177,7 +4177,7 @@ packages:
       jest: '>=26.6.3'
     dependencies:
       '@aws-cdk/cloudformation-diff': 2.68.0
-      aws-cdk-lib: 2.79.1(constructs@10.0.12)
+      aws-cdk-lib: 2.80.0(constructs@10.0.12)
       constructs: 10.0.12
       jest: 29.7.0(@types/node@18.11.9)(ts-node@9.1.1)
 
@@ -4203,16 +4203,27 @@ packages:
       md5: 2.3.0
     dev: false
 
-  /@aws-cdk/cfnspec@2.79.1-alpha.0:
-    resolution: {integrity: sha512-0b6C9yYJFn3fQrcWDGNX5GusZFapYWHohNbXrEAi454pUd0XjvQaef4CY4e9qStR1bfuBlharH5SCv5EMeCF/w==}
+  /@aws-cdk/cfnspec@2.80.0-alpha.0:
+    resolution: {integrity: sha512-5lDAtKK68x2rb+JP0LjH7q6Doc8oFqiNqKtAwYtHj56QbfpEFI//KxtTwvEliwArof2+fPLQgazaABcTki8k2g==}
     dependencies:
       fs-extra: 9.1.0
       md5: 2.3.0
     dev: false
 
-  /@aws-cdk/cloud-assembly-schema@2.79.1:
-    resolution: {integrity: sha512-IFQdZSsEn4kmfIILCfFGlCfUTqXaYIYmfrR2QIZ/SmdGnXZrzG9nlCunMPXbIQ7qvShJ5UQrSQ+yrQDX3YI1oQ==}
+  /@aws-cdk/cloud-assembly-schema@2.80.0:
+    resolution: {integrity: sha512-3rvy9au13rJz0KL6R8DvC/b5LkxpL7PACvXCY3y+TU9K5dPFUHkOSg9aSmlwihxJsTiekunLUOWv8ry5fKGK8w==}
     engines: {node: '>= 14.15.0'}
+    dev: false
+    bundledDependencies:
+      - jsonschema
+      - semver
+
+  /@aws-cdk/cloud-assembly-schema@2.99.1:
+    resolution: {integrity: sha512-wTHluqKMlF70VXSi8b6Ffo8xKOAVTrjV0lgRs2Sw52ANDDrSPkJ4C0PqWpY9NqxZqzmvqytz5XnNIh5L7vhq8w==}
+    engines: {node: '>= 14.15.0'}
+    dependencies:
+      jsonschema: 1.4.1
+      semver: 7.5.4
     dev: false
     bundledDependencies:
       - jsonschema
@@ -4229,11 +4240,11 @@ packages:
       string-width: 4.2.3
       table: 6.8.1
 
-  /@aws-cdk/cloudformation-diff@2.79.1:
-    resolution: {integrity: sha512-55x2yzNyX1C+l1rzWOOo9U/6pgyzH37zxQHCDqQ9m3aipucM39RnP11zVo81PUVN15JciM9Ad9Ut5NyU+S0XFg==}
+  /@aws-cdk/cloudformation-diff@2.80.0:
+    resolution: {integrity: sha512-EB0MpDJkLbpheVlgZxjWKLX8IvhzoOrHjMR3R+4+ceV3KPJfsqIkvkY6I/YxtlNxSsF7mDTKwu0YZtcUQA4NCQ==}
     engines: {node: '>= 14.15.0'}
     dependencies:
-      '@aws-cdk/cfnspec': 2.79.1-alpha.0
+      '@aws-cdk/cfnspec': 2.80.0-alpha.0
       chalk: 4.1.2
       diff: 5.1.0
       fast-deep-equal: 3.1.3
@@ -4241,13 +4252,25 @@ packages:
       table: 6.8.1
     dev: false
 
-  /@aws-cdk/cx-api@2.79.1(@aws-cdk/cloud-assembly-schema@2.79.1):
-    resolution: {integrity: sha512-o5sQAhySt5xNYqgmISVwdv9tVdVLglPIU2qTcgQWxIR/OFtGj7yggHeuQGJQ+g7EvQmYiq0QVLGr68tHGTAbSQ==}
+  /@aws-cdk/cx-api@2.80.0(@aws-cdk/cloud-assembly-schema@2.80.0):
+    resolution: {integrity: sha512-VNOFzNNzQSmaxahoN1NUSZ7Nq80GTaPldxP/9/TSiyYvyOk+fL0b/UL0DrmiN2HhtD4aT9OqC7fTbP1RVQUOsQ==}
     engines: {node: '>= 14.15.0'}
     peerDependencies:
-      '@aws-cdk/cloud-assembly-schema': 2.79.1
+      '@aws-cdk/cloud-assembly-schema': 2.80.0
     dependencies:
-      '@aws-cdk/cloud-assembly-schema': 2.79.1
+      '@aws-cdk/cloud-assembly-schema': 2.80.0
+    dev: false
+    bundledDependencies:
+      - semver
+
+  /@aws-cdk/cx-api@2.99.1(@aws-cdk/cloud-assembly-schema@2.99.1):
+    resolution: {integrity: sha512-uAbqLmD4FzKnsQWcL1AOl9efZafy6vHjsHY1Nx1tsuiva2YaVZRyBH6I465fi5bimiVCLFB+BFKeh1jM3F2dZw==}
+    engines: {node: '>= 14.15.0'}
+    peerDependencies:
+      '@aws-cdk/cloud-assembly-schema': 2.99.1
+    dependencies:
+      '@aws-cdk/cloud-assembly-schema': 2.99.1
+      semver: 7.5.4
     dev: false
     bundledDependencies:
       - semver
@@ -11074,8 +11097,8 @@ packages:
       readable-stream: 2.3.7
     dev: false
 
-  /archiver@5.3.1:
-    resolution: {integrity: sha512-8KyabkmbYrH+9ibcTScQ1xCJC/CGcugdVIwB+53f5sZziXgwUh3iXlAlANMxcZyDEfTHMe6+Z5FofV8nopXP7w==}
+  /archiver@5.3.2:
+    resolution: {integrity: sha512-+25nxyyznAXF7Nef3y0EbBeqmGZgeN/BxHX29Rs39djAfaFalmQ89SE6CWyDCHzGL0yt/ycBtNOmGTW0FyGWNw==}
     engines: {node: '>= 10'}
     dependencies:
       archiver-utils: 2.1.0
@@ -11348,8 +11371,8 @@ packages:
     resolution: {integrity: sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==}
     engines: {node: '>= 0.4'}
 
-  /aws-cdk-lib@2.79.1(constructs@10.0.12):
-    resolution: {integrity: sha512-iOPT9hbpP7z9otAzAgSr3HksjZe/QQXdyE7P1A4EESAzmLktOGfzzHydJqU1wfE9BbgK4ioCS0dJ3EaCCtWGpg==}
+  /aws-cdk-lib@2.80.0(constructs@10.0.12):
+    resolution: {integrity: sha512-PoqD3Yms5I0ajuTi071nTW/hpkH3XsdyZzn5gYsPv0qD7mqP3h6Qr+6RiGx+yQ1KcVFyxWdX15uK+DsC0KwvcQ==}
     engines: {node: '>= 14.15.0'}
     peerDependencies:
       constructs: ^10.0.0
@@ -11370,8 +11393,8 @@ packages:
       - table
       - yaml
 
-  /aws-cdk@2.79.1:
-    resolution: {integrity: sha512-N6intzdRFqrHC+O3Apty34RiTev2+bzvRtUbehVd5IyAmTvLsgE/jlhPUIJV2POSAK+bKOV+ZWEp9qMOj1hq8A==}
+  /aws-cdk@2.80.0:
+    resolution: {integrity: sha512-SKMZ/sGlNmFV37Lk40HHe4QJ2hJZmD0PrkScBmkr33xzEqjyKhN3jIHC4PYqTUeUK/qYemq3Y5OpXKQuWTCoKA==}
     engines: {node: '>= 14.15.0'}
     hasBin: true
     optionalDependencies:
@@ -12277,14 +12300,14 @@ packages:
     resolution: {integrity: sha512-4tYFyifaFfGacoiObjJegolkwSU4xQNGbVgUiNYVUxbQ2x2lUsFvY4hVgVzGiIe6WLOPqycWXA40l+PWsxthUw==}
     dev: true
 
-  /cdk-assets@2.79.1:
-    resolution: {integrity: sha512-2S5VGY8jgEB+XHE0vxBKUEDJ94QCY8T/xloMu8ypquEQNHgEJbvB7Z0aRKKd3t+B4bVFIpTbxM8NNkQy0dZt6Q==}
+  /cdk-assets@2.99.1:
+    resolution: {integrity: sha512-cBHxiMEPFS5RExk9qu/IZzw2gFWlwWpJZqg3XOhegc++Yecs20wSsA1SQrhsRYyYR7pMY6WBytXoclmkCsIG/w==}
     engines: {node: '>= 14.15.0'}
     hasBin: true
     dependencies:
-      '@aws-cdk/cloud-assembly-schema': 2.79.1
-      '@aws-cdk/cx-api': 2.79.1(@aws-cdk/cloud-assembly-schema@2.79.1)
-      archiver: 5.3.1
+      '@aws-cdk/cloud-assembly-schema': 2.99.1
+      '@aws-cdk/cx-api': 2.99.1(@aws-cdk/cloud-assembly-schema@2.99.1)
+      archiver: 5.3.2
       aws-sdk: 2.1470.0
       glob: 7.2.3
       mime: 2.6.0
@@ -15392,6 +15415,7 @@ packages:
       minimatch: 3.1.2
       once: 1.4.0
       path-is-absolute: 1.0.1
+    dev: false
 
   /global-modules@2.0.0:
     resolution: {integrity: sha512-NGbfmJBp9x8IxyJSd1P+otYK8vonoJactOogrVfFRIAEY1ukil8RSKDz2Yo7wh1oihl51l/r6W4epkeKJHqL8A==}
@@ -17779,6 +17803,10 @@ packages:
       universalify: 2.0.0
     optionalDependencies:
       graceful-fs: 4.2.11
+
+  /jsonschema@1.4.1:
+    resolution: {integrity: sha512-S6cATIPVv1z0IlxdN+zUk5EPjkGCdnhN4wVSBlvoUO1tOLJootbo9CquNJmbIh4yikWHiUedhRYrNPn1arpEmQ==}
+    dev: false
 
   /jsprim@1.4.2:
     resolution: {integrity: sha512-P2bSOMAc/ciLz6DzgjVlGJP9+BrJWu5UDGK70C2iweC5QBIeFf0ZXRvGjEj2uYgrY2MkAAhsSWHDWlFtEroZWw==}
@@ -20941,7 +20969,7 @@ packages:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
     hasBin: true
     dependencies:
-      glob: 7.2.3
+      glob: 7.1.6
 
   /ripemd160@2.0.2:
     resolution: {integrity: sha512-ii4iagi25WusVoiC4B4lq7pbXfAp3D9v5CwfkY33vffw2+pkDjY1D8GaN7spsxvCSx8dkPqOZCEZyfxcmJG2IA==}

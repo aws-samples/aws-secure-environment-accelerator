@@ -10,7 +10,7 @@
   "dependencies": {
     "@aws-accelerator/custom-resource-ec2-launch-time": "link:",
     "@aws-accelerator/custom-resource-ec2-launch-time-runtime": "workspace:*",
-    "aws-cdk-lib": "2.79.1",
+    "aws-cdk-lib": "2.79.0",
     "constructs": "10.0.12"
   },
   "devDependencies": {
@@ -20,6 +20,6 @@
   },
   "peerDependencies": {
     "@aws-accelerator/custom-resource-ec2-launch-time-runtime": "workspace:*",
-    "aws-cdk-lib": "2.79.1"
+    "aws-cdk-lib": "2.79.0"
   }
 }

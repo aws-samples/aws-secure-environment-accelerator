@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@aws-accelerator/cdk-plugin-assume-role": "link:",
-    "aws-cdk": "2.79.1",
+    "aws-cdk": "2.79.0",
     "aws-sdk": "2.1356.0",
     "colors": "1.4.0",
     "exponential-backoff": "3.1.0"

@@ -13,13 +13,13 @@
   },
   "dependencies": {
     "@aws-accelerator/installer": "link:",
-    "aws-cdk-lib": "2.79.1",
+    "aws-cdk-lib": "2.79.0",
     "constructs": "10.0.12"
   },
   "devDependencies": {
     "@types/jest": "25.2.3",
     "@types/node": "18.11.9",
-    "aws-cdk": "2.79.1",
+    "aws-cdk": "2.79.0",
     "aws-sdk": "2.1356.0",
     "eslint": "7.25.0",
     "jest": "29.7.0",
