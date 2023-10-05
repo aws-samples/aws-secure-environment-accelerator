@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@aws-accelerator/custom-resource-macie-enable-runtime": "workspace:*",
-    "aws-cdk": "2.52.1",
-    "aws-cdk-lib": "2.52.1",
+    "aws-cdk": "2.79.1",
+    "aws-cdk-lib": "2.79.1",
     "constructs": "10.0.12"
   },
   "devDependencies": {
@@ -26,8 +26,8 @@
   },
   "peerDependencies": {
     "@aws-accelerator/custom-resource-macie-enable-runtime": "workspace:*",
-    "aws-cdk": "2.52.1",
-    "aws-cdk-lib": "2.52.1",
+    "aws-cdk": "2.79.1",
+    "aws-cdk-lib": "2.79.1",
     "constructs": "10.0.12"
   }
 }

@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@aws-accelerator/custom-resource-ssm-session-manager-document-runtime": "workspace:*",
-    "aws-cdk-lib": "2.52.1",
+    "aws-cdk-lib": "2.79.1",
     "constructs": "10.0.12"
   },
   "devDependencies": {
@@ -17,6 +17,6 @@
   },
   "peerDependencies": {
     "@aws-accelerator/custom-resource-ssm-session-manager-document-runtime": "workspace:*",
-    "aws-cdk-lib": "2.52.1"
+    "aws-cdk-lib": "2.79.1"
   }
 }
