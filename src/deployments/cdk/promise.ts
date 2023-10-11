@@ -4,7 +4,7 @@ export async function fulfillAll<T>(promises: Promise<T>[]): Promise<T[]> {
   const promiseResults = await Promise.allSettled(promises);
   const rejectedResults = promiseResults.filter(promiseIsRejected);
   if (rejectedResults.length > 0) {
-    const reasons = rejectedResults.map(r => `${r.reason}`);
+    const reasons = rejectedResults.map(r => `${r.reason}\n${r.reason.stack}`);
     throw new Error(reasons.join('\n'));
   }
   const fulfilledResults = promiseResults.filter(promiseIsFulfilled);
