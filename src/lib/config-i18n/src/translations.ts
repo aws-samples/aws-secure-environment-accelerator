@@ -338,7 +338,7 @@ export function isInterfaceTranslations(value: FieldTranslations): value is Inte
 function copyOmitEmpty<T>(value: T): T | undefined {
   if (typeof value === 'object') {
     return Object.fromEntries(
-      Object.entries(value)
+      Object.entries(value as any)
         .map(([key, value]) => [key, copyOmitEmpty(value)])
         .filter(([, value]) => value != null),
     );

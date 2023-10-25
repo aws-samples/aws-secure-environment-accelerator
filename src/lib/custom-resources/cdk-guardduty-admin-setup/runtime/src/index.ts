@@ -176,7 +176,7 @@ async function isConfigurationAutoEnabled(
   detectorId: string,
   s3Protection: boolean,
   eksProtection: boolean,
-): Promise<boolean> {
+): Promise<boolean | undefined> {
   try {
     console.log(`Calling api "guardduty.describeOrganizationConfiguration()", ${detectorId}`);
     const response = await throttlingBackOff(() =>

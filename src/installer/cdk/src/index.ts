@@ -259,11 +259,7 @@ class Installer extends cdk.Stack {
             'runtime-versions': {
               nodejs: 18,
             },
-            commands: [
-              'npm install --global pnpm@8.9.0',
-              'pnpm install --frozen-lockfile',
-              'pnpm recursive run build',
-            ],
+            commands: ['npm install --global pnpm@8.9.0', 'pnpm install --frozen-lockfile', 'pnpm recursive run build'],
           },
           pre_build: {
             commands: ['pnpm recursive run build'],

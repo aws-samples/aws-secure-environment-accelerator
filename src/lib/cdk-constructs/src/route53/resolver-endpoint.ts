@@ -67,7 +67,7 @@ export class ResolverEndpoint extends Construct {
       securityGroupIds: [securityGroup.ref],
       name: `${this.props.name} Inbound Endpoint`,
     });
-    this._inboundEndpoint.addDependsOn(securityGroup);
+    this._inboundEndpoint.addDependency(securityGroup);
 
     // const dnsIps = new R53DnsEndpointIps(this, 'InboundIp', {
     //   resolverEndpointId: this._inboundEndpoint.ref,
@@ -105,7 +105,7 @@ export class ResolverEndpoint extends Construct {
       securityGroupIds: [securityGroup.ref],
       name: `${this.props.name} Outbound Endpoint`,
     });
-    this._outboundEndpoint.addDependsOn(securityGroup);
+    this._outboundEndpoint.addDependency(securityGroup);
     return this._outboundEndpoint;
   }
 

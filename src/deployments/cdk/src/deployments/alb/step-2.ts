@@ -101,7 +101,7 @@ const createEndpoints = (props: {
       continue;
     }
     const { name: vpcName, region: vpcRegion } = endpointVpcConfig;
-    const vpcAccountKey = endpointResolvedVpcConfig?.accountKey!;
+    const vpcAccountKey = endpointResolvedVpcConfig?.accountKey;
     const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
       outputs,
       vpcName,

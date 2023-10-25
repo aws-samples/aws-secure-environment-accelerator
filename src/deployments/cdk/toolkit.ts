@@ -13,7 +13,7 @@
 
 import path from 'path';
 import * as cxschema from '@aws-cdk/cloud-assembly-schema';
-import { CloudFormationStackArtifact, Environment} from '@aws-cdk/cx-api';
+import { CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
 import { AssetManifest } from 'cdk-assets';
 import { ToolkitInfo } from 'aws-cdk/lib/api/toolkit-info';
 import { Mode } from 'aws-cdk/lib/api';
@@ -278,11 +278,8 @@ export class CdkToolkit {
       this.deploymentLog(stack, 'Publishing assets');
       const assetManifests = getAssetManifestsForStack(stack);
       for (const assetManifest of assetManifests) {
-        for (const entry of assetManifest.entries) 
-        {
-          await this.cloudFormation.publishSingleAsset(
-            assetManifest, 
-            entry, {
+        for (const entry of assetManifest.entries) {
+          await this.cloudFormation.publishSingleAsset(assetManifest, entry, {
             stack,
             roleArn: stack.assumeRoleArn,
             toolkitStackName: this.toolkitStackName,
@@ -424,10 +421,13 @@ function toCloudFormationTags(tags: cxschema.Tag[]): Tag[] {
 
 function getAssetManifestsForStack(stack: CloudFormationStackArtifact): AssetManifest[] {
   return Object.values(stack.assembly.manifest.artifacts ?? {})
-      .filter(artifact =>
-        artifact.type === cxschema.ArtifactType.ASSET_MANIFEST && (artifact.properties as cxschema.AssetManifestProperties)?.file === `${stack.id}.assets.json`)
-      .map(artifact => {
-        const fileName = (artifact.properties as cxschema.AssetManifestProperties).file;
-        return AssetManifest.fromFile(path.join(stack.assembly.directory, fileName));
-  });
+    .filter(
+      artifact =>
+        artifact.type === cxschema.ArtifactType.ASSET_MANIFEST &&
+        (artifact.properties as cxschema.AssetManifestProperties)?.file === `${stack.id}.assets.json`,
+    )
+    .map(artifact => {
+      const fileName = (artifact.properties as cxschema.AssetManifestProperties).file;
+      return AssetManifest.fromFile(path.join(stack.assembly.directory, fileName));
+    });
 }

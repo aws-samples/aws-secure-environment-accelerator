@@ -102,10 +102,10 @@ export async function step1(props: MadStep1Props) {
       },
     });
 
-    const imageId = ssm.StringParameter.valueForTypedStringParameter(
+    const imageId = ssm.StringParameter.valueForTypedStringParameterV2(
       accountStack,
       madConfig['image-path'],
-      ssm.ParameterType.AWS_EC2_IMAGE_ID,
+      ssm.ParameterValueType.AWS_EC2_IMAGE_ID,
     );
 
     new CfnMadImageIdOutputTypeOutput(accountStack, 'MadImageIdOutput', {

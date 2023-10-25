@@ -122,7 +122,7 @@ export async function deploy({
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const nfwNameToIdMap = vpcOutput.nfw?.reduce((acc: any, nfwConfig) => {
-      const vpcEndpointAz = nfwConfig.az.substr(-1);
+      const vpcEndpointAz = nfwConfig.az.substring(-1);
       const vpcEndpointId = nfwConfig.vpcEndpoint;
       const mapSubnet = nfwConfig.subnets.filter(subnet => {
         return vpcEndpointAz === subnet.az;

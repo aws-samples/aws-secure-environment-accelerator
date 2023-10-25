@@ -396,7 +396,7 @@ export namespace InitialSetup {
         `${props.acceleratorPrefix}CTCreateAccount_sm`,
         {
           stateMachineName: `${props.acceleratorPrefix}CTCreateAccount_sm`,
-            definition: new CreateControlTowerAccountTask(scope, 'Create CT Account', {
+          definition: new CreateControlTowerAccountTask(scope, 'Create CT Account', {
             lambdaCode,
             role: pipelineRole,
           }),
@@ -412,7 +412,7 @@ export namespace InitialSetup {
           'account.$': '$',
         }),
       });
-      
+
       const createControlTowerAccountsTask = new sfn.Map(this, 'Create Accounts', {
         itemsPath: '$.configuration.accounts',
         resultPath: sfn.JsonPath.DISCARD,
@@ -420,7 +420,7 @@ export namespace InitialSetup {
       });
 
       createControlTowerAccountsTask.iterator(createControlTowerAccountTask);
-  
+
       const createOrganizationAccountStateMachine = new sfn.StateMachine(
         scope,
         `${props.acceleratorPrefix}OrgCreateAccount_sm`,
