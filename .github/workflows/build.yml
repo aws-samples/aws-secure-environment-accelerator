@@ -7,7 +7,7 @@ on:
     branches:
       - main
 env: 
-  NODE_OPTIONS="--max-old-space-size=28000"
+  NODE_OPTIONS: "--max-old-space-size=28000"
 jobs:
   test:
     name: Test
