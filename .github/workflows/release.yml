@@ -6,7 +6,7 @@ on:
         description: "Generate documentation only. Unchecking this checkbox will have no impact, the documentation will still be only generated when the workflow is triggered manually."
         type: boolean
         required: false
-        default: "true"
+        default: true
   push:
     branches:
       - "release/v*"
@@ -41,7 +41,7 @@ jobs:
         env:
           RUNNER_TEMP: /tmp/runner
         with:
-          node-version: 16
+          node-version: 18
       - name: Install pnpm
         run: |
           npm install -g pnpm@8.9.0
@@ -157,7 +157,7 @@ jobs:
         env:
           RUNNER_TEMP: /tmp/runner
         with:
-          node-version: 16
+          node-version: 18
       - name: Install pnpm
         run: |
           npm install -g pnpm@8.9.0
@@ -197,7 +197,7 @@ jobs:
         env:
           RUNNER_TEMP: /tmp/runner
         with:
-          node-version: 16
+          node-version: 18
       - name: Install pnpm
         run: |
           npm install -g pnpm@8.9.0
