@@ -14,7 +14,6 @@
 import { IAMClient, UpdateAccountPasswordPolicyCommand } from '@aws-sdk/client-iam';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
-AWS.config.logger = console;
 const iam = new IAMClient();
 
 export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
