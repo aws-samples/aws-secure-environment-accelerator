@@ -34,6 +34,8 @@ export {
   LiteralType,
   number,
   NumberType,
+  bigint,
+  BigIntType,
   partial,
   PartialType,
   record,

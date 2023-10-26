@@ -11,11 +11,14 @@
  *  and limitations under the License.
  */
 
-const AWS = require('aws-sdk');
-AWS.config.logger = console;
-const codepipeline = new AWS.CodePipeline();
-const ssm = new AWS.SSM();
-const cfn = new AWS.CloudFormation();
+
+const { CodePipeline, PutJobFailureResultCommand, PutJobSuccessResultCommand } = require("@aws-sdk/client-codepipeline");
+const { SSM, GetParameterCommand } = require("@aws-sdk/client-ssm");
+const { CloudFormation, DescribeStacksCommand } = require("@aws-sdk/client-cloudformation");
+
+const codepipeline = new CodePipeline;
+const ssm = new SSM;
+const cfn = new CloudFormation;
 
 exports.handler = async function (event, context) {
   console.info(`Vallidating Accelerator Perameters with previous execution...`);
@@ -30,14 +33,10 @@ exports.handler = async function (event, context) {
     const { acceleratorName, acceleratorPrefix } = userParameters;
     let versionParam;
     try {
-      versionParam = await ssm
-      .getParameter({
-        Name: '/accelerator/version',
-      })
-      .promise();
+      versionParam = await ssm.send(new GetParameterCommand({ Name: '/accelerator/version' }));
     } catch (ex) {
       console.warn(ex);
-      if (ex.code !== 'ParameterNotFound') {
+      if (ex.name !== 'ParameterNotFound') {
         throw new Error(ex);
       }
     }
@@ -50,11 +49,7 @@ exports.handler = async function (event, context) {
       if (!versionParamValue.AcceleratorName && !versionParamValue.AcceleratorPrefix) {
         console.log("Didn't find AccelName and Prefix in /accelerator/version");
         try {
-          await cfn
-            .describeStacks({
-              StackName: `${acceleratorPrefix}InitialSetup`,
-            })
-            .promise();
+          await cfn.send(new DescribeStacksCommand({ StackName: `${acceleratorPrefix}InitialSetup` }));
         } catch (error) {
           throw new Error(`Invalid AcceleratorPrefix=${acceleratorPrefix} provided`);
         }
@@ -67,22 +62,17 @@ exports.handler = async function (event, context) {
         );
       }
     }
-    return codepipeline
-      .putJobSuccessResult({
-        jobId,
-      })
-      .promise();
+    return codepipeline.send(new PutJobSuccessResultCommand({ jobId }));
   } catch (e) {
     console.info(`Unexpected error while Validating Parameters: ${e}`);
-    return codepipeline
-      .putJobFailureResult({
-        jobId,
-        failureDetails: {
-          externalExecutionId: context.awsRequestId,
-          type: 'JobFailed',
-          message: e.toString(),
-        },
-      })
-      .promise();
+    return codepipeline.send(new PutJobFailureResultCommand({
+      jobId,
+      failureDetails: {
+        externalExecutionId: context.awsRequestId,
+        type: 'JobFailed',
+        message: e.toString(),
+      },
+    }
+    ));
   }
 };

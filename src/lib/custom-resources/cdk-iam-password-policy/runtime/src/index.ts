@@ -11,12 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as AWS from 'aws-sdk';
-AWS.config.logger = console;
+import { IAMClient, UpdateAccountPasswordPolicyCommand } from '@aws-sdk/client-iam';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
-
-const iam = new AWS.IAM();
+const iam = new IAMClient();
 
 export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
   console.log(`Set/Update IAM password policy...`);
@@ -37,8 +35,8 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   try {
     // Set/Update IAM account password policy
     await throttlingBackOff(() =>
-      iam
-        .updateAccountPasswordPolicy({
+      iam.send(
+        new UpdateAccountPasswordPolicyCommand({
           AllowUsersToChangePassword: toBoolean(event.ResourceProperties.allowUsersToChangePassword),
           HardExpiry: toBoolean(event.ResourceProperties.hardExpiry),
           RequireUppercaseCharacters: toBoolean(event.ResourceProperties.requireUppercaseCharacters),
@@ -48,8 +46,8 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
           MinimumPasswordLength: event.ResourceProperties.minimumPasswordLength,
           PasswordReusePrevention: event.ResourceProperties.passwordReusePrevention,
           MaxPasswordAge: event.ResourceProperties.maxPasswordAge,
-        })
-        .promise(),
+        }),
+      ),
     );
   } catch (e) {
     console.warn(`Ignore Set/Update IAM account password policy failure`);

@@ -11,7 +11,6 @@
  *  and limitations under the License.
  */
 
-import * as cdk from 'aws-cdk-lib';
 import * as cfn_inc from 'aws-cdk-lib/cloudformation-include';
 import { Construct } from 'constructs';
 

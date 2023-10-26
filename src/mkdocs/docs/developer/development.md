@@ -54,14 +54,12 @@ new codebuild.PipelineProject(stack, 'InstallerProject', {
         phases: {
             install: {
                 'runtime-versions': {
-                    nodejs: 14,
+                    nodejs: 18,
                 },
-                // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-                commands: ['npm install --global pnpm@6.2.3', 'pnpm install --unsafe-perm --frozen-lockfile'],
+                commands: ['npm install --global pnpm@8.9.0', 'pnpm install --frozen-lockfile'],
             },
             pre_build: {
-                // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-                commands: ['pnpm recursive run build --unsafe-perm'],
+                commands: ['pnpm recursive run build'],
             },
             build: {
                 commands: [
@@ -127,7 +125,7 @@ WORKDIR /app
 # Copy over the project root to the /app directory
 ADD . /app/
 # Install the dependencies
-RUN pnpm install --unsafe-perm --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 # Build all Lambda function runtime code
 RUN pnpm recursive run build --unsafe-perm
 ```

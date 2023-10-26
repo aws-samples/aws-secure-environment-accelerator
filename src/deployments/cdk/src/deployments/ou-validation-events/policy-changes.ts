@@ -53,7 +53,7 @@ export async function changePolicy(input: PolicyChangeEventProps) {
   } = input;
 
   const policyChangeFunc = new lambda.Function(scope, 'policyChanges', {
-    runtime: lambda.Runtime.NODEJS_16_X,
+    runtime: lambda.Runtime.NODEJS_18_X,
     handler: 'index.ouValidationEvents.changePolicy',
     code: lambdaCode,
     role: acceleratorPipelineRole,

@@ -61,7 +61,7 @@ export async function createAccount(input: CreateAccountProps) {
   });
 
   const attachQuarantineScpTask = new CodeTask(scope, 'Attach Quarantine SCP To Account', {
-    resultPath: 'DISCARD',
+    resultPath: sfn.JsonPath.DISCARD,
     functionProps: {
       role: acceleratorPipelineRole,
       code: lambdaCode,

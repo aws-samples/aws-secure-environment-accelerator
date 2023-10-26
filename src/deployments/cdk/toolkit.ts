@@ -14,22 +14,21 @@
 import path from 'path';
 import * as cxschema from '@aws-cdk/cloud-assembly-schema';
 import { CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
+import { AssetManifest } from 'cdk-assets';
 import { ToolkitInfo } from 'aws-cdk/lib/api/toolkit-info';
 import { Mode } from 'aws-cdk/lib/api';
 import { setLogLevel } from 'aws-cdk/lib/logging';
 import { Bootstrapper } from 'aws-cdk/lib/api/bootstrap';
 import { Command, Configuration } from 'aws-cdk/lib/settings';
 import { SdkProvider } from 'aws-cdk/lib/api/aws-auth';
-import { CloudFormationDeployments } from 'aws-cdk/lib/api/cloudformation-deployments';
+import { Deployments } from 'aws-cdk/lib/api/deployments';
 import { PluginHost } from 'aws-cdk/lib/api/plugin';
-import { debugModeEnabled } from '@aws-cdk/core/lib/debug';
 import { AssumeProfilePlugin } from '@aws-accelerator/cdk-plugin-assume-role/src/assume-role-plugin';
 import { fulfillAll } from './promise';
 import { promises as fsp } from 'fs';
 import * as cdk from 'aws-cdk-lib';
 import * as AWS from 'aws-sdk';
 
-// Set microstats emitters
 // Set debug logging
 setLogLevel(1);
 
@@ -53,7 +52,7 @@ interface Tag {
 }
 
 export class CdkToolkit {
-  private readonly cloudFormation: CloudFormationDeployments;
+  private readonly cloudFormation: Deployments;
   private readonly toolkitStackName: string | undefined;
   private readonly toolkitBucketName: string | undefined;
   private readonly toolkitKmsKey: string | undefined;
@@ -61,7 +60,7 @@ export class CdkToolkit {
   private readonly tags: Tag[] | undefined;
 
   constructor(private readonly props: CdkToolkitProps) {
-    this.cloudFormation = new CloudFormationDeployments({
+    this.cloudFormation = new Deployments({
       sdkProvider: props.sdkProvider,
     });
 
@@ -160,6 +159,7 @@ export class CdkToolkit {
    * @return The stack outputs.
    */
   async synth() {
+    console.log('Synthesizing CloudFormation templates');
     const stacks = this.props.assemblies.flatMap(assembly => assembly.stacks);
     stacks.map(s => s.template);
     stacks.map(stack => {
@@ -246,9 +246,7 @@ export class CdkToolkit {
     } else if (stackExists) {
       const sdk = await this.props.sdkProvider.forEnvironment(stack.environment, Mode.ForWriting);
       const cfn = sdk.sdk.cloudFormation();
-      if (debugModeEnabled()) {
-        cfn.config.logger = console;
-      }
+      console.log('toolkit describe stack');
       this.deploymentLog(stack, 'Describing Stack');
       const existingStack = await cfn
         .describeStacks({
@@ -276,6 +274,20 @@ export class CdkToolkit {
     }
 
     try {
+      // publish assets
+      this.deploymentLog(stack, 'Publishing assets');
+      const assetManifests = getAssetManifestsForStack(stack);
+      for (const assetManifest of assetManifests) {
+        for (const entry of assetManifest.entries) {
+          await this.cloudFormation.publishSingleAsset(assetManifest, entry, {
+            stack,
+            roleArn: stack.assumeRoleArn,
+            toolkitStackName: this.toolkitStackName,
+            stackName: stack.stackName,
+          });
+        }
+      }
+
       // Add stack tags to the tags list
       // const tags = this.tags || [];
       const tags = [...tagsForStack(stack)];
@@ -283,7 +295,6 @@ export class CdkToolkit {
       const result = await this.cloudFormation.deployStack({
         stack,
         deployName: stack.stackName,
-        execute: true,
         force: true,
         notificationArns: undefined,
         reuseAssets: [],
@@ -291,6 +302,7 @@ export class CdkToolkit {
         tags,
         toolkitStackName: this.toolkitStackName,
         usePreviousParameters: false,
+        quiet: false,
       });
 
       if (result.noOp) {
@@ -405,4 +417,17 @@ function toCloudFormationTags(tags: cxschema.Tag[]): Tag[] {
       return { Key: t.key, Value: t.value };
     }
   }) as Tag[];
+}
+
+function getAssetManifestsForStack(stack: CloudFormationStackArtifact): AssetManifest[] {
+  return Object.values(stack.assembly.manifest.artifacts ?? {})
+    .filter(
+      artifact =>
+        artifact.type === cxschema.ArtifactType.ASSET_MANIFEST &&
+        (artifact.properties as cxschema.AssetManifestProperties)?.file === `${stack.id}.assets.json`,
+    )
+    .map(artifact => {
+      const fileName = (artifact.properties as cxschema.AssetManifestProperties).file;
+      return AssetManifest.fromFile(path.join(stack.assembly.directory, fileName));
+    });
 }

@@ -94,10 +94,10 @@ export async function step1(props: RsyslogStep1Props) {
       roleArn: role.roleArn,
     });
 
-    const imageId = ssm.StringParameter.valueForTypedStringParameter(
+    const imageId = ssm.StringParameter.valueForTypedStringParameterV2(
       accountStack,
       rsyslogDeploymentConfig['ssm-image-id'],
-      ssm.ParameterType.AWS_EC2_IMAGE_ID,
+      ssm.ParameterValueType.AWS_EC2_IMAGE_ID,
     );
 
     new CfnRsyslogImageIdOutputTypeOutput(accountStack, 'RsyslogImageIdOutput', {

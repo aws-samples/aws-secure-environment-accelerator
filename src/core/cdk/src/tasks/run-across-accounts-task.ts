@@ -11,7 +11,6 @@
  *  and limitations under the License.
  */
 
-import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
@@ -105,7 +104,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
     });
 
     const pass = new sfn.Pass(this, `${name} Success`, {
-      resultPath: 'DISCARD',
+      resultPath: sfn.JsonPath.DISCARD,
     });
 
     const fail = new sfn.Fail(this, `${name} Failed`);

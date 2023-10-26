@@ -185,7 +185,7 @@ class LambdaFun extends Construct {
         const runtimeDir = path.dirname(lambdaPath);
 
         new lambda.Function(this, 'Resource', {
-            runtime: lambda.Runtime.NODEJS_16_X,
+            runtime: lambda.Runtime.NODEJS_18_X,
             code: lambda.Code.fromAsset(runtimeDir),
             handler: 'index.handler', // The `handler` function in `index.js`
         });

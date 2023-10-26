@@ -6,7 +6,8 @@ on:
   pull_request:
     branches:
       - main
-
+env: 
+  NODE_OPTIONS: "--max-old-space-size=28000"
 jobs:
   test:
     name: Test
@@ -17,7 +18,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 16
+          node-version: 18
       - name: Cache Node.js modules
         uses: actions/cache@v1
         with:
@@ -28,7 +29,7 @@ jobs:
             ${{ runner.OS }}-
       - name: Install Node.js modules
         run: |
-          npm install -g pnpm@6.2.3
+          npm install -g pnpm@8.9.0
           pnpm recursive install --frozen-lockfile
       - name: Build all workspaces
         run: |

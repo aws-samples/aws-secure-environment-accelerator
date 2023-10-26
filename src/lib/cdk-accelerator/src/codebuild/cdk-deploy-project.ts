@@ -103,7 +103,7 @@ export class CdkDeployProject extends CdkDeployProjectBase {
         phases: {
           install: {
             'runtime-versions': {
-              nodejs: 16,
+              nodejs: 18,
             },
             commands: installPackageManagerCommands(props.packageManager),
           },
@@ -117,7 +117,7 @@ export class CdkDeployProject extends CdkDeployProjectBase {
         path: projectAsset.s3ObjectKey,
       }),
       environment: {
-        buildImage: codebuild.LinuxBuildImage.STANDARD_6_0,
+        buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
         computeType: computeType ?? codebuild.ComputeType.LARGE,
         environmentVariables: this.environmentVariables,
       },
@@ -146,7 +146,7 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
     fs.writeFileSync(
       path.join(this.projectTmpDir, 'Dockerfile'),
       [
-        'FROM public.ecr.aws/bitnami/node:14',
+        'FROM public.ecr.aws/bitnami/node:18',
         // Install the package manager
         ...installPackageManagerCommands(props.packageManager).map(cmd => `RUN ${cmd}`),
         `WORKDIR ${appDir}`,
@@ -194,7 +194,7 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
  */
 function installPackageManagerCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
-    return ['npm install --global pnpm@6.2.3'];
+    return ['npm install --global pnpm@8.9.0'];
   }
   throw new Error(`Unsupported package manager ${packageManager}`);
 }
@@ -204,8 +204,7 @@ function installPackageManagerCommands(packageManager: PackageManager) {
  */
 function installDependenciesCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
-    // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-    return ['pnpm install --unsafe-perm --frozen-lockfile', 'pnpm recursive run build --unsafe-perm'];
+    return ['pnpm install --frozen-lockfile', 'pnpm recursive run build'];
   }
   throw new Error(`Unsupported package manager ${packageManager}`);
 }

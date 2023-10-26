@@ -12,30 +12,18 @@
  */
 
 import 'jest';
-
 const AWS = require('aws-sdk');
+const {
+  CodePipeline,
+  PutJobSuccessResultCommand,
+  PutJobFailureResultCommand,
+} = require('@aws-sdk/client-codepipeline');
+const { SFNClient, StartExecutionCommand } = require('@aws-sdk/client-sfn');
+import { mockClient } from 'aws-sdk-client-mock';
 
-const putJobSuccessResult = jest.fn().mockReturnValue({
-  promise: jest.fn().mockResolvedValue({}),
-});
+const mockCodePipeline = mockClient(CodePipeline);
+const mockSFNClient = mockClient(SFNClient);
 
-const putJobFailureResult = jest.fn().mockReturnValue({
-  promise: jest.fn().mockResolvedValue({}),
-});
-
-const startExecution = jest.fn().mockReturnValue({
-  promise: jest.fn().mockResolvedValue({}),
-});
-
-AWS.CodePipeline = jest.fn().mockImplementation(() => ({
-  putJobSuccessResult,
-  putJobFailureResult,
-}));
-AWS.StepFunctions = jest.fn().mockImplementation(() => ({
-  startExecution,
-}));
-
-// Include handler after mocking the AWS SDK methods
 const { handler } = require('../assets/start-execution');
 
 test('the State Machine execution should be started', async () => {
@@ -50,13 +38,22 @@ test('the State Machine execution should be started', async () => {
   // Call the Lambda function handler
   await handler(event);
 
-  expect(startExecution).toBeCalledWith({
-    input: '{"scope":"FULL","mode":"APPLY","verbose":"0"}',
-    stateMachineArn: 'arn:state-machine',
-  });
-  expect(putJobSuccessResult).toBeCalledWith({
-    jobId: '0001',
-  });
+  expect(
+    mockSFNClient
+      .on(StartExecutionCommand, {
+        input: '{"scope":"FULL","mode":"APPLY","verbose":"0"}',
+        stateMachineArn: 'arn:state-machine',
+      })
+      .resolves({}),
+  );
+
+  expect(
+    mockCodePipeline
+      .on(PutJobSuccessResultCommand, {
+        jobId: '0001',
+      })
+      .resolves({}),
+  );
 });
 
 test('the State Machine execution should not be started when State Machine ARN is missing', async () => {
@@ -69,14 +66,18 @@ test('the State Machine execution should not be started when State Machine ARN i
   // Call the Lambda function handler
   await handler(event, { awsRequestId: 'request-0001' });
 
-  expect(putJobFailureResult).toBeCalledWith({
-    jobId: '0001',
-    failureDetails: {
-      externalExecutionId: 'request-0001',
-      message: expect.any(String),
-      type: 'JobFailed',
-    },
-  });
+  expect(
+    mockCodePipeline
+      .on(PutJobFailureResultCommand, {
+        jobId: '0001',
+        failureDetails: {
+          externalExecutionId: 'request-0001',
+          message: expect.any(String),
+          type: 'JobFailed',
+        },
+      })
+      .resolves({}),
+  );
 });
 
 function createCodePipelineEvent({ jobId, userParameters }: { jobId: string; userParameters: unknown }) {

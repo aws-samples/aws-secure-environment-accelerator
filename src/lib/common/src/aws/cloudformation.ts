@@ -67,6 +67,7 @@ export class CloudFormation {
   async describeStack(stackName: string): Promise<cfn.Stack | undefined> {
     try {
       // AmazonCloudFormationException is thrown when the stack does not exist
+      console.log('DesribeStack in cloudformation.ts');
       const response = await throttlingBackOff(() =>
         this.client
           .describeStacks({

@@ -3,13 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       generateDocOnly:
-        description: 'Generate documentation only. Unchecking this checkbox will have no impact, the documentation will still be only generated when the workflow is triggered manually.'
+        description: "Generate documentation only. Unchecking this checkbox will have no impact, the documentation will still be only generated when the workflow is triggered manually."
         type: boolean
         required: false
-        default: 'true'
+        default: true
   push:
     branches:
-      - 'release/v*'
+      - "release/v*"
 jobs:
   release:
     name: Create Release
@@ -41,10 +41,10 @@ jobs:
         env:
           RUNNER_TEMP: /tmp/runner
         with:
-          node-version: 16
+          node-version: 18
       - name: Install pnpm
         run: |
-          npm install -g pnpm@6.2.3
+          npm install -g pnpm@8.9.0
       - name: Generate Changelog
         id: changelog
         env:
@@ -157,10 +157,10 @@ jobs:
         env:
           RUNNER_TEMP: /tmp/runner
         with:
-          node-version: 16
+          node-version: 18
       - name: Install pnpm
         run: |
-          npm install -g pnpm@6.2.3
+          npm install -g pnpm@8.9.0
       - name: Build SEA-Config-Schema project
         id: build
         env:
@@ -197,10 +197,10 @@ jobs:
         env:
           RUNNER_TEMP: /tmp/runner
         with:
-          node-version: 16
+          node-version: 18
       - name: Install pnpm
         run: |
-          npm install -g pnpm@6.2.3
+          npm install -g pnpm@8.9.0
       - name: Build SEA-GUI project
         id: build
         env:

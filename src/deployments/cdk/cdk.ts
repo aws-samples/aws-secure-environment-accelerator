@@ -3,7 +3,6 @@ import { CdkToolkit } from './toolkit';
 import * as app from './src/app';
 import microstats from 'microstats';
 import * as v8 from 'v8';
-import { debugModeEnabled } from '@aws-cdk/core/lib/debug';
 const fs = require('fs').promises;
 
 // eslint-disable-next-line
@@ -60,13 +59,6 @@ const getHeapStatistics = () => {
 
 async function main() {
   await fs.writeFile('/tmp/buildStatus.txt', 'started', 'utf8');
-  if (debugModeEnabled()) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    microstats.start(microstatsOptions, (err: any) => {
-      console.log(err);
-    });
-    console.log(getHeapStatistics());
-  }
   const usage = `Usage: cdk.ts <command> [<command>] --phase PHASE [--region REGION] [--account-key ACCOUNT_KEY] [--parallel]`;
   const args = mri(process.argv.slice(2), {
     boolean: ['parallel'],
@@ -102,9 +94,6 @@ async function main() {
     console.log(`deploying stack ${i + 1} of ${apps.length}`);
     if (appsPage.length > PAGE_SIZE - 1 || i === apps.length - 1) {
       const toolkit = await CdkToolkit.create(appsPage);
-      if (debugModeEnabled()) {
-        console.log(getHeapStatistics());
-      }
       if (commands.includes('bootstrap')) {
         await toolkit.bootstrap();
       }
@@ -118,9 +107,6 @@ async function main() {
       }
       appsPage = [];
     }
-  }
-  if (debugModeEnabled()) {
-    microstats.stop();
   }
   await fs.writeFile('/tmp/buildStatus.txt', 'complete', 'utf8');
 }

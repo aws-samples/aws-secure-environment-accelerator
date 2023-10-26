@@ -33,6 +33,7 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
   constructor(scope: Construct, id: string, props: CreateOrganizationAccountTask.Props) {
     super(scope, id);
 
+    console.log('In CreateOrganizationAccountTask');
     const { role, lambdaCode, waitSeconds = 60 } = props;
 
     role.addToPrincipalPolicy(
@@ -59,6 +60,7 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
 
     const createTaskResultPath = '$.createOutput';
     const createTaskStatusPath = `${createTaskResultPath}.status`;
+    console.log(`organization createTaskStatusPath ${createTaskStatusPath}`);
     const createTask = new CodeTask(scope, `Start Account Creation`, {
       resultPath: createTaskResultPath,
       functionProps: {
@@ -98,7 +100,7 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
     const fail = new sfn.Fail(this, 'Account Creation Failed');
 
     const attachQuarantineScpTask = new CodeTask(scope, 'Attach Quarantine SCP To Account', {
-      resultPath: 'DISCARD',
+      resultPath: sfn.JsonPath.DISCARD,
       functionProps: {
         role,
         code: lambdaCode,

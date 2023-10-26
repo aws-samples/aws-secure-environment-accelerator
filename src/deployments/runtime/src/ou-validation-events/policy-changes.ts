@@ -255,7 +255,7 @@ function isAcceleratorScp(policy: any, scpNames: string[]): boolean {
     console.error(`isAcceleratorScp - Invalid policy name`);
     return false;
   }
-  if (policyName !== FULL_AWS_ACCESS_POLICY_NAME && !scpNames.includes(policyName!)) {
+  if (policyName !== FULL_AWS_ACCESS_POLICY_NAME && !scpNames.includes(policyName)) {
     console.error(`Policy is not handled through Accelerator`);
     return false;
   }

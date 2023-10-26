@@ -370,7 +370,7 @@ export class Vpc extends Construct implements constructs.Vpc {
           outpostArn: subnetDefinition['outpost-arn'],
         });
         for (const extensions of extendVpc) {
-          subnet.addDependsOn(extensions);
+          subnet.addDependency(extensions);
         }
 
         this.azSubnets.push({
@@ -683,7 +683,7 @@ export class Vpc extends Construct implements constructs.Vpc {
               destinationCidrBlock: route.destination,
               transitGatewayId: tgw.tgwId,
             });
-            tgwRoute.addDependsOn(tgwAttachment.resource);
+            tgwRoute.addDependency(tgwAttachment.resource);
             continue;
           } else if (route.target.startsWith('NATGW_')) {
             if (typeof route.destination !== 'string') {
@@ -727,7 +727,7 @@ export class Vpc extends Construct implements constructs.Vpc {
           };
           const cfnRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, params);
           if (dependsOn) {
-            cfnRoute.addDependsOn(dependsOn);
+            cfnRoute.addDependency(dependsOn);
           }
         }
       }

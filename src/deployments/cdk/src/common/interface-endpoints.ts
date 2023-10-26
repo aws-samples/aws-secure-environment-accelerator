@@ -90,7 +90,7 @@ export class InterfaceEndpoint extends Construct {
       securityGroupIds: [securityGroup.ref],
       privateDnsEnabled: false,
     });
-    endpoint.addDependsOn(securityGroup);
+    endpoint.addDependency(securityGroup);
 
     const hostedZoneName = zoneNameForRegionAndEndpointName(vpcRegion, serviceName);
     this._hostedZone = new route53.CfnHostedZone(this, 'Phz', {
@@ -106,7 +106,7 @@ export class InterfaceEndpoint extends Construct {
       },
     });
 
-    this._hostedZone.addDependsOn(endpoint);
+    this._hostedZone.addDependency(endpoint);
 
     const recordSetName = recordSetNameForRegionAndEndpointName(vpcRegion, serviceName);
     const recordSet = new route53.CfnRecordSet(this, 'RecordSet', {
@@ -115,7 +115,7 @@ export class InterfaceEndpoint extends Construct {
       hostedZoneId: this._hostedZone.ref,
       aliasTarget: aliasTargetForServiceNameAndEndpoint(serviceName, endpoint),
     });
-    recordSet.addDependsOn(this._hostedZone);
+    recordSet.addDependency(this._hostedZone);
   }
 
   get hostedZone(): route53.CfnHostedZone {

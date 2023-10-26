@@ -327,7 +327,7 @@ export namespace InitialSetup {
           subnetCidrPoolAssignedTable: subnetCidrPoolTable.tableName,
           outputTableName: outputsTable.tableName,
         },
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       const getBaseLineTask = new CodeTask(this, 'Get Baseline From Configuration', {
@@ -388,7 +388,7 @@ export namespace InitialSetup {
           portfolioName: avmPortfolioName,
         },
         inputPath: '$.configuration',
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       const createControlTowerAccountStateMachine = new sfn.StateMachine(
@@ -415,7 +415,7 @@ export namespace InitialSetup {
 
       const createControlTowerAccountsTask = new sfn.Map(this, 'Create Accounts', {
         itemsPath: '$.configuration.accounts',
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
         maxConcurrency: 1,
       });
 
@@ -435,7 +435,7 @@ export namespace InitialSetup {
 
       const createOrganizationAccountsTask = new sfn.Map(this, 'Create Organization Accounts', {
         itemsPath: '$.configuration.accounts',
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
         maxConcurrency: 1,
         parameters: {
           'account.$': '$$.Map.Item.Value',
@@ -473,7 +473,7 @@ export namespace InitialSetup {
           'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
         },
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       const loadAccountsTask = new CodeTask(this, 'Load Accounts', {
@@ -536,7 +536,7 @@ export namespace InitialSetup {
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
         }),
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       const installCfnRoleMasterTemplate = new s3assets.Asset(this, 'CloudFormationExecutionRoleTemplate', {
@@ -573,7 +573,7 @@ export namespace InitialSetup {
               'RoleName.$': '$.configuration.organizationAdminRole',
             },
           }),
-          resultPath: 'DISCARD',
+          resultPath: sfn.JsonPath.DISCARD,
         },
       );
 
@@ -608,12 +608,12 @@ export namespace InitialSetup {
           'accountId.$': '$.accountId',
           'assumeRoleName.$': '$.organizationAdminRole',
         }),
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       const installExecRolesInAccounts = new sfn.Map(this, `Install Execution Roles Map`, {
         itemsPath: '$.accounts',
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
         maxConcurrency: 40,
         parameters: {
           'accountId.$': '$$.Map.Item.Value',
@@ -645,7 +645,7 @@ export namespace InitialSetup {
           acceleratorPrefix: props.acceleratorPrefix,
           assumeRoleName: props.stateMachineExecutionRole,
         }),
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       const loadLimitsTask = new CodeTask(this, 'Load Limits', {
@@ -704,7 +704,7 @@ export namespace InitialSetup {
           'organizationAdminRole.$': '$.organizationAdminRole',
           'baseline.$': '$.baseline',
         },
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       const storeOutputsToSsmStateMachine = new sfn.StateMachine(
@@ -736,7 +736,7 @@ export namespace InitialSetup {
           accountsTableName: parametersTable.tableName,
           s3WorkingBucket: s3WorkingBucket.bucketName,
         }),
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       const detachQuarantineScpTask = new CodeTask(this, 'Detach Quarantine SCP', {
@@ -749,7 +749,7 @@ export namespace InitialSetup {
           acceleratorPrefix: props.acceleratorPrefix,
           parametersTableName: parametersTable.tableName,
         },
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
       // detachQuarantineScpTask.next(storeAllOutputsToSsmTask);
 
@@ -824,7 +824,7 @@ export namespace InitialSetup {
           project: project.resource,
           integrationPattern: sfn.IntegrationPattern.RUN_JOB,
           environmentVariablesOverride: environment,
-          resultPath: 'DISCARD',
+          resultPath: sfn.JsonPath.DISCARD,
         });
 
         return deployTask;
@@ -854,14 +854,14 @@ export namespace InitialSetup {
             'configFilePath.$': '$.configFilePath',
             'configCommitId.$': '$.configCommitId',
           }),
-          resultPath: 'DISCARD',
+          resultPath: sfn.JsonPath.DISCARD,
         });
         return storeOutputsTask;
       };
 
       const storeAllPhaseOutputs = new sfn.Map(this, `Store All Phase Outputs Map`, {
         itemsPath: '$.phases',
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
         maxConcurrency: 1,
         parameters: {
           'accounts.$': '$.accounts',
@@ -890,7 +890,7 @@ export namespace InitialSetup {
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
         }),
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
       storeAllPhaseOutputs.iterator(storeAllOutputsTask);
 
@@ -936,7 +936,7 @@ export namespace InitialSetup {
           acceleratorPrefix: props.acceleratorPrefix,
           assumeRoleName: props.stateMachineExecutionRole,
         }),
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       // TODO We could put this task in a map task and apply to all accounts individually
@@ -955,7 +955,7 @@ export namespace InitialSetup {
           'baseline.$': '$.baseline',
           outputTableName: outputsTable.tableName,
         },
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       const rdgwArtifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', 'scripts');
@@ -976,7 +976,7 @@ export namespace InitialSetup {
           outputTableName: outputsTable.tableName,
           rdgwScripts,
         },
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       // S3 bucket for Add Tags to Shared Resources Lambda fns
@@ -1034,7 +1034,7 @@ export namespace InitialSetup {
           outputTableName: outputsTable.tableName,
           s3Bucket: addTagsToSharedResourcesBucket.bucketName,
         }),
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       const enableDirectorySharingTask = new CodeTask(this, 'Enable Directory Sharing', {
@@ -1051,7 +1051,7 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configCommitId',
           outputTableName: outputsTable.tableName,
         },
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       const createAdConnectorStateMachine = new sfn.StateMachine(scope, 'CreateAdConnectorStateMachine', {
@@ -1074,7 +1074,7 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configCommitId',
           outputTableName: outputsTable.tableName,
         }),
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       const storeCommitIdTask = new CodeTask(this, 'Store CommitId', {
@@ -1093,7 +1093,7 @@ export namespace InitialSetup {
           outputTableName: outputsTable.tableName,
           parametersTableName: parametersTable.tableName,
         },
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       const commonStep1 = addScpTask.startState
@@ -1185,7 +1185,7 @@ export namespace InitialSetup {
           'executionId.$': '$$.Execution.Id',
           acceleratorVersion: props.acceleratorVersion,
         },
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
       notifySmFailure.next(fail);
 
@@ -1200,7 +1200,7 @@ export namespace InitialSetup {
           parametersTableName: parametersTable.tableName,
           'acceleratorVersion.$': '$[0].acceleratorVersion',
         },
-        resultPath: 'DISCARD',
+        resultPath: sfn.JsonPath.DISCARD,
       });
 
       // Full StateMachine Execution starts from getOrCreateConfigurationTask and wrapped in parallel task for try/catch

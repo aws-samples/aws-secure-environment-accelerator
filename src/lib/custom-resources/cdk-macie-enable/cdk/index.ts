@@ -59,7 +59,7 @@ export class MacieEnable extends Construct {
     const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, roleArn);
 
     return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,

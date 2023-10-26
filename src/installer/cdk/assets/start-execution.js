@@ -11,10 +11,11 @@
  *  and limitations under the License.
  */
 
-const AWS = require('aws-sdk');
+const { CodePipeline, PutJobSuccessResultCommand, PutJobFailureResultCommand } = require("@aws-sdk/client-codepipeline");
+const { SFNClient, StartExecutionCommand } = require("@aws-sdk/client-sfn");
 
-const codepipeline = new AWS.CodePipeline();
-const sfn = new AWS.StepFunctions();
+const codepipeline = new CodePipeline;
+const sfn = new SFNClient;
 
 exports.handler = async function (event, context) {
   console.info(`Starting state machine execution...`);
@@ -36,30 +37,26 @@ exports.handler = async function (event, context) {
       verbose: '0',
     };
 
-    await sfn
-      .startExecution({
+    await sfn.send(new StartExecutionCommand(
+      {
         stateMachineArn: userParameters.stateMachineArn,
         input: JSON.stringify(smInput),
-      })
-      .promise();
+      }));
 
-    return codepipeline
-      .putJobSuccessResult({
-        jobId,
-      })
-      .promise();
+    return codepipeline.send(new PutJobSuccessResultCommand({
+      jobId,
+    }));
   } catch (e) {
     console.info(`Unexpected error while starting execution: ${e}`);
 
-    return codepipeline
-      .putJobFailureResult({
-        jobId,
-        failureDetails: {
-          externalExecutionId: context.awsRequestId,
-          type: 'JobFailed',
-          message: JSON.stringify(e),
-        },
-      })
-      .promise();
+    return codepipeline.send(new PutJobFailureResultCommand({
+      jobId,
+      failureDetails: {
+        externalExecutionId: context.awsRequestId,
+        type: 'JobFailed',
+        message: JSON.stringify(e),
+      },
+    }
+    ));
   }
 };

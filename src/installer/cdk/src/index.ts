@@ -257,18 +257,12 @@ class Installer extends cdk.Stack {
         phases: {
           install: {
             'runtime-versions': {
-              nodejs: 16,
+              nodejs: 18,
             },
-            // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-            commands: [
-              'npm install --global pnpm@6.2.3',
-              'pnpm install --unsafe-perm --frozen-lockfile',
-              'pnpm recursive run build --unsafe-perm',
-            ],
+            commands: ['npm install --global pnpm@8.9.0', 'pnpm install --frozen-lockfile', 'pnpm recursive run build'],
           },
           pre_build: {
-            // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-            commands: ['pnpm recursive run build --unsafe-perm'],
+            commands: ['pnpm recursive run build'],
           },
           build: {
             commands: [
@@ -281,7 +275,7 @@ class Installer extends cdk.Stack {
         },
       }),
       environment: {
-        buildImage: codebuild.LinuxBuildImage.STANDARD_6_0,
+        buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
         privileged: true, // Allow access to the Docker daemon
         computeType: codebuild.ComputeType.MEDIUM,
         environmentVariables: {
@@ -467,7 +461,7 @@ class Installer extends cdk.Stack {
       functionName: `${acceleratorPrefix}Installer-StartExecution`,
       role: stateMachineExecutionRole,
       // Inline code is only allowed for Node.js version 12
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       code: lambda.Code.fromInline(stateMachineStartExecutionCode.toString()),
       handler: 'index.handler',
     });
@@ -498,7 +492,7 @@ class Installer extends cdk.Stack {
       functionName: `${acceleratorPrefix}Installer-SaveApplicationVersion`,
       role: stateMachineExecutionRole,
       // Inline code is only allowed for Node.js version 12
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       code: lambda.Code.fromInline(saveApplicationVersionCode.toString()),
       handler: 'index.handler',
     });
@@ -528,7 +522,7 @@ class Installer extends cdk.Stack {
       functionName: `${acceleratorPrefix}Installer-ValidateParameters`,
       role: stateMachineExecutionRole,
       // Inline code is only allowed for Node.js version 12
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       code: lambda.Code.fromInline(validateParametersCode.toString()),
       handler: 'index.handler',
     });

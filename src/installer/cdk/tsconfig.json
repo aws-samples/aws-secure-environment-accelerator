@@ -8,7 +8,8 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "noImplicitAny": true,
-    "typeRoots": ["node_modules/@types"]
+    "typeRoots": ["node_modules/@types"],
+    "types": ["node","jest"]
   },
-  "include": ["src"]
+  "include": ["src", "test/*.ts"],
 }
