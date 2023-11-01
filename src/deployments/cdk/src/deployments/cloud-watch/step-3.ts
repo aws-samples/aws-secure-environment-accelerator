@@ -84,6 +84,9 @@ export async function step3(props: CloudWatchStep3Props) {
             Severity: {
               Label: severityLabels,
             },
+            Workflow: {
+              Status: ['NEW'],
+            },
           },
         },
       };
