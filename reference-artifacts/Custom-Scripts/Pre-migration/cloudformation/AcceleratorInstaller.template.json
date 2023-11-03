@@ -314,6 +314,7 @@
        "Action": [
         "s3:GetObject*",
         "s3:GetBucket*",
+        "s3:HeadObject",
         "s3:List*"
        ],
        "Effect": "Allow",
@@ -404,6 +405,8 @@
   "ArtifactsBucketCmk69DD8B67": {
    "Type": "AWS::KMS::Key",
    "Properties": {
+    "Description": "ArtifactsBucketCmk",
+    "EnableKeyRotation": true,
     "KeyPolicy": {
      "Statement": [
       {
@@ -471,8 +474,6 @@
      ],
      "Version": "2012-10-17"
     },
-    "Description": "ArtifactsBucketCmk",
-    "EnableKeyRotation": true,
     "Tags": [
      {
       "Key": "Accelerator",
@@ -527,6 +528,18 @@
    "Properties": {
     "Artifacts": {
      "Type": "CODEPIPELINE"
+    },
+    "Cache": {
+     "Modes": [
+      "LOCAL_SOURCE_CACHE"
+     ],
+     "Type": "LOCAL"
+    },
+    "EncryptionKey": {
+     "Fn::GetAtt": [
+      "ArtifactsBucketCmk69DD8B67",
+      "Arn"
+     ]
     },
     "Environment": {
      "ComputeType": "BUILD_GENERAL1_MEDIUM",
@@ -638,10 +651,21 @@
        }
       }
      ],
-     "Image": "aws/codebuild/standard:6.0",
+     "Image": "aws/codebuild/standard:7.0",
      "ImagePullCredentialsType": "CODEBUILD",
      "PrivilegedMode": true,
      "Type": "LINUX_CONTAINER"
+    },
+    "Name": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AcceleratorPrefix"
+       },
+       "InstallerProject_pl"
+      ]
+     ]
     },
     "ServiceRole": {
      "Fn::GetAtt": [
@@ -654,7 +678,7 @@
       "Fn::Join": [
        "",
        [
-        "{\n  \"version\": \"0.2\",\n  \"phases\": {\n    \"install\": {\n      \"runtime-versions\": {\n        \"nodejs\": 16\n      },\n      \"commands\": [\n        \"npm install --global pnpm@6.2.3\",\n        \"pnpm install --unsafe-perm --frozen-lockfile\",\n        \"pnpm recursive run build --unsafe-perm\"\n      ]\n    },\n    \"pre_build\": {\n      \"commands\": [\n        \"pnpm recursive run build --unsafe-perm\"\n      ]\n    },\n    \"build\": {\n      \"commands\": [\n        \"cd src/core/cdk\",\n        \"export CDK_NEW_BOOTSTRAP=1\",\n        \"pnpx cdk bootstrap aws://",
+        "{\n  \"version\": \"0.2\",\n  \"phases\": {\n    \"install\": {\n      \"runtime-versions\": {\n        \"nodejs\": 18\n      },\n      \"commands\": [\n        \"npm install --global pnpm@8.9.0\",\n        \"pnpm install --frozen-lockfile\",\n        \"pnpm recursive run build\"\n      ]\n    },\n    \"pre_build\": {\n      \"commands\": [\n        \"pnpm recursive run build\"\n      ]\n    },\n    \"build\": {\n      \"commands\": [\n        \"cd src/core/cdk\",\n        \"export CDK_NEW_BOOTSTRAP=1\",\n        \"pnpx cdk bootstrap aws://",
         {
          "Ref": "AWS::AccountId"
         },
@@ -679,29 +703,6 @@
       ]
      },
      "Type": "CODEPIPELINE"
-    },
-    "Cache": {
-     "Modes": [
-      "LOCAL_SOURCE_CACHE"
-     ],
-     "Type": "LOCAL"
-    },
-    "EncryptionKey": {
-     "Fn::GetAtt": [
-      "ArtifactsBucketCmk69DD8B67",
-      "Arn"
-     ]
-    },
-    "Name": {
-     "Fn::Join": [
-      "",
-      [
-       {
-        "Ref": "AcceleratorPrefix"
-       },
-       "InstallerProject_pl"
-      ]
-     ]
     },
     "Tags": [
      {
@@ -867,13 +868,7 @@
    "Type": "AWS::Lambda::Function",
    "Properties": {
     "Code": {
-     "ZipFile": "/**\n *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.\n *\n *  Licensed under the Apache License, Version 2.0 (the \"License\"). You may not use this file except in compliance\n *  with the License. A copy of the License is located at\n *\n *      http://www.apache.org/licenses/LICENSE-2.0\n *\n *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES\n *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions\n *  and limitations under the License.\n */\n\nconst AWS = require('aws-sdk');\n\nconst codepipeline = new AWS.CodePipeline();\nconst sfn = new AWS.StepFunctions();\n\nexports.handler = async function (event, context) {\n  console.info(`Starting state machine execution...`);\n  console.info(JSON.stringify(event, null, 2));\n\n  const jobInfo = event['CodePipeline.job'];\n  const jobId = jobInfo.id;\n\n  try {\n    const userParametersString = jobInfo.data.actionConfiguration.configuration.UserParameters;\n    const userParameters = JSON.parse(userParametersString);\n    if (!userParameters.stateMachineArn) {\n      throw new Error(`\"stateMachineArn\" is missing from user parameters`);\n    }\n\n    const smInput = {\n      scope: 'FULL',\n      mode: 'APPLY',\n      verbose: '0',\n    };\n\n    await sfn\n      .startExecution({\n        stateMachineArn: userParameters.stateMachineArn,\n        input: JSON.stringify(smInput),\n      })\n      .promise();\n\n    return codepipeline\n      .putJobSuccessResult({\n        jobId,\n      })\n      .promise();\n  } catch (e) {\n    console.info(`Unexpected error while starting execution: ${e}`);\n\n    return codepipeline\n      .putJobFailureResult({\n        jobId,\n        failureDetails: {\n          externalExecutionId: context.awsRequestId,\n          type: 'JobFailed',\n          message: JSON.stringify(e),\n        },\n      })\n      .promise();\n  }\n};\n"
-    },
-    "Role": {
-     "Fn::GetAtt": [
-      "ExecutionRoleName32216FBD",
-      "Arn"
-     ]
+     "ZipFile": "/**\n *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.\n *\n *  Licensed under the Apache License, Version 2.0 (the \"License\"). You may not use this file except in compliance\n *  with the License. A copy of the License is located at\n *\n *      http://www.apache.org/licenses/LICENSE-2.0\n *\n *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES\n *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions\n *  and limitations under the License.\n */\n\nconst { CodePipeline, PutJobSuccessResultCommand, PutJobFailureResultCommand } = require(\"@aws-sdk/client-codepipeline\");\nconst { SFNClient, StartExecutionCommand } = require(\"@aws-sdk/client-sfn\");\n\nconst codepipeline = new CodePipeline;\nconst sfn = new SFNClient;\n\nexports.handler = async function (event, context) {\n  console.info(`Starting state machine execution...`);\n  console.info(JSON.stringify(event, null, 2));\n\n  const jobInfo = event['CodePipeline.job'];\n  const jobId = jobInfo.id;\n\n  try {\n    const userParametersString = jobInfo.data.actionConfiguration.configuration.UserParameters;\n    const userParameters = JSON.parse(userParametersString);\n    if (!userParameters.stateMachineArn) {\n      throw new Error(`\"stateMachineArn\" is missing from user parameters`);\n    }\n\n    const smInput = {\n      scope: 'FULL',\n      mode: 'APPLY',\n      verbose: '0',\n    };\n\n    await sfn.send(new StartExecutionCommand(\n      {\n        stateMachineArn: userParameters.stateMachineArn,\n        input: JSON.stringify(smInput),\n      }));\n\n    return codepipeline.send(new PutJobSuccessResultCommand({\n      jobId,\n    }));\n  } catch (e) {\n    console.info(`Unexpected error while starting execution: ${e}`);\n\n    return codepipeline.send(new PutJobFailureResultCommand({\n      jobId,\n      failureDetails: {\n        externalExecutionId: context.awsRequestId,\n        type: 'JobFailed',\n        message: JSON.stringify(e),\n      },\n    }\n    ));\n  }\n};\n"
     },
     "FunctionName": {
      "Fn::Join": [
@@ -887,7 +882,13 @@
      ]
     },
     "Handler": "index.handler",
-    "Runtime": "nodejs16.x",
+    "Role": {
+     "Fn::GetAtt": [
+      "ExecutionRoleName32216FBD",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
     "Tags": [
      {
       "Key": "Accelerator",
@@ -932,13 +933,7 @@
    "Type": "AWS::Lambda::Function",
    "Properties": {
     "Code": {
-     "ZipFile": "/**\n *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.\n *\n *  Licensed under the Apache License, Version 2.0 (the \"License\"). You may not use this file except in compliance\n *  with the License. A copy of the License is located at\n *\n *      http://www.apache.org/licenses/LICENSE-2.0\n *\n *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES\n *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions\n *  and limitations under the License.\n */\n\nconst AWS = require('aws-sdk');\n\nconst codepipeline = new AWS.CodePipeline();\nconst ssm = new AWS.SSM();\n\nexports.handler = async function (event, context) {\n  console.info(`Saving Accelerator Application Version...`);\n  console.info(JSON.stringify(event, null, 2));\n\n  const jobInfo = event['CodePipeline.job'];\n  const jobId = jobInfo.id;\n  \n  try {\n    const userParametersString = jobInfo.data.actionConfiguration.configuration.UserParameters;\n    const userParameters = JSON.parse(userParametersString);\n\n    const currentTime = new Date();\n    const versionData = {\n      Branch: userParameters.branch,\n      Repository: userParameters.repository,\n      CommitId: userParameters.commitId,\n      Owner:userParameters.owner,\n      DeployTime: currentTime.toString(),\n      AcceleratorVersion: userParameters.acceleratorVersion,\n      AcceleratorName: userParameters.acceleratorName,\n      AcceleratorPrefix: userParameters.acceleratorPrefix,\n    }\n    const param = await ssm.putParameter({\n      Name: '/accelerator/version', \n      Value: JSON.stringify(versionData, null, 2), \n      Type: 'String',\n      Overwrite: true,\n    }).promise();\n    console.log(`Updated Application Version : ${param}`);\n    try {\n      await ssm.getParameter({\n        Name: '/accelerator/first-version'\n      }).promise();\n    } catch (e) {\n      if (e.code === 'ParameterNotFound') {\n        let firstInstlVersion;\n        const parameterVersions = [];\n        let token;\n        do {\n          const response = await ssm.getParameterHistory({ Name: '/accelerator/version', NextToken: token, MaxResults: 50 }).promise();\n          token = response.NextToken;\n          if (response.Parameters) {\n            parameterVersions.push(...response.Parameters);\n          }\n        } while (token);\n        const installerVersion = parameterVersions.find(p => p.Version === 1);\n        if (installerVersion && installerVersion.Value) {\n          const installerVersionValue = JSON.parse(installerVersion.Value);\n          if (installerVersionValue.AcceleratorVersion) {\n            firstInstlVersion = installerVersionValue.AcceleratorVersion;\n          } else {\n            firstInstlVersion = '<1.2.2';\n          }\n        }\n        if (!firstInstlVersion) {\n          throw new Error('First Installed Version not found in SSM Parameter Store \"/accelerator/version\"')\n        }\n        console.log(\"Inserting Installed version param \", firstInstlVersion);\n        await ssm.putParameter({\n          Name: '/accelerator/first-version',\n          Value: firstInstlVersion,\n          Type: 'String',\n          Overwrite: false,\n          Description: 'Accelerator first installed version',\n        }).promise();\n      } else {\n        throw new Error(e);\n      }\n    }\n\n    return codepipeline\n      .putJobSuccessResult({\n        jobId,\n      })\n      .promise();\n  } catch (e) {\n    console.info(`Unexpected error while Saving Application Versio: ${e}`);\n    return codepipeline\n      .putJobFailureResult({\n        jobId,\n        failureDetails: {\n          externalExecutionId: context.awsRequestId,\n          type: 'JobFailed',\n          message: JSON.stringify(e),\n        },\n      })\n      .promise();\n  }\n};\n"
-    },
-    "Role": {
-     "Fn::GetAtt": [
-      "ExecutionRoleName32216FBD",
-      "Arn"
-     ]
+     "ZipFile": "/**\n *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.\n *\n *  Licensed under the Apache License, Version 2.0 (the \"License\"). You may not use this file except in compliance\n *  with the License. A copy of the License is located at\n *\n *      http://www.apache.org/licenses/LICENSE-2.0\n *\n *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES\n *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions\n *  and limitations under the License.\n */\n\nconst { CodePipeline, PutJobSuccessResultCommand, PutJobFailureResultCommand } = require(\"@aws-sdk/client-codepipeline\");\nconst { SSM, GetParameterCommand, PutParameterCommand, GetParameterHistoryCommand } = require(\"@aws-sdk/client-ssm\");\n\nconst codepipeline = new CodePipeline();\nconst ssm = new SSM();\n\nexports.handler = async function (event, context) {\n  console.info(`Saving Accelerator Application Version...`);\n  console.info(JSON.stringify(event, null, 2));\n\n  const jobInfo = event['CodePipeline.job'];\n  const jobId = jobInfo.id;\n\n  try {\n    const userParametersString = jobInfo.data.actionConfiguration.configuration.UserParameters;\n    const userParameters = JSON.parse(userParametersString);\n\n    const currentTime = new Date();\n    const versionData = {\n      Branch: userParameters.branch,\n      Repository: userParameters.repository,\n      CommitId: userParameters.commitId,\n      Owner: userParameters.owner,\n      DeployTime: currentTime.toString(),\n      AcceleratorVersion: userParameters.acceleratorVersion,\n      AcceleratorName: userParameters.acceleratorName,\n      AcceleratorPrefix: userParameters.acceleratorPrefix,\n    }\n    const param = await ssm.send(new PutParameterCommand({\n      Name: '/accelerator/version',\n      Value: JSON.stringify(versionData, null, 2),\n      Type: 'String',\n      Overwrite: true,\n    }));\n    console.log(`Updated Application Version : ${param}`);\n    try {\n      await ssm.send(new GetParameterCommand({\n        Name: '/accelerator/first-version'\n      }));\n    } catch (e) {\n      if (e.name === 'ParameterNotFound') {\n        let firstInstlVersion;\n        const parameterVersions = [];\n        let token;\n        do {\n          const response = await ssm.send(new GetParameterHistoryCommand({ Name: '/accelerator/version', NextToken: token, MaxResults: 50 }));\n          token = response.NextToken;\n          if (response.Parameters) {\n            parameterVersions.push(...response.Parameters);\n          }\n        } while (token);\n        const installerVersion = parameterVersions.find(p => p.Version === 1);\n        if (installerVersion && installerVersion.Value) {\n          const installerVersionValue = JSON.parse(installerVersion.Value);\n          if (installerVersionValue.AcceleratorVersion) {\n            firstInstlVersion = installerVersionValue.AcceleratorVersion;\n          } else {\n            firstInstlVersion = '<1.2.2';\n          }\n        }\n        if (!firstInstlVersion) {\n          throw new Error('First Installed Version not found in SSM Parameter Store \"/accelerator/version\"')\n        }\n        console.log(\"Inserting Installed version param \", firstInstlVersion);\n        await ssm.send(new PutParameterCommand({\n          Name: '/accelerator/first-version',\n          Value: firstInstlVersion,\n          Type: 'String',\n          Overwrite: false,\n          Description: 'Accelerator first installed version',\n        }));\n      } else {\n        throw new Error(e);\n      }\n    }\n\n    return codepipeline.send(new PutJobSuccessResultCommand({ jobId }));\n  } catch (e) {\n    console.info(`Unexpected error while Saving Application Versio: ${e}`);\n    return codepipeline.send(new PutJobFailureResultCommand({\n      jobId,\n      failureDetails: {\n        externalExecutionId: context.awsRequestId,\n        type: 'JobFailed',\n        message: JSON.stringify(e),\n      },\n    }\n    ));\n  }\n};\n"
     },
     "FunctionName": {
      "Fn::Join": [
@@ -952,7 +947,13 @@
      ]
     },
     "Handler": "index.handler",
-    "Runtime": "nodejs16.x",
+    "Role": {
+     "Fn::GetAtt": [
+      "ExecutionRoleName32216FBD",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
     "Tags": [
      {
       "Key": "Accelerator",
@@ -997,13 +998,7 @@
    "Type": "AWS::Lambda::Function",
    "Properties": {
     "Code": {
-     "ZipFile": "/**\n *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.\n *\n *  Licensed under the Apache License, Version 2.0 (the \"License\"). You may not use this file except in compliance\n *  with the License. A copy of the License is located at\n *\n *      http://www.apache.org/licenses/LICENSE-2.0\n *\n *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES\n *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions\n *  and limitations under the License.\n */\n\nconst AWS = require('aws-sdk');\nAWS.config.logger = console;\nconst codepipeline = new AWS.CodePipeline();\nconst ssm = new AWS.SSM();\nconst cfn = new AWS.CloudFormation();\n\nexports.handler = async function (event, context) {\n  console.info(`Vallidating Accelerator Perameters with previous execution...`);\n  console.info(JSON.stringify(event, null, 2));\n\n  const jobInfo = event['CodePipeline.job'];\n  const jobId = jobInfo.id;\n\n  try {\n    const userParametersString = jobInfo.data.actionConfiguration.configuration.UserParameters;\n    const userParameters = JSON.parse(userParametersString);\n    const { acceleratorName, acceleratorPrefix } = userParameters;\n    let versionParam;\n    try {\n      versionParam = await ssm\n      .getParameter({\n        Name: '/accelerator/version',\n      })\n      .promise();\n    } catch (ex) {\n      console.warn(ex);\n      if (ex.code !== 'ParameterNotFound') {\n        throw new Error(ex);\n      }\n    }\n    if (!versionParam) {\n      console.log('First run of Accelerator');\n    } else if (!versionParam.Parameter.Value) {\n      console.warn(\"Didn't find value in /accelerator/version\");\n    } else {\n      const versionParamValue = JSON.parse(versionParam.Parameter.Value);\n      if (!versionParamValue.AcceleratorName && !versionParamValue.AcceleratorPrefix) {\n        console.log(\"Didn't find AccelName and Prefix in /accelerator/version\");\n        try {\n          await cfn\n            .describeStacks({\n              StackName: `${acceleratorPrefix}InitialSetup`,\n            })\n            .promise();\n        } catch (error) {\n          throw new Error(`Invalid AcceleratorPrefix=${acceleratorPrefix} provided`);\n        }\n      } else if (\n        versionParamValue.AcceleratorName !== acceleratorName ||\n        versionParamValue.AcceleratorPrefix !== acceleratorPrefix\n      ) {\n        throw new Error(\n          `Invalid AcceleratorPrefix and Name provided. Expected values are AcceleratorName=${versionParamValue.AcceleratorName} & AcceleratorPrefix=${versionParamValue.AcceleratorPrefix}`,\n        );\n      }\n    }\n    return codepipeline\n      .putJobSuccessResult({\n        jobId,\n      })\n      .promise();\n  } catch (e) {\n    console.info(`Unexpected error while Validating Parameters: ${e}`);\n    return codepipeline\n      .putJobFailureResult({\n        jobId,\n        failureDetails: {\n          externalExecutionId: context.awsRequestId,\n          type: 'JobFailed',\n          message: e.toString(),\n        },\n      })\n      .promise();\n  }\n};\n"
-    },
-    "Role": {
-     "Fn::GetAtt": [
-      "ExecutionRoleName32216FBD",
-      "Arn"
-     ]
+     "ZipFile": "/**\n *  Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.\n *\n *  Licensed under the Apache License, Version 2.0 (the \"License\"). You may not use this file except in compliance\n *  with the License. A copy of the License is located at\n *\n *      http://www.apache.org/licenses/LICENSE-2.0\n *\n *  or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES\n *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions\n *  and limitations under the License.\n */\n\n\nconst { CodePipeline, PutJobFailureResultCommand, PutJobSuccessResultCommand } = require(\"@aws-sdk/client-codepipeline\");\nconst { SSM, GetParameterCommand } = require(\"@aws-sdk/client-ssm\");\nconst { CloudFormation, DescribeStacksCommand } = require(\"@aws-sdk/client-cloudformation\");\n\nconst codepipeline = new CodePipeline;\nconst ssm = new SSM;\nconst cfn = new CloudFormation;\n\nexports.handler = async function (event, context) {\n  console.info(`Vallidating Accelerator Perameters with previous execution...`);\n  console.info(JSON.stringify(event, null, 2));\n\n  const jobInfo = event['CodePipeline.job'];\n  const jobId = jobInfo.id;\n\n  try {\n    const userParametersString = jobInfo.data.actionConfiguration.configuration.UserParameters;\n    const userParameters = JSON.parse(userParametersString);\n    const { acceleratorName, acceleratorPrefix } = userParameters;\n    let versionParam;\n    try {\n      versionParam = await ssm.send(new GetParameterCommand({ Name: '/accelerator/version' }));\n    } catch (ex) {\n      console.warn(ex);\n      if (ex.name !== 'ParameterNotFound') {\n        throw new Error(ex);\n      }\n    }\n    if (!versionParam) {\n      console.log('First run of Accelerator');\n    } else if (!versionParam.Parameter.Value) {\n      console.warn(\"Didn't find value in /accelerator/version\");\n    } else {\n      const versionParamValue = JSON.parse(versionParam.Parameter.Value);\n      if (!versionParamValue.AcceleratorName && !versionParamValue.AcceleratorPrefix) {\n        console.log(\"Didn't find AccelName and Prefix in /accelerator/version\");\n        try {\n          await cfn.send(new DescribeStacksCommand({ StackName: `${acceleratorPrefix}InitialSetup` }));\n        } catch (error) {\n          throw new Error(`Invalid AcceleratorPrefix=${acceleratorPrefix} provided`);\n        }\n      } else if (\n        versionParamValue.AcceleratorName !== acceleratorName ||\n        versionParamValue.AcceleratorPrefix !== acceleratorPrefix\n      ) {\n        throw new Error(\n          `Invalid AcceleratorPrefix and Name provided. Expected values are AcceleratorName=${versionParamValue.AcceleratorName} & AcceleratorPrefix=${versionParamValue.AcceleratorPrefix}`,\n        );\n      }\n    }\n    return codepipeline.send(new PutJobSuccessResultCommand({ jobId }));\n  } catch (e) {\n    console.info(`Unexpected error while Validating Parameters: ${e}`);\n    return codepipeline.send(new PutJobFailureResultCommand({\n      jobId,\n      failureDetails: {\n        externalExecutionId: context.awsRequestId,\n        type: 'JobFailed',\n        message: e.toString(),\n      },\n    }\n    ));\n  }\n};\n"
     },
     "FunctionName": {
      "Fn::Join": [
@@ -1017,7 +1012,13 @@
      ]
     },
     "Handler": "index.handler",
-    "Runtime": "nodejs16.x",
+    "Role": {
+     "Fn::GetAtt": [
+      "ExecutionRoleName32216FBD",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
     "Tags": [
      {
       "Key": "Accelerator",
@@ -1121,6 +1122,7 @@
        "Action": [
         "s3:GetObject*",
         "s3:GetBucket*",
+        "s3:HeadObject",
         "s3:List*",
         "s3:DeleteObject*",
         "s3:PutObject",
@@ -1419,6 +1421,32 @@
   "PipelineC660917D": {
    "Type": "AWS::CodePipeline::Pipeline",
    "Properties": {
+    "ArtifactStore": {
+     "EncryptionKey": {
+      "Id": {
+       "Fn::GetAtt": [
+        "ArtifactsBucketCmk69DD8B67",
+        "Arn"
+       ]
+      },
+      "Type": "KMS"
+     },
+     "Location": {
+      "Ref": "ArtifactsBucket2AAC5544"
+     },
+     "Type": "S3"
+    },
+    "Name": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AcceleratorPrefix"
+       },
+       "InstallerPipeline"
+      ]
+     ]
+    },
     "RoleArn": {
      "Fn::GetAtt": [
       "InstallerPipelineRole1F8864A8",
@@ -1573,7 +1601,7 @@
             {
              "Ref": "RepositoryBranch"
             },
-            "\",\"acceleratorVersion\":\"1.5.6-a\",\"acceleratorName\":\"",
+            "\",\"acceleratorVersion\":\"1.5.7-b\",\"acceleratorName\":\"",
             {
              "Ref": "AcceleratorName"
             },
@@ -1645,32 +1673,6 @@
       "Name": "Execute"
      }
     ],
-    "ArtifactStore": {
-     "EncryptionKey": {
-      "Id": {
-       "Fn::GetAtt": [
-        "ArtifactsBucketCmk69DD8B67",
-        "Arn"
-       ]
-      },
-      "Type": "KMS"
-     },
-     "Location": {
-      "Ref": "ArtifactsBucket2AAC5544"
-     },
-     "Type": "S3"
-    },
-    "Name": {
-     "Fn::Join": [
-      "",
-      [
-       {
-        "Ref": "AcceleratorPrefix"
-       },
-       "InstallerPipeline"
-      ]
-     ]
-    },
     "Tags": [
      {
       "Key": "Accelerator",
@@ -1699,7 +1701,7 @@
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/02QSW7DMAxFz5K9zGYAim7TANlkY6QHKGSJBWhrMDS0KATdvTblIln9R31Rn9QRTm9w2Mmf2Ck9dYYGKB9Jqklcvlwvg7SYMIjF/ywkLZS7N7h6rL03pH75KlMVk41Qbshnq5wNybgWDFUor3HIZDSUnmY05LAPfkSV+JWGVRhpBy2hXLNTibxbzX+uIp6gvGc1ITdt1OQx0XPdcuct8BHNmRvXymth9Dkodi7eaWqJbmmHMb58H5bfeoX9boxEXcgukUW4N/0DBEwia0wBAAA="
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/02Py24CMQxFv4V9xiWwoNsWqRs2o+EDUCZxJc/kgfIAoSj/XiaZClb32DfxtXfAtxy2G3EPnVRzp2mEfI5Czuz4a3vhhcGInj39SyZhIA9O4+JV7Z0m+ahPKxU2mwD5hLW3yJcmEZaiQmHSKRwTaQW5pytqsth7N6GMdUrDwrQwoxKQf5KVkZxdzH8uLOwhfyc5Y/20UpPXRu91y72uga/omrlyKWzA4JKX7b43PjqrqEXb5xyYwseNfwI/AN9MgajzyUYyCEPTP5nQPy1WAQAA"
    },
    "Metadata": {
     "aws:cdk:path": "AcceleratorInstaller/CDKMetadata/Default"
