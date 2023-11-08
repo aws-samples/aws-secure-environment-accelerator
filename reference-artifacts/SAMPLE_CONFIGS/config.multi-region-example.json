@@ -211,8 +211,7 @@
           "name": "AWS Foundational Security Best Practices v1.0.0",
           "controls-to-disable": [
             "IAM.1",
-            "EC2.10",
-            "Lambda.4"
+            "EC2.10"
           ]
         },
         {
@@ -220,7 +219,6 @@
           "controls-to-disable": [
             "PCI.IAM.3",
             "PCI.S3.3",
-            "PCI.EC2.3",
             "PCI.Lambda.2"
           ]
         },
