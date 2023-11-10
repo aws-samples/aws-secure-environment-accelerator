@@ -13,7 +13,7 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { CodeCommitClient, CreateCommitCommand, GetBranchCommand, PutFileEntry } from '@aws-sdk/client-codecommit';
+import { CodeCommitClient, CreateCommitCommand, GetBranchCommand, NoChangeException } from '@aws-sdk/client-codecommit';
 import { CloudFormation } from 'aws-sdk';
 import { loadAseaConfig } from './asea-config/load';
 import aws from './common/aws/aws-client';
@@ -123,14 +123,18 @@ export class ResourceMapping {
     const environments = this.getEnvironments(accountList, enabledRegions);
     const cfnClients = await this.getCfnClientMap(environments);
     const environmentsStackMap = await this.getEnvironmentStacks(environments, cfnClients);
-    const environmentStackAndResourcesMap = await this.getEnvironmentMetaData(environments, environmentsStackMap);
+    const environmentStackAndResourcesMap = await this.getEnvironmentMetaData(
+      environments,
+      environmentsStackMap,
+      cfnClients,
+    );
     const aseaMapping = this.createAseaMapping(environmentStackAndResourcesMap, environmentsStackMap);
     await this.detectDrift(environmentStackAndResourcesMap, cfnClients);
     const aseaMappingString = JSON.stringify(aseaMapping, null);
     const driftDetectionCsv = this.convertToCSV(this.driftedResources);
     await this.writeToS3(aseaMappingString, 'mapping.json');
     await this.writeToS3(driftDetectionCsv, 'AllDriftDetectedResources.csv');
-    await this.writeToCodeCommit(driftDetectionCsv, 'AllDriftDetectedResources.csv');
+    await this.writeToCodeCommit([{ fileContent: driftDetectionCsv, filePath: 'AllDriftDetectedResources.csv' }]);
   }
 
   createAseaMapping(stackAndResourceMap: Map<string, StacksAndResourceMap>, stackMap: Map<string, string[]>) {
@@ -219,59 +223,63 @@ export class ResourceMapping {
   }
   async getEnvironmentStacks(environments: Environment[], cfnClientMap: Map<string, CfnClients>) {
     const stackMap = new Map<string, string[]>();
-    for (const environment of environments) {
-      const cfnClients = cfnClientMap.get(`${environment.accountId}-${environment.region}`);
-      if (!cfnClients) {
+    const stackListPromises = environments.map((environment) => {
+      const cfnClient = cfnClientMap.get(`${environment.accountId}-${environment.region}`);
+      if (!cfnClient) {
         throw new Error(
-          `Could not retrieve cfnclients for account ${environment.accountId} and region ${environment.region}`,
+          `Could not retrieve cfn-client for account ${environment.accountId} and region ${environment.region}`,
         );
       }
-      const stacks = await this.getStackList(cfnClients.cfn);
-      stackMap.set(`${environment.accountId}-${environment.region}`, stacks);
-    }
+
+      return this.getStackList(cfnClient.cfn, environment);
+    });
+    const stacks = await Promise.all(stackListPromises);
+    stacks.forEach((stack) => stackMap.set(`${stack.environment.accountId}-${stack.environment.region}`, stack.stacks));
+
     return stackMap;
   }
-  async getEnvironmentMetaData(environments: Environment[], stackMap: Map<string, string[]>) {
+
+  async getEnvironmentMetaData(
+    environments: Environment[],
+    stackMap: Map<string, string[]>,
+    cfnClientMap: Map<string, CfnClients>,
+  ) {
     const stackAndResourceMap = new Map<string, StacksAndResourceMap>();
-    for (const environment of environments) {
-      const stackAndResourcesMapPromises = [];
-      const cfnClients = await this.createCloudFormationClients(
-        this.assumeRoleName,
-        environment.accountId,
-        environment.region,
-      );
-      const stacks = stackMap.get(`${environment.accountId}-${environment.region}`);
-      if (!stacks) {
-        continue;
-      }
-      for (const stack of stacks) {
-        stackAndResourcesMapPromises.push(
-          this.getStackMetadata(environment, stack, cfnClients.cloudformation, cfnClients.cfnNative),
-        );
-      }
-      const stackAndResourcesList = await Promise.all(stackAndResourcesMapPromises);
-      const putFiles: PutFileEntry[] = [];
-      for (const item of stackAndResourcesList) {
-        const filePath = `resource-mapping/${item.environment.accountId}`;
-        const fileName = `${item.environment.accountId}-${item.environment.region}-${item.stackName}.json`;
-        putFiles.push({
-          filePath: `${filePath}/${fileName}`,
-          fileContent: convert.encodeBase64(JSON.stringify(item)),
+    const environmentStacks = environments
+      .map((environment) => {
+        const cfnClient = cfnClientMap.get(`${environment.accountId}-${environment.region}`);
+        const stacks = stackMap.get(`${environment.accountId}-${environment.region}`);
+        return stacks?.map((stack) => {
+          return { stack, cfnClient, environment };
         });
-        stackAndResourceMap.set(`${item.environment.accountId}-${item.environment.region}-${item.stackName}`, item);
+      })
+      .flat();
+
+    const stackAndResourcesMapPromises = environmentStacks.map((stack) => {
+      if (!stack?.stack || !stack.cfnClient) {
+        return undefined;
       }
-      const getBranchCommand = await this.codecommit.send(
-        new GetBranchCommand({ repositoryName: this.mappingRepositoryName, branchName: 'main' }),
+      return this.getStackMetadata(stack.environment, stack.stack, stack.cfnClient.cfn, stack.cfnClient.cfnNative);
+    });
+    const validStackAndResourcePromises = stackAndResourcesMapPromises.filter(
+      (stackAndResource): stackAndResource is Promise<StacksAndResourceMap> => stackAndResource !== undefined,
+    );
+    const stackAndResourcesList = await Promise.all(validStackAndResourcePromises);
+
+    const putFiles = stackAndResourcesList.map((stackAndResource) => {
+      stackAndResourceMap.set(
+        `${stackAndResource.environment.accountId}-${stackAndResource.environment.region}-${stackAndResource.stackName}`,
+        stackAndResource,
       );
-      await this.codecommit.send(
-        new CreateCommitCommand({
-          repositoryName: this.mappingRepositoryName,
-          parentCommitId: getBranchCommand.branch!.commitId,
-          branchName: 'main',
-          putFiles: putFiles,
-        }),
-      );
-    }
+      return {
+        filePath: `resource-mapping/${stackAndResource!.environment.accountId}/${
+          stackAndResource!.environment.region
+        }/${stackAndResource.stackName}.json`,
+        fileContent: JSON.stringify(stackAndResource),
+      };
+    });
+
+    await this.writeToCodeCommit(putFiles);
     return stackAndResourceMap;
   }
 
@@ -349,14 +357,14 @@ export class ResourceMapping {
     }
     return {
       environment,
-      resourceMap: stackResources,
       stackName: stack,
       region: environment.region,
-      template: cfTemplateObject,
       phase: phase,
       countVerified: countVerified,
       numberOfResources: stackResources.length,
       numberOfResourcesInTemplate: cfTemplateResourceCount,
+      resourceMap: stackResources,
+      template: cfTemplateObject,
     };
   }
 
@@ -468,7 +476,7 @@ export class ResourceMapping {
     return csvRows.join('\n');
   }
 
-  async getStackList(cloudformation: CloudFormation) {
+  async getStackList(cloudformation: CloudFormation, environment: Environment) {
     const stacks: string[] = [];
     const response = await cloudformation
       .listStacks({
@@ -486,7 +494,10 @@ export class ResourceMapping {
         stacks.push(stackSummary.StackName);
       }
     }
-    return stacks;
+    return {
+      stacks,
+      environment,
+    };
   }
 
   async assumeRole(accountId: string, roleName: string) {
@@ -556,7 +567,13 @@ export class ResourceMapping {
     await fs.writeFile(path.join(this.outputsDirectory, fileName), prettifiedMapping);
   }
 
-  async writeToCodeCommit(prettifiedMapping: string, fileName: string): Promise<void> {
+  async writeToCodeCommit(putFiles: { fileContent: string; filePath: string }[]): Promise<void> {
+    const encodedPutFiles = putFiles.map((fileInfo) => {
+      return {
+        filePath: fileInfo.filePath,
+        fileContent: convert.encodeBase64(fileInfo.fileContent),
+      };
+    });
     const getBranchCommand = await this.codecommit.send(
       new GetBranchCommand({ repositoryName: this.mappingRepositoryName, branchName: 'main' }),
     );
@@ -567,19 +584,18 @@ export class ResourceMapping {
             repositoryName: this.mappingRepositoryName,
             parentCommitId: getBranchCommand.branch!.commitId,
             branchName: 'main',
-            putFiles: [
-              {
-                filePath: fileName,
-                fileContent: convert.encodeBase64(prettifiedMapping),
-              },
-            ],
+            putFiles: encodedPutFiles,
           }),
         ),
       );
     } catch (error: any) {
-      console.error('Failed to write to codecommit');
+      if (error instanceof NoChangeException) {
+        console.info('No changes to commit for: ');
+        putFiles.forEach((file) => console.log(file.filePath));
+        return;
+      }
+      console.error('Failed to write to CodeCommit');
       console.error(error);
-      throw new Error(error);
     }
   }
 
@@ -591,10 +607,12 @@ export class ResourceMapping {
       );
       console.log(`Writing file ${resourceMappingFile.fileName} to codecommit`);
 
-      await this.writeToCodeCommit(
-        prettifiedMapping,
-        `resource-mapping/${resourceMappingFile.accountId}/${resourceMappingFile.fileName}`,
-      );
+      await this.writeToCodeCommit([
+        {
+          fileContent: prettifiedMapping,
+          filePath: `resource-mapping/${resourceMappingFile.accountId}/${resourceMappingFile.fileName}`,
+        },
+      ]);
     }
   }
 
