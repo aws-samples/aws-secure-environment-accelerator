@@ -20,6 +20,12 @@ import { Config } from './config';
 import * as migrationConfig from './preparation/migration-config';
 
 export class MigrationConfig {
+  private localUpdateOnly = false; // This is an option to not create mapping bucket stack and codecommit repositories, used only for development like yarn run migration-config local-update-only. Default is false
+
+  constructor(localUpdateOnly?: boolean) {
+    this.localUpdateOnly = localUpdateOnly ?? false;
+  }
+
   async configure(): Promise<void> {
     const homeRegion = process.env.AWS_REGION ?? 'ca-central-1';
     const dynamoDb = new DynamoDB(undefined, homeRegion);
@@ -93,8 +99,7 @@ export class MigrationConfig {
       lzaConfigRepositoryName: lzaConfigRepositoryName,
       lzaCodeRepositorySource: 'github',
       lzaCodeRepositoryOwner: 'awslabs',
-      lzaCodeRepositoryName: 'private-landing-zone-accelerator-on-aws-staging',
-      lzaCodeRepositoryBranch: 'experimental/asea-alpha',
+      lzaCodeRepositoryName: 'landing-zone-accelerator-on-aws',
       managementAccountEmail: managementAccountEmail,
       logArchiveAccountEmail: logArchiveAccountEmail,
       auditAccountEmail: auditAccountEmail,
@@ -111,6 +116,7 @@ export class MigrationConfig {
       `${acceleratorPrefix}LZA-Resource-Mapping-Bucket`,
       config.mappingBucketName,
       homeRegion,
+      this.localUpdateOnly,
     );
 
     //create codecommit repository for resource mapping
@@ -118,6 +124,7 @@ export class MigrationConfig {
       mappingRepositoryName,
       'Repository for resource mappings. Do not delete.',
       homeRegion,
+      this.localUpdateOnly,
     );
     console.log(`Created repository with id ${createMigrationRepositoryResponse}`);
 
@@ -126,6 +133,7 @@ export class MigrationConfig {
       lzaConfigRepositoryName,
       'LZA configuration repository',
       homeRegion,
+      this.localUpdateOnly,
     );
     console.log(`Created repository with id ${createLzaConfigRepositoryResponse}`);
   }

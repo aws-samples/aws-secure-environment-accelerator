@@ -72,6 +72,7 @@ async function getS3LifecycleConfiguration(
       const hash = computeHash(jsonResults);
       return { jsonData: jsonResults, hash: hash };
     } else {
+      console.log('ASDFASDFASDFASDF');
       console.log(JSON.stringify(e));
       throw new Error(e.name);
     }
@@ -162,10 +163,19 @@ export async function snapshotS3Resources(
   const results = await throttlingBackOff(() => serviceClient.send(new ListBucketsCommand({})));
   for (const bucket of results.Buckets!) {
     if (bucket.Name?.startsWith(bucketPrefix)) {
-      const locationResults = await throttlingBackOff(() =>
-        serviceClient.send(new GetBucketLocationCommand({ Bucket: bucket.Name })),
-      );
-      const bucketRegion = locationResults.LocationConstraint ?? 'us-east-1';
+      let locationResults = undefined;
+      try {
+        locationResults = await throttlingBackOff(() =>
+          serviceClient.send(new GetBucketLocationCommand({ Bucket: bucket.Name })),
+        );
+      } catch (e: any) {
+        if (e.name === 'NoSuchBucket') {
+          console.log(`${bucket.Name} does not exist, continuing`);
+          continue;
+        }
+      }
+
+      const bucketRegion = locationResults?.LocationConstraint ?? 'us-east-1';
       const s3LifecycleResults = await getS3LifecycleConfiguration(bucket.Name!, bucketRegion, credentials);
       await snapshotTable.writeResource({
         accountId: accountId,

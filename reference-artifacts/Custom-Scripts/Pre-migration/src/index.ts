@@ -32,8 +32,12 @@ async function main() {
     return;
   }
   if (command === 'migration-config') {
+    let localUpdateOnly = false;
+    if (args[1] === 'local-update-only') {
+      localUpdateOnly = true;
+    }
     console.log('Creating migration tool configuration file');
-    const migrationConfig = new MigrationConfig();
+    const migrationConfig = new MigrationConfig(localUpdateOnly);
     await migrationConfig.configure();
     return;
   }
@@ -43,7 +47,11 @@ async function main() {
       await new ResourceMapping(config).process();
       break;
     case 'convert-config':
-      await new ConvertAseaConfig(config).process();
+      let localUpdateOnly = false;
+      if (args[1] === 'local-update-only') {
+        localUpdateOnly = true;
+      }
+      await new ConvertAseaConfig(config, localUpdateOnly).process();
       break;
     case 'asea-prep':
       const preparation = new Preparation(config);

@@ -78,7 +78,15 @@ export async function getS3BucketName(bucketNamePrefix: string, region: string):
   return s3BucketName;
 }
 
-export async function createRepository(name: string, description: string, region: string): Promise<string | undefined> {
+export async function createRepository(
+  name: string,
+  description: string,
+  region: string,
+  localUpdateOnly: boolean,
+): Promise<string | undefined> {
+  if (localUpdateOnly) {
+    return;
+  }
   const codecommitClient = new CodeCommitClient({ region });
   try {
     const getRepositoryResponse = await codecommitClient.send(new GetRepositoryCommand({ repositoryName: name }));
@@ -112,7 +120,11 @@ export async function createS3CloudFormationStack(
   stackName: string,
   bucketName: string,
   region: string,
+  localUpdateOnly: boolean,
 ): Promise<void> {
+  if (localUpdateOnly) {
+    return;
+  }
   const cloudformationClient = new CloudFormationClient({ region });
 
   const stackTemplate = await fs.readFile(path.join(__dirname, '../cloudformation/mapping-output-bucket.yml'), 'utf-8');

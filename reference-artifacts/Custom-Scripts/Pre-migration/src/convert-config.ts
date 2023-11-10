@@ -183,6 +183,8 @@ const SnsFindingTypesDict = {
 };
 
 export class ConvertAseaConfig {
+  private localUpdateOnly = false; // This is an option to not write config changes to codecommit, used only for development like yarn run convert-config local-update-only. Default is true
+
   private readonly aseaConfigRepositoryName: string;
   private readonly region: string;
   private readonly aseaPrefix: string;
@@ -207,7 +209,8 @@ export class ConvertAseaConfig {
   private lzaAccountKeys: string[] | undefined;
   private regionsWithoutVpc: string[] = [];
   private accountsWithoutVpc: string[] = [];
-  constructor(config: Config) {
+  constructor(config: Config, localUpdateOnly?: boolean) {
+    this.localUpdateOnly = localUpdateOnly ?? false;
     this.aseaConfigRepositoryName = config.repositoryName;
     this.region = config.homeRegion;
     this.centralBucketName = config.centralBucket!;
@@ -302,12 +305,15 @@ export class ConvertAseaConfig {
     await this.createDynamicPartitioningFile(aseaConfig);
   }
 
-  private async writeToCodeCommit(filePath: string, data: any): Promise<void> {
+  private async writeToCodeCommit(filePath: string, data: any, localUpdateOnly?: boolean): Promise<void> {
+    if (localUpdateOnly) {
+      return;
+    }
     const getBranchCommand = await this.codecommit.send(
       new GetBranchCommand({ repositoryName: this.lzaConfigRepositoryName, branchName: 'main' }),
     );
     try {
-      await await throttlingBackOff(() =>
+      await throttlingBackOff(() =>
         this.codecommit.send(
           new CreateCommitCommand({
             repositoryName: this.lzaConfigRepositoryName,
@@ -324,10 +330,10 @@ export class ConvertAseaConfig {
       );
     } catch (error: any) {
       if (error instanceof NoChangeException) {
-        console.info('No changes to commit');
+        console.info('No changes to commit: ', filePath);
         return;
       }
-      console.error('Failed to write to codecommit');
+      console.error('Failed to write to CodeCommit');
       console.error(error);
     }
   }
@@ -337,7 +343,7 @@ export class ConvertAseaConfig {
     const dirname = path.dirname(localPath);
     if (!fs.existsSync(dirname)) fs.mkdirSync(dirname, { recursive: true });
     fs.writeFileSync(localPath, config);
-    await this.writeToCodeCommit(filePath, config);
+    await this.writeToCodeCommit(filePath, config, this.localUpdateOnly);
   }
 
   private async writeFile(filePath: string, data: any) {
@@ -345,7 +351,7 @@ export class ConvertAseaConfig {
     const dirname = path.dirname(localPath);
     if (!fs.existsSync(dirname)) fs.mkdirSync(dirname, { recursive: true });
     fs.writeFileSync(localPath, data);
-    await this.writeToCodeCommit(filePath, data);
+    await this.writeToCodeCommit(filePath, data, this.localUpdateOnly);
   }
 
   /**
@@ -357,11 +363,19 @@ export class ConvertAseaConfig {
     for (const fileName of Object.values(ConfigRuleRemediationAssets)) {
       fs.copyFileSync(path.join(__dirname, 'assets', fileName), path.join(this.outputFolder, fileName));
 
-      await this.writeToCodeCommit(fileName, fs.readFileSync(path.join(__dirname, 'assets', fileName)));
+      await this.writeToCodeCommit(
+        fileName,
+        fs.readFileSync(path.join(__dirname, 'assets', fileName)),
+        this.localUpdateOnly,
+      );
     }
     for (const fileName of Object.values(ConfigRuleDetectionAssets)) {
       fs.copyFileSync(path.join(__dirname, 'assets', fileName), path.join(this.outputFolder, fileName));
-      await this.writeToCodeCommit(fileName, fs.readFileSync(path.join(__dirname, 'assets', fileName)));
+      await this.writeToCodeCommit(
+        fileName,
+        fs.readFileSync(path.join(__dirname, 'assets', fileName)),
+        this.localUpdateOnly,
+      );
     }
   }
 
@@ -916,7 +930,7 @@ export class ConvertAseaConfig {
       budgets.push({
         name: budget.name,
         amount: budget.amount,
-        type: 'USAGE', // TODO: Confirm default
+        type: 'COST', // ASEA, Only creates COST Report
         timeUnit: 'MONTHLY', // TODO: Confirm default
         unit: 'USD', // Set by ASEA
         includeUpfront: budget.include.includes(CostTypes.UPFRONT),
@@ -951,7 +965,15 @@ export class ConvertAseaConfig {
     if (!aseaConfig['global-options']['central-log-services']['sns-subscription-emails']) return;
     return {
       // Set deploymentTargets to Root Org since we need sns topics in all accounts
-      deploymentTargets: { organizationalUnits: ['Root'] },
+      deploymentTargets: {
+        accounts: [
+          this.getAccountKeyforLza(aseaConfig['global-options'], this.globalOptions!['aws-org-management'].account),
+          this.getAccountKeyforLza(
+            aseaConfig['global-options'],
+            this.globalOptions!['central-security-services'].account,
+          ),
+        ],
+      },
       topics: [
         ...Object.entries(aseaConfig['global-options']['central-log-services']['sns-subscription-emails']).map(
           ([notificationType, emailAddresses]) => ({
@@ -1086,6 +1108,12 @@ export class ConvertAseaConfig {
           `${policy.policy.split('.').slice(0, -1).join('.')}.json`,
         );
         await this.writeConfig(newFileName, policyData);
+
+        // Deploy Default-Boundary-Policy into every account
+        if (policy['policy-name'] === 'Default-Boundary-Policy') {
+          ouKey = 'Root';
+          accountKey = undefined;
+        }
         policySets.push({
           deploymentTargets: {
             accounts: accountKey ? [accountKey] : [],
@@ -1103,8 +1131,11 @@ export class ConvertAseaConfig {
 
         return;
       }
-      if (accountKey) policySets[currentIndex].deploymentTargets.accounts?.push(accountKey);
-      if (ouKey) policySets[currentIndex].deploymentTargets.organizationalUnits?.push(ouKey);
+      // Deploy Default-Boundary-Policy into every account
+      if (policy['policy-name'] !== 'Default-Boundary-Policy') {
+        if (accountKey) policySets[currentIndex].deploymentTargets.accounts?.push(accountKey);
+        if (ouKey) policySets[currentIndex].deploymentTargets.organizationalUnits?.push(ouKey);
+      }
     };
 
     const getRoleConfig = async ({
@@ -1333,7 +1364,7 @@ export class ConvertAseaConfig {
           edition: aseaMadConfig.size,
           dnsName: aseaMadConfig['dns-domain'],
           vpcSettings: {
-            vpcName: aseaMadConfig['vpc-name'],
+            vpcName: `${aseaMadConfig['vpc-name']}_vpc`,
             subnets: madSubnetNames,
           },
           logs: {
@@ -1343,7 +1374,7 @@ export class ConvertAseaConfig {
           activeDirectoryConfigurationInstance: {
             instanceRole: aseaMadConfig['rdgw-instance-role'],
             instanceType: aseaMadConfig['rdgw-instance-type'],
-            vpcName: aseaMadConfig['vpc-name'],
+            vpcName: `${aseaMadConfig['vpc-name']}_vpc`,
             imagePath: aseaMadConfig['image-path'],
             adGroups: aseaMadConfig['ad-groups'],
             adPerAccountGroups: aseaMadConfig['ad-per-account-groups'],
@@ -1517,25 +1548,31 @@ export class ConvertAseaConfig {
       workloadAccounts: [],
     };
     const accountKeys: string[] = [];
+    const ignoredOus: string[] = aseaConfig['global-options']['ignored-ous'] ?? [];
+    console.log(ignoredOus);
     Object.entries(aseaConfig['mandatory-account-configs']).forEach(([accountKey, accountConfig]) => {
-      accountsConfig.mandatoryAccounts.push({
-        name: this.getAccountKeyforLza(aseaConfig['global-options'], accountKey),
-        description: accountConfig.description,
-        email: accountConfig.email,
-        organizationalUnit: accountConfig.ou,
-        warm: false,
-      });
-      accountKeys.push(this.getAccountKeyforLza(aseaConfig['global-options'], accountKey));
+      if (!ignoredOus.includes(accountConfig.ou)) {
+        accountsConfig.mandatoryAccounts.push({
+          name: this.getAccountKeyforLza(aseaConfig['global-options'], accountKey),
+          description: accountConfig.description,
+          email: accountConfig.email,
+          organizationalUnit: accountConfig.ou,
+          warm: false,
+        });
+        accountKeys.push(this.getAccountKeyforLza(aseaConfig['global-options'], accountKey));
+      }
     });
     Object.entries(aseaConfig['workload-account-configs']).forEach(([accountKey, accountConfig]) => {
-      accountsConfig.workloadAccounts.push({
-        name: accountKey,
-        description: accountConfig.description,
-        email: accountConfig.email,
-        organizationalUnit: accountConfig.ou,
-        warm: false,
-      });
-      accountKeys.push(accountKey);
+      if (!ignoredOus.includes(accountConfig.ou)) {
+        accountsConfig.workloadAccounts.push({
+          name: accountKey,
+          description: accountConfig.description,
+          email: accountConfig.email,
+          organizationalUnit: accountConfig.ou,
+          warm: false,
+        });
+        accountKeys.push(accountKey);
+      }
     });
 
     const yamlConfig = yaml.dump(accountsConfig, { noRefs: true });
@@ -2934,7 +2971,7 @@ export class ConvertAseaConfig {
     const partitions = aseaConfig['global-options']['central-log-services']['dynamic-s3-log-partitioning'];
     console.log(partitions);
     if (partitions) {
-      await this.writeToCodeCommit('dynamic-partitioning/log-filters.json', JSON.stringify(partitions, null, 2));
+      await this.writeConfig('dynamic-partitioning/log-filters.json', JSON.stringify(partitions, null, 2));
     }
   }
 }
