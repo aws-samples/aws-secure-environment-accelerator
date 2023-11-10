@@ -24,7 +24,7 @@ export interface InstallerStackParameters {
   repositorySource: string;
   repositoryOwner: string;
   repositoryName: string;
-  repositoryBranchName: string;
+  repositoryBranchName: string | undefined;
   enableApprovalStage: string;
   approvalStageNotifyEmailList: string;
   managementAccountEmail: string;
@@ -44,69 +44,73 @@ export async function createLZAInstallerCloudFormationStack(
   region: string,
 ): Promise<void> {
   const cloudformationClient = new CloudFormationClient({ region });
+  const parameters = [
+    {
+      ParameterKey: 'RepositorySource',
+      ParameterValue: stackParameters.repositorySource,
+    },
+    {
+      ParameterKey: 'RepositoryOwner',
+      ParameterValue: stackParameters.repositoryOwner,
+    },
+    {
+      ParameterKey: 'RepositoryName',
+      ParameterValue: stackParameters.repositoryName,
+    },
+    {
+      ParameterKey: 'EnableApprovalStage',
+      ParameterValue: stackParameters.enableApprovalStage,
+    },
+    {
+      ParameterKey: 'ApprovalStageNotifyEmailList',
+      ParameterValue: stackParameters.approvalStageNotifyEmailList,
+    },
+    {
+      ParameterKey: 'ManagementAccountEmail',
+      ParameterValue: stackParameters.managementAccountEmail,
+    },
+    {
+      ParameterKey: 'LogArchiveAccountEmail',
+      ParameterValue: stackParameters.logArchiveAccountEmail,
+    },
+    {
+      ParameterKey: 'AuditAccountEmail',
+      ParameterValue: stackParameters.auditAccountEmail,
+    },
+    {
+      ParameterKey: 'ControlTowerEnabled',
+      ParameterValue: stackParameters.controlTowerEnabled,
+    },
+    {
+      ParameterKey: 'UseExistingConfigRepo',
+      ParameterValue: stackParameters.useExistingConfigRepo,
+    },
+    {
+      ParameterKey: 'ExistingConfigRepositoryName',
+      ParameterValue: stackParameters.existingConfigRepositoryName,
+    },
+    {
+      ParameterKey: 'ExistingConfigRepositoryBranchName',
+      ParameterValue: stackParameters.existingConfigRepositoryBranchName,
+    },
+    {
+      ParameterKey: 'AcceleratorPrefix',
+      ParameterValue: stackParameters.acceleratorPrefix,
+    },
+  ];
+
+  if (stackParameters.repositoryBranchName) {
+    parameters.push( {
+      ParameterKey: 'RepositoryBranchName',
+      ParameterValue: stackParameters.repositoryBranchName,
+    });
+  }
 
   const cloudformationParameters = {
     StackName: stackName,
     TemplateURL: stackPath,
     Capabilities: ['CAPABILITY_IAM'],
-    Parameters: [
-      {
-        ParameterKey: 'RepositorySource',
-        ParameterValue: stackParameters.repositorySource,
-      },
-      {
-        ParameterKey: 'RepositoryOwner',
-        ParameterValue: stackParameters.repositoryOwner,
-      },
-      {
-        ParameterKey: 'RepositoryName',
-        ParameterValue: stackParameters.repositoryName,
-      },
-      {
-        ParameterKey: 'RepositoryBranchName',
-        ParameterValue: stackParameters.repositoryBranchName,
-      },
-      {
-        ParameterKey: 'EnableApprovalStage',
-        ParameterValue: stackParameters.enableApprovalStage,
-      },
-      {
-        ParameterKey: 'ApprovalStageNotifyEmailList',
-        ParameterValue: stackParameters.approvalStageNotifyEmailList,
-      },
-      {
-        ParameterKey: 'ManagementAccountEmail',
-        ParameterValue: stackParameters.managementAccountEmail,
-      },
-      {
-        ParameterKey: 'LogArchiveAccountEmail',
-        ParameterValue: stackParameters.logArchiveAccountEmail,
-      },
-      {
-        ParameterKey: 'AuditAccountEmail',
-        ParameterValue: stackParameters.auditAccountEmail,
-      },
-      {
-        ParameterKey: 'ControlTowerEnabled',
-        ParameterValue: stackParameters.controlTowerEnabled,
-      },
-      {
-        ParameterKey: 'UseExistingConfigRepo',
-        ParameterValue: stackParameters.useExistingConfigRepo,
-      },
-      {
-        ParameterKey: 'ExistingConfigRepositoryName',
-        ParameterValue: stackParameters.existingConfigRepositoryName,
-      },
-      {
-        ParameterKey: 'ExistingConfigRepositoryBranchName',
-        ParameterValue: stackParameters.existingConfigRepositoryBranchName,
-      },
-      {
-        ParameterKey: 'AcceleratorPrefix',
-        ParameterValue: stackParameters.acceleratorPrefix,
-      },
-    ],
+    Parameters: parameters,
   };
   await cloudformationClient.send(new CreateStackCommand(cloudformationParameters));
 
@@ -141,9 +145,6 @@ export async function getLZAInstallerStackTemplate(bucketName: string, outputPat
     template.Body as Readable,
     fs.createWriteStream(path.join(__dirname, outputPath, 'AWSAccelerator-InstallerStack.template')),
   );
-
-  // remove this code when we have a proper template in the S3 bucket
-  fs.copyFileSync(path.join(__dirname, '../cloudformation', 'AWSAccelerator-InstallerStack.template'), path.join(__dirname, outputPath, 'AWSAccelerator-InstallerStack.template'));
 }
 
 export async function putLZAInstallerStackTemplate(bucketName: string, templatePath: string, region: string) {
