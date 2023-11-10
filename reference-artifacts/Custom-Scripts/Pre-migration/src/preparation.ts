@@ -61,7 +61,7 @@ export class Preparation {
       repositorySource: this.config.lzaCodeRepositorySource ?? 'github',
       repositoryOwner: this.config.lzaCodeRepositoryOwner ?? 'awslabs',
       repositoryName: this.config.lzaCodeRepositoryName ?? 'landing-zone-accelerator-on-aws',
-      repositoryBranchName: this.config.lzaCodeRepositoryBranch ?? 'asea-lza-migration',
+      repositoryBranchName: this.config.lzaCodeRepositoryBranch ?? undefined,
       enableApprovalStage: 'No',
       approvalStageNotifyEmailList: '',
       managementAccountEmail: this.config.managementAccountEmail ?? '',
