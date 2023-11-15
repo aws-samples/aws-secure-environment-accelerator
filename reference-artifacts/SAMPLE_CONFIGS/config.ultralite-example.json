@@ -150,7 +150,7 @@
       "standards": [
         {
           "name": "AWS Foundational Security Best Practices v1.0.0",
-          "controls-to-disable": ["IAM.1", "EC2.10", "Lambda.4"]
+          "controls-to-disable": ["IAM.1", "EC2.10"]
         },
         {
           "name": "CIS AWS Foundations Benchmark v1.2.0",
