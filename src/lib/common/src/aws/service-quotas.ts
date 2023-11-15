@@ -11,7 +11,8 @@
  *  and limitations under the License.
  */
 
-import aws from './aws-client';
+import aws from 'aws-sdk';
+aws.config.logger = console;
 import * as sq from 'aws-sdk/clients/servicequotas';
 import { listWithNextToken } from './next-token';
 import { arrayMax } from '../util/arrays';

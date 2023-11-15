@@ -21,7 +21,8 @@ import {
   DescribeExecutionInput,
   DescribeExecutionOutput,
 } from 'aws-sdk/clients/stepfunctions';
-import aws from './aws-client';
+import aws from 'aws-sdk';
+aws.config.logger = console;
 import { throttlingBackOff } from './backoff';
 import { listWithNextToken } from './next-token';
 

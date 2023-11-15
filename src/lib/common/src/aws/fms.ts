@@ -11,7 +11,8 @@
  *  and limitations under the License.
  */
 
-import aws from './aws-client';
+import aws from 'aws-sdk';
+aws.config.logger = console;
 import { throttlingBackOff } from './backoff';
 
 export class FMS {

@@ -11,7 +11,8 @@
  *  and limitations under the License.
  */
 
-import aws from './aws-client';
+import aws from 'aws-sdk';
+aws.config.logger = console;
 import * as iam from 'aws-sdk/clients/iam';
 import { throttlingBackOff } from './backoff';
 

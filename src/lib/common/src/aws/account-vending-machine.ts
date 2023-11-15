@@ -11,7 +11,8 @@
  *  and limitations under the License.
  */
 
-import aws from './aws-client';
+import aws from 'aws-sdk';
+aws.config.logger = console;
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceCatalog } from './service-catalog';
 import { STS } from './sts';

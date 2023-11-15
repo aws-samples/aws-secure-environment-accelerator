@@ -12,7 +12,8 @@
  */
 
 import omit from 'lodash.omit';
-import aws from './aws-client';
+import aws from 'aws-sdk';
+aws.config.logger = console;
 import * as org from 'aws-sdk/clients/organizations';
 import { throttlingBackOff } from './backoff';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';

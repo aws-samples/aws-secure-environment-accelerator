@@ -11,7 +11,8 @@
  *  and limitations under the License.
  */
 
-import aws from './aws-client';
+import aws from 'aws-sdk';
+aws.config.logger = console;
 import * as ds from 'aws-sdk/clients/directoryservice';
 import { throttlingBackOff } from './backoff';
 

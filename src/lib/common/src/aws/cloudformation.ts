@@ -11,7 +11,8 @@
  *  and limitations under the License.
  */
 
-import aws from './aws-client';
+import aws from 'aws-sdk';
+aws.config.logger = console;
 import * as cfn from 'aws-sdk/clients/cloudformation';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
 import { Intersect } from '../util/types';
