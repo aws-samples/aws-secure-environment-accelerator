@@ -21,11 +21,6 @@ import {
   ServiceQuota,
   ServiceQuotas as sq,
 } from '@aws-sdk/client-service-quotas';
-
-// JS SDK v3 does not support global configuration.
-// Codemod has attempted to pass values to each service client in this file.
-// You may need to update clients outside of this file, if they use global config.
-aws.config.logger = console;
 import { listWithNextToken } from './next-token';
 import { arrayMax } from '../util/arrays';
 import { throttlingBackOff } from './backoff';

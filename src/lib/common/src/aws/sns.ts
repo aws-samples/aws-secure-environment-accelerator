@@ -13,10 +13,6 @@
 
 import aws from 'aws-sdk';
 import { PublishCommandInput, PublishCommandOutput, SNS as sns } from '@aws-sdk/client-sns';
-// JS SDK v3 does not support global configuration.
-// Codemod has attempted to pass values to each service client in this file.
-// You may need to update clients outside of this file, if they use global config.
-aws.config.logger = console;
 import { throttlingBackOff } from './backoff';
 
 export class SNS {

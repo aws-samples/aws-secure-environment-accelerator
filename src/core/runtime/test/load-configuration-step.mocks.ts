@@ -26,10 +26,6 @@ import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 
 // eslint-disable-next-line
 jest.mock('@aws-accelerator/common-config/src/load');
-// JS SDK v3 does not support global configuration.
-// Codemod has attempted to pass values to each service client in this file.
-// You may need to update clients outside of this file, if they use global config.
-aws.config.logger = console;
 
 type DeepPartial<T> = {
   // eslint-disable-next-line @typescript-eslint/array-type

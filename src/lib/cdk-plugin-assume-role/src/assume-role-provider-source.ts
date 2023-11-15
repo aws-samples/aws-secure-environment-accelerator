@@ -13,10 +13,6 @@
 
 import * as aws from 'aws-sdk';
 import { AssumeRoleCommandOutput, STS } from '@aws-sdk/client-sts';
-// JS SDK v3 does not support global configuration.
-// Codemod has attempted to pass values to each service client in this file.
-// You may need to update clients outside of this file, if they use global config.
-aws.config.logger = console;
 import { CredentialProviderSource } from 'aws-cdk/lib/api/plugin';
 import { Mode } from 'aws-cdk/lib/api/aws-auth/credentials';
 import { green } from 'colors/safe';

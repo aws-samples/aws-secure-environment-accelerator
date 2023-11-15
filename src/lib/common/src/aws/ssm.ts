@@ -19,11 +19,6 @@ import {
   PutParameterCommandOutput,
   SSM as ssm,
 } from '@aws-sdk/client-ssm';
-
-// JS SDK v3 does not support global configuration.
-// Codemod has attempted to pass values to each service client in this file.
-// You may need to update clients outside of this file, if they use global config.
-aws.config.logger = console;
 import { throttlingBackOff } from './backoff';
 
 export class SSM {

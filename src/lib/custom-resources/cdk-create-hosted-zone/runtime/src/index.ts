@@ -13,10 +13,6 @@
 
 import * as AWS from 'aws-sdk';
 import { Route53 } from '@aws-sdk/client-route-53';
-// JS SDK v3 does not support global configuration.
-// Codemod has attempted to pass values to each service client in this file.
-// You may need to update clients outside of this file, if they use global config.
-AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { delay, throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
@@ -117,7 +113,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     await throttlingBackOff(() =>
       route53
         .deleteHostedZone({
-          Id: hostedZoneId!,
+          Id: hostedZoneId,
         }),
     );
   } catch (e: any) {

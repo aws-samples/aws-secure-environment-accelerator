@@ -13,10 +13,6 @@
 
 import * as AWS from 'aws-sdk';
 import { SSM } from '@aws-sdk/client-ssm';
-// JS SDK v3 does not support global configuration.
-// Codemod has attempted to pass values to each service client in this file.
-// You may need to update clients outside of this file, if they use global config.
-AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceDeleteEvent,

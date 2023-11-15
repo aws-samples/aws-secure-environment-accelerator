@@ -13,10 +13,6 @@
 
 import * as AWS from 'aws-sdk';
 import { GetObjectCommandOutput, ListObjectsV2CommandOutput, Object, S3 } from '@aws-sdk/client-s3';
-// JS SDK v3 does not support global configuration.
-// Codemod has attempted to pass values to each service client in this file.
-// You may need to update clients outside of this file, if they use global config.
-AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';

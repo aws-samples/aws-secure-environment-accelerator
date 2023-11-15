@@ -25,11 +25,6 @@ import {
   PutFileCommandInput,
   PutFileCommandOutput,
 } from '@aws-sdk/client-codecommit';
-
-// JS SDK v3 does not support global configuration.
-// Codemod has attempted to pass values to each service client in this file.
-// You may need to update clients outside of this file, if they use global config.
-aws.config.logger = console;
 import { throttlingBackOff } from './backoff';
 
 export class CodeCommit {

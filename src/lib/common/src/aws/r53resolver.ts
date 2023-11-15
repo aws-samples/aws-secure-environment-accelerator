@@ -19,11 +19,6 @@ import {
   ListResolverEndpointIpAddressesCommandOutput,
   Route53Resolver,
 } from '@aws-sdk/client-route53resolver';
-
-// JS SDK v3 does not support global configuration.
-// Codemod has attempted to pass values to each service client in this file.
-// You may need to update clients outside of this file, if they use global config.
-aws.config.logger = console;
 import { throttlingBackOff } from './backoff';
 
 export class Route53Resolver {

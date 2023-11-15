@@ -27,11 +27,6 @@ import {
   SecretListEntry,
   SecretsManager as smn,
 } from '@aws-sdk/client-secrets-manager';
-
-// JS SDK v3 does not support global configuration.
-// Codemod has attempted to pass values to each service client in this file.
-// You may need to update clients outside of this file, if they use global config.
-aws.config.logger = console;
 import { listWithNextTokenGenerator } from './next-token';
 import { collectAsync } from '../util/generator';
 import { throttlingBackOff } from './backoff';

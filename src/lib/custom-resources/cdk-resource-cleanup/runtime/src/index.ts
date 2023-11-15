@@ -24,11 +24,6 @@ import {
   ObjectVersion,
   S3,
 } from '@aws-sdk/client-s3';
-
-// JS SDK v3 does not support global configuration.
-// Codemod has attempted to pass values to each service client in this file.
-// You may need to update clients outside of this file, if they use global config.
-AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff, delay } from '@aws-accelerator/custom-resource-cfn-utils';
@@ -89,14 +84,14 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
   for (const domain of rulesDomainNames || []) {
     const resolverRuleIds = await getResolverRuleIds(domain);
     for (const ruleId of resolverRuleIds || []) {
-      let vpcIds = await getVpcIds(ruleId!);
+      let vpcIds = await getVpcIds(ruleId);
       for (const vpcId of vpcIds || []) {
         try {
           await throttlingBackOff(() =>
             route53Resolver
               .disassociateResolverRule({
-                ResolverRuleId: ruleId!,
-                VPCId: vpcId!,
+                ResolverRuleId: ruleId,
+                VPCId: vpcId,
               }),
           );
         } catch (error) {
@@ -105,7 +100,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
       }
 
       do {
-        vpcIds = await getVpcIds(ruleId!);
+        vpcIds = await getVpcIds(ruleId);
         // Waiting to disassociate VPC Ids from the resolver rule
         await delay(5000);
       } while ((vpcIds || []).length > 0);
@@ -115,7 +110,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
         await throttlingBackOff(() =>
           route53Resolver
             .deleteResolverRule({
-              ResolverRuleId: ruleId!,
+              ResolverRuleId: ruleId,
             }),
         );
       } catch (error) {

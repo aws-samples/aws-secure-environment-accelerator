@@ -13,10 +13,6 @@
 
 import * as AWS from 'aws-sdk';
 import { CloudTrail, CreateTrailCommandInput, DataResource, UpdateTrailCommandInput } from '@aws-sdk/client-cloudtrail';
-// JS SDK v3 does not support global configuration.
-// Codemod has attempted to pass values to each service client in this file.
-// You may need to update clients outside of this file, if they use global config.
-AWS.config.logger = console;
 import { CloudFormationCustomResourceDeleteEvent, CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
