@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { DescribeTransitGatewayPeeringAttachmentsCommandInput, EC2 } from '@aws-sdk/client-ec2';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
@@ -19,7 +23,9 @@ import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-respo
 
 export const handler = errorHandler(onEvent);
 
-const ec2 = new AWS.EC2();
+const ec2 = new EC2({
+  logger: console,
+});
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Accepting transit gateway peering attachment...`);
@@ -39,12 +45,9 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const pendingPeeringAttachments = await throttlingBackOff(() =>
     ec2
-      .describeTransitGatewayPeeringAttachments(
-        buildDescribeTransitGatewayAttachmentsResult({
-          transitGatewayAttachmentId: event.ResourceProperties.attachmentId,
-        }),
-      )
-      .promise(),
+      .describeTransitGatewayPeeringAttachments(buildDescribeTransitGatewayAttachmentsResult({
+      transitGatewayAttachmentId: event.ResourceProperties.attachmentId,
+    })),
   );
 
   if (
@@ -56,8 +59,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       ec2
         .acceptTransitGatewayPeeringAttachment({
           TransitGatewayAttachmentId: event.ResourceProperties.attachmentId,
-        })
-        .promise(),
+        }),
     );
 
     await throttlingBackOff(() =>
@@ -70,8 +72,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
               Value: event.ResourceProperties.tagValue,
             },
           ],
-        })
-        .promise(),
+        }),
     );
   }
 }
@@ -89,7 +90,7 @@ async function onDelete(_: CloudFormationCustomResourceEvent) {
  */
 function buildDescribeTransitGatewayAttachmentsResult(props: {
   transitGatewayAttachmentId: string;
-}): AWS.EC2.DescribeTransitGatewayPeeringAttachmentsRequest {
+}): DescribeTransitGatewayPeeringAttachmentsCommandInput {
   const { transitGatewayAttachmentId } = props;
 
   return {

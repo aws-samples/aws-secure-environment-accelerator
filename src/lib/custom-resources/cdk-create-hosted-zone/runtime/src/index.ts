@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { Route53 } from '@aws-sdk/client-route-53';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
@@ -24,7 +28,9 @@ export interface HandlerProperties {
   comment: string;
 }
 
-const route53 = new AWS.Route53();
+const route53 = new Route53({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -63,8 +69,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
             VPCId: vpcId,
             VPCRegion: region,
           },
-        })
-        .promise(),
+        }),
     );
     hostedZoneId = hostedZone.HostedZone.Id;
   } catch (e: any) {
@@ -75,8 +80,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
           .listHostedZonesByVPC({
             VPCId: vpcId,
             VPCRegion: region,
-          })
-          .promise(),
+          }),
       );
       hostedZoneId = hostedZone.HostedZoneSummaries[0].HostedZoneId;
     } else {
@@ -105,8 +109,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
         .listHostedZonesByVPC({
           VPCId: vpcId,
           VPCRegion: region,
-        })
-        .promise(),
+        }),
     );
     const hostedZoneId = hostedZones.HostedZoneSummaries.find(hz => hz.Name === domain)?.HostedZoneId;
     // Sleep 1 to 10 random seconds after creation of the vpc endpoint to avoid RateExceeded issue with Route53 api across regions
@@ -115,8 +118,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       route53
         .deleteHostedZone({
           Id: hostedZoneId!,
-        })
-        .promise(),
+        }),
     );
   } catch (e: any) {
     console.error(e);

@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { ReplicationRule, S3 } from '@aws-sdk/client-s3';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -21,14 +25,15 @@ import {
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
-import { ReplicationRules } from 'aws-sdk/clients/s3';
 
-const s3 = new AWS.S3();
+const s3 = new S3({
+  logger: console,
+});
 
 export interface HandlerProperties {
   bucketName: string;
   replicationRole: string;
-  rules: ReplicationRules;
+  rules: Array<ReplicationRule>;
 }
 
 export const handler = errorHandler(onEvent);
@@ -66,8 +71,7 @@ async function onCreateOrUpdate(
           Role: replicationRole,
           Rules: rules,
         },
-      })
-      .promise(),
+      }),
   );
   return {
     physicalResourceId: getPhysicalId(event),
@@ -85,8 +89,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     s3
       .deleteBucketReplication({
         Bucket: bucketName,
-      })
-      .promise(),
+      }),
   );
   return {
     physicalResourceId: getPhysicalId(event),

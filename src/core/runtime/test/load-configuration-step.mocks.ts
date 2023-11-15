@@ -12,7 +12,9 @@
  */
 
 import * as aws from 'aws-sdk';
-import { Account, OrganizationalUnit } from 'aws-sdk/clients/organizations';
+import { GetItemCommandOutput } from '@aws-sdk/client-dynamodb';
+import { Account, OrganizationalUnit } from '@aws-sdk/client-organizations';
+import { ProvisionedProductAttribute } from '@aws-sdk/client-service-catalog';
 import { AcceleratorConfig } from '@aws-accelerator/common-config';
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { ServiceCatalog } from '@aws-accelerator/common/src/aws/service-catalog';
@@ -21,11 +23,12 @@ import { STS } from '@aws-accelerator/common/src/aws/sts';
 import * as path from 'path';
 import * as fs from 'fs';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
-import { ProvisionedProductAttributes } from 'aws-sdk/clients/servicecatalog';
-import { GetItemOutput } from 'aws-sdk/clients/dynamodb';
 
 // eslint-disable-next-line
 jest.mock('@aws-accelerator/common-config/src/load');
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
 
 type DeepPartial<T> = {
@@ -43,7 +46,7 @@ interface MockValues {
   organizationalUnitAccounts: { [ouId: string]: Account[] };
   accounts: Account[];
   masterAccount: Account;
-  provisionedProducts: ProvisionedProductAttributes[];
+  provisionedProducts: Array<ProvisionedProductAttribute>[];
 }
 
 export const values: MockValues = {
@@ -81,7 +84,7 @@ export function install() {
   jest.spyOn(Organizations.prototype, 'listPoliciesForTarget').mockImplementation(async () => []);
 
   jest.spyOn(DynamoDB.prototype, 'getItem').mockImplementation(async () => {
-    return Promise.resolve([]) as GetItemOutput;
+    return Promise.resolve([]) as GetItemCommandOutput;
   });
 
   jest.spyOn(ServiceCatalog.prototype, 'searchProvisionedProductsForAllAccounts').mockImplementation(async () => []);

@@ -12,7 +12,11 @@
  */
 
 import * as AWS from 'aws-sdk';
-import { GetCallerIdentityResponse } from 'aws-sdk/clients/sts';
+import { Route53 } from '@aws-sdk/client-route-53';
+import { GetCallerIdentityCommandOutput, STS } from '@aws-sdk/client-sts';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -34,16 +38,17 @@ export interface HandlerProperties {
 }
 
 export class STS {
-  private readonly client: AWS.STS;
+  private readonly client: STS;
   private readonly cache: { [roleArn: string]: AWS.Credentials } = {};
 
   constructor(credentials?: AWS.Credentials) {
-    this.client = new AWS.STS({
+    this.client = new STS({
       credentials,
+      logger: console,
     });
   }
 
-  async getCallerIdentity(): Promise<GetCallerIdentityResponse> {
+  async getCallerIdentity(): Promise<GetCallerIdentityCommandOutput> {
     return throttlingBackOff(() => this.client.getCallerIdentity().promise());
   }
 
@@ -85,7 +90,9 @@ export class STS {
   }
 }
 
-const sts = new STS();
+const sts = new STS({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -109,16 +116,18 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
   const { assumeRoleName, hostedZoneAccountId, hostedZoneIds, vpcAccountId, vpcId, vpcName, vpcRegion } = properties;
 
   const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
-  const vpcRoute53 = new AWS.Route53({
+  const vpcRoute53 = new Route53({
     credentials: vpcAccountCredentials,
+    logger: console,
   });
 
   let hostedZoneAccountCredentials: AWS.Credentials;
-  let hostedZoneRoute53: AWS.Route53;
+  let hostedZoneRoute53: Route53;
   if (vpcAccountId !== hostedZoneAccountId) {
     hostedZoneAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZoneAccountId, assumeRoleName);
-    hostedZoneRoute53 = new AWS.Route53({
+    hostedZoneRoute53 = new Route53({
       credentials: hostedZoneAccountCredentials,
+      logger: console,
     });
   }
 
@@ -132,13 +141,13 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
     };
     // authorize association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise());
+      await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps));
     }
 
     // associate VPC with Hosted zones
     try {
       console.log(`Associating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
-      await throttlingBackOff(() => vpcRoute53.associateVPCWithHostedZone(hostedZoneProps).promise());
+      await throttlingBackOff(() => vpcRoute53.associateVPCWithHostedZone(hostedZoneProps));
     } catch (e: any) {
       if (e.code === 'ConflictingDomainExists') {
         console.info('Domain already added; ignore this error and continue');
@@ -151,7 +160,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 
     // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise());
+      await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps));
     }
   }
 
@@ -165,16 +174,18 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   const { assumeRoleName, hostedZoneAccountId, hostedZoneIds, vpcAccountId, vpcId, vpcName, vpcRegion } = properties;
 
   const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
-  const vpcRoute53 = new AWS.Route53({
+  const vpcRoute53 = new Route53({
     credentials: vpcAccountCredentials,
+    logger: console,
   });
 
   let hostedZoneAccountCredentials: AWS.Credentials;
-  let hostedZoneRoute53: AWS.Route53;
+  let hostedZoneRoute53: Route53;
   if (vpcAccountId !== hostedZoneAccountId) {
     hostedZoneAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZoneAccountId, assumeRoleName);
-    hostedZoneRoute53 = new AWS.Route53({
+    hostedZoneRoute53 = new Route53({
       credentials: hostedZoneAccountCredentials,
+      logger: console,
     });
   }
 
@@ -191,13 +202,13 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
     };
     // authorize association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise());
+      await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps));
     }
 
     // associate VPC with Hosted zones
     try {
       console.log(`Associating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
-      await throttlingBackOff(() => vpcRoute53.associateVPCWithHostedZone(hostedZoneProps).promise());
+      await throttlingBackOff(() => vpcRoute53.associateVPCWithHostedZone(hostedZoneProps));
     } catch (e: any) {
       if (e.code === 'ConflictingDomainExists') {
         console.info('Domain already added; ignore this error and continue');
@@ -210,7 +221,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 
     // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise());
+      await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps));
     }
   }
 
@@ -225,7 +236,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
     // authorize association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
       try {
-        await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise());
+        await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps));
       } catch (e: any) {
         if (e.code === 'NoSuchHostedZone') {
           console.info(`No Domain exists with ID "${hostedZoneId}"; ignore this error and continue`);
@@ -239,7 +250,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
     // associate VPC with Hosted zones
     try {
       console.log(`Disassociating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
-      await throttlingBackOff(() => vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps).promise());
+      await throttlingBackOff(() => vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps));
     } catch (e: any) {
       if (e.code === 'VPCAssociationNotFound') {
         console.warn(`The specified VPC "${vpcId}" and hosted zone "${hostedZoneId}" are not currently associated.`);
@@ -256,7 +267,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
     // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
       try {
-        await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise());
+        await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps));
       } catch (e: any) {
         if (e.code === 'VPCAssociationNotFound') {
           console.warn(`The specified VPC "${vpcId}" and hosted zone "${hostedZoneId}" are not currently associated.`);
@@ -287,16 +298,18 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     return;
   }
   const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
-  const vpcRoute53 = new AWS.Route53({
+  const vpcRoute53 = new Route53({
     credentials: vpcAccountCredentials,
+    logger: console,
   });
 
   let hostedZoneAccountCredentials: AWS.Credentials;
-  let hostedZoneRoute53: AWS.Route53;
+  let hostedZoneRoute53: Route53;
   if (vpcAccountId !== hostedZoneAccountId) {
     hostedZoneAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZoneAccountId, assumeRoleName);
-    hostedZoneRoute53 = new AWS.Route53({
+    hostedZoneRoute53 = new Route53({
       credentials: hostedZoneAccountCredentials,
+      logger: console,
     });
   }
 
@@ -311,7 +324,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     // authorize association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
       try {
-        await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise());
+        await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps));
       } catch (e: any) {
         console.error(`Ignoring error while deleting Association and stack ${hostedZoneId} to VPC "${vpcName}"`);
         console.error(e);
@@ -322,7 +335,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     // associate VPC with Hosted zones
     try {
       console.log(`Disassociating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
-      await throttlingBackOff(() => vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps).promise());
+      await throttlingBackOff(() => vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps));
     } catch (e: any) {
       console.error(`Ignoring error while deleting Association and stack ${hostedZoneId} to VPC "${vpcName}"`);
       console.error(e);
@@ -335,7 +348,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
       try {
-        await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise());
+        await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps));
       } catch (e) {
         console.error(`Ignoring error while deleting Association and stack ${hostedZoneId} to VPC "${vpcName}"`);
         console.error(e);

@@ -12,16 +12,28 @@
  */
 
 import aws from 'aws-sdk';
+
+import {
+  ACM as acm,
+  ImportCertificateCommandInput,
+  ImportCertificateCommandOutput,
+  RequestCertificateCommandInput,
+  RequestCertificateCommandOutput,
+} from '@aws-sdk/client-acm';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
-import * as acm from 'aws-sdk/clients/acm';
 import { throttlingBackOff } from './backoff';
 
 export class ACM {
-  private readonly client: aws.ACM;
+  private readonly client: ACM;
 
   public constructor(credentials?: aws.Credentials) {
-    this.client = new aws.ACM({
+    this.client = new acm({
       credentials,
+      logger: console,
     });
   }
 
@@ -29,7 +41,7 @@ export class ACM {
    * to import certificate into AWS Certificate Manager
    * @param params
    */
-  async importCertificate(params: acm.ImportCertificateRequest): Promise<acm.ImportCertificateResponse> {
+  async importCertificate(params: ImportCertificateCommandInput): Promise<ImportCertificateCommandOutput> {
     return throttlingBackOff(() => this.client.importCertificate(params).promise());
   }
 
@@ -37,7 +49,7 @@ export class ACM {
    * to request ACM certificate
    * @param params
    */
-  async requestCertificate(params: acm.RequestCertificateRequest): Promise<acm.RequestCertificateResponse> {
+  async requestCertificate(params: RequestCertificateCommandInput): Promise<RequestCertificateCommandOutput> {
     return throttlingBackOff(() => this.client.requestCertificate(params).promise());
   }
 }

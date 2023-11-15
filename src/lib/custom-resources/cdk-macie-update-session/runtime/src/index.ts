@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { Macie2 } from '@aws-sdk/client-macie2';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -22,7 +26,9 @@ import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-respo
 import { MacieFrequency, MacieStatus } from '@aws-accelerator/custom-resource-macie-enable-runtime';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-const macie = new AWS.Macie2();
+const macie = new Macie2({
+  logger: console,
+});
 
 export interface HandlerProperties {
   findingPublishingFrequency: MacieFrequency;
@@ -71,8 +77,7 @@ async function configSession(properties: HandlerProperties) {
       .updateMacieSession({
         findingPublishingFrequency: properties.findingPublishingFrequency,
         status: properties.status,
-      })
-      .promise(),
+      }),
   );
   return updateSession;
 }
@@ -85,8 +90,7 @@ async function updatePublishConfiguration(enableSensitiveData: boolean) {
           publishClassificationFindings: enableSensitiveData,
           publishPolicyFindings: true,
         },
-      })
-      .promise(),
+      }),
   );
 }
 

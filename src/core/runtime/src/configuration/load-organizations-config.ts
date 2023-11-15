@@ -11,7 +11,10 @@
  *  and limitations under the License.
  */
 
-import * as org from 'aws-sdk/clients/organizations';
+
+
+import { Account, OrganizationalUnit } from '@aws-sdk/client-organizations';
+import { ProvisionedProductAttribute, ServiceCatalog } from '@aws-sdk/client-service-catalog';
 import { Organizations, OrganizationalUnit } from '@aws-accelerator/common/src/aws/organizations';
 import { ServiceCatalog } from '@aws-accelerator/common/src/aws/service-catalog';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
@@ -27,7 +30,6 @@ import {
 import { AcceleratorConfig, AwsConfigAccountConfig } from '@aws-accelerator/common-config';
 import { ServiceControlPolicy } from '../../../../lib/common/src/scp';
 import { loadAccounts } from '../utils/load-accounts';
-import { ProvisionedProductAttribute } from 'aws-sdk/clients/servicecatalog';
 
 const MAX_SCPS_ALLOWED = 5;
 interface LoadOrganizationConfigurationOutput extends LoadConfigurationOutput {
@@ -67,10 +69,10 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
 
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();
-  const awsOuAccountMap: { [ouId: string]: org.Account[] } = {};
+  const awsOuAccountMap: { [ouId: string]: Account[] } = {};
 
   // Store the accounts in a simple list as well
-  const awsAccounts: org.Account[] = await organizations.listAccounts();
+  const awsAccounts: Account[] = await organizations.listAccounts();
 
   // Store organizational units and their accounts
   for (const organizationalUnit of awsOus) {
@@ -373,7 +375,7 @@ function validateOrganizationSpecificConfiguration(config: AcceleratorConfig): s
 
 async function validateScpsCount(
   config: AcceleratorConfig,
-  ous: org.OrganizationalUnit[],
+  ous: OrganizationalUnit[],
   accounts: ConfigurationAccount[],
   acceleratorPrefix: string,
 ): Promise<string[]> {

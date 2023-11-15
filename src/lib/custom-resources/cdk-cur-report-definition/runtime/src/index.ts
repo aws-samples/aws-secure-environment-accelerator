@@ -12,18 +12,24 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { CostAndUsageReportService, ReportDefinition } from '@aws-sdk/client-cost-and-usage-report-service';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-export type HandlerProperties = AWS.CUR.ReportDefinition;
+export type HandlerProperties = ReportDefinition;
 
 export const handler = errorHandler(onEvent);
 
-const cur = new AWS.CUR({
+const cur = new CostAndUsageReportService({
   // CUR is only reachable through us-east-1
   region: 'us-east-1',
+
+  logger: console,
 });
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
@@ -73,8 +79,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       cur
         .deleteReportDefinition({
           ReportName: event.PhysicalResourceId,
-        })
-        .promise(),
+        }),
     );
   } catch (e) {
     console.warn(`Ignore report definition delete failure`);
@@ -110,8 +115,7 @@ async function createOrUpdateReportDefinition(event: CloudFormationCustomResourc
       cur
         .putReportDefinition({
           ReportDefinition: reportDefinition,
-        })
-        .promise(),
+        }),
     );
   } catch (e: any) {
     if (e.code === 'DuplicateReportNameException') {
@@ -122,8 +126,7 @@ async function createOrUpdateReportDefinition(event: CloudFormationCustomResourc
           .modifyReportDefinition({
             ReportName: reportDefinition.ReportName,
             ReportDefinition: reportDefinition,
-          })
-          .promise(),
+          }),
       );
     } else {
       throw e;

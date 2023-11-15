@@ -12,6 +12,11 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { KMS } from '@aws-sdk/client-kms';
+import { S3 } from '@aws-sdk/client-s3';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -33,8 +38,12 @@ export interface HandlerProperties {
 
 export const handler = errorHandler(onEvent);
 
-const kms = new AWS.KMS();
-const s3 = new AWS.S3();
+const kms = new KMS({
+  logger: console,
+});
+const s3 = new S3({
+  logger: console,
+});
 const logArchiveReadOnlySid = 'SSM Log Archive Read Only Roles';
 
 interface Policy {
@@ -71,8 +80,7 @@ async function getBucketPolicy(logBucketName: string) {
     const response = await s3
       .getBucketPolicy({
         Bucket: logBucketName,
-      })
-      .promise();
+      });
     if (response.Policy) {
       return JSON.parse(response.Policy);
     }
@@ -89,8 +97,7 @@ async function putBucketPolicy(logBucketName: string, policy: string) {
       .putBucketPolicy({
         Bucket: logBucketName,
         Policy: policy,
-      })
-      .promise();
+      });
   } catch (err: any) {
     console.error(err, err.stack);
     throw err;
@@ -104,8 +111,7 @@ async function getKmsKeyPolicy(keyArn: string | undefined) {
         .getKeyPolicy({
           KeyId: keyArn,
           PolicyName: 'default',
-        })
-        .promise();
+        });
       if (response.Policy) {
         return JSON.parse(response.Policy);
       }
@@ -126,8 +132,7 @@ async function putKmsKeyPolicy(keyArn: string | undefined, policy: string) {
           KeyId: keyArn,
           Policy: policy,
           PolicyName: 'default',
-        })
-        .promise();
+        });
     } catch (err: any) {
       console.error(err, err.stack);
       throw err;

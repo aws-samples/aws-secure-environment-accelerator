@@ -12,12 +12,21 @@
  */
 
 import * as dns from 'dns';
-import * as AWS from 'aws-sdk';
+import { any, DynamoDBDocument, PutCommandInput, ScanCommandInput } from '@aws-sdk/lib-dynamodb';
+import { DynamoDB } from '@aws-sdk/client-dynamodb';
+
+import {
+  DeregisterTargetsCommandInput,
+  DeregisterTargetsCommandOutput,
+  ElasticLoadBalancingV2,
+  RegisterTargetsCommandInput,
+  RegisterTargetsCommandOutput,
+} from '@aws-sdk/client-elastic-load-balancing-v2';
 
 const routeLookupTable = process.env.LOOKUP_TABLE ?? '';
 
-const docClient = new AWS.DynamoDB.DocumentClient();
-const elbv2 = new AWS.ELBv2();
+const docClient = DynamoDBDocument.from(new DynamoDB());
+const elbv2 = new ElasticLoadBalancingV2();
 
 export interface dnsForwardItem {
   id: string;
@@ -34,13 +43,13 @@ export interface dnsForwardItem {
 
 const scanTable = async (tableName: string): Promise<dnsForwardItem[]> => {
   console.log(`Scanning route lookup table ${routeLookupTable}`);
-  const scanParmas: AWS.DynamoDB.DocumentClient.ScanInput = {
+  const scanParmas: ScanCommandInput = {
     TableName: tableName,
   };
-  const scanResults: AWS.DynamoDB.DocumentClient.AttributeMap[] = [];
+  const scanResults: Record<string, any>[] = [];
   let results;
   do {
-    results = await docClient.scan(scanParmas).promise();
+    results = await docClient.scan(scanParmas);
     results.Items?.forEach(item => scanResults.push(item));
     scanParmas.ExclusiveStartKey = results.LastEvaluatedKey;
   } while (typeof results.LastEvaluatedKey != 'undefined');
@@ -52,7 +61,7 @@ const registerTargets = async (
   targetGroupArn: string,
   ips: string[],
   port: number,
-): Promise<AWS.ELBv2.RegisterTargetsOutput> => {
+): Promise<RegisterTargetsCommandOutput> => {
   const targets = ips.map(ip => {
     return {
       Id: ip,
@@ -61,15 +70,15 @@ const registerTargets = async (
     };
   });
 
-  const registerTargetsParams: AWS.ELBv2.RegisterTargetsInput = {
+  const registerTargetsParams: RegisterTargetsCommandInput = {
     TargetGroupArn: targetGroupArn,
     Targets: targets,
   };
 
-  return elbv2.registerTargets(registerTargetsParams).promise();
+  return elbv2.registerTargets(registerTargetsParams);
 };
 
-const deregisterTargets = async (targetGroupArn: string, ips: string[]): Promise<AWS.ELBv2.DeregisterTargetsOutput> => {
+const deregisterTargets = async (targetGroupArn: string, ips: string[]): Promise<DeregisterTargetsCommandOutput> => {
   console.log(`Deregistering IP addresses ${JSON.stringify(ips)} from target group ${targetGroupArn}`);
   const targets = ips.map(ip => {
     return {
@@ -77,12 +86,12 @@ const deregisterTargets = async (targetGroupArn: string, ips: string[]): Promise
     };
   });
 
-  const deregisterTargetsParams: AWS.ELBv2.DeregisterTargetsInput = {
+  const deregisterTargetsParams: DeregisterTargetsCommandInput = {
     TargetGroupArn: targetGroupArn,
     Targets: targets,
   };
 
-  return elbv2.deregisterTargets(deregisterTargetsParams).promise();
+  return elbv2.deregisterTargets(deregisterTargetsParams);
 };
 
 const dnslookup = async (host: string): Promise<string[]> => {
@@ -114,11 +123,11 @@ const removeItem = (arr: any[], item: any) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const putRecord = async (record: any) => {
-  const putParams: AWS.DynamoDB.DocumentClient.PutItemInput = {
+  const putParams: PutCommandInput = {
     TableName: routeLookupTable,
     Item: record,
   };
-  return docClient.put(putParams).promise();
+  return docClient.put(putParams);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

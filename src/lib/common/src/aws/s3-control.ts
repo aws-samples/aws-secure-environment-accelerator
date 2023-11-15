@@ -12,16 +12,27 @@
  */
 
 import aws from 'aws-sdk';
+
+import {
+  GetPublicAccessBlockCommandInput,
+  GetPublicAccessBlockCommandOutput,
+  PutPublicAccessBlockCommandInput,
+  S3Control as s3control,
+} from '@aws-sdk/client-s3-control';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
-import * as s3control from 'aws-sdk/clients/s3control';
 import { throttlingBackOff } from './backoff';
 
 export class S3Control {
-  private readonly client: aws.S3Control;
+  private readonly client: S3Control;
 
   public constructor(credentials?: aws.Credentials) {
-    this.client = new aws.S3Control({
+    this.client = new s3control({
       credentials,
+      logger: console,
     });
   }
 
@@ -29,7 +40,7 @@ export class S3Control {
    * to put the s3 public access block setting at account level
    * @param input
    */
-  async putPublicAccessBlock(input: s3control.PutPublicAccessBlockRequest): Promise<void> {
+  async putPublicAccessBlock(input: PutPublicAccessBlockCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.putPublicAccessBlock(input).promise());
   }
 
@@ -38,8 +49,8 @@ export class S3Control {
    * @param input
    */
   async getPublicAccessBlock(
-    input: s3control.GetPublicAccessBlockRequest,
-  ): Promise<s3control.GetPublicAccessBlockOutput> {
+    input: GetPublicAccessBlockCommandInput,
+  ): Promise<GetPublicAccessBlockCommandOutput> {
     return throttlingBackOff(() => this.client.getPublicAccessBlock(input).promise());
   }
 }

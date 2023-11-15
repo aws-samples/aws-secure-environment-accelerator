@@ -27,7 +27,7 @@ import { AssumeProfilePlugin } from '@aws-accelerator/cdk-plugin-assume-role/src
 import { fulfillAll } from './promise';
 import { promises as fsp } from 'fs';
 import * as cdk from 'aws-cdk-lib';
-import * as AWS from 'aws-sdk';
+import { STS } from '@aws-sdk/client-sts';
 
 // Set debug logging
 setLogLevel(1);
@@ -91,8 +91,8 @@ export class CdkToolkit {
 
     /*  The code below forces an STS Assume role on itself to address an issue with new CDK Version Upgrade
      */
-    const stsClient = new AWS.STS({});
-    const getCallerIdentityResponse = await stsClient.getCallerIdentity({}).promise();
+    const stsClient = new STS({});
+    const getCallerIdentityResponse = await stsClient.getCallerIdentity({});
     const getCallerIdentityResponseArraySplitBySlash = getCallerIdentityResponse.Arn!.split('/');
     getCallerIdentityResponseArraySplitBySlash.pop();
     const roleName = getCallerIdentityResponseArraySplitBySlash.pop();
@@ -102,8 +102,7 @@ export class CdkToolkit {
     console.log(`[accelerator] management account roleArn => ${roleArn}`);
 
     const assumeRoleCredential = await stsClient
-      .assumeRole({ RoleArn: roleArn, RoleSessionName: 'acceleratorAssumeRoleSession' })
-      .promise();
+      .assumeRole({ RoleArn: roleArn, RoleSessionName: 'acceleratorAssumeRoleSession' });
 
     process.env.AWS_ACCESS_KEY_ID = assumeRoleCredential.Credentials!.AccessKeyId!;
     process.env.AWS_ACCESS_KEY = assumeRoleCredential.Credentials!.AccessKeyId!;

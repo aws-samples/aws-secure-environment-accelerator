@@ -12,16 +12,26 @@
  */
 
 import aws from 'aws-sdk';
+
+import {
+  CreateServiceLinkedRoleCommandInput,
+  CreateServiceLinkedRoleCommandOutput,
+  IAM as iam,
+} from '@aws-sdk/client-iam';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
-import * as iam from 'aws-sdk/clients/iam';
 import { throttlingBackOff } from './backoff';
 
 export class IAM {
-  private readonly client: aws.IAM;
+  private readonly client: IAM;
 
   public constructor(credentials?: aws.Credentials) {
-    this.client = new aws.IAM({
+    this.client = new iam({
       credentials,
+      logger: console,
     });
   }
 
@@ -29,8 +39,8 @@ export class IAM {
    * to create aws service linked role.
    * @param awsServiceName
    */
-  async createServiceLinkedRole(awsServiceName: string): Promise<iam.CreateServiceLinkedRoleResponse> {
-    const params: iam.CreateServiceLinkedRoleRequest = {
+  async createServiceLinkedRole(awsServiceName: string): Promise<CreateServiceLinkedRoleCommandOutput> {
+    const params: CreateServiceLinkedRoleCommandInput = {
       AWSServiceName: awsServiceName,
     };
     return throttlingBackOff(() => this.client.createServiceLinkedRole(params).promise());

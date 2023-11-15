@@ -1,24 +1,26 @@
 import * as fs from 'fs';
-import * as aws from 'aws-sdk';
-import * as dynamodb from 'aws-sdk/clients/dynamodb';
+import { CloudFormation, DescribeStacksCommandOutput } from '@aws-sdk/client-cloudformation';
+import { CodeCommit } from '@aws-sdk/client-codecommit';
+import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
+import { AttributeValue, DynamoDB as dynamodb, ScanCommandInput } from '@aws-sdk/client-dynamodb';
 import * as camelCase from 'camelcase';
 const DEV_FILE_PATH = '../../../src/deployments/cdk/';
 const DEV_OUTPUTS_FILE_PATH = `${DEV_FILE_PATH}outputs.json`;
 
 const env = process.env;
 const installerStackName = process.env.INSTALLER_STACK_NAME;
-const cfn = new aws.CloudFormation();
-const documentClient = new aws.DynamoDB.DocumentClient();
-const codeCommitClient = new aws.CodeCommit();
+const cfn = new CloudFormation();
+const documentClient = DynamoDBDocument.from(new dynamodb());
+const codeCommitClient = new CodeCommit();
 
 export const scanDDBTable = async (tableName: string) => {
-  const items: dynamodb.ItemList = [];
-  let token: dynamodb.Key | undefined;
-  const props: dynamodb.ScanInput = {
+  const items: Array<Record<string, AttributeValue>> = [];
+  let token: Record<string, AttributeValue> | undefined;
+  const props: ScanCommandInput = {
     TableName: tableName,
   };
   do {
-    const response = await documentClient.scan(props).promise();
+    const response = await documentClient.scan(props);
     token = response.LastEvaluatedKey;
     props.ExclusiveStartKey = token!;
     items.push(...response.Items!);
@@ -27,7 +29,7 @@ export const scanDDBTable = async (tableName: string) => {
   return items;
 };
 
-export const loadOutputs = (items: dynamodb.ItemList) => {
+export const loadOutputs = (items: Array<Record<string, AttributeValue>>) => {
   return items.reduce((outputList: any, item) => {
     const output = JSON.parse(item.outputValue as string);
     outputList.push(...output);
@@ -35,7 +37,7 @@ export const loadOutputs = (items: dynamodb.ItemList) => {
   }, []);
 };
 
-export const loadConfigs = (items: dynamodb.ItemList) => {
+export const loadConfigs = (items: Array<Record<string, AttributeValue>>) => {
   return items.map(item => {
     return { id: item.id, value: JSON.parse(item.value as string) };
   });
@@ -68,7 +70,7 @@ export const describeStack = async (cfnClient: AWS.CloudFormation, stackName: st
   }
 };
 
-export const setContext = (stackInfo: aws.CloudFormation.DescribeStacksOutput) => {
+export const setContext = (stackInfo: DescribeStacksCommandOutput) => {
   const params = stackInfo.Stacks![0].Parameters;
   const context: any = {};
   if (params) {
@@ -101,8 +103,9 @@ export const setContext = (stackInfo: aws.CloudFormation.DescribeStacksOutput) =
   const configs = loadConfigs(params);
 
   const configFileBase64 = await codeCommitClient
-    .getFile({ repositoryName: context.configRepositoryName, filePath: 'raw/config.json' })
-    .promise();
+    .getFile(
+    { repositoryName: context.configRepositoryName, filePath: 'raw/config.json' },
+  );
   const configFile = configFileBase64.fileContent.toString();
 
   fs.writeFileSync(`${DEV_FILE_PATH}context.json`, JSON.stringify(context, null, 2));

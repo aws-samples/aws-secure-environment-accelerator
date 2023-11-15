@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { Macie2 } from '@aws-sdk/client-macie2';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -20,7 +24,9 @@ import {
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 
-const macie = new AWS.Macie2();
+const macie = new Macie2({
+  logger: console,
+});
 
 export interface HandlerProperties {
   accountId: string;
@@ -69,7 +75,7 @@ async function onCreateOrUpdate(
 
 async function isMacieAdminEnabled(accountId: string) {
   console.log(`Checking if Macie Administration is enabled for account ${accountId}`);
-  const adminList = await macie.listOrganizationAdminAccounts().promise();
+  const adminList = await macie.listOrganizationAdminAccounts();
   const isAccountAdded = adminList.adminAccounts?.filter(account => {
     return account.accountId === accountId;
   });
@@ -87,8 +93,7 @@ async function enableOrgAdmin(accountId: string) {
     const macieAdmin = await macie
       .enableOrganizationAdminAccount({
         adminAccountId: accountId,
-      })
-      .promise();
+      });
     console.info(macieAdmin);
   } catch (e) {
     console.warn('Could not enable Macie Admin account');

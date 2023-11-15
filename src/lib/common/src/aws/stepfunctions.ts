@@ -11,35 +11,43 @@
  *  and limitations under the License.
  */
 
+
+
 import {
-  ListExecutionsInput,
+  DescribeExecutionCommandInput,
+  DescribeExecutionCommandOutput,
   ExecutionListItem,
-  StartExecutionInput,
-  GetExecutionHistoryInput,
-  HistoryEventList,
-  StopExecutionInput,
-  DescribeExecutionInput,
-  DescribeExecutionOutput,
-} from 'aws-sdk/clients/stepfunctions';
+  GetExecutionHistoryCommandInput,
+  HistoryEvent,
+  ListExecutionsCommandInput,
+  SFN,
+  StartExecutionCommandInput,
+  StopExecutionCommandInput,
+} from '@aws-sdk/client-sfn';
+
 import aws from 'aws-sdk';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
 import { throttlingBackOff } from './backoff';
 import { listWithNextToken } from './next-token';
 
 export class StepFunctions {
-  private readonly client: aws.StepFunctions;
+  private readonly client: SFN;
 
   public constructor(credentials?: aws.Credentials, region?: string) {
-    this.client = new aws.StepFunctions({
+    this.client = new SFN({
       credentials,
       region,
+      logger: console,
     });
   }
 
   /**
    * list Executions
    */
-  async listExecutions(input: ListExecutionsInput): Promise<ExecutionListItem[]> {
+  async listExecutions(input: ListExecutionsCommandInput): Promise<ExecutionListItem[]> {
     const executionList = [];
     let token;
     do {
@@ -53,7 +61,7 @@ export class StepFunctions {
   /**
    * Run Statemachine
    */
-  async startExecution(input: StartExecutionInput): Promise<string> {
+  async startExecution(input: StartExecutionCommandInput): Promise<string> {
     const execution = await throttlingBackOff(() => this.client.startExecution(input).promise());
     return execution.executionArn;
   }
@@ -61,7 +69,7 @@ export class StepFunctions {
   /**
    * get-execution-history
    */
-  async getExecutionHistory(input: GetExecutionHistoryInput): Promise<HistoryEventList> {
+  async getExecutionHistory(input: GetExecutionHistoryCommandInput): Promise<Array<HistoryEvent>> {
     const executionHistory = await throttlingBackOff(() => this.client.getExecutionHistory(input).promise());
     return executionHistory.events;
   }
@@ -69,14 +77,14 @@ export class StepFunctions {
   /**
    * Stop Statemachine execution
    */
-  async stopExecution(input: StopExecutionInput) {
+  async stopExecution(input: StopExecutionCommandInput) {
     await throttlingBackOff(() => this.client.stopExecution(input).promise());
   }
 
   /**
    * describe-execution
    */
-  async describeExecution(input: DescribeExecutionInput): Promise<DescribeExecutionOutput> {
+  async describeExecution(input: DescribeExecutionCommandInput): Promise<DescribeExecutionCommandOutput> {
     return throttlingBackOff(() => this.client.describeExecution(input).promise());
   }
 }

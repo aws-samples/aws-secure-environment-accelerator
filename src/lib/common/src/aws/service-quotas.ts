@@ -12,13 +12,25 @@
  */
 
 import aws from 'aws-sdk';
+
+import {
+  GetServiceQuotaCommandInput,
+  ListRequestedServiceQuotaChangeHistoryByQuotaCommandInput,
+  RequestedServiceQuotaChange,
+  RequestStatus,
+  ServiceQuota,
+  ServiceQuotas as sq,
+} from '@aws-sdk/client-service-quotas';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
-import * as sq from 'aws-sdk/clients/servicequotas';
 import { listWithNextToken } from './next-token';
 import { arrayMax } from '../util/arrays';
 import { throttlingBackOff } from './backoff';
 
-const OPEN_STATUSES: sq.RequestStatus[] = ['PENDING', 'CASE_OPENED'];
+const OPEN_STATUSES: RequestStatus[] = ['PENDING', 'CASE_OPENED'];
 
 export interface RenewServiceQuotaIncrease {
   ServiceCode: string;
@@ -28,12 +40,13 @@ export interface RenewServiceQuotaIncrease {
 }
 
 export class ServiceQuotas {
-  private readonly client: aws.ServiceQuotas;
+  private readonly client: ServiceQuotas;
 
   public constructor(credentials?: aws.Credentials, region?: string) {
-    this.client = new aws.ServiceQuotas({
+    this.client = new sq({
       credentials,
       region,
+      logger: console,
     });
   }
 
@@ -42,7 +55,7 @@ export class ServiceQuotas {
    *
    * @throws Error when the quota can not be found.
    */
-  async getServiceQuotaOrDefault(req: sq.GetServiceQuotaRequest): Promise<sq.ServiceQuota> {
+  async getServiceQuotaOrDefault(req: GetServiceQuotaCommandInput): Promise<ServiceQuota> {
     let response;
     try {
       response = await throttlingBackOff(() => this.client.getServiceQuota(req).promise());
@@ -59,8 +72,8 @@ export class ServiceQuotas {
    * Wrapper listRequestedServiceQuotaChangeHistoryByQuota that adds pagination.
    */
   async listRequestedServiceQuotaChangeHistoryByQuota(
-    req: sq.ListRequestedServiceQuotaChangeHistoryByQuotaRequest,
-  ): Promise<sq.RequestedServiceQuotaChange[]> {
+    req: ListRequestedServiceQuotaChangeHistoryByQuotaCommandInput,
+  ): Promise<RequestedServiceQuotaChange[]> {
     return listWithNextToken<
       sq.ListRequestedServiceQuotaChangeHistoryByQuotaRequest,
       sq.ListRequestedServiceQuotaChangeHistoryByQuotaResponse,
@@ -126,6 +139,6 @@ export class ServiceQuotas {
 /**
  * Method used to sort the service requests.
  */
-function compareQuotaRequest(a: sq.RequestedServiceQuotaChange, b: sq.RequestedServiceQuotaChange) {
+function compareQuotaRequest(a: RequestedServiceQuotaChange, b: RequestedServiceQuotaChange) {
   return a.Created!.getTime() - b.Created!.getTime();
 }

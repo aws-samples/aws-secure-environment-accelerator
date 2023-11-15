@@ -12,33 +12,40 @@
  */
 
 import aws from 'aws-sdk';
-aws.config.logger = console;
+
 import {
-  PutConfigurationRecorderRequest,
-  PutDeliveryChannelRequest,
-  DescribeConfigurationAggregatorsRequest,
-  DescribeConfigurationAggregatorsResponse,
-  DescribeConfigurationRecordersRequest,
-  DescribeConfigurationRecordersResponse,
-  DescribeConfigurationRecorderStatusRequest,
-  DescribeConfigurationRecorderStatusResponse,
-  DescribeDeliveryChannelStatusRequest,
-  DescribeDeliveryChannelStatusResponse,
-  StartConfigurationRecorderRequest,
-  PutConfigurationAggregatorRequest,
-  StopConfigurationRecorderRequest,
-  PutEvaluationsRequest,
-  DeleteConfigurationAggregatorRequest,
-} from 'aws-sdk/clients/configservice';
+  ConfigService,
+  DeleteConfigurationAggregatorCommandInput,
+  DescribeConfigurationAggregatorsCommandInput,
+  DescribeConfigurationAggregatorsCommandOutput,
+  DescribeConfigurationRecordersCommandInput,
+  DescribeConfigurationRecordersCommandOutput,
+  DescribeConfigurationRecorderStatusCommandInput,
+  DescribeConfigurationRecorderStatusCommandOutput,
+  DescribeDeliveryChannelStatusCommandInput,
+  DescribeDeliveryChannelStatusCommandOutput,
+  PutConfigurationAggregatorCommandInput,
+  PutConfigurationRecorderCommandInput,
+  PutDeliveryChannelCommandInput,
+  PutEvaluationsCommandInput,
+  StartConfigurationRecorderCommandInput,
+  StopConfigurationRecorderCommandInput,
+} from '@aws-sdk/client-config-service';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
+aws.config.logger = console;
 import { throttlingBackOff } from './backoff';
 
 export class ConfigService {
-  private readonly client: aws.ConfigService;
+  private readonly client: ConfigService;
 
   public constructor(credentials?: aws.Credentials, region?: string) {
-    this.client = new aws.ConfigService({
+    this.client = new ConfigService({
       region,
       credentials,
+      logger: console,
     });
   }
 
@@ -48,7 +55,7 @@ export class ConfigService {
    *
    * @param PutConfigurationRecorderRequest
    */
-  async createRecorder(input: PutConfigurationRecorderRequest): Promise<void> {
+  async createRecorder(input: PutConfigurationRecorderCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.putConfigurationRecorder(input).promise());
   }
 
@@ -58,14 +65,14 @@ export class ConfigService {
    *
    * @param PutDeliveryChannelRequest
    */
-  async createDeliveryChannel(input: PutDeliveryChannelRequest): Promise<void> {
+  async createDeliveryChannel(input: PutDeliveryChannelCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.putDeliveryChannel(input).promise());
   }
 
   /**
    * Start Configuration Recorder
    */
-  async startRecorder(input: StartConfigurationRecorderRequest): Promise<void> {
+  async startRecorder(input: StartConfigurationRecorderCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.startConfigurationRecorder(input).promise());
   }
 
@@ -75,7 +82,7 @@ export class ConfigService {
    *
    * @param PutConfigurationAggregatorRequest
    */
-  async createAggregator(input: PutConfigurationAggregatorRequest): Promise<void> {
+  async createAggregator(input: PutConfigurationAggregatorCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.putConfigurationAggregator(input).promise());
   }
 
@@ -85,7 +92,7 @@ export class ConfigService {
    *
    * @param DeleteConfigurationAggregatorRequest
    */
-  async deleteAggregator(input: DeleteConfigurationAggregatorRequest): Promise<void> {
+  async deleteAggregator(input: DeleteConfigurationAggregatorCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.deleteConfigurationAggregator(input).promise());
   }
 
@@ -96,8 +103,8 @@ export class ConfigService {
    * @param DescribeConfigurationAggregatorsRequest
    */
   async describeConfigurationAggregators(
-    input: DescribeConfigurationAggregatorsRequest,
-  ): Promise<DescribeConfigurationAggregatorsResponse> {
+    input: DescribeConfigurationAggregatorsCommandInput,
+  ): Promise<DescribeConfigurationAggregatorsCommandOutput> {
     const describeConfigurationAggregators = await throttlingBackOff(() =>
       this.client.describeConfigurationAggregators(input).promise(),
     );
@@ -111,8 +118,8 @@ export class ConfigService {
    * @param DescribeConfigurationRecordersRequest
    */
   async DescribeConfigurationRecorder(
-    input: DescribeConfigurationRecordersRequest,
-  ): Promise<DescribeConfigurationRecordersResponse> {
+    input: DescribeConfigurationRecordersCommandInput,
+  ): Promise<DescribeConfigurationRecordersCommandOutput> {
     const describeRecorder = await throttlingBackOff(() => this.client.describeConfigurationRecorders(input).promise());
     return describeRecorder;
   }
@@ -124,8 +131,8 @@ export class ConfigService {
    * @param DescribeDeliveryChannelStatusRequest
    */
   async DescribeDeliveryChannelStatus(
-    input: DescribeDeliveryChannelStatusRequest,
-  ): Promise<DescribeDeliveryChannelStatusResponse> {
+    input: DescribeDeliveryChannelStatusCommandInput,
+  ): Promise<DescribeDeliveryChannelStatusCommandOutput> {
     const describeChannelStatus = await throttlingBackOff(() =>
       this.client.describeDeliveryChannelStatus(input).promise(),
     );
@@ -139,8 +146,8 @@ export class ConfigService {
    * @param DescribeConfigurationRecorderStatusRequest
    */
   async DescribeConfigurationRecorderStatus(
-    input: DescribeConfigurationRecorderStatusRequest,
-  ): Promise<DescribeConfigurationRecorderStatusResponse> {
+    input: DescribeConfigurationRecorderStatusCommandInput,
+  ): Promise<DescribeConfigurationRecorderStatusCommandOutput> {
     const describeRecorderStatus = await throttlingBackOff(() =>
       this.client.describeConfigurationRecorderStatus(input).promise(),
     );
@@ -150,7 +157,7 @@ export class ConfigService {
   /**
    * Stop Configuration Recorder
    */
-  async stopRecorder(input: StopConfigurationRecorderRequest): Promise<void> {
+  async stopRecorder(input: StopConfigurationRecorderCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.stopConfigurationRecorder(input).promise());
   }
 
@@ -183,7 +190,7 @@ export class ConfigService {
   /**
    * PutEvaluations to configRule
    */
-  async putEvaluations(input: PutEvaluationsRequest): Promise<void> {
+  async putEvaluations(input: PutEvaluationsCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.putEvaluations(input).promise());
   }
 }

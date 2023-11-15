@@ -11,7 +11,9 @@
  *  and limitations under the License.
  */
 
-import { DynamoDB } from 'aws-sdk';
+
+
+import { AttributeValue, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 
 interface ItemInput {
   TableName: string;
@@ -29,7 +31,7 @@ export const getUpdateItemInput = (
   tableName: string,
   itemId: string,
   attributeValue: string,
-): DynamoDB.UpdateItemInput => {
+): UpdateItemCommandInput => {
   return {
     TableName: tableName,
     Key: {
@@ -63,14 +65,14 @@ export const getUpdateValueInput = (attributes: Attribute[]) => {
   if (attributes.length === 0) {
     return;
   }
-  const expAttributeNames: DynamoDB.ExpressionAttributeNameMap = {};
-  const expAttributeValues: DynamoDB.ExpressionAttributeValueMap = {};
+  const expAttributeNames: Record<string, string> = {};
+  const expAttributeValues: Record<string, AttributeValue> = {};
   let updateExpression: string = 'set ';
   for (const att of attributes) {
     if (!att.value) {
       continue;
     }
-    const attributeValue: DynamoDB.AttributeValue = {};
+    const attributeValue: AttributeValue = {};
     expAttributeNames[`#${att.key}`] = att.name;
     if (att.type === 'BOOL') {
       attributeValue.BOOL = att.value as boolean;

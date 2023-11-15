@@ -13,8 +13,33 @@
 
 import omit from 'lodash.omit';
 import aws from 'aws-sdk';
+
+import {
+  Account,
+  CreateAccountStatus,
+  CreatePolicyCommandInput,
+  CreatePolicyCommandOutput,
+  DescribePolicyCommandInput,
+  DescribePolicyCommandOutput,
+  ListPoliciesCommandInput,
+  ListPoliciesForTargetCommandInput,
+  ListTargetsForPolicyCommandInput,
+  MoveAccountCommandInput,
+  OrganizationalUnit,
+  Organizations as org,
+  Parent,
+  Policy,
+  PolicySummary,
+  PolicyTargetSummary,
+  Root,
+  UpdatePolicyCommandInput,
+  UpdatePolicyCommandOutput,
+} from '@aws-sdk/client-organizations';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
-import * as org from 'aws-sdk/clients/organizations';
 import { throttlingBackOff } from './backoff';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
 import { equalIgnoreCase } from './../util/common';
@@ -24,16 +49,19 @@ export interface OrganizationalUnit extends org.OrganizationalUnit {
 }
 
 export class Organizations {
-  private readonly client: aws.Organizations;
+  private readonly client: Organizations;
 
   public constructor(credentials?: aws.Credentials) {
-    this.client = new aws.Organizations({
-      region: 'us-east-1', // us-east-1 is the only endpoint available for AWS Organizations
+    this.client = new org({
+      // us-east-1 is the only endpoint available for AWS Organizations
+      region: 'us-east-1',
+
       credentials,
+      logger: console,
     });
   }
 
-  async getOrganizationalUnit(organizationalUnitId: string): Promise<org.OrganizationalUnit | undefined> {
+  async getOrganizationalUnit(organizationalUnitId: string): Promise<OrganizationalUnit | undefined> {
     const response = await throttlingBackOff(() =>
       this.client
         .describeOrganizationalUnit({
@@ -44,12 +72,12 @@ export class Organizations {
     return response.OrganizationalUnit;
   }
 
-  async describeOrganization(): Promise<org.OrganizationalUnit | undefined> {
+  async describeOrganization(): Promise<OrganizationalUnit | undefined> {
     const response = await throttlingBackOff(() => this.client.describeOrganization().promise());
     return response.Organization;
   }
 
-  async createOrganizationalUnit(name: string, parentId: string): Promise<org.OrganizationalUnit | undefined> {
+  async createOrganizationalUnit(name: string, parentId: string): Promise<OrganizationalUnit | undefined> {
     const organizationalUnit = await throttlingBackOff(() =>
       this.client
         .createOrganizationalUnit({
@@ -61,7 +89,7 @@ export class Organizations {
     return organizationalUnit.OrganizationalUnit;
   }
 
-  async getPolicyByName(input: org.ListPoliciesRequest & { Name: string }): Promise<org.Policy | undefined> {
+  async getPolicyByName(input: ListPoliciesCommandInput & { Name: string }): Promise<Policy | undefined> {
     const summaries = listWithNextTokenGenerator<org.ListPoliciesRequest, org.ListPoliciesResponse, org.PolicySummary>(
       this.client.listPolicies.bind(this.client),
       r => r.Policies!,
@@ -76,7 +104,7 @@ export class Organizations {
     return undefined;
   }
 
-  async listRoots(): Promise<org.Root[]> {
+  async listRoots(): Promise<Root[]> {
     return listWithNextToken<org.ListRootsRequest, org.ListRootsResponse, org.Root>(
       this.client.listRoots.bind(this.client),
       r => r.Roots!,
@@ -84,7 +112,7 @@ export class Organizations {
     );
   }
 
-  async listAccounts(): Promise<org.Account[]> {
+  async listAccounts(): Promise<Account[]> {
     return listWithNextToken<org.ListAccountsRequest, org.ListAccountsResponse, org.Account>(
       this.client.listAccounts.bind(this.client),
       r => r.Accounts!,
@@ -92,7 +120,7 @@ export class Organizations {
     );
   }
 
-  async listAccountsForParent(parentId: string): Promise<org.Account[]> {
+  async listAccountsForParent(parentId: string): Promise<Account[]> {
     return listWithNextToken<org.ListAccountsForParentRequest, org.ListAccountsForParentResponse, org.Account>(
       this.client.listAccountsForParent.bind(this.client),
       r => r.Accounts!,
@@ -102,7 +130,7 @@ export class Organizations {
     );
   }
 
-  async listParents(accountId: string): Promise<org.Parent[]> {
+  async listParents(accountId: string): Promise<Parent[]> {
     return listWithNextToken<org.ListParentsRequest, org.ListParentsResponse, org.Parent>(
       this.client.listParents.bind(this.client),
       r => r.Parents!,
@@ -112,8 +140,8 @@ export class Organizations {
     );
   }
 
-  async listOrganizationalUnits(): Promise<org.OrganizationalUnit[]> {
-    const result: org.OrganizationalUnit[] = [];
+  async listOrganizationalUnits(): Promise<OrganizationalUnit[]> {
+    const result: OrganizationalUnit[] = [];
 
     const roots = await this.listRoots();
     // Build a queue of parent IDs we need to fetch the children for
@@ -133,7 +161,7 @@ export class Organizations {
     return result;
   }
 
-  async listOrganizationalUnitsForParent(parentId: string): Promise<org.OrganizationalUnit[]> {
+  async listOrganizationalUnitsForParent(parentId: string): Promise<OrganizationalUnit[]> {
     return listWithNextToken<
       org.ListOrganizationalUnitsForParentRequest,
       org.ListOrganizationalUnitsForParentResponse,
@@ -143,7 +171,7 @@ export class Organizations {
     });
   }
 
-  async listPolicies(input: org.ListPoliciesRequest): Promise<org.PolicySummary[]> {
+  async listPolicies(input: ListPoliciesCommandInput): Promise<PolicySummary[]> {
     return listWithNextToken<org.ListPoliciesRequest, org.ListPoliciesResponse, org.PolicySummary>(
       this.client.listPolicies.bind(this.client),
       r => r.Policies!,
@@ -155,7 +183,7 @@ export class Organizations {
    * to list policies for a target
    * @param input
    */
-  async listPoliciesForTarget(input: org.ListPoliciesForTargetRequest): Promise<org.PolicySummary[]> {
+  async listPoliciesForTarget(input: ListPoliciesForTargetCommandInput): Promise<PolicySummary[]> {
     return listWithNextToken<org.ListPoliciesForTargetRequest, org.ListPoliciesForTargetResponse, org.PolicySummary>(
       this.client.listPoliciesForTarget.bind(this.client),
       r => r.Policies!,
@@ -167,7 +195,7 @@ export class Organizations {
    * to list targets for a policy
    * @param input
    */
-  async listTargetsForPolicy(input: org.ListTargetsForPolicyRequest): Promise<org.PolicyTargetSummary[]> {
+  async listTargetsForPolicy(input: ListTargetsForPolicyCommandInput): Promise<PolicyTargetSummary[]> {
     return listWithNextToken<
       org.ListTargetsForPolicyRequest,
       org.ListTargetsForPolicyResponse,
@@ -179,8 +207,8 @@ export class Organizations {
    * to get information about a policy
    * @param policyId
    */
-  async describePolicy(policyId: string): Promise<org.DescribePolicyResponse> {
-    const params: org.DescribePolicyRequest = {
+  async describePolicy(policyId: string): Promise<DescribePolicyCommandOutput> {
+    const params: DescribePolicyCommandInput = {
       PolicyId: policyId,
     };
     return throttlingBackOff(() => this.client.describePolicy(params).promise());
@@ -198,8 +226,8 @@ export class Organizations {
     name: string;
     description: string;
     content: string;
-  }): Promise<org.CreatePolicyResponse> {
-    const params: org.CreatePolicyRequest = {
+  }): Promise<CreatePolicyCommandOutput> {
+    const params: CreatePolicyCommandInput = {
       Content: props.content,
       Description: props.description,
       Name: props.name,
@@ -220,8 +248,8 @@ export class Organizations {
     name?: string;
     description?: string;
     content?: string;
-  }): Promise<org.UpdatePolicyResponse> {
-    const params: org.UpdatePolicyRequest = {
+  }): Promise<UpdatePolicyCommandOutput> {
+    const params: UpdatePolicyCommandInput = {
       PolicyId: props.policyId,
       Content: props.content,
       Description: props.description,
@@ -309,7 +337,7 @@ export class Organizations {
     email: string,
     accountName: string,
     roleName: string,
-  ): Promise<org.CreateAccountStatus | undefined> {
+  ): Promise<CreateAccountStatus | undefined> {
     const accountStatus = await throttlingBackOff(() =>
       this.client
         .createAccount({
@@ -326,7 +354,7 @@ export class Organizations {
    * to get create account status
    * @param requestId
    */
-  async createAccountStatus(requestId: string): Promise<org.CreateAccountStatus | undefined> {
+  async createAccountStatus(requestId: string): Promise<CreateAccountStatus | undefined> {
     const accountStatus = await throttlingBackOff(() =>
       this.client
         .describeCreateAccountStatus({
@@ -343,7 +371,7 @@ export class Organizations {
    * @param parentOuId
    * @param destinationOuId
    */
-  async moveAccount(params: org.MoveAccountRequest): Promise<void> {
+  async moveAccount(params: MoveAccountCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.moveAccount(params).promise());
   }
 
@@ -351,7 +379,7 @@ export class Organizations {
    * to get account
    * @param accountId
    */
-  async getAccount(accountId: string): Promise<org.Account | undefined> {
+  async getAccount(accountId: string): Promise<Account | undefined> {
     const response = await throttlingBackOff(() =>
       this.client
         .describeAccount({
@@ -362,7 +390,7 @@ export class Organizations {
     return response.Account;
   }
 
-  async getAccountByEmail(email: string): Promise<org.Account | undefined> {
+  async getAccountByEmail(email: string): Promise<Account | undefined> {
     const accounts = await this.listAccounts();
 
     return accounts.find(a => equalIgnoreCase(a.Email!, email));
@@ -386,11 +414,11 @@ export class Organizations {
 
   async getOrganizationParents(
     organizationUnitId: string,
-    parents: org.OrganizationalUnit[],
-  ): Promise<org.OrganizationalUnit[]> {
+    parents: OrganizationalUnit[],
+  ): Promise<OrganizationalUnit[]> {
     const localParents = await this.listParents(organizationUnitId);
     if (localParents.length > 0 && localParents[0].Type !== 'ROOT') {
-      const organizationUnits: org.OrganizationalUnit[] = [];
+      const organizationUnits: OrganizationalUnit[] = [];
       for (const ou of localParents) {
         const organizationalUnit = await this.getOrganizationalUnit(ou.Id!);
         organizationUnits.push(organizationalUnit!);

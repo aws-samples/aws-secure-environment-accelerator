@@ -12,12 +12,16 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { CloudWatchLogs } from '@aws-sdk/client-cloudwatch-logs';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-export type Tags = AWS.CloudWatchLogs.Tags;
+export type Tags = Record<string, string>;
 
 export interface HandlerProperties {
   logGroupName: string;
@@ -28,7 +32,9 @@ export interface HandlerProperties {
 
 export const handler = errorHandler(onEvent);
 
-const logs = new AWS.CloudWatchLogs();
+const logs = new CloudWatchLogs({
+  logger: console,
+});
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Creating log group...`);
@@ -53,8 +59,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       logs
         .describeLogGroups({
           logGroupNamePrefix: logGroupName,
-        })
-        .promise(),
+        }),
     );
     const existingLogGroup = existingLogGroups.logGroups?.find(lg => lg.logGroupName === logGroupName);
     if (existingLogGroup) {
@@ -66,8 +71,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
             .associateKmsKey({
               kmsKeyId,
               logGroupName,
-            })
-            .promise(),
+            }),
         );
       }
     } else {
@@ -77,8 +81,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
             logGroupName,
             tags,
             kmsKeyId,
-          })
-          .promise(),
+          }),
       );
     }
   } catch (e) {
@@ -90,8 +93,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         logs
           .deleteRetentionPolicy({
             logGroupName,
-          })
-          .promise(),
+          }),
       );
     } else {
       await throttlingBackOff(() =>
@@ -99,8 +101,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
           .putRetentionPolicy({
             logGroupName,
             retentionInDays: retention,
-          })
-          .promise(),
+          }),
       );
     }
   } catch (e) {
@@ -132,7 +133,6 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     logs
       .deleteLogGroup({
         logGroupName,
-      })
-      .promise(),
+      }),
   );
 }

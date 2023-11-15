@@ -11,7 +11,9 @@
  *  and limitations under the License.
  */
 
-import * as aws from 'aws-sdk';
+
+
+import { KMS } from '@aws-sdk/client-kms';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { loadAccounts } from './utils/load-accounts';
@@ -23,7 +25,7 @@ interface AddRoleToKmsKeyInput {
 }
 
 const dynamodb = new DynamoDB();
-const kms = new aws.KMS();
+const kms = new KMS();
 
 export const handler = async (input: AddRoleToKmsKeyInput) => {
   console.log(`Adding roles to KMS key policy...`);
@@ -37,8 +39,7 @@ export const handler = async (input: AddRoleToKmsKeyInput) => {
     .getKeyPolicy({
       KeyId: kmsKeyId,
       PolicyName: 'default',
-    })
-    .promise();
+    });
 
   const policy = getKeyPolicy?.Policy;
   if (!policy) {
@@ -86,8 +87,7 @@ export const handler = async (input: AddRoleToKmsKeyInput) => {
       KeyId: kmsKeyId,
       PolicyName: 'default',
       Policy: JSON.stringify(content),
-    })
-    .promise();
+    });
 
   return {
     status: 'SUCCESS',

@@ -12,11 +12,17 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { DescribeImagesCommandInput, EC2 } from '@aws-sdk/client-ec2';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-const ec2 = new AWS.EC2();
+const ec2 = new EC2({
+  logger: console,
+});
 
 export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
   console.log(`Finding tunnel options...`);
@@ -37,15 +43,12 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   // Find images that match the given owner, name and version
   const describeImages = await throttlingBackOff(() =>
     ec2
-      .describeImages(
-        buildRequest({
-          owner: event.ResourceProperties.ImageOwner,
-          name: event.ResourceProperties.ImageName,
-          version: event.ResourceProperties.ImageVersion,
-          productCode: event.ResourceProperties.ImageProductCode,
-        }),
-      )
-      .promise(),
+      .describeImages(buildRequest({
+      owner: event.ResourceProperties.ImageOwner,
+      name: event.ResourceProperties.ImageName,
+      version: event.ResourceProperties.ImageVersion,
+      productCode: event.ResourceProperties.ImageProductCode,
+    })),
   );
 
   const images = describeImages.Images;
@@ -77,7 +80,7 @@ function buildRequest(props: {
   name?: string;
   version?: string;
   productCode: string;
-}): AWS.EC2.DescribeImagesRequest {
+}): DescribeImagesCommandInput {
   const { owner, name, version, productCode } = props;
 
   const owners = [];

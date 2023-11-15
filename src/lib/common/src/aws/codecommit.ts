@@ -12,27 +12,34 @@
  */
 
 import aws from 'aws-sdk';
-aws.config.logger = console;
+
 import {
-  GetFileOutput,
-  PutFileOutput,
-  PutFileInput,
-  GetBranchOutput,
-  CreateRepositoryOutput,
-  BatchGetRepositoriesOutput,
-  CreateCommitInput,
-  DeleteFileInput,
-  DeleteFileOutput,
-} from 'aws-sdk/clients/codecommit';
+  BatchGetRepositoriesCommandOutput,
+  CodeCommit,
+  CreateCommitCommandInput,
+  CreateRepositoryCommandOutput,
+  DeleteFileCommandInput,
+  DeleteFileCommandOutput,
+  GetBranchCommandOutput,
+  GetFileCommandOutput,
+  PutFileCommandInput,
+  PutFileCommandOutput,
+} from '@aws-sdk/client-codecommit';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
+aws.config.logger = console;
 import { throttlingBackOff } from './backoff';
 
 export class CodeCommit {
-  private readonly client: aws.CodeCommit;
+  private readonly client: CodeCommit;
 
   public constructor(credentials?: aws.Credentials, region?: string) {
-    this.client = new aws.CodeCommit({
+    this.client = new CodeCommit({
       credentials,
       region,
+      logger: console,
     });
   }
 
@@ -41,7 +48,7 @@ export class CodeCommit {
    * @param repositoryName
    * @param filePath
    */
-  async getFile(repositoryName: string, filePath: string, commitId?: string): Promise<GetFileOutput> {
+  async getFile(repositoryName: string, filePath: string, commitId?: string): Promise<GetFileCommandOutput> {
     return throttlingBackOff(() =>
       this.client
         .getFile({
@@ -57,7 +64,7 @@ export class CodeCommit {
    * Put File from Code Commit
    * @param putFileInput
    */
-  async putFile(putFileInput: PutFileInput): Promise<PutFileOutput> {
+  async putFile(putFileInput: PutFileCommandInput): Promise<PutFileCommandOutput> {
     return throttlingBackOff(() => this.client.putFile(putFileInput).promise());
   }
 
@@ -65,7 +72,7 @@ export class CodeCommit {
    * Get Repository from Code Commit
    * @param repositoryName
    */
-  async batchGetRepositories(repositoryNames: string[]): Promise<BatchGetRepositoriesOutput> {
+  async batchGetRepositories(repositoryNames: string[]): Promise<BatchGetRepositoriesCommandOutput> {
     return throttlingBackOff(() =>
       this.client
         .batchGetRepositories({
@@ -80,7 +87,7 @@ export class CodeCommit {
    * @param repositoryName
    * @param branchName
    */
-  async getBranch(repositoryName: string, branchName: string): Promise<GetBranchOutput> {
+  async getBranch(repositoryName: string, branchName: string): Promise<GetBranchCommandOutput> {
     return throttlingBackOff(() =>
       this.client
         .getBranch({
@@ -95,7 +102,7 @@ export class CodeCommit {
    * Create Repository in Code Commit
    * @param repositoryName
    */
-  async createRepository(repositoryName: string, repositoryDescription: string): Promise<CreateRepositoryOutput> {
+  async createRepository(repositoryName: string, repositoryDescription: string): Promise<CreateRepositoryCommandOutput> {
     return throttlingBackOff(() =>
       this.client
         .createRepository({
@@ -110,7 +117,7 @@ export class CodeCommit {
    * Create Commit in Code Commit Repository
    * @param input: CreateCommitInput
    */
-  async commit(input: CreateCommitInput): Promise<string> {
+  async commit(input: CreateCommitCommandInput): Promise<string> {
     const response = await throttlingBackOff(() => this.client.createCommit(input).promise());
     return response.commitId!;
   }
@@ -119,7 +126,7 @@ export class CodeCommit {
    * Put File from Code Commit
    * @param putFileInput
    */
-  async deleteFile(input: DeleteFileInput): Promise<DeleteFileOutput> {
+  async deleteFile(input: DeleteFileCommandInput): Promise<DeleteFileCommandOutput> {
     return throttlingBackOff(() => this.client.deleteFile(input).promise());
   }
 

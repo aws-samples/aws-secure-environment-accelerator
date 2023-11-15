@@ -11,7 +11,9 @@
  *  and limitations under the License.
  */
 
-import * as aws from 'aws-sdk';
+
+
+import { CloudTrail, PutEventSelectorsCommandInput, UpdateTrailCommandInput } from '@aws-sdk/client-cloudtrail';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
@@ -21,7 +23,6 @@ import {
   OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
 } from '@aws-accelerator/common-outputs/src/stack-output';
 import { CloudTrail } from '@aws-accelerator/common/src/aws/cloud-trail';
-import { PutEventSelectorsRequest, UpdateTrailRequest } from 'aws-sdk/clients/cloudtrail';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { loadOutputs } from './utils/load-outputs';
@@ -97,7 +98,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       cloudTrailDetails = trailList;
     }
 
-    const putEventSelectorsRequest: PutEventSelectorsRequest = {
+    const putEventSelectorsRequest: PutEventSelectorsCommandInput = {
       EventSelectors: [
         {
           DataResources: [
@@ -117,7 +118,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     console.log('putEventSelectorsResponse: ', putEventSelectorsResponse);
     console.log(`Cloud Trail - S3 Object Level Logging enabled for AWS LZ CloudTrail in account - ${accountKey}`);
 
-    const updateTrailRequest: UpdateTrailRequest = {
+    const updateTrailRequest: UpdateTrailCommandInput = {
       Name: cloudTrailName,
       CloudWatchLogsLogGroupArn: cloudTrailDetails?.CloudWatchLogsLogGroupArn,
       CloudWatchLogsRoleArn: cloudTrailDetails?.CloudWatchLogsRoleArn,

@@ -12,7 +12,7 @@
  */
 
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
-import { CreateAccountStatus } from 'aws-sdk/clients/organizations';
+import { CreateAccountStatus, Organizations } from '@aws-sdk/client-organizations';
 
 interface VerifyAccountOrganizationInput {
   requestId: string;

@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { SecurityHub, StandardsSubscriptionRequest } from '@aws-sdk/client-securityhub';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceDeleteEvent,
@@ -20,9 +24,10 @@ import {
 } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
-import { StandardsSubscriptionRequests } from 'aws-sdk/clients/securityhub';
 
-const hub = new AWS.SecurityHub();
+const hub = new SecurityHub({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -48,7 +53,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   try {
-    await throttlingBackOff(() => hub.enableSecurityHub().promise());
+    await throttlingBackOff(() => hub.enableSecurityHub());
   } catch (error: any) {
     if (error.code === 'ResourceConflictException') {
       console.log('Account is already subscribed to Security Hub');
@@ -58,9 +63,9 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   }
 
   const standards = event.ResourceProperties.standards as SecurityHubStandard[];
-  const standardsResponse = await throttlingBackOff(() => hub.describeStandards().promise());
+  const standardsResponse = await throttlingBackOff(() => hub.describeStandards());
 
-  const standardRequests: StandardsSubscriptionRequests = [];
+  const standardRequests: Array<StandardsSubscriptionRequest> = [];
   for (const standard of standards) {
     standardRequests.push({
       StandardsArn: standardsResponse.Standards?.find(x => x.Name === standard.name)?.StandardsArn!,
@@ -71,8 +76,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     hub
       .batchEnableStandards({
         StandardsSubscriptionRequests: standardRequests,
-      })
-      .promise(),
+      }),
   );
 
   return {
@@ -82,7 +86,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
 
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   try {
-    await throttlingBackOff(() => hub.enableSecurityHub().promise());
+    await throttlingBackOff(() => hub.enableSecurityHub());
   } catch (error: any) {
     if (error.code === 'ResourceConflictException') {
       console.log('Account is already subscribed to Security Hub');
@@ -92,13 +96,13 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   }
 
   const standardNames = (event.ResourceProperties.standards as SecurityHubStandard[]).map(st => st.name);
-  const standardsResponse = await throttlingBackOff(() => hub.describeStandards().promise());
+  const standardsResponse = await throttlingBackOff(() => hub.describeStandards());
 
   const oldStandardNames = (event.OldResourceProperties.standards as SecurityHubStandard[]).map(st => st.name);
 
   const removedStandards = oldStandardNames.filter(st => !standardNames.includes(st));
 
-  const standardRequests: StandardsSubscriptionRequests = [];
+  const standardRequests: Array<StandardsSubscriptionRequest> = [];
   for (const standard of standardNames) {
     standardRequests.push({
       StandardsArn: standardsResponse.Standards?.find(x => x.Name === standard)?.StandardsArn!,
@@ -109,13 +113,12 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
     hub
       .batchEnableStandards({
         StandardsSubscriptionRequests: standardRequests,
-      })
-      .promise(),
+      }),
   );
 
   // Disable standards based on change
   if (removedStandards.length > 0) {
-    const getEnabledStandards = await throttlingBackOff(() => hub.getEnabledStandards().promise());
+    const getEnabledStandards = await throttlingBackOff(() => hub.getEnabledStandards());
     const enabledStandardArns = standardsResponse.Standards?.filter(st => removedStandards.includes(st.Name!)).map(
       x => x.StandardsArn,
     );
@@ -126,8 +129,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
       hub
         .batchDisableStandards({
           StandardsSubscriptionArns: enabledStandardSubscriptionsArns!,
-        })
-        .promise(),
+        }),
     );
   }
 
@@ -142,10 +144,10 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   }
   const standardNames = (event.ResourceProperties.standards as SecurityHubStandard[]).map(st => st.name);
 
-  const allStandardsResponse = await throttlingBackOff(() => hub.describeStandards().promise());
+  const allStandardsResponse = await throttlingBackOff(() => hub.describeStandards());
   // Disable standards based on change
   if (standardNames.length > 0) {
-    const getEnabledStandards = await throttlingBackOff(() => hub.getEnabledStandards().promise());
+    const getEnabledStandards = await throttlingBackOff(() => hub.getEnabledStandards());
     const enabledStandardArns = allStandardsResponse.Standards?.filter(st => standardNames.includes(st.Name!)).map(
       x => x.StandardsArn,
     );
@@ -157,8 +159,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       hub
         .batchDisableStandards({
           StandardsSubscriptionArns: enabledStandardSubscriptionsArns!,
-        })
-        .promise(),
+        }),
     );
   }
 }

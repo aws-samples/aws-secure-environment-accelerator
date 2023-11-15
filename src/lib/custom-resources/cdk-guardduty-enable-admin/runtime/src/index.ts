@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { GuardDuty } from '@aws-sdk/client-guardduty';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -20,7 +24,9 @@ import {
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 
-const guardduty = new AWS.GuardDuty();
+const guardduty = new GuardDuty({
+  logger: console,
+});
 
 export interface HandlerProperties {
   accountId: string;
@@ -66,7 +72,7 @@ async function onCreateOrUpdate(
 }
 async function isGuardDutyAdminEnabled(accountId: string) {
   console.log(`Checking if GuardDuty Administration is enabled for account ${accountId}`);
-  const adminList = await guardduty.listOrganizationAdminAccounts().promise();
+  const adminList = await guardduty.listOrganizationAdminAccounts();
   console.log(adminList);
   const isAccountAdded = adminList.AdminAccounts?.filter(account => {
     return account.AdminAccountId === accountId;
@@ -91,7 +97,7 @@ async function enableOrgAdmin(accountId: string) {
 
   try {
     console.log(`Enabling GuardDuty Admin for account ${accountId}`);
-    const enableAdmin = await guardduty.enableOrganizationAdminAccount(params).promise();
+    const enableAdmin = await guardduty.enableOrganizationAdminAccount(params);
     console.log(enableAdmin);
     return enableAdmin;
   } catch (e) {

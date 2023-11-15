@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { Route53Resolver } from '@aws-sdk/client-route53resolver';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -27,7 +31,9 @@ export interface HandlerProperties {
   resolverRuleIds: string[];
 }
 
-const route53Resolver = new AWS.Route53Resolver();
+const route53Resolver = new Route53Resolver({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -56,8 +62,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
           .associateResolverRule({
             ResolverRuleId: ruleId,
             VPCId: vpcId,
-          })
-          .promise(),
+          }),
       );
     } catch (error: any) {
       if (error.code === 'ResourceExistsException') {
@@ -88,8 +93,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
           .associateResolverRule({
             ResolverRuleId: ruleId,
             VPCId: vpcId,
-          })
-          .promise(),
+          }),
       );
     } catch (error: any) {
       if (error.code === 'ResourceExistsException') {
@@ -109,8 +113,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
           .disassociateResolverRule({
             ResolverRuleId: ruleId,
             VPCId: vpcId,
-          })
-          .promise(),
+          }),
       );
     } catch (error: any) {
       if (error.code === 'ResourceNotFoundException') {
@@ -143,8 +146,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
           .disassociateResolverRule({
             ResolverRuleId: ruleId,
             VPCId: vpcId,
-          })
-          .promise(),
+          }),
       );
     } catch (error: any) {
       if (error.code === 'ResourceNotFoundException') {

@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { GuardDuty } from '@aws-sdk/client-guardduty';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -22,7 +26,9 @@ import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-respo
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const physicalResourceId = 'GaurdGetDetoctorId';
-const guardduty = new AWS.GuardDuty();
+const guardduty = new GuardDuty({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -53,7 +59,7 @@ async function onCreateOrUpdate(
 
 async function getDetectorId(): Promise<string | undefined> {
   try {
-    const detectors = await throttlingBackOff(() => guardduty.listDetectors().promise());
+    const detectors = await throttlingBackOff(() => guardduty.listDetectors());
     if (detectors.DetectorIds && detectors.DetectorIds.length > 0) {
       return detectors.DetectorIds[0];
     }

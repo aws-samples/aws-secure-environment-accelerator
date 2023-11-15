@@ -11,7 +11,9 @@
  *  and limitations under the License.
  */
 
-import * as org from 'aws-sdk/clients/organizations';
+
+
+import { Account, OrganizationalUnit } from '@aws-sdk/client-organizations';
 import { Organizations, OrganizationalUnit } from '@aws-accelerator/common/src/aws/organizations';
 import { AcceleratorConfig, AcceleratorUpdateConfig, AccountsConfig } from '@aws-accelerator/common-config/src';
 import { ServiceControlPolicy, FULL_AWS_ACCESS_POLICY_NAME } from '@aws-accelerator/common/src/scp';
@@ -97,8 +99,8 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();
 
-  const awsOuAccountMap: { [ouId: string]: org.Account[] } = {};
-  const awsAccounts: org.Account[] = [];
+  const awsOuAccountMap: { [ouId: string]: Account[] } = {};
+  const awsAccounts: Account[] = [];
   const awsOusWithPath: OrganizationalUnit[] = [];
   for (const awsOu of awsOus) {
     awsOusWithPath.push(await organizations.getOrganizationalUnitWithPath(awsOu.Id!));
@@ -395,7 +397,7 @@ interface UpdateAccountOutput {
 const updateRenamedAccounts = (props: {
   config: AcceleratorUpdateConfig;
   previousAccounts: Account[];
-  awsAccounts: org.Account[];
+  awsAccounts: Account[];
 }): {
   config: AcceleratorConfig;
   updatedAccounts: UpdateAccountsOutput;
@@ -465,7 +467,7 @@ const updateRenamedAccounts = (props: {
 
 const updateSuspendedAccounts = (props: {
   config: AcceleratorUpdateConfig;
-  awsAccounts: org.Account[];
+  awsAccounts: Account[];
   updatedAccounts: UpdateAccountsOutput;
 }): {
   config: AcceleratorConfig;
@@ -525,7 +527,7 @@ const updateSuspendedAccounts = (props: {
   };
 };
 
-const isAccountChanged = (previousAccount: Account, currentAccount: org.Account): boolean => {
+const isAccountChanged = (previousAccount: Account, currentAccount: Account): boolean => {
   let isChanged = false;
   if (previousAccount.name !== currentAccount.Name || !equalIgnoreCase(previousAccount.email, currentAccount.Email!)) {
     // Account did change
@@ -694,7 +696,7 @@ async function createOrganizstionalUnits(
       for (let i = 0; i < ous.length; i++) {
         const currentOuPath = ous.slice(0, i + 1).join('/');
         const existingOu = awsOusWithPath.find(o => o.Path === currentOuPath);
-        let orgUnit: org.OrganizationalUnit | undefined;
+        let orgUnit: OrganizationalUnit | undefined;
         if (!existingOu) {
           // console.log(`Creating OrganizationalUnit "${ous[i]}" under Parent ${currentOuPath} and id ${localParent}`);
           orgUnit = await organizations.createOrganizationalUnit(ous[i], localParent);

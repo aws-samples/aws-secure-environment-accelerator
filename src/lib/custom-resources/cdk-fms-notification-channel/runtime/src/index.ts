@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { FMS } from '@aws-sdk/client-fms';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -28,7 +32,9 @@ export interface HandlerProperties {
 }
 
 const physicalResourceId = `FMS-Notification-Channel`;
-const fms = new AWS.FMS();
+const fms = new FMS({
+  logger: console,
+});
 export const handler = errorHandler(onEvent);
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
@@ -54,8 +60,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
       .putNotificationChannel({
         SnsRoleName: snsRoleArn,
         SnsTopicArn: topicArn,
-      })
-      .promise(),
+      }),
   );
   return {
     physicalResourceId,
@@ -65,14 +70,13 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { snsRoleArn, topicArn } = properties;
-  await throttlingBackOff(() => fms.deleteNotificationChannel().promise());
+  await throttlingBackOff(() => fms.deleteNotificationChannel());
   await throttlingBackOff(() =>
     fms
       .putNotificationChannel({
         SnsRoleName: snsRoleArn,
         SnsTopicArn: topicArn,
-      })
-      .promise(),
+      }),
   );
   return {
     physicalResourceId,
@@ -87,7 +91,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       physicalResourceId,
     };
   }
-  await throttlingBackOff(() => fms.deleteNotificationChannel().promise());
+  await throttlingBackOff(() => fms.deleteNotificationChannel());
   return {
     physicalResourceId,
   };

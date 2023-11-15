@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { EC2 } from '@aws-sdk/client-ec2';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -27,7 +31,9 @@ export interface HandlerProperties {
   endpoints: string[];
 }
 
-const ec2 = new AWS.EC2();
+const ec2 = new EC2({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -54,8 +60,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
       .acceptVpcEndpointConnections({
         ServiceId: serviceId,
         VpcEndpointIds: endpoints,
-      })
-      .promise(),
+      }),
   );
   return {
     physicalResourceId: `Ec2AcceptVpcEndpointConnection-${serviceId}`,
@@ -73,8 +78,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
       .acceptVpcEndpointConnections({
         ServiceId: serviceId,
         VpcEndpointIds: newEndpoints,
-      })
-      .promise(),
+      }),
   );
   return {
     physicalResourceId: `Ec2AcceptVpcEndpointConnection-${serviceId}`,

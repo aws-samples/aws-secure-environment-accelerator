@@ -12,12 +12,18 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { SSM } from '@aws-sdk/client-ssm';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceDeleteEvent, CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-const ssm = new AWS.SSM();
+const ssm = new SSM({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -43,8 +49,7 @@ async function onCreateOrUpdate(_: CloudFormationCustomResourceEvent) {
         .updateServiceSetting({
           SettingId: '/ssm/parameter-store/high-throughput-enabled',
           SettingValue: 'true',
-        })
-        .promise(),
+        }),
     );
   } catch (error) {
     console.warn('Error while setting limit to ssm parameter store');
@@ -63,8 +68,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
           .updateServiceSetting({
             SettingId: '/ssm/parameter-store/high-throughput-enabled',
             SettingValue: 'false',
-          })
-          .promise(),
+          }),
       );
     } catch (error) {
       console.warn('Error while setting limit to ssm parameter store');

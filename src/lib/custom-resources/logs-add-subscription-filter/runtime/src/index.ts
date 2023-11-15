@@ -12,8 +12,11 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { CloudWatchLogs, LogGroup, SubscriptionFilter } from '@aws-sdk/client-cloudwatch-logs';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
-import { LogGroup, SubscriptionFilters } from 'aws-sdk/clients/cloudwatchlogs';
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceCreateEvent,
@@ -32,7 +35,9 @@ export interface HandlerProperties {
 
 export const handler = errorHandler(onEvent);
 
-const logs = new AWS.CloudWatchLogs();
+const logs = new CloudWatchLogs({
+  logger: console,
+});
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Add Subscription to point LogDestination in log-archive account...`);
@@ -153,8 +158,7 @@ async function removeSubscriptionFilter(logGroupName: string, filterName: string
         .deleteSubscriptionFilter({
           logGroupName,
           filterName,
-        })
-        .promise(),
+        }),
     );
   } catch (error: any) {
     if (error.code === 'ResourceNotFoundException') {
@@ -176,8 +180,7 @@ async function addSubscriptionFilter(logGroupName: string, destinationArn: strin
           filterName: `${CloudWatchRulePrefix}${logGroupName}`,
           filterPattern: '',
           roleArn: subscriptionFilterRoleArn,
-        })
-        .promise(),
+        }),
     );
   } catch (error: any) {
     console.error(`Error while adding subscription filter to log group ${logGroupName}: ${error.message}`);
@@ -192,8 +195,7 @@ async function getLogGroups(): Promise<LogGroup[]> {
       logs
         .describeLogGroups({
           nextToken: token,
-        })
-        .promise(),
+        }),
     );
     token = response.nextToken;
     logGroups.push(...response.logGroups!);
@@ -201,15 +203,14 @@ async function getLogGroups(): Promise<LogGroup[]> {
   return logGroups;
 }
 
-async function getSubscriptionFilters(logGroupName: string): Promise<SubscriptionFilters | undefined> {
+async function getSubscriptionFilters(logGroupName: string): Promise<Array<SubscriptionFilter> | undefined> {
   // Get existing subscription filter for logGroup
   try {
     const subscriptionFilters = await throttlingBackOff(() =>
       logs
         .describeSubscriptionFilters({
           logGroupName,
-        })
-        .promise(),
+        }),
     );
     return subscriptionFilters.subscriptionFilters;
   } catch (error: any) {
@@ -224,8 +225,7 @@ async function putLogRetentionPolicy(logGroupName: string, retentionInDays: numb
         .putRetentionPolicy({
           logGroupName,
           retentionInDays,
-        })
-        .promise(),
+        }),
     );
   } catch (error: any) {
     console.error(`Error while updating retention policy on "${logGroupName}": ${error.message}`);

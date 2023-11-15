@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { CloudWatchLogs } from '@aws-sdk/client-cloudwatch-logs';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
@@ -27,7 +31,9 @@ export interface HandlerProperties {
   filterName: string;
 }
 
-const logs = new AWS.CloudWatchLogs();
+const logs = new CloudWatchLogs({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -62,8 +68,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
     logs
       .describeLogGroups({
         logGroupNamePrefix: logGroupName,
-      })
-      .promise(),
+      }),
   );
   if (logGroup.logGroups?.length !== 0) {
     await throttlingBackOff(() =>
@@ -80,8 +85,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
               defaultValue,
             },
           ],
-        })
-        .promise(),
+        }),
     );
   } else {
     throw new Error(`Did not find LogGroup "${logGroupName}"`);
@@ -104,8 +108,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
           .deleteMetricFilter({
             filterName,
             logGroupName,
-          })
-          .promise(),
+          }),
       );
     } catch (error) {
       console.error(`Ignoring error since it is Delete action`);

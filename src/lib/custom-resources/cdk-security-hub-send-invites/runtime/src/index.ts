@@ -12,12 +12,18 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { SecurityHub } from '@aws-sdk/client-securityhub';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-const hub = new AWS.SecurityHub();
+const hub = new SecurityHub({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -51,7 +57,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       AccountDetails: currentPage,
     };
     console.log(`Creating Members (paged) for "${pagedMemberParams}"`);
-    const createResponse = await throttlingBackOff(() => hub.createMembers(pagedMemberParams).promise());
+    const createResponse = await throttlingBackOff(() => hub.createMembers(pagedMemberParams));
     console.log(`Create Sub Accounts Response "${JSON.stringify(createResponse)}""`);
     for (const account of currentPage) {
       accountIds.push(account.AccountId);
@@ -67,7 +73,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       AccountIds: currentPage,
     };
     console.log(`Inviting Members (paged) for "${pagedParams}"`);
-    const inviteResponse = await throttlingBackOff(() => hub.inviteMembers(pagedParams).promise());
+    const inviteResponse = await throttlingBackOff(() => hub.inviteMembers(pagedParams));
     console.log(`Invite Sub Accounts Response "${JSON.stringify(inviteResponse)}"`);
   }
 }

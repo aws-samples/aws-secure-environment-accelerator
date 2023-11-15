@@ -12,10 +12,20 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
+import { DynamoDB } from '@aws-sdk/client-dynamodb';
+
+import {
+  CreateRuleCommandInput,
+  DescribeListenersCommandInput,
+  ElasticLoadBalancingV2,
+  ModifyRuleCommandInput,
+} from '@aws-sdk/client-elastic-load-balancing-v2';
+
 import * as _ from 'lodash';
 
-const elbv2 = new AWS.ELBv2();
-const docClient = new AWS.DynamoDB.DocumentClient();
+const elbv2 = new ElasticLoadBalancingV2();
+const docClient = DynamoDBDocument.from(new DynamoDB());
 const ddbTable = process.env.LOOKUP_TABLE || '';
 
 const sleep = (ms: number) => {
@@ -33,7 +43,7 @@ const createTargetGroup = async (name: string, port: number, vpcId: string, prot
     TargetType: 'ip',
   };
 
-  return elbv2.createTargetGroup(targetGroupParams).promise();
+  return elbv2.createTargetGroup(targetGroupParams);
 };
 
 const enableTargetStickyness = async (targetGroupArn: string) => {
@@ -42,7 +52,7 @@ const enableTargetStickyness = async (targetGroupArn: string) => {
     TargetGroupArn: targetGroupArn,
   };
 
-  return elbv2.modifyTargetGroupAttributes(targetGroupAtrributesParams).promise();
+  return elbv2.modifyTargetGroupAttributes(targetGroupAtrributesParams);
 };
 
 const isValidPriority = async (priority: number, listenerArn: string) => {
@@ -50,7 +60,7 @@ const isValidPriority = async (priority: number, listenerArn: string) => {
     ListenerArn: listenerArn,
   };
 
-  const ruleList = await elbv2.describeRules(ruleParams).promise();
+  const ruleList = await elbv2.describeRules(ruleParams);
   const priorityExists =
     ruleList.Rules?.filter(rule => {
       return rule.Priority === priority.toString();
@@ -60,10 +70,10 @@ const isValidPriority = async (priority: number, listenerArn: string) => {
 
 const listenerExists = async (listenerArn: string): Promise<Boolean> => {
   try {
-    const listenerParams: AWS.ELBv2.DescribeListenersInput = {
+    const listenerParams: DescribeListenersCommandInput = {
       ListenerArns: [listenerArn],
     };
-    await elbv2.describeListeners(listenerParams).promise();
+    await elbv2.describeListeners(listenerParams);
     return Promise.resolve(true);
   } catch (err) {
     console.log(err);
@@ -80,7 +90,7 @@ const createListenerRule = async (
 ) => {
   console.log('trying to create listener rule');
   console.log(hosts, paths, listenerArn, targetGroupArn, priority);
-  const ruleParams: AWS.ELBv2.CreateRuleInput = {
+  const ruleParams: CreateRuleCommandInput = {
     Actions: [
       {
         TargetGroupArn: targetGroupArn,
@@ -108,11 +118,11 @@ const createListenerRule = async (
     ruleParams.Conditions.push(hostConfig);
   }
 
-  return elbv2.createRule(ruleParams).promise();
+  return elbv2.createRule(ruleParams);
 };
 
 const updateListenerRule = async (ruleArn: string, paths: string[], hosts: string[], targetGroupArn: string) => {
-  const ruleParams: AWS.ELBv2.ModifyRuleInput = {
+  const ruleParams: ModifyRuleCommandInput = {
     Actions: [
       {
         TargetGroupArn: targetGroupArn,
@@ -139,7 +149,7 @@ const updateListenerRule = async (ruleArn: string, paths: string[], hosts: strin
     ruleParams?.Conditions?.push(hostConfig);
   }
 
-  return elbv2.modifyRule(ruleParams).promise();
+  return elbv2.modifyRule(ruleParams);
 };
 
 const deleteListenerRule = async (ruleArn: string) => {
@@ -147,7 +157,7 @@ const deleteListenerRule = async (ruleArn: string) => {
     RuleArn: ruleArn,
   };
 
-  return elbv2.deleteRule(ruleParams).promise();
+  return elbv2.deleteRule(ruleParams);
 };
 
 const deleteTargetGroup = async (targetGroupArn: string) => {
@@ -155,7 +165,7 @@ const deleteTargetGroup = async (targetGroupArn: string) => {
     TargetGroupArn: targetGroupArn,
   };
 
-  return elbv2.deleteTargetGroup(targetGroupParams).promise();
+  return elbv2.deleteTargetGroup(targetGroupParams);
 };
 
 const updateRulePriority = async (ruleArn: string, priority: number) => {
@@ -167,7 +177,7 @@ const updateRulePriority = async (ruleArn: string, priority: number) => {
       },
     ],
   };
-  return elbv2.setRulePriorities(rulePriorityParams).promise();
+  return elbv2.setRulePriorities(rulePriorityParams);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -176,7 +186,7 @@ const putRecord = async (table: string, record: any) => {
     TableName: table,
     Item: record,
   };
-  return docClient.put(putParams).promise();
+  return docClient.put(putParams);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

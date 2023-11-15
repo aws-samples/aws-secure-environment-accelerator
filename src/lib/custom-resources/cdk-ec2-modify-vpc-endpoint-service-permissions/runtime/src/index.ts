@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { EC2 } from '@aws-sdk/client-ec2';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -27,7 +31,9 @@ export interface HandlerProperties {
   allowedPrincipals: string[];
 }
 
-const ec2 = new AWS.EC2();
+const ec2 = new EC2({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -54,8 +60,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
       .modifyVpcEndpointServicePermissions({
         ServiceId: serviceId,
         AddAllowedPrincipals: allowedPrincipals,
-      })
-      .promise(),
+      }),
   );
   return {
     physicalResourceId: `ModifyVpcEndpointServicePermissions-${serviceId}`,
@@ -75,8 +80,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
         ServiceId: serviceId,
         AddAllowedPrincipals: newPrincipals,
         RemoveAllowedPrincipals: removePrincipals,
-      })
-      .promise(),
+      }),
   );
   return {
     physicalResourceId: `ModifyVpcEndpointServicePermissions-${serviceId}`,
@@ -94,7 +98,6 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       .modifyVpcEndpointServicePermissions({
         ServiceId: serviceId,
         RemoveAllowedPrincipals: allowedPrincipals,
-      })
-      .promise(),
+      }),
   );
 }

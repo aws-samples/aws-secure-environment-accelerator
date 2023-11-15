@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { S3, waitUntilObjectExists } from '@aws-sdk/client-s3';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
@@ -27,7 +31,9 @@ export interface HandlerProperties {
   parameters: TemplateParameters;
 }
 
-const s3 = new AWS.S3();
+const s3 = new S3({
+  logger: console,
+});
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Creating S3 object from template...`);
@@ -59,8 +65,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         .getObject({
           Bucket: properties.templateBucketName,
           Key: properties.templatePath,
-        })
-        .promise(),
+        }),
     );
     const body = object.Body!;
     bodyString = body.toString();
@@ -83,8 +88,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
           Bucket: outputBucketName,
           Key: outputPath,
           Body: Buffer.from(replaced),
-        })
-        .promise(),
+        }),
     );
   } catch (e) {
     throw new Error(`Unable to put S3 object s3://${outputBucketName}/${outputPath}: ${e}`);
@@ -95,15 +99,13 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     // default delay is 5 seconds and max retry attempts is 20
     console.debug(`Waiting for ${outputBucketName}/${outputPath}`);
     await throttlingBackOff(() =>
-      s3
-        .waitFor('objectExists', {
-          Bucket: outputBucketName,
-          Key: outputPath,
-          $waiter: {
-            maxAttempts: 1,
-          },
-        })
-        .promise(),
+      waitUntilObjectExists({
+        client: s3,
+        maxWaitTime: 20,
+      }, {
+        Bucket: outputBucketName,
+        Key: outputPath,
+      }),
     );
   } catch (error) {
     throw new Error(`Unable to find S3 object s3://${outputBucketName}/${outputPath}: ${error}`);

@@ -12,30 +12,36 @@
  */
 
 import aws from 'aws-sdk';
-aws.config.logger = console;
+
 import {
-  EnableEbsEncryptionByDefaultRequest,
-  EnableEbsEncryptionByDefaultResult,
-  ModifyEbsDefaultKmsKeyIdRequest,
-  ModifyEbsDefaultKmsKeyIdResult,
-  InternetGatewayList,
-  VpcList,
-  DescribeSubnetsRequest,
-  SubnetList,
-  DescribeSubnetsResult,
+  DescribeSubnetsCommandInput,
+  DescribeSubnetsCommandOutput,
+  EC2,
+  EnableEbsEncryptionByDefaultCommandInput,
+  EnableEbsEncryptionByDefaultCommandOutput,
+  InternetGateway,
+  ModifyEbsDefaultKmsKeyIdCommandInput,
+  ModifyEbsDefaultKmsKeyIdCommandOutput,
   Subnet,
-} from 'aws-sdk/clients/ec2';
+  Vpc,
+} from '@aws-sdk/client-ec2';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
+aws.config.logger = console;
 import { throttlingBackOff } from './backoff';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
 import { collectAsync } from '../util/generator';
 
 export class EC2 {
-  private readonly client: aws.EC2;
+  private readonly client: EC2;
 
   public constructor(credentials?: aws.Credentials, region?: string) {
-    this.client = new aws.EC2({
+    this.client = new EC2({
       region,
       credentials,
+      logger: console,
     });
   }
 
@@ -43,8 +49,8 @@ export class EC2 {
    * to enable EBS encryption by default
    * @param dryRun
    */
-  async enableEbsEncryptionByDefault(dryRun: boolean): Promise<EnableEbsEncryptionByDefaultResult> {
-    const params: EnableEbsEncryptionByDefaultRequest = {
+  async enableEbsEncryptionByDefault(dryRun: boolean): Promise<EnableEbsEncryptionByDefaultCommandOutput> {
+    const params: EnableEbsEncryptionByDefaultCommandInput = {
       DryRun: dryRun,
     };
     return throttlingBackOff(() => this.client.enableEbsEncryptionByDefault(params).promise());
@@ -55,8 +61,8 @@ export class EC2 {
    * @param kmsKeyId
    * @param dryRun
    */
-  async modifyEbsDefaultKmsKeyId(kmsKeyId: string, dryRun: boolean): Promise<ModifyEbsDefaultKmsKeyIdResult> {
-    const params: ModifyEbsDefaultKmsKeyIdRequest = {
+  async modifyEbsDefaultKmsKeyId(kmsKeyId: string, dryRun: boolean): Promise<ModifyEbsDefaultKmsKeyIdCommandOutput> {
+    const params: ModifyEbsDefaultKmsKeyIdCommandInput = {
       KmsKeyId: kmsKeyId,
       DryRun: dryRun,
     };
@@ -66,7 +72,7 @@ export class EC2 {
   /**
    * to get all VPCs
    */
-  async describeDefaultVpcs(): Promise<VpcList | undefined> {
+  async describeDefaultVpcs(): Promise<Array<Vpc> | undefined> {
     const vpcs = await throttlingBackOff(() =>
       this.client
         .describeVpcs({
@@ -111,7 +117,7 @@ export class EC2 {
   /**
    * to describe Internet Gateways
    */
-  async describeInternetGatewaysByVpc(vpcIds: string[]): Promise<InternetGatewayList | undefined> {
+  async describeInternetGatewaysByVpc(vpcIds: string[]): Promise<Array<InternetGateway> | undefined> {
     const igws = await throttlingBackOff(() =>
       this.client
         .describeInternetGateways({
@@ -157,7 +163,7 @@ export class EC2 {
   /**
    * Wrapper around AWS.EC2.describeSubnets.
    */
-  async listSubnets(input: DescribeSubnetsRequest): Promise<SubnetList> {
+  async listSubnets(input: DescribeSubnetsCommandInput): Promise<Array<Subnet>> {
     return listWithNextToken<DescribeSubnetsRequest, DescribeSubnetsResult, Subnet>(
       this.client.describeSubnets.bind(this.client),
       r => r.Subnets!,

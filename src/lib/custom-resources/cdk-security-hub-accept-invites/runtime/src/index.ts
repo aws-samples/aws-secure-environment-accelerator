@@ -12,12 +12,18 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { Invitation, SecurityHub } from '@aws-sdk/client-securityhub';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-const hub = new AWS.SecurityHub();
+const hub = new SecurityHub({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -40,19 +46,19 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   const masterAccountId = event.ResourceProperties.masterAccountId;
 
   // get the master account associated to the account
-  const masterAccount = await throttlingBackOff(() => hub.getMasterAccount().promise());
+  const masterAccount = await throttlingBackOff(() => hub.getMasterAccount());
   const securityHubMaster = masterAccount.Master;
   // check if master account is a valid association
   if (securityHubMaster && securityHubMaster.AccountId !== masterAccountId) {
     // If not valid, disassociate the master account invitation
-    await throttlingBackOff(() => hub.disassociateFromMasterAccount().promise());
+    await throttlingBackOff(() => hub.disassociateFromMasterAccount());
   }
 
   // Check for pending invitations from Master
   let token: string | undefined;
-  const invitations: AWS.SecurityHub.InvitationList = [];
+  const invitations: Array<Invitation> = [];
   do {
-    const response = await throttlingBackOff(() => hub.listInvitations({ NextToken: token }).promise());
+    const response = await throttlingBackOff(() => hub.listInvitations({ NextToken: token }));
     if (response.Invitations) {
       invitations.push(...response.Invitations);
     }
@@ -71,8 +77,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
           .acceptInvitation({
             InvitationId: invitationId,
             MasterId: masterAccountId,
-          })
-          .promise(),
+          }),
       );
     }
   }

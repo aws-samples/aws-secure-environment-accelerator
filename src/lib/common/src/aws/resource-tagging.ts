@@ -12,25 +12,29 @@
  */
 
 import aws from 'aws-sdk';
+import { CreateTagsCommandInput, DescribeTagsCommandInput, EC2 as ec2 } from '@aws-sdk/client-ec2';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
-import * as ec2 from 'aws-sdk/clients/ec2';
 import { throttlingBackOff } from './backoff';
 
 export class TagResources {
-  private readonly client: aws.EC2;
+  private readonly client: EC2;
 
   public constructor(credentials?: aws.Credentials, region?: string) {
-    this.client = new aws.EC2({
+    this.client = new ec2({
       credentials,
       region,
+      logger: console,
     });
   }
 
-  async createTags(input: ec2.CreateTagsRequest): Promise<void> {
+  async createTags(input: CreateTagsCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.createTags(input).promise());
   }
 
-  async hasTag(input: ec2.DescribeTagsRequest): Promise<boolean> {
+  async hasTag(input: DescribeTagsCommandInput): Promise<boolean> {
     const result = await throttlingBackOff(() => this.client.describeTags(input).promise());
     return result.Tags!.length > 0;
   }

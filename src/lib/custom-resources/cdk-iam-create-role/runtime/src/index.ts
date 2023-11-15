@@ -12,12 +12,18 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { AttachRolePolicyCommandInput, CreateRoleCommandInput, IAM } from '@aws-sdk/client-iam';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceDeleteEvent, CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-const iam = new AWS.IAM();
+const iam = new IAM({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -43,36 +49,31 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       iam
         .getRole({
           RoleName: event.ResourceProperties.roleName,
-        })
-        .promise(),
+        }),
     );
     await throttlingBackOff(() =>
       iam
         .updateAssumeRolePolicy({
           RoleName: event.ResourceProperties.roleName,
           PolicyDocument: buildPolicyDocument(event.ResourceProperties.accountIds, rootOuId),
-        })
-        .promise(),
+        }),
     );
   } catch (error: any) {
     if (error.code === 'NoSuchEntity') {
       console.log(error.message);
       const crossRole = await throttlingBackOff(() =>
         iam
-          .createRole(
-            buildCreateRoleRequest(
-              event.ResourceProperties.roleName,
-              event.ResourceProperties.accountIds,
-              event.ResourceProperties.tagName,
-              event.ResourceProperties.tagValue,
-              rootOuId,
-            ),
-          )
-          .promise(),
+          .createRole(buildCreateRoleRequest(
+          event.ResourceProperties.roleName,
+          event.ResourceProperties.accountIds,
+          event.ResourceProperties.tagName,
+          event.ResourceProperties.tagValue,
+          rootOuId,
+        )),
       );
       for (const managedPolicy of event.ResourceProperties.managedPolicies) {
         await throttlingBackOff(() =>
-          iam.attachRolePolicy(buildAttachPolicyRequest(crossRole.Role.RoleName, managedPolicy)).promise(),
+          iam.attachRolePolicy(buildAttachPolicyRequest(crossRole.Role.RoleName, managedPolicy)),
         );
       }
     }
@@ -97,8 +98,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       iam
         .listAttachedRolePolicies({
           RoleName: event.ResourceProperties.roleName,
-        })
-        .promise(),
+        }),
     );
     for (const policy of policies.AttachedPolicies || []) {
       await throttlingBackOff(() =>
@@ -106,8 +106,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
           .detachRolePolicy({
             PolicyArn: policy.PolicyArn!,
             RoleName: event.ResourceProperties.roleName,
-          })
-          .promise(),
+          }),
       );
     }
 
@@ -115,8 +114,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       iam
         .deleteRole({
           RoleName: event.ResourceProperties.roleName,
-        })
-        .promise(),
+        }),
     );
   } catch (error: any) {
     console.warn('Exception while delete role', event.ResourceProperties.roleName);
@@ -130,7 +128,7 @@ function buildCreateRoleRequest(
   tagName: string,
   tagValue: string,
   rootOuId: string,
-): AWS.IAM.CreateRoleRequest {
+): CreateRoleCommandInput {
   return {
     RoleName: roleName,
     AssumeRolePolicyDocument: buildPolicyDocument(accountIds, rootOuId),
@@ -143,7 +141,7 @@ function buildCreateRoleRequest(
   };
 }
 
-function buildAttachPolicyRequest(roleName: string, managedPolicy: string): AWS.IAM.AttachRolePolicyRequest {
+function buildAttachPolicyRequest(roleName: string, managedPolicy: string): AttachRolePolicyCommandInput {
   return {
     RoleName: roleName,
     PolicyArn: `arn:aws:iam::aws:policy/${managedPolicy}`,

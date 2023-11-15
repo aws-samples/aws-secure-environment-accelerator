@@ -12,22 +12,28 @@
  */
 
 import aws from 'aws-sdk';
-aws.config.logger = console;
+
 import {
-  AssociatePrincipalWithPortfolioOutput,
-  ListPortfoliosOutput,
-  ListPrincipalsForPortfolioOutput,
-  ListProvisioningArtifactsOutput,
+  AssociatePrincipalWithPortfolioCommandOutput,
+  ListPortfoliosCommandOutput,
+  ListPrincipalsForPortfolioCommandOutput,
+  ListProvisioningArtifactsCommandOutput,
   PortfolioDetail,
-  ProvisionProductInput,
-  ProvisionProductOutput,
-  ScanProvisionedProductsOutput,
-  SearchProductsOutput,
-  SearchProvisionedProductsOutput,
-  ProvisionedProductDetail,
   Principal,
   ProvisionedProductAttribute,
-} from 'aws-sdk/clients/servicecatalog';
+  ProvisionedProductDetail,
+  ProvisionProductCommandInput,
+  ProvisionProductCommandOutput,
+  ScanProvisionedProductsCommandOutput,
+  SearchProductsCommandOutput,
+  SearchProvisionedProductsCommandOutput,
+  ServiceCatalog,
+} from '@aws-sdk/client-service-catalog';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
+aws.config.logger = console;
 import { throttlingBackOff } from './backoff';
 
 export interface ProductAVMParam {
@@ -37,11 +43,12 @@ export interface ProductAVMParam {
 }
 
 export class ServiceCatalog {
-  private readonly client: aws.ServiceCatalog;
+  private readonly client: ServiceCatalog;
 
   public constructor(credentials?: aws.Credentials) {
-    this.client = new aws.ServiceCatalog({
+    this.client = new ServiceCatalog({
       credentials,
+      logger: console,
     });
   }
 
@@ -52,7 +59,7 @@ export class ServiceCatalog {
     const portfolios = [];
     let nextToken: string | undefined;
     do {
-      const portfoliosResponse: ListPortfoliosOutput = await throttlingBackOff(() =>
+      const portfoliosResponse: ListPortfoliosCommandOutput = await throttlingBackOff(() =>
         this.client.listPortfolios({ PageToken: nextToken }).promise(),
       );
       if (portfoliosResponse.PortfolioDetails) {
@@ -68,7 +75,7 @@ export class ServiceCatalog {
     const principals = [];
     let nextToken: string | undefined;
     do {
-      const principalsResponse: ListPrincipalsForPortfolioOutput = await throttlingBackOff(() =>
+      const principalsResponse: ListPrincipalsForPortfolioCommandOutput = await throttlingBackOff(() =>
         this.client
           .listPrincipalsForPortfolio({
             PortfolioId: portfolioId,
@@ -99,7 +106,7 @@ export class ServiceCatalog {
   async associateRoleWithPortfolio(
     portfolioId: string,
     prinicipalArn: string,
-  ): Promise<AssociatePrincipalWithPortfolioOutput> {
+  ): Promise<AssociatePrincipalWithPortfolioCommandOutput> {
     return throttlingBackOff(() =>
       this.client
         .associatePrincipalWithPortfolio({
@@ -115,7 +122,7 @@ export class ServiceCatalog {
    * Find service catalog product by name
    * @param productName
    */
-  async findProduct(productName: string): Promise<SearchProductsOutput> {
+  async findProduct(productName: string): Promise<SearchProductsCommandOutput> {
     return throttlingBackOff(() =>
       this.client
         .searchProducts({
@@ -131,7 +138,7 @@ export class ServiceCatalog {
    * Find service catalog provisioningArtifact by productId
    * @param productId
    */
-  async findProvisioningArtifact(productId: string): Promise<ListProvisioningArtifactsOutput> {
+  async findProvisioningArtifact(productId: string): Promise<ListProvisioningArtifactsCommandOutput> {
     return throttlingBackOff(() =>
       this.client
         .listProvisioningArtifacts({
@@ -141,7 +148,7 @@ export class ServiceCatalog {
     );
   }
 
-  async provisionProduct(input: ProvisionProductInput): Promise<ProvisionProductOutput> {
+  async provisionProduct(input: ProvisionProductCommandInput): Promise<ProvisionProductCommandOutput> {
     return throttlingBackOff(() =>
       this.client
         .provisionProduct({
@@ -162,7 +169,7 @@ export class ServiceCatalog {
    * Search provisioned products to check status of newly provisioned product
    * @param accountName
    */
-  async searchProvisionedProducts(accountName: string): Promise<SearchProvisionedProductsOutput> {
+  async searchProvisionedProducts(accountName: string): Promise<SearchProvisionedProductsCommandOutput> {
     return throttlingBackOff(() =>
       this.client
         .searchProvisionedProducts({

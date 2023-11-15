@@ -12,17 +12,24 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { Tag } from '@aws-sdk/client-cloudformation';
+import { GetResourcesCommandOutput, ResourceGroupsTaggingAPI, ResourceTagMapping } from '@aws-sdk/client-resource-groups-tagging-api';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 
 const TAG_STACK_ID = 'accelerator:cloudformation:stack-id';
 const TAG_LOGICAL_ID = 'accelerator:cloudformation:logical-id';
 const TAG_LAST_UPDATE = 'accelerator:cloudformation:last-update';
 
-const tagging = new AWS.ResourceGroupsTaggingAPI();
+const tagging = new ResourceGroupsTaggingAPI({
+  logger: console,
+});
 
 export type WithLogicalResourceId = { StackId: string; LogicalResourceId: string };
 
-export type Tag = AWS.CloudFormation.Tag;
+export type Tag = Tag;
 
 export type Taggable = { Tags: Tag[] };
 
@@ -54,7 +61,7 @@ export function addCustomResourceTags(tags: Partial<Tag>[] | undefined, resource
 
 export async function getLatestTaggedCustomResource(
   resource: WithLogicalResourceId,
-): Promise<AWS.ResourceGroupsTaggingAPI.ResourceTagMapping | undefined> {
+): Promise<ResourceTagMapping | undefined> {
   const resources = await getTaggedCustomResources(resource);
   if (resources.length === 0) {
     return undefined;
@@ -67,11 +74,11 @@ export async function getLatestTaggedCustomResource(
 
 export async function getTaggedCustomResources(
   resource: WithLogicalResourceId,
-): Promise<AWS.ResourceGroupsTaggingAPI.ResourceTagMapping[]> {
+): Promise<ResourceTagMapping[]> {
   const resourceList = [];
   let paginationToken;
   do {
-    const getResources: AWS.ResourceGroupsTaggingAPI.Types.GetResourcesOutput = await tagging
+    const getResources: GetResourcesCommandOutput = await tagging
       .getResources({
         PaginationToken: paginationToken,
         TagFilters: [
@@ -84,8 +91,7 @@ export async function getTaggedCustomResources(
             Values: [resource.LogicalResourceId],
           },
         ],
-      })
-      .promise();
+      });
     paginationToken = getResources.PaginationToken;
     if (getResources.ResourceTagMappingList) {
       resourceList.push(...getResources.ResourceTagMappingList);
@@ -94,7 +100,7 @@ export async function getTaggedCustomResources(
   return resourceList;
 }
 
-export function getResourceLastUpdateTime(mapping: AWS.ResourceGroupsTaggingAPI.ResourceTagMapping): number {
+export function getResourceLastUpdateTime(mapping: ResourceTagMapping): number {
   const tag = mapping.Tags?.find(t => t.Key === TAG_LAST_UPDATE);
   if (tag?.Value) {
     try {

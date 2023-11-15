@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { Macie2 } from '@aws-sdk/client-macie2';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -32,7 +36,9 @@ export enum MacieStatus {
   PAUSED = 'PAUSED',
 }
 
-const macie = new AWS.Macie2();
+const macie = new Macie2({
+  logger: console,
+});
 
 export interface HandlerProperties {
   findingPublishingFrequency: MacieFrequency;
@@ -80,8 +86,7 @@ async function enableMacie(properties: HandlerProperties) {
         .enableMacie({
           findingPublishingFrequency: properties.findingPublishingFrequency,
           status: properties.status,
-        })
-        .promise(),
+        }),
     );
 
     return enableAdmin;

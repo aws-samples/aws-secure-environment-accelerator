@@ -12,22 +12,33 @@
  */
 
 import aws from 'aws-sdk';
+
+import {
+  GetParameterCommandOutput,
+  ParameterHistory,
+  PutParameterCommandOutput,
+  SSM as ssm,
+} from '@aws-sdk/client-ssm';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
-import * as ssm from 'aws-sdk/clients/ssm';
 import { throttlingBackOff } from './backoff';
 
 export class SSM {
-  private readonly client: aws.SSM;
+  private readonly client: SSM;
   private readonly cache: { [roleArn: string]: aws.Credentials } = {};
 
   constructor(credentials?: aws.Credentials, region?: string) {
-    this.client = new aws.SSM({
+    this.client = new ssm({
       credentials,
       region,
+      logger: console,
     });
   }
 
-  async getParameter(name: string): Promise<ssm.GetParameterResult> {
+  async getParameter(name: string): Promise<GetParameterCommandOutput> {
     return throttlingBackOff(() =>
       this.client
         .getParameter({
@@ -37,8 +48,8 @@ export class SSM {
     );
   }
 
-  async getParameterHistory(name: string): Promise<ssm.ParameterHistory[]> {
-    const parameterVersions: ssm.ParameterHistory[] = [];
+  async getParameterHistory(name: string): Promise<ParameterHistory[]> {
+    const parameterVersions: ParameterHistory[] = [];
     let token: string | undefined;
     do {
       const response = await throttlingBackOff(() =>
@@ -50,7 +61,7 @@ export class SSM {
     return parameterVersions;
   }
 
-  async putParameter(name: string, value: string): Promise<ssm.PutParameterResult> {
+  async putParameter(name: string, value: string): Promise<PutParameterCommandOutput> {
     return throttlingBackOff(() =>
       this.client
         .putParameter({

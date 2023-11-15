@@ -12,11 +12,25 @@
  */
 
 import * as AWS from 'aws-sdk';
+
+import {
+  CreateTagsCommandInput,
+  DescribeSecurityGroupsCommandInput,
+  EC2,
+  RevokeSecurityGroupEgressCommandInput,
+  RevokeSecurityGroupIngressCommandInput,
+} from '@aws-sdk/client-ec2';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-const ec2 = new AWS.EC2();
+const ec2 = new EC2({
+  logger: console,
+});
 
 export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
   console.log(`Deleting rules of Default security Group...`);
@@ -37,12 +51,9 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   // Find default security group that match the given vpc id
   const defaultSecurityGroups = await throttlingBackOff(() =>
     ec2
-      .describeSecurityGroups(
-        buildDescribeSecurityGroupsRequest({
-          vpcId: event.ResourceProperties.vpcId,
-        }),
-      )
-      .promise(),
+      .describeSecurityGroups(buildDescribeSecurityGroupsRequest({
+      vpcId: event.ResourceProperties.vpcId,
+    })),
   );
 
   const defaultSecurityGroup = defaultSecurityGroups.SecurityGroups?.[0];
@@ -54,25 +65,22 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   if (groupId) {
     if (securityGroupIngress && securityGroupIngress.length > 0) {
       // Deleting VPC default security group inbound rule
-      await throttlingBackOff(() => ec2.revokeSecurityGroupIngress(buildDeleteIngressRequest({ groupId })).promise());
+      await throttlingBackOff(() => ec2.revokeSecurityGroupIngress(buildDeleteIngressRequest({ groupId })));
     }
 
     if (securityGroupEgress && securityGroupEgress.length > 0) {
       // Deleting VPC default security group outbound rule
-      await throttlingBackOff(() => ec2.revokeSecurityGroupEgress(buildDeleteEgressRequest({ groupId })).promise());
+      await throttlingBackOff(() => ec2.revokeSecurityGroupEgress(buildDeleteEgressRequest({ groupId })));
     }
 
     if (tags && tags.length === 0) {
       // Attaching tags to the VPC default security group
       await throttlingBackOff(() =>
         ec2
-          .createTags(
-            buildCreateTagsRequest({
-              groupId,
-              acceleratorName: event.ResourceProperties.acceleratorName,
-            }),
-          )
-          .promise(),
+          .createTags(buildCreateTagsRequest({
+          groupId,
+          acceleratorName: event.ResourceProperties.acceleratorName,
+        })),
       );
     }
   }
@@ -89,7 +97,7 @@ async function onDelete(_: CloudFormationCustomResourceEvent) {
 /**
  * Auxiliary method to build a DescribeSecurityGroupsRequest from the given parameters.
  */
-function buildDescribeSecurityGroupsRequest(props: { vpcId: string }): AWS.EC2.DescribeSecurityGroupsRequest {
+function buildDescribeSecurityGroupsRequest(props: { vpcId: string }): DescribeSecurityGroupsCommandInput {
   const { vpcId } = props;
 
   return {
@@ -109,7 +117,7 @@ function buildDescribeSecurityGroupsRequest(props: { vpcId: string }): AWS.EC2.D
 /**
  * Auxiliary method to build a RevokeSecurityGroupIngressRequest from the given parameters.
  */
-function buildDeleteIngressRequest(props: { groupId: string }): AWS.EC2.RevokeSecurityGroupIngressRequest {
+function buildDeleteIngressRequest(props: { groupId: string }): RevokeSecurityGroupIngressCommandInput {
   const { groupId } = props;
 
   return {
@@ -132,7 +140,7 @@ function buildDeleteIngressRequest(props: { groupId: string }): AWS.EC2.RevokeSe
 /**
  * Auxiliary method to build a RevokeSecurityGroupEgressRequest from the given parameters.
  */
-function buildDeleteEgressRequest(props: { groupId: string }): AWS.EC2.RevokeSecurityGroupEgressRequest {
+function buildDeleteEgressRequest(props: { groupId: string }): RevokeSecurityGroupEgressCommandInput {
   const { groupId } = props;
   return {
     GroupId: groupId,
@@ -152,7 +160,7 @@ function buildDeleteEgressRequest(props: { groupId: string }): AWS.EC2.RevokeSec
 /**
  * Auxiliary method to build a CreateTagsRequest from the given parameters.
  */
-function buildCreateTagsRequest(props: { groupId: string; acceleratorName: string }): AWS.EC2.CreateTagsRequest {
+function buildCreateTagsRequest(props: { groupId: string; acceleratorName: string }): CreateTagsCommandInput {
   const { groupId, acceleratorName } = props;
   return {
     Resources: [groupId],

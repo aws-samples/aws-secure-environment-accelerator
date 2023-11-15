@@ -13,7 +13,7 @@
 
 import { Organizations, OrganizationalUnit } from '@aws-accelerator/common/src/aws/organizations';
 import { StepFunctions } from '@aws-accelerator/common/src/aws/stepfunctions';
-import * as org from 'aws-sdk/clients/organizations';
+import { Account } from '@aws-sdk/client-organizations';
 import { ScheduledEvent } from 'aws-lambda';
 import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
 import { delay } from '@aws-accelerator/common/src/util/delay';
@@ -28,7 +28,7 @@ import {
 } from '@aws-accelerator/common/src/util/common';
 import { AcceleratorUpdateConfig } from '@aws-accelerator/common-config';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
-import { PutFileEntry } from 'aws-sdk/clients/codecommit';
+import { CodeCommit, PutFileEntry } from '@aws-sdk/client-codecommit';
 import { getInvoker } from './utils';
 
 interface AccountInfo {
@@ -134,7 +134,7 @@ export const handler = async (input: ScheduledEvent) => {
   return 'SUCCESS';
 };
 
-async function updateConfig(props: { account: org.Account; destinationOrg: OrganizationalUnit }) {
+async function updateConfig(props: { account: Account; destinationOrg: OrganizationalUnit }) {
   const { account, destinationOrg } = props;
   let newAccount = true;
   const extension = configRootFilePath?.split('.').slice(-1)[0];

@@ -12,12 +12,18 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { SecurityHub } from '@aws-sdk/client-securityhub';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceUpdateEvent } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 
-const hub = new AWS.SecurityHub();
+const hub = new SecurityHub({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -67,8 +73,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
             StandardsControlArn: standardControl.StandardsControlArn!,
             ControlStatus: 'DISABLED',
             DisabledReason: 'Control disabled by Accelerator',
-          })
-          .promise(),
+          }),
       );
     }
   }
@@ -83,8 +88,8 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   const oldStandards = event.OldResourceProperties.standards as SecurityHubStandard[];
   const standardNames = standards.map(st => st.name);
 
-  const standardsResponse = await throttlingBackOff(() => hub.describeStandards().promise());
-  const enabledStandardsResponse = await throttlingBackOff(() => hub.getEnabledStandards().promise());
+  const standardsResponse = await throttlingBackOff(() => hub.describeStandards());
+  const enabledStandardsResponse = await throttlingBackOff(() => hub.getEnabledStandards());
   // Getting standards and disabling specific Controls for each standard
   for (const standard of standards) {
     const standardArn = standardsResponse.Standards?.find(x => x.Name === standard.name)?.StandardsArn;
@@ -107,8 +112,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
             StandardsControlArn: standardControl.StandardsControlArn!,
             ControlStatus: 'DISABLED',
             DisabledReason: 'Control disabled by Accelerator',
-          })
-          .promise(),
+          }),
       );
     }
     const oldStandard = oldStandards.find(st => st.name === standard.name);
@@ -127,8 +131,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
             .updateStandardsControl({
               StandardsControlArn: standardControl.StandardsControlArn!,
               ControlStatus: 'ENABLED',
-            })
-            .promise(),
+            }),
         );
       }
     }
@@ -142,7 +145,7 @@ async function describeStandards() {
   const standards = [];
   let token: string | undefined;
   do {
-    const response = await throttlingBackOff(() => hub.describeStandards().promise());
+    const response = await throttlingBackOff(() => hub.describeStandards());
     if (response.Standards) {
       standards.push(...response.Standards);
     }
@@ -156,7 +159,7 @@ async function getEnabledStandards() {
   const enabledStandards = [];
   let token: string | undefined;
   do {
-    const response = await throttlingBackOff(() => hub.getEnabledStandards().promise());
+    const response = await throttlingBackOff(() => hub.getEnabledStandards());
     if (response.StandardsSubscriptions) {
       enabledStandards.push(...response.StandardsSubscriptions);
     }
@@ -175,7 +178,7 @@ async function describeStandardsControls(subscriptionArn: string | undefined) {
   }
   do {
     const response = await throttlingBackOff(() =>
-      hub.describeStandardsControls({ StandardsSubscriptionArn: subscriptionArn, NextToken: token }).promise(),
+      hub.describeStandardsControls({ StandardsSubscriptionArn: subscriptionArn, NextToken: token }),
     );
     if (response.Controls) {
       standardControls.push(...response.Controls);

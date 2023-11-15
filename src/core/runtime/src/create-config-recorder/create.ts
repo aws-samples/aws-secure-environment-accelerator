@@ -12,7 +12,7 @@
  */
 
 import { ConfigService } from '@aws-accelerator/common/src/aws/configservice';
-import { ConfigurationRecorder } from 'aws-sdk/clients/configservice';
+import { ConfigService, ConfigurationRecorder } from '@aws-sdk/client-config-service';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';

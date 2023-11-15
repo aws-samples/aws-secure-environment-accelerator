@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { Route53Resolver, TargetAddress } from '@aws-sdk/client-route53resolver';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -25,12 +29,14 @@ import { delay, throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-u
 export interface HandlerProperties {
   vpcId: string;
   domainName: string;
-  targetIps: AWS.Route53Resolver.TargetAddress[];
+  targetIps: TargetAddress[];
   resolverEndpointId: string;
   name: string;
 }
 
-const route53Resolver = new AWS.Route53Resolver();
+const route53Resolver = new Route53Resolver({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -63,8 +69,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
           ResolverEndpointId: resolverEndpointId,
           TargetIps: targetIps,
           Name: name,
-        })
-        .promise(),
+        }),
     );
     resolverRuleId = ruleResponse.ResolverRule?.Id!;
   } catch (error: any) {
@@ -79,8 +84,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
         .associateResolverRule({
           ResolverRuleId: resolverRuleId,
           VPCId: vpcId,
-        })
-        .promise(),
+        }),
     );
   } catch (error: any) {
     console.log(error);
@@ -116,8 +120,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
               Values: [name],
             },
           ],
-        })
-        .promise(),
+        }),
     );
     const updateRule = await throttlingBackOff(() =>
       route53Resolver
@@ -126,8 +129,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
             TargetIps: targetIps,
           },
           ResolverRuleId: ruleResponse.ResolverRules?.[0].Id!,
-        })
-        .promise(),
+        }),
     );
     resolverRuleId = updateRule.ResolverRule?.Id!;
   } catch (error: any) {
@@ -166,8 +168,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
             Values: [name],
           },
         ],
-      })
-      .promise(),
+      }),
   );
   if (!resolverRule.ResolverRules) {
     return;
@@ -184,8 +185,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
         .disassociateResolverRule({
           ResolverRuleId: ruleId,
           VPCId: vpcId!,
-        })
-        .promise(),
+        }),
     );
   }
 
@@ -199,8 +199,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     route53Resolver
       .deleteResolverRule({
         ResolverRuleId: ruleId,
-      })
-      .promise(),
+      }),
   );
 }
 
@@ -215,8 +214,7 @@ async function getVpcIds(resolverRuleId: string) {
             Values: [resolverRuleId],
           },
         ],
-      })
-      .promise(),
+      }),
   );
 
   const vpcIds = associations.ResolverRuleAssociations?.map(a => a.VPCId);

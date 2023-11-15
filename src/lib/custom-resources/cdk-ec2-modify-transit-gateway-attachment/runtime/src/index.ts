@@ -12,11 +12,14 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { EC2, ModifyTransitGatewayVpcAttachmentCommandInput } from '@aws-sdk/client-ec2';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
-import { ModifyTransitGatewayVpcAttachmentRequest } from 'aws-sdk/clients/ec2';
 
 export interface HandlerProperties {
   subnetIds: string[];
@@ -24,7 +27,9 @@ export interface HandlerProperties {
   ignoreWhileDeleteSubnets: string[];
 }
 
-const ec2 = new AWS.EC2();
+const ec2 = new EC2({
+  logger: console,
+});
 export const handler = errorHandler(onEvent);
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
@@ -49,8 +54,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
     ec2
       .describeTransitGatewayVpcAttachments({
         TransitGatewayAttachmentIds: [transitGatewayAttachmentId],
-      })
-      .promise(),
+      }),
   );
   const attachedSubnets: string[] =
     existingAttachmentResponse.TransitGatewayVpcAttachments?.map(tgwAttach => tgwAttach.SubnetIds).flatMap(
@@ -59,7 +63,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
   const removeSubnetIds: string[] = attachedSubnets.filter(s => !subnetIds.includes(s));
   const attachSubnetIds: string[] = subnetIds.filter(s => !attachedSubnets.includes(s));
   let modifyTgwAttach = false;
-  const modifyParams: ModifyTransitGatewayVpcAttachmentRequest = {
+  const modifyParams: ModifyTransitGatewayVpcAttachmentCommandInput = {
     TransitGatewayAttachmentId: transitGatewayAttachmentId,
   };
   if (attachSubnetIds.length > 0) {
@@ -71,7 +75,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
     modifyTgwAttach = true;
   }
   if (modifyTgwAttach) {
-    await throttlingBackOff(() => ec2.modifyTransitGatewayVpcAttachment(modifyParams).promise());
+    await throttlingBackOff(() => ec2.modifyTransitGatewayVpcAttachment(modifyParams));
   }
   return {
     physicalResourceId: `ModifyTransitGatewayVpcAttachment-${transitGatewayAttachmentId}`,
@@ -92,8 +96,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     ec2
       .describeTransitGatewayVpcAttachments({
         TransitGatewayAttachmentIds: [transitGatewayAttachmentId],
-      })
-      .promise(),
+      }),
   );
   const attachedSubnets: string[] =
     existingAttachmentResponse.TransitGatewayVpcAttachments?.map(tgwAttach => tgwAttach.SubnetIds).flatMap(
@@ -101,7 +104,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     ) || [];
   const removeSubnets = attachedSubnets.filter(s => !ignoreWhileDeleteSubnets.includes(s));
   let modifyTgwAttach = false;
-  const modifyParams: ModifyTransitGatewayVpcAttachmentRequest = {
+  const modifyParams: ModifyTransitGatewayVpcAttachmentCommandInput = {
     TransitGatewayAttachmentId: transitGatewayAttachmentId,
   };
   if (removeSubnets.length > 0) {
@@ -109,7 +112,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     modifyTgwAttach = true;
   }
   if (modifyTgwAttach) {
-    await throttlingBackOff(() => ec2.modifyTransitGatewayVpcAttachment(modifyParams).promise());
+    await throttlingBackOff(() => ec2.modifyTransitGatewayVpcAttachment(modifyParams));
   }
   return {
     physicalResourceId: `ModifyTransitGatewayVpcAttachment-${transitGatewayAttachmentId}`,

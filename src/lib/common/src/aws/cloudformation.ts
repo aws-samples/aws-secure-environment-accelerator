@@ -12,25 +12,54 @@
  */
 
 import aws from 'aws-sdk';
+
+import {
+  CloudFormation as cfn,
+  CreateStackCommandInput,
+  CreateStackCommandOutput,
+  CreateStackInstancesCommandInput,
+  CreateStackInstancesCommandOutput,
+  CreateStackSetCommandInput,
+  CreateStackSetCommandOutput,
+  DeleteStackInstancesCommandInput,
+  DeleteStackInstancesCommandOutput,
+  ListStacksCommandInput,
+  Parameter,
+  Stack,
+  StackInstanceSummary,
+  StackSet,
+  StackSetOperationSummary,
+  StackSummary,
+  UpdateStackCommandInput,
+  UpdateStackCommandOutput,
+  UpdateStackInstancesCommandInput,
+  UpdateStackInstancesCommandOutput,
+  UpdateStackSetCommandInput,
+  UpdateStackSetCommandOutput,
+} from '@aws-sdk/client-cloudformation';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
-import * as cfn from 'aws-sdk/clients/cloudformation';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
 import { Intersect } from '../util/types';
 import { collectAsync } from '../util/generator';
 import { throttlingBackOff } from './backoff';
 
-export type CreateOrUpdateStackInput = Intersect<cfn.CreateStackInput, cfn.UpdateStackInput>;
-export type CreateOrUpdateStackOutput = Intersect<cfn.CreateStackOutput, cfn.UpdateStackOutput>;
-export type CreateOrUpdateStackSetInput = Intersect<cfn.CreateStackSetInput, cfn.UpdateStackSetInput>;
-export type CreateOrUpdateStackSetOutput = Intersect<cfn.CreateStackSetOutput, cfn.UpdateStackSetOutput>;
+export type CreateOrUpdateStackInput = Intersect<CreateStackCommandInput, UpdateStackCommandInput>;
+export type CreateOrUpdateStackOutput = Intersect<CreateStackCommandOutput, UpdateStackCommandOutput>;
+export type CreateOrUpdateStackSetInput = Intersect<CreateStackSetCommandInput, UpdateStackSetCommandInput>;
+export type CreateOrUpdateStackSetOutput = Intersect<CreateStackSetCommandOutput, UpdateStackSetCommandOutput>;
 
 export class CloudFormation {
-  private readonly client: aws.CloudFormation;
+  private readonly client: CloudFormation;
 
   public constructor(credentials?: aws.Credentials, region?: string) {
-    this.client = new aws.CloudFormation({
+    this.client = new cfn({
       region,
       credentials,
+      logger: console,
     });
   }
 
@@ -45,7 +74,7 @@ export class CloudFormation {
   /**
    * Wrapper around AWS.CloudFormation.listStacks that returns a generator with the summaries.
    */
-  listStacksGenerator(input: cfn.ListStacksInput): AsyncIterable<cfn.StackSummary> {
+  listStacksGenerator(input: ListStacksCommandInput): AsyncIterable<StackSummary> {
     return listWithNextTokenGenerator<cfn.ListStacksInput, cfn.ListStacksOutput, cfn.StackSummary>(
       this.client.listStacks.bind(this.client),
       r => r.StackSummaries!,
@@ -56,7 +85,7 @@ export class CloudFormation {
   /**
    * Wrapper around AWS.CloudFormation.listStacks.
    */
-  async listStacks(input: cfn.ListStacksInput): Promise<cfn.StackSummary[]> {
+  async listStacks(input: ListStacksCommandInput): Promise<StackSummary[]> {
     return collectAsync(this.listStacksGenerator(input));
   }
 
@@ -65,7 +94,7 @@ export class CloudFormation {
    * @param stackName
    * @return AWS.CloudFormation.Stack or null
    */
-  async describeStack(stackName: string): Promise<cfn.Stack | undefined> {
+  async describeStack(stackName: string): Promise<Stack | undefined> {
     try {
       // AmazonCloudFormationException is thrown when the stack does not exist
       console.log('DesribeStack in cloudformation.ts');
@@ -95,7 +124,7 @@ export class CloudFormation {
   /**
    * Wrapper around AWS.CloudFormation.createStack.
    */
-  async createStack(input: cfn.CreateStackInput): Promise<cfn.CreateStackOutput> {
+  async createStack(input: CreateStackCommandInput): Promise<CreateStackCommandOutput> {
     input.EnableTerminationProtection = true;
     return throttlingBackOff(() => this.client.createStack(input).promise());
   }
@@ -103,7 +132,7 @@ export class CloudFormation {
   /**
    * Wrapper around AWS.CloudFormation.updateStack that does not fail when no updates are to be performed.
    */
-  async updateStack(input: cfn.UpdateStackInput): Promise<cfn.UpdateStackOutput | undefined> {
+  async updateStack(input: UpdateStackCommandInput): Promise<UpdateStackCommandOutput | undefined> {
     try {
       await throttlingBackOff(() => this.client.updateStack(input).promise());
     } catch (error: any) {
@@ -120,7 +149,7 @@ export class CloudFormation {
    * @param stackSetName
    * @return AWS.CloudFormation.StackSet or null
    */
-  async describeStackSet(stackSetName: string): Promise<cfn.StackSet | undefined> {
+  async describeStackSet(stackSetName: string): Promise<StackSet | undefined> {
     try {
       const response = await throttlingBackOff(() =>
         this.client
@@ -137,7 +166,7 @@ export class CloudFormation {
     }
   }
 
-  async listStackInstances(stackSetName: string, accountId?: string): Promise<cfn.StackInstanceSummary[]> {
+  async listStackInstances(stackSetName: string, accountId?: string): Promise<StackInstanceSummary[]> {
     return listWithNextToken<cfn.ListStackInstancesInput, cfn.ListStackInstancesOutput, cfn.StackInstanceSummary>(
       this.client.listStackInstances.bind(this.client),
       r => r.Summaries!,
@@ -148,7 +177,7 @@ export class CloudFormation {
     );
   }
 
-  async listStackSetOperations(stackSetName: string): Promise<cfn.StackSetOperationSummary[]> {
+  async listStackSetOperations(stackSetName: string): Promise<StackSetOperationSummary[]> {
     return listWithNextToken<
       cfn.ListStackSetOperationsInput,
       cfn.ListStackSetOperationsOutput,
@@ -161,35 +190,35 @@ export class CloudFormation {
   /**
    * Wrapper around AWS.CloudFormation.createStackSet.
    */
-  async createStackSet(input: cfn.CreateStackSetInput): Promise<cfn.CreateStackSetOutput> {
+  async createStackSet(input: CreateStackSetCommandInput): Promise<CreateStackSetCommandOutput> {
     return throttlingBackOff(() => this.client.createStackSet(input).promise());
   }
 
   /**
    * Wrapper around AWS.CloudFormation.updateStackSet.
    */
-  async updateStackSet(input: cfn.UpdateStackSetInput): Promise<cfn.UpdateStackSetOutput> {
+  async updateStackSet(input: UpdateStackSetCommandInput): Promise<UpdateStackSetCommandOutput> {
     return throttlingBackOff(() => this.client.updateStackSet(input).promise());
   }
 
   /**
    * Wrapper around AWS.CloudFormation.createStackInstances.
    */
-  async createStackInstances(input: cfn.CreateStackInstancesInput): Promise<cfn.CreateStackInstancesOutput> {
+  async createStackInstances(input: CreateStackInstancesCommandInput): Promise<CreateStackInstancesCommandOutput> {
     return throttlingBackOff(() => this.client.createStackInstances(input).promise());
   }
 
   /**
    * Wrapper around AWS.CloudFormation.updateStackInstances.
    */
-  async updateStackInstances(input: cfn.UpdateStackInstancesInput): Promise<cfn.UpdateStackInstancesOutput> {
+  async updateStackInstances(input: UpdateStackInstancesCommandInput): Promise<UpdateStackInstancesCommandOutput> {
     return throttlingBackOff(() => this.client.updateStackInstances(input).promise());
   }
 
   /**
    * Wrapper around AWS.CloudFormation.deleteStackInstances.
    */
-  async deleteStackInstances(input: cfn.DeleteStackInstancesInput): Promise<cfn.DeleteStackInstancesOutput> {
+  async deleteStackInstances(input: DeleteStackInstancesCommandInput): Promise<DeleteStackInstancesCommandOutput> {
     return throttlingBackOff(() => this.client.deleteStackInstances(input).promise());
   }
 
@@ -217,7 +246,7 @@ export class CloudFormation {
 
 export function objectToCloudFormationParameters(
   obj: { [key: string]: string } | undefined,
-): cfn.Parameter[] | undefined {
+): Parameter[] | undefined {
   if (!obj) {
     return undefined;
   }

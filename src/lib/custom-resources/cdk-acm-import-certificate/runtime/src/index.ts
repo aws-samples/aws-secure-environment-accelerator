@@ -12,6 +12,11 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { ACM, Tag } from '@aws-sdk/client-acm';
+import { S3 } from '@aws-sdk/client-s3';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -23,7 +28,7 @@ import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-respo
 import { addCustomResourceTags } from '@aws-accelerator/custom-resource-runtime-cfn-tags';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-export type TagList = AWS.ACM.TagList;
+export type TagList = Array<Tag>;
 
 export interface HandlerProperties {
   certificateBucketName: string;
@@ -38,8 +43,12 @@ export interface HandlerProperties {
 
 export const handler = errorHandler(onEvent);
 
-const acm = new AWS.ACM();
-const s3 = new AWS.S3();
+const acm = new ACM({
+  logger: console,
+});
+const s3 = new S3({
+  logger: console,
+});
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Importing certificate...`);
@@ -81,8 +90,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     acm
       .deleteCertificate({
         CertificateArn: event.PhysicalResourceId,
-      })
-      .promise(),
+      }),
   );
 }
 
@@ -113,8 +121,7 @@ async function importCertificate(
           CertificateChain: certificateChain,
           CertificateArn: physicalResourceId,
           Tags: tags,
-        })
-        .promise(),
+        }),
     );
     return response.CertificateArn!;
   } catch (e: any) {
@@ -148,8 +155,7 @@ async function getS3Body(bucketName: string, bucketPath: string) {
         .getObject({
           Bucket: bucketName,
           Key: bucketPath,
-        })
-        .promise(),
+        }),
     );
     return object.Body!;
   } catch (e) {

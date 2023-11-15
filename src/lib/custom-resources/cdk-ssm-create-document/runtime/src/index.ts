@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { SSM } from '@aws-sdk/client-ssm';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -28,7 +32,9 @@ export interface HandlerProperties {
   type: string;
 }
 
-const ssm = new AWS.SSM();
+const ssm = new SSM({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -55,8 +61,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
         Content: content,
         Name: name,
         DocumentType: type,
-      })
-      .promise(),
+      }),
   );
   return {
     physicalResourceId: `SSMDocument-${name}`,
@@ -73,8 +78,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
         Name: name,
         Content: content,
         DocumentVersion: '$LATEST',
-      })
-      .promise(),
+      }),
   );
 
   await throttlingBackOff(() =>
@@ -82,8 +86,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
       .updateDocumentDefaultVersion({
         Name: name,
         DocumentVersion: ssmDocument.DocumentDescription?.DocumentVersion!,
-      })
-      .promise(),
+      }),
   );
   return {
     physicalResourceId: `SSMDocument-${name}`,
@@ -101,8 +104,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
           .describeDocumentPermission({
             Name: name,
             PermissionType: 'Share',
-          })
-          .promise(),
+          }),
       );
       if (documentPermissions.AccountIds && documentPermissions.AccountIds.length > 0) {
         await throttlingBackOff(() =>
@@ -111,8 +113,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
               Name: name,
               PermissionType: 'Share',
               AccountIdsToRemove: documentPermissions.AccountIds,
-            })
-            .promise(),
+            }),
         );
       }
 
@@ -120,8 +121,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
         ssm
           .deleteDocument({
             Name: name,
-          })
-          .promise(),
+          }),
       );
     } catch (error) {
       console.warn(`Error while Deleting SSM Document ${name}`);

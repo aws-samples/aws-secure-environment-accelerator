@@ -12,7 +12,7 @@
  */
 
 import * as aws from 'aws-sdk';
-import * as cfn from 'aws-sdk/clients/cloudformation';
+import { Capability, Parameter } from '@aws-sdk/client-cloudformation';
 import AdmZip from 'adm-zip';
 import { CloudFormation, objectToCloudFormationParameters } from '@aws-accelerator/common/src/aws/cloudformation';
 import { S3 } from '@aws-accelerator/common/src/aws/s3';
@@ -84,7 +84,7 @@ export const handler = async (input: CreateStackSetInput) => {
  * @param a Parameter list to compare
  * @param b Parameter list that is compared
  */
-function parametersEqual(a: cfn.Parameters | undefined, b: cfn.Parameters | undefined): boolean {
+function parametersEqual(a: Array<Parameter> | undefined, b: Array<Parameter> | undefined): boolean {
   return arrayEqual(a, b, (pa, pb) => pb.ParameterKey === pa.ParameterKey && pb.ParameterValue === pa.ParameterValue);
 }
 
@@ -94,7 +94,7 @@ function parametersEqual(a: cfn.Parameters | undefined, b: cfn.Parameters | unde
  * @param a Capability list to compare
  * @param b Capability list that is compared
  */
-function capabilitiesEqual(a: cfn.Capabilities | undefined, b: cfn.Capabilities | undefined) {
+function capabilitiesEqual(a: Array<Capability> | undefined, b: Array<Capability> | undefined) {
   return arrayEqual(a, b);
 }
 

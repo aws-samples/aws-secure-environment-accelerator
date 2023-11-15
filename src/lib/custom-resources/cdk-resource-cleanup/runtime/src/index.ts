@@ -12,6 +12,22 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { CloudFormation } from '@aws-sdk/client-cloudformation';
+import { Route53 } from '@aws-sdk/client-route-53';
+import { Route53Resolver } from '@aws-sdk/client-route53resolver';
+
+import {
+  ListObjectsV2CommandOutput,
+  ListObjectVersionsCommandOutput,
+  Object,
+  ObjectIdentifier,
+  ObjectVersion,
+  S3,
+} from '@aws-sdk/client-s3';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
@@ -24,10 +40,18 @@ export interface HandlerProperties {
   cdkStackName?: string;
 }
 
-const s3 = new AWS.S3();
-const route53 = new AWS.Route53();
-const route53Resolver = new AWS.Route53Resolver();
-const cloudFormation = new AWS.CloudFormation();
+const s3 = new S3({
+  logger: console,
+});
+const route53 = new Route53({
+  logger: console,
+});
+const route53Resolver = new Route53Resolver({
+  logger: console,
+});
+const cloudFormation = new CloudFormation({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -56,8 +80,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
       s3
         .deleteBucketPolicy({
           Bucket: bucketName,
-        })
-        .promise(),
+        }),
     );
   }
 
@@ -74,8 +97,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
               .disassociateResolverRule({
                 ResolverRuleId: ruleId!,
                 VPCId: vpcId!,
-              })
-              .promise(),
+              }),
           );
         } catch (error) {
           console.warn(error);
@@ -94,8 +116,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
           route53Resolver
             .deleteResolverRule({
               ResolverRuleId: ruleId!,
-            })
-            .promise(),
+            }),
         );
       } catch (error) {
         console.warn(error);
@@ -110,8 +131,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
       route53
         .listHostedZonesByName({
           DNSName: domain,
-        })
-        .promise(),
+        }),
     );
     const hostedZoneIds = privateHostedZone.HostedZones.filter(p => p.Name === domain);
 
@@ -121,8 +141,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
           route53
             .deleteHostedZone({
               Id: zoneId.Id,
-            })
-            .promise(),
+            }),
         );
       } catch (error) {
         console.warn(error);
@@ -137,8 +156,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
         cloudFormation
           .describeStacks({
             StackName: cdkStackName,
-          })
-          .promise(),
+          }),
       );
 
       if (stack && stack.Stacks) {
@@ -157,8 +175,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
                     VersioningConfiguration: {
                       Status: 'Suspended',
                     },
-                  })
-                  .promise(),
+                  }),
               );
 
               // Deleting all objects in the s3 bucket
@@ -175,8 +192,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
                 s3
                   .deleteBucket({
                     Bucket: bucketName,
-                  })
-                  .promise(),
+                  }),
               );
               console.log(`successfully deleted bucket ${bucketName}`);
             }
@@ -184,8 +200,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
           await cloudFormation
             .deleteStack({
               StackName: cdkStackName,
-            })
-            .promise();
+            });
           console.log(`successfully deleted stack cdk-stack-delete-test`);
         }
       }
@@ -201,8 +216,7 @@ async function bucketExists(bucketName: string): Promise<boolean> {
       s3
         .headBucket({
           Bucket: bucketName,
-        })
-        .promise(),
+        }),
     );
   } catch (e) {
     return false;
@@ -211,7 +225,7 @@ async function bucketExists(bucketName: string): Promise<boolean> {
 }
 
 async function deleteS3Objects(bucketName: string): Promise<void> {
-  const deleteObjects: AWS.S3.ObjectIdentifierList = await listObjectsList(bucketName);
+  const deleteObjects: Array<ObjectIdentifier> = await listObjectsList(bucketName);
   for (const deleteChunk of chunk(deleteObjects, 1000)) {
     console.log('deleteObjects', deleteChunk.length);
     await throttlingBackOff(() =>
@@ -221,8 +235,7 @@ async function deleteS3Objects(bucketName: string): Promise<void> {
           Delete: {
             Objects: deleteChunk,
           },
-        })
-        .promise(),
+        }),
     );
   }
 
@@ -233,9 +246,9 @@ async function deleteS3Objects(bucketName: string): Promise<void> {
   console.log('successfully deleted all objects');
 }
 
-async function listObjectsList(bucketName: string): Promise<AWS.S3.ObjectIdentifierList> {
+async function listObjectsList(bucketName: string): Promise<Array<ObjectIdentifier>> {
   const listFiles = listObjects(bucketName);
-  const deleteObjects: AWS.S3.ObjectIdentifierList = [];
+  const deleteObjects: Array<ObjectIdentifier> = [];
   for await (const object of listFiles) {
     // console.debug(`Deleting object ${object.Key}`);
     if (object.Key) {
@@ -245,16 +258,15 @@ async function listObjectsList(bucketName: string): Promise<AWS.S3.ObjectIdentif
   return deleteObjects;
 }
 
-async function* listObjects(bucketName: string): AsyncIterableIterator<AWS.S3.Object> {
+async function* listObjects(bucketName: string): AsyncIterableIterator<Object> {
   let nextContinuationToken: string | undefined;
   do {
-    const listObjects: AWS.S3.ListObjectsV2Output = await throttlingBackOff(() =>
+    const listObjects: ListObjectsV2CommandOutput = await throttlingBackOff(() =>
       s3
         .listObjectsV2({
           Bucket: bucketName,
           ContinuationToken: nextContinuationToken,
-        })
-        .promise(),
+        }),
     );
     nextContinuationToken = listObjects.NextContinuationToken;
     if (listObjects.Contents) {
@@ -264,7 +276,7 @@ async function* listObjects(bucketName: string): AsyncIterableIterator<AWS.S3.Ob
 }
 
 async function deleteS3Markers(bucketName: string): Promise<void> {
-  const deleteObjectMarkers: AWS.S3.ObjectIdentifierList = await listObjectMarkersList(bucketName);
+  const deleteObjectMarkers: Array<ObjectIdentifier> = await listObjectMarkersList(bucketName);
   console.log('deleteS3Markers length', deleteObjectMarkers.length);
   for (const deleteChunk of chunk(deleteObjectMarkers, 1000)) {
     console.log('Deleting marker chunk', deleteChunk.length);
@@ -275,8 +287,7 @@ async function deleteS3Markers(bucketName: string): Promise<void> {
           Delete: {
             Objects: deleteChunk,
           },
-        })
-        .promise(),
+        }),
     );
   }
 
@@ -287,9 +298,9 @@ async function deleteS3Markers(bucketName: string): Promise<void> {
   console.log('successfully deleted all marker');
 }
 
-async function listObjectMarkersList(bucketName: string): Promise<AWS.S3.ObjectIdentifierList> {
+async function listObjectMarkersList(bucketName: string): Promise<Array<ObjectIdentifier>> {
   const listMarkers = listObjectMarkers(bucketName);
-  const deleteObjectMarkers: AWS.S3.ObjectIdentifierList = [];
+  const deleteObjectMarkers: Array<ObjectIdentifier> = [];
   for await (const object of listMarkers) {
     if (object.Key) {
       deleteObjectMarkers.push({
@@ -301,17 +312,16 @@ async function listObjectMarkersList(bucketName: string): Promise<AWS.S3.ObjectI
   return deleteObjectMarkers;
 }
 
-async function* listObjectMarkers(bucketName: string): AsyncIterableIterator<AWS.S3.ObjectVersion> {
+async function* listObjectMarkers(bucketName: string): AsyncIterableIterator<ObjectVersion> {
   let nextContinuationMarker: string | undefined;
   do {
-    const listMarkers: AWS.S3.ListObjectVersionsOutput = await throttlingBackOff(() =>
+    const listMarkers: ListObjectVersionsCommandOutput = await throttlingBackOff(() =>
       s3
         .listObjectVersions({
           Bucket: bucketName,
           MaxKeys: 500,
           KeyMarker: nextContinuationMarker,
-        })
-        .promise(),
+        }),
     );
 
     nextContinuationMarker = listMarkers.NextKeyMarker;
@@ -322,7 +332,7 @@ async function* listObjectMarkers(bucketName: string): AsyncIterableIterator<AWS
 }
 
 async function deleteS3Versions(bucketName: string): Promise<void> {
-  const deleteObjectVersions: AWS.S3.ObjectIdentifierList = await listObjectVersionsList(bucketName);
+  const deleteObjectVersions: Array<ObjectIdentifier> = await listObjectVersionsList(bucketName);
   console.log('deleteObjectVersions length', deleteObjectVersions.length);
   for (const deleteChunk of chunk(deleteObjectVersions, 1000)) {
     console.log('Deleting version chunk', deleteChunk.length);
@@ -333,8 +343,7 @@ async function deleteS3Versions(bucketName: string): Promise<void> {
           Delete: {
             Objects: deleteChunk,
           },
-        })
-        .promise(),
+        }),
     );
   }
 
@@ -345,9 +354,9 @@ async function deleteS3Versions(bucketName: string): Promise<void> {
   console.log('successfully deleted all versions');
 }
 
-async function listObjectVersionsList(bucketName: string): Promise<AWS.S3.ObjectIdentifierList> {
+async function listObjectVersionsList(bucketName: string): Promise<Array<ObjectIdentifier>> {
   const listVersions = listObjectVersions(bucketName);
-  const deleteObjectVersions: AWS.S3.ObjectIdentifierList = [];
+  const deleteObjectVersions: Array<ObjectIdentifier> = [];
   for await (const object of listVersions) {
     if (object.Key) {
       deleteObjectVersions.push({
@@ -359,17 +368,16 @@ async function listObjectVersionsList(bucketName: string): Promise<AWS.S3.Object
   return deleteObjectVersions;
 }
 
-async function* listObjectVersions(bucketName: string): AsyncIterableIterator<AWS.S3.ObjectVersion> {
+async function* listObjectVersions(bucketName: string): AsyncIterableIterator<ObjectVersion> {
   let nextContinuationVersion: string | undefined;
   do {
-    const listVersions: AWS.S3.ListObjectVersionsOutput = await throttlingBackOff(() =>
+    const listVersions: ListObjectVersionsCommandOutput = await throttlingBackOff(() =>
       s3
         .listObjectVersions({
           Bucket: bucketName,
           MaxKeys: 500,
           KeyMarker: nextContinuationVersion,
-        })
-        .promise(),
+        }),
     );
 
     nextContinuationVersion = listVersions.NextKeyMarker;
@@ -383,7 +391,7 @@ function sleep(milliseconds: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
-function chunk(arr: AWS.S3.ObjectIdentifierList, size: number): AWS.S3.ObjectIdentifierList[] {
+function chunk(arr: Array<ObjectIdentifier>, size: number): Array<ObjectIdentifier>[] {
   return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) => arr.slice(i * size, i * size + size));
 }
 
@@ -399,8 +407,7 @@ async function getVpcIds(resolverRuleId: string) {
               Values: [resolverRuleId],
             },
           ],
-        })
-        .promise(),
+        }),
     );
 
     const vpcIds = associations.ResolverRuleAssociations?.map(a => a.VPCId);
@@ -422,8 +429,7 @@ async function getResolverRuleIds(domain: string) {
               Values: [domain],
             },
           ],
-        })
-        .promise(),
+        }),
     );
     return resolverRule.ResolverRules?.map(r => r.Id);
   } catch (error) {

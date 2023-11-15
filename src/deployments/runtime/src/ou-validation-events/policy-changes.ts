@@ -13,7 +13,7 @@
 
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
-import * as org from 'aws-sdk/clients/organizations';
+import { Account } from '@aws-sdk/client-organizations';
 import { ServiceControlPolicy, FULL_AWS_ACCESS_POLICY_NAME } from '@aws-accelerator/common/src/scp';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { ScheduledEvent } from 'aws-lambda';
@@ -292,8 +292,8 @@ async function loadAccountsAndOrganizationsFromConfig(
 ): Promise<{ organizationalUnits: OrganizationalUnit[]; accounts: ConfigurationAccount[] }> {
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();
-  const awsOuAccountMap: { [ouId: string]: org.Account[] } = {};
-  const awsAccounts: org.Account[] = [];
+  const awsOuAccountMap: { [ouId: string]: Account[] } = {};
+  const awsAccounts: Account[] = [];
 
   // Store organizational units and their accounts
   for (const organizationalUnit of awsOus) {

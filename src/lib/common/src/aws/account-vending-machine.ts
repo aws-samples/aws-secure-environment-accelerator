@@ -12,6 +12,9 @@
  */
 
 import aws from 'aws-sdk';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceCatalog } from './service-catalog';

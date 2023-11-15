@@ -13,12 +13,12 @@
 
 import { Context } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
-import * as AWS from 'aws-sdk';
+import { CloudWatchLogs } from '@aws-sdk/client-cloudwatch-logs';
 import { v4 as uuidv4 } from 'uuid';
 
 const logGroupName = process.env.LOG_GROUP_NAME || '';
 
-const cloudWatchLogs = new AWS.CloudWatchLogs();
+const cloudWatchLogs = new CloudWatchLogs();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const handler = async (input: any, context?: Context): Promise<void> => {
@@ -34,8 +34,7 @@ export const handler = async (input: any, context?: Context): Promise<void> => {
         .createLogStream({
           logGroupName,
           logStreamName,
-        })
-        .promise(),
+        }),
     );
 
     await throttlingBackOff(() =>
@@ -49,8 +48,7 @@ export const handler = async (input: any, context?: Context): Promise<void> => {
               message: JSON.stringify(input),
             },
           ],
-        })
-        .promise(),
+        }),
     );
   } else {
     console.log(`LogGroupName not specified`);

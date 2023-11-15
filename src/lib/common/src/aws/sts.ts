@@ -12,11 +12,14 @@
  */
 
 import aws from 'aws-sdk';
+import { GetCallerIdentityCommandOutput, STS as sts } from '@aws-sdk/client-sts';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
-import * as sts from 'aws-sdk/clients/sts';
 import { throttlingBackOff } from './backoff';
 export class STS {
-  private readonly client: aws.STS;
+  private readonly client: STS;
   private readonly cache: { [roleArn: string]: aws.Credentials } = {};
 
   constructor(credentials?: aws.Credentials) {
@@ -27,14 +30,20 @@ export class STS {
       endpoint = `sts.${process.env.AWS_REGION}.amazonaws.com`;
     }
 
-    this.client = new aws.STS({
+    this.client = new sts({
       credentials,
       region,
+
+      // The transformation for endpoint is not implemented.
+      // Refer to UPGRADING.md on aws-sdk-js-v3 for changes needed.
+      // Please create/upvote feature request on aws-sdk-js-codemod for endpoint.
       endpoint,
+
+      logger: console,
     });
   }
 
-  async getCallerIdentity(): Promise<sts.GetCallerIdentityResponse> {
+  async getCallerIdentity(): Promise<GetCallerIdentityCommandOutput> {
     return throttlingBackOff(() => this.client.getCallerIdentity().promise());
   }
 

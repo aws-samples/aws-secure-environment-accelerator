@@ -11,7 +11,9 @@
  *  and limitations under the License.
  */
 
-import { ResizeClusterMessage } from 'aws-sdk/clients/redshift';
+
+
+import { ResizeClusterCommandInput } from '@aws-sdk/client-redshift';
 
 interface VerifyAddTagsToResourceInput {
   /**

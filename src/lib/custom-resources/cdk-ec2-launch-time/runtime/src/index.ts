@@ -12,11 +12,17 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { DescribeInstancesCommandInput, EC2 } from '@aws-sdk/client-ec2';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-const ec2 = new AWS.EC2();
+const ec2 = new EC2({
+  logger: console,
+});
 
 export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
   console.log(`Finding launch time...`);
@@ -37,12 +43,9 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   // Find instances that match the given instance id
   const describeInstances = await throttlingBackOff(() =>
     ec2
-      .describeInstances(
-        buildRequest({
-          instanceId: event.ResourceProperties.InstanceId,
-        }),
-      )
-      .promise(),
+      .describeInstances(buildRequest({
+      instanceId: event.ResourceProperties.InstanceId,
+    })),
   );
 
   const reservations = describeInstances.Reservations;
@@ -69,7 +72,7 @@ async function onDelete(_: CloudFormationCustomResourceEvent) {
 /**
  * Auxiliary method to build a DescribeInstancesRequest from the given parameters.
  */
-function buildRequest(props: { instanceId: string }): AWS.EC2.DescribeInstancesRequest {
+function buildRequest(props: { instanceId: string }): DescribeInstancesCommandInput {
   const { instanceId } = props;
 
   const instanceIds = [];

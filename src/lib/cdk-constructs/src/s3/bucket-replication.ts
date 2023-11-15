@@ -13,7 +13,7 @@
 
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { ReplicationRules, EncryptionConfiguration } from 'aws-sdk/clients/s3';
+import { EncryptionConfiguration, ReplicationRule } from '@aws-sdk/client-s3';
 import { S3PutBucketReplication } from '@aws-accelerator/custom-resource-s3-put-bucket-replication';
 
 export interface BucketReplicationProps {
@@ -33,7 +33,7 @@ export class BucketReplication extends Construct {
   private readonly resource: cdk.aws_s3.CfnBucket;
 
   private readonly replicationRoleName: string | undefined;
-  private readonly replicationRules: ReplicationRules = [];
+  private readonly replicationRules: Array<ReplicationRule> = [];
   private readonly destinationS3Resources: string[] = [];
   private readonly destinationKmsResources: string[] = [];
   private readonly s3PutReplicationRole: string;

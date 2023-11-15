@@ -14,8 +14,7 @@
 import { Organizations } from '../aws/organizations';
 import { S3 } from '../aws/s3';
 import { ScpConfig, OrganizationalUnitConfig, ReplacementsConfig, BaseLineType } from '@aws-accelerator/common-config';
-import { stringType } from 'aws-sdk/clients/iam';
-import { PolicySummary } from 'aws-sdk/clients/organizations';
+import { Organizations, PolicySummary } from '@aws-sdk/client-organizations';
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
 import { additionalReplacements, replaceDefaults } from './../util/common';
 import { AccountConfig } from '@aws-accelerator/common-config/src';
@@ -33,7 +32,7 @@ export class ServiceControlPolicy {
   private readonly replacements?: ReplacementsConfig;
 
   constructor(props: {
-    acceleratorPrefix: stringType;
+    acceleratorPrefix: string;
     acceleratorName: string;
     region: string;
     organizationAdminRole: string;

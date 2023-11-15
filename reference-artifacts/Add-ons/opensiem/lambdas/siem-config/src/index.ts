@@ -12,8 +12,15 @@
  */
 
 const AWS = require('aws-sdk');
+
+const { fromEnv } = require('@aws-sdk/credential-providers');
+const { S3 } = require('@aws-sdk/client-s3');
+
 const fs = require('fs');
 
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -24,7 +31,9 @@ import {
 import { errorHandler } from 'siem-common';
 import { throttlingBackOff } from 'siem-common';
 
-const s3 = new AWS.S3();
+const s3 = new S3({
+  logger: console,
+});
 
 export interface HandlerProperties {
   openSearchDomain: string;
@@ -66,8 +75,7 @@ async function getS3Body(bucketName: string, bucketPath: string) {
         .getObject({
           Bucket: bucketName,
           Key: bucketPath,
-        })
-        .promise(),
+        }),
     );
     return object.Body!;
   } catch (e) {
@@ -100,7 +108,10 @@ async function onCreateOrUpdate(
   // const rawdata = fs.readFileSync('../../../../../reference-artifacts/siem/opensearch-config.json');
   // siemOpenSearchConfig = JSON.parse(rawdata.toString());
 
-  openSearchAdminCredentials = new AWS.EnvironmentCredentials('AWS');
+  openSearchAdminCredentials = // JS SDK v3 switched credential providers from classes to functions.
+  // This is the closest approximation from codemod of what your application needs.
+  // Reference: https://www.npmjs.com/package/@aws-sdk/credential-providers
+  fromEnv('AWS');
 
   await configureOpenSearch(openSearchDomain, siemOpenSearchConfig, osProcesserRoleArn, adminRoleMappingArn);
 

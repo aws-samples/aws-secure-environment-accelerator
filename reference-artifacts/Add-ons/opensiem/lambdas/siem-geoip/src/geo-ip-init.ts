@@ -13,6 +13,11 @@
 
 const AWS = require('aws-sdk');
 
+const { Lambda } = require('@aws-sdk/client-lambda');
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -23,7 +28,9 @@ import {
 
 import { errorHandler } from 'siem-common';
 
-const lambdaClient = new AWS.Lambda();
+const lambdaClient = new Lambda({
+  logger: console,
+});
 
 export interface HandlerProperties {
   geoIpLambdaRoleArn: string;
@@ -64,8 +71,7 @@ async function onCreateOrUpdate(
       .invoke({
         FunctionName: geoIpLambdaRoleArn,
         InvocationType: 'Event',
-      })
-      .promise();
+      });
 
     console.log(resp);
   } catch (err) {

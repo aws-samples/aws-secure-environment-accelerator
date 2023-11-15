@@ -12,16 +12,30 @@
  */
 
 import aws from 'aws-sdk';
+
+import {
+  AcceptSharedDirectoryCommandInput,
+  ConnectDirectoryCommandInput,
+  CreateLogSubscriptionCommandInput,
+  DescribeSharedDirectoriesCommandInput,
+  DirectoryService as ds,
+  ListLogSubscriptionsCommandInput,
+  ShareDirectoryCommandInput,
+} from '@aws-sdk/client-directory-service';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
-import * as ds from 'aws-sdk/clients/directoryservice';
 import { throttlingBackOff } from './backoff';
 
 export class DirectoryService {
-  private readonly client: aws.DirectoryService;
+  private readonly client: DirectoryService;
 
   public constructor(credentials?: aws.Credentials) {
-    this.client = new aws.DirectoryService({
+    this.client = new ds({
       credentials,
+      logger: console,
     });
   }
 
@@ -31,7 +45,7 @@ export class DirectoryService {
    *
    * @param ShareDirectoryRequest
    */
-  async shareDirectory(input: ds.ShareDirectoryRequest): Promise<string> {
+  async shareDirectory(input: ShareDirectoryCommandInput): Promise<string> {
     const result = await throttlingBackOff(() => this.client.shareDirectory(input).promise());
     return result.SharedDirectoryId!;
   }
@@ -42,7 +56,7 @@ export class DirectoryService {
    *
    * @param AcceptSharedDirectoryRequest
    */
-  async acceptDirectory(input: ds.AcceptSharedDirectoryRequest): Promise<void> {
+  async acceptDirectory(input: AcceptSharedDirectoryCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.acceptSharedDirectory(input).promise());
   }
 
@@ -53,7 +67,7 @@ export class DirectoryService {
    *
    * @param CreateLogSubscriptionRequest
    */
-  async enableCloudWatchLogs(input: ds.CreateLogSubscriptionRequest): Promise<void> {
+  async enableCloudWatchLogs(input: CreateLogSubscriptionCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.createLogSubscription(input).promise());
   }
 
@@ -63,7 +77,7 @@ export class DirectoryService {
    *
    * @param ConnectDirectoryRequest
    */
-  async createAdConnector(input: ds.ConnectDirectoryRequest): Promise<string> {
+  async createAdConnector(input: ConnectDirectoryCommandInput): Promise<string> {
     const result = await throttlingBackOff(() => this.client.connectDirectory(input).promise());
     return result.DirectoryId!;
   }
@@ -75,7 +89,7 @@ export class DirectoryService {
    *
    * @param ListLogSubscriptionsRequest
    */
-  async hasLogGroup(input: ds.ListLogSubscriptionsRequest): Promise<boolean> {
+  async hasLogGroup(input: ListLogSubscriptionsCommandInput): Promise<boolean> {
     const result = await throttlingBackOff(() => this.client.listLogSubscriptions(input).promise());
     return result.LogSubscriptions!.length > 0;
   }
@@ -87,7 +101,7 @@ export class DirectoryService {
    *
    * @param DescribeSharedDirectoriesRequest
    */
-  async findSharedAccounts(input: ds.DescribeSharedDirectoriesRequest): Promise<string[]> {
+  async findSharedAccounts(input: DescribeSharedDirectoriesCommandInput): Promise<string[]> {
     let nextToken;
     const allSharedDirectories: string[] = [];
     do {

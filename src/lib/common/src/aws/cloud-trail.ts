@@ -12,16 +12,32 @@
  */
 
 import aws from 'aws-sdk';
+
+import {
+  CloudTrail as cloudtrail,
+  DescribeTrailsCommandInput,
+  DescribeTrailsCommandOutput,
+  PutEventSelectorsCommandInput,
+  PutEventSelectorsCommandOutput,
+  PutInsightSelectorsCommandInput,
+  PutInsightSelectorsCommandOutput,
+  UpdateTrailCommandInput,
+  UpdateTrailCommandOutput,
+} from '@aws-sdk/client-cloudtrail';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
-import * as cloudtrail from 'aws-sdk/clients/cloudtrail';
 import { throttlingBackOff } from './backoff';
 
 export class CloudTrail {
-  private readonly client: aws.CloudTrail;
+  private readonly client: CloudTrail;
 
   public constructor(credentials?: aws.Credentials) {
-    this.client = new aws.CloudTrail({
+    this.client = new cloudtrail({
       credentials,
+      logger: console,
     });
   }
 
@@ -32,8 +48,8 @@ export class CloudTrail {
   async describeTrails(
     includeShadowTrails: boolean,
     trailNameList: string[],
-  ): Promise<cloudtrail.DescribeTrailsResponse> {
-    const params: cloudtrail.DescribeTrailsRequest = {
+  ): Promise<DescribeTrailsCommandOutput> {
+    const params: DescribeTrailsCommandInput = {
       includeShadowTrails,
       trailNameList,
     };
@@ -44,8 +60,8 @@ export class CloudTrail {
    * to enable insight selectors for a existing cloud trail
    * @param trailName
    */
-  async putInsightSelectors(trailName: string): Promise<cloudtrail.PutInsightSelectorsResponse> {
-    const params: cloudtrail.PutInsightSelectorsRequest = {
+  async putInsightSelectors(trailName: string): Promise<PutInsightSelectorsCommandOutput> {
+    const params: PutInsightSelectorsCommandInput = {
       InsightSelectors: [
         {
           InsightType: 'ApiCallRateInsight',
@@ -60,7 +76,7 @@ export class CloudTrail {
    * to put event selects for a existing cloud trail
    * @param params
    */
-  async putEventSelectors(params: cloudtrail.PutEventSelectorsRequest): Promise<cloudtrail.PutEventSelectorsResponse> {
+  async putEventSelectors(params: PutEventSelectorsCommandInput): Promise<PutEventSelectorsCommandOutput> {
     return throttlingBackOff(() => this.client.putEventSelectors(params).promise());
   }
 
@@ -68,7 +84,7 @@ export class CloudTrail {
    * to update a existing cloud trail
    * @param params
    */
-  async updateTrail(params: cloudtrail.UpdateTrailRequest): Promise<cloudtrail.UpdateTrailResponse> {
+  async updateTrail(params: UpdateTrailCommandInput): Promise<UpdateTrailCommandOutput> {
     return throttlingBackOff(() => this.client.updateTrail(params).promise());
   }
 }

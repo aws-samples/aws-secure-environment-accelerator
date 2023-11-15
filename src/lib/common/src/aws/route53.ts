@@ -12,29 +12,36 @@
  */
 
 import aws from 'aws-sdk';
-aws.config.logger = console;
+
 import {
-  GetHostedZoneResponse,
-  ListHostedZonesResponse,
-  AssociateVPCWithHostedZoneRequest,
-  AssociateVPCWithHostedZoneResponse,
-  CreateVPCAssociationAuthorizationRequest,
-  CreateVPCAssociationAuthorizationResponse,
-  DeleteVPCAssociationAuthorizationRequest,
-  DeleteVPCAssociationAuthorizationResponse,
-} from 'aws-sdk/clients/route53';
+  AssociateVPCWithHostedZoneCommandInput,
+  AssociateVPCWithHostedZoneCommandOutput,
+  CreateVPCAssociationAuthorizationCommandInput,
+  CreateVPCAssociationAuthorizationCommandOutput,
+  DeleteVPCAssociationAuthorizationCommandInput,
+  DeleteVPCAssociationAuthorizationCommandOutput,
+  GetHostedZoneCommandOutput,
+  ListHostedZonesCommandOutput,
+  Route53,
+} from '@aws-sdk/client-route-53';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
+aws.config.logger = console;
 import { throttlingBackOff } from './backoff';
 
 export class Route53 {
-  private readonly client: aws.Route53;
+  private readonly client: Route53;
 
   public constructor(credentials?: aws.Credentials) {
-    this.client = new aws.Route53({
+    this.client = new Route53({
       credentials,
+      logger: console,
     });
   }
 
-  async getHostedZone(hostedZoneId: string): Promise<GetHostedZoneResponse> {
+  async getHostedZone(hostedZoneId: string): Promise<GetHostedZoneCommandOutput> {
     return throttlingBackOff(() =>
       this.client
         .getHostedZone({
@@ -49,7 +56,7 @@ export class Route53 {
    * @param maxItems
    * @param nextMarker
    */
-  async listHostedZones(maxItems?: string, nextMarker?: string): Promise<ListHostedZonesResponse> {
+  async listHostedZones(maxItems?: string, nextMarker?: string): Promise<ListHostedZonesCommandOutput> {
     return throttlingBackOff(() =>
       this.client
         .listHostedZones({
@@ -71,8 +78,8 @@ export class Route53 {
     privateHostedZoneId: string,
     vpcId: string,
     vpcRegion: string,
-  ): Promise<AssociateVPCWithHostedZoneResponse> {
-    const params: AssociateVPCWithHostedZoneRequest = {
+  ): Promise<AssociateVPCWithHostedZoneCommandOutput> {
+    const params: AssociateVPCWithHostedZoneCommandInput = {
       HostedZoneId: privateHostedZoneId,
       VPC: {
         VPCId: vpcId,
@@ -93,8 +100,8 @@ export class Route53 {
     privateHostedZoneId: string,
     vpcId: string,
     vpcRegion: string,
-  ): Promise<CreateVPCAssociationAuthorizationResponse> {
-    const params: CreateVPCAssociationAuthorizationRequest = {
+  ): Promise<CreateVPCAssociationAuthorizationCommandOutput> {
+    const params: CreateVPCAssociationAuthorizationCommandInput = {
       HostedZoneId: privateHostedZoneId,
       VPC: {
         VPCId: vpcId,
@@ -115,8 +122,8 @@ export class Route53 {
     privateHostedZoneId: string,
     vpcId: string,
     vpcRegion: string,
-  ): Promise<DeleteVPCAssociationAuthorizationResponse> {
-    const params: DeleteVPCAssociationAuthorizationRequest = {
+  ): Promise<DeleteVPCAssociationAuthorizationCommandOutput> {
+    const params: DeleteVPCAssociationAuthorizationCommandInput = {
       HostedZoneId: privateHostedZoneId,
       VPC: {
         VPCId: vpcId,

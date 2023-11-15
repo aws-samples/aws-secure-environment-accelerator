@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { CloudTrail, CreateTrailCommandInput, DataResource, UpdateTrailCommandInput } from '@aws-sdk/client-cloudtrail';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceDeleteEvent, CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
@@ -30,7 +34,9 @@ export interface HandlerProperties {
   s3Events: boolean;
 }
 
-const cloudTrail = new AWS.CloudTrail();
+const cloudTrail = new CloudTrail({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -67,27 +73,23 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     cloudTrail
       .describeTrails({
         trailNameList: [cloudTrailName],
-      })
-      .promise(),
+      }),
   );
   if (response.trailList?.length === 0) {
     try {
       // create CloudTrail Trail
       await throttlingBackOff(() =>
         cloudTrail
-          .createTrail(
-            buildCloudTrailCreateRequest({
-              name: cloudTrailName,
-              bucketName,
-              logGroupArn,
-              roleArn,
-              kmsKeyId,
-              s3KeyPrefix,
-              tagName,
-              tagValue,
-            }),
-          )
-          .promise(),
+          .createTrail(buildCloudTrailCreateRequest({
+          name: cloudTrailName,
+          bucketName,
+          logGroupArn,
+          roleArn,
+          kmsKeyId,
+          s3KeyPrefix,
+          tagName,
+          tagValue,
+        })),
       );
     } catch (e) {
       throw new Error(`Cannot create CloudTrail Trail: ${JSON.stringify(e)}`);
@@ -96,28 +98,25 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     try {
       // update CloudTrail Trail
       await cloudTrail
-        .updateTrail(
-          buildCloudTrailUpdateRequest({
-            name: cloudTrailName,
-            bucketName,
-            logGroupArn,
-            roleArn,
-            kmsKeyId,
-            s3KeyPrefix,
-          }),
-        )
-        .promise();
+        .updateTrail(buildCloudTrailUpdateRequest({
+        name: cloudTrailName,
+        bucketName,
+        logGroupArn,
+        roleArn,
+        kmsKeyId,
+        s3KeyPrefix,
+      }));
     } catch (e) {
       throw new Error(`Cannot update CloudTrail Trail: ${JSON.stringify(e)}`);
     }
   }
 
   // Log Insight events
-  await throttlingBackOff(() => cloudTrail.putInsightSelectors(buildInsightSelectorsRequest(cloudTrailName)).promise());
+  await throttlingBackOff(() => cloudTrail.putInsightSelectors(buildInsightSelectorsRequest(cloudTrailName)));
 
   // S3 Data events
   await throttlingBackOff(() =>
-    cloudTrail.putEventSelectors(buildEventSelectorsRequest(cloudTrailName, !!managementEvents, !!s3Events)).promise(),
+    cloudTrail.putEventSelectors(buildEventSelectorsRequest(cloudTrailName, !!managementEvents, !!s3Events)),
   );
 
   // Enable CloudTrail Trail logging
@@ -125,8 +124,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     cloudTrail
       .startLogging({
         Name: cloudTrailName,
-      })
-      .promise(),
+      }),
   );
 
   return {
@@ -152,8 +150,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     cloudTrail
       .deleteTrail({
         Name: cloudTrailName,
-      })
-      .promise(),
+      }),
   );
 }
 
@@ -169,7 +166,7 @@ function buildInsightSelectorsRequest(trailName: string) {
 }
 
 function buildEventSelectorsRequest(trailName: string, managementEvents: boolean, s3DataSource: boolean) {
-  const dataSources: AWS.CloudTrail.DataResource[] = [];
+  const dataSources: DataResource[] = [];
   if (s3DataSource) {
     dataSources.push({
       Type: 'AWS::S3::Object',
@@ -198,7 +195,7 @@ function buildCloudTrailCreateRequest(props: {
   s3KeyPrefix: string;
   tagName: string;
   tagValue: string;
-}): AWS.CloudTrail.CreateTrailRequest {
+}): CreateTrailCommandInput {
   const { name, bucketName, logGroupArn, roleArn, kmsKeyId, s3KeyPrefix, tagName, tagValue } = props;
   return {
     Name: name,
@@ -227,7 +224,7 @@ function buildCloudTrailUpdateRequest(props: {
   roleArn: string;
   kmsKeyId: string;
   s3KeyPrefix: string;
-}): AWS.CloudTrail.UpdateTrailRequest {
+}): UpdateTrailCommandInput {
   const { name, bucketName, logGroupArn, roleArn, kmsKeyId, s3KeyPrefix } = props;
   return {
     Name: name,

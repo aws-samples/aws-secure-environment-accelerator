@@ -12,37 +12,57 @@
  */
 
 import aws from 'aws-sdk';
+import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
+
+import {
+  AttributeValue,
+  BatchWriteItemCommandInput,
+  CreateBackupCommandInput,
+  CreateTableCommandInput,
+  DeleteItemCommandInput,
+  DocumentClient,
+  DynamoDB as dynamodb,
+  GetItemCommandInput,
+  GetItemCommandOutput,
+  PutItemCommandInput,
+  ScanCommandInput,
+  UpdateItemCommandInput,
+} from '@aws-sdk/client-dynamodb';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
-import * as dynamodb from 'aws-sdk/clients/dynamodb';
 import { throttlingBackOff } from './backoff';
 
 export class DynamoDB {
-  private readonly client: aws.DynamoDB;
-  readonly documentClient: aws.DynamoDB.DocumentClient;
+  private readonly client: DynamoDB;
+  readonly documentClient: DocumentClient;
 
   constructor(credentials?: aws.Credentials, region?: string) {
-    this.client = new aws.DynamoDB({
+    this.client = new dynamodb({
       credentials,
       region,
+      logger: console,
     });
 
-    this.documentClient = new aws.DynamoDB.DocumentClient({
+    this.documentClient = DynamoDBDocument.from(new dynamodb({
       credentials,
       region,
-    });
+    }));
   }
 
-  async createTable(props: dynamodb.CreateTableInput): Promise<void> {
+  async createTable(props: CreateTableCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.createTable(props).promise());
   }
 
-  async batchWriteItem(props: dynamodb.BatchWriteItemInput): Promise<void> {
+  async batchWriteItem(props: BatchWriteItemCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.batchWriteItem(props).promise());
   }
 
-  async scan(props: dynamodb.ScanInput): Promise<dynamodb.ItemList> {
-    const items: dynamodb.ItemList = [];
-    let token: dynamodb.Key | undefined;
+  async scan(props: ScanCommandInput): Promise<Array<Record<string, AttributeValue>>> {
+    const items: Array<Record<string, AttributeValue>> = [];
+    let token: Record<string, AttributeValue> | undefined;
     // TODO: Use common listgenerator when this api supports nextToken
     do {
       // TODO: Use DynamoDB.Converter for scan and Query
@@ -66,19 +86,19 @@ export class DynamoDB {
     return !record.Count;
   }
 
-  async putItem(props: dynamodb.PutItemInput): Promise<void> {
+  async putItem(props: PutItemCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.putItem(props).promise());
   }
 
-  async getItem(props: dynamodb.GetItemInput): Promise<dynamodb.GetItemOutput> {
+  async getItem(props: GetItemCommandInput): Promise<GetItemCommandOutput> {
     return throttlingBackOff(() => this.client.getItem(props).promise());
   }
 
-  async deleteItem(props: dynamodb.DeleteItemInput): Promise<void> {
+  async deleteItem(props: DeleteItemCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.deleteItem(props).promise());
   }
 
-  async updateItem(props: dynamodb.UpdateItemInput): Promise<void> {
+  async updateItem(props: UpdateItemCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.updateItem(props).promise());
   }
 
@@ -86,7 +106,7 @@ export class DynamoDB {
     tableName: string,
     key: string,
     keyName: string = 'outputValue',
-  ): Promise<dynamodb.AttributeValue | undefined> {
+  ): Promise<AttributeValue | undefined> {
     const outputResponse = await this.getItem({
       Key: { id: { S: key } },
       TableName: tableName,
@@ -98,7 +118,7 @@ export class DynamoDB {
     return outputResponse.Item[keyName];
   }
 
-  async createBackup(props: dynamodb.CreateBackupInput): Promise<void> {
+  async createBackup(props: CreateBackupCommandInput): Promise<void> {
     await throttlingBackOff(() => this.client.createBackup(props).promise());
   }
 }

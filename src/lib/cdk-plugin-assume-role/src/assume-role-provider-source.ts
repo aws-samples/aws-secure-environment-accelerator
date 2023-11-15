@@ -12,6 +12,10 @@
  */
 
 import * as aws from 'aws-sdk';
+import { AssumeRoleCommandOutput, STS } from '@aws-sdk/client-sts';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
 import { CredentialProviderSource } from 'aws-cdk/lib/api/plugin';
 import { Mode } from 'aws-cdk/lib/api/aws-auth/credentials';
@@ -63,7 +67,7 @@ export class AssumeRoleProviderSource implements CredentialProviderSource {
     }));
   }
 
-  protected async assumeRole(accountId: string, duration: number): Promise<aws.STS.AssumeRoleResponse> {
+  protected async assumeRole(accountId: string, duration: number): Promise<AssumeRoleCommandOutput> {
     const roleArn = `arn:aws:iam::${accountId}:role/${this.props.assumeRoleName}`;
     console.log(`Assuming role ${green(roleArn)} for ${duration} seconds`);
     const region = this.props.region;
@@ -71,15 +75,22 @@ export class AssumeRoleProviderSource implements CredentialProviderSource {
     if (region) {
       endpoint = `sts.${region}.amazonaws.com`;
     }
-    const sts = new aws.STS({ endpoint, region });
+    const sts = new STS({
+      // The transformation for endpoint is not implemented.
+      // Refer to UPGRADING.md on aws-sdk-js-v3 for changes needed.
+      // Please create/upvote feature request on aws-sdk-js-codemod for endpoint.
+      endpoint,
+
+      region,
+      logger: console,
+    });
     return throttlingBackOff(() =>
       sts
         .assumeRole({
           RoleArn: roleArn,
           RoleSessionName: this.name,
           DurationSeconds: duration,
-        })
-        .promise(),
+        }),
     );
   }
 }

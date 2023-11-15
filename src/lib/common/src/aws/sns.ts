@@ -12,21 +12,25 @@
  */
 
 import aws from 'aws-sdk';
+import { PublishCommandInput, PublishCommandOutput, SNS as sns } from '@aws-sdk/client-sns';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
-import * as sns from 'aws-sdk/clients/sns';
 import { throttlingBackOff } from './backoff';
 
 export class SNS {
-  private readonly client: aws.SNS;
+  private readonly client: SNS;
 
   constructor(credentials?: aws.Credentials, region?: string) {
-    this.client = new aws.SNS({
+    this.client = new sns({
       credentials,
       region,
+      logger: console,
     });
   }
 
-  async publish(params: sns.PublishInput): Promise<sns.PublishResponse> {
+  async publish(params: PublishCommandInput): Promise<PublishCommandOutput> {
     const response = await throttlingBackOff(() => this.client.publish(params).promise());
     return response;
   }

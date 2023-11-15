@@ -11,7 +11,9 @@
  *  and limitations under the License.
  */
 
-import * as aws from 'aws-sdk';
+
+
+import { RAM } from '@aws-sdk/client-ram';
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { FMS } from '@aws-accelerator/common/src/aws/fms';
 import { IAM } from '@aws-accelerator/common/src/aws/iam';
@@ -60,8 +62,8 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
     return;
   }
 
-  const ram = new aws.RAM();
-  await ram.enableSharingWithAwsOrganization().promise();
+  const ram = new RAM();
+  await ram.enableSharingWithAwsOrganization();
 
   // await org.enableAWSServiceAccess('ram.amazonaws.com');
   console.log('Enabled Resource Access Manager service access within the Organization.');

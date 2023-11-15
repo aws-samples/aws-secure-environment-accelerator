@@ -12,14 +12,20 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { CreateGrantCommandInput, KMS } from '@aws-sdk/client-kms';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-const kms = new AWS.KMS();
+const kms = new KMS({
+  logger: console,
+});
 
-export type HandlerProperties = AWS.KMS.CreateGrantRequest;
+export type HandlerProperties = CreateGrantCommandInput;
 
 export const handler = errorHandler(onEvent);
 
@@ -50,8 +56,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         Operations: properties.Operations,
         Constraints: properties.Constraints,
         GrantTokens: properties.GrantTokens,
-      })
-      .promise(),
+      }),
   );
   return {
     physicalResourceId: grant.GrantId!,
@@ -80,7 +85,6 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       .revokeGrant({
         GrantId: event.PhysicalResourceId,
         KeyId: properties.KeyId,
-      })
-      .promise(),
+      }),
   );
 }

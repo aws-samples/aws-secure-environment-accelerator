@@ -12,8 +12,8 @@
  */
 
 import * as aws from 'aws-sdk';
-import * as cfn from 'aws-sdk/clients/cloudformation';
-import * as s3 from 'aws-sdk/clients/s3';
+import { Output } from '@aws-sdk/client-cloudformation';
+import { Body } from '@aws-sdk/client-s3';
 import AdmZip from 'adm-zip';
 import { CloudFormation } from '../aws/cloudformation';
 import { S3 } from '../aws/s3';
@@ -43,7 +43,7 @@ export class LandingZone {
         continue;
       }
 
-      const outputs: cfn.Outputs = stack.Outputs || [];
+      const outputs: Array<Output> = stack.Outputs || [];
       const versionOutput = outputs.find(output => output.OutputKey === LandingZoneStack.VERSION_OUTPUT_KEY);
       const bucketOutput = outputs.find(output => output.OutputKey === LandingZoneStack.BUCKET_OUTPUT_KEY);
       if (!versionOutput || !bucketOutput) {
@@ -65,8 +65,8 @@ export class LandingZone {
 
 export interface LandingZoneStackProps {
   credentials?: aws.Credentials;
-  versionOutput: cfn.Output;
-  bucketOutput: cfn.Output;
+  versionOutput: Output;
+  bucketOutput: Output;
 }
 
 interface LandingZoneBuildProps {
@@ -118,7 +118,7 @@ export class LandingZoneStack {
     const bucketName = props.bucketOutput.OutputValue!;
     const bucketKey = 'aws-landing-zone-configuration.zip';
 
-    let artifact: s3.Body | undefined;
+    let artifact: Body | undefined;
     try {
       const client = new S3(props.credentials);
       artifact = await client.getObjectBody({

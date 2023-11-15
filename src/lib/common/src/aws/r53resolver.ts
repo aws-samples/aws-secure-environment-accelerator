@@ -12,24 +12,31 @@
  */
 
 import aws from 'aws-sdk';
-aws.config.logger = console;
+
 import {
-  ListResolverEndpointIpAddressesResponse,
-  AssociateResolverRuleRequest,
-  AssociateResolverRuleResponse,
-} from 'aws-sdk/clients/route53resolver';
+  AssociateResolverRuleCommandInput,
+  AssociateResolverRuleCommandOutput,
+  ListResolverEndpointIpAddressesCommandOutput,
+  Route53Resolver,
+} from '@aws-sdk/client-route53resolver';
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
+aws.config.logger = console;
 import { throttlingBackOff } from './backoff';
 
 export class Route53Resolver {
-  private readonly client: aws.Route53Resolver;
+  private readonly client: Route53Resolver;
 
   public constructor(credentials?: aws.Credentials) {
-    this.client = new aws.Route53Resolver({
+    this.client = new Route53Resolver({
       credentials,
+      logger: console,
     });
   }
 
-  async getEndpointIpAddress(endpointId: string): Promise<ListResolverEndpointIpAddressesResponse> {
+  async getEndpointIpAddress(endpointId: string): Promise<ListResolverEndpointIpAddressesCommandOutput> {
     return throttlingBackOff(() =>
       this.client.listResolverEndpointIpAddresses({ ResolverEndpointId: endpointId }).promise(),
     );
@@ -45,8 +52,8 @@ export class Route53Resolver {
     resolverRuleId: string,
     vpcId: string,
     name?: string,
-  ): Promise<AssociateResolverRuleResponse> {
-    const param: AssociateResolverRuleRequest = {
+  ): Promise<AssociateResolverRuleCommandOutput> {
+    const param: AssociateResolverRuleCommandInput = {
       ResolverRuleId: resolverRuleId,
       VPCId: vpcId,
       Name: name,

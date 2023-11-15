@@ -12,6 +12,11 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { EC2 } from '@aws-sdk/client-ec2';
+import { SecretsManager } from '@aws-sdk/client-secrets-manager';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -22,8 +27,12 @@ import {
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-const ec2 = new AWS.EC2();
-const secretsManager = new AWS.SecretsManager();
+const ec2 = new EC2({
+  logger: console,
+});
+const secretsManager = new SecretsManager({
+  logger: console,
+});
 
 export interface HandlerProperties {
   keyName: string;
@@ -99,8 +108,7 @@ async function generateKeypair(properties: HandlerProperties) {
     ec2
       .createKeyPair({
         KeyName: properties.keyName,
-      })
-      .promise(),
+      }),
   );
 
   const secretName = `${properties.secretPrefix}${properties.keyName}`;
@@ -110,8 +118,7 @@ async function generateKeypair(properties: HandlerProperties) {
         .createSecret({
           Name: secretName,
           SecretString: createKeyPair.KeyMaterial,
-        })
-        .promise(),
+        }),
     );
   } catch (e) {
     const message = `${e}`;
@@ -124,16 +131,14 @@ async function generateKeypair(properties: HandlerProperties) {
       secretsManager
         .restoreSecret({
           SecretId: secretName,
-        })
-        .promise(),
+        }),
     );
     await throttlingBackOff(() =>
       secretsManager
         .putSecretValue({
           SecretId: secretName,
           SecretString: createKeyPair.KeyMaterial,
-        })
-        .promise(),
+        }),
     );
   }
   return createKeyPair;
@@ -144,8 +149,7 @@ async function deleteKeypair(properties: HandlerProperties) {
     ec2
       .deleteKeyPair({
         KeyName: properties.keyName,
-      })
-      .promise(),
+      }),
   );
 
   const secretName = `${properties.secretPrefix}${properties.keyName}`;
@@ -153,7 +157,6 @@ async function deleteKeypair(properties: HandlerProperties) {
     secretsManager
       .deleteSecret({
         SecretId: secretName,
-      })
-      .promise(),
+      }),
   );
 }

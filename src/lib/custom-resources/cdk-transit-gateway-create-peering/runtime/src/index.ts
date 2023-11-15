@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { EC2 } from '@aws-sdk/client-ec2';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -23,7 +27,9 @@ import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 export const handler = errorHandler(onEvent);
 
-const ec2 = new AWS.EC2();
+const ec2 = new EC2({
+  logger: console,
+});
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Create transit gateway peering attachment...`);
@@ -59,8 +65,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
             ],
           },
         ],
-      })
-      .promise(),
+      }),
   );
   return {
     physicalResourceId: peeringAttachment.TransitGatewayPeeringAttachment!.TransitGatewayAttachmentId,
@@ -80,7 +85,6 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     ec2
       .deleteTransitGatewayPeeringAttachment({
         TransitGatewayAttachmentId: event.PhysicalResourceId,
-      })
-      .promise(),
+      }),
   );
 }

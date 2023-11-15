@@ -12,10 +12,16 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { CloudWatchLogs } from '@aws-sdk/client-cloudwatch-logs';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { throttlingBackOff, CloudWatchRulePrefix } from '@aws-accelerator/custom-resource-cfn-utils';
 
-const logs = new AWS.CloudWatchLogs();
+const logs = new CloudWatchLogs({
+  logger: console,
+});
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const handler = async (input: any): Promise<string> => {
@@ -64,8 +70,7 @@ async function addSubscriptionFilter(logGroupName: string, destinationArn: strin
         filterName: `${CloudWatchRulePrefix}${logGroupName}`,
         filterPattern: '',
         roleArn: subscriptionFilterRoleArn,
-      })
-      .promise(),
+      }),
   );
 }
 
@@ -87,8 +92,7 @@ async function putLogRetentionPolicy(logGroupName: string, retentionInDays: numb
         .putRetentionPolicy({
           logGroupName,
           retentionInDays,
-        })
-        .promise(),
+        }),
     );
   } catch (error: any) {
     console.error(`Error while updating retention policy on "${logGroupName}": ${error.message}`);

@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { GuardDuty } from '@aws-sdk/client-guardduty';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -22,7 +26,9 @@ import {
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-const guardduty = new AWS.GuardDuty();
+const guardduty = new GuardDuty({
+  logger: console,
+});
 
 export interface HandlerProperties {
   detectorId: string;
@@ -93,8 +99,7 @@ async function createOrUpdatePublishDestination(properties: HandlerProperties) {
       guardduty
         .listPublishingDestinations({
           DetectorId: detectorId,
-        })
-        .promise(),
+        }),
     );
 
     if (destination.Destinations && destination.Destinations.length > 0) {
@@ -106,7 +111,7 @@ async function createOrUpdatePublishDestination(properties: HandlerProperties) {
           KmsKeyArn: properties.kmsKeyArn,
         },
       };
-      await throttlingBackOff(() => guardduty.updatePublishingDestination(updateParams).promise());
+      await throttlingBackOff(() => guardduty.updatePublishingDestination(updateParams));
       return destination.Destinations[0];
     } else {
       const createParams = {
@@ -119,7 +124,7 @@ async function createOrUpdatePublishDestination(properties: HandlerProperties) {
       };
 
       const createPublish = await throttlingBackOff(() =>
-        guardduty.createPublishingDestination(createParams).promise(),
+        guardduty.createPublishingDestination(createParams),
       );
       console.log(`Created Publishing Destination for detectorId "${detectorId}"`);
       return createPublish;
@@ -150,8 +155,7 @@ async function deletePublishDestination(properties: HandlerProperties) {
       guardduty
         .listPublishingDestinations({
           DetectorId: detectorId,
-        })
-        .promise(),
+        }),
     );
 
     const params = {
@@ -160,7 +164,7 @@ async function deletePublishDestination(properties: HandlerProperties) {
       DetectorId: properties.detectorId,
     };
 
-    return await throttlingBackOff(() => guardduty.deletePublishingDestination(params).promise());
+    return await throttlingBackOff(() => guardduty.deletePublishingDestination(params));
   } catch (error) {
     console.error(error);
     return;

@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { SSM } from '@aws-sdk/client-ssm';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -29,7 +33,9 @@ export interface HandlerProperties {
 
 // SSM modifyDocumentPermission api only supports max 20 accounts per request
 const pageSize = 20;
-const ssm = new AWS.SSM();
+const ssm = new SSM({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -59,8 +65,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
           Name: name,
           PermissionType: 'Share',
           AccountIdsToAdd: currentAccountIds,
-        })
-        .promise(),
+        }),
     );
     currentAccountIds = paginate(accountIds, ++pageNumber, pageSize);
   }
@@ -88,8 +93,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
             Name: name,
             PermissionType: 'Share',
             AccountIdsToAdd: currentAccountIds,
-          })
-          .promise(),
+          }),
       );
       currentAccountIds = paginate(shareAccounts, ++pageNumber, pageSize);
     }
@@ -105,8 +109,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
             Name: name,
             PermissionType: 'Share',
             AccountIdsToRemove: currentAccountIds,
-          })
-          .promise(),
+          }),
       );
       currentAccountIds = paginate(unShareAccounts, ++pageNumber, pageSize);
     }
@@ -136,8 +139,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
             Name: name,
             PermissionType: 'Share',
             AccountIdsToRemove: currentAccountIds,
-          })
-          .promise(),
+          }),
       );
       currentAccountIds = paginate(accountIds, ++pageNumber, pageSize);
     }

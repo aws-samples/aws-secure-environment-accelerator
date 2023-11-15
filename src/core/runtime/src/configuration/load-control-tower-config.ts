@@ -11,7 +11,9 @@
  *  and limitations under the License.
  */
 
-import * as org from 'aws-sdk/clients/organizations';
+
+
+import { Account } from '@aws-sdk/client-organizations';
 import { Organizations, OrganizationalUnit } from '@aws-accelerator/common/src/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
@@ -52,10 +54,10 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
 
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();
-  const awsOuAccountMap: { [ouId: string]: org.Account[] } = {};
+  const awsOuAccountMap: { [ouId: string]: Account[] } = {};
 
   // Store the accounts in a simple list as well
-  const awsAccounts: org.Account[] = await organizations.listAccounts();
+  const awsAccounts: Account[] = await organizations.listAccounts();
 
   // Store organizational units and their accounts
   for (const organizationalUnit of awsOus) {

@@ -12,10 +12,13 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { CreateDocumentCommandInput, SSM, UpdateDocumentCommandInput } from '@aws-sdk/client-ssm';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
-import { CreateDocumentRequest, UpdateDocumentRequest } from 'aws-sdk/clients/ssm';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 export interface HandlerProperties {
@@ -29,7 +32,9 @@ export interface HandlerProperties {
 
 const docuemntName = 'SSM-SessionManagerRunShell';
 
-const ssm = new AWS.SSM();
+const ssm = new SSM({
+  logger: console,
+});
 
 export const handler = errorHandler(onEvent);
 
@@ -91,28 +96,27 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       ssm
         .describeDocument({
           Name: docuemntName,
-        })
-        .promise(),
+        }),
     );
-    const updateDocumentRequest: UpdateDocumentRequest = {
+    const updateDocumentRequest: UpdateDocumentCommandInput = {
       Content: JSON.stringify(settings),
       Name: docuemntName,
       DocumentVersion: '$LATEST',
     };
     console.log('Update SSM Document Request: ', updateDocumentRequest);
-    await throttlingBackOff(() => ssm.updateDocument(updateDocumentRequest).promise());
+    await throttlingBackOff(() => ssm.updateDocument(updateDocumentRequest));
     console.log('Update SSM Document Success');
   } catch (error: any) {
     if (error.code === 'DuplicateDocumentContent') {
       console.log(`SSM Document is Already latest :${docuemntName}`);
     } else if (error.code === 'InvalidDocument') {
-      const createDocumentRequest: CreateDocumentRequest = {
+      const createDocumentRequest: CreateDocumentCommandInput = {
         Content: JSON.stringify(settings),
         Name: docuemntName,
         DocumentType: `Session`,
       };
       console.log('Create SSM Document Request: ', createDocumentRequest);
-      await throttlingBackOff(() => ssm.createDocument(createDocumentRequest).promise());
+      await throttlingBackOff(() => ssm.createDocument(createDocumentRequest));
       console.log('Create SSM Document Success');
     } else {
       throw error;

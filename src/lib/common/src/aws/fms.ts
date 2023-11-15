@@ -12,16 +12,23 @@
  */
 
 import aws from 'aws-sdk';
+import { FMS } from '@aws-sdk/client-fms';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 aws.config.logger = console;
 import { throttlingBackOff } from './backoff';
 
 export class FMS {
-  private readonly client: aws.FMS;
+  private readonly client: FMS;
 
   public constructor(credentials?: aws.Credentials) {
-    this.client = new aws.FMS({
-      region: 'us-east-1', // us-east-1 is the only endpoint available
+    this.client = new FMS({
+      // us-east-1 is the only endpoint available
+      region: 'us-east-1',
+
       credentials,
+      logger: console,
     });
   }
 

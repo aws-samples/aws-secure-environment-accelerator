@@ -12,12 +12,18 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { EC2 } from '@aws-sdk/client-ec2';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import * as xml2js from 'xml2js';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-const ec2 = new AWS.EC2();
+const ec2 = new EC2({
+  logger: console,
+});
 
 export interface HandlerProperties {
   VPNConnectionID: string;
@@ -46,8 +52,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     ec2
       .describeVpnConnections({
         VpnConnectionIds: [properties.VPNConnectionID],
-      })
-      .promise(),
+      }),
   );
 
   const connections = describeVpnConnections.VpnConnections;

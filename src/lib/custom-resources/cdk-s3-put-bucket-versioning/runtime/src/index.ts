@@ -12,6 +12,10 @@
  */
 
 import * as AWS from 'aws-sdk';
+import { S3 } from '@aws-sdk/client-s3';
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -22,7 +26,9 @@ import {
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
-const s3 = new AWS.S3();
+const s3 = new S3({
+  logger: console,
+});
 
 export interface HandlerProperties {
   bucketName: string;
@@ -63,8 +69,7 @@ async function onCreateOrUpdate(
         VersioningConfiguration: {
           Status: 'Enabled',
         },
-      })
-      .promise(),
+      }),
   );
 
   if (!logRetention) {
@@ -93,8 +98,7 @@ async function onCreateOrUpdate(
             },
           ],
         },
-      })
-      .promise(),
+      }),
   );
   return {
     physicalResourceId: getPhysicalId(event),
@@ -129,8 +133,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
               },
             ],
           },
-        })
-        .promise(),
+        }),
     );
   }
 
@@ -141,8 +144,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
         VersioningConfiguration: {
           Status: 'Suspended',
         },
-      })
-      .promise(),
+      }),
   );
   return {
     physicalResourceId: getPhysicalId(event),

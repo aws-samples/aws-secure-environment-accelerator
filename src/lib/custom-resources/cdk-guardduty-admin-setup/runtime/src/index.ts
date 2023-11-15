@@ -11,7 +11,9 @@
  *  and limitations under the License.
  */
 
-import * as AWS from 'aws-sdk';
+
+
+import { GuardDuty, Member } from '@aws-sdk/client-guardduty';
 // AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
@@ -23,7 +25,7 @@ import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-respo
 import { throttlingBackOff, paginate } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const physicalResourceId = 'GaurdDutyDeligatedAdminAccountSetup';
-const guardduty = new AWS.GuardDuty();
+const guardduty = new GuardDuty();
 
 // Guardduty CreateMembers, UpdateMembers and DeleteMembers apis only supports max 50 accounts per request
 const pageSize = 50;
@@ -107,7 +109,7 @@ async function onCreateOrUpdate(
 async function getDetectorId(): Promise<string | undefined> {
   try {
     console.log(`Calling api "guardduty.listDetectors()"`);
-    const detectors = await throttlingBackOff(() => guardduty.listDetectors().promise());
+    const detectors = await throttlingBackOff(() => guardduty.listDetectors());
     if (detectors.DetectorIds && detectors.DetectorIds.length > 0) {
       return detectors.DetectorIds[0];
     }
@@ -129,8 +131,7 @@ async function createMembers(memberAccounts: AccountDetail[], detectorId: string
           .createMembers({
             AccountDetails: currentAccounts,
             DetectorId: detectorId,
-          })
-          .promise(),
+          }),
       );
       currentAccounts = paginate(memberAccounts, ++pageNumber, pageSize);
       console.log(`UnProcessedAccounts are : ${JSON.stringify(createMembersResp.UnprocessedAccounts)}`);
@@ -162,8 +163,7 @@ async function updateConfig(detectorId: string, s3Protection: boolean, eksProtec
               },
             },
           },
-        })
-        .promise(),
+        }),
     );
   } catch (error: any) {
     console.error(`Error Occurred while update config of GuardDuty ${error.code}: ${error.message}`);
@@ -183,8 +183,7 @@ async function isConfigurationAutoEnabled(
       guardduty
         .describeOrganizationConfiguration({
           DetectorId: detectorId,
-        })
-        .promise(),
+        }),
     );
     return (
       response.AutoEnable &&
@@ -230,8 +229,7 @@ async function updateMemberDataSource(
                 },
               },
             },
-          })
-          .promise(),
+          }),
       );
       currentAccounts = paginate(memberAccounts, ++pageNumber, pageSize);
     }
@@ -263,8 +261,7 @@ async function updateS3ProtectionAndFrequency(
             },
           },
           FindingPublishingFrequency: frequency,
-        })
-        .promise(),
+        }),
     );
   } catch (error: any) {
     console.warn('Error while calling guardduty.updateDetector');
@@ -283,8 +280,7 @@ async function deleteMembers(memberAccounts: AccountDetail[], detectorId: string
           .deleteMembers({
             DetectorId: detectorId,
             AccountIds: currentAccounts.map(acc => acc.AccountId),
-          })
-          .promise(),
+          }),
       );
       currentAccounts = paginate(memberAccounts, ++pageNumber, pageSize);
     }
@@ -296,8 +292,8 @@ async function deleteMembers(memberAccounts: AccountDetail[], detectorId: string
   }
 }
 
-async function listMembers(detectorId: string): Promise<AWS.GuardDuty.Member[]> {
-  const members: AWS.GuardDuty.Member[] = [];
+async function listMembers(detectorId: string): Promise<Member[]> {
+  const members: Member[] = [];
   let token: string | undefined;
   do {
     const response = await throttlingBackOff(() =>
@@ -305,8 +301,7 @@ async function listMembers(detectorId: string): Promise<AWS.GuardDuty.Member[]> 
         .listMembers({
           DetectorId: detectorId,
           NextToken: token,
-        })
-        .promise(),
+        }),
     );
     token = response.NextToken;
     members.push(...response.Members!);

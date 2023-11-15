@@ -11,7 +11,8 @@
  *  and limitations under the License.
  */
 
-import * as AWS from 'aws-sdk';
+
+
 import { ScheduledEvent } from 'aws-lambda';
 
 import { S3 } from 'siem-common';

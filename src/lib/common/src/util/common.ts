@@ -11,7 +11,9 @@
  *  and limitations under the License.
  */
 
-import { PutFileEntry } from 'aws-sdk/clients/codecommit';
+
+
+import { CodeCommit, PutFileEntry } from '@aws-sdk/client-codecommit';
 import * as yaml from 'js-yaml';
 import { S3 } from '../aws/s3';
 import { CodeCommit } from '../aws/codecommit';

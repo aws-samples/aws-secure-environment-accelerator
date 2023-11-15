@@ -12,12 +12,7 @@
  */
 
 import 'jest';
-const AWS = require('aws-sdk');
-const {
-  CodePipeline,
-  PutJobSuccessResultCommand,
-  PutJobFailureResultCommand,
-} = require('@aws-sdk/client-codepipeline');
+const { CodePipeline, PutJobSuccessResultCommand, PutJobFailureResultCommand } = require('@aws-sdk/client-codepipeline');
 const { SFNClient, StartExecutionCommand } = require('@aws-sdk/client-sfn');
 import { mockClient } from 'aws-sdk-client-mock';
 
