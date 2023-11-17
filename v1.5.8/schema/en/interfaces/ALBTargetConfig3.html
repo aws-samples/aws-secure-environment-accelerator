@@ -1,0 +1,387 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>ALBTargetConfig3 | AWS SEA Config Docs</title>
+	<meta name="description" content="Documentation for AWS SEA Config Docs">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="../assets/css/main.css">
+	<script async src="../assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json"
+				data-base="..">
+				<div class="field">
+					<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+					<input id="tsd-search-field" type="text" />
+				</div>
+				<ul class="results">
+					<li class="state loading">Preparing search index...</li>
+					<li class="state failure">The search index is not available</li>
+				</ul>
+				<ul class="results-priority" style="display:none">
+				</ul>
+				<a href="../index.html" class="title">Accelerator config file documentation</a>
+			</div>
+			<div class="table-cell" id="tsd-widgets">
+				<div id="tsd-filter">
+					<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+					<div class="tsd-filter-group">
+						<div class="tsd-select" id="tsd-filter-visibility">
+							<span class="tsd-select-label">All</span>
+							<ul class="tsd-select-list">
+								<li data-value="public">Public</li>
+								<li data-value="protected">Public/Protected</li>
+								<li data-value="private" class="selected">All</li>
+							</ul>
+						</div>
+						<div class="tsd-select" id="tsd-language-filter">
+							<span id="selected-language" class="tsd-select-label"
+							data-language="en">English</span>
+							<ul class="tsd-select-list" id="tsd-language-select-list">
+								<li data-value="en">English</li>
+								<li data-value="fr">Français</li>
+							</ul>
+						</div>
+						<input type="checkbox" id="tsd-filter-inherited" checked />
+						<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+						<input type="checkbox" id="tsd-filter-externals" checked />
+						<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						<input type="checkbox" id="tsd-filter-only-exported" />
+						<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+					</div>
+				</div>
+				<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+			</div>
+		</div>
+	</div>
+	</div>
+	<div class="tsd-page-title custom-breadcrumb">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="../modules.html" class="main-breadcrumb">AWS SEA Config Docs</a>
+				</li>
+				<li>
+					<a href="ALBTargetConfig3.html">ALBTargetConfig3</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="tsd-page-title disclaimer-wrapper">
+		<div class="container disclaimer">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+				<title>Warning</title>
+				<path
+				d="M85.57 446.25h340.86a32 32 0 0028.17-47.17L284.18 82.58c-12.09-22.44-44.27-22.44-56.36 0L57.4 399.08a32 32 0 0028.17 47.17z"
+				fill="none" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" />
+				<path d="M250.26 195.39l5.74 122 5.73-121.95a5.74 5.74 0 00-5.79-6h0a5.74 5.74 0 00-5.68 5.95z"
+				fill="none" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" />
+				<path fill="black" d="M256 397.25a20 20 0 1120-20 20 20 0 01-20 20z" />
+			</svg>
+			<h5>
+				The configuration file schema documentation is a work in progress. Please use this <b>draft</b> document with caution.  The deeper you browse into the hierarchy, the less accurate the definitions are likely to be.
+			</h5>
+		</div>
+	</div>
+</header>
+<style>
+    .disclaimer-wrapper {
+        background: #FFD740;
+        padding: 0;
+    }
+
+    .custom-breadcrumb {
+        margin-bottom: 0px;
+    }
+
+    .disclaimer {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .disclaimer svg {
+        width: 40px;
+        margin-right: 15px;
+    }
+
+    .disclaimer h5 {
+        line-height: 20px;
+    }
+</style>
+<script>
+    function replaceMainBreadcrumbLink() {
+        const mainBreadcrumb = document.querySelector('.main-breadcrumb');
+        if (!mainBreadcrumb.href.indexOf("modules.html")) return;
+        mainBreadcrumb.href = mainBreadcrumb.href.replace(`/modules.html`, `/index.html`);
+    }
+    const currentLanguage = document.getElementById('selected-language').dataset.language;
+
+    const languageFilter = document.getElementById('tsd-language-filter');
+    languageFilter.addEventListener("mouseenter", (event) => {
+        languageFilter.classList.add("active");
+        const languageList = document.getElementById('tsd-language-select-list');
+        const items = languageList.getElementsByTagName('li');
+        for (const item of items) {
+            if (item.dataset.value === currentLanguage) {
+                item.classList.add('selected');
+                break;
+            }
+        }
+    });
+    languageFilter.addEventListener("mouseleave", (event) => {
+        languageFilter.classList.remove("active");
+    });
+
+    function addEventListenerToLanguages() {
+        const languageList = document.getElementById('tsd-language-select-list');
+        const items = languageList.getElementsByTagName('li');
+        for (const item of items) {
+            item.addEventListener("click", (event) => {
+                languageSelected(event, item);
+            });
+        }
+    }
+
+    function languageSelected(event, itemClicked) {
+        const selectedLanguage = itemClicked.dataset.value; //'en', 'fr', 'es', '..'
+        if (currentLanguage === selectedLanguage) return;
+        document.location = document.location.href.replace(`/${currentLanguage}/`, `/${selectedLanguage}/`);
+    }
+
+    function initializePage() {
+        addEventListenerToLanguages();
+        replaceMainBreadcrumbLink();
+    }
+    window.addEventListener('load', (event) => {
+        initializePage();
+    });
+</script>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Used to define the target group configuration for an ELB deployment, per the defined configuration, in either the <code>account-configs</code> or <code>organizational-units</code> sections of the config file.</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">ALBTargetConfig3</span>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="ALBTargetConfig3.html#health_check_path" class="tsd-kind-icon">health-<wbr>check-<wbr>path</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="ALBTargetConfig3.html#health_check_port" class="tsd-kind-icon">health-<wbr>check-<wbr>port</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="ALBTargetConfig3.html#health_check_protocol" class="tsd-kind-icon">health-<wbr>check-<wbr>protocol</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="ALBTargetConfig3.html#lambda_filename" class="tsd-kind-icon">lambda-<wbr>filename</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="ALBTargetConfig3.html#port" class="tsd-kind-icon">port</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="ALBTargetConfig3.html#protocol" class="tsd-kind-icon">protocol</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="ALBTargetConfig3.html#target_instances" class="tsd-kind-icon">target-<wbr>instances</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="ALBTargetConfig3.html#target_name" class="tsd-kind-icon">target-<wbr>name</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="ALBTargetConfig3.html#target_type" class="tsd-kind-icon">target-<wbr>type</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="ALBTargetConfig3.html#tg_weight" class="tsd-kind-icon">tg-<wbr>weight</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="health_check_path" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> health-<wbr>check-<wbr>path</h3>
+					<div class="tsd-signature tsd-kind-icon">health-<wbr>check-<wbr>path<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:2526</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Health Check Path<br/><b>Description:</b> The destination for health checks on the targets.
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="health_check_port" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> health-<wbr>check-<wbr>port</h3>
+					<div class="tsd-signature tsd-kind-icon">health-<wbr>check-<wbr>port<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:2527</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Health Check Port<br/><b>Description:</b> The port the load balancer uses when performing health checks on targets. The default is to use the port on which each target receives traffic from the load balancer
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="health_check_protocol" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> health-<wbr>check-<wbr>protocol</h3>
+					<div class="tsd-signature tsd-kind-icon">health-<wbr>check-<wbr>protocol<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:2525</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Health Check Protocol<br/><b>Description:</b> The protocol the load balancer uses when performing health checks on targets. The possible protocols are HTTP and HTTPS. The default is the HTTP protocol
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="lambda_filename" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> lambda-<wbr>filename</h3>
+					<div class="tsd-signature tsd-kind-icon">lambda-<wbr>filename<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:2528</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Lambda Filename<br/><b>Description:</b> You can register a single Lambda function with each target group. Elastic Load Balancing must have permissions to invoke the Lambda function
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="port" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> port</h3>
+					<div class="tsd-signature tsd-kind-icon">port<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:2524</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Port<br/><b>Description:</b> TCP Port of the target: 1-65535
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="protocol" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> protocol</h3>
+					<div class="tsd-signature tsd-kind-icon">protocol<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:2523</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Protocol<br/><b>Description:</b> HTTP or HTTPS
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="target_instances" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> target-<wbr>instances</h3>
+					<div class="tsd-signature tsd-kind-icon">target-<wbr>instances<span class="tsd-signature-symbol">:</span> <a href="ALBTargetFirewallInstance3.html" class="tsd-signature-type" data-tsd-kind="Interface">ALBTargetFirewallInstance3</a><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:2529</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Target Instances<br/><b>Description:</b> Array of specific instances to be used as targets
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="target_name" class="tsd-anchor"></a>
+					<h3>target-<wbr>name</h3>
+					<div class="tsd-signature tsd-kind-icon">target-<wbr>name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:2521</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Target Name<br/><b>Description:</b> Name of the target
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="target_type" class="tsd-anchor"></a>
+					<h3>target-<wbr>type</h3>
+					<div class="tsd-signature tsd-kind-icon">target-<wbr>type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:2522</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Target Type<br/><b>Description:</b> When you create a target group, you specify its target type, which determines the type of target you specify when registering targets with this target group. values: instance, ip, lambda
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="tg_weight" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> tg-<wbr>weight</h3>
+					<div class="tsd-signature tsd-kind-icon">tg-<wbr>weight<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:2530</li>
+						</ul>
+					</aside>
+					<b>Title:</b> Tg Weight<br/><b>Description:</b> Priority of the target
+				</section>
+			</section>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="../modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface">
+						<a href="ALBTargetConfig3.html" class="tsd-kind-icon">ALBTarget<wbr>Config3</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="ALBTargetConfig3.html#health_check_path" class="tsd-kind-icon">health-<wbr>check-<wbr>path</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="ALBTargetConfig3.html#health_check_port" class="tsd-kind-icon">health-<wbr>check-<wbr>port</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="ALBTargetConfig3.html#health_check_protocol" class="tsd-kind-icon">health-<wbr>check-<wbr>protocol</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="ALBTargetConfig3.html#lambda_filename" class="tsd-kind-icon">lambda-<wbr>filename</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="ALBTargetConfig3.html#port" class="tsd-kind-icon">port</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="ALBTargetConfig3.html#protocol" class="tsd-kind-icon">protocol</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="ALBTargetConfig3.html#target_instances" class="tsd-kind-icon">target-<wbr>instances</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="ALBTargetConfig3.html#target_name" class="tsd-kind-icon">target-<wbr>name</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="ALBTargetConfig3.html#target_type" class="tsd-kind-icon">target-<wbr>type</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="ALBTargetConfig3.html#tg_weight" class="tsd-kind-icon">tg-<wbr>weight</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer>
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="overlay"></div>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>
