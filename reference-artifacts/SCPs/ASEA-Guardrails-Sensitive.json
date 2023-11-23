@@ -114,7 +114,6 @@
         "ram:EnableSharingWithAwsOrg*",
         "lightsail:*",
         "gamelift:*",
-        "appflow:*",
         "iq:*",
         "account:P*",
         "account:GetAl*",
