@@ -183,6 +183,7 @@ export function createMetadataService(props: MetadataServiceProps) {
     role: lambdaRole,
     handler: 'index.metadataCollection',
     timeout: cdk.Duration.minutes(10),
+    memorySize: 512,
     environment: {
       ACCELERATOR_PREFIX: props.acceleratorPrefix,
       BUCKET_NAME: bucketName,
