@@ -1,6 +1,6 @@
 {
   "name": "@aws-accelerator/installer",
-  "version": "1.5.8-b",
+  "version": "1.5.8-c",
   "scripts": {
     "test": "pnpx jest",
     "synth": "pnpx cdk synth",
