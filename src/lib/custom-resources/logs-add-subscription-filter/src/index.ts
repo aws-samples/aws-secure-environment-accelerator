@@ -141,6 +141,7 @@ export class CentralLoggingSubscriptionFilter extends Construct {
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role: this.role,
+      memorySize: 1024,
       environment: environment!,
       // Set timeout to maximum timeout
       timeout: cdk.Duration.minutes(15),
