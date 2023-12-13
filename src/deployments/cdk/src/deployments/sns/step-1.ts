@@ -206,6 +206,7 @@ function createSnsTopics(props: {
       handler: 'index.createSnsPublishToCentralRegion',
       code: lambdaCode,
       role,
+      memorySize: 512,
       environment: {
         CENTRAL_LOG_SERVICES_REGION: centralServicesRegion,
         CENTRAL_LOG_ACCOUNT: centralAccount,
@@ -224,6 +225,7 @@ function createSnsTopics(props: {
     handler: 'index.createIgnoreAction',
     code: lambdaCode,
     role,
+    memorySize: 512,
     timeout: cdk.Duration.minutes(15),
   });
 
