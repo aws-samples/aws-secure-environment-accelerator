@@ -209,6 +209,8 @@ export class ConvertAseaConfig {
   private lzaAccountKeys: string[] | undefined;
   private regionsWithoutVpc: string[] = [];
   private accountsWithoutVpc: string[] = [];
+  private accountsWithVpc: Set<string> = new Set<string>([]);
+
   constructor(config: Config, localUpdateOnly?: boolean) {
     this.localUpdateOnly = localUpdateOnly ?? false;
     this.aseaConfigRepositoryName = config.repositoryName;
@@ -265,19 +267,19 @@ export class ConvertAseaConfig {
       (region) => !regionsWithVpc.includes(region),
     );
     const accountKeys = aseaConfig.getAccountConfigs().map(([accountKey]) => accountKey);
-    const accountsWithVpc = new Set<string>();
+    this.accountsWithVpc = new Set<string>();
     /**
      * Loop VPC Configs and get accounts and regions with VPC
      * Compute accounts and regions with out VPC to exclude for EBS Default Encryption and sessionManager configuration.
      */
     for (const { ouKey, vpcConfig, accountKey, excludeAccounts } of this.vpcConfigs) {
       if (!!accountKey) {
-        accountsWithVpc.add(accountKey);
+        this.accountsWithVpc.add(accountKey);
       } else {
         aseaConfig
           .getAccountConfigsForOu(ouKey)
           .map(([accountKey]) => accountKey)
-          .forEach((accountKey) => accountsWithVpc.add(accountKey));
+          .forEach((accountKey) => this.accountsWithVpc.add(accountKey));
       }
       for (const subnetConfig of vpcConfig.subnets ?? []) {
         if (subnetConfig['share-to-ou-accounts']) {
@@ -285,15 +287,15 @@ export class ConvertAseaConfig {
             .getAccountConfigsForOu(ouKey)
             .filter(([accountKey]) => !excludeAccounts?.includes(accountKey))
             .map(([accountKey]) => accountKey)
-            .forEach((accountKey) => accountsWithVpc.add(accountKey));
+            .forEach((accountKey) => this.accountsWithVpc.add(accountKey));
         }
         if (!!subnetConfig['share-to-specific-accounts']) {
-          subnetConfig['share-to-specific-accounts'].forEach((accountKey) => accountsWithVpc.add(accountKey));
+          subnetConfig['share-to-specific-accounts'].forEach((accountKey) => this.accountsWithVpc.add(accountKey));
         }
       }
     }
     this.accountsWithoutVpc = accountKeys
-      .filter((accountKey) => !accountsWithVpc.has(accountKey))
+      .filter((accountKey) => !this.accountsWithVpc.has(accountKey))
       .map((accountKey) => this.getAccountKeyforLza(this.globalOptions!, accountKey));
     await this.copyAdditionalAssets();
     await this.prepareIamConfig(aseaConfig);
@@ -760,6 +762,16 @@ export class ConvertAseaConfig {
         useManagementAccessRole: false,
         customDeploymentRole: `${this.aseaPrefix}LZA-DeploymentRole`,
       },
+      lambda: {
+        encryption: {
+          useCMK: false,
+        },
+      },
+      s3: {
+        encryption: {
+          createCMK: false,
+        },
+      },
       logging: {
         account: this.getAccountKeyforLza(globalOptions, centralizeLogging.account),
         centralizedLoggingRegion: centralizeLogging.region,
@@ -797,14 +809,7 @@ export class ConvertAseaConfig {
         },
         // No option to customize on ASEA apart from expiration/retention
         accessLogBucket: {
-          lifecycleRules: [
-            {
-              enabled: true,
-              abortIncompleteMultipartUpload: 7,
-              expiration: centralizeLogging['s3-retention'] ?? 730,
-              noncurrentVersionExpiration: centralizeLogging['s3-retention'] ?? 730,
-            },
-          ],
+          enable: false,
         },
         centralLogBucket: {
           lifecycleRules: [
@@ -839,6 +844,9 @@ export class ConvertAseaConfig {
         //
         cloudwatchLogs: {
           enable: true,
+          encryption: {
+            useCMK: false,
+          },
           dynamicPartitioning: dynamicLogPartitioning ? 'dynamic-partitioning/log-filters.json' : undefined,
           replaceLogDestinationArn: `arn:aws:logs:${this.region}:${logAccountId}:destination/${this.aseaPrefix}LogDestinationOrg`,
         },
@@ -1549,7 +1557,6 @@ export class ConvertAseaConfig {
     };
     const accountKeys: string[] = [];
     const ignoredOus: string[] = aseaConfig['global-options']['ignored-ous'] ?? [];
-    console.log(ignoredOus);
     Object.entries(aseaConfig['mandatory-account-configs']).forEach(([accountKey, accountConfig]) => {
       if (!ignoredOus.includes(accountConfig.ou)) {
         accountsConfig.mandatoryAccounts.push({
@@ -1815,7 +1822,7 @@ export class ConvertAseaConfig {
         exportConfiguration: {
           enable: true,
           destinationType: 'S3',
-          exportFrequency: centralSecurityConfig['guardduty-frequency'],
+          exportFrequency: centralSecurityConfig['guardduty-frequency'] ?? 'FIFTEEN_MINUTES',
           overrideGuardDutyPrefix: {
             useCustomPrefix: true,
           },
@@ -1976,9 +1983,13 @@ export class ConvertAseaConfig {
     };
 
     const setDefaultEBSVolumeEncryptionConfig = async () => {
+      const accountsWithVpcList: string[] = Array.from(this.accountsWithVpc.values());
       securityConfigAttributes.centralSecurityServices.ebsDefaultVolumeEncryption = {
         enable: true,
-        excludeRegions: this.regionsWithoutVpc,
+        deploymentTargets: {
+          accounts: accountsWithVpcList,
+          excludeRegions: this.regionsWithoutVpc,
+        },
       };
     };
 
@@ -2794,9 +2805,18 @@ export class ConvertAseaConfig {
     await setVpcConfig();
     await setTransitGatewaysAndPeeringConfig();
     await setVpcPeeringConfig();
+    /*
+      The original network-config.yaml file has subnets.routeTable and networkAcl.subnetAssociations commented out.
+      This is so the end user can validate the routeTables and subnetAssociations before attaching them in a subsequent run.
+    */
     const networkConfig = NetworkConfig.loadFromString(JSON.stringify(networkConfigAttributes));
+    const networkConfigWithoutNaclAndSubnetAssociations = this.replaceNetworkConfigWithEmptyNaclAndSubnetAssociation(networkConfig!);
+    const yamlNetworkConfigWithoutNaclAndSubnetAssociations = yaml.dump(networkConfigWithoutNaclAndSubnetAssociations, { noRefs: true });
     const yamlConfig = yaml.dump(networkConfig, { noRefs: true });
-    await this.writeConfig(NetworkConfig.FILENAME, yamlConfig);
+    // This creates network-config-with-subnet-associations-and-route-tables.yaml
+    await this.writeConfig(NetworkConfig.FILENAME_WITH_SUBNET_ASSOCIATIONS_AND_ROUTE_TABLES, yamlConfig);
+    // This creates network-config.yaml
+    await this.writeConfig(NetworkConfig.FILENAME, yamlNetworkConfigWithoutNaclAndSubnetAssociations);
   }
 
   // async prepareCustomerGateways(aseaConfig: AcceleratorConfig) {
@@ -2845,6 +2865,24 @@ export class ConvertAseaConfig {
   //       }
   //   }
   // }
+
+  private replaceNetworkConfigWithEmptyNaclAndSubnetAssociation(networkConfig: NetworkConfig) {
+    const networkConfigWithoutNaclAndSubnetAssociation: any = networkConfig;
+    const vpcs = networkConfigWithoutNaclAndSubnetAssociation.vpcs;
+
+    vpcs.forEach((vpc: any) => {
+      const networkAcls: any[] = vpc.networkAcls;
+      const subnets: any[] = vpc.subnets;
+      for (const networkAcl of networkAcls) {
+       networkAcl.subnetAssociations = [];
+      }
+      for (const subnet of subnets) {
+        subnet.routeTable = undefined;
+      }
+    });
+
+    return networkConfigWithoutNaclAndSubnetAssociation;
+  }
 
   private replaceAccelLookupValuesForRedemption(params: { [key: string]: string | string[] }) {
     const parameters: {
@@ -2969,7 +3007,6 @@ export class ConvertAseaConfig {
 
   private async createDynamicPartitioningFile(aseaConfig: AcceleratorConfig) {
     const partitions = aseaConfig['global-options']['central-log-services']['dynamic-s3-log-partitioning'];
-    console.log(partitions);
     if (partitions) {
       await this.writeConfig('dynamic-partitioning/log-filters.json', JSON.stringify(partitions, null, 2));
     }
