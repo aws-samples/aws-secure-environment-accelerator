@@ -58,6 +58,7 @@ export class AlbIpForwarding extends Construct {
 
     const dnsFWLambda = new lambda.Function(this, `${prefix}dnsFWLambda`, {
       runtime: lambda.Runtime.NODEJS_18_X,
+      memorySize: 512,
       code: lambdaCode,
       handler: 'index.albIpMonitor',
       timeout: Duration.seconds(60),
@@ -81,6 +82,7 @@ export class AlbIpForwarding extends Construct {
 
     const lambdaDnsRecordMonitor = new lambda.Function(this, `${prefix}ddbDnsRecordMonitor`, {
       runtime: lambda.Runtime.NODEJS_18_X,
+      memorySize: 512,
       handler: 'index.albTargetRecordMonitor',
       code: lambdaCode,
       timeout: Duration.seconds(60),
