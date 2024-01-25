@@ -1,7 +1,5 @@
-const AWS = require('aws-sdk');
-AWS.config.logger = console;
-
-const config = new AWS.ConfigService();
+const { ConfigServiceClient, PutEvaluationsCommand } = require("@aws-sdk/client-config-service");
+const client = new ConfigServiceClient();
 
 const APPLICABLE_RESOURCES = ['AWS::IAM::Role'];
 
@@ -29,20 +27,20 @@ exports.handler = async function (event, context) {
     console.debug(`Evaluation`);
     console.debug(JSON.stringify(evaluation, null, 2));
 
-    await config
-        .putEvaluations({
-            ResultToken: event.resultToken,
-            Evaluations: [
-                {
-                    ComplianceResourceId: configurationItem.resourceId,
-                    ComplianceResourceType: configurationItem.resourceType,
-                    ComplianceType: evaluation.complianceType,
-                    OrderingTimestamp: configurationItem.configurationItemCaptureTime,
-                    Annotation: evaluation.annotation,
-                },
-            ],
-        })
-        .promise();
+    const payload = {
+        ResultToken: event.resultToken,
+        Evaluations: [
+            {
+                ComplianceResourceId: configurationItem.resourceId,
+                ComplianceResourceType: configurationItem.resourceType,
+                ComplianceType: evaluation.complianceType,
+                OrderingTimestamp: new Date(configurationItem.configurationItemCaptureTime),
+                Annotation: evaluation.annotation,
+            },
+        ],
+    };
+    const putEvaluationsCommand = new PutEvaluationsCommand(payload);
+    await client.send(putEvaluationsCommand);
 };
 
 async function evaluateCompliance(props) {
