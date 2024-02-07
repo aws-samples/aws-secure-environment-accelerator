@@ -53,6 +53,7 @@ export const isThrottlingError = (e: any) =>
   e.code === 'InsufficientDeliveryPolicyException' || // Retry for ConfigService
   e.code === 'NoAvailableDeliveryChannelException' || // Retry for ConfigService
   e.code === 'ConcurrentModifications' || // Retry for AssociateHostedZone
+  e.code === 'ConcurrentModification' || // Retry for AssociateHostedZone
   e.code === 'TooManyRequestsException' ||
   e.code === 'Throttling' ||
   e.code === 'ThrottlingException' ||
