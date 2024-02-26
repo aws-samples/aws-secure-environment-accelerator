@@ -31,11 +31,11 @@ jobs:
           GITHUB_REF: ${{ github.ref }}
         run: |
           git fetch --tags
-          echo ::set-output name=branch_name::$(echo "${GITHUB_REF}" | cut -d/ -f3-)
-          echo ::set-output name=tag_name::$(echo "${GITHUB_REF}" | cut -d/ -f4-)
-          echo ::set-output name=numeric_release::$(echo "${GITHUB_REF}" | cut -d/ -f4- | tr -d v)
-          echo ::set-output name=numeric_release_short::$(echo "${GITHUB_REF}" | cut -d/ -f4- | tr -d v.-)
-          echo ::set-output name=release_name::"Release $(echo "${GITHUB_REF}" | cut -d/ -f4-)"
+          echo branch_name=$(echo "${GITHUB_REF}" | cut -d/ -f3-) >> "$GITHUB_OUTPUT"
+          echo tag_name=$(echo "${GITHUB_REF}" | cut -d/ -f4-) >> "$GITHUB_OUTPUT"
+          echo numeric_release=$(echo "${GITHUB_REF}" | cut -d/ -f4- | tr -d v) >> "$GITHUB_OUTPUT"
+          echo numeric_release_short=$(echo "${GITHUB_REF}" | cut -d/ -f4- | tr -d v.-) >> "$GITHUB_OUTPUT"
+          echo release_name="Release $(echo "${GITHUB_REF}" | cut -d/ -f4-)" >> "$GITHUB_OUTPUT"
       - name: Use Node.js
         uses: actions/setup-node@v1
         env:
@@ -58,7 +58,7 @@ jobs:
           changes="${changes//'%'/'%25'}"    # Avoids whitespace removal.
           changes="${changes//$'\n'/'%0A'}"
           changes="${changes//$'\r'/'%0D'}"
-          echo ::set-output name=changelog::${changes}
+          echo changelog=${changes} >> "$GITHUB_OUTPUT"
       - name: Bump package.json
         run: |
           npm install -g json
@@ -88,12 +88,12 @@ jobs:
           pnpm install --frozen-lockfile
           pnpx cdk synth --output "${OUTPUT_DIR}" "${INSTALLER_STACK_NAME}"
 
-          echo ::set-output name=template_name::${INSTALLER_STACK_NAME}-GitHub.template.json
-          echo ::set-output name=template_name_code_commit::${INSTALLER_STACK_NAME}-CodeCommit.template.json
-          echo ::set-output name=template_name_with_version::${INSTALLER_STACK_NAME}${NUMERIC_RELEASE_SHORT}-GitHub.template.json
-          echo ::set-output name=template_name_with_version_code_commit::${INSTALLER_STACK_NAME}${NUMERIC_RELEASE_SHORT}-CodeCommit.template.json
-          echo ::set-output name=template_path::$(realpath "${OUTPUT_DIR}/${INSTALLER_STACK_NAME}.template.json")
-          echo ::set-output name=template_path_code_commit::$(realpath "${OUTPUT_DIR}/${INSTALLER_STACK_NAME}-CodeCommit.template.json")
+          echo template_name=${INSTALLER_STACK_NAME}-GitHub.template.json >> "$GITHUB_OUTPUT"
+          echo template_name_code_commit=${INSTALLER_STACK_NAME}-CodeCommit.template.json >> "$GITHUB_OUTPUT"
+          echo template_name_with_version=${INSTALLER_STACK_NAME}${NUMERIC_RELEASE_SHORT}-GitHub.template.json >> "$GITHUB_OUTPUT"
+          echo template_name_with_version_code_commit=${INSTALLER_STACK_NAME}${NUMERIC_RELEASE_SHORT}-CodeCommit.template.json >> "$GITHUB_OUTPUT"
+          echo template_path=$(realpath "${OUTPUT_DIR}/${INSTALLER_STACK_NAME}.template.json") >> "$GITHUB_OUTPUT"
+          echo template_path_code_commit=$(realpath "${OUTPUT_DIR}/${INSTALLER_STACK_NAME}-CodeCommit.template.json") >> "$GITHUB_OUTPUT"
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
@@ -173,8 +173,8 @@ jobs:
           cd "${BUILD_DIR}"
           pnpm build
 
-          echo ::set-output name=release-path::$(realpath "./${OUTPUT_DIR}")
-          echo ::set-output name=release-asset-name::${BUILD_ASSET_NAME}
+          echo release-path=$(realpath "./${OUTPUT_DIR}") >> "$GITHUB_OUTPUT"
+          echo release-asset-name=${BUILD_ASSET_NAME} >> "$GITHUB_OUTPUT"
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
@@ -213,8 +213,8 @@ jobs:
           cd "${BUILD_DIR}"
           pnpm build:ui
 
-          echo ::set-output name=release-path::$(realpath "./${OUTPUT_DIR}")
-          echo ::set-output name=release-asset-name::${BUILD_ASSET_NAME}
+          echo release-path=$(realpath "./${OUTPUT_DIR}") >> "$GITHUB_OUTPUT"
+          echo release-asset-name=${BUILD_ASSET_NAME} >> "$GITHUB_OUTPUT"
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
@@ -244,8 +244,8 @@ jobs:
           cd "${OUTPUT_DIR}"
           zip -r  archive.zip *
 
-          echo ::set-output name=release-path::$(realpath "./archive.zip")
-          echo ::set-output name=release-asset-name::AWS-SEA-GUI-mockup-DoNotUse-v${NUMERIC_RELEASE_SHORT}-alpha.zip
+          echo release-path=$(realpath "./archive.zip") >> "$GITHUB_OUTPUT"
+          echo release-asset-name=AWS-SEA-GUI-mockup-DoNotUse-v${NUMERIC_RELEASE_SHORT}-alpha.zip >> "$GITHUB_OUTPUT"
       - name: SEA-GUI - Upload Release Asset
         id: upload-release-asset-sea-gui
         uses: actions/upload-release-asset@v1
@@ -272,8 +272,8 @@ jobs:
           cd "${OUTPUT_DIR}"
           zip -r  archive.zip *
 
-          echo ::set-output name=release-path::$(realpath "./archive.zip")
-          echo ::set-output name=release-asset-name::AWS-SEA-Config-Schema-v${NUMERIC_RELEASE_SHORT}-DRAFT.zip
+          echo release-path=$(realpath "./archive.zip") >> "$GITHUB_OUTPUT"
+          echo release-asset-name=AWS-SEA-Config-Schema-v${NUMERIC_RELEASE_SHORT}-DRAFT.zip >> "$GITHUB_OUTPUT"
       - name: SEA-Config-Schema - Upload Release Asset
         id: upload-release-asset-sea-config-schema
         uses: actions/upload-release-asset@v1
