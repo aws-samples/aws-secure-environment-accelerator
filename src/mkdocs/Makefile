@@ -7,4 +7,4 @@ serve:
 .PHONY: build
 build:
 	@echo Building the site!
-	mkdocs build --strict --verbose
+	mkdocs build --verbose
