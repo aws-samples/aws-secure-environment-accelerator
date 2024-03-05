@@ -1075,21 +1075,29 @@ export class ConvertAseaConfig {
   }
 
   private buildSsmInventory(aseaConfig: AcceleratorConfig) {
-    const ssmInventoryAccounts = aseaConfig
+    let ssmInventoryAccounts = aseaConfig
       .getAccountConfigs()
       .filter(([_accountKey, accountConfig]) => !!accountConfig['ssm-inventory-collection'])
       .map(([accountKey]) => this.getAccountKeyforLza(aseaConfig['global-options'], accountKey));
-    const ssmInventoryOus = Object.entries(aseaConfig['organizational-units'])
+    let ssmInventoryOus = Object.entries(aseaConfig['organizational-units'])
       .filter(([_accountKey, ouConfig]) => !!ouConfig['ssm-inventory-collection'])
       .map(([ouKey]) => ouKey);
-    if (ssmInventoryAccounts.length === 0 || ssmInventoryOus.length === 0) return;
-    return {
-      enable: true,
-      deploymentTargets: {
-        organizationalUnits: ssmInventoryOus,
-        accounts: ssmInventoryAccounts,
-      },
-    };
+    if (ssmInventoryAccounts.length === 0 && ssmInventoryOus.length === 0) return;
+    if (ssmInventoryAccounts.length === 0 ) {
+      return {
+        enable: true,
+        deploymentTargets: {
+          organizationalUnits: ssmInventoryOus,
+        },
+      };
+    } else {
+      return {
+        enable: true,
+        deploymentTargets: {
+          accounts: ssmInventoryAccounts,
+        },
+      };
+    }
   }
 
   /**
@@ -2867,7 +2875,7 @@ export class ConvertAseaConfig {
   // }
 
   private replaceNetworkConfigWithEmptyNaclAndSubnetAssociation(networkConfig: NetworkConfig) {
-    const networkConfigWithoutNaclAndSubnetAssociation: any = networkConfig;
+    const networkConfigWithoutNaclAndSubnetAssociation: any = JSON.parse(JSON.stringify(networkConfig));
     const vpcs = networkConfigWithoutNaclAndSubnetAssociation.vpcs;
 
     vpcs.forEach((vpc: any) => {
