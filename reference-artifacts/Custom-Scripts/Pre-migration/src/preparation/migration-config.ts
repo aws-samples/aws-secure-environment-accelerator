@@ -19,6 +19,7 @@ import {
   DescribeStacksCommand,
   paginateDescribeStacks,
   Parameter,
+  UpdateStackCommand,
 } from '@aws-sdk/client-cloudformation';
 import {
   CodeCommitClient,
@@ -139,18 +140,42 @@ export async function createS3CloudFormationStack(
       },
     ],
   };
-  await cloudformationClient.send(new CreateStackCommand(cloudformationParameters));
+
+  let createStack = false;
+  try {
+    await cloudformationClient.send(new DescribeStacksCommand({ StackName: stackName }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    if (error.name === 'ValidationError') {
+      console.log('S3 stack does not exist');
+      createStack = true;
+    }
+  }
+
+  if (createStack) {
+    console.log('Creating S3 stack');
+    await cloudformationClient.send(new CreateStackCommand(cloudformationParameters));
+  } else {
+    try {
+      await cloudformationClient.send(new UpdateStackCommand(cloudformationParameters));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.name === 'ValidationError') {
+        console.log('S3 stack has no updates');
+      }
+    }
+  }
 
   let stackStatus = 'CREATE_IN_PROGRESS';
-  while (stackStatus === 'CREATE_IN_PROGRESS') {
+  while (stackStatus === 'CREATE_IN_PROGRESS' || stackStatus === 'UPDATE_IN_PROGRESS') {
     const describeStacksResponse = await cloudformationClient.send(new DescribeStacksCommand({ StackName: stackName }));
     stackStatus = describeStacksResponse.Stacks![0].StackStatus!;
     console.log(`Stack status: ${stackStatus}`);
     await new Promise((resolve) => setTimeout(resolve, 5000));
   }
-  if (stackStatus === 'CREATE_COMPLETE') {
-    console.log(`Created CloudFormation stack ${stackName}`);
+  if (stackStatus === 'CREATE_COMPLETE' || 'UPDATE_COMPLETE') {
+    console.log(`Created/Updated CloudFormation stack ${stackName}`);
   } else {
-    throw new Error(`Failed to create CloudFormation stack ${stackName} with status ${stackStatus}`);
+    throw new Error(`Failed to create/update CloudFormation stack ${stackName} with status ${stackStatus}`);
   }
 }

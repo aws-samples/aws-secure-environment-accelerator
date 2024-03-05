@@ -82,6 +82,8 @@ export class MigrationConfig {
     if (controlTowerEnabled) {
       lzaControlTowerEnabled = 'Yes';
     }
+    const lzaCodeRepositorySource = process.env.LZA_CODE_REPOSITORY_SOURCE ?? 'github';
+    const lzaCodeRepositoryName = process.env.LZA_CODE_REPOSITORY_NAME ?? 'landing-zone-accelerator-on-aws';
 
     let config: Config = {
       repositoryName: aseaConfigRepositoryName,
@@ -97,9 +99,9 @@ export class MigrationConfig {
       mappingBucketName: mappingBucketName,
       mappingRepositoryName: mappingRepositoryName,
       lzaConfigRepositoryName: lzaConfigRepositoryName,
-      lzaCodeRepositorySource: 'github',
+      lzaCodeRepositorySource: lzaCodeRepositorySource,
       lzaCodeRepositoryOwner: 'awslabs',
-      lzaCodeRepositoryName: 'landing-zone-accelerator-on-aws',
+      lzaCodeRepositoryName: lzaCodeRepositoryName,
       managementAccountEmail: managementAccountEmail,
       logArchiveAccountEmail: logArchiveAccountEmail,
       auditAccountEmail: auditAccountEmail,
