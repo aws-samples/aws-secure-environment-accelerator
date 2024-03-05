@@ -132,3 +132,6 @@ plugins:
       #verbose: true
       #show_anchors: true
       #enabled_if_env: ENABLE_PDF_EXPORT
+validation:
+  absolute_links: ignore
+  unrecognized_links: ignore
