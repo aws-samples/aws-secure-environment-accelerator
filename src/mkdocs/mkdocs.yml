@@ -128,9 +128,6 @@ plugins:
       #headless_chrome_path: "chrome"
       output_path: pdf/accelerator-docs.pdf
       #debug_html: true
-      verbose: true
+      # verbose: true
       #show_anchors: true
       #enabled_if_env: ENABLE_PDF_EXPORT
-validation:
-  absolute_links: ignore
-  unrecognized_links: ignore
