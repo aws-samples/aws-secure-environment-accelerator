@@ -44,6 +44,7 @@ import { logArchiveReadOnlyAccess } from '../deployments/s3/log-archive-read-acc
 import * as metadataDeployment from '../deployments/metadata-collection';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import * as alb from '../deployments/alb';
+import { loadAssignedSubnetCidrPool } from '@aws-accelerator/common/src/util/common';
 
 /**
  * This is the main entry point to deploy phase 2
@@ -88,6 +89,8 @@ export async function deploy({
     config: acceleratorConfig,
     outputs,
   });
+
+  const assignedSubnetCidrPools = await loadAssignedSubnetCidrPool(context.subnetCidrPoolAssignedTable);
 
   await createTrail.step1({
     accountBuckets,
@@ -288,6 +291,7 @@ export async function deploy({
         vpcConfigs,
         sharedAccountKey,
         installerVersion: context.installerVersion,
+        subnetPools: assignedSubnetCidrPools,
       });
 
       // Add Tags Output
