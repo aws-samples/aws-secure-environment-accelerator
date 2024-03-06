@@ -3,7 +3,6 @@ site_url: https://aws-samples.github.io/aws-secure-environment-accelerator/
 site_author: Amazon Web Services
 site_description: Documentation for the AWS Secure Environment Accelerator
 site_dir: ../../public
-use_directory_urls: false
 nav:
   - About: index.md
   - Installation & Upgrades:
