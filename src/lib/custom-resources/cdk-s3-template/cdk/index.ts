@@ -24,6 +24,7 @@ const resourceType = 'Custom::S3Template';
 export interface S3TemplateProps {
   templateBucket: s3.IBucket;
   templatePath: string;
+  templateBucketRegion: string;
   outputBucket: s3.IBucket;
   outputPath: string;
 }
@@ -40,6 +41,7 @@ export class S3Template extends Construct {
     this.handlerProperties = {
       templateBucketName: props.templateBucket.bucketName,
       templatePath: props.templatePath,
+      templateBucketRegion: props.templateBucketRegion,
       outputBucketName: props.outputBucket.bucketName,
       outputPath: props.outputPath,
       parameters: {},

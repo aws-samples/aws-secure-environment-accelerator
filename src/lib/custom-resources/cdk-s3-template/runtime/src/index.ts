@@ -22,12 +22,13 @@ export type TemplateParameters = { [key: string]: string };
 export interface HandlerProperties {
   templateBucketName: string;
   templatePath: string;
+  templateBucketRegion: string;
   outputBucketName: string;
   outputPath: string;
   parameters: TemplateParameters;
 }
 
-const s3 = new AWS.S3();
+let s3 = new AWS.S3();
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Creating S3 object from template...`);
@@ -48,11 +49,14 @@ export const handler = errorHandler(onEvent);
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const { templateBucketName, templatePath, outputBucketName, outputPath } = properties;
+  const { templateBucketName, templatePath, templateBucketRegion, outputBucketName, outputPath } = properties;
 
   // Load template
   console.debug(`Loading template ${templateBucketName}/${templatePath}`);
   let bodyString;
+
+  s3 = templateBucketRegion ? new AWS.S3({ region: templateBucketRegion }) : s3;
+
   try {
     const object = await throttlingBackOff(() =>
       s3
