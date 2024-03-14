@@ -84,6 +84,7 @@ export class FirewallInstance extends Construct {
     if (props.licenseBucket && props.licensePath) {
       new S3Template(this, 'License', {
         templateBucket: props.licenseBucket,
+        templateBucketRegion: configuration.bucketRegion,
         templatePath: props.licensePath,
         outputBucket: configuration.bucket,
         outputPath: props.licensePath,
@@ -93,6 +94,7 @@ export class FirewallInstance extends Construct {
     if (configuration.templateConfigPath) {
       this.template = new S3Template(this, 'Config', {
         templateBucket: configuration.templateBucket,
+        templateBucketRegion: configuration.bucketRegion,
         templatePath: configuration.templateConfigPath,
         outputBucket: configuration.bucket,
         outputPath: configuration.configPath,
