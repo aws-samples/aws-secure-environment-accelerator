@@ -182,8 +182,8 @@ export async function step3(props: GuardDutyStep3Props) {
 export async function enableGuardDutyPolicy(props: GuardDutyStep3Props) {
   const { logBucket } = props;
 
-  let servicePrincipals = [new iam.ServicePrincipal('guardduty.amazonaws.com')];
-  const optin_regions = [
+  const servicePrincipals = [new iam.ServicePrincipal('guardduty.amazonaws.com')];
+  const optinRegions = [
     'af-south-1',
     'ap-east-1',
     'ap-south-2',
@@ -198,10 +198,10 @@ export async function enableGuardDutyPolicy(props: GuardDutyStep3Props) {
     'me-south-1',
   ];
 
-  optin_regions.map(optin_region => {
-    if (props.config['global-options']['supported-regions'].includes(optin_region)) {
+  optinRegions.map(optinRegion => {
+    if (props.config['global-options']['supported-regions'].includes(optinRegion)) {
       // Ideally want to query aws account list-regions --region-opt-status-contains ENABLED, and intersect with what is configured
-      servicePrincipals.push(new iam.ServicePrincipal(`guardduty.${optin_region}.amazonaws.com`));
+      servicePrincipals.push(new iam.ServicePrincipal(`guardduty.${optinRegion}.amazonaws.com`));
     }
   });
 
