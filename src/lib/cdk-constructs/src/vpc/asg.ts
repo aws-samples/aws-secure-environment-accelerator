@@ -101,7 +101,7 @@ export class RsysLogAutoScalingGroup extends Construct {
       autoScalingGroupName: `${props.acceleratorPrefix}RsyslogAutoScalingGroup`,
       launchTemplate: {
         launchTemplateId: launchTemplate.ref,
-        version: '1',
+        version: launchTemplate.attrLatestVersionNumber
       },
       vpcZoneIdentifier: props.subnetIds,
       maxInstanceLifetime: props.maxInstanceAge * 86400,
