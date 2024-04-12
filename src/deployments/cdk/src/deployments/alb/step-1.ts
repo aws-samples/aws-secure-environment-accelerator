@@ -167,7 +167,7 @@ export function createAlb(props: {
   tags?: { [key: string]: string };
 }) {
   const { accountKey, accountStack, aesLogArchiveBucket, albConfig, deploy, outputs, tags } = props;
-  const certificateSecretName = createCertificateSecretName(albConfig['cert-name']!);
+  const certificateSecretName = createCertificateSecretName(albConfig['cert-name']);
   const certificateSecret = cdk.SecretValue.secretsManager(certificateSecretName);
 
   const vpc = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
@@ -255,7 +255,7 @@ export function createAlb(props: {
     balancer.addListener({
       ports: albConfig.ports,
       protocol: albConfig.listeners,
-      sslPolicy: albConfig['security-policy']!,
+      sslPolicy: albConfig['security-policy'],
       certificateArn: certificateSecret.toString(),
       actionType: albConfig['action-type'],
       targetGroupArns: Object.values(targetGroups),

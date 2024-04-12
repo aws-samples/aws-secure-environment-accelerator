@@ -29,8 +29,7 @@ test('should add the Name tag with the correct suffix to ec2.Vpc', () => {
 
   cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
-  // Make sure the aspects get applied
-  // eslint-disable-next-line deprecation/deprecation
+  // Make sure the aspects get applied  
   // Node.prepare(stack.node);
 
   stack.node.validate();
@@ -55,8 +54,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnVpc', () => {
 
   cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
-  // Make sure the aspects get applied
-  // eslint-disable-next-line deprecation/deprecation
+  // Make sure the aspects get applied  
   // Node.prepare(stack.node);
   stack.node.validate();
   expect(stack).to(
@@ -82,8 +80,7 @@ test('should add the Name tag with the correct suffix to ec2.Subnet', () => {
 
   cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
-  // Make sure the aspects get applied
-  // eslint-disable-next-line deprecation/deprecation
+  // Make sure the aspects get applied  
   // Node.prepare(stack.node);
   stack.node.validate();
 
@@ -110,8 +107,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnSubnet', () => {
 
   cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
-  // Make sure the aspects get applied
-  // eslint-disable-next-line deprecation/deprecation
+  // Make sure the aspects get applied  
   stack.node.validate();
   // Node.prepare(stack.node);
 
@@ -136,8 +132,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnRouteTable', () 
 
   cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
-  // Make sure the aspects get applied
-  // eslint-disable-next-line deprecation/deprecation
+  // Make sure the aspects get applied  
   // Node.prepare(stack.node);
   stack.node.validate();
 
@@ -160,8 +155,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnTransitGateway',
 
   cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
-  // Make sure the aspects get applied
-  // eslint-disable-next-line deprecation/deprecation
+  // Make sure the aspects get applied  
   // Node.prepare(stack.node);
   stack.node.validate();
 
@@ -186,8 +180,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnTransitGatewayRo
 
   cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
-  // Make sure the aspects get applied
-  // eslint-disable-next-line deprecation/deprecation
+  // Make sure the aspects get applied  
   // Node.prepare(stack.node);
   stack.node.validate();
 
@@ -212,8 +205,7 @@ test('should not add suffix if the suffix is already there', () => {
 
   cdk.Aspects.of(stack).add(new AcceleratorNameTagger());
 
-  // Make sure the aspects get applied
-  // eslint-disable-next-line deprecation/deprecation
+  // Make sure the aspects get applied  
   // Node.prepare(stack.node);
   stack.node.validate();
 

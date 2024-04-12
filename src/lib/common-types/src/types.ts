@@ -11,7 +11,6 @@
  *  and limitations under the License.
  */
 
-/* eslint-disable deprecation/deprecation */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as t from 'io-ts';
 import { either } from 'fp-ts/lib/Either';

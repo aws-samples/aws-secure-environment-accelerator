@@ -249,7 +249,7 @@ function createSnsTopics(props: {
   }
   for (const notificationType of SNS_NOTIFICATION_TYPES) {
     const topicName = createSnsTopicName(notificationType);
-    const topic = masterKey!!
+    const topic = masterKey!
       ? new sns.Topic(accountStack, `SnsNotificationTopic${notificationType}`, {
           displayName: topicName,
           topicName,
