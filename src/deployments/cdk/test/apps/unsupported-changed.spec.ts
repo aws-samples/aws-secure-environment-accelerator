@@ -88,7 +88,7 @@ beforeAll(async () => {
     const stacks = app.node.children.filter(cdk.Stack.isStack);
     for (const stack of stacks) {
       const artifact = assembly.getStackArtifact(stack.artifactId);
-      const template = artifact.template;      
+      const template = artifact.template;
       const stackUniqueId = cdk.Names.uniqueId(stack);
       stackResources[stackUniqueId] = resourcesToList(template.Resources);
 
@@ -97,7 +97,7 @@ beforeAll(async () => {
       const nestedStacks = stack.node.findAll().filter(cdk.NestedStack.isNestedStack);
       for (const nestedStack of nestedStacks) {
         const nestedTemplateFile = path.join(assembly.directory, nestedStack.templateFile);
-        const nestedTemplate = JSON.parse(fs.readFileSync(nestedTemplateFile).toString('utf-8'));        
+        const nestedTemplate = JSON.parse(fs.readFileSync(nestedTemplateFile).toString('utf-8'));
         const uniqueId = cdk.Names.uniqueId(nestedStack);
         stackResources[uniqueId] = resourcesToList(nestedTemplate.Resources);
       }
