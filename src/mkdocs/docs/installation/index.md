@@ -5,6 +5,7 @@ This section contains information on the installation and upgrade procedures for
 - Installation
     -   [Installation Guide](../installation/install.md)
     -   [Sample Configurations and Customization](../installation/customization-index.md)
+    -   [Calgary Region Configuration Sample](../installation/ca-west-1-region-configuration.md)
     -   [State Machine Behavior](../installation/sm_inputs.md)
     -   [Splitting the Config File](../installation/multi-file-config-capabilities.md)
     -   [Considerations with Existing Organizations](../installation/existing-orgs.md)
