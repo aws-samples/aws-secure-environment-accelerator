@@ -112,6 +112,40 @@
     -   AWS Control Tower: No
     -   Firewall: AWS Network Firewall
 
+### 1.2.6. **Lite weight Multi-Region ca-west-1 configuration ([config.lite-VPN-multi-region-ca-west-1-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json))** files
+
+- This configuration file was created to represent a more advanced multi-region version of the Full configuration file from configuration 1 above. This config:
+
+    -   adds ca-west-1 to list of supported regions
+    -   adds a TGW in ca-west-1
+    -   adds TGW static routes
+    -   adds a central Endpoint VPC in ca-west-1 with ca-west-1 endpoints configured
+    -   adds a shared VPCs for Dev,Test,Prod OU accounts in ca-west-1
+    -   Sends ca-west-1 CloudWatch Logs to the central S3 log-archive bucket in ca-central-1
+    -   Deploys SSM documents to ca-west-1 and remediates configured rules Dev,Test,Prod OU
+    -   adds VPC to Perimeter account in ca-west-1
+    -   Deploys Fortigate Firewalls to Perimeter account in ca-west-1
+    -   Deploys rsyslog servers in Operations account in ca-west-1
+    -   Disables Macie in ca-west-1 (Service not available yet)
+    -   Deploys available AWS Config Rules to ca-west-1
+    -   requires 3rd party licensing (BYOL or PAYGO)
+  
+-   Default Settings:
+    -   AWS Control Tower: No
+    -   Firewall: IPSec VPN with Active/Active Fortinet cluster (uses BGP+ECMP)
+
+-   To reduce solution costs and allow customers to grow into more advanced AWS capabilities, we created these lite weight configurations that does not sacrifice functionality, but could limit performance. These config files:
+
+    -   only deploys the 9 required centralized Interface Endpoints (removes 50 from full config). All services remain accessible using the AWS public endpoints, but require traversing the perimeter firewalls
+    -   removes the perimeter VPC Interface Endpoints
+    -   reduces the Fortigate instance sizes from c5n.2xl to c5n.xl (VM08 to VM04) in _Variant 2: IPSec VPN with Active/Active Fortinet cluster_ option
+    -   removes the Unclass ou and VPC
+
+-   Review additional details [here](./ca-west-1-region-configuration.md)
+
+    
+-   The Accelerator allows customers to easily add or change this functionality in future, as and when required without any impact
+
 ## 1.3. Deployment Customizations
 
 ### 1.3.1. [Multi-file config file and YAML formatting option](./multi-file-config-capabilities.md)
