@@ -112,7 +112,7 @@
     -   AWS Control Tower: No
     -   Firewall: AWS Network Firewall
 
-### 1.2.6. **Lite weight Multi-Region ca-west-1 configuration ([config.lite-VPN-multi-region-ca-west-1-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-example.json))** files
+### 1.2.6. **Lite weight Multi-Region ca-west-1 configuration ([config.lite-VPN-multi-region-ca-west-1-example.json](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-multi-region-ca-west-1-example.json))** files
 
 - This configuration file was created to represent a more advanced multi-region version of the Full configuration file from configuration 1 above. This config:
 
