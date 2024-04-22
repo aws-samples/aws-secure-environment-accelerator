@@ -47,3 +47,4 @@ Current Known Limitations:
 
 1. Managed Active Directory should be manually 'shared' to ca-west-1 once the service is updated to support ca-west-1
 2. Rsyslog servers (used as an option for Fortigate logging destination) can only be deployed to a single region. This would need to be configured outside ASEA (manually or with your own created IaC).
+3. Fortigate firewalls config use c6i EC2 instance types in lieu of c5n until it becomes available in ca-west-1.
