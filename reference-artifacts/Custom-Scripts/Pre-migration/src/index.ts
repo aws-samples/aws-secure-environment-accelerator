@@ -22,36 +22,23 @@ import { Snapshot } from './snapshot';
 
 async function main() {
   const args = process.argv.slice(2);
-  if (args.length === 0) {
-    console.log('Usage: index.ts <command>');
-    return;
-  }
   const command = args[0];
-  if (command === 'snapshot' && args.length < 2 && !['pre', 'post', 'report', 'reset'].includes(args[1])) {
-    console.log('Usage: index.ts snapshot pre|post|report|reset');
-    return;
-  }
-  if (command === 'migration-config') {
-    let localUpdateOnly = false;
-    if (args[1] === 'local-update-only') {
-      localUpdateOnly = true;
-    }
-    console.log('Creating migration tool configuration file');
-    const migrationConfig = new MigrationConfig(localUpdateOnly);
-    await migrationConfig.configure();
-    return;
-  }
-  const config = JSON.parse(await readFile(path.join(__dirname, 'input-config', 'input-config.json'), 'utf8'));
+  validateCommand(args);
+  const config = await loadConfig(command);
+  config.localOnlyWrites = isLocalUpdateOnly(args[1]);
+  const localUpdateOnly = isLocalUpdateOnly(args[1]);
+
   switch (command) {
+    case 'migration-config':
+      console.log('Creating migration tool configuration file');
+      const migrationConfig = new MigrationConfig(localUpdateOnly);
+      await migrationConfig.configure();
+      break;
     case 'resource-mapping':
       await new ResourceMapping(config).process();
       break;
     case 'convert-config':
-      let localUpdateOnly = false;
-      if (args[1] === 'local-update-only') {
-        localUpdateOnly = true;
-      }
-      await new ConvertAseaConfig(config, localUpdateOnly).process();
+      await new ConvertAseaConfig(config).process();
       break;
     case 'asea-prep':
       const preparation = new Preparation(config);
@@ -84,5 +71,34 @@ async function main() {
   }
 }
 
+function validateCommand(args: string[]) {
+  if (args.length === 0) {
+    console.log('Usage: index.ts <command>');
+    throw new Error('Invalid Command');
+  }
+  const command = args[0];
+  if (command === 'snapshot' && args.length < 2 && !['pre', 'post', 'report', 'reset'].includes(args[1])) {
+    console.log('Usage: index.ts snapshot pre|post|report|reset');
+    throw new Error('Invalid Command');
+  }
+}
+
+async function loadConfig(command: string) {
+  try {
+    return JSON.parse(await readFile(path.join(__dirname, 'input-config', 'input-config.json'), 'utf8'));
+  } catch (err) {
+    if (command !== 'migration-config') {
+      throw new Error('Could not load configuration. Please run the migration-config command.');
+    }
+    return {};
+  }
+}
+
+function isLocalUpdateOnly(flag: string | undefined) {
+  if (flag && flag === 'local-update-only') {
+    return true;
+  }
+  return false;
+}
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 main();

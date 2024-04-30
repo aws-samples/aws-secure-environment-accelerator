@@ -72,9 +72,14 @@ export class Preparation {
       useExistingConfigRepo: 'Yes',
       existingConfigRepositoryName: this.config.lzaConfigRepositoryName ?? 'ASEA-LZA-config',
       existingConfigRepositoryBranchName: 'main',
+      enableDiagnosticsPack: 'No',
     };
     await createLZAInstallerCloudFormationStack(
-      `${this.aseaPrefix}LZA-Installer`,
+      // use default lza installer stack name due to issue with
+      // diagnostics pack failure
+      // may be reverted once underlying issue is resolved
+      //`${this.aseaPrefix}LZA-Installer`,
+      'AWSAccelerator-InstallerStack',
       installerStackParameters,
       `https://${this.config.aseaConfigBucketName}.s3.amazonaws.com/AWSAccelerator-InstallerStack.template`,
       this.homeRegion,

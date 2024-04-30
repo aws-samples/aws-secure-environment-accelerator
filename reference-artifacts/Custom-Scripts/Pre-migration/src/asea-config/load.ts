@@ -11,6 +11,7 @@
  *  and limitations under the License.
  */
 
+import * as fs from 'fs';
 import { AcceleratorConfig } from '.';
 import { CodeCommit } from '../common/aws/codecommit';
 
@@ -21,8 +22,13 @@ export async function loadAseaConfig(props: {
   repositoryName: string;
   filePath: string;
   defaultRegion?: string;
+  localFilePath?: string;
 }): Promise<AcceleratorConfig> {
-  const { repositoryName, filePath, defaultRegion } = props;
+  const { repositoryName, filePath, defaultRegion, localFilePath } = props;
+  if (localFilePath) {
+    const fileContent = fs.readFileSync(localFilePath, 'utf8');
+    return AcceleratorConfig.fromString(fileContent);
+  }
   const codecommit = new CodeCommit(undefined, defaultRegion);
   try {
     const file = await codecommit.getFile({ repositoryName, filePath });
