@@ -39,7 +39,7 @@ let tableName: string | undefined = undefined;
 export class TableOperations {
   constructor(dbTableName: string, region: string) {
     tableName = dbTableName;
-    dynamodbClient = new DynamoDBClient({ region: region });
+    dynamodbClient = new DynamoDBClient({ region: region, maxAttempts: 10 });
   }
 
   public async createTable(): Promise<void> {
@@ -118,7 +118,7 @@ export class TableOperations {
           ':preMigrationHash': { S: data.data.hash },
         },
       };
-      await throttlingBackOff(() => dynamodbClient.send(new UpdateItemCommand(params)));
+      await dynamodbClient.send(new UpdateItemCommand(params));
     } else {
       const params: UpdateItemCommandInput = {
         TableName: tableName,
@@ -132,7 +132,7 @@ export class TableOperations {
           ':postMigrationHash': { S: data.data.hash },
         },
       };
-      await throttlingBackOff(() => dynamodbClient.send(new UpdateItemCommand(params)));
+      await dynamodbClient.send(new UpdateItemCommand(params));
     }
     console.log(`Snapshot written for ${data.accountId}:${data.region} resource ${data.resourceName}`);
   }

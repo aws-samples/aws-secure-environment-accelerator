@@ -11,11 +11,10 @@
  *  and limitations under the License.
  */
 
-import { Account, OrganizationsClient, ListAccountsCommand } from '@aws-sdk/client-organizations';
+import { Account, OrganizationsClient, paginateListAccounts } from '@aws-sdk/client-organizations';
 import { AssumeRoleCommand, GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 
-import { throttlingBackOff } from '../common/aws/backoff';
 import { TableOperations } from './common/dynamodb';
 import { regions } from './common/types';
 import { snapshotAccountResources } from './snapshotAccountResources';
@@ -32,13 +31,13 @@ export async function snapshotConfiguration(
   prefix: string,
   preMigration: boolean,
 ) {
-  stsClient = new STSClient({});
+  stsClient = new STSClient({ maxAttempts: 10 });
 
   // setup DynamoDb
   snapshotTable = new TableOperations(tableName, homeRegion);
   await snapshotTable.createTable();
 
-  const identityResponse = await throttlingBackOff(() => stsClient.send(new GetCallerIdentityCommand({})));
+  const identityResponse = await stsClient.send(new GetCallerIdentityCommand({}));
   const currentAccountId = identityResponse.Account;
 
   // process global services
@@ -46,41 +45,38 @@ export async function snapshotConfiguration(
 
   const accounts = await getAccountList();
   // process account services
+  const accountPromises = [];
   for (const account of accounts) {
-    const accountPromises = [];
+    let credentials: AwsCredentialIdentity | undefined = undefined;
     if (account.Status !== 'SUSPENDED') {
-      if (account.Id !== currentAccountId) {
-        const credentials = await getCredentials(account.Id!, roleName);
-        accountPromises.push(
-          snapshotAccountResources(tableName, homeRegion, prefix, account.Id!, preMigration, credentials),
-        );
-      } else {
-        accountPromises.push(
-          snapshotAccountResources(tableName, homeRegion, prefix, account.Id!, preMigration, undefined),
-        );
-      }
-      await Promise.all(accountPromises);
+      credentials = await getCredentials(account.Id!, roleName);
+      accountPromises.push(
+        snapshotAccountResources(tableName, homeRegion, prefix, account.Id!, preMigration, credentials),
+      );
     }
   }
+  await Promise.all(accountPromises);
 
   // process regional services
+  let maxPromises = 0;
   for (const account of accounts) {
+    let credentials: AwsCredentialIdentity | undefined = undefined;
+    if (account.Id !== currentAccountId) {
+      credentials = await getCredentials(account.Id!, roleName);
+    }
     const regionPromises = [];
     for (const region of regions) {
       if (account.Status !== 'SUSPENDED') {
-        if (account.Id !== currentAccountId) {
-          const credentials = await getCredentials(account.Id!, roleName);
-          regionPromises.push(
-            snapshotRegionResources(tableName, homeRegion, prefix, account.Id!, region, preMigration, credentials),
-          );
-        } else {
-          regionPromises.push(
-            snapshotRegionResources(tableName, homeRegion, prefix, account.Id!, region, preMigration, undefined),
-          );
-        }
+        maxPromises = maxPromises + 1;
+        regionPromises.push(
+          snapshotRegionResources(tableName, homeRegion, prefix, account.Id!, region, preMigration, credentials),
+        );
       }
     }
-    await Promise.all(regionPromises);
+    if (maxPromises > 16) {
+      await Promise.all(regionPromises);
+      maxPromises = 0;
+    }
   }
 }
 
@@ -101,19 +97,12 @@ async function getCredentials(accountId: string, roleName: string): Promise<AwsC
 }
 
 async function getAccountList(): Promise<Account[]> {
-  const organizationsClient = new OrganizationsClient({ region: 'us-east-1' });
+  const organizationsClient = new OrganizationsClient({ region: 'us-east-1', maxAttempts: 10 });
 
   const accounts: Account[] = [];
-  let nextToken: string | undefined = undefined;
-  do {
-    const results = await throttlingBackOff(() =>
-      organizationsClient.send(new ListAccountsCommand({ NextToken: nextToken })),
-    );
-    nextToken = results.NextToken;
-    if (results.Accounts) {
-      accounts.push(...results.Accounts);
-    }
-  } while (nextToken);
+  for await (const page of paginateListAccounts({ client: organizationsClient, pageSize: 20 }, {})) {
+    accounts.push(...page.Accounts!);
+  }
 
   return accounts;
 }

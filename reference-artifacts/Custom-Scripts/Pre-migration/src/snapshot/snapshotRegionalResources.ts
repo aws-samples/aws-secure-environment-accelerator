@@ -12,6 +12,7 @@
  */
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 
+import { TableOperations } from './common/dynamodb';
 import { describeCertificates } from './lib/aws-acm';
 import { describeCloudTrail, getCloudTrailEventSelectors, getCloudTrailInsightSelectors } from './lib/aws-cloudtrail';
 import { describeAlarms, snapshotCloudWatchLogResources } from './lib/aws-cloudwatch';
@@ -37,7 +38,6 @@ import {
 } from './lib/aws-securityhub';
 import { describeSessionManagerDocument, describeSsmDocuments, describeSsmDocumentPermissions } from './lib/aws-ssm';
 
-import { TableOperations } from './common/dynamodb';
 
 export async function snapshotRegionResources(
   tableName: string,

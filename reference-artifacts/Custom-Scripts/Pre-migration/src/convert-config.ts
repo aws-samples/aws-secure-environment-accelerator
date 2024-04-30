@@ -80,6 +80,7 @@ import {
 import { Config } from './config';
 import { AccountsConfig, AccountsConfigType } from './config/accounts-config';
 import { Region, ShareTargets } from './config/common-types';
+import { CustomizationsConfig, CustomizationsConfigTypes } from './config/customizations-config';
 import { GlobalConfig } from './config/global-config';
 import {
   AssumedByConfig,
@@ -110,8 +111,10 @@ const CONFIG_RULES_PATH = 'config-rules';
 const LZA_SCP_CONFIG_PATH = 'service-control-policies';
 const LZA_MAD_CONFIG_SCRIPTS = 'ad-config-scripts/';
 const LZA_CONFIG_RULES = 'custom-config-rules';
-const LZA_BUCKET_POLICY = 'bucket-policy';
-const LZA_KMS_POLICY = 'kms-policy';
+const LZA_BUCKET_POLICY = 'bucket-policies';
+const LZA_KMS_POLICY = 'kms-policies';
+const LZA_IAM_POLICY_CONFIG_PATH = 'iam-policies';
+const CLOUDFORMATION = 'cloudformation';
 
 const LOG_RETENTION = [
   1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653,
@@ -135,6 +138,10 @@ const ConfigRuleDetectionAssets: { [key: string]: string } = {
   ),
 };
 
+const CloudFormationAssets: { [key: string]: string } = {
+  'ALB-IP-FORWARDING': path.join(CLOUDFORMATION, 'AlbIpForwardingStack.template.json'),
+};
+
 type LzaNaclRuleType = {
   rule: number;
   protocol: number;
@@ -150,6 +157,11 @@ type LzaNaclOutboundRuleType = LzaNaclRuleType & {
   destination?: string | { account?: string; vpc: string; subnet: string; region?: string };
 };
 
+type NestedOuType = {
+  account: string;
+  nestedOu: string;
+};
+
 type SubnetType = {
   name: string;
   availabilityZone: string;
@@ -158,6 +170,23 @@ type SubnetType = {
   mapPublicIpOnLaunch?: boolean;
   shareTargets?: { organizationalUnits?: string[]; accounts?: string[] };
 };
+
+type ResolverEndpointRulesType = {
+  name: string;
+  domainName: string | undefined;
+  ruleType: string;
+  targetIps: { ip: string }[] | undefined;
+};
+
+type ResolverEndpointsType =
+  | {
+      name: string;
+      vpc: string;
+      subnets: string[];
+      type: string;
+      rules: ResolverEndpointRulesType[] | undefined;
+    }
+  | undefined;
 
 type SecurityGroupRuleSubnetSource = { account: string; vpc: string; subnets: string[] };
 
@@ -192,6 +221,7 @@ export class ConvertAseaConfig {
   private readonly lzaConfigRepositoryName: string;
   private readonly parametersTable: string;
   private readonly mappingFileBucket: string;
+  private readonly localConfigFilePath?: string;
   private readonly s3: S3;
   private readonly codecommit: CodeCommitClient;
   private readonly sts: STS;
@@ -211,9 +241,10 @@ export class ConvertAseaConfig {
   private accountsWithoutVpc: string[] = [];
   private accountsWithVpc: Set<string> = new Set<string>([]);
 
-  constructor(config: Config, localUpdateOnly?: boolean) {
-    this.localUpdateOnly = localUpdateOnly ?? false;
+  constructor(config: Config) {
+    this.localUpdateOnly = config.localOnlyWrites ?? false;
     this.aseaConfigRepositoryName = config.repositoryName;
+    this.localConfigFilePath = config.localConfigFilePath ?? undefined;
     this.region = config.homeRegion;
     this.centralBucketName = config.centralBucket!;
     this.aseaPrefix = config.aseaPrefix!.endsWith('-') ? config.aseaPrefix! : `${config.aseaPrefix}-`;
@@ -255,6 +286,7 @@ export class ConvertAseaConfig {
       filePath: 'raw/config.json',
       repositoryName: this.aseaConfigRepositoryName,
       defaultRegion: this.region,
+      localFilePath: this.localConfigFilePath,
     });
     this.accounts = await loadAccounts(this.parametersTable, this.dynamoDb);
     this.vpcAssignedCidrs = await loadVpcAssignedCidrs(vpcCidrsTableName(this.aseaPrefix), this.dynamoDb);
@@ -297,6 +329,15 @@ export class ConvertAseaConfig {
     this.accountsWithoutVpc = accountKeys
       .filter((accountKey) => !this.accountsWithVpc.has(accountKey))
       .map((accountKey) => this.getAccountKeyforLza(this.globalOptions!, accountKey));
+    if (this.accountsWithVpc.has('management')) {
+      this.accountsWithVpc.delete('management');
+      this.accountsWithVpc.add('Management');
+    }
+    const index = this.accountsWithoutVpc.findIndex(x => x === 'management');
+    if (index) {
+      this.accountsWithoutVpc[index] = 'Management';
+    }
+
     await this.copyAdditionalAssets();
     await this.prepareIamConfig(aseaConfig);
     await this.prepareGlobalConfig(aseaConfig);
@@ -304,6 +345,7 @@ export class ConvertAseaConfig {
     await this.prepareOrganizationConfig(aseaConfig);
     await this.prepareSecurityConfig(aseaConfig);
     await this.prepareNetworkConfig(aseaConfig);
+    await this.prepareCustomizationsConfig(aseaConfig);
     await this.createDynamicPartitioningFile(aseaConfig);
   }
 
@@ -361,7 +403,9 @@ export class ConvertAseaConfig {
    */
   private async copyAdditionalAssets() {
     const dirname = path.join(this.outputFolder, LZA_CONFIG_RULES);
+    const cloudformationDirName = path.join(this.outputFolder, CLOUDFORMATION);
     if (!fs.existsSync(dirname)) fs.mkdirSync(dirname, { recursive: true });
+    if (!fs.existsSync(cloudformationDirName)) fs.mkdirSync(cloudformationDirName, { recursive: true });
     for (const fileName of Object.values(ConfigRuleRemediationAssets)) {
       fs.copyFileSync(path.join(__dirname, 'assets', fileName), path.join(this.outputFolder, fileName));
 
@@ -372,6 +416,15 @@ export class ConvertAseaConfig {
       );
     }
     for (const fileName of Object.values(ConfigRuleDetectionAssets)) {
+      fs.copyFileSync(path.join(__dirname, 'assets', fileName), path.join(this.outputFolder, fileName));
+      await this.writeToCodeCommit(
+        fileName,
+        fs.readFileSync(path.join(__dirname, 'assets', fileName)),
+        this.localUpdateOnly,
+      );
+    }
+    //Block to Add ALB IP Forwarder CloudFormation Asset
+    for (const fileName of Object.values(CloudFormationAssets)) {
       fs.copyFileSync(path.join(__dirname, 'assets', fileName), path.join(this.outputFolder, fileName));
       await this.writeToCodeCommit(
         fileName,
@@ -1083,7 +1136,7 @@ export class ConvertAseaConfig {
       .filter(([_accountKey, ouConfig]) => !!ouConfig['ssm-inventory-collection'])
       .map(([ouKey]) => ouKey);
     if (ssmInventoryAccounts.length === 0 && ssmInventoryOus.length === 0) return;
-    if (ssmInventoryAccounts.length === 0 ) {
+    if (ssmInventoryAccounts.length === 0) {
       return {
         enable: true,
         deploymentTargets: {
@@ -1120,7 +1173,7 @@ export class ConvertAseaConfig {
           Key: path.join(IAM_POLICY_CONFIG_PATH, policy.policy),
         });
         const newFileName = path.join(
-          IAM_POLICY_CONFIG_PATH,
+          LZA_IAM_POLICY_CONFIG_PATH,
           `${policy.policy.split('.').slice(0, -1).join('.')}.json`,
         );
         await this.writeConfig(newFileName, policyData);
@@ -1209,11 +1262,11 @@ export class ConvertAseaConfig {
         });
         return;
       }
-      if (accountKey) roleSets[currentIndex].deploymentTargets.accounts?.push(accountKey);
-      if (ouKey) roleSets[currentIndex].deploymentTargets.organizationalUnits?.push(ouKey);
-      if (roleSets[currentIndex].roles.find((roleSetRole) => roleSetRole.name === 'EC2-Default-SSM-AD-Role')) {
-        roleSets[currentIndex].deploymentTargets.accounts = [];
-        roleSets[currentIndex].deploymentTargets.organizationalUnits = ['Root'];
+      if (accountKey) {
+        roleSets[currentIndex].deploymentTargets.accounts?.push(accountKey);
+      }
+      if (ouKey) {
+        roleSets[currentIndex].deploymentTargets.organizationalUnits?.push(ouKey);
       }
     };
 
@@ -1482,8 +1535,8 @@ export class ConvertAseaConfig {
     // Add policy for SSMWriteAccessPolicy
     if (this.globalOptions && this.globalOptions['aws-config']) {
       const policyFileName = 'ssm-write-access-policy.json';
-      const localPolicyFilePath = path.join(this.outputFolder, IAM_POLICY_CONFIG_PATH, policyFileName);
-      const policyFilePath = path.join(IAM_POLICY_CONFIG_PATH, policyFileName);
+      const localPolicyFilePath = path.join(this.outputFolder, LZA_IAM_POLICY_CONFIG_PATH, policyFileName);
+      const policyFilePath = path.join(LZA_IAM_POLICY_CONFIG_PATH, policyFileName);
 
       const centralLogBucketOutput = findValuesFromOutputs({
         outputs: this.outputs,
@@ -1577,13 +1630,15 @@ export class ConvertAseaConfig {
         accountKeys.push(this.getAccountKeyforLza(aseaConfig['global-options'], accountKey));
       }
     });
+
     Object.entries(aseaConfig['workload-account-configs']).forEach(([accountKey, accountConfig]) => {
+      const nestedOu = accountConfig['ou-path'];
       if (!ignoredOus.includes(accountConfig.ou)) {
         accountsConfig.workloadAccounts.push({
           name: accountKey,
           description: accountConfig.description,
           email: accountConfig.email,
-          organizationalUnit: accountConfig.ou,
+          organizationalUnit: nestedOu ? accountConfig['ou-path'] : accountConfig.ou,
           warm: false,
         });
         accountKeys.push(accountKey);
@@ -1596,10 +1651,86 @@ export class ConvertAseaConfig {
   }
 
   /**
+   * Converts ASEA customizations into LZA customizations configuration
+   * @param aseaConfig
+   */
+  private async prepareCustomizationsConfig(aseaConfig: AcceleratorConfig) {
+    const cloudFormationStacks = await this.createCloudFormationStacksForALBIpForwarding(aseaConfig);
+    let customizations: any = {};
+    customizations = {
+      cloudFormationStacks,
+    };
+    const customizationsConfig: CustomizationsConfigTypes = {
+      customizations,
+    };
+
+    const yamlConfig = yaml.dump(customizationsConfig, { noRefs: true });
+    await this.writeConfig(CustomizationsConfig.FILENAME, yamlConfig);
+  }
+
+  /**
+   * Creates map of accounts with Nested OUs
+   * @param aseaConfig
+   */
+  private preparedNestedOuConfig = (aseaConfig: AcceleratorConfig) => {
+    const accountsConfig: AccountsConfigType = {
+      mandatoryAccounts: [],
+      accountIds: [],
+      workloadAccounts: [],
+    };
+    const nestedOus: NestedOuType[] = [];
+    Object.entries(aseaConfig['workload-account-configs']).forEach(([accountKey, accountConfig]) => {
+      if (accountConfig['ou-path']) {
+        accountsConfig.workloadAccounts.push({
+          name: accountKey,
+          description: accountConfig.description,
+          email: accountConfig.email,
+          organizationalUnit: accountConfig.ou,
+          warm: false,
+        });
+        nestedOus.push({ account: accountKey, nestedOu: accountConfig['ou-path'] });
+      }
+    });
+    return nestedOus;
+  };
+
+  /**
+   * Retrieves Nested OUs
+   * @param aseaConfig
+   */
+  private prepareNestedOus(aseaConfig: AcceleratorConfig) {
+    const nestedOuConfig = this.preparedNestedOuConfig(aseaConfig);
+    const nestedOuMap = nestedOuConfig.flatMap((item) => item.nestedOu);
+    let nestedOus: string[] = [];
+    for (const ouItem of nestedOuMap ?? []) {
+      if (!nestedOus.includes(ouItem)) {
+        nestedOus.push(ouItem);
+      }
+    }
+    return nestedOus;
+  }
+
+  /**
+   * Retrieves List of Ignored OUs in ASEA config
+   * @param aseaConfig
+   */
+  private prepareIgnoredOus(aseaConfig: AcceleratorConfig): string[] | undefined {
+    const ignoredOus: string[] = [];
+    const globalIgnoredOus: string[] = aseaConfig['global-options']['ignored-ous'] ?? [];
+    Object.entries(aseaConfig['organizational-units']).forEach(([ouKey, organizationConfig]) => {
+      if (organizationConfig.type === 'ignored' || globalIgnoredOus.includes(ouKey)) {
+        ignoredOus.push(ouKey);
+      }
+    });
+    return ignoredOus;
+  }
+
+  /**
    * Converts ASEA organization units and scps into LZA organizational configuration
    * @param aseaConfig
    */
   private async prepareOrganizationConfig(aseaConfig: AcceleratorConfig) {
+    const ignoredOus = this.prepareIgnoredOus(aseaConfig);
     const organizationConfig: OrganizationConfigType = {
       enable: true, // Always set as true, ASEA requirement is to have Organizations enabled
       backupPolicies: [],
@@ -1613,9 +1744,10 @@ export class ConvertAseaConfig {
       },
     };
     Object.entries(aseaConfig['organizational-units']).forEach(([ouKey]) => {
+      const ignoredOu = ignoredOus?.includes(ouKey);
       organizationConfig.organizationalUnits.push({
         name: ouKey,
-        ignore: undefined,
+        ignore: ignoredOu ? true : undefined,
       });
     });
     // ASEA Creates Suspended OU and ignores accounts under Suspended OU
@@ -1625,6 +1757,15 @@ export class ConvertAseaConfig {
         ignore: true,
       });
     }
+    // Check and prepare for nested OUs
+    const nestedOus = this.prepareNestedOus(aseaConfig);
+    nestedOus.forEach((ouItem) => {
+      organizationConfig.organizationalUnits.push({
+        name: ouItem,
+        ignore: undefined,
+      });
+    });
+
     // LZA Checks for workloads OU
     // if (!organizationConfig.organizationalUnits.find((ou) => ou.name === 'workloads')) {
     //   organizationConfig.organizationalUnits.push({ name: 'workloads', ignore: undefined });
@@ -1839,9 +1980,8 @@ export class ConvertAseaConfig {
     };
 
     const setMacieConfig = async () => {
-      if (!centralSecurityConfig.macie) return;
       securityConfigAttributes.centralSecurityServices.macie = {
-        enable: centralSecurityConfig.macie,
+        enable: centralSecurityConfig.macie || false,
         excludeRegions: centralSecurityConfig['macie-excl-regions'],
         policyFindingsPublishingFrequency: centralSecurityConfig['macie-frequency'],
         publishSensitiveDataFindings: centralSecurityConfig['macie-sensitive-sh'],
@@ -1850,19 +1990,28 @@ export class ConvertAseaConfig {
 
     const setSecurityhubConfig = async () => {
       if (!centralSecurityConfig['security-hub']) return;
+      const nullNotificationLevel = centralSecurityConfig['security-hub-findings-sns'] === 'None';
       securityConfigAttributes.centralSecurityServices.securityHub = {
         enable: true,
         regionAggregation: true,
-        snsTopicName: `${this.aseaPrefix}Notification-${
-          SnsFindingTypesDict[centralSecurityConfig['security-hub-findings-sns']]
-        }`,
+        snsTopicName: nullNotificationLevel
+          ? undefined
+          : `${this.aseaPrefix}Notification-${SnsFindingTypesDict[centralSecurityConfig['security-hub-findings-sns']]}`,
         excludeRegions: centralSecurityConfig['security-hub-excl-regions'],
-        notificationLevel: centralSecurityConfig['security-hub-findings-sns'].toUpperCase(),
+        notificationLevel: nullNotificationLevel
+          ? undefined
+          : centralSecurityConfig['security-hub-findings-sns'].toUpperCase(),
         standards: globalOptions['security-hub-frameworks'].standards.map((sh) => ({
           name: sh.name,
           enable: true,
           controlsToDisable: sh['controls-to-disable'],
         })),
+        logging: {
+          cloudwatch: {
+            enable: true,
+            logGroupName: '/ASEA/SecurityHub',
+          },
+        },
       };
     };
 
@@ -2494,11 +2643,30 @@ export class ConvertAseaConfig {
                 ?.filter((s) => dest.subnet.includes(s.name))
                 .flatMap((s) => this.getAzSubnets(destinationVpcConfig, s.name));
               for (const ruleSubnet of ruleSubnets || []) {
-                const target = {
-                  account: destinationVpcKey ? this.getAccountKeyforLza(globalOptions, destinationVpcKey) : undefined,
-                  subnet: createSubnetName(dest.vpc, ruleSubnet.subnetName, ruleSubnet.az),
-                  vpc: createVpcName(dest.vpc),
-                };
+                let targetRegion = undefined;
+                let target;
+                if (destinationVpcConfig.region !== vpcConfig.region) {
+                  targetRegion = destinationVpcConfig.region;
+                }
+                if (!accountKey && destinationVpcConfig.name === vpcConfig.name) {
+                  //If NACL is defined in a vpcTemplate, and rule is referencing the same VPC
+                  // Then make NACL target explicit by looking up the static subnet CIDR
+                  target = this.getSubnetCidr({
+                    accountKey,
+                    cidrSrc: vpcConfig['cidr-src'],
+                    region: vpcConfig.region,
+                    subnetDefinition: ruleSubnet,
+                    subnetName: ruleSubnet.subnetName,
+                    vpcName: vpcConfig.name,
+                  });
+                } else {
+                  target = {
+                    account: destinationVpcKey ? this.getAccountKeyforLza(globalOptions, destinationVpcKey) : undefined,
+                    subnet: createSubnetName(dest.vpc, ruleSubnet.subnetName, ruleSubnet.az),
+                    vpc: createVpcName(dest.vpc),
+                    region: targetRegion,
+                  };
+                }
                 lzaRules.push({
                   rule: ruleNumber,
                   protocol: rule.protocol,
@@ -2624,6 +2792,92 @@ export class ConvertAseaConfig {
             ),
           },
         ];
+      };
+
+      const prepareEndpointsConfig = (
+        vpcConfig: VpcConfig,
+        lzaEndpointsConfig: ResolverEndpointsType[],
+        lzaEndpointsRulesConfig: ResolverEndpointRulesType[],
+      ): ResolverEndpointsType[] => {
+        let inboundResolver = vpcConfig.resolvers!.inbound;
+        let outboundResolver = vpcConfig.resolvers!.outbound;
+        if (vpcConfig.resolvers) {
+          if (inboundResolver) {
+            lzaEndpointsConfig.push({
+              name: `${vpcConfig.name}InboundEndpoint`,
+              vpc: createVpcName(vpcConfig.name),
+              subnets:
+                vpcConfig.subnets
+                  ?.find((subnetItem) => subnetItem.name === vpcConfig.resolvers?.subnet)
+                  ?.definitions.filter((subnetItem) => !subnetItem.disabled)
+                  .map((subnetItem) => createSubnetName(vpcConfig.name, vpcConfig.resolvers?.subnet!, subnetItem.az)) ||
+                [],
+              type: 'INBOUND',
+              rules: undefined,
+            });
+          }
+          if (outboundResolver) {
+            lzaEndpointsConfig.push({
+              name: `${vpcConfig.name}OutboundEndpoint`,
+              vpc: createVpcName(vpcConfig.name),
+              subnets:
+                vpcConfig.subnets
+                  ?.find((subnetItem) => subnetItem.name === vpcConfig['resolvers']?.subnet)
+                  ?.definitions.filter((subnetItem) => !subnetItem.disabled)
+                  .map((subnetItem) =>
+                    createSubnetName(vpcConfig.name, vpcConfig['resolvers']?.subnet!, subnetItem.az),
+                  ) || [],
+              type: 'OUTBOUND',
+              rules: lzaEndpointsRulesConfig,
+            });
+          }
+        }
+        return lzaEndpointsConfig;
+      };
+
+      const prepareRulesConfig = (
+        vpcConfig: VpcConfig,
+        lzaEndpointsRulesConfig: ResolverEndpointRulesType[],
+      ): ResolverEndpointRulesType[] | undefined => {
+        if (vpcConfig['on-premise-rules']) {
+          for (const vpcItem of vpcConfig['on-premise-rules']) {
+            const ips: { ip: string; port?: number }[] = [];
+            for (const ip of vpcItem['outbound-ips']) {
+              ips.push({ ip: ip });
+            }
+            lzaEndpointsRulesConfig.push({
+              name: `${this.aseaPrefix}outbound-rule-${vpcConfig['on-premise-rules'].indexOf(vpcItem)}`,
+              ruleType: 'FORWARD',
+              domainName: vpcItem.zone,
+              targetIps: vpcItem['outbound-ips'].map((ip) => ({ ip })),
+            });
+          }
+        }
+        return lzaEndpointsRulesConfig;
+      };
+
+      const prepareResolverConfig = (vpcConfig: VpcConfig) => {
+        let lzaResolverConfig: {
+          endpoints: ResolverEndpointsType[];
+          queryLogs: { name: string; destinations: string[] } | undefined;
+        };
+        const queryLoggingEnabled = vpcConfig['dns-resolver-logging'];
+        const lzaEndpointsRulesConfig: ResolverEndpointRulesType[] = [];
+        const lzaEndpointsConfig: ResolverEndpointsType[] = [];
+        if (!vpcConfig.resolvers) return;
+        const rules = prepareRulesConfig(vpcConfig, lzaEndpointsRulesConfig);
+        const endpoints = prepareEndpointsConfig(vpcConfig, lzaEndpointsConfig, rules!);
+
+        lzaResolverConfig = {
+          endpoints: endpoints,
+          queryLogs: queryLoggingEnabled
+            ? {
+                name: `${this.aseaPrefix}rql-${vpcConfig.name}`,
+                destinations: ['cloud-watch-logs'],
+              }
+            : undefined,
+        };
+        return lzaResolverConfig;
       };
       const prepareRouteTableConfig = (vpcConfig: VpcConfig, accountKey?: string) => {
         const prepareRoutes = (routeTable: RouteTableConfig) => {
@@ -2777,6 +3031,7 @@ export class ConvertAseaConfig {
           transitGatewayAttachments: prepareTgwAttachConfig(vpcConfig),
           virtualPrivateGateway: vpcConfig.vgw,
           routeTables: prepareRouteTableConfig(vpcConfig, accountKey),
+          vpcRoute53Resolver: prepareResolverConfig(vpcConfig),
           // TODO: Comeback after customizationConfig
           // loadBalancers:
           // targetGroups:
@@ -2818,8 +3073,12 @@ export class ConvertAseaConfig {
       This is so the end user can validate the routeTables and subnetAssociations before attaching them in a subsequent run.
     */
     const networkConfig = NetworkConfig.loadFromString(JSON.stringify(networkConfigAttributes));
-    const networkConfigWithoutNaclAndSubnetAssociations = this.replaceNetworkConfigWithEmptyNaclAndSubnetAssociation(networkConfig!);
-    const yamlNetworkConfigWithoutNaclAndSubnetAssociations = yaml.dump(networkConfigWithoutNaclAndSubnetAssociations, { noRefs: true });
+    const networkConfigWithoutNaclAndSubnetAssociations = this.replaceNetworkConfigWithEmptyNaclAndSubnetAssociation(
+      networkConfig!,
+    );
+    const yamlNetworkConfigWithoutNaclAndSubnetAssociations = yaml.dump(networkConfigWithoutNaclAndSubnetAssociations, {
+      noRefs: true,
+    });
     const yamlConfig = yaml.dump(networkConfig, { noRefs: true });
     // This creates network-config-with-subnet-associations-and-route-tables.yaml
     await this.writeConfig(NetworkConfig.FILENAME_WITH_SUBNET_ASSOCIATIONS_AND_ROUTE_TABLES, yamlConfig);
@@ -2882,7 +3141,7 @@ export class ConvertAseaConfig {
       const networkAcls: any[] = vpc.networkAcls;
       const subnets: any[] = vpc.subnets;
       for (const networkAcl of networkAcls) {
-       networkAcl.subnetAssociations = [];
+        networkAcl.subnetAssociations = [];
       }
       for (const subnet of subnets) {
         subnet.routeTable = undefined;
@@ -3011,6 +3270,54 @@ export class ConvertAseaConfig {
       )?.cidr!;
     }
     return ipv4CidrBlock;
+  }
+  private async createCloudFormationStacksForALBIpForwarding(aseaConfig: AcceleratorConfig) {
+    const vpcs = aseaConfig.getVpcConfigs();
+    const vpcMaps = [];
+    for (const vpc of vpcs) {
+      if (vpc.vpcConfig['alb-forwarding']) {
+        const albIpForwarderMap = new Map<string, string>();
+        albIpForwarderMap.set('vpcName', vpc.vpcConfig.name);
+        albIpForwarderMap.set('region', vpc.vpcConfig.region);
+        albIpForwarderMap.set('account', vpc.accountKey!);
+        vpcMaps.push(albIpForwarderMap);
+      }
+    }
+    const cloudFormationStacks = this.createCloudFormationStacksFromMap(vpcMaps);
+    return cloudFormationStacks;
+  }
+
+  private async createCloudFormationStacksFromMap(vpcMaps: any[]) {
+    const cloudFormationStacks = [];
+    const aseaPrefixNoDash = this.aseaPrefix.replace(/-/g, '');
+    for (const vpcMap of vpcMaps) {
+      const vpcName = vpcMap.get('vpcName');
+      const accountName = vpcMap.get('account');
+
+      const region = vpcMap.get('region');
+      const cloudFormationStack = {
+        name: `${this.aseaPrefix}AlbIPForwardingStack-${vpcName}`,
+        template: 'cloudformation/AlbIpForwardingStack.template.json',
+        runOrder: 1,
+        parameters: [
+          {
+            name: 'acceleratorPrefix',
+            value: `${aseaPrefixNoDash}`,
+          },
+          {
+            name: 'vpcName',
+            value: `${vpcName}`,
+          },
+        ],
+        terminationProtection: true,
+        deploymentTargets: {
+          accounts: [`${accountName}`],
+        },
+        regions: [`${region}`],
+      };
+      cloudFormationStacks.push(cloudFormationStack);
+    }
+    return cloudFormationStacks;
   }
 
   private async createDynamicPartitioningFile(aseaConfig: AcceleratorConfig) {

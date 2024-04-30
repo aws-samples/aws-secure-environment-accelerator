@@ -1151,7 +1151,6 @@ export const AcceleratorConfigType = t.interface({
 
 export type AcceleratorConfigType = t.TypeOf<typeof AcceleratorConfigType>;
 
-
 export interface ResolvedConfigBase {
   /**
    * The organizational unit to which this VPC belongs.
@@ -1264,7 +1263,10 @@ export class AcceleratorConfig {
     }
     // TODO: Verify if ouKey and ouPath are different
     const ouConfig = this['organizational-units'][accountConfig.ou];
-    if (ouConfig.iam?.policies) policies.push(...ouConfig.iam.policies.flatMap((policy) => policy['policy-name']));
+    if (!ouConfig) return [];
+    if (ouConfig.iam! && ouConfig.iam?.policies) {
+      policies.push(...ouConfig.iam.policies.flatMap((policy) => policy['policy-name']));
+    }
     return policies;
   }
 
@@ -1354,13 +1356,15 @@ export class AcceleratorConfig {
     if (!vpcConfig) {
       throw new Error(`VPC named "${vpcName}" not found in account "${accountKey}"`);
     }
-    const subnetConfig = vpcConfig.subnets?.find(s => s.name === subnetName);
+    const subnetConfig = vpcConfig.subnets?.find((s) => s.name === subnetName);
     if (!subnetConfig) {
       throw new Error(`Subnet named "${subnetName}" not found in VPC named "${vpcName}" and account "${accountKey}"`);
     }
-    return subnetConfig.definitions.filter(d => !d.disabled).map(s => ({
-      subnetName,
-      ...s,
-    }));
+    return subnetConfig.definitions
+      .filter((d) => !d.disabled)
+      .map((s) => ({
+        subnetName,
+        ...s,
+      }));
   }
 }
