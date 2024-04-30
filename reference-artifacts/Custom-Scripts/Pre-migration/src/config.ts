@@ -32,22 +32,6 @@ export interface Config {
   auditAccountEmail?: string;
   controlTowerEnabled?: string;
   aseaConfigBucketName: string;
-}
-
-export interface PostMigrationCommandConfig {
-  /**
-   * ASEA Configuration repository name.
-   * Note: Can be changed to LZA repository name after automating Configuration commit for LZA
-   */
-  repositoryName: string;
-
-  /**
-   * ASEA Prefix
-   */
-  aseaPrefix: string;
-
-  /**
-   * Region where ASEA is installed
-   */
-  homeRegion: string;
+  localOnlyWrites?: boolean;
+  localConfigFilePath?: string;
 }

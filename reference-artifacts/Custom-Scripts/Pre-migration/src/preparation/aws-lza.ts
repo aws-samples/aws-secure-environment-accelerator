@@ -17,7 +17,7 @@ import * as path from 'path';
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
 
-import { CloudFormationClient, CreateStackCommand, DescribeStacksCommand } from '@aws-sdk/client-cloudformation';
+import { Capability, CloudFormationClient, CreateStackCommand, DescribeStacksCommand } from '@aws-sdk/client-cloudformation';
 import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 
 export interface InstallerStackParameters {
@@ -35,6 +35,7 @@ export interface InstallerStackParameters {
   useExistingConfigRepo: string;
   existingConfigRepositoryName: string;
   existingConfigRepositoryBranchName: string;
+  enableDiagnosticsPack: string;
 }
 
 export async function createLZAInstallerCloudFormationStack(
@@ -97,9 +98,22 @@ export async function createLZAInstallerCloudFormationStack(
       ParameterKey: 'AcceleratorPrefix',
       ParameterValue: stackParameters.acceleratorPrefix,
     },
+    {
+      ParameterKey: 'EnableDiagnosticsPack',
+      ParameterValue: stackParameters.enableDiagnosticsPack,
+    },
   ];
 
-  if (stackParameters.repositoryBranchName) {
+  // override config value with environment variable
+  const repositoryBranchName = process.env.REPOSITORY_BRANCH_NAME ?? undefined;
+  if (repositoryBranchName) {
+    parameters.push( {
+      ParameterKey: 'RepositoryBranchName',
+      ParameterValue: repositoryBranchName,
+    });
+  }
+
+  if (stackParameters.repositoryBranchName && !repositoryBranchName) {
     parameters.push( {
       ParameterKey: 'RepositoryBranchName',
       ParameterValue: stackParameters.repositoryBranchName,
@@ -109,7 +123,7 @@ export async function createLZAInstallerCloudFormationStack(
   const cloudformationParameters = {
     StackName: stackName,
     TemplateURL: stackPath,
-    Capabilities: ['CAPABILITY_IAM'],
+    Capabilities: [Capability.CAPABILITY_IAM],
     Parameters: parameters,
   };
   await cloudformationClient.send(new CreateStackCommand(cloudformationParameters));
@@ -150,7 +164,6 @@ export async function getLZAInstallerStackTemplate(bucketName: string, outputPat
 export async function putLZAInstallerStackTemplate(bucketName: string, templatePath: string, region: string) {
   const s3Client = new S3Client({ region });
   const template = fs.readFileSync(path.join(__dirname, templatePath, 'AWSAccelerator-InstallerStack.template'));
-
   await s3Client.send(
     new PutObjectCommand({
       Bucket: bucketName,

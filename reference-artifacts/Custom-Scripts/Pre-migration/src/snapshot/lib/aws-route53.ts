@@ -19,10 +19,10 @@ import {
   ListHostedZonesCommand,
   ListHostedZonesByVPCCommand,
   Route53Client,
+  VPCRegion,
 } from '@aws-sdk/client-route-53';
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 
-import { throttlingBackOff } from '../../common/aws/backoff';
 import { TableOperations } from '../common/dynamodb';
 import { computeHash } from '../common/hash';
 import { SnapshotData } from '../common/types';
@@ -36,19 +36,16 @@ export async function getHostedZonesForVpc(
 ): Promise<SnapshotData> {
   let serviceClient: Route53Client;
   if (credentials) {
-    serviceClient = new Route53Client({ region: region, credentials: credentials });
+    serviceClient = new Route53Client({ region: region, credentials: credentials, maxAttempts: 10 });
   } else {
-    serviceClient = new Route53Client({ region: region });
+    serviceClient = new Route53Client({ region: region, maxAttempts: 10 });
   }
 
   const hostedZones: HostedZoneSummary[] = [];
   let nextToken: string | undefined;
   do {
-    const results = await throttlingBackOff(() =>
-      serviceClient.send(
-        new ListHostedZonesByVPCCommand({ VPCId: vpcId, VPCRegion: region, MaxItems: 20, NextToken: nextToken }),
-      ),
-    );
+    const results = await serviceClient.send(
+      new ListHostedZonesByVPCCommand({ VPCId: vpcId, VPCRegion: (region as VPCRegion), MaxItems: 20, NextToken: nextToken }));
     nextToken = results.NextToken;
     if (results.HostedZoneSummaries) {
       hostedZones.push(...results.HostedZoneSummaries);
@@ -67,13 +64,13 @@ export async function getHostedZoneById(
 ): Promise<SnapshotData> {
   let serviceClient: Route53Client;
   if (credentials) {
-    serviceClient = new Route53Client({ region: region, credentials: credentials });
+    serviceClient = new Route53Client({ region: region, credentials: credentials, maxAttempts: 10 });
   } else {
-    serviceClient = new Route53Client({ region: region });
+    serviceClient = new Route53Client({ region: region, maxAttempts: 10 });
   }
 
   type ModifiedHostedZone = Omit<GetHostedZoneCommandOutput, '$metadata'>;
-  const results = await throttlingBackOff(() => serviceClient.send(new GetHostedZoneCommand({ Id: hostedZoneId })));
+  const results = await serviceClient.send(new GetHostedZoneCommand({ Id: hostedZoneId }));
   const hostedZone: ModifiedHostedZone = {
     HostedZone: results.HostedZone,
     DelegationSet: results.DelegationSet,
@@ -96,17 +93,14 @@ export async function snapshotHostedZones(
   const snapshotTable = new TableOperations(tableName, homeRegion);
   let serviceClient: Route53Client;
   if (credentials) {
-    serviceClient = new Route53Client({ region: region, credentials: credentials });
+    serviceClient = new Route53Client({ region: region, credentials: credentials, maxAttempts: 10 });
   } else {
-    serviceClient = new Route53Client({ region: region });
+    serviceClient = new Route53Client({ region: region, maxAttempts: 10 });
   }
-
   const hostedZones: HostedZone[] = [];
   let nextToken: string | undefined;
   do {
-    const results = await throttlingBackOff(() =>
-      serviceClient.send(new ListHostedZonesCommand({ Marker: nextToken })),
-    );
+    const results = await serviceClient.send(new ListHostedZonesCommand({ Marker: nextToken }));
     nextToken = results.NextMarker;
     if (results.HostedZones) {
       hostedZones.push(...results.HostedZones);

@@ -17,7 +17,7 @@ import { S3 } from './common/aws/s3';
 import { Account, getAccountId } from './common/outputs/accounts';
 import { StackOutput, findValuesFromOutputs, loadOutputs } from './common/outputs/load-outputs';
 import { loadAccounts } from './common/utils/accounts';
-import { PostMigrationCommandConfig } from './config';
+import { Config } from './config';
 
 export class PostMigration {
   private readonly aseaConfigRepositoryName: string;
@@ -29,7 +29,7 @@ export class PostMigration {
   private accounts: Account[] = [];
   private centralBucket: string | undefined;
   private lzaAssetsBucket: string | undefined;
-  constructor(config: PostMigrationCommandConfig) {
+  constructor(config: Config) {
     this.aseaConfigRepositoryName = config.repositoryName;
     this.region = config.homeRegion;
     this.aseaPrefix = config.aseaPrefix!.endsWith('-') ? config.aseaPrefix! : `${config.aseaPrefix}-`;

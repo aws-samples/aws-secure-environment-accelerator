@@ -238,7 +238,7 @@ export async function disableASEARules(prefix: string) {
 
   const disableRulePromises = disableRuleCommands.map((command) => {
     console.log(`Disabling rule ${command.input.Name}`);
-    client.send(command);
+    return client.send(command);
   });
   await Promise.all(disableRulePromises);
   console.log('Disabled Rules');
