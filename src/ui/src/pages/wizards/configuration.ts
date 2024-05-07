@@ -26,5 +26,5 @@ export type Configuration = t.TypeOf<typeof Configuration>;
 export const AcceleratorConfigurationNode = getTypeTree(c.AcceleratorConfigType);
 export const ConfigurationNode = getTypeTree(Configuration);
 
-export const WIZARD_STATE_NAME = 'wizard' as const;
+export const WIZARD_STATE_NAME = 'wizard';
 export const useWizardObservable = () => useObservable(WIZARD_STATE_NAME);

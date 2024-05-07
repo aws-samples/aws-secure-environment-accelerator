@@ -193,7 +193,7 @@ test('the VPC creation should create the correct amount of subnets', () => {
     ]),
   );
 
-  const vpc = resources.find(r => r.Type === 'AWS::EC2::VPC')!!;
+  const vpc = resources.find(r => r.Type === 'AWS::EC2::VPC')!;
   const subnets = resources.filter(r => r.Type === 'AWS::EC2::Subnet');
 
   // There should be 6 subnets as 3 of the 9 given subnets are disabled
@@ -374,8 +374,8 @@ test('the VPC creation should create the VPN gateway', () => {
     ]),
   );
 
-  const vpc = resources.find(r => r.Type === 'AWS::EC2::VPC')!!;
-  const vpnGateway = resources.find(r => r.Type === 'AWS::EC2::VPNGateway')!!;
+  const vpc = resources.find(r => r.Type === 'AWS::EC2::VPC')!;
+  const vpnGateway = resources.find(r => r.Type === 'AWS::EC2::VPNGateway')!;
 
   // There should only be one VPN Gateway Attachment
   expect(resources).toEqual(
@@ -508,7 +508,7 @@ test('the VPC creation should create the NAT gateway', () => {
         Type: 'AWS::EC2::Route',
         Properties: expect.objectContaining({
           RouteTableId: {
-            Ref: privateRoute!!.LogicalId,
+            Ref: privateRoute!.LogicalId,
           },
           NatGatewayId: {
             Ref: natGateways[0].LogicalId,

@@ -146,7 +146,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   const updatedAccounts = updateOrgResponse.updatedAccounts;
   const updateAccountFilenames = [...new Set(Object.entries(updatedAccounts).map(([_, accInfo]) => accInfo.filename))];
   const updateFiles: { filePath: string; fileContent: string }[] = [];
-
+  /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
   updateAccountFilenames.map(async filename => {
     console.log(`Update Config required in file "${filename}"`);
     const accountsInFile = Object.entries(updatedAccounts).filter(([_, accInfo]) => accInfo.filename === filename);

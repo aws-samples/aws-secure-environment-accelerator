@@ -171,7 +171,7 @@ export async function step3(props: FirewallStep3Props) {
         sleep,
         userData: firewallConfig['user-data']
           ? await addReplacementsToUserData({
-              userData: firewallConfig['user-data']!,
+              userData: firewallConfig['user-data'],
               accountKey,
               accountStack,
               config,

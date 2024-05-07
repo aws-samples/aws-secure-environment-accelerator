@@ -11,7 +11,6 @@
  *  and limitations under the License.
  */
 
-/* eslint-disable deprecation/deprecation */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import https from 'https';
 import { parse } from 'url';
