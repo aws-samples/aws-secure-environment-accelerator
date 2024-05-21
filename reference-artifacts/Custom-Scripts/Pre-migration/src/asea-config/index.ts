@@ -1278,6 +1278,34 @@ export class AcceleratorConfig {
   }
 
   /**
+   * Find all alb's
+   * @returns AlbConfigType
+   */
+  getAlbConfigs(): AlbConfigType[] {
+    const albConfigs: AlbConfigType[] = [];
+    for (const [_accountKey, accountConfig] of this.getAccountConfigs()) {
+      for (const alb of accountConfig.alb ?? []) {
+        if (alb.type === 'ALB') {
+          albConfigs.push(alb);
+        }
+      }
+    }
+    return albConfigs;
+  }
+
+  getAlbTemplateConfigs(): AlbConfigType[] {
+    const albConfigs: AlbConfigType[] = [];
+    for (const [_ouKey, organizationConfig] of this.getOrganizationConfigs()) {
+      for (const alb of organizationConfig.alb ?? []) {
+        if (alb.type === 'ALB') {
+          albConfigs.push(alb);
+        }
+      }
+    }
+    return albConfigs;
+  }
+
+  /**
    * Find all VPC configurations in mandatory accounts, workload accounts and organizational units. VPC configuration in
    * organizational units will have the correct `accountKey` based on the `deploy` value of the VPC configuration.
    */
