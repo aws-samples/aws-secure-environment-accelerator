@@ -56,3 +56,5 @@ export const createScpName = (accelPrefix: string, name: string) => `${accelPref
 export const createSsmDocumentName = (accelPrefix: string, name: string) => `${accelPrefix}LZA-${name}`;
 
 export const createConfigRuleName = (accelPrefix: string, name: string) => `${accelPrefix}LZA-${name}`;
+
+export const createAlbName = (name: string, accountKey: string) => `${name}-${accountKey}-alb`;

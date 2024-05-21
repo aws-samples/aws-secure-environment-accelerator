@@ -461,6 +461,8 @@ export class CustomizationsConfigTypes {
   static readonly ec2FirewallInstanceConfig = t.interface({
     name: t.nonEmptyString,
     launchTemplate: this.launchTemplateConfig,
+    licenseFile: t.optional(t.nonEmptyString),
+    configFile: t.optional(t.nonEmptyString),
     vpc: t.nonEmptyString,
     detailedMonitoring: t.optional(t.boolean),
     terminationProtection: t.optional(t.boolean),
@@ -546,6 +548,14 @@ export class Ec2FirewallInstanceConfig implements t.TypeOf<typeof Customizations
    */
   readonly vpc: string = '';
   /**
+   * (OPTIONAL) The logical name of the account to deploy the firewall instance to
+   *
+   * @remarks
+   * This is the logical `name` property of the account as defined in accounts-config.yaml.
+   */
+  readonly account: string | undefined = undefined;
+  /**
+  /**
    * Specify true to enable detailed monitoring. Otherwise, basic monitoring is enabled.
    */
   readonly detailedMonitoring: boolean | undefined = undefined;
@@ -555,6 +565,14 @@ export class Ec2FirewallInstanceConfig implements t.TypeOf<typeof Customizations
    * InstanceInitiatedShutdownBehavior to terminate , you can terminate the instance by running the shutdown command from the instance.
    */
   readonly terminationProtection: boolean | undefined = undefined;
+  /**
+   * A license file for the firewall instance
+   */
+  readonly licenseFile: string = '';
+  /**
+   * A config file for the firewall instance
+   */
+  readonly configFile: string = '';
   /**
    * An optional array of tags
    */
