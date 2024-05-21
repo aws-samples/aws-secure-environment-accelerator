@@ -76,7 +76,12 @@ export class IamConfigTypes {
    *
    * Possible values service, account or provider
    */
-  static readonly assumedByTypeEnum = t.enums('AssumedByConfigType', ['service', 'account', 'provider']);
+  static readonly assumedByTypeEnum = t.enums('AssumedByConfigType', [
+    'service',
+    'account',
+    'principalArn',
+    'provider',
+  ]);
 
   /**
    * AssumedBy configuration
@@ -87,7 +92,7 @@ export class IamConfigTypes {
      */
     type: this.assumedByTypeEnum,
     /**
-     * IAM principal of either service, account or provider type.
+     * IAM principal of either service, account, principalArn or provider type.
      *
      * Service principals are defined by the service and follow the pattern service.domain for example:
      *
@@ -155,6 +160,10 @@ export class IamConfigTypes {
      * A permissions boundary configuration
      */
     boundaryPolicy: t.optional(t.nonEmptyString),
+    /**
+     * List of external IDs
+     */
+    externalIds: t.optional(t.array(t.nonEmptyString)),
   });
 
   /**
@@ -315,7 +324,6 @@ export class IamConfigTypes {
     description: t.optional(t.nonEmptyString),
     edition: t.enums('DirectorySize', ['Standard', 'Enterprise']),
     vpcSettings: IamConfigTypes.managedActiveDirectoryVpcSettingsConfig,
-    resolverRuleName: t.nonEmptyString,
     secretConfig: t.optional(this.managedActiveDirectorySecretConfig),
     sharedOrganizationalUnits: t.optional(this.managedActiveDirectorySharedOuConfig),
     sharedAccounts: t.optional(t.array(t.nonEmptyString)),
@@ -353,7 +361,8 @@ export class IamConfigTypes {
  * ```
  */
 export class ManagedActiveDirectorySharedOuConfig
-implements t.TypeOf<typeof IamConfigTypes.managedActiveDirectorySharedOuConfig> {
+  implements t.TypeOf<typeof IamConfigTypes.managedActiveDirectorySharedOuConfig>
+{
   readonly organizationalUnits: string[] = [];
   readonly excludedAccounts: string[] | undefined = undefined;
 }
@@ -373,7 +382,8 @@ implements t.TypeOf<typeof IamConfigTypes.managedActiveDirectorySharedOuConfig> 
  * ```
  */
 export class ManagedActiveDirectorySecretConfig
-implements t.TypeOf<typeof IamConfigTypes.managedActiveDirectorySecretConfig> {
+  implements t.TypeOf<typeof IamConfigTypes.managedActiveDirectorySecretConfig>
+{
   /**
    * Active directory admin user secret name. LZA will prefix /accelerator/ad-user/<DirectoryName>/ for the secret name
    * For example when secret name value was given as admin-secret and directory name is AcceleratorManagedActiveDirectory
@@ -420,7 +430,8 @@ implements t.TypeOf<typeof IamConfigTypes.managedActiveDirectorySecretConfig> {
  * ```
  */
 export class ActiveDirectoryConfigurationInstanceUserDataConfig
-implements t.TypeOf<typeof IamConfigTypes.activeDirectoryConfigurationInstanceUserDataConfig> {
+  implements t.TypeOf<typeof IamConfigTypes.activeDirectoryConfigurationInstanceUserDataConfig>
+{
   /**
    * Friendly name for the user data script
    */
@@ -437,7 +448,8 @@ implements t.TypeOf<typeof IamConfigTypes.activeDirectoryConfigurationInstanceUs
  * Managed active directory user password policy configuration
  */
 export class ActiveDirectoryPasswordPolicyConfig
-implements t.TypeOf<typeof IamConfigTypes.activeDirectoryPasswordPolicyConfig> {
+  implements t.TypeOf<typeof IamConfigTypes.activeDirectoryPasswordPolicyConfig>
+{
   readonly history = 24;
   readonly maximumAge = 90;
   readonly minimumAge = 1;
@@ -550,7 +562,8 @@ export class ActiveDirectoryUserConfig implements t.TypeOf<typeof IamConfigTypes
  * ```
  */
 export class ActiveDirectoryConfigurationInstanceConfig
-implements t.TypeOf<typeof IamConfigTypes.activeDirectoryConfigurationInstanceConfig> {
+  implements t.TypeOf<typeof IamConfigTypes.activeDirectoryConfigurationInstanceConfig>
+{
   /**
    * Ec2 instance type
    */
@@ -617,7 +630,8 @@ implements t.TypeOf<typeof IamConfigTypes.activeDirectoryConfigurationInstanceCo
  * Active directory logs configuration
  */
 export class ManagedActiveDirectoryLogConfig
-implements t.TypeOf<typeof IamConfigTypes.managedActiveDirectoryLogConfig> {
+  implements t.TypeOf<typeof IamConfigTypes.managedActiveDirectoryLogConfig>
+{
   /**
    * Active directory log group name,  that will be used to receive the security logs from your domain controllers. We recommend pre-pending the name with /aws/directoryservice/, but that is not required.
    *
@@ -644,7 +658,8 @@ implements t.TypeOf<typeof IamConfigTypes.managedActiveDirectoryLogConfig> {
  * ```
  */
 export class ManagedActiveDirectoryVpcSettingsConfig
-implements t.TypeOf<typeof IamConfigTypes.managedActiveDirectoryVpcSettingsConfig> {
+  implements t.TypeOf<typeof IamConfigTypes.managedActiveDirectoryVpcSettingsConfig>
+{
   /**
    * Friendly name of the vpc where active directory will be deployed
    */
@@ -1009,6 +1024,10 @@ export class RoleConfig implements t.TypeOf<typeof IamConfigTypes.roleConfig> {
    * List of policies for the role
    */
   readonly policies: PoliciesConfig | undefined = undefined;
+  /**
+   * List of external IDs
+   */
+  readonly externalIds: string[] | undefined = undefined;
 }
 
 /**
@@ -1090,7 +1109,8 @@ export class IdentityCenterConfig implements t.TypeOf<typeof IamConfigTypes.iden
  * ```
  */
 export class IdentityCenterPermissionSetConfig
-implements t.TypeOf<typeof IamConfigTypes.identityCenterPermissionSetConfig> {
+  implements t.TypeOf<typeof IamConfigTypes.identityCenterPermissionSetConfig>
+{
   /**
    * A name for the Identity Center Permission Set Configuration
    */
@@ -1623,7 +1643,7 @@ export class IamConfig implements t.TypeOf<typeof IamConfigTypes.iamConfig> {
             allAccounts.push(account.name);
           }
           const excludedAccounts = managedActiveDirectory.sharedOrganizationalUnits.excludedAccounts ?? [];
-          const includedAccounts = allAccounts.filter(item => !excludedAccounts.includes(item));
+          const includedAccounts = allAccounts.filter((item) => !excludedAccounts.includes(item));
 
           for (const ou of managedActiveDirectory.sharedOrganizationalUnits.organizationalUnits) {
             if (ou === 'Root') {
@@ -1646,7 +1666,7 @@ export class IamConfig implements t.TypeOf<typeof IamConfigTypes.iamConfig> {
 
     if (directoryFound) {
       // mad account can't be part of shared account
-      return sharedAccounts.filter(item => item !== directoryAccount!);
+      return sharedAccounts.filter((item) => item !== directoryAccount!);
     }
     console.error(`getManageActiveDirectoryAdminSecretName Directory ${directoryName} not found in iam-config file`);
     throw new Error('configuration validation failed.');

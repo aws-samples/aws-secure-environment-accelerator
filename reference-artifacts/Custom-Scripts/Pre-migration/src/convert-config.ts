@@ -17,6 +17,7 @@ import * as yaml from 'js-yaml';
 import _ from 'lodash';
 import {
   AcceleratorConfig,
+  AlbConfigType,
   CertificateConfig,
   GlobalOptionsConfig,
   IamPolicyConfig,
@@ -56,6 +57,7 @@ import { StackOutput, findValuesFromOutputs, loadOutputs } from './common/output
 import { loadAccounts } from './common/utils/accounts';
 import * as convert from './common/utils/conversion';
 import {
+  createAlbName,
   createConfigRuleName,
   createNaclName,
   createNatGatewayName,
@@ -80,7 +82,16 @@ import {
 import { Config } from './config';
 import { AccountsConfig, AccountsConfigType } from './config/accounts-config';
 import { Region, ShareTargets } from './config/common-types';
-import { CustomizationsConfig, CustomizationsConfigTypes } from './config/customizations-config';
+import {
+  ApplicationLoadBalancerConfig,
+  BlockDeviceMappingItem,
+  CustomizationsConfig,
+  CustomizationsConfigTypes,
+  Ec2FirewallConfig,
+  Ec2FirewallInstanceConfig,
+  LaunchTemplateConfig,
+  NetworkInterfaceItemConfig,
+} from './config/customizations-config';
 import { GlobalConfig } from './config/global-config';
 import {
   AssumedByConfig,
@@ -92,6 +103,7 @@ import {
   UserConfig,
 } from './config/iam-config';
 import {
+  //LoadBalancersConfig,
   NetworkConfig,
   NfwFirewallConfig,
   NfwFirewallPolicyConfig,
@@ -240,6 +252,8 @@ export class ConvertAseaConfig {
   private regionsWithoutVpc: string[] = [];
   private accountsWithoutVpc: string[] = [];
   private accountsWithVpc: Set<string> = new Set<string>([]);
+  private albs: AlbConfigType[] = [];
+  private albTemplates: AlbConfigType[] = [];
 
   constructor(config: Config) {
     this.localUpdateOnly = config.localOnlyWrites ?? false;
@@ -300,6 +314,8 @@ export class ConvertAseaConfig {
     );
     const accountKeys = aseaConfig.getAccountConfigs().map(([accountKey]) => accountKey);
     this.accountsWithVpc = new Set<string>();
+    this.albs = aseaConfig.getAlbConfigs();
+    this.albTemplates = aseaConfig.getAlbTemplateConfigs();
     /**
      * Loop VPC Configs and get accounts and regions with VPC
      * Compute accounts and regions with out VPC to exclude for EBS Default Encryption and sessionManager configuration.
@@ -333,12 +349,13 @@ export class ConvertAseaConfig {
       this.accountsWithVpc.delete('management');
       this.accountsWithVpc.add('Management');
     }
-    const index = this.accountsWithoutVpc.findIndex(x => x === 'management');
+    const index = this.accountsWithoutVpc.findIndex((x) => x === 'management');
     if (index) {
       this.accountsWithoutVpc[index] = 'Management';
     }
 
     await this.copyAdditionalAssets();
+    await this.checkUnsupportedConfig(aseaConfig);
     await this.prepareIamConfig(aseaConfig);
     await this.prepareGlobalConfig(aseaConfig);
     this.lzaAccountKeys = await this.prepareAccountConfig(aseaConfig);
@@ -1022,8 +1039,40 @@ export class ConvertAseaConfig {
     return budgets;
   }
 
+  private buildCloudWatchSnsTopics(aseaConfig: AcceleratorConfig) {
+    const alarmsConfig = aseaConfig['global-options'].cloudwatch?.alarms;
+    const globalSnsTopic = Object.entries(
+      aseaConfig['global-options']['central-log-services']['sns-subscription-emails'],
+    ).map((notificationType) => ({
+      notificationType,
+    }));
+    const snsTopics: string[] = [];
+    for (const item of globalSnsTopic ?? []) {
+      const globalSnsTopicLevel = item.notificationType[0];
+      for (const alarmItem of alarmsConfig?.definitions! ?? []) {
+        if (
+          !snsTopics.includes(alarmItem['sns-alert-level']) &&
+          alarmItem['sns-alert-level'] !== 'Ignore' &&
+          alarmItem['sns-alert-level'] !== globalSnsTopicLevel
+        ) {
+          snsTopics.push(alarmItem['sns-alert-level']);
+        }
+      }
+    }
+    return snsTopics;
+  }
+
   private buildSnsTopics(aseaConfig: AcceleratorConfig) {
     if (!aseaConfig['global-options']['central-log-services']['sns-subscription-emails']) return;
+    const alarmsConfig = aseaConfig['global-options'].cloudwatch?.alarms;
+
+    const snsTopics: string[] = [];
+    for (const alarmItem of alarmsConfig?.definitions! ?? []) {
+      if (!snsTopics.includes(alarmItem['sns-alert-level']) && alarmItem['sns-alert-level'] !== 'Ignore') {
+        snsTopics.push(alarmItem['sns-alert-level']);
+      }
+    }
+    const cloudWatchSnsTopicMap = this.buildCloudWatchSnsTopics(aseaConfig);
     return {
       // Set deploymentTargets to Root Org since we need sns topics in all accounts
       deploymentTargets: {
@@ -1035,6 +1084,7 @@ export class ConvertAseaConfig {
           ),
         ],
       },
+
       topics: [
         ...Object.entries(aseaConfig['global-options']['central-log-services']['sns-subscription-emails']).map(
           ([notificationType, emailAddresses]) => ({
@@ -1042,6 +1092,10 @@ export class ConvertAseaConfig {
             emailAddresses,
           }),
         ),
+        ...cloudWatchSnsTopicMap.map((notificationType) => ({
+          name: `${this.aseaPrefix}Notification-${notificationType}`,
+          emailAddresses: [],
+        })),
         {
           // ASEA creates SNS Topic for Ignore and used with alarms
           name: `${this.aseaPrefix}Notification-Ignore`,
@@ -1221,13 +1275,16 @@ export class ConvertAseaConfig {
       const currentIndex = roleSets.findIndex((rs) => rs.roles.find((r) => r.name === role.role));
       if (currentIndex === -1) {
         const assumedBy: AssumedByConfig[] = [];
-
-        if (!!role['source-account'] && !!role['source-account-role']) {
+        if (role['source-account'] && role['source-account-role']) {
+          assumedBy.push({
+            type: 'principalArn',
+            principal: `arn:aws:iam::${getAccountId(this.accounts, role['source-account'])}:role/${role['source-account-role']}`,
+          });
+        }
+        if (role['source-account'] && !role['source-account-role']) {
           assumedBy.push({
             type: 'account',
-            principal: `arn:aws:iam::${getAccountId(this.accounts, role['source-account'])}:role/${
-              role['source-account-role']
-            }`,
+            principal: `arn:aws:iam::${getAccountId(this.accounts, role['source-account'])}:root`,
           });
         }
         if (role.type !== 'account') {
@@ -1250,6 +1307,7 @@ export class ConvertAseaConfig {
                 ),
               },
               instanceProfile: role.type === 'ec2',
+              externalIds: await this.prepareExternalIdsConfig(role),
             },
           ],
           deploymentTargets: {
@@ -1474,7 +1532,6 @@ export class ConvertAseaConfig {
            * If can't create new retrieve from outputs.
            * TODO: Work after network config
            */
-          resolverRuleName: 'test',
           secretConfig: {
             account: AccountsConfig.AUDIT_ACCOUNT,
             adminSecretName: 'my-admin-001',
@@ -1655,17 +1712,290 @@ export class ConvertAseaConfig {
    * @param aseaConfig
    */
   private async prepareCustomizationsConfig(aseaConfig: AcceleratorConfig) {
-    const cloudFormationStacks = await this.createCloudFormationStacksForALBIpForwarding(aseaConfig);
     let customizations: any = {};
+
+    const cloudFormationStacks = await this.createCloudFormationStacksForALBIpForwarding(aseaConfig);
     customizations = {
       cloudFormationStacks,
     };
+    const firewallConfig = await this.prepareFirewallConfig(aseaConfig);
+
     const customizationsConfig: CustomizationsConfigTypes = {
       customizations,
+      firewallConfig,
     };
 
     const yamlConfig = yaml.dump(customizationsConfig, { noRefs: true });
     await this.writeConfig(CustomizationsConfig.FILENAME, yamlConfig);
+  }
+
+  private async prepareFirewallConfig(aseaConfig: AcceleratorConfig) {
+    let firewallConfig: Ec2FirewallConfig | undefined;
+    const instances: Ec2FirewallInstanceConfig[] = [];
+    //Top Level Firewalls
+    Object.entries(aseaConfig['mandatory-account-configs']).forEach(([accountKey, accountConfig]) => {
+      accountKey;
+      const firewalls = accountConfig.deployments?.firewalls;
+      const vpcsInAccount = accountConfig.vpc;
+      const firewallForAccount = this.prepareFirewallInstances(firewalls, vpcsInAccount);
+      if (firewallForAccount.length > 0) {
+        instances.push(...firewallForAccount);
+      }
+    });
+    firewallConfig = {
+      instances: instances,
+      autoscalingGroups: undefined,
+      targetGroups: undefined,
+      managerInstances: undefined,
+    };
+
+    return firewallConfig;
+  }
+
+  private getFirewallInstanceVpcAccount(vpcName: any, vpcsInAccount: any) {
+    //If Firewall is in a shared subnet owned by another account, account-name needs to be passed.
+    let account = undefined;
+    let vpcMatch = vpcsInAccount.find((vpcInAccount: { name: any }) => vpcInAccount.name === vpcName);
+    if (!vpcMatch) {
+      const matchingAccountVpcConfig = this.vpcConfigs.find((vpcConfig) => vpcConfig.vpcConfig.name === vpcName);
+      account = matchingAccountVpcConfig?.vpcConfig.name;
+    }
+
+    return account;
+  }
+  private prepareFirewallInstances(firewalls: any, vpcsInAccount: any) {
+    const instances: Ec2FirewallInstanceConfig[] = [];
+    if (firewalls) {
+      for (const firewall of firewalls) {
+        if (firewall.deploy) {
+          const name = firewall.name;
+          const vpcName = firewall.vpc;
+          const account = this.getFirewallInstanceVpcAccount(firewall.vpc, vpcsInAccount);
+          const detailedMonitoring = false;
+          const ports = firewall.ports;
+          const licenseFile = firewall?.license ? firewall?.license[0] : undefined;
+          const launchTemplate = this.prepareLaunchTemplate(firewall, ports, vpcName);
+          const terminationProtection = true;
+          const tags = undefined;
+          const configFile = firewall.config;
+
+          const instance: Ec2FirewallInstanceConfig = {
+            name,
+            account,
+            launchTemplate,
+            vpc: vpcName,
+            terminationProtection,
+            detailedMonitoring,
+            tags,
+            licenseFile,
+            configFile,
+          };
+          instances.push(instance);
+        }
+      }
+    }
+    return instances;
+  }
+
+  private prepareLaunchTemplate(firewall: any, ports: any[], vpcName: any) {
+    const imageId = firewall['image-id'];
+    const name = `${firewall.name}-LT`;
+    const iamInstanceProfile = `${firewall['fw-instance-role']}-ip`;
+    const blockDeviceMappingsInput = firewall['block-device-mappings'];
+    const instanceType = firewall['instance-sizes'];
+    const securityGroups = [`${firewall['security-group']}_sg`] ?? [];
+    const userData = firewall.userData;
+    const blockDeviceMappings = this.prepareFirewallBlockDeviceMappings(blockDeviceMappingsInput);
+    const networkInterfaces = this.prepareFirewallNetworkInterfaces(ports, securityGroups, vpcName);
+    const enforceImdsv2 = false;
+    const keyPair = firewall.keyName;
+
+    const launchTemplate: LaunchTemplateConfig = {
+      imageId,
+      name,
+      iamInstanceProfile,
+      blockDeviceMappings,
+      instanceType,
+      securityGroups,
+      keyPair,
+      enforceImdsv2,
+      networkInterfaces,
+      userData,
+    };
+    return launchTemplate;
+  }
+
+  private prepareFirewallNetworkInterfaces(ports: any[], securityGroups: any[], vpcName: any) {
+    const listOfFirewallNetworkInterfaces: NetworkInterfaceItemConfig[] = [];
+    let index = 0;
+    //ASEA iterates through ports in order and creates ENI Indexes starting from 0.
+    for (const port of ports) {
+      const networkInterfaceItem: NetworkInterfaceItemConfig = {
+        associateCarrierIpAddress: undefined,
+        associateElasticIp: undefined,
+        associatePublicIpAddress: undefined,
+        deleteOnTermination: undefined,
+        description: port.name,
+        deviceIndex: index,
+        groups: securityGroups,
+        interfaceType: undefined,
+        networkCardIndex: undefined,
+        networkInterfaceId: undefined,
+        privateIpAddress: undefined,
+        secondaryPrivateIpAddressCount: undefined,
+        sourceDestCheck: false,
+        subnetId: `${port.subnet}_${vpcName}`,
+        privateIpAddresses: undefined,
+      };
+      listOfFirewallNetworkInterfaces.push(networkInterfaceItem);
+      index++;
+    }
+
+    return listOfFirewallNetworkInterfaces;
+  }
+
+  private prepareFirewallBlockDeviceMappings(blockDeviceMappingsInput: string[]) {
+    const listOfBlockDeviceMappings: BlockDeviceMappingItem[] = [];
+    for (const blockDeviceMapping of blockDeviceMappingsInput) {
+      listOfBlockDeviceMappings.push({
+        deviceName: blockDeviceMapping,
+        ebs: {
+          encrypted: true,
+          volumeSize: undefined,
+          deleteOnTermination: undefined,
+          iops: undefined,
+          kmsKeyId: undefined,
+          snapshotId: undefined,
+          throughput: undefined,
+          volumeType: undefined,
+        },
+      });
+    }
+    return listOfBlockDeviceMappings;
+  }
+
+  /**
+   * Function that calls other functions to check for unsupported configurations.
+   * @param aseaConfig
+   */
+  private async checkUnsupportedConfig(aseaConfig: AcceleratorConfig) {
+    await this.checkLoadBalancersConfig(aseaConfig);
+    await this.checkRoute53ZonesConfig(aseaConfig);
+  }
+
+  /**
+   * Function that checks for public hosted zones in ASEA config and sends warning.
+   * @param aseaConfig
+   */
+  private async checkRoute53ZonesConfig(aseaConfig: AcceleratorConfig) {
+    // Check VPCs in Mandatory accounts
+    Object.entries(aseaConfig['mandatory-account-configs']).forEach(([accountKey, accountConfig]) => {
+      for (const vpcItem of accountConfig.vpc ?? []) {
+        if (vpcItem.zones?.public) {
+          console.warn(
+            `WARNING!!!!!!!!The VPC ${vpcItem.name} in account ${accountKey} utilizes a public Route53 zone: ${vpcItem.zones?.public.join(' ,')}. Please refer to documentation on how to manage these resources.!!!!!!!!`,
+          );
+        }
+      }
+    });
+    // Check VPCs in Workload accounts
+    Object.entries(aseaConfig['workload-account-configs']).forEach(([accountKey, accountConfig]) => {
+      for (const vpcItem of accountConfig.vpc ?? []) {
+        if (vpcItem.zones?.public) {
+          console.warn(
+            `WARNING!!!!!!!!The VPC ${vpcItem.name} in account ${accountKey} utilizes a public Route53 zone: ${vpcItem.zones?.public.join(' ,')}. Please refer to documentation on how to manage these resources.!!!!!!!!`,
+          );
+        }
+      }
+    });
+    // Check shared VPCs for OUs
+    Object.entries(aseaConfig['organizational-units']).forEach(([ouKey, organizationConfig]) => {
+      for (const vpcItem of organizationConfig.vpc ?? []) {
+        if (vpcItem.zones?.public) {
+          console.warn(
+            `WARNING!!!!!!!!The VPC ${vpcItem.name} in OU ${ouKey} utilizes a public Route53 zone: ${vpcItem.zones?.public.join(' ,')}. Please refer to documentation on how to manage these resources.!!!!!!!!`,
+          );
+        }
+      }
+    });
+  }
+
+  /**
+   * Function that checks for Gateway Load Balancers in ASEA config.
+   * @param aseaConfig
+   */
+  private async checkLoadBalancersConfig(aseaConfig: AcceleratorConfig) {
+    Object.entries(aseaConfig['mandatory-account-configs']).forEach(([accountKey, accountConfig]) => {
+      for (const loadBalancerItem of accountConfig.alb ?? []) {
+        if (loadBalancerItem.type === 'GWLB') {
+          console.warn(
+            `WARNING!!!!!!!! The account ${accountKey} utilizes a Gateway Load Balancer: ${loadBalancerItem.name}. Please refer to documentation on how to manage these resources.!!!!!!!!`,
+          );
+        }
+      }
+    });
+
+    Object.entries(aseaConfig['workload-account-configs']).forEach(([accountKey, accountConfig]) => {
+      for (const loadBalancerItem of accountConfig.alb ?? []) {
+        if (loadBalancerItem.type === 'GWLB') {
+          console.warn(
+            `WARNING!!!!!!!! The account ${accountKey} utilizes a Gateway Load Balancer: ${loadBalancerItem.name}. Please refer to documentation on how to manage these resources.!!!!!!!!`,
+          );
+        }
+      }
+    });
+
+    Object.entries(aseaConfig['organizational-units']).forEach(([ouKey, organizationConfig]) => {
+      if (organizationConfig.alb) {
+        for (const loadBalancerItem of organizationConfig.alb ?? []) {
+          if (loadBalancerItem.type === 'GWLB') {
+            console.warn(
+              `WARNING!!!!!!!! The organizational unit ${ouKey} utilizes a Gateway Load Balancer: ${loadBalancerItem.name}. Please refer to documentation on how to manage these resources.!!!!!!!!`,
+            );
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Function that checks trust policies for IAM Roles and unsupported types.
+   * @param aseaConfig
+   */
+  private async checkIamTrustsConfig(role: IamRoleConfig, trustPolicy: string) {
+    const content = JSON.parse(trustPolicy);
+    if (content.Statement.length >= 1) {
+      for (const statementItem of content.Statement) {
+        if (statementItem.Condition) {
+          if (!statementItem.Condition.StringEquals) {
+            console.warn(
+              `WARNING!!!!!!!! The trust policy for the role ${role.role} includes a condition with StringEquals doesn't support external IDs. Please refer to documentation on how to manage these resources.!!!!!!!!`,
+            );
+          }
+          if (!statementItem.Condition.StringEquals?.['sts:ExternalId']) {
+            console.warn(
+              `WARNING!!!!!!!! The trust policy for the role ${role.role} includes a condition that doesn't support external IDs. Please refer to documentation on how to manage these resources.!!!!!!!!`,
+            );
+          }
+        } else if (statementItem.Action !== 'sts:AssumeRole' || statementItem.Action !== 'sts:AssumeRoleWithSAML') {
+          console.warn(
+            `WARNING!!!!!!!! The trust policy for the role ${role.role} has an Action that doesn't use sts:AssumeRole or sts:AssumeRoleWithSAML. Please refer to documentation on how to manage these resources.!!!!!!!!`,
+          );
+        }
+      }
+    } else {
+      if (content.Statement.Condition) {
+        if (!content.Statement.Condition.StringEquals?.['sts:ExternalId']) {
+          console.warn(
+            `WARNING!!!!!!!! The trust policy for the role ${role.role} includes a condition that doesn't support external IDs. Please refer to documentation on how to manage these resources.!!!!!!!!`,
+          );
+        } else if (content.Statement.Action !== 'sts:AssumeRole') {
+          console.warn(
+            `WARNING!!!!!!!! The trust policy for the role ${role.role} has an Action that doesn't use sts:AssumeRole. Please refer to documentation on how to manage these resources.!!!!!!!!`,
+          );
+        }
+      }
+    }
   }
 
   /**
@@ -2469,13 +2799,33 @@ export class ConvertAseaConfig {
         routes: TransitGatewayRouteConfig[],
         accountKey: string,
         tgwConfig: TgwDeploymentConfig,
+        routeTableName: string,
       ) => {
         const lzaRoutes: any[] = [];
+        // process routes explicitly defined in ASEA config
         routes.forEach((route) => {
           lzaRoutes.push({
             destinationCidrBlock: route.destination,
             blackhole: route['blackhole-route'],
             attachment: getTransitGatewayRouteAttachment(route, accountKey, tgwConfig),
+          });
+        });
+        // add blackhole routes added implicitly by ASEA
+        const attachVpcConfig = this.vpcConfigs.filter(
+          ({ vpcConfig }) =>
+            vpcConfig['tgw-attach'] &&
+            vpcConfig['tgw-attach']['associate-to-tgw'] === tgwConfig.name &&
+            vpcConfig['tgw-attach']['blackhole-route'] === true &&
+            vpcConfig['tgw-attach']['tgw-rt-associate'][0] === routeTableName &&
+            vpcConfig['tgw-attach']['associate-type'] === 'ATTACH',
+        );
+        attachVpcConfig.forEach((vpc) => {
+          const vpcCidrs = this.getVpcCidr({ accountKey, vpcConfig: vpc.vpcConfig });
+          vpcCidrs.forEach((cidr) => {
+            lzaRoutes.push({
+              destinationCidrBlock: cidr,
+              blackhole: vpc.vpcConfig['tgw-attach']?.['blackhole-route'],
+            });
           });
         });
         return lzaRoutes;
@@ -2534,6 +2884,7 @@ export class ConvertAseaConfig {
                   .flatMap((routeTable) => routeTable.routes || []) || [],
                 accountKey,
                 tgwConfig,
+                routeTableName,
               ),
             })),
             shareTargets: prepareTransitGatewayShareTargets(accountKey, tgwConfig),
@@ -2546,13 +2897,19 @@ export class ConvertAseaConfig {
                 transitGatewayName: transitGatewayName(tgwConfig.name),
                 account: lzaAccountKey,
                 region: tgwConfig.region,
-                routeTableAssociations: tgwPeeringConfig['tgw-rt-associate-local'][0], // ASEA has list of route tables to associate to peering
+                routeTableAssociations: transitGatewayRouteTableName(
+                  tgwPeeringConfig['tgw-rt-associate-local'][0],
+                  tgwConfig.name,
+                ),
               },
               accepter: {
                 transitGatewayName: transitGatewayName(tgwPeeringConfig['associate-to-tgw']),
                 account: this.getAccountKeyforLza(globalOptions, tgwPeeringConfig.account),
                 region: tgwPeeringConfig.region,
-                routeTableAssociations: tgwPeeringConfig['tgw-rt-associate-remote'][0], // ASEA has list of route tables to associate to peering
+                routeTableAssociations: transitGatewayRouteTableName(
+                  tgwPeeringConfig['tgw-rt-associate-remote'][0],
+                  tgwPeeringConfig['associate-to-tgw'],
+                ),
                 autoAccept: true,
               },
             });
@@ -2572,6 +2929,55 @@ export class ConvertAseaConfig {
           subnet: createSubnetName(vpcConfig.name, s.subnetName, s.az),
         }));
       };
+      const prepareAlbConfig = (vpcConfig: VpcConfig, accountKey?: string) => {
+        enum Scheme {
+          'internet-facing' = 'internet-facing',
+          'internal' = 'internal',
+        }
+        const lzaAlbs: ApplicationLoadBalancerConfig[] = [];
+        const albs = this.albs.filter((lb) => lb.vpc === vpcConfig.name);
+        if (albs.length === 0) return;
+        for (const alb of albs) {
+          const albSubnets = this.getAzSubnets(vpcConfig, alb.subnets);
+          const albConfig: ApplicationLoadBalancerConfig = {
+            name: createAlbName(alb.name, accountKey!),
+            scheme: alb.scheme as keyof typeof Scheme,
+            //fix names
+            subnets: albSubnets.map((s) => createSubnetName(alb.vpc, s.subnetName, s.az)),
+            //fix names
+            securityGroups: [`${alb['security-group']}_sg`],
+            attributes: {
+              deletionProtection: true,
+              idleTimeout: 60,
+              routingHttpDesyncMitigationMode: 'defensive',
+              routingHttpDropInvalidHeader: false,
+              routingHttpXAmznTlsCipherEnable: false,
+              routingHttpXffClientPort: false,
+              routingHttpXffHeaderProcessingMode: 'append',
+              http2Enabled: true,
+              wafFailOpen: false,
+            },
+            listeners: [
+              {
+                name: `${alb.name}-listener`,
+                port: 443,
+                protocol: 'HTTPS',
+                type: 'forward',
+                certificate: undefined,
+                sslPolicy: 'ELBSecurityPolicy-FS-1-2-Res-2019-08',
+                fixedResponseConfig: undefined,
+                targetGroup: `${alb.name}-health-check-Lambda`,
+                forwardConfig: { targetGroupStickinessConfig: { durationSeconds: 3600, enabled: true } },
+                redirectConfig: undefined,
+                order: undefined,
+              },
+            ],
+          };
+          lzaAlbs.push(albConfig);
+        }
+        return lzaAlbs;
+      };
+
       const prepareSecurityGroupRules = (rules: SecurityGroupRuleConfig[], accountKey?: string) => {
         const lzaRules: SecurityGroupRuleType[] = [];
         for (const rule of rules) {
@@ -2822,11 +3228,10 @@ export class ConvertAseaConfig {
               vpc: createVpcName(vpcConfig.name),
               subnets:
                 vpcConfig.subnets
-                  ?.find((subnetItem) => subnetItem.name === vpcConfig['resolvers']?.subnet)
+                  ?.find((subnetItem) => subnetItem.name === vpcConfig.resolvers?.subnet)
                   ?.definitions.filter((subnetItem) => !subnetItem.disabled)
-                  .map((subnetItem) =>
-                    createSubnetName(vpcConfig.name, vpcConfig['resolvers']?.subnet!, subnetItem.az),
-                  ) || [],
+                  .map((subnetItem) => createSubnetName(vpcConfig.name, vpcConfig.resolvers?.subnet!, subnetItem.az)) ||
+                [],
               type: 'OUTBOUND',
               rules: lzaEndpointsRulesConfig,
             });
@@ -2879,6 +3284,7 @@ export class ConvertAseaConfig {
         };
         return lzaResolverConfig;
       };
+
       const prepareRouteTableConfig = (vpcConfig: VpcConfig, accountKey?: string) => {
         const prepareRoutes = (routeTable: RouteTableConfig) => {
           const lzaRoutes: {
@@ -2984,6 +3390,7 @@ export class ConvertAseaConfig {
         }
         return lzaRouteTables;
       };
+
       const prepareVpcConfig = ({ accountKey, ouKey, vpcConfig, excludeAccounts }: ResolvedVpcConfig) => {
         return {
           name: createVpcName(vpcConfig.name),
@@ -3032,11 +3439,14 @@ export class ConvertAseaConfig {
           virtualPrivateGateway: vpcConfig.vgw,
           routeTables: prepareRouteTableConfig(vpcConfig, accountKey),
           vpcRoute53Resolver: prepareResolverConfig(vpcConfig),
+          loadBalancers: { applicationLoadBalancers: prepareAlbConfig(vpcConfig, accountKey) },
+
           // TODO: Comeback after customizationConfig
-          // loadBalancers:
           // targetGroups:
         };
       };
+
+      console.log(this.albTemplates);
       const lzaVpcConfigs = [];
       const lzaVpcTemplatesConfigs = [];
       for (const { accountKey, vpcConfig, ouKey, excludeAccounts } of this.vpcConfigs) {
@@ -3052,6 +3462,7 @@ export class ConvertAseaConfig {
           lzaVpcTemplatesConfigs.push(prepareVpcConfig({ ouKey, vpcConfig, excludeAccounts, accountKey }));
         }
       }
+
       networkConfigAttributes.vpcs = lzaVpcConfigs;
       networkConfigAttributes.vpcTemplates = lzaVpcTemplatesConfigs;
     };
@@ -3197,6 +3608,37 @@ export class ConvertAseaConfig {
       '${ACCEL_LOOKUP::CustomerManagedPolicy:ASEA-SSMWriteAccessPolicy}',
     );
     return value;
+  }
+
+  private async prepareExternalIdsConfig(role: IamRoleConfig) {
+    const externalIds: string[] = [];
+    if (role['trust-policy']) {
+      const trustPolicy = await this.s3.getObjectBodyAsString({
+        Bucket: this.centralBucketName,
+        Key: path.join(LZA_IAM_POLICY_CONFIG_PATH, role['trust-policy']),
+      });
+      const content = JSON.parse(trustPolicy);
+      // Check trust policy support
+      this.checkIamTrustsConfig(role, trustPolicy);
+      if (content.Statement.length >= 1) {
+        for (const externalIdItem of content.Statement ?? []) {
+          if (externalIdItem.Condition.StringEquals?.['sts:ExternalId']) {
+            if (!externalIds.includes(externalIdItem.Condition.StringEquals['sts:ExternalId'])) {
+              externalIds.push(externalIdItem.Condition.StringEquals['sts:ExternalId']);
+            }
+          }
+        }
+      } else {
+        if (content.Statement.Condition.StringEquals?.['sts:ExternalId']) {
+          if (!externalIds.includes(content.Statement.Condition.StringEquals?.['sts:ExternalId'])) {
+            externalIds.push(content.Statement.Condition.StringEquals?.['sts:ExternalId']);
+          }
+        }
+      }
+      return externalIds;
+    } else {
+      return undefined;
+    }
   }
 
   private getAzSubnets(vpcConfig: VpcConfig, subnetName: string, az?: string) {
