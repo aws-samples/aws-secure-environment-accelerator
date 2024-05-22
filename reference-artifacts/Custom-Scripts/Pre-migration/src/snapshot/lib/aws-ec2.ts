@@ -242,7 +242,7 @@ export async function snapshotVpcEndpoints(
   } while (nextToken);
 }
 
-export async function snapshotVpcEnpointServices(
+export async function snapshotVpcEndpointServices(
   tableName: string,
   homeRegion: string,
   accountId: string,
@@ -283,7 +283,7 @@ export async function snapshotVpcEnpointServices(
         await snapshotTable.writeResource({
           accountId: accountId,
           region: region,
-          resourceName: `vpc-service-enpoint-permissions-${vpcEndpointService.ServiceId}`,
+          resourceName: `vpc-service-endpoint-permissions-${vpcEndpointService.ServiceId}`,
           preMigration: preMigration,
           data: vpcHostedZoneResults,
         });
