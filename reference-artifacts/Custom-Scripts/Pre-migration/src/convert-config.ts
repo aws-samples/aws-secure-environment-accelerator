@@ -1039,29 +1039,6 @@ export class ConvertAseaConfig {
     return budgets;
   }
 
-  private buildCloudWatchSnsTopics(aseaConfig: AcceleratorConfig) {
-    const alarmsConfig = aseaConfig['global-options'].cloudwatch?.alarms;
-    const globalSnsTopic = Object.entries(
-      aseaConfig['global-options']['central-log-services']['sns-subscription-emails'],
-    ).map((notificationType) => ({
-      notificationType,
-    }));
-    const snsTopics: string[] = [];
-    for (const item of globalSnsTopic ?? []) {
-      const globalSnsTopicLevel = item.notificationType[0];
-      for (const alarmItem of alarmsConfig?.definitions! ?? []) {
-        if (
-          !snsTopics.includes(alarmItem['sns-alert-level']) &&
-          alarmItem['sns-alert-level'] !== 'Ignore' &&
-          alarmItem['sns-alert-level'] !== globalSnsTopicLevel
-        ) {
-          snsTopics.push(alarmItem['sns-alert-level']);
-        }
-      }
-    }
-    return snsTopics;
-  }
-
   private buildSnsTopics(aseaConfig: AcceleratorConfig) {
     if (!aseaConfig['global-options']['central-log-services']['sns-subscription-emails']) return;
     const alarmsConfig = aseaConfig['global-options'].cloudwatch?.alarms;
@@ -1072,7 +1049,6 @@ export class ConvertAseaConfig {
         snsTopics.push(alarmItem['sns-alert-level']);
       }
     }
-    const cloudWatchSnsTopicMap = this.buildCloudWatchSnsTopics(aseaConfig);
     return {
       // Set deploymentTargets to Root Org since we need sns topics in all accounts
       deploymentTargets: {
@@ -1092,10 +1068,6 @@ export class ConvertAseaConfig {
             emailAddresses,
           }),
         ),
-        ...cloudWatchSnsTopicMap.map((notificationType) => ({
-          name: `${this.aseaPrefix}Notification-${notificationType}`,
-          emailAddresses: [],
-        })),
         {
           // ASEA creates SNS Topic for Ignore and used with alarms
           name: `${this.aseaPrefix}Notification-Ignore`,
@@ -1718,11 +1690,11 @@ export class ConvertAseaConfig {
     customizations = {
       cloudFormationStacks,
     };
-    const firewallConfig = await this.prepareFirewallConfig(aseaConfig);
+    const firewalls = await this.prepareFirewallConfig(aseaConfig);
 
     const customizationsConfig: CustomizationsConfigTypes = {
       customizations,
-      firewallConfig,
+      firewalls,
     };
 
     const yamlConfig = yaml.dump(customizationsConfig, { noRefs: true });
@@ -1730,26 +1702,26 @@ export class ConvertAseaConfig {
   }
 
   private async prepareFirewallConfig(aseaConfig: AcceleratorConfig) {
-    let firewallConfig: Ec2FirewallConfig | undefined;
+    let firewalls: Ec2FirewallConfig | undefined;
     const instances: Ec2FirewallInstanceConfig[] = [];
     //Top Level Firewalls
     Object.entries(aseaConfig['mandatory-account-configs']).forEach(([accountKey, accountConfig]) => {
       accountKey;
-      const firewalls = accountConfig.deployments?.firewalls;
+      const firewallsConfig = accountConfig.deployments?.firewalls;
       const vpcsInAccount = accountConfig.vpc;
-      const firewallForAccount = this.prepareFirewallInstances(firewalls, vpcsInAccount);
+      const firewallForAccount = this.prepareFirewallInstances(firewallsConfig, vpcsInAccount);
       if (firewallForAccount.length > 0) {
         instances.push(...firewallForAccount);
       }
     });
-    firewallConfig = {
+    firewalls = {
       instances: instances,
       autoscalingGroups: undefined,
       targetGroups: undefined,
       managerInstances: undefined,
     };
 
-    return firewallConfig;
+    return firewalls;
   }
 
   private getFirewallInstanceVpcAccount(vpcName: any, vpcsInAccount: any) {
@@ -1770,43 +1742,66 @@ export class ConvertAseaConfig {
         if (firewall.deploy) {
           const name = firewall.name;
           const vpcName = firewall.vpc;
+          const firewallScopedVpcConfig = this.vpcConfigs
+            // Find VPC by name
+            .find(
+              ({ vpcConfig }) =>
+                vpcConfig.name === vpcName,
+            );
+          const azs = this.getListOfFirewallAzs(firewall, firewallScopedVpcConfig?.vpcConfig);
           const account = this.getFirewallInstanceVpcAccount(firewall.vpc, vpcsInAccount);
           const detailedMonitoring = false;
           const ports = firewall.ports;
           const licenseFile = firewall?.license ? firewall?.license[0] : undefined;
-          const launchTemplate = this.prepareLaunchTemplate(firewall, ports, vpcName);
           const terminationProtection = true;
           const tags = undefined;
           const configFile = firewall.config;
 
-          const instance: Ec2FirewallInstanceConfig = {
-            name,
-            account,
-            launchTemplate,
-            vpc: vpcName,
-            terminationProtection,
-            detailedMonitoring,
-            tags,
-            licenseFile,
-            configFile,
-          };
-          instances.push(instance);
+          for (const az of azs) {
+            const instanceNameWithAz = `${name}_az${az.toUpperCase()}`;
+            const launchTemplate = this.prepareLaunchTemplate(firewall, ports, vpcName, az);
+            const instance: Ec2FirewallInstanceConfig = {
+              name: instanceNameWithAz,
+              account,
+              launchTemplate,
+              vpc: `${vpcName}_vpc`,
+              terminationProtection,
+              detailedMonitoring,
+              tags,
+              licenseFile,
+              configFile,
+            };
+            instances.push(instance);
+          }
         }
       }
     }
     return instances;
   }
 
-  private prepareLaunchTemplate(firewall: any, ports: any[], vpcName: any) {
+  private getListOfFirewallAzs(firewallConfig: any, vpcConfig: any) {
+    const subnetName = firewallConfig.ports[0].subnet;
+    const firewallSubnet = vpcConfig.subnets.filter((subnets: { name: any }) => subnets.name === subnetName);
+    const firewallSubnetDefinitions = firewallSubnet[0].definitions;
+    const listOfAzs = [];
+    for (const firweallSubnetDefinition of firewallSubnetDefinitions) {
+      listOfAzs.push(firweallSubnetDefinition.az);
+    }
+    return listOfAzs;
+  }
+
+  private prepareLaunchTemplate(firewall: any, ports: any[], vpcName: any, az: string) {
     const imageId = firewall['image-id'];
     const name = `${firewall.name}-LT`;
-    const iamInstanceProfile = `${firewall['fw-instance-role']}-ip`;
+    // Leaving in case we need to switch to the -ip appended for instance profiles.
+    //const iamInstanceProfile = `${firewall['fw-instance-role']}-ip`;
+    const iamInstanceProfile = `${firewall['fw-instance-role']}`;
     const blockDeviceMappingsInput = firewall['block-device-mappings'];
     const instanceType = firewall['instance-sizes'];
     const securityGroups = [`${firewall['security-group']}_sg`] ?? [];
     const userData = firewall.userData;
     const blockDeviceMappings = this.prepareFirewallBlockDeviceMappings(blockDeviceMappingsInput);
-    const networkInterfaces = this.prepareFirewallNetworkInterfaces(ports, securityGroups, vpcName);
+    const networkInterfaces = this.prepareFirewallNetworkInterfaces(ports, securityGroups, vpcName, az);
     const enforceImdsv2 = false;
     const keyPair = firewall.keyName;
 
@@ -1825,7 +1820,7 @@ export class ConvertAseaConfig {
     return launchTemplate;
   }
 
-  private prepareFirewallNetworkInterfaces(ports: any[], securityGroups: any[], vpcName: any) {
+  private prepareFirewallNetworkInterfaces(ports: any[], securityGroups: any[], vpcName: any, az: string) {
     const listOfFirewallNetworkInterfaces: NetworkInterfaceItemConfig[] = [];
     let index = 0;
     //ASEA iterates through ports in order and creates ENI Indexes starting from 0.
@@ -1844,7 +1839,7 @@ export class ConvertAseaConfig {
         privateIpAddress: undefined,
         secondaryPrivateIpAddressCount: undefined,
         sourceDestCheck: false,
-        subnetId: `${port.subnet}_${vpcName}`,
+        subnetId: `${port.subnet}_${vpcName}_az${az}_net`,
         privateIpAddresses: undefined,
       };
       listOfFirewallNetworkInterfaces.push(networkInterfaceItem);
@@ -3619,7 +3614,7 @@ export class ConvertAseaConfig {
       });
       const content = JSON.parse(trustPolicy);
       // Check trust policy support
-      this.checkIamTrustsConfig(role, trustPolicy);
+      await this.checkIamTrustsConfig(role, trustPolicy);
       if (content.Statement.length >= 1) {
         for (const externalIdItem of content.Statement ?? []) {
           if (externalIdItem.Condition.StringEquals?.['sts:ExternalId']) {

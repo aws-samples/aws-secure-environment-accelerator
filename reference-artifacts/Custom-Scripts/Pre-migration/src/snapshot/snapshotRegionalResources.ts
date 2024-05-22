@@ -24,7 +24,7 @@ import {
   describeKeyPairs,
   snapshotVpcResources,
   snapshotVpcEndpoints,
-  snapshotVpcEnpointServices,
+  snapshotVpcEndpointServices,
 } from './lib/aws-ec2';
 import { snapshotKmsKeys } from './lib/aws-kms';
 import { getMacieExportConfig, getMacieStatus } from './lib/aws-macie';
@@ -262,7 +262,7 @@ export async function snapshotRegionResources(
 
   await snapshotHostedZones(tableName, homeRegion, accountId, region, preMigration, credentials);
   await snapshotVpcEndpoints(tableName, homeRegion, accountId, region, preMigration, credentials);
-  await snapshotVpcEnpointServices(tableName, homeRegion, accountId, region, preMigration, credentials);
+  await snapshotVpcEndpointServices(tableName, homeRegion, accountId, region, preMigration, credentials);
   await snapshotVpcResources(tableName, homeRegion, accountId, region, preMigration, credentials);
   await snapshotCloudWatchLogResources(tableName, homeRegion, accountId, region, preMigration, credentials);
   await snapshotKmsKeys(tableName, homeRegion, accountId, region, preMigration, credentials);
