@@ -91,6 +91,7 @@ import {
   Ec2FirewallInstanceConfig,
   LaunchTemplateConfig,
   NetworkInterfaceItemConfig,
+  TargetGroupItemConfig,
 } from './config/customizations-config';
 import { GlobalConfig } from './config/global-config';
 import {
@@ -253,7 +254,7 @@ export class ConvertAseaConfig {
   private accountsWithoutVpc: string[] = [];
   private accountsWithVpc: Set<string> = new Set<string>([]);
   private albs: AlbConfigType[] = [];
-  private albTemplates: AlbConfigType[] = [];
+  //private albTemplates: AlbConfigType[] = [];
 
   constructor(config: Config) {
     this.localUpdateOnly = config.localOnlyWrites ?? false;
@@ -315,7 +316,7 @@ export class ConvertAseaConfig {
     const accountKeys = aseaConfig.getAccountConfigs().map(([accountKey]) => accountKey);
     this.accountsWithVpc = new Set<string>();
     this.albs = aseaConfig.getAlbConfigs();
-    this.albTemplates = aseaConfig.getAlbTemplateConfigs();
+    //this.albTemplates = aseaConfig.getAlbTemplateConfigs();
     /**
      * Loop VPC Configs and get accounts and regions with VPC
      * Compute accounts and regions with out VPC to exclude for EBS Default Encryption and sessionManager configuration.
@@ -812,6 +813,13 @@ export class ConvertAseaConfig {
       );
     });
 
+    // Create regions exclusion list for CMK
+    const excludeRegions: string[] = [];
+    for (const regionItem of globalOptions['supported-regions']) {
+      if (regionItem !== globalOptions['aws-org-management'].region) {
+        excludeRegions.push(regionItem);
+      }
+    }
     const globalConfigAttributes: { [key: string]: unknown } = {
       externalLandingZoneResources: {
         importExternalLandingZoneResources: true,
@@ -839,7 +847,12 @@ export class ConvertAseaConfig {
       },
       s3: {
         encryption: {
-          createCMK: false,
+          createCMK: true,
+          deploymentTargets: {
+            accounts: ['Management'],
+            organizationalUnits: Object.entries(aseaConfig['organizational-units']).map(([ouName]) => ouName),
+            excludedRegions: excludeRegions,
+          },
         },
       },
       logging: {
@@ -1739,15 +1752,12 @@ export class ConvertAseaConfig {
     const instances: Ec2FirewallInstanceConfig[] = [];
     if (firewalls) {
       for (const firewall of firewalls) {
-        if (firewall.deploy) {
+        if (firewall.deploy && firewall.type === 'EC2') {
           const name = firewall.name;
           const vpcName = firewall.vpc;
           const firewallScopedVpcConfig = this.vpcConfigs
             // Find VPC by name
-            .find(
-              ({ vpcConfig }) =>
-                vpcConfig.name === vpcName,
-            );
+            .find(({ vpcConfig }) => vpcConfig.name === vpcName);
           const azs = this.getListOfFirewallAzs(firewall, firewallScopedVpcConfig?.vpcConfig);
           const account = this.getFirewallInstanceVpcAccount(firewall.vpc, vpcsInAccount);
           const detailedMonitoring = false;
@@ -2924,22 +2934,39 @@ export class ConvertAseaConfig {
           subnet: createSubnetName(vpcConfig.name, s.subnetName, s.az),
         }));
       };
-      const prepareAlbConfig = (vpcConfig: VpcConfig, accountKey?: string) => {
+
+      const prepareAlb = (vpcConfig: VpcConfig, accountKey?: string) => {
         enum Scheme {
-          'internet-facing' = 'internet-facing',
-          'internal' = 'internal',
+          'internet-facing',
+          'internal',
         }
-        const lzaAlbs: ApplicationLoadBalancerConfig[] = [];
+        enum ActionType {
+          'forward',
+          'redirect',
+          'fixed-response',
+        }
+        enum SslPolicy {
+          'ELBSecurityPolicy-TLS-1-0-2015-04',
+          'ELBSecurityPolicy-TLS-1-1-2017-01',
+          'ELBSecurityPolicy-TLS-1-2-2017-01',
+          'ELBSecurityPolicy-TLS-1-2-Ext-2018-06',
+          'ELBSecurityPolicy-FS-2018-06',
+          'ELBSecurityPolicy-FS-1-1-2019-08',
+          'ELBSecurityPolicy-FS-1-2-2019-08',
+          'ELBSecurityPolicy-FS-1-2-Res-2019-08',
+          'ELBSecurityPolicy-2015-05',
+          'ELBSecurityPolicy-FS-1-2-Res-2020-10',
+          'ELBSecurityPolicy-2016-08',
+        }
+        const lzaAlbs: { applicationLoadBalancers: ApplicationLoadBalancerConfig[] } = { applicationLoadBalancers: [] };
         const albs = this.albs.filter((lb) => lb.vpc === vpcConfig.name);
-        if (albs.length === 0) return;
+        if (albs.length === 0) return undefined;
         for (const alb of albs) {
           const albSubnets = this.getAzSubnets(vpcConfig, alb.subnets);
           const albConfig: ApplicationLoadBalancerConfig = {
             name: createAlbName(alb.name, accountKey!),
             scheme: alb.scheme as keyof typeof Scheme,
-            //fix names
             subnets: albSubnets.map((s) => createSubnetName(alb.vpc, s.subnetName, s.az)),
-            //fix names
             securityGroups: [`${alb['security-group']}_sg`],
             attributes: {
               deletionProtection: true,
@@ -2955,22 +2982,76 @@ export class ConvertAseaConfig {
             listeners: [
               {
                 name: `${alb.name}-listener`,
-                port: 443,
+                port: alb.ports,
                 protocol: 'HTTPS',
-                type: 'forward',
+                type: alb['action-type'] as keyof typeof ActionType,
                 certificate: undefined,
-                sslPolicy: 'ELBSecurityPolicy-FS-1-2-Res-2019-08',
+                sslPolicy: alb['security-policy'] as keyof typeof SslPolicy,
                 fixedResponseConfig: undefined,
-                targetGroup: `${alb.name}-health-check-Lambda`,
-                forwardConfig: { targetGroupStickinessConfig: { durationSeconds: 3600, enabled: true } },
+                targetGroup: `${alb.name}-${alb.targets[0]['target-name']}`.substring(0, 31),
+                //targetGroup: `${alb.name}-health-check-Lambda`,
+                //forwardConfig: { targetGroupStickinessConfig: { durationSeconds: 3600, enabled: true } },
+                forwardConfig: undefined,
                 redirectConfig: undefined,
                 order: undefined,
               },
             ],
           };
-          lzaAlbs.push(albConfig);
+          lzaAlbs.applicationLoadBalancers.push(albConfig);
         }
+        if (lzaAlbs.applicationLoadBalancers.length === 0) return undefined;
         return lzaAlbs;
+      };
+
+      const prepareTargetGroup = (vpcConfig: VpcConfig) => {
+        enum Protocol {
+          'HTTP',
+          'HTTPS',
+          'TCP',
+          'TLS',
+          'UDP',
+          'TCP_UDP',
+          'GENEVE',
+        }
+        enum HealthCheckProtocol {
+          'HTTP',
+          'HTTPS',
+          'TCP',
+        }
+        enum TargetType {
+          'instance',
+          'ip',
+          'lambda',
+          'alb',
+        }
+        const targetGroups: TargetGroupItemConfig[] = [];
+        const albs = this.albs.filter((lb) => lb.vpc === vpcConfig.name);
+        if (albs.length === 0) return;
+        for (const alb of albs) {
+          for (const target of alb.targets) {
+            const targetConfig: TargetGroupItemConfig = {
+              name: `${alb.name}-${target['target-name']}`.substring(0, 31),
+              port: target.port ?? 443,
+              protocol: (target.protocol as keyof typeof Protocol) ?? 'HTTPS',
+              protocolVersion: undefined,
+              type: target['target-type'] as keyof typeof TargetType,
+              healthCheck: {
+                interval: 10,
+                path: target['health-check-path'],
+                port: target['health-check-port'],
+                protocol: target['health-check-protocol'] as keyof typeof HealthCheckProtocol,
+                timeout: undefined,
+              },
+              attributes: undefined,
+              targets: undefined,
+              matcher: undefined,
+              threshold: undefined,
+            };
+            targetGroups.push(targetConfig);
+          }
+        }
+        if (targetGroups.length === 0) return undefined;
+        return targetGroups;
       };
 
       const prepareSecurityGroupRules = (rules: SecurityGroupRuleConfig[], accountKey?: string) => {
@@ -3434,14 +3515,11 @@ export class ConvertAseaConfig {
           virtualPrivateGateway: vpcConfig.vgw,
           routeTables: prepareRouteTableConfig(vpcConfig, accountKey),
           vpcRoute53Resolver: prepareResolverConfig(vpcConfig),
-          loadBalancers: { applicationLoadBalancers: prepareAlbConfig(vpcConfig, accountKey) },
-
-          // TODO: Comeback after customizationConfig
-          // targetGroups:
+          loadBalancers: prepareAlb(vpcConfig, accountKey),
+          targetGroups: prepareTargetGroup(vpcConfig),
         };
       };
 
-      console.log(this.albTemplates);
       const lzaVpcConfigs = [];
       const lzaVpcTemplatesConfigs = [];
       for (const { accountKey, vpcConfig, ouKey, excludeAccounts } of this.vpcConfigs) {
