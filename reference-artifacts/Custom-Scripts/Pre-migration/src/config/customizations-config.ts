@@ -31,7 +31,7 @@ export class CustomizationsConfigTypes {
     'GENEVE',
   ]);
   static readonly targetGroupProtocolVersionType = t.enums('TargetGroupProtocolTypes', ['GRPC', 'HTTP1', 'HTTP2']);
-  static readonly targetGroupType = t.enums('TargetGroupProtocolTypes', ['instance', 'ip', 'alb']);
+  static readonly targetGroupType = t.enums('TargetGroupProtocolTypes', ['instance', 'ip', 'alb', 'lambda']);
   static readonly targetGroupAttributeStickinessType = t.enums('TargetGroupAttributeStickinessTypes', [
     'lb_cookie',
     'app_cookie',
