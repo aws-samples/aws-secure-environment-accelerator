@@ -12,7 +12,6 @@
  */
 import * as fs from 'fs';
 import path from 'path';
-import { CodeCommitClient, CreateCommitCommand, GetBranchCommand, NoChangeException } from '@aws-sdk/client-codecommit';
 import * as yaml from 'js-yaml';
 import _ from 'lodash';
 import {
@@ -39,7 +38,7 @@ import {
   VpcFlowLogsDestinationConfig,
 } from './asea-config';
 import { loadAseaConfig } from './asea-config/load';
-import { throttlingBackOff } from './common/aws/backoff';
+import * as WriteToSourcesTypes from './common//utils/types/writeToSourcesTypes';
 import { DynamoDB } from './common/aws/dynamodb';
 import { KMS } from './common/aws/kms';
 import { Organizations } from './common/aws/organizations';
@@ -55,7 +54,6 @@ import {
 } from './common/outputs/load-assigned-cidrs';
 import { StackOutput, findValuesFromOutputs, loadOutputs } from './common/outputs/load-outputs';
 import { loadAccounts } from './common/utils/accounts';
-import * as convert from './common/utils/conversion';
 import {
   createAlbName,
   createConfigRuleName,
@@ -79,6 +77,8 @@ import {
   transitGatewayRouteTableName,
   vpcCidrsTableName,
 } from './common/utils/naming';
+import * as ConvertConfigTypes from './common/utils/types/convertConfigTypes';
+import { WriteToSources } from './common/utils/writeToSources';
 import { Config } from './config';
 import { AccountsConfig, AccountsConfigType } from './config/accounts-config';
 import { Region, ShareTargets } from './config/common-types';
@@ -127,7 +127,7 @@ const LZA_CONFIG_RULES = 'custom-config-rules';
 const LZA_BUCKET_POLICY = 'bucket-policies';
 const LZA_KMS_POLICY = 'kms-policies';
 const LZA_IAM_POLICY_CONFIG_PATH = 'iam-policies';
-const CLOUDFORMATION = 'cloudformation';
+const LZA_CLOUDFORMATION = 'cloudformation';
 
 const LOG_RETENTION = [
   1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653,
@@ -152,67 +152,7 @@ const ConfigRuleDetectionAssets: { [key: string]: string } = {
 };
 
 const CloudFormationAssets: { [key: string]: string } = {
-  'ALB-IP-FORWARDING': path.join(CLOUDFORMATION, 'AlbIpForwardingStack.template.json'),
-};
-
-type LzaNaclRuleType = {
-  rule: number;
-  protocol: number;
-  fromPort: number;
-  toPort: number;
-  action: 'allow' | 'deny';
-};
-type LzaNaclInboundRuleType = LzaNaclRuleType & {
-  source?: string | { account?: string; vpc: string; subnet: string; region?: string };
-};
-
-type LzaNaclOutboundRuleType = LzaNaclRuleType & {
-  destination?: string | { account?: string; vpc: string; subnet: string; region?: string };
-};
-
-type NestedOuType = {
-  account: string;
-  nestedOu: string;
-};
-
-type SubnetType = {
-  name: string;
-  availabilityZone: string;
-  routeTable: string;
-  ipv4CidrBlock: string;
-  mapPublicIpOnLaunch?: boolean;
-  shareTargets?: { organizationalUnits?: string[]; accounts?: string[] };
-};
-
-type ResolverEndpointRulesType = {
-  name: string;
-  domainName: string | undefined;
-  ruleType: string;
-  targetIps: { ip: string }[] | undefined;
-};
-
-type ResolverEndpointsType =
-  | {
-      name: string;
-      vpc: string;
-      subnets: string[];
-      type: string;
-      rules: ResolverEndpointRulesType[] | undefined;
-    }
-  | undefined;
-
-type SecurityGroupRuleSubnetSource = { account: string; vpc: string; subnets: string[] };
-
-type SecurityGroupRuleSGSource = { securityGroups: string[] };
-
-type SecurityGroupRuleType = {
-  description: string;
-  types?: string[];
-  tcpPorts?: number[];
-  udpPorts?: number[];
-  fromPort?: number;
-  toPort?: number;
-  sources: (string | SecurityGroupRuleSubnetSource | SecurityGroupRuleSGSource)[];
+  'ALB-IP-FORWARDING': path.join(LZA_CLOUDFORMATION, 'AlbIpForwardingStack.template.json'),
 };
 
 const SnsFindingTypesDict = {
@@ -236,16 +176,15 @@ export class ConvertAseaConfig {
   private readonly mappingFileBucket: string;
   private readonly localConfigFilePath?: string;
   private readonly s3: S3;
-  private readonly codecommit: CodeCommitClient;
   private readonly sts: STS;
   private readonly dynamoDb: DynamoDB;
   private readonly organizations = new Organizations();
+  private readonly acceleratorName: string;
+  private readonly writeFilesConfig: WriteToSourcesTypes.WriteToSourcesConfig;
   private accounts: Account[] = [];
   private outputs: StackOutput[] = [];
   private vpcAssignedCidrs: VpcAssignedCidr[] = [];
   private subnetAssignedCidrs: SubnetAssignedCidr[] = [];
-  private readonly outputFolder: string;
-  private readonly acceleratorName: string;
   private vpcConfigs: ResolvedVpcConfig[] = [];
   private globalOptions: GlobalOptionsConfig | undefined;
   private ssmClients: { [region: string]: SSM } = {};
@@ -254,7 +193,7 @@ export class ConvertAseaConfig {
   private accountsWithoutVpc: string[] = [];
   private accountsWithVpc: Set<string> = new Set<string>([]);
   private albs: AlbConfigType[] = [];
-  //private albTemplates: AlbConfigType[] = [];
+  private writeToSources: WriteToSources;
 
   constructor(config: Config) {
     this.localUpdateOnly = config.localOnlyWrites ?? false;
@@ -267,33 +206,26 @@ export class ConvertAseaConfig {
     this.acceleratorName = config.acceleratorName!;
     this.sts = new STS();
     this.s3 = new S3(undefined, this.region);
-    this.codecommit = new CodeCommitClient({ region: this.region });
     this.dynamoDb = new DynamoDB(undefined, this.region);
-    this.outputFolder = 'outputs/lza-config';
     this.lzaConfigRepositoryName = config.lzaConfigRepositoryName;
     this.mappingFileBucket = config.mappingBucketName;
-  }
+    this.writeFilesConfig = {
+      localOnly: this.localUpdateOnly,
+      codeCommitConfig: {
+        branch: 'main',
+        repository: this.lzaConfigRepositoryName,
+      },
+      s3Config: {
+        bucket: this.mappingFileBucket,
+        baseDirectory: 'outputs/lza-config',
+      },
+      localConfig: {
+        baseDirectory: 'outputs/lza-config',
+      },
+      region: config.homeRegion,
+    };
 
-  async putParameter(name: string, value: string, accountKey?: string, region?: string) {
-    const parameterRegion = region ?? this.region;
-    const parameterAccountId = getAccountId(
-      this.accounts,
-      accountKey ?? this.globalOptions?.['aws-org-management'].account!,
-    )!;
-    const ssmClientKey = `${accountKey}-${parameterRegion}`;
-    if (!this.ssmClients[ssmClientKey]) {
-      const credentials = await this.sts.getCredentialsForAccountAndRole(
-        parameterAccountId,
-        `${this.aseaPrefix}PipelineRole`,
-      );
-      this.ssmClients[ssmClientKey] = new SSM(credentials, parameterRegion);
-    }
-    await this.ssmClients[ssmClientKey].putParameter({
-      Name: name,
-      Value: value,
-      Type: 'String',
-      Overwrite: true,
-    });
+    this.writeToSources = new WriteToSources(this.writeFilesConfig);
   }
 
   async process() {
@@ -327,19 +259,19 @@ export class ConvertAseaConfig {
       } else {
         aseaConfig
           .getAccountConfigsForOu(ouKey)
-          .map(([accountKey]) => accountKey)
-          .forEach((accountKey) => this.accountsWithVpc.add(accountKey));
+          .map(([account]) => account)
+          .forEach((account) => this.accountsWithVpc.add(account));
       }
       for (const subnetConfig of vpcConfig.subnets ?? []) {
         if (subnetConfig['share-to-ou-accounts']) {
           aseaConfig
             .getAccountConfigsForOu(ouKey)
-            .filter(([accountKey]) => !excludeAccounts?.includes(accountKey))
-            .map(([accountKey]) => accountKey)
-            .forEach((accountKey) => this.accountsWithVpc.add(accountKey));
+            .filter(([account]) => !excludeAccounts?.includes(account))
+            .map(([account]) => account)
+            .forEach((account) => this.accountsWithVpc.add(account));
         }
         if (!!subnetConfig['share-to-specific-accounts']) {
-          subnetConfig['share-to-specific-accounts'].forEach((accountKey) => this.accountsWithVpc.add(accountKey));
+          subnetConfig['share-to-specific-accounts'].forEach((account) => this.accountsWithVpc.add(account));
         }
       }
     }
@@ -366,90 +298,29 @@ export class ConvertAseaConfig {
     await this.prepareCustomizationsConfig(aseaConfig);
     await this.createDynamicPartitioningFile(aseaConfig);
   }
-
-  private async writeToCodeCommit(filePath: string, data: any, localUpdateOnly?: boolean): Promise<void> {
-    if (localUpdateOnly) {
-      return;
-    }
-    const getBranchCommand = await this.codecommit.send(
-      new GetBranchCommand({ repositoryName: this.lzaConfigRepositoryName, branchName: 'main' }),
-    );
-    try {
-      await throttlingBackOff(() =>
-        this.codecommit.send(
-          new CreateCommitCommand({
-            repositoryName: this.lzaConfigRepositoryName,
-            parentCommitId: getBranchCommand.branch!.commitId,
-            branchName: 'main',
-            putFiles: [
-              {
-                filePath: filePath,
-                fileContent: convert.encodeBase64(data),
-              },
-            ],
-          }),
-        ),
-      );
-    } catch (error: any) {
-      if (error instanceof NoChangeException) {
-        console.info('No changes to commit: ', filePath);
-        return;
-      }
-      console.error('Failed to write to CodeCommit');
-      console.error(error);
-    }
-  }
-
-  private async writeConfig(filePath: string, config: string) {
-    const localPath = path.join(this.outputFolder, filePath);
-    const dirname = path.dirname(localPath);
-    if (!fs.existsSync(dirname)) fs.mkdirSync(dirname, { recursive: true });
-    fs.writeFileSync(localPath, config);
-    await this.writeToCodeCommit(filePath, config, this.localUpdateOnly);
-  }
-
-  private async writeFile(filePath: string, data: any) {
-    const localPath = path.join(this.outputFolder, filePath);
-    const dirname = path.dirname(localPath);
-    if (!fs.existsSync(dirname)) fs.mkdirSync(dirname, { recursive: true });
-    fs.writeFileSync(localPath, data);
-    await this.writeToCodeCommit(filePath, data, this.localUpdateOnly);
-  }
-
   /**
    * Copy additional assets which are required for LZA
    */
   private async copyAdditionalAssets() {
-    const dirname = path.join(this.outputFolder, LZA_CONFIG_RULES);
-    const cloudformationDirName = path.join(this.outputFolder, CLOUDFORMATION);
-    if (!fs.existsSync(dirname)) fs.mkdirSync(dirname, { recursive: true });
-    if (!fs.existsSync(cloudformationDirName)) fs.mkdirSync(cloudformationDirName, { recursive: true });
-    for (const fileName of Object.values(ConfigRuleRemediationAssets)) {
-      fs.copyFileSync(path.join(__dirname, 'assets', fileName), path.join(this.outputFolder, fileName));
+    const filesToWrite = [];
+    filesToWrite.push(...this.generatePutFiles(Object.values(ConfigRuleRemediationAssets), LZA_CONFIG_RULES));
+    filesToWrite.push(...this.generatePutFiles(Object.values(ConfigRuleDetectionAssets), LZA_CONFIG_RULES));
+    filesToWrite.push(...this.generatePutFiles(Object.values(CloudFormationAssets), LZA_CLOUDFORMATION));
+    await this.writeToSources.writeFiles(filesToWrite);
+  }
 
-      await this.writeToCodeCommit(
+  private generatePutFiles(fileNames: string[], directory: string): WriteToSourcesTypes.PutFiles[] {
+    return fileNames.map((dir) => {
+      const fileNameArr = dir.split('/');
+      const fileName = fileNameArr.pop()!;
+      const relativePath = fileNameArr.pop()!;
+      const content = fs.readFileSync(path.join(__dirname, 'assets', relativePath, fileName)).toString();
+      return {
+        fileContent: content,
+        filePath: directory,
         fileName,
-        fs.readFileSync(path.join(__dirname, 'assets', fileName)),
-        this.localUpdateOnly,
-      );
-    }
-    for (const fileName of Object.values(ConfigRuleDetectionAssets)) {
-      fs.copyFileSync(path.join(__dirname, 'assets', fileName), path.join(this.outputFolder, fileName));
-      await this.writeToCodeCommit(
-        fileName,
-        fs.readFileSync(path.join(__dirname, 'assets', fileName)),
-        this.localUpdateOnly,
-      );
-    }
-    //Block to Add ALB IP Forwarder CloudFormation Asset
-    for (const fileName of Object.values(CloudFormationAssets)) {
-      fs.copyFileSync(path.join(__dirname, 'assets', fileName), path.join(this.outputFolder, fileName));
-      await this.writeToCodeCommit(
-        fileName,
-        fs.readFileSync(path.join(__dirname, 'assets', fileName)),
-        this.localUpdateOnly,
-      );
-    }
+      };
+    });
   }
 
   private getAccountKeyforLza(globalOptions: GlobalOptionsConfig, accountKey: string) {
@@ -754,21 +625,33 @@ export class ConvertAseaConfig {
       });
     }
     const centralLogBucketPolicyFile = path.join(LZA_BUCKET_POLICY, 'central-log-bucket.json');
-    await this.writeConfig(centralLogBucketPolicyFile, JSON.stringify(centralLogBucketPolicy, null, 2));
+    await this.writeToSources.writeFiles([
+      {
+        fileContent: JSON.stringify(centralLogBucketPolicy, null, 2),
+        fileName: 'central-log-bucket.json',
+        filePath: LZA_BUCKET_POLICY,
+      },
+    ]);
     const centralLogKeyPolicyFile = path.join(LZA_KMS_POLICY, 'central-log-bucket-key.json');
     const centralLogKeyPolicy = await kms.getKeyPolicy({
       KeyId: centralLogEncryptionKey,
       PolicyName: 'default',
     });
-    centralLogKeyPolicy.Statement.push({
-      Sid: 'ConfigPermissions',
-      Effect: 'Allow',
-      Principal: {
-        Service: ['config.amazonaws.com'],
-      },
-      Action: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
-      Resource: '*',
-    });
+    if (
+      !centralLogKeyPolicy.Statement.find(
+        (policyStatement: { Sid: string }) => policyStatement.Sid === 'ConfigPermissions',
+      )
+    ) {
+      centralLogKeyPolicy.Statement.push({
+        Sid: 'ConfigPermissions',
+        Effect: 'Allow',
+        Principal: {
+          Service: ['config.amazonaws.com'],
+        },
+        Action: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
+        Resource: '*',
+      });
+    }
     if (
       !centralLogKeyPolicy.Statement.find(
         (policyStatement: { Sid: string }) => policyStatement.Sid === 'GuardDuty_Macie_Permissions',
@@ -783,9 +666,14 @@ export class ConvertAseaConfig {
         Action: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
         Resource: '*',
       });
-      await this.writeConfig(centralLogKeyPolicyFile, JSON.stringify(centralLogKeyPolicy, null, 2));
     }
-
+    await this.writeToSources.writeFiles([
+      {
+        fileContent: JSON.stringify(centralLogKeyPolicy, null, 2),
+        fileName: 'central-log-bucket-key.json',
+        filePath: LZA_KMS_POLICY,
+      },
+    ]);
     const ssmRoleNames: string[] = [];
     aseaConfig.getAccountConfigs().forEach(([_accountKey, accountConfig]) => {
       ssmRoleNames.push(
@@ -928,10 +816,12 @@ export class ConvertAseaConfig {
         cloudwatchLogs: {
           enable: true,
           encryption: {
-            useCMK: false,
+            useCMK: true,
           },
           dynamicPartitioning: dynamicLogPartitioning ? 'dynamic-partitioning/log-filters.json' : undefined,
           replaceLogDestinationArn: `arn:aws:logs:${this.region}:${logAccountId}:destination/${this.aseaPrefix}LogDestinationOrg`,
+          deploymentTargets:
+            this.regionsWithoutVpc.length > 0 ? { excludedRegions: this.regionsWithoutVpc } : undefined,
         },
       },
       reports: {
@@ -961,7 +851,7 @@ export class ConvertAseaConfig {
 
     const globalConfig = GlobalConfig.fromObject(globalConfigAttributes);
     const yamlConfig = yaml.dump(globalConfig, { noRefs: true });
-    await this.writeConfig(GlobalConfig.FILENAME, yamlConfig);
+    await this.writeToSources.writeFiles([{ fileContent: yamlConfig, fileName: GlobalConfig.FILENAME }]);
   }
 
   private buildBudgets(aseaConfig: AcceleratorConfig) {
@@ -1211,11 +1101,15 @@ export class ConvertAseaConfig {
           Bucket: this.centralBucketName,
           Key: path.join(IAM_POLICY_CONFIG_PATH, policy.policy),
         });
+        const fileName = `${policy.policy.split('.').slice(0, -1).join('.')}.json`;
         const newFileName = path.join(
           LZA_IAM_POLICY_CONFIG_PATH,
           `${policy.policy.split('.').slice(0, -1).join('.')}.json`,
         );
-        await this.writeConfig(newFileName, policyData);
+
+        await this.writeToSources.writeFiles([
+          { fileContent: policyData, fileName, filePath: LZA_IAM_POLICY_CONFIG_PATH },
+        ]);
 
         // Deploy Default-Boundary-Policy into every account
         if (policy['policy-name'] === 'Default-Boundary-Policy') {
@@ -1359,7 +1253,6 @@ export class ConvertAseaConfig {
       return { sharedAccounts, sharedOrganizationalUnits };
     };
 
-    let userDataScriptsCopied = false;
     for (const [accountKey, accountConfig] of aseaConfig.getAccountConfigs()) {
       const customerManagedPolicies = aseaConfig.getCustomerManagedPoliciesByAccount(accountKey);
       for (const policy of accountConfig.iam?.policies || []) {
@@ -1429,15 +1322,19 @@ export class ConvertAseaConfig {
             scriptFilePath: `${LZA_MAD_CONFIG_SCRIPTS}Configure-password-policy.ps1`,
           },
         ];
-        if (!userDataScriptsCopied) {
-          for (const userData of userDataScripts) {
-            const content = await this.s3.getObjectBodyAsString({
-              Bucket: this.centralBucketName,
-              Key: path.join(MAD_CONFIG_SCRIPTS, userData.scriptFilePath.split(LZA_MAD_CONFIG_SCRIPTS)[1]),
-            });
-            await this.writeConfig(userData.scriptFilePath, content);
-          }
-        }
+
+        const userDataPromises = userDataScripts.map((userData) => {
+          const fileName = userData.scriptFilePath.split(LZA_MAD_CONFIG_SCRIPTS)[1];
+          return this.generateUserDataPutFile(
+            MAD_CONFIG_SCRIPTS,
+            LZA_MAD_CONFIG_SCRIPTS,
+            fileName,
+            this.centralBucketName,
+          );
+        });
+
+        const userDataFiles = await Promise.all(userDataPromises);
+        await this.writeToSources.writeFiles(userDataFiles);
         const vpc = this.vpcConfigs
           // Filter VPC by name and region
           .filter(
@@ -1570,14 +1467,29 @@ export class ConvertAseaConfig {
     iamConfigAttributes.managedActiveDirectories = madConfigs;
     const iamConfig = IamConfig.fromObject(iamConfigAttributes);
     const yamlConfig = yaml.dump(iamConfig, { noRefs: true });
-    await this.writeConfig(IamConfig.FILENAME, yamlConfig);
+    await this.writeToSources.writeFiles([{ fileContent: yamlConfig, fileName: IamConfig.FILENAME }]);
   }
+  private async generateUserDataPutFile(
+    filePath: string,
+    lzaPath: string,
+    fileName: string,
+    bucket: string,
+  ): Promise<WriteToSourcesTypes.PutFiles> {
+    const content = await this.s3.getObjectBodyAsString({
+      Bucket: bucket,
+      Key: path.join(filePath, fileName),
+    });
 
+    return {
+      fileContent: content,
+      fileName,
+      filePath: lzaPath,
+    };
+  }
   private async addSSMWriteAccessPolicy(aseaConfig: AcceleratorConfig, policySets: PolicySetConfigType[]) {
     // Add policy for SSMWriteAccessPolicy
     if (this.globalOptions && this.globalOptions['aws-config']) {
       const policyFileName = 'ssm-write-access-policy.json';
-      const localPolicyFilePath = path.join(this.outputFolder, LZA_IAM_POLICY_CONFIG_PATH, policyFileName);
       const policyFilePath = path.join(LZA_IAM_POLICY_CONFIG_PATH, policyFileName);
 
       const centralLogBucketOutput = findValuesFromOutputs({
@@ -1614,10 +1526,16 @@ export class ConvertAseaConfig {
       };
 
       const policyDocumentAsString = JSON.stringify(policyContent, null, 2);
-
-      fs.writeFileSync(localPolicyFilePath, policyDocumentAsString);
-
-      await this.writeConfig(policyFilePath, policyDocumentAsString);
+      await this.writeToSources.writeFiles(
+        [
+          {
+            fileContent: policyDocumentAsString,
+            fileName: policyFileName,
+            filePath: LZA_IAM_POLICY_CONFIG_PATH,
+          },
+        ],
+        this.writeFilesConfig,
+      );
 
       const organizationalUnits = Object.entries(aseaConfig['organizational-units']);
       const deployToOus: string[] = [];
@@ -1688,7 +1606,7 @@ export class ConvertAseaConfig {
     });
 
     const yamlConfig = yaml.dump(accountsConfig, { noRefs: true });
-    await this.writeConfig(AccountsConfig.FILENAME, yamlConfig);
+    await this.writeToSources.writeFiles([{ fileContent: yamlConfig, fileName: AccountsConfig.FILENAME }]);
     return accountKeys;
   }
 
@@ -1711,7 +1629,7 @@ export class ConvertAseaConfig {
     };
 
     const yamlConfig = yaml.dump(customizationsConfig, { noRefs: true });
-    await this.writeConfig(CustomizationsConfig.FILENAME, yamlConfig);
+    await this.writeToSources.writeFiles([{ fileContent: yamlConfig, fileName: CustomizationsConfig.FILENAME }]);
   }
 
   private async prepareFirewallConfig(aseaConfig: AcceleratorConfig) {
@@ -1752,9 +1670,9 @@ export class ConvertAseaConfig {
     const instances: Ec2FirewallInstanceConfig[] = [];
     if (firewalls) {
       for (const firewall of firewalls) {
-        if (firewall.deploy && firewall.type === 'EC2') {
-          const name = firewall.name;
+        if (firewall.deploy) {
           const vpcName = firewall.vpc;
+          const name = firewall.name;
           const firewallScopedVpcConfig = this.vpcConfigs
             // Find VPC by name
             .find(({ vpcConfig }) => vpcConfig.name === vpcName);
@@ -1794,8 +1712,8 @@ export class ConvertAseaConfig {
     const firewallSubnet = vpcConfig.subnets.filter((subnets: { name: any }) => subnets.name === subnetName);
     const firewallSubnetDefinitions = firewallSubnet[0].definitions;
     const listOfAzs = [];
-    for (const firweallSubnetDefinition of firewallSubnetDefinitions) {
-      listOfAzs.push(firweallSubnetDefinition.az);
+    for (const firewallSubnetDefinition of firewallSubnetDefinitions) {
+      listOfAzs.push(firewallSubnetDefinition.az);
     }
     return listOfAzs;
   }
@@ -2013,7 +1931,7 @@ export class ConvertAseaConfig {
       accountIds: [],
       workloadAccounts: [],
     };
-    const nestedOus: NestedOuType[] = [];
+    const nestedOus: ConvertConfigTypes.NestedOuType[] = [];
     Object.entries(aseaConfig['workload-account-configs']).forEach(([accountKey, accountConfig]) => {
       if (accountConfig['ou-path']) {
         accountsConfig.workloadAccounts.push({
@@ -2139,16 +2057,27 @@ export class ConvertAseaConfig {
         const newStatements = policyJson.Statement.map((stmt: any) => {
           if (stmt.Sid === 'SSM' || stmt.Sid === 'S3' || (stmt.Condition && stmt.Condition['ForAnyValue:StringLike'])) {
             console.log('Adding Org admin role to scp');
-            stmt.Condition.ArnNotLike['aws:PrincipalARN'].push(
-              `arn:aws:iam::*:role/${aseaConfig['global-options']['organization-admin-role']}`,
+            const arnExists = stmt.Condition.ArnNotLike['aws:PrincipalARN'].find(
+              (arn: string) => arn === `arn:aws:iam::*:role/${aseaConfig['global-options']['organization-admin-role']}`,
             );
+            if (!arnExists) {
+              stmt.Condition.ArnNotLike['aws:PrincipalARN'].push(
+                `arn:aws:iam::*:role/${aseaConfig['global-options']['organization-admin-role']}`,
+              );
+            }
           }
           return stmt;
         });
 
         policyJson.Statement = newStatements;
       }
-      await this.writeConfig(path.join(LZA_SCP_CONFIG_PATH, scp.policy), JSON.stringify(policyJson, null, 2));
+      await this.writeToSources.writeFiles([
+        {
+          fileContent: JSON.stringify(policyJson, null, 2),
+          fileName: scp.policy,
+          filePath: LZA_SCP_CONFIG_PATH,
+        },
+      ]);
       organizationConfig.serviceControlPolicies.push({
         name: scpName,
         description: scp.description,
@@ -2188,10 +2117,13 @@ export class ConvertAseaConfig {
       };
       const quarantineScpName = createScpName(this.aseaPrefix, 'Quarantine-New-Object');
       const scpContent = await this.organizations.getScpContent(quarantineScpName);
-      await this.writeConfig(
-        path.join(LZA_SCP_CONFIG_PATH, `${quarantineScpName}.json`),
-        JSON.stringify(scpContent ?? quarantineScpContent),
-      );
+      await this.writeToSources.writeFiles([
+        {
+          fileContent: JSON.stringify(scpContent ?? quarantineScpContent),
+          fileName: `${quarantineScpName}.json`,
+          filePath: LZA_SCP_CONFIG_PATH,
+        },
+      ]);
       organizationConfig.serviceControlPolicies.push({
         name: quarantineScpName,
         description: 'Quarantine policy - Apply to ACCOUNTS that need to be quarantined',
@@ -2208,7 +2140,7 @@ export class ConvertAseaConfig {
     }
 
     const yamlConfig = yaml.dump(organizationConfig, { noRefs: true });
-    await this.writeConfig(OrganizationConfig.FILENAME, yamlConfig);
+    await this.writeToSources.writeFiles([{ fileContent: yamlConfig, fileName: OrganizationConfig.FILENAME }]);
   }
 
   async prepareSecurityConfig(aseaConfig: AcceleratorConfig) {
@@ -2342,7 +2274,7 @@ export class ConvertAseaConfig {
           controlsToDisable: sh['controls-to-disable'],
         })),
         logging: {
-          cloudwatch: {
+          cloudWatch: {
             enable: true,
             logGroupName: '/ASEA/SecurityHub',
           },
@@ -2377,10 +2309,13 @@ export class ConvertAseaConfig {
           content = yaml.load(documentContent);
         }
         content.description = document.description;
-        await this.writeConfig(
-          path.join(SSM_DOCUMENTS_CONFIG_PATH, document.template),
-          isYaml ? yaml.dump(content, { noRefs: true }) : JSON.stringify(content),
-        );
+        await this.writeToSources.writeFiles([
+          {
+            fileContent: isYaml ? yaml.dump(content, { noRefs: true }) : JSON.stringify(content),
+            fileName: document.template,
+            filePath: SSM_DOCUMENTS_CONFIG_PATH,
+          },
+        ]);
         const documentSet: DocumentSet = {
           // Adding one document into documentSet to make shareTargets computation easy
           // TODO: Consolidate
@@ -2475,13 +2410,9 @@ export class ConvertAseaConfig {
     };
 
     const setDefaultEBSVolumeEncryptionConfig = async () => {
-      const accountsWithVpcList: string[] = Array.from(this.accountsWithVpc.values());
       securityConfigAttributes.centralSecurityServices.ebsDefaultVolumeEncryption = {
         enable: true,
-        deploymentTargets: {
-          accounts: accountsWithVpcList,
-          excludeRegions: this.regionsWithoutVpc,
-        },
+        excludeRegions: this.regionsWithoutVpc,
       };
     };
 
@@ -2545,18 +2476,29 @@ export class ConvertAseaConfig {
         const defaultSourcePath = `${configRule.name.toLowerCase()}.zip`;
         let customRuleProps;
         if (configRule.type === 'custom') {
+          const lzaFileName = configRule['runtime-path'] ?? defaultSourcePath;
           const aseaFilePath = path.join(CONFIG_RULES_PATH, configRule['runtime-path'] ?? defaultSourcePath);
-          const lzaFilePath = path.join(LZA_CONFIG_RULES, configRule['runtime-path'] ?? defaultSourcePath);
-          const configSource = await this.s3.getObjectBody({
+          const configSource = await this.s3.getObjectBodyV3({
             Bucket: this.centralBucketName,
             Key: aseaFilePath,
           });
-          await this.writeFile(lzaFilePath, configSource);
+          const configSourceFormatted = await configSource.transformToByteArray();
+
+          await this.writeToSources.writeFiles(
+            [
+              {
+                fileContent: configSourceFormatted,
+                fileName: lzaFileName,
+                filePath: LZA_CONFIG_RULES,
+              },
+            ],
+            this.writeFilesConfig,
+          );
           customRuleProps = {
             lambda: {
               handler: 'index.handler',
               rolePolicyFile: ConfigRuleDetectionAssets[configRule.name] ?? '/** TODO: Create Policy **/',
-              runtime: configRule.runtime!,
+              runtime: configRule.runtime === 'nodejs16.x' ? 'nodejs18.x' : configRule.runtime!,
               sourceFilePath: path.join(LZA_CONFIG_RULES, configRule['runtime-path'] ?? defaultSourcePath),
               timeout: undefined,
             },
@@ -2645,7 +2587,7 @@ export class ConvertAseaConfig {
     await setConfigRulesConfig();
     const securityConfig = SecurityConfig.fromObject(securityConfigAttributes);
     const yamlConfig = yaml.dump(securityConfig, { noRefs: true });
-    await this.writeConfig(SecurityConfig.FILENAME, yamlConfig);
+    await this.writeToSources.writeFiles([{ fileContent: yamlConfig, fileName: SecurityConfig.FILENAME }]);
   }
 
   async prepareNetworkConfig(aseaConfig: AcceleratorConfig) {
@@ -2653,19 +2595,22 @@ export class ConvertAseaConfig {
     const globalOptions = aseaConfig['global-options'];
     const organizationalUnitsConfig = aseaConfig.getOrganizationConfigs();
     // Creating default policy for vpc endpoints
-    await this.writeConfig(
-      path.join('vpc-endpoint-policies', 'default.json'),
-      JSON.stringify({
-        Statement: [
-          {
-            Effect: 'Allow',
-            Principal: '*',
-            Action: 'ec2:*',
-            Resource: '*',
-          },
-        ],
-      }),
-    );
+    await this.writeToSources.writeFiles([
+      {
+        fileContent: JSON.stringify({
+          Statement: [
+            {
+              Effect: 'Allow',
+              Principal: '*',
+              Action: 'ec2:*',
+              Resource: '*',
+            },
+          ],
+        }),
+        fileName: 'default.json',
+        filePath: 'vpc-endpoint-policies',
+      },
+    ]);
     const networkConfigAttributes: { [key: string]: any } = {
       defaultVpc: {
         delete: true,
@@ -3055,9 +3000,9 @@ export class ConvertAseaConfig {
       };
 
       const prepareSecurityGroupRules = (rules: SecurityGroupRuleConfig[], accountKey?: string) => {
-        const lzaRules: SecurityGroupRuleType[] = [];
+        const lzaRules: ConvertConfigTypes.SecurityGroupRuleType[] = [];
         for (const rule of rules) {
-          const lzaRule: SecurityGroupRuleType = {
+          const lzaRule: ConvertConfigTypes.SecurityGroupRuleType = {
             description: rule.description,
             types: rule.type,
             tcpPorts: rule['tcp-ports'],
@@ -3101,7 +3046,7 @@ export class ConvertAseaConfig {
         }));
       };
       const prepareNaclRules = (rules: NaclConfig[], vpcConfig: VpcConfig, accountKey?: string) => {
-        const lzaRules: (LzaNaclInboundRuleType | LzaNaclOutboundRuleType)[] = [];
+        const lzaRules: (ConvertConfigTypes.LzaNaclInboundRuleType | ConvertConfigTypes.LzaNaclOutboundRuleType)[] = [];
         for (const rule of rules) {
           let ruleNumber = rule.rule;
           for (const dest of rule['cidr-blocks']) {
@@ -3222,7 +3167,7 @@ export class ConvertAseaConfig {
       };
       const prepareSubnetConfig = (vpcConfig: VpcConfig, ouKey: string, accountKey?: string) => {
         if (!vpcConfig.subnets) return;
-        const lzaSubnets: SubnetType[] = [];
+        const lzaSubnets: ConvertConfigTypes.SubnetType[] = [];
         for (const subnetConfig of vpcConfig.subnets) {
           lzaSubnets.push(
             ...subnetConfig.definitions
@@ -3278,9 +3223,9 @@ export class ConvertAseaConfig {
 
       const prepareEndpointsConfig = (
         vpcConfig: VpcConfig,
-        lzaEndpointsConfig: ResolverEndpointsType[],
-        lzaEndpointsRulesConfig: ResolverEndpointRulesType[],
-      ): ResolverEndpointsType[] => {
+        lzaEndpointsConfig: ConvertConfigTypes.ResolverEndpointsType[],
+        lzaEndpointsRulesConfig: ConvertConfigTypes.ResolverEndpointRulesType[],
+      ): ConvertConfigTypes.ResolverEndpointsType[] => {
         let inboundResolver = vpcConfig.resolvers!.inbound;
         let outboundResolver = vpcConfig.resolvers!.outbound;
         if (vpcConfig.resolvers) {
@@ -3318,8 +3263,8 @@ export class ConvertAseaConfig {
 
       const prepareRulesConfig = (
         vpcConfig: VpcConfig,
-        lzaEndpointsRulesConfig: ResolverEndpointRulesType[],
-      ): ResolverEndpointRulesType[] | undefined => {
+        lzaEndpointsRulesConfig: ConvertConfigTypes.ResolverEndpointRulesType[],
+      ): ConvertConfigTypes.ResolverEndpointRulesType[] | undefined => {
         if (vpcConfig['on-premise-rules']) {
           for (const vpcItem of vpcConfig['on-premise-rules']) {
             const ips: { ip: string; port?: number }[] = [];
@@ -3339,12 +3284,12 @@ export class ConvertAseaConfig {
 
       const prepareResolverConfig = (vpcConfig: VpcConfig) => {
         let lzaResolverConfig: {
-          endpoints: ResolverEndpointsType[];
+          endpoints: ConvertConfigTypes.ResolverEndpointsType[];
           queryLogs: { name: string; destinations: string[] } | undefined;
         };
         const queryLoggingEnabled = vpcConfig['dns-resolver-logging'];
-        const lzaEndpointsRulesConfig: ResolverEndpointRulesType[] = [];
-        const lzaEndpointsConfig: ResolverEndpointsType[] = [];
+        const lzaEndpointsRulesConfig: ConvertConfigTypes.ResolverEndpointRulesType[] = [];
+        const lzaEndpointsConfig: ConvertConfigTypes.ResolverEndpointsType[] = [];
         if (!vpcConfig.resolvers) return;
         const rules = prepareRulesConfig(vpcConfig, lzaEndpointsRulesConfig);
         const endpoints = prepareEndpointsConfig(vpcConfig, lzaEndpointsConfig, rules!);
@@ -3565,9 +3510,19 @@ export class ConvertAseaConfig {
     });
     const yamlConfig = yaml.dump(networkConfig, { noRefs: true });
     // This creates network-config-with-subnet-associations-and-route-tables.yaml
-    await this.writeConfig(NetworkConfig.FILENAME_WITH_SUBNET_ASSOCIATIONS_AND_ROUTE_TABLES, yamlConfig);
+    await this.writeToSources.writeFiles([
+      {
+        fileContent: yamlConfig,
+        fileName: NetworkConfig.FILENAME_WITH_SUBNET_ASSOCIATIONS_AND_ROUTE_TABLES,
+      },
+    ]);
     // This creates network-config.yaml
-    await this.writeConfig(NetworkConfig.FILENAME, yamlNetworkConfigWithoutNaclAndSubnetAssociations);
+    await this.writeToSources.writeFiles([
+      {
+        fileContent: yamlNetworkConfigWithoutNaclAndSubnetAssociations,
+        fileName: NetworkConfig.FILENAME,
+      },
+    ]);
   }
 
   // async prepareCustomerGateways(aseaConfig: AcceleratorConfig) {
@@ -3677,6 +3632,7 @@ export class ConvertAseaConfig {
     value = value.replace('${SEA::S3BucketEncryptionKey}', '${ACCEL_LOOKUP::KMS}');
     value = value.replace('EC2-Default-SSM-AD-Role-ip', '${ACCEL_LOOKUP::InstanceProfile:EC2-Default-SSM-AD-Role}');
     value = value.replace(
+      // DO NOT FIX THE SPELLING FOR INSTANCE. THE TYPO EXISTS IN ASEA
       '${SEA::EC2InstaceProfilePermissions}',
       '${ACCEL_LOOKUP::CustomerManagedPolicy:ASEA-SSMWriteAccessPolicy}',
     );
@@ -3838,7 +3794,35 @@ export class ConvertAseaConfig {
   private async createDynamicPartitioningFile(aseaConfig: AcceleratorConfig) {
     const partitions = aseaConfig['global-options']['central-log-services']['dynamic-s3-log-partitioning'];
     if (partitions) {
-      await this.writeConfig('dynamic-partitioning/log-filters.json', JSON.stringify(partitions, null, 2));
+      await this.writeToSources.writeFiles([
+        {
+          fileContent: JSON.stringify(partitions, null, 2),
+          fileName: 'log-filters.json',
+          filePath: 'dynamic-partitioning',
+        },
+      ]);
     }
+  }
+
+  async putParameter(name: string, value: string, accountKey?: string, region?: string) {
+    const parameterRegion = region ?? this.region;
+    const parameterAccountId = getAccountId(
+      this.accounts,
+      accountKey ?? this.globalOptions?.['aws-org-management'].account!,
+    )!;
+    const ssmClientKey = `${accountKey}-${parameterRegion}`;
+    if (!this.ssmClients[ssmClientKey]) {
+      const credentials = await this.sts.getCredentialsForAccountAndRole(
+        parameterAccountId,
+        `${this.aseaPrefix}PipelineRole`,
+      );
+      this.ssmClients[ssmClientKey] = new SSM(credentials, parameterRegion);
+    }
+    await this.ssmClients[ssmClientKey].putParameter({
+      Name: name,
+      Value: value,
+      Type: 'String',
+      Overwrite: true,
+    });
   }
 }

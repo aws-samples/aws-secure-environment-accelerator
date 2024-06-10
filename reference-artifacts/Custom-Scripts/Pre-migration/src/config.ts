@@ -33,5 +33,6 @@ export interface Config {
   controlTowerEnabled?: string;
   aseaConfigBucketName: string;
   localOnlyWrites?: boolean;
+  skipDriftDetection?: boolean;
   localConfigFilePath?: string;
 }

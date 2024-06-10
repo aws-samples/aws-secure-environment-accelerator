@@ -11,6 +11,7 @@
  *  and limitations under the License.
  */
 
+import { Parameter } from '@aws-sdk/client-cloudformation';
 import { STSClient, GetCallerIdentityCommand } from '@aws-sdk/client-sts';
 import { loadAseaConfig } from './asea-config/load';
 import { DynamoDB } from './common/aws/dynamodb';
@@ -36,7 +37,7 @@ export class MigrationConfig {
     const currentAccountId = callerIdentity.Account ?? '';
 
     const acceleratorPrefix =
-      installerStack?.parameters.find((p) => p.ParameterKey === 'AcceleratorPrefix')?.ParameterValue ?? '';
+      installerStack?.parameters.find((p) => p.ParameterKey === 'AcceleratorPrefix')?.ParameterValue ?? 'ASEA-';
     const abbreviatedRegion = homeRegion.replaceAll('-', '');
     const centralBucketName =
       (await migrationConfig.getS3BucketName(
@@ -47,11 +48,10 @@ export class MigrationConfig {
     const mappingRepositoryName = `${acceleratorPrefix}Mappings`;
     const lzaConfigRepositoryName = `${acceleratorPrefix}LZA-config`;
     const mappingBucketName = `${acceleratorPrefix}LZA-Resource-Mapping-${currentAccountId}`.toLowerCase();
-    const parametersTableName = `${
-      installerStack?.parameters.find((p) => p.ParameterKey === 'AcceleratorPrefix')?.ParameterValue
-    }Parameters`;
+    const parametersTableName = `${acceleratorPrefix}Parameters`;
     const aseaConfigRepositoryName =
-      installerStack?.parameters.find((p) => p.ParameterKey === 'ConfigRepositoryName')?.ParameterValue ?? '';
+      installerStack?.parameters.find((p) => p.ParameterKey === 'ConfigRepositoryName')?.ParameterValue ??
+      'ASEA-Config-Repo';
 
     const aseaConfig = await loadAseaConfig({
       filePath: 'raw/config.json',
@@ -84,18 +84,21 @@ export class MigrationConfig {
     }
     const lzaCodeRepositorySource = process.env.LZA_CODE_REPOSITORY_SOURCE ?? 'github';
     const lzaCodeRepositoryName = process.env.LZA_CODE_REPOSITORY_NAME ?? 'landing-zone-accelerator-on-aws';
-
+    if (!process.env.CENTRAL_ASEA_BUCKET) {
+      process.env.CENTRAL_ASEA_BUCKET = '';
+    }
     let config: Config = {
       repositoryName: aseaConfigRepositoryName,
       parametersTableName: parametersTableName,
       homeRegion: homeRegion,
       assumeRoleName: `${acceleratorPrefix}PipelineRole`,
-      aseaPrefix: installerStack?.parameters.find((p) => p.ParameterKey === 'AcceleratorPrefix')?.ParameterValue ?? '',
+      aseaPrefix:
+        this.getCfnParamValue(installerStack?.parameters, 'AcceleratorPrefix', 'ASEA-'),
       acceleratorName:
-        installerStack?.parameters.find((p) => p.ParameterKey === 'AcceleratorName')?.ParameterValue ?? '',
+        this.getCfnParamValue(installerStack?.parameters, 'AcceleratorName', 'ASEA'),
       centralBucket: centralBucketName,
       operationsAccountId: operationsAccountId,
-      installerStackName: installerStack?.stackName ?? '',
+      installerStackName: installerStack?.stackName ?? 'ASEA-Installer',
       mappingBucketName: mappingBucketName,
       mappingRepositoryName: mappingRepositoryName,
       lzaConfigRepositoryName: lzaConfigRepositoryName,
@@ -107,7 +110,7 @@ export class MigrationConfig {
       auditAccountEmail: auditAccountEmail,
       controlTowerEnabled: lzaControlTowerEnabled,
       aseaConfigBucketName:
-        installerStack?.parameters.find((p) => p.ParameterKey === 'ConfigS3Bucket')?.ParameterValue ?? '',
+        this.getCfnParamValue(installerStack?.parameters, 'ConfigS3Bucket', process.env.CENTRAL_ASEA_BUCKET),
     };
     const configString = JSON.stringify(config, null, '  ');
     console.log(configString);
@@ -138,5 +141,12 @@ export class MigrationConfig {
       this.localUpdateOnly,
     );
     console.log(`Created repository with id ${createLzaConfigRepositoryResponse}`);
+  }
+
+  getCfnParamValue(parameters: Parameter[] | undefined, key: string, defaultValue: string = '' ) {
+    if (!parameters) {
+      return defaultValue;
+    }
+    return parameters.find((p) => p.ParameterKey === key)?.ParameterValue ?? defaultValue;
   }
 }

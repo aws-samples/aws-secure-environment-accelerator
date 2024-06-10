@@ -75,13 +75,17 @@ export class CidrType extends t.Type<IPv4CidrRange, string, unknown> {
             return t.failure(s, context, `Value ${s} should be a CIDR range.`);
           }
         }),
-      c => c.toCidrString(),
+      (c) => c.toCidrString(),
     );
   }
 }
 
 export class DefaultedType<T extends t.Any> extends t.Type<T['_A'], T['_O'], T['_I']> {
-  constructor(readonly type: T, readonly defaultValue: T['_A'], name?: string) {
+  constructor(
+    readonly type: T,
+    readonly defaultValue: T['_A'],
+    name?: string,
+  ) {
     super(
       name ?? `Default<${type.name}>`,
       type.is,
@@ -96,7 +100,10 @@ export class OptionalType<T extends t.Any> extends t.Type<
   T['_O'] | undefined,
   T['_I'] | undefined
 > {
-  constructor(readonly type: T, name?: string) {
+  constructor(
+    readonly type: T,
+    name?: string,
+  ) {
     super(
       name ?? `Optional<${type.name}>`,
       (u): u is T['_A'] | undefined => (u == null ? true : type.is(u)),
@@ -134,7 +141,10 @@ export class SizedType<A extends WithSize, T extends t.Type<A>> extends t.Type<T
   readonly min?: number;
   readonly max?: number;
 
-  constructor(readonly type: T, readonly props: SizedTypeProps = {}) {
+  constructor(
+    readonly type: T,
+    readonly props: SizedTypeProps = {},
+  ) {
     super(
       props.name ?? `Sized<${type.name}>`,
       type.is,
@@ -165,10 +175,13 @@ export interface EnumTypeProps {
 export class EnumType<T extends string | number> extends t.Type<T> {
   readonly _tag = 'EnumType' as const;
 
-  constructor(readonly values: ReadonlyArray<T>, props: EnumTypeProps) {
+  constructor(
+    readonly values: ReadonlyArray<T>,
+    props: EnumTypeProps,
+  ) {
     super(
       props.name,
-      (u): u is T => values.some(v => v === u),
+      (u): u is T => values.some((v) => v === u),
       (u, c) =>
         this.is(u)
           ? t.success(u)
