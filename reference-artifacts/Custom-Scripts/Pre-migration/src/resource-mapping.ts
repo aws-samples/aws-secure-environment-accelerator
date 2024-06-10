@@ -11,9 +11,6 @@
  *  and limitations under the License.
  */
 /* eslint-disable @typescript-eslint/member-ordering */
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import { CodeCommitClient, CreateCommitCommand, GetBranchCommand, NoChangeException } from '@aws-sdk/client-codecommit';
 import { CloudFormation } from 'aws-sdk';
 import { loadAseaConfig } from './asea-config/load';
 import aws from './common/aws/aws-client';
@@ -22,68 +19,14 @@ import { DynamoDB } from './common/aws/dynamodb';
 import { STS } from './common/aws/sts';
 import { Account } from './common/outputs/accounts';
 import { loadAccounts } from './common/utils/accounts';
-import * as convert from './common/utils/conversion';
+import { ASEAResourceMapping, CfnClients, Environment, LogicalAndPhysicalResourceIds, NestedStack, StacksAndResourceMap } from './common/utils/types/resourceTypes';
+import * as WriteToSourcesTypes from './common/utils/types/writeToSourcesTypes';
+import { WriteToSources } from './common/utils/writeToSources';
 import { Config } from './config';
 
-interface Environment {
-  accountId: string;
-  accountKey: string;
-  region: string;
-}
-
-interface StacksAndResourceMap {
-  environment: Environment;
-  stackName: string;
-  resourceMap: LogicalAndPhysicalResourceIds[];
-  region: string;
-  template: string;
-  phase: string | undefined;
-  countVerified: boolean;
-  numberOfResources: number;
-  numberOfResourcesInTemplate: number;
-}
-
-interface CfnClients {
-  cfn: CloudFormation;
-  cfnNative: aws.CloudFormation;
-}
-
-interface LogicalAndPhysicalResourceIds {
-  logicalResourceId: string;
-  physicalResourceId: string;
-  resourceType: string;
-  resourceMetadata?: string;
-}
-
-interface ASEAResourceMapping {
-  accountId: string;
-  accountKey: string;
-  stacks: string[];
-  stacksAndResourceMapList: ASEAMapping[];
-}
-
-interface ASEAMapping {
-  stackName: string;
-  resourceMap: LogicalAndPhysicalResourceIds[];
-  region: string;
-  template: string;
-  phase: string | undefined;
-  countVerified: boolean;
-  numberOfResources: number;
-  numberOfResourcesInTemplate: number;
-}
-
-interface ResourceMappingFile {
-  accountId: string;
-  region: string;
-  stackName: string;
-  path: string;
-  fileName: string;
-}
 
 export class ResourceMapping {
   private readonly s3: aws.S3;
-  private readonly codecommit: CodeCommitClient;
   private readonly dynamodb: DynamoDB;
   private sts: STS;
   private readonly region: string;
@@ -93,22 +36,39 @@ export class ResourceMapping {
   private readonly assumeRoleName: string;
   private readonly mappingRepositoryName: string;
   private readonly outputsDirectory: string;
-  private readonly resourceMappingFiles: ResourceMappingFile[] = [];
+  private readonly writeToSources: WriteToSources;
   private driftedResources: any[] = [];
+  writeConfig: any;
+  skipDriftDetection: boolean | undefined;
   constructor(config: Config) {
-    this.mappingBucketName = config.mappingBucketName!;
+    this.mappingBucketName = config.mappingBucketName;
     this.region = config.homeRegion;
     this.parametersTableName = config.parametersTableName;
     this.configRepositoryName = config.repositoryName;
     this.assumeRoleName = config.assumeRoleName ?? 'OrganizationAccountAccessRole';
     this.mappingRepositoryName = config.mappingRepositoryName;
     this.outputsDirectory = './outputs';
+    this.skipDriftDetection = config.skipDriftDetection;
     this.dynamodb = new DynamoDB(undefined, this.region);
     this.sts = new STS();
+    this.writeConfig = {
+      localOnly: config.localOnlyWrites ?? false,
+      region: config.homeRegion,
+      localConfig: {
+        baseDirectory: this.outputsDirectory,
+      },
+      s3Config: {
+        bucket: this.mappingBucketName,
+      },
+      codeCommitConfig: {
+        branch: 'main',
+        repository: this.mappingRepositoryName,
+      },
+    };
+    this.writeToSources = new WriteToSources(this.writeConfig);
     this.s3 = new aws.S3({
       region: this.region,
     });
-    this.codecommit = new CodeCommitClient({ region: this.region });
   }
 
   async process() {
@@ -123,54 +83,74 @@ export class ResourceMapping {
     const environments = this.getEnvironments(accountList, enabledRegions);
     const cfnClients = await this.getCfnClientMap(environments);
     const environmentsStackMap = await this.getEnvironmentStacks(environments, cfnClients);
+    const localAndS3Files: WriteToSourcesTypes.PutFiles[] = [];
     const environmentStackAndResourcesMap = await this.getEnvironmentMetaData(
       environments,
       environmentsStackMap,
       cfnClients,
     );
-    const aseaMapping = this.createAseaMapping(environmentStackAndResourcesMap, environmentsStackMap);
-    await this.detectDrift(environmentStackAndResourcesMap, cfnClients);
-    const aseaMappingString = JSON.stringify(aseaMapping, null);
-    const driftDetectionCsv = this.convertToCSV(this.driftedResources);
-    await this.writeToS3(aseaMappingString, 'mapping.json');
-    await this.writeToS3(driftDetectionCsv, 'AllDriftDetectedResources.csv');
-    await this.writeToCodeCommit([{ fileContent: driftDetectionCsv, filePath: 'AllDriftDetectedResources.csv' }]);
+    const stackFiles = this.createStackFiles(environmentStackAndResourcesMap);
+    const resourceFiles = this.createResourceFiles(environmentStackAndResourcesMap);
+    if (!this.skipDriftDetection) {
+      const driftFiles = await this.detectDrift(environmentStackAndResourcesMap, cfnClients);
+      const driftDetectionCsv = this.convertToCSV(this.driftedResources);
+      const driftDetectionPutFile: WriteToSourcesTypes.PutFiles = {
+        fileContent: driftDetectionCsv,
+        fileName: 'AllDriftDetectedResources.csv',
+      };
+      localAndS3Files.push(...driftFiles, driftDetectionPutFile);
+    }
+    const aseaMapping = this.createAseaMapping(environmentStackAndResourcesMap);
+    const aseaMappingPutFile: WriteToSourcesTypes.PutFiles = {
+      fileContent: JSON.stringify(aseaMapping, null, 2),
+      fileName: 'mapping.json',
+    };
+    localAndS3Files.push(...stackFiles, ...resourceFiles);
+    await this.writeToSources.writeFilesToS3(localAndS3Files, this.writeConfig.s3Config);
+    await this.writeToSources.writeFilesToDisk(localAndS3Files, this.writeConfig.localConfig);
+    await this.writeToSources.writeFiles([aseaMappingPutFile]);
   }
-
-  createAseaMapping(stackAndResourceMap: Map<string, StacksAndResourceMap>, stackMap: Map<string, string[]>) {
-    const aseaMapping: ASEAResourceMapping[] = [];
-    for (let [_key, stackAndResources] of stackAndResourceMap) {
-      let mapping = aseaMapping.find((item) => {
-        return item.accountId === stackAndResources.environment.accountId;
-      });
-      const stacks = stackMap.get(`${stackAndResources.environment.accountId}-${stackAndResources.environment.region}`);
-      if (!stacks) {
-        throw new Error(`No stacks found for environment ${stackAndResources.environment}`);
-      }
-
-      if (!mapping) {
-        aseaMapping.push({
-          accountId: stackAndResources.environment.accountId,
-          accountKey: stackAndResources.environment.accountKey,
-          stacks,
-          stacksAndResourceMapList: [],
-        });
-        mapping = aseaMapping.find((item) => {
-          return item.accountId === stackAndResources.environment.accountId;
-        });
-      }
-      mapping?.stacksAndResourceMapList.push({
+  createStackKey(stackAndResources: StacksAndResourceMap) {
+    return `${stackAndResources.environment.accountId}|${stackAndResources.environment.region}|${stackAndResources.stackName}`;
+  }
+  createAseaMapping(stackAndResourceMap: Map<string, StacksAndResourceMap>) {
+  const aseaObj: ASEAResourceMapping = {};
+  for (let [_key, stackAndResources] of stackAndResourceMap) {
+    const aseaObjKey = this.createStackKey(stackAndResources);
+      aseaObj[aseaObjKey] = {
         stackName: stackAndResources.stackName,
         region: stackAndResources.region,
+        accountId: stackAndResources.environment.accountId,
+        accountKey: stackAndResources.environment.accountKey,
         phase: stackAndResources.phase,
         countVerified: stackAndResources.countVerified,
         numberOfResources: stackAndResources.numberOfResources,
         numberOfResourcesInTemplate: stackAndResources.numberOfResourcesInTemplate,
-        resourceMap: stackAndResources.resourceMap,
-        template: stackAndResources.template,
-      });
+        templatePath: `stacks/${stackAndResources.environment.accountId}/${stackAndResources.environment.region}/${stackAndResources.stackName}.json`,
+        resourcePath: `resources/${stackAndResources.environment.accountId}/${stackAndResources.environment.region}/${stackAndResources.stackName}-resources.json`,
+      };
+      const nestedStacks = stackAndResources.nestedStacks;
+      if (nestedStacks) {
+        aseaObj[aseaObjKey].nestedStacks = Object.keys(nestedStacks).reduce((acc: {[key: string]: NestedStack}, key) => {
+          const nestedStack = nestedStacks[key];
+          acc[key] = {
+            logicalResourceId: nestedStack.logicalResourceId,
+            stackName: nestedStack.stackName,
+            region: nestedStack.region,
+            accountId: nestedStack.accountId,
+            accountKey: nestedStack.accountKey,
+            phase: nestedStack.phase,
+            countVerified: nestedStack.countVerified,
+            numberOfResources: nestedStack.numberOfResources,
+            numberOfResourcesInTemplate: nestedStack.numberOfResourcesInTemplate,
+            templatePath: `stacks/${nestedStack.accountId}/${nestedStack.region}/${nestedStack.stackName}.json`,
+            resourcePath: `resources/${nestedStack.accountId}/${nestedStack.region}/${nestedStack.stackName}-resources.json`,
+          };
+          return acc;
+        }, {});
+      }
     }
-    return aseaMapping;
+    return aseaObj;
   }
 
   async validateS3Bucket(mappingFileBucketName: string): Promise<void> {
@@ -265,25 +245,119 @@ export class ResourceMapping {
       (stackAndResource): stackAndResource is Promise<StacksAndResourceMap> => stackAndResource !== undefined,
     );
     const stackAndResourcesList = await Promise.all(validStackAndResourcePromises);
-
-    const putFiles = stackAndResourcesList.map((stackAndResource) => {
+    const allNestedStacks = stackAndResourcesList.filter(stackAndResource => stackAndResource.stackName.includes('Nested'));
+    stackAndResourcesList.forEach((stackAndResource) => {
+      const nestedStacks = this.getNestedStacks(stackAndResource, allNestedStacks);
+      if (nestedStacks) {
+      stackAndResource.nestedStacks = nestedStacks;
+      }
+      const parentStack = this.getParentStack(stackAndResource);
+      if (parentStack) {
+        stackAndResource.parentStack = parentStack;
+      }
+      if (!stackAndResource.stackName.includes('Nested')) {
       stackAndResourceMap.set(
         `${stackAndResource.environment.accountId}-${stackAndResource.environment.region}-${stackAndResource.stackName}`,
         stackAndResource,
       );
-      return {
-        filePath: `resource-mapping/${stackAndResource!.environment.accountId}/${
-          stackAndResource!.environment.region
-        }/${stackAndResource.stackName}.json`,
-        fileContent: JSON.stringify(stackAndResource),
-      };
+    }
     });
 
-    await this.writeToCodeCommit(putFiles);
     return stackAndResourceMap;
   }
 
-  async detectDrift(stackAndResourceMap: Map<string, StacksAndResourceMap>, cfnClientMap: Map<string, CfnClients>) {
+  getParentStack(stackAndResource: StacksAndResourceMap) {
+    if (stackAndResource.stackName.includes('NestedStack')) {
+      const stackNameArr = stackAndResource.stackName.split('-');
+      return `${stackAndResource.environment.accountId}|${stackAndResource.environment.region}|${stackNameArr[0]}-${stackNameArr[1]}-${stackNameArr[2]}`;
+    }
+    return undefined;
+  }
+
+  getNestedStacks(stackAndResource: StacksAndResourceMap, nestedStacks: StacksAndResourceMap[]) {
+    const phaseIndex = stackAndResource.stackName.toLowerCase().indexOf('phase');
+    // checks the length of the stack to determine if it is the nested stack or parent stack
+    const isParentStack = (phaseIndex+6 === stackAndResource.stackName.length);
+    if (!isParentStack) {
+      return;
+    }
+    const matchedStacks = nestedStacks.filter(nestedStackAndResource =>
+      stackAndResource.environment.accountId === nestedStackAndResource.environment.accountId
+      && stackAndResource.environment.region === nestedStackAndResource.environment.region
+      && nestedStackAndResource.stackName.includes(stackAndResource.stackName),
+);
+    if (matchedStacks.length === 0) {
+      return;
+    }
+    return matchedStacks.reduce((nestedStacksObj: {[key: string]: NestedStack}, matchedStackAndResources) => {
+      const nestedStackLogicalId = stackAndResource.resourceMap.find(resource =>
+        resource.physicalResourceId.includes(matchedStackAndResources.stackName));
+        const stackKey = this.createStackKey(matchedStackAndResources);
+      nestedStacksObj[stackKey] = {
+        logicalResourceId: nestedStackLogicalId?.logicalResourceId ?? '',
+        stackName: matchedStackAndResources.stackName,
+        region: matchedStackAndResources.region,
+        accountId: matchedStackAndResources.environment.accountId,
+        accountKey: matchedStackAndResources.environment.accountKey,
+        phase: matchedStackAndResources.phase,
+        countVerified: matchedStackAndResources.countVerified,
+        numberOfResources: matchedStackAndResources.numberOfResources,
+        numberOfResourcesInTemplate: matchedStackAndResources.numberOfResourcesInTemplate,
+        template: matchedStackAndResources.template,
+        resourceMap: matchedStackAndResources.resourceMap,
+        templatePath: `stacks/${matchedStackAndResources.environment.accountId}/${matchedStackAndResources.environment.region}/${matchedStackAndResources.stackName}.json`,
+        resourcePath: `resources/${matchedStackAndResources.environment.accountId}/${matchedStackAndResources.environment.region}/${matchedStackAndResources.stackName}-resources.json`,
+      };
+      return nestedStacksObj;
+    }, {});
+  }
+
+  createResourceFiles(stackAndResourceMap: Map<string, StacksAndResourceMap>): WriteToSourcesTypes.PutFiles[] {
+    const putFiles: WriteToSourcesTypes.PutFiles[] = [];
+    stackAndResourceMap.forEach((stackAndResource) => {
+      putFiles.push({
+        filePath: `resources/${stackAndResource.environment.accountId}/${stackAndResource.environment.region}`,
+        fileName: `${stackAndResource.stackName}-resources.json`,
+        fileContent: JSON.stringify(stackAndResource.resourceMap, null, 4),
+      });
+      if (stackAndResource.nestedStacks) {
+        for (const nestedStack of Object.values(stackAndResource.nestedStacks)) {
+          putFiles.push({
+            filePath: `resources/${nestedStack.accountId}/${nestedStack.region}`,
+            fileName: `${nestedStack.stackName}-resources.json`,
+            fileContent: JSON.stringify(nestedStack.resourceMap, null, 4),
+          });
+        }
+      }
+    });
+    return putFiles;
+  }
+
+  createStackFiles(stackAndResourceMap: Map<string, StacksAndResourceMap>): WriteToSourcesTypes.PutFiles[] {
+    const putFiles: WriteToSourcesTypes.PutFiles[] = [];
+    stackAndResourceMap.forEach((stackAndResource) => {
+      putFiles.push({
+        filePath: `stacks/${stackAndResource.environment.accountId}/${stackAndResource.environment.region}`,
+        fileName: `${stackAndResource.stackName}.json`,
+        fileContent: JSON.stringify(stackAndResource.template, null, 2),
+      });
+      if (stackAndResource.nestedStacks) {
+        for (const nestedStack of Object.values(stackAndResource.nestedStacks)) {
+          putFiles.push({
+            filePath: `stacks/${nestedStack.accountId}/${nestedStack.region}`,
+            fileName: `${nestedStack.stackName}.json`,
+            fileContent: JSON.stringify(nestedStack.template, null, 2),
+          });
+        }
+      }
+    });
+    return putFiles;
+  }
+
+  async detectDrift(
+    stackAndResourceMap: Map<string, StacksAndResourceMap>,
+    cfnClientMap: Map<string, CfnClients>,
+  ): Promise<WriteToSourcesTypes.PutFiles[]> {
     const detectDriftPromises = [];
     for (let [_key, stackAndResources] of stackAndResourceMap) {
       const cfnClients = cfnClientMap.get(
@@ -294,19 +368,25 @@ export class ResourceMapping {
       }
       detectDriftPromises.push(this.getEnvironmentDrift(stackAndResources, cfnClients));
     }
-    await Promise.all(detectDriftPromises);
+    const detectDriftResults = await Promise.all(detectDriftPromises);
+    return detectDriftResults.flat();
   }
 
-  async getEnvironmentDrift(stackAndResourceMap: StacksAndResourceMap, cfnClients: CfnClients) {
+  async getEnvironmentDrift(
+    stackAndResourceMap: StacksAndResourceMap,
+    cfnClients: CfnClients,
+  ): Promise<WriteToSourcesTypes.PutFiles[]> {
     const driftDetectionResources = await this.getStackDrift(
       cfnClients.cfnNative,
       stackAndResourceMap.stackName,
       stackAndResourceMap.resourceMap,
     );
-    const s3Prefix = await this.getS3Prefix(stackAndResourceMap.stackName, stackAndResourceMap.region);
+    const s3Prefix = await this.getFilePrefix(stackAndResourceMap.stackName, stackAndResourceMap.region);
     const driftDetectionCsv = this.convertToCSV(driftDetectionResources);
-    const driftDetectionFileName = `${s3Prefix}/${stackAndResourceMap.stackName}-drift-detection.csv`;
-    const resourceFileName = `${s3Prefix}/${stackAndResourceMap.stackName}-resources.csv`;
+    const driftDetectionFileName = `${stackAndResourceMap.stackName}-drift-detection.csv`;
+    const driftDetectionFilePath = s3Prefix;
+    const resourceFileName = `${stackAndResourceMap.stackName}-resources.csv`;
+    const resourceFilePath = s3Prefix;
     const resourceFileCSV = this.convertToCSV(stackAndResourceMap.resourceMap);
     for (const resource of driftDetectionResources) {
       if (resource.DriftStatus === 'MODIFIED') {
@@ -318,9 +398,10 @@ export class ResourceMapping {
         });
       }
     }
-
-    await this.writeToS3(driftDetectionCsv, driftDetectionFileName);
-    await this.writeToS3(resourceFileCSV, resourceFileName);
+    return [
+      { fileName: driftDetectionFileName, filePath: driftDetectionFilePath, fileContent: driftDetectionCsv },
+      { fileName: resourceFileName, filePath: resourceFilePath, fileContent: resourceFileCSV },
+    ];
   }
 
   async getStackMetadata(
@@ -339,9 +420,7 @@ export class ResourceMapping {
     if (!cfTemplate?.TemplateBody) {
       throw new Error(`No template body found for stack ${stack} in environment ${environment}`);
     }
-
     let cfTemplateObject = JSON.parse(cfTemplate.TemplateBody);
-
     const templateResources = cfTemplateObject.Resources;
     const cfTemplateResourceCount = Object.entries(templateResources).length;
     for (const resource of stackResources) {
@@ -544,78 +623,6 @@ export class ResourceMapping {
     return regionList;
   }
 
-  async writeToS3(prettifiedMapping: string, fileName: string): Promise<void> {
-    try {
-      await throttlingBackOff(() =>
-        this.s3
-          .putObject({
-            Body: prettifiedMapping,
-            Bucket: this.mappingBucketName,
-            Key: fileName,
-            ServerSideEncryption: 'AES256',
-          })
-          .promise(),
-      );
-    } catch (error) {
-      console.warn(error);
-    }
-  }
-
-  async writeToOutputsDirectory(prettifiedMapping: string, fileName: string): Promise<void> {
-    const outputPath = this.outputsDirectory + '/' + path.parse(fileName).dir;
-    await fs.mkdir(outputPath, { recursive: true });
-    await fs.writeFile(path.join(this.outputsDirectory, fileName), prettifiedMapping);
-  }
-
-  async writeToCodeCommit(putFiles: { fileContent: string; filePath: string }[]): Promise<void> {
-    const encodedPutFiles = putFiles.map((fileInfo) => {
-      return {
-        filePath: fileInfo.filePath,
-        fileContent: convert.encodeBase64(fileInfo.fileContent),
-      };
-    });
-    const getBranchCommand = await this.codecommit.send(
-      new GetBranchCommand({ repositoryName: this.mappingRepositoryName, branchName: 'main' }),
-    );
-    try {
-      await throttlingBackOff(() =>
-        this.codecommit.send(
-          new CreateCommitCommand({
-            repositoryName: this.mappingRepositoryName,
-            parentCommitId: getBranchCommand.branch!.commitId,
-            branchName: 'main',
-            putFiles: encodedPutFiles,
-          }),
-        ),
-      );
-    } catch (error: any) {
-      if (error instanceof NoChangeException) {
-        console.info('No changes to commit for: ');
-        putFiles.forEach((file) => console.log(file.filePath));
-        return;
-      }
-      console.error('Failed to write to CodeCommit');
-      console.error(error);
-    }
-  }
-
-  async putResourceMappingToCodeCommit(): Promise<void> {
-    for (const resourceMappingFile of this.resourceMappingFiles) {
-      const prettifiedMapping = await fs.readFile(
-        `${this.outputsDirectory}/${resourceMappingFile.path}/${resourceMappingFile.fileName}`,
-        'utf-8',
-      );
-      console.log(`Writing file ${resourceMappingFile.fileName} to codecommit`);
-
-      await this.writeToCodeCommit([
-        {
-          fileContent: prettifiedMapping,
-          filePath: `resource-mapping/${resourceMappingFile.accountId}/${resourceMappingFile.fileName}`,
-        },
-      ]);
-    }
-  }
-
   recursiveSearch = (obj: any, searchKey: string, results: any[] = []) => {
     const r = results;
     Object.keys(obj).forEach((key) => {
@@ -632,43 +639,43 @@ export class ResourceMapping {
   async checkStackPhase(stackName: string): Promise<string | undefined> {
     const lowerCaseStackName = stackName.toLowerCase();
     if (lowerCaseStackName.includes('phase-1')) {
-      return 'phase--1';
+      return '-1';
     } else if (lowerCaseStackName.includes('phase-0') || lowerCaseStackName.includes('phase0')) {
-      return 'phase-0';
+      return '0';
     } else if (lowerCaseStackName.includes('phase1')) {
-      return 'phase-1';
+      return '1';
     } else if (lowerCaseStackName.includes('phase-2') || lowerCaseStackName.includes('phase2')) {
-      return 'phase-2';
+      return '2';
     } else if (lowerCaseStackName.includes('phase-3') || lowerCaseStackName.includes('phase3')) {
-      return 'phase-3';
+      return '3';
     } else if (lowerCaseStackName.includes('phase-4') || lowerCaseStackName.includes('phase4')) {
-      return 'phase-4';
+      return '4';
     } else if (lowerCaseStackName.includes('phase-5') || lowerCaseStackName.includes('phase5')) {
-      return 'phase-5';
+      return '5';
     } else {
       return undefined;
     }
   }
 
-  async getS3Prefix(stack: string, region: string): Promise<string> {
+  async getFilePrefix(stack: string, region: string): Promise<string> {
     const lowerCaseStackName = stack.toLowerCase();
-    const migrationFilePrefix = 'migration-resources';
+    const driftFilePrefix = 'drift-detection';
     if (lowerCaseStackName.includes('network')) {
-      return `${migrationFilePrefix}/network/${region}/${stack}`;
+      return `${driftFilePrefix}/network/${region}/${stack}`;
     } else if (lowerCaseStackName.includes('operations')) {
-      return `${migrationFilePrefix}/operations/${region}/${stack}`;
+      return `${driftFilePrefix}/operations/${region}/${stack}`;
     } else if (lowerCaseStackName.includes('management')) {
-      return `${migrationFilePrefix}/management/${region}/${stack}`;
+      return `${driftFilePrefix}/management/${region}/${stack}`;
     } else if (lowerCaseStackName.includes('security')) {
-      return `${migrationFilePrefix}/security/${region}/${stack}`;
+      return `${driftFilePrefix}/security/${region}/${stack}`;
     } else if (lowerCaseStackName.includes('perimeter')) {
-      return `${migrationFilePrefix}/perimeter/${region}/${stack}`;
+      return `${driftFilePrefix}/perimeter/${region}/${stack}`;
     } else if (lowerCaseStackName.includes('logarchive')) {
-      return `${migrationFilePrefix}/logarchive/${region}/${stack}`;
+      return `${driftFilePrefix}/logarchive/${region}/${stack}`;
     } else if (lowerCaseStackName.includes('stackset-awscontroltower')) {
-      return `${migrationFilePrefix}/stackset-awscontroltower/${region}/${stack}`;
+      return `${driftFilePrefix}/stackset-awscontroltower/${region}/${stack}`;
     } else {
-      return `${migrationFilePrefix}/other/${region}/${stack}`;
+      return `${driftFilePrefix}/other/${region}/${stack}`;
     }
   }
 }
