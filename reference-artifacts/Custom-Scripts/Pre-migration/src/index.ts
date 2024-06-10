@@ -25,13 +25,13 @@ async function main() {
   const command = args[0];
   validateCommand(args);
   const config = await loadConfig(command);
-  config.localOnlyWrites = isLocalUpdateOnly(args[1]);
-  const localUpdateOnly = isLocalUpdateOnly(args[1]);
+  config.localOnlyWrites = isLocalUpdateOnly(args);
+  config.skipDriftDetection = isSkipDriftDetection(args);
 
   switch (command) {
     case 'migration-config':
       console.log('Creating migration tool configuration file');
-      const migrationConfig = new MigrationConfig(localUpdateOnly);
+      const migrationConfig = new MigrationConfig(config.localOnlyWrites);
       await migrationConfig.configure();
       break;
     case 'resource-mapping':
@@ -66,7 +66,7 @@ async function main() {
       }
       break;
     case 'post-migration':
-      await new PostMigration(config).process();
+      await new PostMigration(config, args).process();
       break;
   }
 }
@@ -94,9 +94,20 @@ async function loadConfig(command: string) {
   }
 }
 
-function isLocalUpdateOnly(flag: string | undefined) {
-  if (flag && flag === 'local-update-only') {
-    return true;
+function isLocalUpdateOnly(args: string[] | undefined) {
+  for (const arg of args ?? []) {
+    if (arg === 'local-update-only') {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isSkipDriftDetection(args: string[] | undefined) {
+  for (const arg of args ?? []) {
+    if (arg === 'skip-drift-detection') {
+      return true;
+    }
   }
   return false;
 }
