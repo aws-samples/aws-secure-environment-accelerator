@@ -817,11 +817,11 @@ export class ConvertAseaConfig {
           enable: true,
           encryption: {
             useCMK: true,
+            deploymentTargets:
+            this.regionsWithoutVpc.length > 0 ? { excludedRegions: this.regionsWithoutVpc } : undefined,
           },
           dynamicPartitioning: dynamicLogPartitioning ? 'dynamic-partitioning/log-filters.json' : undefined,
           replaceLogDestinationArn: `arn:aws:logs:${this.region}:${logAccountId}:destination/${this.aseaPrefix}LogDestinationOrg`,
-          deploymentTargets:
-            this.regionsWithoutVpc.length > 0 ? { excludedRegions: this.regionsWithoutVpc } : undefined,
         },
       },
       reports: {
@@ -1364,6 +1364,15 @@ export class ConvertAseaConfig {
           .filter((sg) => !!sg['inbound-rules'].find((ib) => ib.type?.includes('RDP') || ib.type?.includes('HTTPS')))
           .flatMap((sg) => sg['inbound-rules'].flatMap((ib) => ib.source)) as string[];
         const { sharedAccounts, sharedOrganizationalUnits } = madSharedTo(accountKey);
+        const madSharedAccounts = sharedAccounts.length > 0 ? sharedAccounts: undefined;
+        let madSharedOrganizationalUnits = undefined;
+        if (sharedOrganizationalUnits.length > 0) {
+          madSharedOrganizationalUnits = {
+            organizationalUnits: sharedOrganizationalUnits,
+            excludedAccounts: [],
+          };
+        }
+
         const madConfig: ManagedActiveDirectoryConfigType = {
           account: this.getAccountKeyforLza(aseaConfig['global-options'], accountKey),
           description: aseaMadConfig.description,
@@ -1419,11 +1428,8 @@ export class ConvertAseaConfig {
             adminSecretName: 'my-admin-001',
             region: aseaMadConfig.region as any,
           },
-          sharedAccounts,
-          sharedOrganizationalUnits: {
-            organizationalUnits: sharedOrganizationalUnits,
-            excludedAccounts: [],
-          },
+          sharedAccounts: madSharedAccounts,
+          sharedOrganizationalUnits: madSharedOrganizationalUnits,
         };
         madConfigs.push(madConfig);
       }
@@ -1670,7 +1676,7 @@ export class ConvertAseaConfig {
     const instances: Ec2FirewallInstanceConfig[] = [];
     if (firewalls) {
       for (const firewall of firewalls) {
-        if (firewall.deploy) {
+        if (firewall.deploy && firewall.type === 'EC2') {
           const vpcName = firewall.vpc;
           const name = firewall.name;
           const firewallScopedVpcConfig = this.vpcConfigs
