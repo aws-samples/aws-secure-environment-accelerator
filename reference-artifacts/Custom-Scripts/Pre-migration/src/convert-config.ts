@@ -1547,10 +1547,9 @@ export class ConvertAseaConfig {
       const deployToOus: string[] = [];
       const excludedRegions: string[] = [];
       organizationalUnits.forEach(([ouKey, ouConfig]) => {
-        const matchedConfig = ouConfig['aws-config'].find((c) => c.rules.includes('EC2-INSTANCE-PROFILE-PERMISSIONS'));
-        if (!matchedConfig) return;
+        const config = ouConfig['aws-config'][0];
         deployToOus.push(ouKey);
-        matchedConfig['excl-regions'].forEach((r) => {
+        config['excl-regions'].forEach((r) => {
           if (!excludedRegions.includes(r)) excludedRegions.push(r);
         });
       });
