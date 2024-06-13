@@ -341,7 +341,7 @@ The snapshot tool supports the following commands:
 
 Each subcommand of the snapshot tool and its associated actions can be found below:
 
-- `yarn run snapshot pre` - This command should be run `before` the migupgraderation process. Describes all custom resource states before the upgrade and saves the results in `${aseaPrefix}-config-snapshot`
+- `yarn run snapshot pre` - This command should be run `before` the upgrade process. Describes all custom resource states before the upgrade and saves the results in `${aseaPrefix}-config-snapshot`
 - `yarn run snapshot post` - This command should be run `after` the upgrade process. Describes all custom resource states after the upgrade and saves the results in `${aseaPrefix}-config-snapshot`
 - `yarn run snapshot report` - This command should be run `after` the pre and post snapshot commands have been run. Runs a diff on the Pre and Post snapshot resources and outputs a list of the diffs.
 - `yarn run snapshot reset` - Deletes the DynamoDB table `${aseaPrefix}-config-snapshot`
@@ -385,7 +385,7 @@ In order to validate the snapshot behaviors, you will need to do the following:
 
 #### Prepare ASEA Environment Overview
 
-This step will prepare the ASEA environment for upgrade to the Landing Zone Accelerator on AWS. In this step the upgrade scripts tool will be deleting the CDK Toolkit CloudFormation stacks in the Management account. Which includes deleting ECR images from the CDK Toolkit ECR repository. Deleting the ASEA CloudFormation installer stack and finally the ASEA InitialSetup stack. You will also be emptying the ASEA assets bucket in order for the installer CloudFormation stack to be deleted.
+This step will prepare the ASEA environment for upgrade to the Landing Zone Accelerator on AWS. In this step the upgrade scripts tool will delete the CDK Toolkit CloudFormation stacks in the Management account. Which includes deleting ECR images from the CDK Toolkit ECR repository. Deleting the ASEA CloudFormation installer stack and finally the ASEA InitialSetup stack. You will also be emptying the ASEA assets bucket in order for the installer CloudFormation stack to be deleted.
 In order to empty the artifacts S3 bucket you will need to navigate to S3 console.
 
 - Find the bucket that has the string `artifactsbucket in the name`
@@ -486,16 +486,23 @@ yarn run snapshot reset
 
 This step will perform post upgrade actions which includes following
 
-- Copy ASEA ACM Certificate assets from ASEA Central Bucket to LZA created Assets bucket.
+- Copy ASEA ACM Certificate assets from ASEA Central Bucket to LZA created Assets bucket. `copy-certificates`
+- Delete Outputs from ASEA stacks. `remove-stack-outputs`
+- Update NACL associations. `update-nacl-associations`
+- Marks duplicate SNS Topics, Subscriptions and Policies for removal. `remove-sns-resources`
+- Marks duplicate Config Rules and Remediation Configurations for removal. `remove-asea-config-rules`
+- Marks duplicate RSyslog resources for removal. `remove-rsyslog`
+
+Each of the above steps has a corresponding flag that can be set during the post-migration step. These flags determine which actions are performed by the post-migration step.
 
 #### Post upgrade Commands
 
 ```bash
 cd <root-dir>
-yarn run post-migration
+yarn run post-migration remove-stack-outputs copy-certificates update-nacl-associations remove-sns-resources remove-asea-config-rules remove-rsyslog
 ```
 
-### ALB IP Forwader
+### ALB IP Forwarder
 
 If you are using ALB IP Forwarding in ASEA, (`"alb-forwarding": true` is set for a VPC in the ASEA configuration file), the following will occur as a result of the config-converter script:
 
@@ -521,7 +528,7 @@ If you are using ALB IP Forwarding in ASEA, (`"alb-forwarding": true` is set for
           - ca-central-1
 ```
 
-Once the Customizations stage of the pipeline has been succcessfully run with the configuration file above, a new DynamoDB table will be generated in the `deploymentTargets` account and region specified. This table should be named `Alb-Ip-Forwarding-<VPC_NAME>`. In the same region and account, a DyanmoDB table named `
+Once the Customizations stage of the pipeline has been successfully run with the configuration file above, a new DynamoDB table will be generated in the `deploymentTargets` account and region specified. This table should be named `Alb-Ip-Forwarding-<VPC_NAME>`. In the same region and account, a DynamoDB table named `
 <ASEA-Prefix>-Alb-Ip-Forwarding-<VPC-ID>` should exist. You will need to copy over all of these entries from the old ALB IP Forwarding table to the new one.
 
 **TODO** provide a command to do this copy
