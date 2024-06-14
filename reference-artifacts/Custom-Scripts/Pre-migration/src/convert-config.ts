@@ -1584,7 +1584,7 @@ export class ConvertAseaConfig {
     const accountKeys: string[] = [];
     const ignoredOus: string[] = aseaConfig['global-options']['ignored-ous'] ?? [];
     Object.entries(aseaConfig['mandatory-account-configs']).forEach(([accountKey, accountConfig]) => {
-      if (!ignoredOus.includes(accountConfig.ou)) {
+      if (!ignoredOus.includes(accountConfig.ou) && !accountConfig.deleted) {
         accountsConfig.mandatoryAccounts.push({
           name: this.getAccountKeyforLza(aseaConfig['global-options'], accountKey),
           description: accountConfig.description,
@@ -1598,7 +1598,7 @@ export class ConvertAseaConfig {
 
     Object.entries(aseaConfig['workload-account-configs']).forEach(([accountKey, accountConfig]) => {
       const nestedOu = accountConfig['ou-path'];
-      if (!ignoredOus.includes(accountConfig.ou)) {
+      if (!ignoredOus.includes(accountConfig.ou) && !accountConfig.deleted) {
         accountsConfig.workloadAccounts.push({
           name: accountKey,
           description: accountConfig.description,
