@@ -60,18 +60,17 @@ export async function snapshotConfiguration(
   // process regional services
   let maxPromises = 0;
   for (const account of accounts) {
+    if (account.Status === 'SUSPENDED') { continue; }
     let credentials: AwsCredentialIdentity | undefined = undefined;
     if (account.Id !== currentAccountId) {
       credentials = await getCredentials(account.Id!, roleName);
     }
     const regionPromises = [];
     for (const region of regions) {
-      if (account.Status !== 'SUSPENDED') {
-        maxPromises = maxPromises + 1;
-        regionPromises.push(
-          snapshotRegionResources(tableName, homeRegion, prefix, account.Id!, region, preMigration, credentials),
-        );
-      }
+      maxPromises = maxPromises + 1;
+      regionPromises.push(
+        snapshotRegionResources(tableName, homeRegion, prefix, account.Id!, region, preMigration, credentials),
+      );
     }
     if (maxPromises > 16) {
       await Promise.all(regionPromises);
