@@ -219,6 +219,7 @@ export class PostMigration {
           Bucket: mappingBucket,
           Key: nestedStack.templatePath,
           Body: JSON.stringify(newNestedTemplate, null, 2),
+          ServerSideEncryption: 'AES256',
         });
       }
     }
@@ -226,6 +227,7 @@ export class PostMigration {
       Bucket: mappingBucket,
       Key: mapping.templatePath,
       Body: JSON.stringify(stack, null, 2),
+      ServerSideEncryption: 'AES256',
     });
   }
 
