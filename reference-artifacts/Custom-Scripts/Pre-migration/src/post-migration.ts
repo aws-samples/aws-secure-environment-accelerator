@@ -29,6 +29,7 @@ export class PostMigration {
   private readonly aseaPrefix: string;
   private readonly s3: S3;
   private readonly dynamoDb: DynamoDB;
+  private operationsAccountId: string | undefined;
   private outputs: StackOutput[] = [];
   private accounts: Account[] = [];
   private centralBucket: string | undefined;
@@ -75,6 +76,7 @@ export class PostMigration {
     this.outputs = await loadOutputs(`${this.aseaPrefix}Outputs`, this.dynamoDb);
     this.accounts = await loadAccounts(`${this.aseaPrefix}Parameters`, this.dynamoDb);
     const operationsAccount = this.accounts.find((account) => account.key.toLowerCase() === 'operations');
+    this.operationsAccountId = operationsAccount?.id;
     const centralBucketOutput = findValuesFromOutputs({
       outputs: this.outputs,
       accountKey: aseaConfig['global-options']['aws-org-management'].account,
@@ -377,14 +379,18 @@ export class PostMigration {
     const stsClient = new STS();
     const stackString = await s3Client.getObjectBodyAsString({ Bucket: mappingBucket, Key: mapping.templatePath });
     const stack = JSON.parse(stackString);
-    const credentials = await stsClient.getCredentialsForAccountAndRole(mapping.accountId, 'ASEA-PipelineRole');
+    if (!this.operationsAccountId) {
+      throw ('No operations account found, please validate that there is a valid operations account in your accounts-config.yaml and re-run the pipeline');
+    }
+    const credentials = await stsClient.getCredentialsForAccountAndRole(mapping.accountId, `${this.aseaPrefix}PipelineRole`);
+    const s3LocalOperationsAcctCredentials = await stsClient.getCredentialsForAccountAndRole(this.operationsAccountId, `${this.aseaPrefix}PipelineRole`);
     const cloudformation = new CloudFormation({
       credentials,
       region: mapping.region,
     });
     const localSts = new STS(credentials);
     console.log(await localSts.getCallerIdentity());
-    const localS3Client = new S3(credentials, mapping.region);
+    const localS3Client = new S3(s3LocalOperationsAcctCredentials, mapping.region);
     const aseaAssetsBucket = `cdk-${this.aseaPrefix.toLowerCase()}assets-${operationsAccount}-${mapping.region}`;
     console.log(aseaAssetsBucket);
     const resourceTypeExistsInStack = Object.keys(stack.Resources).find(
