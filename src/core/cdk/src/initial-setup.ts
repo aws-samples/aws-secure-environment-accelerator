@@ -623,6 +623,35 @@ export namespace InitialSetup {
 
       installExecRolesInAccounts.iterator(installRolesTask);
 
+      // Opt in Region - Begin
+      const optinRegionsStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}OptinRegions_sm`, {
+        stateMachineName: `${props.acceleratorPrefix}OptinRegions_sm`,
+        definition: new RunAcrossAccountsTask(this, 'OptinRegions', {
+          lambdaCode,
+          role: pipelineRole,
+          lambdaPath: 'index.enableOptinRegions',
+          name: 'Enable Opt-in Regions',
+        }),
+      });
+
+      const optinRegionTask = new tasks.StepFunctionsStartExecution(this, 'Enable Opt-in Regions', {
+        stateMachine: optinRegionsStateMachine,
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          'accounts.$': '$.accounts',
+          'regions.$': '$.regions',
+          configRepositoryName: props.configRepositoryName,
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+          'baseline.$': '$.baseline',
+          acceleratorPrefix: props.acceleratorPrefix,
+          assumeRoleName: props.stateMachineExecutionRole,
+          resultPath: sfn.JsonPath.DISCARD,
+        }),
+      });
+
+      // Opt in Region - End
+
       const deleteVpcSfn = new sfn.StateMachine(this, 'Delete Default Vpcs Sfn', {
         stateMachineName: `${props.acceleratorPrefix}DeleteDefaultVpcs_sfn`,
         definition: new RunAcrossAccountsTask(this, 'DeleteDefaultVPCs', {
@@ -1131,6 +1160,7 @@ export namespace InitialSetup {
       const commonDefinition = loadOrganizationsTask.startState
         .next(loadAccountsTask)
         .next(installExecRolesInAccounts)
+        .next(optinRegionTask)
         .next(cdkBootstrapTask)
         .next(deleteVpcTask)
         .next(loadLimitsTask)
