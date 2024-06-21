@@ -636,6 +636,7 @@ export namespace InitialSetup {
       const optinRegionTask = new tasks.StepFunctionsStartExecution(this, 'Enable Opt-in Regions', {
         stateMachine: optinRegionsStateMachine,
         integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        resultPath: sfn.JsonPath.DISCARD,
         input: sfn.TaskInput.fromObject({
           'accounts.$': '$.accounts',
           'regions.$': '$.regions',
@@ -645,7 +646,6 @@ export namespace InitialSetup {
           'baseline.$': '$.baseline',
           acceleratorPrefix: props.acceleratorPrefix,
           assumeRoleName: props.stateMachineExecutionRole,
-          resultPath: sfn.JsonPath.DISCARD,
         }),
       });
 
