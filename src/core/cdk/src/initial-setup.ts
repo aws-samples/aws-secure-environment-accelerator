@@ -630,7 +630,7 @@ export namespace InitialSetup {
           lambdaCode,
           role: pipelineRole,
           lambdaPath: 'index.enableOptinRegions',
-          name: 'Enable Opt-in Regions',
+          name: 'Enable Opt-in Region',
         }),
       });
 
