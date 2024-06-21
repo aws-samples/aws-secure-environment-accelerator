@@ -66,7 +66,7 @@ export class EnableOptinRegionTask extends sfn.StateMachineFragment {
     // Create Map task to iterate
     const mapTask = new sfn.Map(this, `Enable Optin Region Map`, {
       itemsPath: '$.accounts',
-      resultPath: '$.errors',
+      resultPath: sfn.JsonPath.DISCARD,
       maxConcurrency: 15,
       parameters: {
         'accountId.$': '$$.Map.Item.Value',

@@ -14,7 +14,6 @@
 import { Account } from '@aws-accelerator/common/src/aws/account';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { EnableOptinRegionOutput } from './enable';
-import { enableOptinRegion } from '..';
 
 interface StepInput {
   enableOutput: OptinRegionList;
