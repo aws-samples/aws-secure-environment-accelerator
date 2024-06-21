@@ -108,7 +108,7 @@ export class EnableOptinRegionTask extends sfn.StateMachineFragment {
           .afterwards(),
       );
 
-    mapTask.next(
+    enableTask.next(
       new sfn.Choice(scope, 'Optin Region Enablement Started?')
         .when(sfn.Condition.numberLessThanEquals(createTaskResultLength, 0), pass) //already enabled or skipped
         .when(sfn.Condition.numberGreaterThan(createTaskResultLength, 0), waitTask) //processing
