@@ -80,7 +80,7 @@ export const handler = async (input: EnableOptinRegionInput) => {
         if (enabledRegionStatus == 'not-opted-in') {
           console.log(`Enabling Opt-in region '${region}'`);
           try {
-            account.enableOptinRegion(accountId, region);
+            await account.enableOptinRegion(region);
             enabledOptinRegionList.push({
               accountId,
               optinRegionName: region,

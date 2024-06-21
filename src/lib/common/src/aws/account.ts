@@ -32,9 +32,8 @@ export class Account {
    * @param accountId
    * @param regionName
    */
-  async enableOptinRegion(accountId: string, regionName: string): Promise<void> {
+  async enableOptinRegion(regionName: string): Promise<void> {
     const params: EnableRegionRequest = {
-      AccountId: accountId,
       RegionName: regionName,
     };
     await throttlingBackOff(() => this.client.enableRegion(params).promise());
