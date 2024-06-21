@@ -629,7 +629,7 @@ export namespace InitialSetup {
         stateMachineName: `${props.acceleratorPrefix}OptinRegions_sm`,
         definition: new EnableOptinRegionTask(this, 'OptinRegions', {
           lambdaCode,
-          role: pipelineRole
+          role: pipelineRole,
         }),
       });
 

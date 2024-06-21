@@ -67,39 +67,43 @@ export const handler = async (input: EnableOptinRegionInput) => {
   const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
   const account = new Account(credentials, 'us-east-1');
   const ec2 = new EC2(credentials, 'us-east-1');
-
+  const isControlTower = acceleratorConfig['global-options']['ct-baseline'];
   const enabledRegions = await ec2.describeAllRegions();
   const enabledOptinRegionList: EnableOptinRegionOutput[] = [];
-  if (enabledRegions) {
-    const enabledRegionLookup = Object.fromEntries(enabledRegions.map(obj => [obj.RegionName, obj.OptInStatus]));
+  if (!isControlTower) {
+    if (enabledRegions) {
+      const enabledRegionLookup = Object.fromEntries(enabledRegions.map(obj => [obj.RegionName, obj.OptInStatus]));
 
-    for (const region of supportedRegions) {
-      const enabledRegionStatus = enabledRegionLookup[region];
-      //If region is an opt-in region
-      if (enabledRegionStatus == 'not-opted-in') {
-        console.log(`Enabling Opt-in region '${region}'`);
-        try {
-          account.enableOptinRegion(accountId, region);
-          enabledOptinRegionList.push({
-            accountId,
-            optinRegionName: region,
-            assumeRoleName,
-          });
-        } catch (error: any) {
-          errors.push(
-            `${accountId}:${region}: ${error.code}: ${
-              CustomErrorMessage.find(cm => cm.code === error.code)?.message || error.message
-            }`,
-          );
-          continue;
+      for (const region of supportedRegions) {
+        const enabledRegionStatus = enabledRegionLookup[region];
+        //If region is an opt-in region
+        if (enabledRegionStatus == 'not-opted-in') {
+          console.log(`Enabling Opt-in region '${region}'`);
+          try {
+            account.enableOptinRegion(accountId, region);
+            enabledOptinRegionList.push({
+              accountId,
+              optinRegionName: region,
+              assumeRoleName,
+            });
+          } catch (error: any) {
+            errors.push(
+              `${accountId}:${region}: ${error.code}: ${
+                CustomErrorMessage.find(cm => cm.code === error.code)?.message || error.message
+              }`,
+            );
+            continue;
+          }
+        } else if (enabledRegionStatus == 'opted-in') {
+          console.log(`${region} already opted-in`);
+        } else {
+          //opt-in-not-required
+          console.log(`${region} opt-in-not required`);
         }
-      } else if (enabledRegionStatus == 'opted-in') {
-        console.log(`${region} already opted-in`);
-      } else {
-        //opt-in-not-required
-        console.log(`${region} opt-in-not required`);
       }
     }
+  } else {
+    console.log(`Control Tower is enabled. Skipping Opt-in enablement.`);
   }
 
   return { enabledOptinRegionList, outputCount: enabledOptinRegionList.length, errors };

@@ -53,7 +53,6 @@ export class EnableOptinRegionTask extends sfn.StateMachineFragment {
     const createTaskResultPath = '$.enableOutput';
     const createTaskResultLength = `${createTaskResultPath}.outputCount`;
 
-
     const enableTask = new CodeTask(scope, `Start Optin Region`, {
       resultPath: createTaskResultPath,
       functionProps: {
@@ -75,7 +74,7 @@ export class EnableOptinRegionTask extends sfn.StateMachineFragment {
         'configFilePath.$': '$.configFilePath',
         'configCommitId.$': '$.configCommitId',
         'acceleratorPrefix.$': '$.acceleratorPrefix',
-        'baseline.$': '$.baseline'
+        'baseline.$': '$.baseline',
       },
     });
     mapTask.iterator(enableTask);
