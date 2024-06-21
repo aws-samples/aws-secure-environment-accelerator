@@ -52,7 +52,9 @@ export class EnableOptinRegionTask extends sfn.StateMachineFragment {
 
     const createTaskResultPath = '$.enableOutput';
     const createTaskResultLength = `${createTaskResultPath}.outputCount`;
-    const createTask = new CodeTask(scope, `Start Optin Region`, {
+
+
+    const enableTask = new CodeTask(scope, `Start Optin Region`, {
       resultPath: createTaskResultPath,
       functionProps: {
         role,
@@ -60,6 +62,23 @@ export class EnableOptinRegionTask extends sfn.StateMachineFragment {
         handler: 'index.enableOptinRegions.enable',
       },
     });
+
+    // Create Map task to iterate
+    const mapTask = new sfn.Map(this, `Enable Optin Region Map`, {
+      itemsPath: '$.accounts',
+      resultPath: '$.errors',
+      maxConcurrency: 15,
+      parameters: {
+        'accountId.$': '$$.Map.Item.Value',
+        'assumeRoleName.$': '$.assumeRoleName',
+        'configRepositoryName.$': '$.configRepositoryName',
+        'configFilePath.$': '$.configFilePath',
+        'configCommitId.$': '$.configCommitId',
+        'acceleratorPrefix.$': '$.acceleratorPrefix',
+        'baseline.$': '$.baseline'
+      },
+    });
+    mapTask.iterator(enableTask);
 
     const verifyTaskResultPath = '$.verifyOutput';
     const verifyTask = new CodeTask(scope, 'Verify Optin Region', {
@@ -89,7 +108,7 @@ export class EnableOptinRegionTask extends sfn.StateMachineFragment {
           .afterwards(),
       );
 
-    createTask.next(
+    mapTask.next(
       new sfn.Choice(scope, 'Optin Region Enablement Started?')
         .when(sfn.Condition.numberLessThanEquals(createTaskResultLength, 0), pass) //already enabled or skipped
         .when(sfn.Condition.numberGreaterThan(createTaskResultLength, 0), waitTask) //processing
@@ -97,7 +116,7 @@ export class EnableOptinRegionTask extends sfn.StateMachineFragment {
         .afterwards(),
     );
 
-    this.startState = createTask.startState;
+    this.startState = mapTask.startState;
     this.endStates = fail.endStates;
   }
 }

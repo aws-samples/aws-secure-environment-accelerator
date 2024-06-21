@@ -11,5 +11,5 @@
  *  and limitations under the License.
  */
 
-export { handler as run } from './enable';
+export { handler as enable } from './enable';
 export { handler as verify } from './verify';
