@@ -77,7 +77,8 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
 
     // Create Map task to iterate
     const mapTask = new sfn.Map(this, `${name} Map`, {
-      itemsPath: '$.accounts',      
+      itemsPath: '$.accounts',
+      resultPath: '$.errors',
       maxConcurrency: 50,
       parameters: {
         'accountId.$': '$$.Map.Item.Value',
