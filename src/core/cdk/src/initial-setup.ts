@@ -34,6 +34,7 @@ import { CreateControlTowerAccountTask } from './tasks/create-control-tower-acco
 import { CreateOrganizationAccountTask } from './tasks/create-organization-account-task';
 import { CreateStackTask } from './tasks/create-stack-task';
 import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
+import { EnableOptinRegionTask } from './tasks/enable-optin-region-task';
 import { Construct } from 'constructs';
 import * as fs from 'fs';
 import * as sns from 'aws-cdk-lib/aws-sns';
@@ -626,11 +627,9 @@ export namespace InitialSetup {
       // Opt in Region - Begin
       const optinRegionsStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}OptinRegions_sm`, {
         stateMachineName: `${props.acceleratorPrefix}OptinRegions_sm`,
-        definition: new RunAcrossAccountsTask(this, 'OptinRegions', {
+        definition: new EnableOptinRegionTask(this, 'OptinRegions', {
           lambdaCode,
-          role: pipelineRole,
-          lambdaPath: 'index.enableOptinRegions',
-          name: 'Enable Opt-in Region',
+          role: pipelineRole
         }),
       });
 

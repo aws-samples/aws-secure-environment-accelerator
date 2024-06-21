@@ -49,7 +49,7 @@ import * as createOrganizationAccount from './create-organization-account';
 import * as createStack from './create-stack';
 import * as createStackSet from './create-stack-set';
 import * as deleteDefaultVpcs from './delete-default-vpc';
-import * as enableOptinRegion from './enable-optin-regions';
+import * as enableOptinRegions from './enable-optin-regions';
 export {
   createAccount,
   createStack,
@@ -59,5 +59,5 @@ export {
   deleteDefaultVpcs,
   createConfigRecorder,
   addTagsToSharedResources,
-  enableOptinRegion,
+  enableOptinRegions,
 };
