@@ -70,14 +70,28 @@ export const handler = async (input: EnableOptinRegionInput) => {
   const isControlTower = acceleratorConfig['global-options']['ct-baseline'];
   const enabledRegions = await ec2.describeAllRegions();
   const enabledOptinRegionList: EnableOptinRegionOutput[] = [];
+
   if (!isControlTower) {
     if (enabledRegions) {
       const enabledRegionLookup = Object.fromEntries(enabledRegions.map(obj => [obj.RegionName, obj.OptInStatus]));
 
       for (const region of supportedRegions) {
         const enabledRegionStatus = enabledRegionLookup[region];
+
         //If region is an opt-in region
         if (enabledRegionStatus == 'not-opted-in') {
+          //Check to see if it is Enabling state. This could happen during a SM restart.
+          const optInRegionStatus = await account.getRegionOptinStatus(region);
+          if (optInRegionStatus.RegionOptStatus! == 'ENABLING') {
+            console.log(`Opt-in region '${region}' is already being enabled. Skipping.`);
+            enabledOptinRegionList.push({
+              accountId,
+              optinRegionName: region,
+              assumeRoleName,
+            });
+            continue;
+          }
+
           console.log(`Enabling Opt-in region '${region}'`);
           try {
             await account.enableOptinRegion(region);
