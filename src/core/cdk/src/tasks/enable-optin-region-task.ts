@@ -52,6 +52,7 @@ export class EnableOptinRegionTask extends sfn.StateMachineFragment {
 
     const createTaskResultPath = '$.enableOutput';
     const createTaskResultLength = `${createTaskResultPath}.outputCount`;
+    const createTaskErrorCount = `${createTaskResultPath}.errorCount`;
 
     const enableTask = new CodeTask(scope, `Start Optin Region`, {
       resultPath: createTaskResultPath,
@@ -109,8 +110,9 @@ export class EnableOptinRegionTask extends sfn.StateMachineFragment {
 
     enableTask.next(
       new sfn.Choice(scope, 'Optin Region Enablement Started?')
-        .when(sfn.Condition.numberLessThanEquals(createTaskResultLength, 0), pass) //already enabled or skipped
+        .when(sfn.Condition.numberEquals(createTaskResultLength, 0), pass) //already enabled or skipped
         .when(sfn.Condition.numberGreaterThan(createTaskResultLength, 0), waitTask) //processing
+        .when(sfn.Condition.numberGreaterThan(createTaskErrorCount, 0), fail)
         .otherwise(fail)
         .afterwards(),
     );

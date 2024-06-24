@@ -106,5 +106,5 @@ export const handler = async (input: EnableOptinRegionInput) => {
     console.log(`Control Tower is enabled. Skipping Opt-in enablement.`);
   }
 
-  return { enabledOptinRegionList, outputCount: enabledOptinRegionList.length, errors };
+  return { enabledOptinRegionList, outputCount: enabledOptinRegionList.length, errors, errorCount: errors.length };
 };
