@@ -10,6 +10,8 @@
  *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
  *  and limitations under the License.
  */
+import * as fs from 'fs';
+import path from 'path';
 import { CloudFormation, DescribeStacksCommand } from '@aws-sdk/client-cloudformation';
 import { AcceleratorConfig, ImportCertificateConfig, ImportCertificateConfigType } from './asea-config';
 import { loadAseaConfig } from './asea-config/load';
@@ -20,6 +22,7 @@ import { Account, getAccountId } from './common/outputs/accounts';
 import { StackOutput, findValuesFromOutputs, loadOutputs } from './common/outputs/load-outputs';
 import { loadAccounts } from './common/utils/accounts';
 import { ASEAMapping, ASEAResourceMapping } from './common/utils/types/resourceTypes';
+import { PutFiles } from './common/utils/types/writeToSourcesTypes';
 import { WriteToSources } from './common/utils/writeToSources';
 import { Config } from './config';
 
@@ -39,7 +42,7 @@ export class PostMigration {
   writeConfig: any;
   mappingBucketName: string;
   mappingRepositoryName: string;
-  writeToSources: any;
+  writeToSources: WriteToSources;
   constructor(config: Config, args: string[]) {
     this.aseaConfigRepositoryName = config.repositoryName;
     this.region = config.homeRegion;
@@ -94,71 +97,73 @@ export class PostMigration {
       Key: 'mapping.json',
     });
     const resourceMapping = JSON.parse(resourceMappingString);
-    if (this.args.includes('copy-certificates')) {
-      await this.copyCertificateAssets(aseaConfig);
-    }
-    if (this.args.includes('remove-stack-outputs')) {
-      await this.removeOutputs(resourceMapping, this.s3, this.mappingBucketName);
-    }
-    if (this.args.includes('update-nacl-associations')) {
-      await this.setResourcesToRetainByTypeAndPhase(
-        resourceMapping,
-        this.mappingBucketName,
-        this.s3,
-        operationsAccount,
-        'AWS::EC2::SubnetNetworkAclAssociation',
-        '1',
-      );
-    }
-    if (this.args.includes('remove-sns-resources')) {
-      await this.markDuplicateResourcesForRemoval({
-        mappings: resourceMapping,
-        mappingBucket: this.mappingBucketName,
-        s3Client: this.s3,
-        phase: '2',
-        resourceType: 'AWS::SNS::Topic',
-      });
+    const mappingConfig = {
+      mappings: resourceMapping,
+      mappingBucket: this.mappingBucketName,
+      s3Client: this.s3,
+    };
+    await this.loadMappingResourceFiles(resourceMapping, this.mappingBucketName, this.s3);
 
-      await this.markDuplicateResourcesForRemoval({
-        mappings: resourceMapping,
-        mappingBucket: this.mappingBucketName,
-        s3Client: this.s3,
-        phase: '2',
-        resourceType: 'AWS::SNS::Subscription',
-      });
-
-      await this.markDuplicateResourcesForRemoval({
-        mappings: resourceMapping,
-        mappingBucket: this.mappingBucketName,
-        s3Client: this.s3,
-        phase: '2',
-        resourceType: 'AWS::SNS::TopicPolicy',
-      });
-    }
-    if (this.args.includes('remove-asea-config-rules')) {
-      await this.markDuplicateResourcesForRemoval({
-        mappings: resourceMapping,
-        mappingBucket: this.mappingBucketName,
-        s3Client: this.s3,
-        phase: '3',
-        resourceType: 'AWS::Config::ConfigRule',
-      });
-      await this.markDuplicateResourcesForRemoval({
-        mappings: resourceMapping,
-        mappingBucket: this.mappingBucketName,
-        s3Client: this.s3,
-        phase: '3',
-        resourceType: 'AWS::Config::RemediationConfiguration',
-      });
-    }
-    if (this.args.includes('remove-rsyslog')) {
-      await this.markDuplicateResourcesForRemoval({
-        mappings: resourceMapping,
-        mappingBucket: this.mappingBucketName,
-        s3Client: this.s3,
-        phase: '3',
-        partialLogicalId: 'rsyslog',
-      });
+    for (const arg of this.args) {
+      switch (arg) {
+        case 'update-nacl-associations':
+          await this.setResourcesToRetainByTypeAndPhase(
+            resourceMapping,
+            this.mappingBucketName,
+            this.s3,
+            operationsAccount,
+            'AWS::EC2::SubnetNetworkAclAssociation',
+            '1',
+          );
+          break;
+        case 'remove-stack-outputs':
+          await this.removeOutputs(resourceMapping, this.s3, this.mappingBucketName);
+          break;
+        case 'copy-certificates':
+          await this.copyCertificateAssets(aseaConfig);
+          break;
+        case 'remove-sns-resources':
+          await this.removeSnsResources(mappingConfig);
+          break;
+        case 'remove-asea-config-rules':
+          await this.removeConfigRules(mappingConfig);
+          break;
+        case 'remove-rsyslog':
+          await this.markDuplicateResourcesForRemoval({
+            mappingConfig,
+            phase: '3',
+            partialLogicalId: 'rsyslog',
+          });
+          break;
+        case 'remove-cloudwatch-alarms':
+          await this.markDuplicateResourcesForRemoval({
+            mappingConfig,
+            phase: '5',
+            resourceType: 'AWS::CloudWatch::Alarm',
+          });
+          break;
+        case 'remove-cloudwatch-metrics':
+          await this.markDuplicateResourcesForRemoval({
+            mappingConfig,
+            phase: '4',
+            resourceType: 'Custom::LogsMetricFilter',
+          });
+          break;
+        case 'remove-budgets':
+          await this.markDuplicateResourcesForRemoval({
+            mappingConfig,
+            phase: '0',
+            resourceType: 'AWS::Budgets::Budget',
+          });
+          await this.markDuplicateResourcesForRemoval({
+            mappingConfig,
+            phase: '1',
+            resourceType: 'AWS::Budgets::Budget',
+          });
+          break;
+        case 'remove-logging':
+          await this.removeLogging(mappingConfig);
+      }
     }
   }
 
@@ -215,14 +220,19 @@ export class PostMigration {
           Bucket: mappingBucket,
           Key: nestedStack.templatePath,
         });
-        const nestedTemplate = JSON.parse(nestedTemplateString);
-        const newNestedTemplate = this.removeNestedStackOutputs(nestedTemplate);
-        await s3Client.putObject({
-          Bucket: mappingBucket,
-          Key: nestedStack.templatePath,
-          Body: JSON.stringify(newNestedTemplate, null, 2),
-          ServerSideEncryption: 'AES256',
-        });
+        try {
+          const nestedTemplate = JSON.parse(nestedTemplateString);
+          const newNestedTemplate = this.removeNestedStackOutputs(nestedTemplate);
+          await s3Client.putObject({
+            Bucket: mappingBucket,
+            Key: nestedStack.templatePath,
+            Body: JSON.stringify(newNestedTemplate, null, 2),
+            ServerSideEncryption: 'AES256',
+          });
+        } catch (err) {
+          console.log(`Error processing nested stack ${nestedStack.templatePath}`);
+          throw err;
+        }
       }
     }
     await s3Client.putObject({
@@ -242,8 +252,8 @@ export class PostMigration {
           delete stack.Outputs[output];
         }
       });
-      return stack;
     }
+    return stack;
   }
 
   private async setResourcesToRetainByTypeAndPhase(
@@ -279,15 +289,11 @@ export class PostMigration {
     }
     await Promise.all(updateStackPromises);
     for (const mapping of phaseMappings) {
-      updateResourcePromises.push(
-        this.addDeletionFlagByResourceType({ mapping, mappingBucket, s3Client, resourceType, isRetained: true }),
-      );
+      updateResourcePromises.push(this.addDeletionFlagByResourceType({ mapping, resourceType, isRetained: true }));
       for (const [, nestedMapping] of Object.entries(mapping.nestedStacks ?? {})) {
         updateResourcePromises.push(
           this.addDeletionFlagByResourceType({
             mapping: nestedMapping,
-            mappingBucket,
-            s3Client,
             resourceType,
             isRetained: true,
           }),
@@ -298,15 +304,10 @@ export class PostMigration {
   }
   private async addDeletionFlagByResourceType(props: {
     mapping: ASEAMapping;
-    mappingBucket: string;
-    s3Client: S3;
     resourceType: string;
     isRetained?: boolean;
   }) {
-    const resourcesString = await props.s3Client.getObjectBodyAsString({
-      Bucket: props.mappingBucket,
-      Key: props.mapping.resourcePath,
-    });
+    const resourcesString = (await fs.promises.readFile(path.join('outputs', props.mapping.resourcePath))).toString();
     const resources = JSON.parse(resourcesString);
     const resourceTypeExistsInStack = resources.find((resource: any) => resource.resourceType === props.resourceType);
     if (!resourceTypeExistsInStack) {
@@ -324,25 +325,16 @@ export class PostMigration {
         );
       }
     }
-    await props.s3Client.putObject({
-      Bucket: props.mappingBucket,
-      Key: props.mapping.resourcePath,
-      Body: JSON.stringify(resources, null, 2),
-      ServerSideEncryption: 'AES256',
-    });
+    await fs.promises.writeFile(path.join('outputs', props.mapping.resourcePath), JSON.stringify(resources, null, 2));
   }
 
   private async addDeletionFlagByPartialMatch(props: {
     mapping: ASEAMapping;
     mappingBucket: string;
-    s3Client: S3;
     partialLogicalId: string;
     isRetained?: boolean;
   }) {
-    const resourcesString = await props.s3Client.getObjectBodyAsString({
-      Bucket: props.mappingBucket,
-      Key: props.mapping.resourcePath,
-    });
+    const resourcesString = (await fs.promises.readFile(path.join('outputs', props.mapping.resourcePath))).toString();
     const resources: any[] = JSON.parse(resourcesString);
     const partialMatchResources = resources.filter((resource: any) =>
       resource.logicalResourceId.toLowerCase().includes(props.partialLogicalId.toLowerCase()),
@@ -360,13 +352,7 @@ export class PostMigration {
         );
       }
     }
-
-    await props.s3Client.putObject({
-      Bucket: props.mappingBucket,
-      Key: props.mapping.resourcePath,
-      Body: JSON.stringify(resources, null, 2),
-      ServerSideEncryption: 'AES256',
-    });
+    await fs.promises.writeFile(path.join('outputs', props.mapping.resourcePath), JSON.stringify(resources, null, 2));
   }
 
   private async retainStackResourceByTypeUpdate(
@@ -380,10 +366,16 @@ export class PostMigration {
     const stackString = await s3Client.getObjectBodyAsString({ Bucket: mappingBucket, Key: mapping.templatePath });
     const stack = JSON.parse(stackString);
     if (!this.operationsAccountId) {
-      throw ('No operations account found, please validate that there is a valid operations account in your accounts-config.yaml and re-run the pipeline');
+      throw 'No operations account found, please validate that there is a valid operations account in your accounts-config.yaml and re-run the pipeline';
     }
-    const credentials = await stsClient.getCredentialsForAccountAndRole(mapping.accountId, `${this.aseaPrefix}PipelineRole`);
-    const s3LocalOperationsAcctCredentials = await stsClient.getCredentialsForAccountAndRole(this.operationsAccountId, `${this.aseaPrefix}PipelineRole`);
+    const credentials = await stsClient.getCredentialsForAccountAndRole(
+      mapping.accountId,
+      `${this.aseaPrefix}PipelineRole`,
+    );
+    const s3LocalOperationsAcctCredentials = await stsClient.getCredentialsForAccountAndRole(
+      this.operationsAccountId,
+      `${this.aseaPrefix}PipelineRole`,
+    );
     const cloudformation = new CloudFormation({
       credentials,
       region: mapping.region,
@@ -455,9 +447,10 @@ export class PostMigration {
   }
 
   private async markDuplicateResourcesForRemoval(props: {
-    mappings: ASEAResourceMapping;
-    mappingBucket: string;
-    s3Client: S3;
+    mappingConfig: {
+      mappings: ASEAResourceMapping;
+      mappingBucket: string;
+    };
     resourceType?: string;
     partialLogicalId?: string;
     phase: string;
@@ -465,18 +458,16 @@ export class PostMigration {
     if (props.partialLogicalId && props.resourceType) {
       throw new Error('Cannot specify both partialLogicalId and resourceType');
     }
-    const phaseMappingKeys = Object.keys(props.mappings).filter((key) =>
-      props.mappings[key].stackName.includes(`Phase${props.phase}`),
+    const phaseMappingKeys = Object.keys(props.mappingConfig.mappings).filter((key) =>
+      props.mappingConfig.mappings[key].stackName.includes(`Phase${props.phase}`),
     );
-    const phaseMappings = phaseMappingKeys.map((key) => props.mappings[key]);
+    const phaseMappings = phaseMappingKeys.map((key) => props.mappingConfig.mappings[key]);
     const resourceRemovalPromises = [];
     for (const mapping of phaseMappings) {
       if (props.resourceType) {
         resourceRemovalPromises.push(
           this.addDeletionFlagByResourceType({
             mapping,
-            mappingBucket: props.mappingBucket,
-            s3Client: props.s3Client,
             resourceType: props.resourceType,
             isRetained: false,
           }),
@@ -486,8 +477,7 @@ export class PostMigration {
         resourceRemovalPromises.push(
           this.addDeletionFlagByPartialMatch({
             mapping,
-            mappingBucket: props.mappingBucket,
-            s3Client: props.s3Client,
+            mappingBucket: props.mappingConfig.mappingBucket,
             partialLogicalId: props.partialLogicalId,
             isRetained: false,
           }),
@@ -495,5 +485,156 @@ export class PostMigration {
       }
     }
     await Promise.all(resourceRemovalPromises);
+  }
+  private async removeSnsResources(mappingConfig: {
+    mappings: ASEAResourceMapping;
+    mappingBucket: string;
+    s3Client: S3;
+  }) {
+    await this.markDuplicateResourcesForRemoval({
+      mappingConfig,
+      phase: '2',
+      resourceType: 'AWS::SNS::Topic',
+    });
+
+    await this.markDuplicateResourcesForRemoval({
+      mappingConfig,
+      phase: '2',
+      resourceType: 'AWS::SNS::Subscription',
+    });
+
+    await this.markDuplicateResourcesForRemoval({
+      mappingConfig,
+      phase: '2',
+      resourceType: 'AWS::SNS::TopicPolicy',
+    });
+  }
+
+  private async removeConfigRules(mappingConfig: {
+    mappings: ASEAResourceMapping;
+    mappingBucket: string;
+    s3Client: S3;
+  }) {
+    await this.markDuplicateResourcesForRemoval({
+      mappingConfig,
+      phase: '3',
+      resourceType: 'AWS::Config::ConfigRule',
+    });
+    await this.markDuplicateResourcesForRemoval({
+      mappingConfig,
+      phase: '3',
+      resourceType: 'AWS::Config::RemediationConfiguration',
+    });
+  }
+
+  private async removeLogging(mappingConfig: { mappings: ASEAResourceMapping; mappingBucket: string; s3Client: S3 }) {
+    await this.markDuplicateResourcesForRemoval({
+      mappingConfig,
+      phase: '1',
+      resourceType: 'AWS::KinesisFirehose::DeliveryStream',
+    });
+
+    await this.markDuplicateResourcesForRemoval({
+      mappingConfig,
+      phase: '1',
+      resourceType: '	AWS::Logs::Destination',
+    });
+
+    await this.markDuplicateResourcesForRemoval({
+      mappingConfig,
+      phase: '1',
+      resourceType: '	AWS::Kinesis::Stream',
+    });
+
+    await this.markDuplicateResourcesForRemoval({
+      mappingConfig,
+      phase: '1',
+      partialLogicalId: 'FirehosePrefixProcessingLambda',
+    });
+    await this.markDuplicateResourcesForRemoval({
+      mappingConfig,
+      phase: '1',
+      partialLogicalId: 'KinesisStreamRoleLookup',
+    });
+  }
+
+  async loadMappingResourceFiles(
+    resourceMapping: { [key: string]: ASEAMapping },
+    mappingBucketName: string,
+    s3Client: S3,
+  ) {
+    const resourceFilePromises = Object.entries(resourceMapping)
+      .map(([_key, entry]) => {
+        const filePromises = [];
+        filePromises.push(this.loadResourceMappingFile(entry.resourcePath, mappingBucketName, s3Client));
+        if (entry.nestedStacks) {
+          for (const [, nestedStackEntry] of Object.entries(entry.nestedStacks)) {
+            filePromises.push(this.loadResourceMappingFile(nestedStackEntry.resourcePath, mappingBucketName, s3Client));
+          }
+        }
+        return filePromises;
+      })
+      .flat();
+    const resourceFiles = await Promise.all(resourceFilePromises);
+    await this.writeToSources.writeFilesToDisk(resourceFiles);
+  }
+
+  async loadResourceMappingFile(resourceFilePath: string, mappingBucketName: string, s3Client: S3): Promise<PutFiles> {
+    const resourceMappingString = await s3Client.getObjectBodyAsString({
+      Bucket: mappingBucketName,
+      Key: resourceFilePath,
+    });
+    const filePathArr = resourceFilePath.split('/');
+    const fileName = filePathArr.pop();
+    if (!fileName) {
+      throw new Error(`Could not get file name for ${resourceFilePath}`);
+    }
+    const filePath = filePathArr.join('/');
+    return {
+      fileContent: resourceMappingString,
+      filePath,
+      fileName,
+    };
+  }
+
+  async writeResourceFilesTos3(resourceMapping: { [key: string]: ASEAMapping }, mappingBucketName: string) {
+    const resourceFiles = Object.entries(resourceMapping)
+      .map(([_key, entry]) => {
+        const putFilePromises: PutFiles[] = [];
+        const filePathArr = entry.resourcePath.split('/');
+        const fileName = filePathArr.pop();
+        const filePath = filePathArr.join('/');
+        if (!fileName) {
+          throw new Error(`Could not get file name for ${entry.resourcePath}`);
+        }
+        const fileContent = fs.readFileSync(path.join('outputs', entry.resourcePath), 'utf-8').toString();
+        putFilePromises.push({
+          fileContent,
+          filePath,
+          fileName,
+        });
+        if (entry.nestedStacks) {
+          for (const [, nestedEntry] of Object.entries(entry.nestedStacks)) {
+            const nestedFilePathArr = nestedEntry.resourcePath.split('/');
+            const nestedFileName = nestedFilePathArr.pop();
+            const nestedFilePath = nestedFilePathArr.join('/');
+            if (!nestedFileName) {
+              throw new Error(`Could not get file name for ${nestedEntry.resourcePath}`);
+            }
+            const nestedFileContent = fs
+              .readFileSync(path.join('outputs', nestedEntry.resourcePath), 'utf-8')
+              .toString();
+            putFilePromises.push({
+              fileContent: nestedFileContent,
+              filePath: nestedFilePath,
+              fileName: nestedFileName,
+            });
+          }
+        }
+        return putFilePromises;
+      })
+      .flat();
+
+    await this.writeToSources.writeFilesToS3(resourceFiles, { bucket: mappingBucketName });
   }
 }
