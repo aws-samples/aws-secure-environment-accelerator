@@ -1548,15 +1548,28 @@ export class ConvertAseaConfig {
       const excludedRegions: string[] = [];
       organizationalUnits.forEach(([ouKey, ouConfig]) => {
         const config = ouConfig['aws-config'][0];
+        if (!ouConfig.iam?.roles) return;
+        if (!this.checkRolesForSsmLogWriteAccess(ouConfig.iam?.roles)) return;
         deployToOus.push(ouKey);
+        if (!config) return;
         config['excl-regions'].forEach((r) => {
           if (!excludedRegions.includes(r)) excludedRegions.push(r);
         });
       });
 
+      const accounts = Object.entries(aseaConfig['mandatory-account-configs']);
+      accounts.push(...Object.entries(aseaConfig['workload-account-configs']));
+      let deployToAccounts: string[] = [];
+
+      accounts.forEach(([accountKey, accountConfig]) => {
+        if (!accountConfig.iam?.roles) return;
+        if (!this.checkRolesForSsmLogWriteAccess(accountConfig.iam?.roles)) return;
+        deployToAccounts.push(accountKey);
+      });
+
       policySets.push({
         deploymentTargets: {
-          accounts: undefined,
+          accounts: deployToAccounts,
           organizationalUnits: deployToOus,
           excludedAccounts: undefined,
           excludedRegions: excludedRegions,
@@ -1571,6 +1584,17 @@ export class ConvertAseaConfig {
     }
   }
 
+  /**
+   * Checks if any OU roles have ssm-log-archive-write-access enabled
+   */
+  private checkRolesForSsmLogWriteAccess(roles: any[]) {
+    for (const role of roles) {
+      if (role['ssm-log-archive-write-access']) {
+        return true;
+      }
+    }
+    return false;
+  }
   /**
    * Converts ASEA mandatory and workload accounts config to LZA account Config
    * @param aseaConfig
