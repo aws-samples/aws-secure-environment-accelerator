@@ -78,11 +78,11 @@ export const handler = async (input: EnableOptinRegionInput) => {
       for (const region of supportedRegions) {
         const enabledRegionStatus = enabledRegionLookup[region];
 
-        //If region is an opt-in region
-        if (enabledRegionStatus == 'not-opted-in') {
-          //Check to see if it is Enabling state. This could happen during a SM restart.
+        // If region is an opt-in region
+        if (enabledRegionStatus === 'not-opted-in') {
+          // Check to see if it is Enabling state. This could happen during a SM restart.
           const optInRegionStatus = await account.getRegionOptinStatus(region);
-          if (optInRegionStatus.RegionOptStatus! == 'ENABLING') {
+          if (optInRegionStatus.RegionOptStatus! === 'ENABLING') {
             console.log(`Opt-in region '${region}' is already being enabled. Skipping.`);
             enabledOptinRegionList.push({
               accountId,
@@ -108,10 +108,10 @@ export const handler = async (input: EnableOptinRegionInput) => {
             );
             continue;
           }
-        } else if (enabledRegionStatus == 'opted-in') {
+        } else if (enabledRegionStatus === 'opted-in') {
           console.log(`${region} already opted-in`);
         } else {
-          //opt-in-not-required
+          // opt-in-not-required
           console.log(`${region} opt-in-not required`);
         }
       }

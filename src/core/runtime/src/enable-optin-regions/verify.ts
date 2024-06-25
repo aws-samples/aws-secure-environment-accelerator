@@ -43,7 +43,7 @@ export const handler = async (input: StepInput): Promise<string> => {
     status.push(optInRegionStatus.RegionOptStatus!);
   }
 
-  //"ENABLED"|"ENABLING"|"DISABLING"|"DISABLED"|"ENABLED_BY_DEFAULT"|string;
+  // "ENABLED"|"ENABLING"|"DISABLING"|"DISABLED"|"ENABLED_BY_DEFAULT"|string;
 
   const statusEnabling = status.filter(s => s === 'ENABLING');
   if (statusEnabling && statusEnabling.length > 0) {

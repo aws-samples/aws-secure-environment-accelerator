@@ -48,6 +48,7 @@ export class Account {
     const params: GetRegionOptStatusRequest = {
       RegionName: regionName,
     };
-    return await throttlingBackOff(() => this.client.getRegionOptStatus(params).promise());
+    const result = await throttlingBackOff(() => this.client.getRegionOptStatus(params).promise());
+    return result;
   }
 }

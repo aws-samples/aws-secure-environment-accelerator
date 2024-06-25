@@ -116,8 +116,8 @@ export class EnableOptinRegionTask extends sfn.StateMachineFragment {
             sfn.Condition.numberEquals(createTaskErrorCount, 0),
           ),
           pass,
-        ) //already enabled or skipped
-        .when(sfn.Condition.numberGreaterThan(createTaskResultLength, 0), waitTask) //processing
+        ) // already enabled or skipped
+        .when(sfn.Condition.numberGreaterThan(createTaskResultLength, 0), waitTask) // processing
         .when(sfn.Condition.numberGreaterThan(createTaskErrorCount, 0), fail)
         .otherwise(fail)
         .afterwards(),
