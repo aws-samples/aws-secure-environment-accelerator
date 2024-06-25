@@ -12,12 +12,10 @@
  */
 import * as fs from 'fs';
 import path from 'path';
-import { CloudFormation, DescribeStacksCommand } from '@aws-sdk/client-cloudformation';
 import { AcceleratorConfig, ImportCertificateConfig, ImportCertificateConfigType } from './asea-config';
 import { loadAseaConfig } from './asea-config/load';
 import { DynamoDB } from './common/aws/dynamodb';
 import { S3 } from './common/aws/s3';
-import { STS } from './common/aws/sts';
 import { Account, getAccountId } from './common/outputs/accounts';
 import { StackOutput, findValuesFromOutputs, loadOutputs } from './common/outputs/load-outputs';
 import { loadAccounts } from './common/utils/accounts';
@@ -32,7 +30,6 @@ export class PostMigration {
   private readonly aseaPrefix: string;
   private readonly s3: S3;
   private readonly dynamoDb: DynamoDB;
-  private operationsAccountId: string | undefined;
   private outputs: StackOutput[] = [];
   private accounts: Account[] = [];
   private centralBucket: string | undefined;
@@ -78,8 +75,6 @@ export class PostMigration {
     });
     this.outputs = await loadOutputs(`${this.aseaPrefix}Outputs`, this.dynamoDb);
     this.accounts = await loadAccounts(`${this.aseaPrefix}Parameters`, this.dynamoDb);
-    const operationsAccount = this.accounts.find((account) => account.key.toLowerCase() === 'operations');
-    this.operationsAccountId = operationsAccount?.id;
     const centralBucketOutput = findValuesFromOutputs({
       outputs: this.outputs,
       accountKey: aseaConfig['global-options']['aws-org-management'].account,
@@ -106,16 +101,6 @@ export class PostMigration {
 
     for (const arg of this.args) {
       switch (arg) {
-        case 'update-nacl-associations':
-          await this.setResourcesToRetainByTypeAndPhase(
-            resourceMapping,
-            this.mappingBucketName,
-            this.s3,
-            operationsAccount,
-            'AWS::EC2::SubnetNetworkAclAssociation',
-            '1',
-          );
-          break;
         case 'remove-stack-outputs':
           await this.removeOutputs(resourceMapping, this.s3, this.mappingBucketName);
           break;
@@ -256,52 +241,6 @@ export class PostMigration {
     return stack;
   }
 
-  private async setResourcesToRetainByTypeAndPhase(
-    resourceMapping: { [key: string]: ASEAMapping },
-    mappingBucket: string,
-    s3Client: S3,
-    operationsAccount: Account | undefined,
-    resourceType: string,
-    phase: string,
-  ) {
-    const phaseMappingKeys = Object.keys(resourceMapping).filter((key) => key.includes(`Phase${phase}`));
-    const phaseMappings = phaseMappingKeys.map((key) => resourceMapping[key]);
-    const updateStackPromises = [];
-    const updateResourcePromises = [];
-    if (!operationsAccount) {
-      throw new Error('Operations account not found');
-    }
-    for (const mapping of phaseMappings) {
-      updateStackPromises.push(
-        this.retainStackResourceByTypeUpdate(mapping, mappingBucket, s3Client, resourceType, operationsAccount.id),
-      );
-      for (const [, nestedMapping] of Object.entries(mapping.nestedStacks ?? {})) {
-        updateStackPromises.push(
-          this.retainStackResourceByTypeUpdate(
-            nestedMapping,
-            mappingBucket,
-            s3Client,
-            resourceType,
-            operationsAccount.id,
-          ),
-        );
-      }
-    }
-    await Promise.all(updateStackPromises);
-    for (const mapping of phaseMappings) {
-      updateResourcePromises.push(this.addDeletionFlagByResourceType({ mapping, resourceType, isRetained: true }));
-      for (const [, nestedMapping] of Object.entries(mapping.nestedStacks ?? {})) {
-        updateResourcePromises.push(
-          this.addDeletionFlagByResourceType({
-            mapping: nestedMapping,
-            resourceType,
-            isRetained: true,
-          }),
-        );
-      }
-    }
-    await Promise.all(updateResourcePromises);
-  }
   private async addDeletionFlagByResourceType(props: {
     mapping: ASEAMapping;
     resourceType: string;
@@ -353,97 +292,6 @@ export class PostMigration {
       }
     }
     await fs.promises.writeFile(path.join('outputs', props.mapping.resourcePath), JSON.stringify(resources, null, 2));
-  }
-
-  private async retainStackResourceByTypeUpdate(
-    mapping: ASEAMapping,
-    mappingBucket: string,
-    s3Client: S3,
-    resourceType: string,
-    operationsAccount: string,
-  ) {
-    const stsClient = new STS();
-    const stackString = await s3Client.getObjectBodyAsString({ Bucket: mappingBucket, Key: mapping.templatePath });
-    const stack = JSON.parse(stackString);
-    if (!this.operationsAccountId) {
-      throw 'No operations account found, please validate that there is a valid operations account in your accounts-config.yaml and re-run the pipeline';
-    }
-    const credentials = await stsClient.getCredentialsForAccountAndRole(
-      mapping.accountId,
-      `${this.aseaPrefix}PipelineRole`,
-    );
-    const s3LocalOperationsAcctCredentials = await stsClient.getCredentialsForAccountAndRole(
-      this.operationsAccountId,
-      `${this.aseaPrefix}PipelineRole`,
-    );
-    const cloudformation = new CloudFormation({
-      credentials,
-      region: mapping.region,
-    });
-    const localSts = new STS(credentials);
-    console.log(await localSts.getCallerIdentity());
-    const localS3Client = new S3(s3LocalOperationsAcctCredentials, mapping.region);
-    const aseaAssetsBucket = `cdk-${this.aseaPrefix.toLowerCase()}assets-${operationsAccount}-${mapping.region}`;
-    console.log(aseaAssetsBucket);
-    const resourceTypeExistsInStack = Object.keys(stack.Resources).find(
-      (key) => stack.Resources[key].Type === resourceType,
-    );
-
-    if (!resourceTypeExistsInStack) {
-      return;
-    }
-    for (const key of Object.keys(stack.Resources) ?? {}) {
-      if (stack.Resources[key].Type === resourceType) {
-        stack.Resources[key].DeletionPolicy = 'Retain';
-        console.log(`Retaining ${resourceType} for ${mapping.stackName}`);
-      }
-    }
-    await localS3Client.putObject({
-      Bucket: aseaAssetsBucket,
-      Key: `${mapping.accountId}/${mapping.stackName}.json`,
-      Body: JSON.stringify(stack, null, 2),
-      ACL: 'bucket-owner-full-control',
-    });
-
-    const signedTemplateUrl = await localS3Client.presignedUrl({
-      command: 'getObject',
-      Bucket: aseaAssetsBucket,
-      Key: `${mapping.accountId}/${mapping.stackName}.json`,
-    });
-    try {
-      console.log(signedTemplateUrl);
-      await cloudformation.updateStack({
-        StackName: mapping.stackName,
-        TemplateURL: signedTemplateUrl,
-        Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
-      });
-    } catch (err) {
-      if (!`${err}`.includes('No updates are to be performed.')) {
-        console.log(`Error updating stack ${mapping.stackName} in ${mapping.accountId} and region ${mapping.region}`);
-        throw err;
-      }
-    }
-
-    let stackStatus = 'UPDATE_IN_PROGRESS';
-    while (stackStatus === 'UPDATE_IN_PROGRESS') {
-      const describeStacksResponse = await cloudformation.send(
-        new DescribeStacksCommand({ StackName: mapping.stackName }),
-      );
-      stackStatus = describeStacksResponse.Stacks![0].StackStatus!;
-      console.log(`Stack status: ${stackStatus}`);
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-    }
-    if (stackStatus === 'UPDATE_COMPLETE' || stackStatus === 'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS') {
-      console.log(`Created CloudFormation stack ${mapping.stackName}`);
-    } else {
-      throw new Error(`Failed to create CloudFormation stack ${mapping.stackName} with status ${stackStatus}`);
-    }
-    await s3Client.putObject({
-      Bucket: mappingBucket,
-      Key: mapping.templatePath,
-      Body: JSON.stringify(stack, null, 2),
-      ServerSideEncryption: 'AES256',
-    });
   }
 
   private async markDuplicateResourcesForRemoval(props: {
