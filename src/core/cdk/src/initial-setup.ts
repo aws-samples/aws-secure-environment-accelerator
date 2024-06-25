@@ -34,6 +34,7 @@ import { CreateControlTowerAccountTask } from './tasks/create-control-tower-acco
 import { CreateOrganizationAccountTask } from './tasks/create-organization-account-task';
 import { CreateStackTask } from './tasks/create-stack-task';
 import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
+import { EnableOptinRegionTask } from './tasks/enable-optin-region-task';
 import { Construct } from 'constructs';
 import * as fs from 'fs';
 import * as sns from 'aws-cdk-lib/aws-sns';
@@ -623,6 +624,33 @@ export namespace InitialSetup {
 
       installExecRolesInAccounts.iterator(installRolesTask);
 
+      // Opt in Region - Begin
+      const optinRegionsStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}OptinRegions_sm`, {
+        stateMachineName: `${props.acceleratorPrefix}OptinRegions_sm`,
+        definition: new EnableOptinRegionTask(this, 'OptinRegions', {
+          lambdaCode,
+          role: pipelineRole,
+        }),
+      });
+
+      const optinRegionTask = new tasks.StepFunctionsStartExecution(this, 'Enable Opt-in Regions', {
+        stateMachine: optinRegionsStateMachine,
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        resultPath: sfn.JsonPath.DISCARD,
+        input: sfn.TaskInput.fromObject({
+          'accounts.$': '$.accounts',
+          'regions.$': '$.regions',
+          configRepositoryName: props.configRepositoryName,
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+          'baseline.$': '$.baseline',
+          acceleratorPrefix: props.acceleratorPrefix,
+          assumeRoleName: props.stateMachineExecutionRole,
+        }),
+      });
+
+      // Opt in Region - End
+
       const deleteVpcSfn = new sfn.StateMachine(this, 'Delete Default Vpcs Sfn', {
         stateMachineName: `${props.acceleratorPrefix}DeleteDefaultVpcs_sfn`,
         definition: new RunAcrossAccountsTask(this, 'DeleteDefaultVPCs', {
@@ -1131,6 +1159,7 @@ export namespace InitialSetup {
       const commonDefinition = loadOrganizationsTask.startState
         .next(loadAccountsTask)
         .next(installExecRolesInAccounts)
+        .next(optinRegionTask)
         .next(cdkBootstrapTask)
         .next(deleteVpcTask)
         .next(loadLimitsTask)

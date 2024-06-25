@@ -17,12 +17,15 @@ import {
   EnableEbsEncryptionByDefaultResult,
   ModifyEbsDefaultKmsKeyIdRequest,
   ModifyEbsDefaultKmsKeyIdResult,
+  DescribeRegionsRequest,
+  DescribeRegionsResult,
   InternetGatewayList,
   VpcList,
   DescribeSubnetsRequest,
   SubnetList,
   DescribeSubnetsResult,
   Subnet,
+  RegionList,
 } from 'aws-sdk/clients/ec2';
 import { throttlingBackOff } from './backoff';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
@@ -162,5 +165,16 @@ export class EC2 {
       r => r.Subnets!,
       input,
     );
+  }
+
+  /**
+   * Wrapper around AWS.EC2.describeRegions.
+   */
+  async describeAllRegions(): Promise<aws.EC2.RegionList | undefined> {
+    const params: DescribeRegionsRequest = {
+      AllRegions: true,
+    };
+    const regions = await throttlingBackOff(() => this.client.describeRegions(params).promise());
+    return regions.Regions;
   }
 }
