@@ -440,10 +440,13 @@ This step will perform post upgrade actions which includes following
 
 - Copy ASEA ACM Certificate assets from ASEA Central Bucket to LZA created Assets bucket. `copy-certificates`
 - Delete Outputs from ASEA stacks. `remove-stack-outputs`
-- Update NACL associations. `update-nacl-associations`
 - Marks duplicate SNS Topics, Subscriptions and Policies for removal. `remove-sns-resources`
 - Marks duplicate Config Rules and Remediation Configurations for removal. `remove-asea-config-rules`
 - Marks duplicate RSyslog resources for removal. `remove-rsyslog`
+- Marks duplicate CloudWatch Alarm resources for removal. `remove-cloudwatch-alarms`
+- Marks duplicate CloudWatch Metrics resources for removal. `remove-cloudwatch-metrics`
+- Marks duplicate Budget resources for removal. `remove-budgets`
+- Marks duplicate logging resources for removal. `remove-logging`
 
 Each of the above steps has a corresponding flag that can be set during the post-migration step. These flags determine which actions are performed by the post-migration step.
 
@@ -451,14 +454,16 @@ Each of the above steps has a corresponding flag that can be set during the post
 
 ```bash
 cd <root-dir>
-yarn run post-migration remove-stack-outputs copy-certificates update-nacl-associations remove-sns-resources remove-asea-config-rules remove-rsyslog
+yarn run post-migration remove-stack-outputs copy-certificates remove-sns-resources remove-asea-config-rules remove-rsyslog remove-cloudwatch-alarms remove-cloudwatch-metrics remove-budgets remove-logging
 ```
 
 > **⚠️ Warning**: Make sure the above commands ran successfully before running the LZA pipeline again.
 
 #### NACL and route table associations
+
 In order to support attachments of NACLs and Route Tables, the first run of the LZA pipeline was run with the generated `network-config.yaml` file that doesn't contain NACL and route table subnet associations
-  - Once the original pipeline has run, the NACLs and Route Tables should be attached by running the LZA pipeline a second time. However, before running the pipeline, the contents of the file `network-config-with-subnet-associations-and-route-tables.yaml` should be copy and pasted into the `network-config.yaml` file in CodeCommit.
+
+- Once the original pipeline has run, the NACLs and Route Tables should be attached by running the LZA pipeline a second time. However, before running the pipeline, the contents of the file `network-config-with-subnet-associations-and-route-tables.yaml` should be copy and pasted into the `network-config.yaml` file in CodeCommit.
 
 ## Post AWS LZA Deployment
 
@@ -500,14 +505,15 @@ yarn run snapshot report
 <details>
   <summary>Snapshot reset (optional)</summary>
 
-  Once you are satisfied that the upgrade is successful you can delete the snapshot data. You may retain this data as long as you would like. The data is stored in a DynamoDb table and will only be charged for the storage.
+Once you are satisfied that the upgrade is successful you can delete the snapshot data. You may retain this data as long as you would like. The data is stored in a DynamoDb table and will only be charged for the storage.
 
-  #### Snapshot Reset Commands
+#### Snapshot Reset Commands
 
-  ```bash
-  cd <root-dir>
-  yarn run snapshot reset
-  ```
+```bash
+cd <root-dir>
+yarn run snapshot reset
+```
+
 </details>
 
 ## Feature specific considerations
