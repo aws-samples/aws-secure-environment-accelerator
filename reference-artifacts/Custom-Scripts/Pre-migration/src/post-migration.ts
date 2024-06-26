@@ -150,6 +150,8 @@ export class PostMigration {
           await this.removeLogging(mappingConfig);
       }
     }
+
+    await this.writeResourceFilesTos3(resourceMapping, this.mappingBucketName);
   }
 
   /**
