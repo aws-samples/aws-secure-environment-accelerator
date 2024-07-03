@@ -16,6 +16,7 @@
     "upgrade": "npx yarn upgrade",
     "watch": "npx yarn watch",
     "resource-mapping": "ts-node src/index.ts resource-mapping",
+    "inventory": "ts-node src/index.ts inventory",
     "convert-config": "ts-node src/index.ts convert-config",
     "snapshot": "ts-node src/index.ts snapshot",
     "asea-prep": "ts-node src/index.ts asea-prep",
