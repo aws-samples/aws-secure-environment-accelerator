@@ -19,6 +19,7 @@ import { PostMigration } from './post-migration';
 import { Preparation } from './preparation';
 import { ResourceMapping } from './resource-mapping';
 import { Snapshot } from './snapshot';
+import { Inventory } from './inventory/inventory';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -33,6 +34,10 @@ async function main() {
       console.log('Creating migration tool configuration file');
       const migrationConfig = new MigrationConfig(config.localOnlyWrites);
       await migrationConfig.configure();
+      break;
+    case 'inventory':
+      const configPath = args[1];
+      await new Inventory(configPath).process();
       break;
     case 'resource-mapping':
       await new ResourceMapping(config).process();
@@ -81,13 +86,18 @@ function validateCommand(args: string[]) {
     console.log('Usage: index.ts snapshot pre|post|report|reset');
     throw new Error('Invalid Command');
   }
+
+  if (command === 'inventory' && args.length < 2) {
+    console.log('Usage: index.ts inventory <path-to-asea-config.json>');
+    throw new Error('Invalid Command');
+  }
 }
 
 async function loadConfig(command: string) {
   try {
     return JSON.parse(await readFile(path.join(__dirname, 'input-config', 'input-config.json'), 'utf8'));
   } catch (err) {
-    if (command !== 'migration-config') {
+    if (command !== 'migration-config' && command !== 'inventory') {
       throw new Error('Could not load configuration. Please run the migration-config command.');
     }
     return {};

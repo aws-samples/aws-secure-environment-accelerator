@@ -23,6 +23,7 @@ The upgrade from ASEA to LZA has the following steps:
   3. [Finalize the upgrade](#finalize-the-upgrade)
   4. [Post-deployment steps](#post-aws-lza-deployment)
   5. [Feature specific considerations](#feature-specific-considerations)
+- [Key differences between ASEA and LZA](#other-key-differences-between-asea-and-lza)
 - [Rollback strategy](#asea-to-lza-upgrade-rollback-strategy)
 - [Troubleshooting](#troubleshooting)
 
@@ -36,7 +37,7 @@ The preparation steps can be done in advance, can be run multiple times and will
 - You can run the scripts from your local workstation
   - You will need Git, the AWS CLI, NodeJS and Yarn installed
 - Alternatively you can use Cloud9 which has most tools pre-installed
-  - Deploy Cloud9 VPC and Setup Cloud9 Environment following instructions here: <https://catalog.workshops.aws/landing-zone-accelerator/en-US/workshop-advanced/lza-best-practices/create-ide-environment/setup-cloud9-environment>
+  - Deploy Cloud9 VPC and Setup Cloud9 Environment following instructions here: <https://catalog.workshops.aws/landing-zone-accelerator/en-US/workshop-advanced/lza-sample-configs/create-ide-environment>
   - Ensure you are logged into the Cloud9 terminal
 - Complete the `Verify and configure software tools` section to ensure Yarn is installed
 
@@ -56,7 +57,7 @@ git clone https://github.com/aws-samples/aws-secure-environment-accelerator.git
   ```bash
   cd aws-secure-environment-accelerator
   git checkout lza-migration
-  cd reference-artifacts/Custom-Scripts/Pre-migration/src
+  cd reference-artifacts/Custom-Scripts/Pre-migration
   ```
 
 - Install dependencies and build the project:
@@ -163,7 +164,6 @@ yarn run resource-mapping
 
 After running the `resource-mapping` script, the following artifacts should be generated inside the S3 bucket which has been deployed via CloudFormation and passed in the config file as `mappingBucketName`. This data should also be in the CodeCommit repository `<prefix-name>-LZA-config`:
 
-- Resource Mapping File
 - Drift Detection File (per account/per region/per stack)
 - Stack Resource File (per account/per region/per stack)
 - Aggregate Drift Detection File (All drifted resources)
@@ -454,7 +454,7 @@ Each of the above steps has a corresponding flag that can be set during the post
 
 ```bash
 cd <root-dir>
-yarn run post-migration remove-stack-outputs copy-certificates remove-sns-resources remove-asea-config-rules remove-rsyslog remove-cloudwatch-alarms remove-cloudwatch-metrics remove-budgets remove-logging
+yarn run post-migration remove-stack-outputs copy-certificates remove-sns-resources remove-asea-config-rules remove-cloudwatch-alarms remove-cloudwatch-metrics remove-budgets remove-logging
 ```
 
 > **⚠️ Warning**: Make sure the above commands ran successfully before running the LZA pipeline again.
@@ -520,6 +520,45 @@ yarn run snapshot reset
 
 This section contains documentation about specific features that may require manual intervention because they can't be fully automated by this upgrade process. Review each item that applies to your environment.
 
+### Subnet route tables and NACLs
+
+During LZA installation, new Route table and NACLs were created by LZA with the same configuration than those existing in ASEA. At this point the existing subnets are still associated with the route tables and NACLs created by ASEA. This is done to avoid any network downtime.
+
+To be able to modify the route table or NACL from the LZA config file the subnet associations need to be changed to the LZA resources.
+
+The first run of the LZA pipeline was run with the generated network-config.yaml file that doesn't contain NACL and route table subnet associations. The convert-config tool generated a separate version of the file (`network-config-with-subnet-associations-and-route-tables.yaml`) that includes the associations. When ready to switch the attachments, copy the contents of the file `network-config-with-subnet-associations-and-route-tables.yaml` to replace the content of `network-config.yaml`. Commit and push the changes to CodeCommit and re-run the LZA pipeline.
+
+> **⚠️ Warning**: The replacement of subnet associations from ASEA to LZA resources is designed to be transparent. However, if an error occur in the process, subnets could end up without any route table associations, potentially causing important disruptions to network trafic for the full landing zone. We recommended making this modification during a maintenance window and to make sure you have proper monitoring and alerting in place for critical workloads in your landing zone.
+
+### rsyslog servers
+ASEA can deploy rsyslog servers with an auto-scaling group and Network Load Balancer. These rsyslog servers are configured to forward logs to a CloudWatch log group. They are not designed to store long term data and can then be replaced with minimal impact.
+
+During the upgrade the existing deployed resources are not modified and remain in the original ASEA CloudFormation stacks. No LZA configuration elements are generated automatically for rsyslog.
+
+We recommend that you provision new rsyslog servers and NLB with LZA, reconfigure any appliance that send logs to these servers with the new NLB address and then decommission the resources provisioned by ASEA once you confirm all traffic is sent to the new servers.
+
+#### How to deploy rsyslog servers with LZA?
+To deploy rsyslog servers with LZA you can leverage the [applications customization](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/latest/classes/_aws_accelerator_config.AppConfigItem.html) capability. A [sample](https://github.com/aws-samples/landing-zone-accelerator-on-aws-for-cccs-medium/tree/main/reference-artifacts/third-party/fortinet?ref_type=heads#sample-customizations-configyaml-file) is available in the LZA CCCS Medium reference architecture.
+
+#### How to remove the ASEA deployed rsyslog servers?
+
+Once you confirm the rsyslog servers deployed from ASEA are no longer in use, you can delete them by running the following command from the migration tool to flag the rsyslog to be deleted and then run the LZA pipeline. They will be deleted in the ImportStage of the pipeline.
+
+```
+yarn run post-migration remove-rsyslog
+```
+
+### Third-Party firewalls
+Third-Party firewall appliances (such as FortiGate) can be deployed by ASEA and once deployed and configured their lifecycle are managed outside of the accelerator (i.e. patching and configuration changes are handled directly through the appliance UI or CLI). 
+
+During the upgrade, the existing deployed resources are not modified and remain in the original ASEA CloudFormation stacks. The firewalls can continue to be managed as before (i.e. outside the accelerator) and no other actions are needed in relation to the upgrade.
+
+During the configuration conversion a `firewalls/instances` configuration block is added to the customizations-config.yaml file to allow the use of ${ACCEL_LOOKUP variables in the network-config.file to reference the firewall instances.
+
+#### Which configuration changes to ASEA Firewall instances are supported from LZA?
+
+Only removing the Firewalls from the configuration file to decommission them is supported. Any other changes to the configuration (i.e. change the AMI used) will be ignored by the acclerator.
+
 ### ALB IP Forwarder
 
 If you are using ALB IP Forwarding in ASEA, (`"alb-forwarding": true` is set for a VPC in the ASEA configuration file), the following will occur as a result of the config-converter script:
@@ -563,6 +602,7 @@ gatewayLoadBalancers:
     subnets:
       - Network-Inspection-Firewall-A
       - Network-Inspection-Firewall-B
+    account: Network
     vpc: Network-Inspection
     deletionProtection: true
     endpoints:
@@ -767,11 +807,166 @@ If an assume role policy is needed outside of the scope of what's natively suppo
 
 - Create your own CloudFormation template and add it to the `customizations-config.yaml` file, which will be generated in the LZA Configuration CodeCommit repository in the root directory.
 
-### Public Hosted Zones
+### Public and Private Hosted Zones
+In ASEA you can create Route53 Public and Private Hosted Zone through the configuration file. Once the zone is created you need to manage its records outside of the accelerator.
 
-As of right now, LZA only supports the creation of private hosted zones in association with creating Vpc Interface Endpoints (for centralized distribution) as well as for Route 53 Resolver Rules. If using public hosted zones for Route53 resolver rules, the public hosted zone and associated Route53 Resolver will have to be created via customizations and along with the functionality to automate the authorization and association of the rule to the requisite VPCs.
+e.g.
+```
+"zones": {
+  "public": [
+    "cloud-hosted-publicdomain.example.ca"
+  ],
+  "private": [
+    "cloud-hosted-privatedomain.example.ca"
+  ]
+},
+```
 
-- Create your own CloudFormation template and add it to the `customizations-config.yaml` file, which will be generated in the LZA Configuration CodeCommit repository in the root directory.
+As of right now, LZA only supports the creation of private hosted zones in association with creating Vpc Interface Endpoints (for centralized distribution) as well as for Route 53 Resolver Rules. It doesn't support the creation of custom public or private hosted zone.
+
+After the upgrade to LZA you can continue to manage records in the existing zones. To create new Route53 zones you will need to create your own CloudFormation template and add it to the `customizations-config.yaml` file, which will be generated in the LZA Configuration CodeCommit repository in the root directory.
+
+### VPC Templates
+
+In ASEA you can define a VPC at the OU level with a `local` deployment. This can be used with dynamic or provided CIDR ranges.
+
+For example, this is used in the sample config file to create local VPC in each Sandbox account.
+```
+"vpc": [
+  {
+    "deploy": "local",
+    "name": "${CONFIG::OU_NAME}",
+    "description": "This VPC is deployed locally in each Sandbox account and each account/VPC is deployed with the same identical CIDR range.  This VPC has no access to the rest of the Organizations networking and has direct internet access and does not use the perimeter ingress/egress services.",
+    "cidr-src": "dynamic",
+    "cidr": [
+      {
+        "size": 16,
+        "pool": "main"
+      }
+    ]
+  ...
+```
+
+During the upgrade, each existing account using this feature will have its own VPC added to the configuration with the current CIDR range assigned to the VPC. To allow the creation of new accounts in this OU with a local VPC with a similar behavior than ASEA you need to add a [vpcTemplate](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/latest/classes/_aws_accelerator_config.VpcTemplatesConfig.html) to your configuration.
+
+Example using a provided CIDR range:
+```
+vpcTemplates:
+  - name: Sandbox-Template
+    region: {{ AcceleratorHomeRegion }}
+    deploymentTargets:
+      organizationalUnits:
+        - Sandbox
+      excludedAccounts:
+        - Sandbox01
+        - Sandbox02
+    cidrs:
+      - 10.100.0.0/20
+    internetGateway: true
+    enableDnsHostnames: true
+    enableDnsSupport: true
+    instanceTenancy: default
+    routeTables:
+      - name: Network-Sandbox-A
+        routes:
+          - name: NatRoute
+            destination: 0.0.0.0/0
+            type: natGateway
+            target: Nat-Network-Sandbox-A
+          - name: S3Gateway
+            type: gatewayEndpoint
+            target: s3
+          - name: DynamoDBGateway
+            type: gatewayEndpoint
+            target: dynamodb
+      - name: Network-Sandbox-B
+        routes:
+          - name: NatRoute
+            destination: 0.0.0.0/0
+            type: natGateway
+            target: Nat-Network-Sandbox-B
+          - name: S3Gateway
+            type: gatewayEndpoint
+            target: s3
+          - name: DynamoDBGateway
+            type: gatewayEndpoint
+            target: dynamodb
+      - name: Network-Sandbox-Nat-A
+        routes:
+          - name: IgwRoute
+            destination: 0.0.0.0/0
+            type: internetGateway
+            target: IGW
+      - name: Network-Sandbox-Nat-B
+        routes:
+          - name: IgwRoute
+            destination: 0.0.0.0/0
+            type: internetGateway
+            target: IGW
+    subnets:
+      - name: Network-Sandbox-A
+        availabilityZone: a
+        routeTable: Network-Sandbox-A
+        ipv4CidrBlock: 10.100.0.0/24
+      - name: Network-Sandbox-B
+        availabilityZone: b
+        routeTable: Network-Sandbox-B
+        ipv4CidrBlock: 10.100.1.0/24
+      - name: Network-SandboxNat-A
+        availabilityZone: a
+        routeTable: Network-Sandbox-Nat-A
+        ipv4CidrBlock: 10.100.2.0/28
+      - name: Network-SandboxNat-B
+        availabilityZone: b
+        routeTable: Network-Sandbox-Nat-B
+        ipv4CidrBlock: 10.100.2.16/28
+    natGateways:
+      - name: Nat-Network-Sandbox-A
+        subnet: Network-SandboxNat-A
+      - name: Nat-Network-Sandbox-B
+        subnet: Network-SandboxNat-B
+    gatewayEndpoints:
+      defaultPolicy: Default
+      endpoints:
+        - service: s3
+        - service: dynamodb
+```
+
+Note: It is important to add the existing accounts that were upgraded from ASEA to the `deploymentTargets/excludedAccounts` list to avoid creating new VPC into the existing accounts.
+
+## Other key differences between ASEA and LZA
+
+### Accelerator prefix
+
+ASEA by default uses the `ASEA` prefix to identify resources deployed by the accelerator and protect them through SCPs. When LZA is installed during the upgrade process it keeps the existing prefix for existing and new resources to ensure compatibility with the guardrails and uniformity across resources created by ASEA and LZA.
+
+This is different than the default prefix used by LZA (`AWSAccelerator`).
+
+### Pipeline execution role
+
+ASEA used the `ASEA-PipelineRole` as the privileged role deployed to all accounts and used by the accelerator to manage resources. The LZA upgraded environement used the  `ASEA-LZA-DeploymentRole`. This is defined with this configuration in the global-config.yaml file.
+
+
+```
+cdkOptions:
+  centralizeBuckets: true
+  useManagementAccessRole: false
+  customDeploymentRole: ASEA-LZA-DeploymentRole
+```
+
+### SSM Parameters to reference accelerator resources
+
+Both accelerators make extensive use of SSM Parameters to store the id of resources created by the accelerator and reference them from other CloudFormation stacks. Most of this behavior is internal to the accelerator and transparent to the end-user.
+
+If you deployed your own customizations using those accelerator created SSM Parameters or reference them in your own Infrastructure as Code, you need to be aware of structural differences between ASEA and LZA parameters.
+
+For example several parameters are created to reference networking resources. 
+
+* In ASEA the parameters use a numerical index (e.g. `/ASEA/network/vpc/1/id` contains the ID of the first VPC deployed in the account and `/ASEA/network/vpc/1/net/1/aza/id` contains the ID of the first subnet in AZA of the first VPC)
+* In LZA the parameters are indexed by the resource name defined in the network-config.yaml file (e.g**.** `/ASEA/network/vpc/Central_vpc/id` **** contains the of the VPC named `Central_vpc` and `/ASEA/network/vpc/Central_vpc/subnet/App2_Central_aza_net/id` contains the ID of the `App2_central_aza_net` subnet from the `Central_vpc`)
+
+
+Refer to the[Landing Zone Accelerator Implementation Guide](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/accessing-solution--outputs-through-parameter-store.html) for a full list of Parameter Store outputs supported by LZA.
 
 ## ASEA to LZA Upgrade Rollback Strategy
 
