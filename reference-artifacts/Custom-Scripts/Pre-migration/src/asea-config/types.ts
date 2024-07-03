@@ -222,6 +222,7 @@ export const region = enums(
     'ap-southeast-1',
     'ap-southeast-2',
     'ca-central-1',
+    'ca-west-1',
     'cn-north-1',
     'cn-northwest-1',
     'eu-central-1',
