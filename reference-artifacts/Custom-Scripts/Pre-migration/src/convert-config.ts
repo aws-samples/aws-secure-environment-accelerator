@@ -3102,7 +3102,7 @@ export class ConvertAseaConfig {
                   region: vpcConfig.region,
                   subnetDefinition: d,
                   subnetName: subnetConfig.name,
-                  vpcName: vpcConfig.lzaVpcName ?? vpcConfig.name,
+                  vpcName: vpcConfig.name,
                 }),
                 routeTable: createRouteTableName(d['route-table']),
                 shareTargets:

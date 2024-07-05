@@ -329,6 +329,7 @@ export const VpcConfigType = t.interface({
   'zones': t.optional(ZoneNamesConfigType),
   'central-endpoint': t.defaulted(t.boolean, false),
   'lgw-route-table-id': t.optional(t.nonEmptyString),
+  'lzaVpcName': t.optional(t.nonEmptyString),
 });
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;
@@ -1165,6 +1166,13 @@ export interface ResolvedConfigBase {
    * Accounts to be excluded for deployment
    */
   excludeAccounts?: string[];
+
+  /**
+   * Alternate vpc name to be used when vpc is defined at the ou
+   * Prevents duplicate vpc names in LZA configuration
+   */
+  lzaVpcName?: string;
+
 }
 
 export interface ResolvedVpcConfig extends ResolvedConfigBase {
@@ -1338,11 +1346,13 @@ export class AcceleratorConfig {
                 continue;
               }
             }
+            vpcConfig.lzaVpcName = `${vpcConfig.name}_${accountKey}`;
             if (vpcConfig['cidr-src'] === 'dynamic') {
               vpcConfigs.push({
                 ouKey,
                 accountKey,
                 vpcConfig,
+                lzaVpcName: `${vpcConfig.name}_${accountKey}`,
               });
             }
           }
