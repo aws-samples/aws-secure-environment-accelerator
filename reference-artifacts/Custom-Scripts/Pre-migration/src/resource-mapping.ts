@@ -19,11 +19,17 @@ import { DynamoDB } from './common/aws/dynamodb';
 import { STS } from './common/aws/sts';
 import { Account } from './common/outputs/accounts';
 import { loadAccounts } from './common/utils/accounts';
-import { ASEAResourceMapping, CfnClients, Environment, LogicalAndPhysicalResourceIds, NestedStack, StacksAndResourceMap } from './common/utils/types/resourceTypes';
+import {
+  ASEAResourceMapping,
+  CfnClients,
+  Environment,
+  LogicalAndPhysicalResourceIds,
+  NestedStack,
+  StacksAndResourceMap,
+} from './common/utils/types/resourceTypes';
 import * as WriteToSourcesTypes from './common/utils/types/writeToSourcesTypes';
 import { WriteToSources } from './common/utils/writeToSources';
 import { Config } from './config';
-
 
 export class ResourceMapping {
   private readonly s3: aws.S3;
@@ -105,18 +111,27 @@ export class ResourceMapping {
       fileContent: JSON.stringify(aseaMapping, null, 2),
       fileName: 'mapping.json',
     };
+    // get string length in megabytes
+    const aseaMappingSize = JSON.stringify(aseaMapping, null, 2).length / (1024 * 1024);
     localAndS3Files.push(...stackFiles, ...resourceFiles);
     await this.writeToSources.writeFilesToS3(localAndS3Files, this.writeConfig.s3Config);
     await this.writeToSources.writeFilesToDisk(localAndS3Files, this.writeConfig.localConfig);
-    await this.writeToSources.writeFiles([aseaMappingPutFile]);
+    if (aseaMappingSize > 5.5) {
+      console.log('mapping.json approximate size is greater than 6MB, skipping write to codecommit.');
+      await this.writeToSources.writeFilesToS3([aseaMappingPutFile], this.writeConfig.s3Config);
+      await this.writeToSources.writeFilesToDisk([aseaMappingPutFile], this.writeConfig.localConfig);
+    } else {
+      await this.writeToSources.writeFiles([aseaMappingPutFile]);
+    }
   }
+
   createStackKey(stackAndResources: StacksAndResourceMap) {
     return `${stackAndResources.environment.accountId}|${stackAndResources.environment.region}|${stackAndResources.stackName}`;
   }
   createAseaMapping(stackAndResourceMap: Map<string, StacksAndResourceMap>) {
-  const aseaObj: ASEAResourceMapping = {};
-  for (let [_key, stackAndResources] of stackAndResourceMap) {
-    const aseaObjKey = this.createStackKey(stackAndResources);
+    const aseaObj: ASEAResourceMapping = {};
+    for (let [_key, stackAndResources] of stackAndResourceMap) {
+      const aseaObjKey = this.createStackKey(stackAndResources);
       aseaObj[aseaObjKey] = {
         stackName: stackAndResources.stackName,
         region: stackAndResources.region,
@@ -131,23 +146,26 @@ export class ResourceMapping {
       };
       const nestedStacks = stackAndResources.nestedStacks;
       if (nestedStacks) {
-        aseaObj[aseaObjKey].nestedStacks = Object.keys(nestedStacks).reduce((acc: {[key: string]: NestedStack}, key) => {
-          const nestedStack = nestedStacks[key];
-          acc[key] = {
-            logicalResourceId: nestedStack.logicalResourceId,
-            stackName: nestedStack.stackName,
-            region: nestedStack.region,
-            accountId: nestedStack.accountId,
-            accountKey: nestedStack.accountKey,
-            phase: nestedStack.phase,
-            countVerified: nestedStack.countVerified,
-            numberOfResources: nestedStack.numberOfResources,
-            numberOfResourcesInTemplate: nestedStack.numberOfResourcesInTemplate,
-            templatePath: `stacks/${nestedStack.accountId}/${nestedStack.region}/${nestedStack.stackName}.json`,
-            resourcePath: `resources/${nestedStack.accountId}/${nestedStack.region}/${nestedStack.stackName}-resources.json`,
-          };
-          return acc;
-        }, {});
+        aseaObj[aseaObjKey].nestedStacks = Object.keys(nestedStacks).reduce(
+          (acc: { [key: string]: NestedStack }, key) => {
+            const nestedStack = nestedStacks[key];
+            acc[key] = {
+              logicalResourceId: nestedStack.logicalResourceId,
+              stackName: nestedStack.stackName,
+              region: nestedStack.region,
+              accountId: nestedStack.accountId,
+              accountKey: nestedStack.accountKey,
+              phase: nestedStack.phase,
+              countVerified: nestedStack.countVerified,
+              numberOfResources: nestedStack.numberOfResources,
+              numberOfResourcesInTemplate: nestedStack.numberOfResourcesInTemplate,
+              templatePath: `stacks/${nestedStack.accountId}/${nestedStack.region}/${nestedStack.stackName}.json`,
+              resourcePath: `resources/${nestedStack.accountId}/${nestedStack.region}/${nestedStack.stackName}-resources.json`,
+            };
+            return acc;
+          },
+          {},
+        );
       }
     }
     return aseaObj;
@@ -245,22 +263,24 @@ export class ResourceMapping {
       (stackAndResource): stackAndResource is Promise<StacksAndResourceMap> => stackAndResource !== undefined,
     );
     const stackAndResourcesList = await Promise.all(validStackAndResourcePromises);
-    const allNestedStacks = stackAndResourcesList.filter(stackAndResource => stackAndResource.stackName.includes('Nested'));
+    const allNestedStacks = stackAndResourcesList.filter((stackAndResource) =>
+      stackAndResource.stackName.includes('Nested'),
+    );
     stackAndResourcesList.forEach((stackAndResource) => {
       const nestedStacks = this.getNestedStacks(stackAndResource, allNestedStacks);
       if (nestedStacks) {
-      stackAndResource.nestedStacks = nestedStacks;
+        stackAndResource.nestedStacks = nestedStacks;
       }
       const parentStack = this.getParentStack(stackAndResource);
       if (parentStack) {
         stackAndResource.parentStack = parentStack;
       }
       if (!stackAndResource.stackName.includes('Nested')) {
-      stackAndResourceMap.set(
-        `${stackAndResource.environment.accountId}-${stackAndResource.environment.region}-${stackAndResource.stackName}`,
-        stackAndResource,
-      );
-    }
+        stackAndResourceMap.set(
+          `${stackAndResource.environment.accountId}-${stackAndResource.environment.region}-${stackAndResource.stackName}`,
+          stackAndResource,
+        );
+      }
     });
 
     return stackAndResourceMap;
@@ -277,22 +297,24 @@ export class ResourceMapping {
   getNestedStacks(stackAndResource: StacksAndResourceMap, nestedStacks: StacksAndResourceMap[]) {
     const phaseIndex = stackAndResource.stackName.toLowerCase().indexOf('phase');
     // checks the length of the stack to determine if it is the nested stack or parent stack
-    const isParentStack = (phaseIndex+6 === stackAndResource.stackName.length);
+    const isParentStack = phaseIndex + 6 === stackAndResource.stackName.length;
     if (!isParentStack) {
       return;
     }
-    const matchedStacks = nestedStacks.filter(nestedStackAndResource =>
-      stackAndResource.environment.accountId === nestedStackAndResource.environment.accountId
-      && stackAndResource.environment.region === nestedStackAndResource.environment.region
-      && nestedStackAndResource.stackName.includes(stackAndResource.stackName),
-);
+    const matchedStacks = nestedStacks.filter(
+      (nestedStackAndResource) =>
+        stackAndResource.environment.accountId === nestedStackAndResource.environment.accountId &&
+        stackAndResource.environment.region === nestedStackAndResource.environment.region &&
+        nestedStackAndResource.stackName.includes(stackAndResource.stackName),
+    );
     if (matchedStacks.length === 0) {
       return;
     }
-    return matchedStacks.reduce((nestedStacksObj: {[key: string]: NestedStack}, matchedStackAndResources) => {
-      const nestedStackLogicalId = stackAndResource.resourceMap.find(resource =>
-        resource.physicalResourceId.includes(matchedStackAndResources.stackName));
-        const stackKey = this.createStackKey(matchedStackAndResources);
+    return matchedStacks.reduce((nestedStacksObj: { [key: string]: NestedStack }, matchedStackAndResources) => {
+      const nestedStackLogicalId = stackAndResource.resourceMap.find((resource) =>
+        resource.physicalResourceId.includes(matchedStackAndResources.stackName),
+      );
+      const stackKey = this.createStackKey(matchedStackAndResources);
       nestedStacksObj[stackKey] = {
         logicalResourceId: nestedStackLogicalId?.logicalResourceId ?? '',
         stackName: matchedStackAndResources.stackName,

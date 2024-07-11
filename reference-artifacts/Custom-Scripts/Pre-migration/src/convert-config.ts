@@ -823,7 +823,7 @@ export class ConvertAseaConfig {
           encryption: {
             useCMK: true,
             deploymentTargets:
-            this.regionsWithoutVpc.length > 0 ? { excludedRegions: this.regionsWithoutVpc } : undefined,
+              this.regionsWithoutVpc.length > 0 ? { excludedRegions: this.regionsWithoutVpc } : undefined,
           },
           dynamicPartitioning: dynamicLogPartitioning ? 'dynamic-partitioning/log-filters.json' : undefined,
           replaceLogDestinationArn: `arn:aws:logs:${this.region}:${logAccountId}:destination/${this.aseaPrefix}LogDestinationOrg`,
@@ -1369,7 +1369,7 @@ export class ConvertAseaConfig {
           .filter((sg) => !!sg['inbound-rules'].find((ib) => ib.type?.includes('RDP') || ib.type?.includes('HTTPS')))
           .flatMap((sg) => sg['inbound-rules'].flatMap((ib) => ib.source)) as string[];
         const { sharedAccounts, sharedOrganizationalUnits } = madSharedTo(accountKey);
-        const madSharedAccounts = sharedAccounts.length > 0 ? sharedAccounts: undefined;
+        const madSharedAccounts = sharedAccounts.length > 0 ? sharedAccounts : undefined;
         let madSharedOrganizationalUnits = undefined;
         if (sharedOrganizationalUnits.length > 0) {
           madSharedOrganizationalUnits = {
@@ -1830,8 +1830,6 @@ export class ConvertAseaConfig {
     }
     return listOfBlockDeviceMappings;
   }
-
-
 
   /**
    * Creates map of accounts with Nested OUs
@@ -2345,9 +2343,9 @@ export class ConvertAseaConfig {
               this.getAccountKeyforLza(globalOptions, globalOptions['aws-org-management'].account)) ||
             (globalOptions['central-operations-services']['config-aggr'] &&
               this.getAccountKeyforLza(globalOptions, globalOptions['aws-org-management'].account)) ||
-            ((globalOptions['central-log-services']['config-aggr'] &&
+            (globalOptions['central-log-services']['config-aggr'] &&
               this.getAccountKeyforLza(globalOptions, globalOptions['aws-org-management'].account)) ||
-              this.getAccountKeyforLza(globalOptions, centralSecurityConfig.account)),
+            this.getAccountKeyforLza(globalOptions, centralSecurityConfig.account),
         };
       }
     };
@@ -2386,6 +2384,7 @@ export class ConvertAseaConfig {
           }
         });
         const defaultSourcePath = `${configRule.name.toLowerCase()}.zip`;
+        const rulePolicyDocument = '{}';
         let customRuleProps;
         if (configRule.type === 'custom') {
           const lzaFileName = configRule['runtime-path'] ?? defaultSourcePath;
@@ -2406,10 +2405,30 @@ export class ConvertAseaConfig {
             ],
             this.writeFilesConfig,
           );
+
+          const detectionPolicyName = `detection-${configRule.name.toLocaleLowerCase()}.json`;
+          const detectionPolicyPath = path.join(LZA_IAM_POLICY_CONFIG_PATH, detectionPolicyName);
+
+          if (!ConfigRuleDetectionAssets[configRule.name]) {
+            await this.writeToSources.writeFiles(
+              [
+                {
+                  fileContent: rulePolicyDocument,
+                  fileName: detectionPolicyName,
+                  filePath: LZA_IAM_POLICY_CONFIG_PATH,
+                },
+              ],
+              this.writeFilesConfig,
+            );
+            this.configCheck.addWarning(
+              `Custom AWS Config Rule with detection needs an IAM policy written Rule Name: "${configRule.name}".  Policy file name: "${detectionPolicyPath}`,
+            );
+          }
+
           customRuleProps = {
             lambda: {
               handler: 'index.handler',
-              rolePolicyFile: ConfigRuleDetectionAssets[configRule.name] ?? '/** TODO: Create Policy **/',
+              rolePolicyFile: ConfigRuleDetectionAssets[configRule.name] ?? detectionPolicyPath,
               runtime: configRule.runtime === 'nodejs16.x' ? 'nodejs18.x' : configRule.runtime!,
               sourceFilePath: path.join(LZA_CONFIG_RULES, configRule['runtime-path'] ?? defaultSourcePath),
               timeout: undefined,
@@ -2423,6 +2442,25 @@ export class ConvertAseaConfig {
               lookupValue: configRule['resource-types'],
             },
           };
+        }
+
+        const remediationPolicyName = `remediation-${configRule.name.toLocaleLowerCase()}.json`;
+        const remediationPolicyPath = path.join(LZA_IAM_POLICY_CONFIG_PATH, remediationPolicyName);
+
+        if (!ConfigRuleRemediationAssets[configRule['remediation-action']!]) {
+          await this.writeToSources.writeFiles(
+            [
+              {
+                fileContent: rulePolicyDocument,
+                fileName: remediationPolicyName,
+                filePath: LZA_IAM_POLICY_CONFIG_PATH,
+              },
+            ],
+            this.writeFilesConfig,
+          );
+          this.configCheck.addWarning(
+            `Custom AWS Config Rule with remediation needs an IAM policy written Rule Name: "${configRule.name}".  Policy file name: "${remediationPolicyPath}`,
+          );
         }
 
         const rule: AwsConfigRule & { deployTo?: string[]; excludedAccounts?: string[]; excludedRegions?: string[] } = {
@@ -2440,8 +2478,7 @@ export class ConvertAseaConfig {
                 maximumAutomaticAttempts: configRule['remediation-attempts'] ?? 5,
                 retryAttemptSeconds: configRule['remediation-retry-seconds'] ?? 60,
                 automatic: true,
-                rolePolicyFile:
-                  ConfigRuleRemediationAssets[configRule['remediation-action']!] ?? '/** TODO: Create Policy **/',
+                rolePolicyFile: ConfigRuleRemediationAssets[configRule['remediation-action']!] ?? remediationPolicyPath,
                 targetAccountName: undefined,
                 targetDocumentLambda: undefined,
                 targetVersion: undefined,
@@ -2957,7 +2994,12 @@ export class ConvertAseaConfig {
           description: `${vpcConfig.name} Security Group`, // Description can't be updated. Doesn't matter what description we provide here
         }));
       };
-      const prepareNaclRules = (rules: NaclConfig[], vpcConfig: VpcConfig, accountKey?: string, lzaVpcName?: string) => {
+      const prepareNaclRules = (
+        rules: NaclConfig[],
+        vpcConfig: VpcConfig,
+        accountKey?: string,
+        lzaVpcName?: string,
+      ) => {
         const lzaRules: (ConvertConfigTypes.LzaNaclInboundRuleType | ConvertConfigTypes.LzaNaclOutboundRuleType)[] = [];
         for (const rule of rules) {
           let ruleNumber = rule.rule;
@@ -3390,7 +3432,9 @@ export class ConvertAseaConfig {
       const lzaVpcTemplatesConfigs = [];
       for (const { accountKey, vpcConfig, ouKey, excludeAccounts, lzaVpcName } of this.vpcConfigs) {
         if (vpcConfig.deploy !== 'local' && vpcConfig.deploy !== accountKey) {
-          this.configCheck.addError(`Invalid VPC configuration found VPC: "${vpcConfig.name}" in Account: "${accountKey}" and OU: "${ouKey}"`);
+          this.configCheck.addError(
+            `Invalid VPC configuration found VPC: "${vpcConfig.name}" in Account: "${accountKey}" and OU: "${ouKey}"`,
+          );
           continue;
         }
         if (!!accountKey) {
