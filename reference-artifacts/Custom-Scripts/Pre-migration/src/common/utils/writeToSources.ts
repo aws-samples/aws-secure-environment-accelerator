@@ -14,9 +14,9 @@ import * as fs from 'fs/promises';
 import path from 'path';
 import { CodeCommitClient, CreateCommitCommand, GetBranchCommand, NoChangeException } from '@aws-sdk/client-codecommit';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { throttlingBackOff } from '../aws/backoff';
 import * as convert from './conversion';
 import * as writeSourceTypes from './types/writeToSourcesTypes';
+import { throttlingBackOff } from '../aws/backoff';
 
 export class WriteToSources {
   private localOnly: boolean = false;
@@ -173,6 +173,10 @@ export class WriteToSources {
           filePath,
         }),
       );
+    }
+    if (writeFilePromises.length > 500) {
+      await Promise.all(writeFilePromises);
+      writeFilePromises.length = 0;
     }
     await Promise.all(writeFilePromises);
   }
