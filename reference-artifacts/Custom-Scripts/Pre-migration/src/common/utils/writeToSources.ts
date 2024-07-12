@@ -173,10 +173,10 @@ export class WriteToSources {
           filePath,
         }),
       );
-    }
-    if (writeFilePromises.length > 500) {
-      await Promise.all(writeFilePromises);
-      writeFilePromises.length = 0;
+      if (writeFilePromises.length > 500) {
+        await Promise.all(writeFilePromises);
+        writeFilePromises.length = 0;
+      }
     }
     await Promise.all(writeFilePromises);
   }
