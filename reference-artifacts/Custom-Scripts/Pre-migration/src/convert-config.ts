@@ -1906,6 +1906,14 @@ export class ConvertAseaConfig {
         scpPolicyName: `${this.aseaPrefix}Quarantine-New-Object`,
       },
     };
+    if (ignoredOus) {
+      ignoredOus.forEach((ou) => {
+        organizationConfig.organizationalUnits.push({
+          name: ou,
+          ignore: true,
+        });
+      });
+    }
     Object.entries(aseaConfig['organizational-units']).forEach(([ouKey]) => {
       const ignoredOu = ignoredOus?.includes(ouKey);
       organizationConfig.organizationalUnits.push({
