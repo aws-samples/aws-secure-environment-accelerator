@@ -30,6 +30,7 @@ import { throttlingBackOff } from '../../common/aws/backoff';
 import { computeHash } from '../common/hash';
 import { SnapshotData } from '../common/types';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const stringify = require('fast-json-stable-stringify');
 
 export async function getMacieOrganizationAdminAccounts(
@@ -137,7 +138,7 @@ export async function getMacieOrganizationConfig(
   return { jsonData: jsonResults, hash: hash };
 }
 
-export async function getMacieClassicationScopes(
+export async function getMacieClassificationScopes(
   region: string,
   credentials: AwsCredentialIdentity | undefined,
 ): Promise<SnapshotData> {
