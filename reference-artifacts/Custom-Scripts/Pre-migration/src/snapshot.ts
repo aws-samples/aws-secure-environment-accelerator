@@ -11,6 +11,7 @@
  *  and limitations under the License.
  */
 
+import { loadAseaConfig } from './asea-config/load';
 import { Config } from './config';
 import { Reset } from './snapshot/common/dynamodb';
 import { getChangedResources } from './snapshot/lib/reporting';
@@ -21,6 +22,8 @@ export class Snapshot {
   private readonly roleName: string;
   private readonly tableName: string;
   private readonly homeRegion: string;
+  private readonly aseaConfigRepositoryName: string;
+  private readonly localConfigFilePath: string | undefined;
   private readonly preMigrationSnapshot: boolean;
 
   constructor(config: Config) {
@@ -28,20 +31,42 @@ export class Snapshot {
     this.roleName = config.assumeRoleName ?? 'OrganizationAccountAccessRole';
     this.tableName = `${this.aseaPrefix}config-snapshot`;
     this.homeRegion = config.homeRegion ?? 'ca-central-1';
+    this.aseaConfigRepositoryName = config.repositoryName;
+    this.localConfigFilePath = config.localConfigFilePath;
     this.preMigrationSnapshot = false;
   }
 
   async pre() {
-    await snapshot.snapshotConfiguration(this.tableName, this.homeRegion, this.roleName, this.aseaPrefix, true);
+    const aseaConfig = await loadAseaConfig({
+      filePath: 'raw/config.json',
+      repositoryName: this.aseaConfigRepositoryName,
+      defaultRegion: this.homeRegion,
+      localFilePath: this.localConfigFilePath,
+    });
+    await snapshot.snapshotConfiguration(
+      this.tableName,
+      this.homeRegion,
+      this.roleName,
+      this.aseaPrefix,
+      true,
+      aseaConfig,
+    );
   }
 
   async post() {
+    const aseaConfig = await loadAseaConfig({
+      filePath: 'raw/config.json',
+      repositoryName: this.aseaConfigRepositoryName,
+      defaultRegion: this.homeRegion,
+      localFilePath: this.localConfigFilePath,
+    });
     await snapshot.snapshotConfiguration(
       this.tableName,
       this.homeRegion,
       this.roleName,
       this.aseaPrefix,
       this.preMigrationSnapshot,
+      aseaConfig,
     );
   }
 

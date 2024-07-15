@@ -18,7 +18,7 @@ import { describeAggregator } from './lib/aws-config';
 import { getFmsNotificationChannel } from './lib/aws-fms';
 import { getGuardDutyPublishingDestinations, describeGuardDutyOrganizationConfig } from './lib/aws-guardduty';
 import { getAccountPasswordPolicy, getIamRoles } from './lib/aws-iam';
-import { getMacieClassicationScopes, getMacieOrganizationConfig } from './lib/aws-macie';
+import { getMacieClassificationScopes, getMacieOrganizationConfig } from './lib/aws-macie';
 import { getS3PublicAccessBlock, snapshotS3Resources } from './lib/aws-s3';
 import { getSecurityHubOrganizationConfig } from './lib/aws-securityhub';
 
@@ -124,7 +124,7 @@ export async function snapshotAccountResources(
   });
 
   // macie classification scopes
-  const macieClassificationScopesResults = await getMacieClassicationScopes(region, credentials);
+  const macieClassificationScopesResults = await getMacieClassificationScopes(region, credentials);
   await snapshotTable.writeResource({
     accountId: accountId,
     region: region,
@@ -134,13 +134,13 @@ export async function snapshotAccountResources(
   });
 
   // fms notification channel
-  const fmsnotificationChannelResults = await getFmsNotificationChannel(region, credentials);
+  const fmsNotificationChannelResults = await getFmsNotificationChannel(region, credentials);
   await snapshotTable.writeResource({
     accountId: accountId,
     region: region,
     resourceName: 'fms-notification-channel',
     preMigration: preMigration,
-    data: fmsnotificationChannelResults,
+    data: fmsNotificationChannelResults,
   });
 
   // s3 resources

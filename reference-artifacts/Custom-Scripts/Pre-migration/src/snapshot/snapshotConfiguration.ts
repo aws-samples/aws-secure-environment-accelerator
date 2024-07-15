@@ -16,10 +16,10 @@ import { AssumeRoleCommand, GetCallerIdentityCommand, STSClient } from '@aws-sdk
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 
 import { TableOperations } from './common/dynamodb';
-import { regions } from './common/types';
 import { snapshotAccountResources } from './snapshotAccountResources';
 import { snapshotGlobalResources } from './snapshotGlobalResources';
 import { snapshotRegionResources } from './snapshotRegionalResources';
+import { AcceleratorConfig } from '../asea-config';
 
 let snapshotTable: TableOperations;
 let stsClient: STSClient;
@@ -30,6 +30,7 @@ export async function snapshotConfiguration(
   roleName: string,
   prefix: string,
   preMigration: boolean,
+  aseaConfig: AcceleratorConfig,
 ) {
   stsClient = new STSClient({ maxAttempts: 10 });
 
@@ -44,6 +45,7 @@ export async function snapshotConfiguration(
   await snapshotGlobalResources(tableName, homeRegion, currentAccountId!, preMigration, undefined);
 
   const accounts = await getAccountList();
+  const regions = aseaConfig['global-options']['supported-regions'];
   // process account services
   const accountPromises = [];
   for (const account of accounts) {
@@ -60,7 +62,9 @@ export async function snapshotConfiguration(
   // process regional services
   let maxPromises = 0;
   for (const account of accounts) {
-    if (account.Status === 'SUSPENDED') { continue; }
+    if (account.Status === 'SUSPENDED') {
+      continue;
+    }
     let credentials: AwsCredentialIdentity | undefined = undefined;
     if (account.Id !== currentAccountId) {
       credentials = await getCredentials(account.Id!, roleName);
