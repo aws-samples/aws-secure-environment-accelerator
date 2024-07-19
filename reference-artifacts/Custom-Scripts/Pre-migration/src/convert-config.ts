@@ -98,7 +98,6 @@ import {
   AssumedByConfig,
   GroupConfig,
   IamConfig,
-  ManagedActiveDirectoryConfigType,
   PolicySetConfigType,
   RoleSetConfigType,
   UserConfig,
@@ -120,10 +119,8 @@ import { ConfigCheck } from './inventory/config-checks';
 const IAM_POLICY_CONFIG_PATH = 'iam-policy';
 const SCP_CONFIG_PATH = 'scp';
 const SSM_DOCUMENTS_CONFIG_PATH = 'ssm-documents';
-const MAD_CONFIG_SCRIPTS = 'config/scripts';
 const CONFIG_RULES_PATH = 'config-rules';
 const LZA_SCP_CONFIG_PATH = 'service-control-policies';
-const LZA_MAD_CONFIG_SCRIPTS = 'ad-config-scripts/';
 const LZA_CONFIG_RULES = 'custom-config-rules';
 const LZA_BUCKET_POLICY = 'bucket-policies';
 const LZA_KMS_POLICY = 'kms-policies';
@@ -1097,7 +1094,6 @@ export class ConvertAseaConfig {
     const roleSets: RoleSetConfigType[] = [];
     const userSets: unknown[] = [];
     const groupSets: unknown[] = [];
-    const madConfigs: ManagedActiveDirectoryConfigType[] = [];
     const policySets: PolicySetConfigType[] = [];
     const getPolicyConfig = async (policy: IamPolicyConfig, ouKey?: string, accountKey?: string) => {
       const currentIndex = policySets.findIndex((ps) => ps.policies.find((p) => p.name === policy['policy-name']));
@@ -1242,22 +1238,6 @@ export class ConvertAseaConfig {
       return { users: lzaUserConfig, groups: lzaGroupConfig };
     };
 
-    const madSharedTo = (accountKey: string) => {
-      const sharedAccounts: string[] = [];
-      const sharedOrganizationalUnits: string[] = [];
-      aseaConfig.getAccountConfigs().forEach(([localAccountKey, accountConfig]) => {
-        if (accountConfig['share-mad-from'] === accountKey) {
-          sharedAccounts.push(this.getAccountKeyforLza(aseaConfig['global-options'], localAccountKey));
-        }
-      });
-      Object.entries(aseaConfig['organizational-units']).forEach(([ouKey, ouConfig]) => {
-        if (ouConfig['share-mad-from'] === accountKey) {
-          sharedOrganizationalUnits.push(ouKey);
-        }
-      });
-      return { sharedAccounts, sharedOrganizationalUnits };
-    };
-
     for (const [accountKey, accountConfig] of aseaConfig.getAccountConfigs()) {
       const customerManagedPolicies = aseaConfig.getCustomerManagedPoliciesByAccount(accountKey);
       for (const policy of accountConfig.iam?.policies || []) {
@@ -1284,159 +1264,6 @@ export class ConvertAseaConfig {
           },
           groups,
         });
-      }
-      // MAD is only present in AccountConfig
-      if (accountConfig.deployments?.mad && accountConfig.deployments.mad.deploy) {
-        const aseaMadConfig = accountConfig.deployments.mad;
-        const passwordPolicy = aseaMadConfig['password-policies'];
-        const userDataScripts = [
-          {
-            scriptName: 'JoinDomain',
-            scriptFilePath: `${LZA_MAD_CONFIG_SCRIPTS}Join-Domain.ps1`,
-          },
-          {
-            scriptName: 'AWSQuickStart',
-            scriptFilePath: `${LZA_MAD_CONFIG_SCRIPTS}AWSQuickStart.psm1`,
-          },
-          {
-            scriptName: 'InitializeRDGW',
-            scriptFilePath: `${LZA_MAD_CONFIG_SCRIPTS}Initialize-RDGW.ps1`,
-          },
-          {
-            scriptName: 'ADGroupSetup',
-            scriptFilePath: `${LZA_MAD_CONFIG_SCRIPTS}AD-group-setup.ps1`,
-          },
-          {
-            scriptName: 'ADUserSetup',
-            scriptFilePath: `${LZA_MAD_CONFIG_SCRIPTS}AD-user-setup.ps1`,
-          },
-          {
-            scriptName: 'ADUserGroupSetup',
-            scriptFilePath: `${LZA_MAD_CONFIG_SCRIPTS}AD-user-group-setup.ps1`,
-          },
-          {
-            scriptName: 'ADGroupGrantPermissionsSetup',
-            scriptFilePath: `${LZA_MAD_CONFIG_SCRIPTS}AD-group-grant-permissions-setup.ps1`,
-          },
-          {
-            scriptName: 'ADConnectorPermissionsSetup',
-            scriptFilePath: `${LZA_MAD_CONFIG_SCRIPTS}AD-connector-permissions-setup.ps1`,
-          },
-          {
-            scriptName: 'ConfigurePasswordPolicy',
-            scriptFilePath: `${LZA_MAD_CONFIG_SCRIPTS}Configure-password-policy.ps1`,
-          },
-        ];
-
-        const userDataPromises = userDataScripts.map((userData) => {
-          const fileName = userData.scriptFilePath.split(LZA_MAD_CONFIG_SCRIPTS)[1];
-          return this.generateUserDataPutFile(
-            MAD_CONFIG_SCRIPTS,
-            LZA_MAD_CONFIG_SCRIPTS,
-            fileName,
-            this.centralBucketName,
-          );
-        });
-
-        const userDataFiles = await Promise.all(userDataPromises);
-        await this.writeToSources.writeFiles(userDataFiles);
-        const vpc = this.vpcConfigs
-          // Filter VPC by name and region
-          .filter(
-            ({ vpcConfig }) =>
-              vpcConfig.name === aseaMadConfig['vpc-name'] && vpcConfig.region === aseaMadConfig.region,
-          )
-          // Get VPC which is shared to mad deployment account by verifying share in subnet
-          .find(({ vpcConfig, ouKey, accountKey: vpcAccountKey }) =>
-            vpcConfig.subnets?.find(
-              (subnet) =>
-                subnet.name === aseaMadConfig.subnet &&
-                (vpcAccountKey === accountKey ||
-                  subnet['share-to-specific-accounts']?.includes(accountKey) ||
-                  (subnet['share-to-ou-accounts'] && !!ouKey && ouKey === accountConfig.ou)),
-            ),
-          );
-        const subnet = vpc?.vpcConfig.subnets?.find((s) => s.name === aseaMadConfig.subnet);
-        if (!subnet) {
-          throw new Error('Subnet not found in shared config');
-        }
-        const madSubnetNames = subnet?.definitions
-          .filter((s) => !s.disabled)
-          // Subnets in ASEA are named as ${subnetName}_${vpcName}_az${subnetDefinition.az}_net
-          .map((s) => createSubnetName(aseaMadConfig['vpc-name'], subnet.name, s.az));
-        // LZA creates securityGroup using only inboundSources
-        const sgInbound = aseaMadConfig['security-groups']
-          .filter((sg) => !!sg['inbound-rules'].find((ib) => ib.type?.includes('RDP') || ib.type?.includes('HTTPS')))
-          .flatMap((sg) => sg['inbound-rules'].flatMap((ib) => ib.source)) as string[];
-        const { sharedAccounts, sharedOrganizationalUnits } = madSharedTo(accountKey);
-        const madSharedAccounts = sharedAccounts.length > 0 ? sharedAccounts : undefined;
-        let madSharedOrganizationalUnits = undefined;
-        if (sharedOrganizationalUnits.length > 0) {
-          madSharedOrganizationalUnits = {
-            organizationalUnits: sharedOrganizationalUnits,
-            excludedAccounts: [],
-          };
-        }
-
-        const madConfig: ManagedActiveDirectoryConfigType = {
-          account: this.getAccountKeyforLza(aseaConfig['global-options'], accountKey),
-          description: aseaMadConfig.description,
-          name: aseaMadConfig['dns-domain'],
-          region: aseaMadConfig.region as any,
-          netBiosDomainName: aseaMadConfig['netbios-domain'],
-          edition: aseaMadConfig.size,
-          dnsName: aseaMadConfig['dns-domain'],
-          vpcSettings: {
-            vpcName: `${aseaMadConfig['vpc-name']}_vpc`,
-            subnets: madSubnetNames,
-          },
-          logs: {
-            groupName: aseaMadConfig['log-group-name'],
-            retentionInDays: undefined,
-          },
-          activeDirectoryConfigurationInstance: {
-            instanceRole: aseaMadConfig['rdgw-instance-role'],
-            instanceType: aseaMadConfig['rdgw-instance-type'],
-            vpcName: `${aseaMadConfig['vpc-name']}_vpc`,
-            imagePath: aseaMadConfig['image-path'],
-            adGroups: aseaMadConfig['ad-groups'],
-            adPerAccountGroups: aseaMadConfig['ad-per-account-groups'],
-            adConnectorGroup: aseaMadConfig['adc-group'],
-            adPasswordPolicy: {
-              complexity: passwordPolicy.complexity,
-              failedAttempts: passwordPolicy['failed-attempts'],
-              history: passwordPolicy.history,
-              lockoutAttemptsReset: passwordPolicy['lockout-attempts-reset'],
-              lockoutDuration: passwordPolicy['lockout-duration'],
-              maximumAge: passwordPolicy['max-age'],
-              minimumAge: passwordPolicy['min-age'],
-              minimumLength: passwordPolicy['min-len'],
-              reversible: passwordPolicy.reversible,
-            },
-            adUsers: aseaMadConfig['ad-users'].map(({ email, groups, user }) => ({
-              email,
-              groups,
-              name: user,
-            })),
-            enableTerminationProtection: false,
-            userDataScripts,
-            subnetName: madSubnetNames[0],
-            securityGroupInboundSources: sgInbound,
-          },
-          /**
-           * TODO: Confirm about creating new Resolver rule. Since Instance is new.
-           * If can't create new retrieve from outputs.
-           * TODO: Work after network config
-           */
-          secretConfig: {
-            account: AccountsConfig.AUDIT_ACCOUNT,
-            adminSecretName: 'my-admin-001',
-            region: aseaMadConfig.region as any,
-          },
-          sharedAccounts: madSharedAccounts,
-          sharedOrganizationalUnits: madSharedOrganizationalUnits,
-        };
-        madConfigs.push(madConfig);
       }
     }
     for (const [ouKey, ouConfig] of Object.entries(aseaConfig['organizational-units'])) {
@@ -1475,28 +1302,11 @@ export class ConvertAseaConfig {
     iamConfigAttributes.roleSets = roleSets;
     iamConfigAttributes.userSets = userSets;
     iamConfigAttributes.groupSets = groupSets;
-    iamConfigAttributes.managedActiveDirectories = madConfigs;
     const iamConfig = IamConfig.fromObject(iamConfigAttributes);
     const yamlConfig = yaml.dump(iamConfig, { noRefs: true });
     await this.writeToSources.writeFiles([{ fileContent: yamlConfig, fileName: IamConfig.FILENAME }]);
   }
-  private async generateUserDataPutFile(
-    filePath: string,
-    lzaPath: string,
-    fileName: string,
-    bucket: string,
-  ): Promise<WriteToSourcesTypes.PutFiles> {
-    const content = await this.s3.getObjectBodyAsString({
-      Bucket: bucket,
-      Key: path.join(filePath, fileName),
-    });
 
-    return {
-      fileContent: content,
-      fileName,
-      filePath: lzaPath,
-    };
-  }
   private async addSSMWriteAccessPolicy(aseaConfig: AcceleratorConfig, policySets: PolicySetConfigType[]) {
     // Add policy for SSMWriteAccessPolicy
     if (this.globalOptions && this.globalOptions['aws-config']) {
