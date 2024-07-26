@@ -69,6 +69,7 @@ export class Preparation {
       auditAccountEmail: this.config.auditAccountEmail ?? '',
       controlTowerEnabled: this.config.controlTowerEnabled ?? 'No',
       acceleratorPrefix: this.config.aseaPrefix?.replaceAll('-', '') ?? 'ASEA',
+      configurationRepositoryLocation: 'codecommit',
       useExistingConfigRepo: 'Yes',
       existingConfigRepositoryName: this.config.lzaConfigRepositoryName ?? 'ASEA-LZA-config',
       existingConfigRepositoryBranchName: 'main',

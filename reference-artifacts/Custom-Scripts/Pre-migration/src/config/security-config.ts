@@ -260,18 +260,20 @@ export class SecurityConfigTypes {
    * AWS Security Hub standards configuration
    */
   static readonly securityHubStandardConfig = t.interface({
-    /**
-     * An enum value that specifies one of three security standards supported by Security Hub
-     * Possible values are 'AWS Foundational Security Best Practices v1.0.0',
-     * 'CIS AWS Foundations Benchmark v1.2.0',
-     * 'CIS AWS Foundations Benchmark v1.4.0',
-     * 'NIST Special Publication 800-53 Revision 5',
-     * and 'PCI DSS v3.2.1'
-     */
+     /**
+   * An enum value that specifies one of three security standards supported by Security Hub
+   * Possible values are 'AWS Foundational Security Best Practices v1.0.0',
+   * 'CIS AWS Foundations Benchmark v1.2.0',
+   * 'CIS AWS Foundations Benchmark v1.4.0',
+   * 'CIS AWS Foundations Benchmark v3.0.0',
+   * 'NIST Special Publication 800-53 Revision 5,
+   * and 'PCI DSS v3.2.1'
+   */
     name: t.enums('ExportFrequencyType', [
       'AWS Foundational Security Best Practices v1.0.0',
       'CIS AWS Foundations Benchmark v1.2.0',
       'CIS AWS Foundations Benchmark v1.4.0',
+      'CIS AWS Foundations Benchmark v3.0.0',
       'NIST Special Publication 800-53 Revision 5',
       'PCI DSS v3.2.1',
     ]),
