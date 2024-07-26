@@ -32,6 +32,7 @@ export interface InstallerStackParameters {
   auditAccountEmail: string;
   controlTowerEnabled: string;
   acceleratorPrefix: string;
+  configurationRepositoryLocation: string;
   useExistingConfigRepo: string;
   existingConfigRepositoryName: string;
   existingConfigRepositoryBranchName: string;
@@ -81,6 +82,10 @@ export async function createLZAInstallerCloudFormationStack(
     {
       ParameterKey: 'ControlTowerEnabled',
       ParameterValue: stackParameters.controlTowerEnabled,
+    },
+    {
+      ParameterKey: 'ConfigurationRepositoryLocation',
+      ParameterValue: stackParameters.configurationRepositoryLocation,
     },
     {
       ParameterKey: 'UseExistingConfigRepo',

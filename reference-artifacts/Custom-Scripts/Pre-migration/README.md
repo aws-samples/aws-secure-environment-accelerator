@@ -1,14 +1,16 @@
-# ASEA to LZA Upgrade (Alpha)
+# ASEA to LZA Upgrade (Preview)
+
+> DISCLAIMER:  This Preview release is intended for select customers that are working closely with their AWS Account teams to plan and execute the upgrade.  If you have not engaged direclty with your AWS Account team to plan an ASEA to LZA upgrade, it's not recommended to run this upgrade yet, unless it's in an environment that is for sandbox and experimentation only and that could be rebuilt from scratch if required.  The AWS team will not be able to provide support for any customer that upgrades with this Preview release other than those select customers already working with their account team.  There are known defects in the upgrade code that could negatively impact your ASEA environment depending on the configuration.  Select customers will be running this upgrade with assistance from their AWS account teams that understand these defects and confirmed they do not impact the selected customers based on their configuration.  After a number of select customer upgrades this upgrade solution will be made generally available as part of new ASEA publised version.  It i also recommended that this upgrade be run in a sandbox/development/test environment first before running against a production environment.
 
 ## Overview
 
-In order to perform a successful upgrade, there are a number of tasks that customers must complete before the upgrade can begin. The first task is generating the configuration file for the upgrade tool. Followed by steps that are necessary to ensure that all ASEA resources deployed are in the correct state, by updating ASEA to the latest version, and evaluating and manually remediating the resource drift of resources deployed by ASEA using the provided upgrade scripts. Once the resources are remediated, customers will then enable a new configuration option in the ASEA configuration that will execute the ASEA state machine to prepare the environment by only removing resources that are necessary to run ASEA state machine deployments, and other ASEA specific tasks. This last run will also effectively disable all ASEA CloudFormation custom resources from modifying any of the resources that have been deployed. After the final ASEA state machine run, the ASEA installer stack can be removed from the environment to completely disable ASEA and remove the state machine.
+In order to perform a successful upgrade, there is a sequence of tasks that must be completed before the upgrade can begin. The first task is generating the configuration file for the upgrade tool. Subsequent tasks check that all ASEA resources currently deployed are in the correct state, update ASEA to the latest version, and remediate any resource drift of deployed ASEA resources using the provided scripts. Once the resources are remediated and ASEA is upgraded to the lastest version, customers will then enable a new configuration option in the ASEA configuration file that will instruct the ASEA state machine to prepare the environment for upgrade by removing resources that are only necessary to run the ASEA state machine, and other ASEA specific tasks. This will also effectively disable all ASEA CloudFormation custom resources from modifying any of the resources that have been deployed. After the final ASEA state machine run, the ASEA installer stack can be removed from the environment to completely disable and remove ASEA.
 
-Once the installer stack has been removed, the customer will then run a script that will create a snapshot of every resource in every account and region that ASEA has deployed, and store that file in S3 and CodeCommit. This snapshot will be used by the LZA to identify ASEA specific resources that must be modified or referenced in later stages for dependencies. Once the mapping file is generated, the LZA configuration file generation script can also be run. This file in conjunction with the snapshot generated above, will be used to create the LZA configuration files that will be used to reference the ASEA generated resources.
+Once the installer stack has been removed, the customer will run a script that will create a snapshot of every resource in every account and region that ASEA has deployed, and store that file in Amazon S3 and AWS CodeCommit. This snapshot will be used by the Landing Zone Accelerator (LZA) to identify ASEA specific resources that must be modified or referenced in later stages of the upgrade. Once the mapping file is generated, the LZA configuration file generation script can also be run. This file in conjunction with the snapshot, will be used to create the LZA configuration files during the upgrade.
 
-After the configuration files are generated, these files will be placed in a CodeCommit repository residing in the home installation region of ASEA. Then, the LZA can be installed and reference the configuration repository created above. During the installation, the LZA will reference the newly created configuration, and the pipeline will install two additional stages. The first stage created will evaluate and created references that the LZA specific stacks can reference based off of configuration changes. This stage is executed before any core LZA stages are executed. The last stage created for migrated environments is executed after all LZA stages are executed. This stage is responsible for adding dependencies created by the LZA to ASEA stacks to ensure that all resources are handled correctly during the execution of the LZA CodePipeline.
+After the configuration files are generated, they will be placed in a CodeCommit repository residing in the home installation region of ASEA. Then, the LZA can be installed and reference the configuration repository created above. During the installation, the LZA will reference the newly created configuration, and the LZA code pipeline will install two additional stages. The first stage created will evaluate and create references that the LZA specific resource stacks can reference based off of configuration changes. This stage is executed before any core LZA stages are executed. The last stage created for upgraded environments is executed after all LZA stages are executed. This stage is responsible for adding dependencies created by the LZA to ASEA created stacks to ensure that all resources are handled correctly during the execution of the LZA CodePipeline.
 
-Once the LZA is installed, customers resources will continue to exist and are still modifiable, but interaction with ASEA resources are handled specifically through the LZA configuration files. Management of LZA native environments and upgraded environments should see almost no difference between the configuration files in these environments.
+Once the LZA is installed, customer resources will continue to exist and are still modifiable, but interaction with some ASEA resources that remain are handled through the LZA configuration files. Management of LZA native environments and upgraded environments will see almost no difference.
 
 The upgrade from ASEA to LZA has the following steps:
 
@@ -33,12 +35,9 @@ The preparation steps can be done in advance, can be run multiple times and will
 
 ## Prerequisites
 
-- You are running the latest version of ASEA. If you are not running version 1.5.10 then upgrade before starting the upgrade process
+- You are running the latest version of ASEA. If you are not running ASEA version 1.5.10 then upgrade ASEA before starting the ASEA to LZA upgrade process
 - You can run the scripts from your local workstation
-  - You will need Git, the AWS CLI, NodeJS and Yarn installed
-- Alternatively you can use Cloud9 which has most tools pre-installed
-  - Deploy Cloud9 VPC and Setup Cloud9 Environment following instructions here: <https://catalog.workshops.aws/landing-zone-accelerator/en-US/workshop-advanced/lza-sample-configs/create-ide-environment>
-  - Ensure you are logged into the Cloud9 terminal
+  - You will need Git, AWS CLI, NodeJS and Yarn installed
 - Complete the `Verify and configure software tools` section to ensure Yarn is installed
 
 ### Clone The ASEA Repo
@@ -162,15 +161,14 @@ yarn run resource-mapping
 
 ### Confirm Resource Mapping Outputs
 
-After running the `resource-mapping` script, the following artifacts should be generated inside the S3 bucket which has been deployed via CloudFormation and passed in the config file as `mappingBucketName`. This data should also be in the CodeCommit repository `<prefix-name>-LZA-config`:
-
+After running the `resource-mapping` script, the following artifacts should be generated inside the S3 bucket which has been deployed via CloudFormation and passed in the config file as `mappingBucketName`.
 - Drift Detection File (per account/per region/per stack)
 - Stack Resource File (per account/per region/per stack)
 - Aggregate Drift Detection File (All drifted resources)
 
 The file `AllDriftDetectedResources.csv` contains an aggregate of resources that have drifted from their original configuration. See [Further instructions on analyzing the drift results](docs/DRIFT_HANDLING.md)
 
-In order to validate the output artifacts, you should verify that the following files have been created inside the S3 Bucket (_*Output-Mapping-Bucket*_) and CodeCommit repository:
+In order to validate the output artifacts, you should verify that the following files have been created inside the S3 Bucket (_*Output-Mapping-Bucket*_).
 
 <details>
   <summary>Detailed information for drift files</summary>
@@ -434,6 +432,8 @@ Navigate to the AWS CloudFormation console and confirm that the stack named `<pr
 
 ### Finalize the upgrade
 
+> **⚠️ Warning**: The following steps will delete ASEA resources that are no longer needed because they have been replaced by LZA resources. Once this step is executed and the resources are deleted it is no longer possible to rollback the upgrade procedure.
+
 #### Post upgrade Overview
 
 This step will perform post upgrade actions which includes following
@@ -457,13 +457,7 @@ cd <root-dir>
 yarn run post-migration remove-stack-outputs copy-certificates remove-sns-resources remove-asea-config-rules remove-cloudwatch-alarms remove-cloudwatch-metrics remove-budgets remove-logging
 ```
 
-> **⚠️ Warning**: Make sure the above commands ran successfully before running the LZA pipeline again.
-
-#### NACL and route table associations
-
-In order to support attachments of NACLs and Route Tables, the first run of the LZA pipeline was run with the generated `network-config.yaml` file that doesn't contain NACL and route table subnet associations
-
-- Once the original pipeline has run, the NACLs and Route Tables should be attached by running the LZA pipeline a second time. However, before running the pipeline, the contents of the file `network-config-with-subnet-associations-and-route-tables.yaml` should be copy and pasted into the `network-config.yaml` file in CodeCommit.
+After the commands has been run, go the the CodePipeline console and release the `ASEA-Pipeline`. Resources that have been flagged for removal will be deleted in the `ImportAseaResources` stage.
 
 ## Post AWS LZA Deployment
 
@@ -530,6 +524,11 @@ The first run of the LZA pipeline was run with the generated network-config.yaml
 
 > **⚠️ Warning**: The replacement of subnet associations from ASEA to LZA resources is designed to be transparent. However, if an error occur in the process, subnets could end up without any route table associations, potentially causing important disruptions to network trafic for the full landing zone. We recommended making this modification during a maintenance window and to make sure you have proper monitoring and alerting in place for critical workloads in your landing zone.
 
+### System Manager Documents
+ASEA deploys System Manager documents through the `global-options/ssm-automation` configuration attributes and share those documents to other accounts. The configuration converter generates corresponding configuration with the `ssmAutomation` attribute in the `security-config.yaml` to re-create those documents through LZA.
+
+The upgrade process doesn't remove the ASEA created documents, you need to review and remove them manually if needed. The documents created by ASEA are named `ASEA-<document-name>` and owned by the operations account. Those created by LZA are named `ASEA-LZA-<document-name>` and owned by the security account.
+
 ### rsyslog servers
 ASEA can deploy rsyslog servers with an auto-scaling group and Network Load Balancer. These rsyslog servers are configured to forward logs to a CloudWatch log group. They are not designed to store long term data and can then be replaced with minimal impact.
 
@@ -542,14 +541,14 @@ To deploy rsyslog servers with LZA you can leverage the [applications customizat
 
 #### How to remove the ASEA deployed rsyslog servers?
 
-Once you confirm the rsyslog servers deployed from ASEA are no longer in use, you can delete them by running the following command from the migration tool to flag the rsyslog to be deleted and then run the LZA pipeline. They will be deleted in the ImportStage of the pipeline.
+Once you confirm the rsyslog servers deployed from ASEA are no longer in use, you can delete them by running the following command from the migration tool to flag the rsyslog to be deleted and then run the LZA pipeline. They will be deleted in the `ImportAseaResources` stage of the pipeline.
 
 ```
 yarn run post-migration remove-rsyslog
 ```
 
 ### Third-Party firewalls
-Third-Party firewall appliances (such as FortiGate) can be deployed by ASEA and once deployed and configured their lifecycle are managed outside of the accelerator (i.e. patching and configuration changes are handled directly through the appliance UI or CLI). 
+Third-Party firewall appliances (such as FortiGate) can be deployed by ASEA and once deployed and configured their lifecycle are managed outside of the accelerator (i.e. patching and configuration changes are handled directly through the appliance UI or CLI).
 
 During the upgrade, the existing deployed resources are not modified and remain in the original ASEA CloudFormation stacks. The firewalls can continue to be managed as before (i.e. outside the accelerator) and no other actions are needed in relation to the upgrade.
 
@@ -558,6 +557,23 @@ During the configuration conversion a `firewalls/instances` configuration block 
 #### Which configuration changes to ASEA Firewall instances are supported from LZA?
 
 Only removing the Firewalls from the configuration file to decommission them is supported. Any other changes to the configuration (i.e. change the AMI used) will be ignored by the acclerator.
+
+### Application Load Balancers
+ASEA has the ability to deploy ALBs in individual accounts (e.g. Perimeter account) or be configured at the OU level to deploy ALB in every accounts of the OU.
+
+During upgrade, the LZA configuration file is generated with the configuration of the existing ALB and target groups defined in the ASEA configuration file.
+
+The recommendation is to create new ALBs through LZA, reconfigure the workloads to use them, and then decommission the ASEA ALBs.
+
+#### Which configuration changes to ASEA Application Load Balancers are supported from LZA?
+Only removing the ALB from the configuration file to decommission them is supported. Any other changes to the configuration will be ignored.
+
+#### How to define ALB to be created in every workload account of an OU?
+To achieve the same pattern than ASEA where ALB are defined at the OU level and deployed in every workload account of the OU, you can refer to this [example configuration](https://github.com/aws-samples/landing-zone-accelerator-on-aws-for-cccs-medium/blob/12859310469d7d677bcdd367f0014fca0d641f82/config/network-config.yaml#L889) from the LZA CCCS Medium reference architecture.
+
+#### How to remove ASEA deployed Application Load Balancers?
+Once you confirm the ALB deployed from ASEA are no longer in use, you can remove their definition from the LZA configuration file and run the LZA pipeline.
+
 
 ### ALB IP Forwarder
 
@@ -589,6 +605,23 @@ Once the Customizations stage of the pipeline has been successfully run with the
 <ASEA-Prefix>-Alb-Ip-Forwarding-<VPC-ID>` should exist. You will need to copy over all of these entries from the old ALB IP Forwarding table to the new one.
 
 **TODO** provide a command to do this copy
+
+ For more details about ALB Forwarding in LZA, refer to the [post-deployment instructions of LZA CCCS Medium reference architecture](https://github.com/aws-samples/landing-zone-accelerator-on-aws-for-cccs-medium/blob/main/post-deployment.md#44-configure-application-load-balancer-forwarding).
+
+### Managed Active Directory
+During the upgrade the existing Managed Active Directory resource is not modified, remain in the original ASEA CloudFormation stacks and you can continue to managed Active Directory objects through the Windows AD Management Tool from any instance joined to the domain.
+
+#### Is there still an AD EC2 management instance (i.e. RDGW) created?
+The management instance created by ASEA using the ASEA-RDGWAutoScalingGroup will still be present and you can continue to use it to manage the Active Directory objects.
+
+#### Which configuration changes to ASEA Managed AD are supported from LZA configuration?
+No changes to the Managed AD resources created by ASEA are supported through the LZA configuration. The configuration converter doesn’t generate any corresponding block in LZA configuration.
+
+LZA configurations support the creation of new Managed Actividre Directory using the [ManagedActiveDirectoryConfig](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/latest/classes/_aws_accelerator_config.ManagedActiveDirectoryConfig.html) configuration. Do not declare a `managedActiveDirectories` block in your LZA configuration with the same domain than the one created in ASEA, this will be ignored.
+
+#### How to decommission a Managed Active Directory that was deployed by ASEA?
+The resources need to be decommissioned manually.  In the future a flag could be added to the `post-migration` command to flag the resources for removal.
+
 
 ### Gateway Load Balancer
 
@@ -960,13 +993,32 @@ Both accelerators make extensive use of SSM Parameters to store the id of resour
 
 If you deployed your own customizations using those accelerator created SSM Parameters or reference them in your own Infrastructure as Code, you need to be aware of structural differences between ASEA and LZA parameters.
 
-For example several parameters are created to reference networking resources. 
+For example several parameters are created to reference networking resources.
 
 * In ASEA the parameters use a numerical index (e.g. `/ASEA/network/vpc/1/id` contains the ID of the first VPC deployed in the account and `/ASEA/network/vpc/1/net/1/aza/id` contains the ID of the first subnet in AZA of the first VPC)
 * In LZA the parameters are indexed by the resource name defined in the network-config.yaml file (e.g**.** `/ASEA/network/vpc/Central_vpc/id` **** contains the of the VPC named `Central_vpc` and `/ASEA/network/vpc/Central_vpc/subnet/App2_Central_aza_net/id` contains the ID of the `App2_central_aza_net` subnet from the `Central_vpc`)
 
 
 Refer to the[Landing Zone Accelerator Implementation Guide](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/accessing-solution--outputs-through-parameter-store.html) for a full list of Parameter Store outputs supported by LZA.
+
+### Centralized logging
+LZA uses the same centralized logging architecture than ASEA to consolidate logs in a central S3 bucket in the Log Archive account. During the upgrade the configuration and dynamic partitioning rules are adapted to keep the same logging structure. If you have external integrations that depend on the logging structure and format, you should closely monitor the logs during the upgrade.
+
+Reference: [Landing Zone Accelerator Centralized Logging](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/user-guide/logging/#log-centralization-methods)
+
+### Cost considerations
+Due to architectural and operational differences between ASEA and LZA, you can see an increase of the AWS resources cost during and after the upgrade. We recommend that you monitor the costs of your environment on a daily basis to detect any anomaly.
+
+#### During the upgrade
+The upgrade itself makes changes to a significant number of resources, therefore it is expected that applying the upgrade will incur a significant AWS Config cost the day the upgrade is applied. The same behavior can be seen when initially installing the accelerator or when a State Machine/pipeline run affects a large number of resources.
+
+During the upgrade process it is expected that some resources will exist twice for some time. The ASEA created resource and the LZA created resource, until the cleanup process happens.
+
+Both these impacts are temporary and the cost will stabilize when the upgrade is complete.
+
+#### After the upgrade
+LZA has the capability to deploy and configure more services than ASEA, during the upgrade new capabilities are not deployed unless required, you can choose to enable additional services once the upgrade is complete. LZA uses more granular KMS keys than ASEA, new Customer Manager Keys will be created as part of the upgrade, the impact on your total costs depends on the number of accounts and regions in use in your environment.
+
 
 ## ASEA to LZA Upgrade Rollback Strategy
 
