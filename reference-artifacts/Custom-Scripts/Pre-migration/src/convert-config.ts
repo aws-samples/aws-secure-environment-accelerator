@@ -2201,6 +2201,7 @@ export class ConvertAseaConfig {
             }
           }
         });
+
         const defaultSourcePath = `${configRule.name.toLowerCase()}.zip`;
         const rulePolicyDocument = '{}';
         let customRuleProps;
@@ -2225,7 +2226,7 @@ export class ConvertAseaConfig {
           );
 
           const detectionPolicyName = `detection-${configRule.name.toLocaleLowerCase()}.json`;
-          const detectionPolicyPath = path.join(LZA_IAM_POLICY_CONFIG_PATH, detectionPolicyName);
+          const detectionPolicyPath = path.join(LZA_CONFIG_RULES, detectionPolicyName);
 
           if (!ConfigRuleDetectionAssets[configRule.name]) {
             await this.writeToSources.writeFiles(
@@ -2233,7 +2234,7 @@ export class ConvertAseaConfig {
                 {
                   fileContent: rulePolicyDocument,
                   fileName: detectionPolicyName,
-                  filePath: LZA_IAM_POLICY_CONFIG_PATH,
+                  filePath: LZA_CONFIG_RULES,
                 },
               ],
               this.writeFilesConfig,
@@ -2263,15 +2264,15 @@ export class ConvertAseaConfig {
         }
 
         const remediationPolicyName = `remediation-${configRule.name.toLocaleLowerCase()}.json`;
-        const remediationPolicyPath = path.join(LZA_IAM_POLICY_CONFIG_PATH, remediationPolicyName);
+        const remediationPolicyPath = path.join(LZA_CONFIG_RULES, remediationPolicyName);
 
-        if (!ConfigRuleRemediationAssets[configRule['remediation-action']!]) {
+        if (!ConfigRuleRemediationAssets[configRule['remediation-action']!] && configRule.type === 'custom') {
           await this.writeToSources.writeFiles(
             [
               {
                 fileContent: rulePolicyDocument,
                 fileName: remediationPolicyName,
-                filePath: LZA_IAM_POLICY_CONFIG_PATH,
+                filePath: LZA_CONFIG_RULES,
               },
             ],
             this.writeFilesConfig,
