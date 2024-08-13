@@ -1,10 +1,11 @@
 # ASEA to LZA Upgrade (Preview)
 
-> DISCLAIMER:  This Preview release is intended for select customers that are working closely with their AWS Account teams to plan and execute the upgrade.  If you have not engaged direclty with your AWS Account team to plan an ASEA to LZA upgrade, it's not recommended to run this upgrade yet, unless it's in an environment that is for sandbox and experimentation only and that could be rebuilt from scratch if required.  The AWS team will not be able to provide support for any customer that upgrades with this Preview release other than those select customers already working with their account team.  There are known defects in the upgrade code that could negatively impact your ASEA environment depending on the configuration.  Select customers will be running this upgrade with assistance from their AWS account teams that understand these defects and confirmed they do not impact the selected customers based on their configuration.  After a number of select customer upgrades this upgrade solution will be made generally available as part of new ASEA publised version.  It i also recommended that this upgrade be run in a sandbox/development/test environment first before running against a production environment.
+> DISCLAIMER:  This Preview release is intended for select customers that are working closely with their AWS Account teams to plan and execute the upgrade.  If you have not engaged directly with your AWS Account team to plan an ASEA to LZA upgrade, it's not recommended to run this upgrade yet, unless it's in an environment that is for sandbox and experimentation only and that could be rebuilt from scratch if required.  The AWS team will not be able to provide support for any customer that upgrades with this Preview release other than those select customers already working with their account team.  There are known defects in the upgrade code that could negatively impact your ASEA environment depending on the configuration.  Select customers will be running this upgrade with assistance from their AWS account teams that understand these defects and confirmed they do not impact the selected customers based on their configuration.  After a number of select customer upgrades this upgrade solution will be made generally available as part of new ASEA published version.  It is also recommended that this upgrade be run in a sandbox/development/test environment first before running against a production environment.
+
 
 ## Overview
 
-In order to perform a successful upgrade, there is a sequence of tasks that must be completed before the upgrade can begin. The first task is generating the configuration file for the upgrade tool. Subsequent tasks check that all ASEA resources currently deployed are in the correct state, update ASEA to the latest version, and remediate any resource drift of deployed ASEA resources using the provided scripts. Once the resources are remediated and ASEA is upgraded to the lastest version, customers will then enable a new configuration option in the ASEA configuration file that will instruct the ASEA state machine to prepare the environment for upgrade by removing resources that are only necessary to run the ASEA state machine, and other ASEA specific tasks. This will also effectively disable all ASEA CloudFormation custom resources from modifying any of the resources that have been deployed. After the final ASEA state machine run, the ASEA installer stack can be removed from the environment to completely disable and remove ASEA.
+In order to perform a successful upgrade, there is a sequence of tasks that must be completed before the upgrade can begin. The first task is generating the configuration file for the upgrade tool. Subsequent tasks check that all ASEA resources currently deployed are in the correct state, update ASEA to the latest version, and remediate any resource drift of deployed ASEA resources using the provided scripts. Once the resources are remediated and ASEA is upgraded to the latest version, customers will then enable a new configuration option in the ASEA configuration file that will instruct the ASEA state machine to prepare the environment for upgrade by removing resources that are only necessary to run the ASEA state machine, and other ASEA specific tasks. This will also effectively disable all ASEA CloudFormation custom resources from modifying any of the resources that have been deployed. After the final ASEA state machine run, the ASEA installer stack can be removed from the environment to completely disable and remove ASEA.
 
 Once the installer stack has been removed, the customer will run a script that will create a snapshot of every resource in every account and region that ASEA has deployed, and store that file in Amazon S3 and AWS CodeCommit. This snapshot will be used by the Landing Zone Accelerator (LZA) to identify ASEA specific resources that must be modified or referenced in later stages of the upgrade. Once the mapping file is generated, the LZA configuration file generation script can also be run. This file in conjunction with the snapshot, will be used to create the LZA configuration files during the upgrade.
 
@@ -19,6 +20,7 @@ The upgrade from ASEA to LZA has the following steps:
   2. [Configuration](#configuration)
   3. [Resource mapping and drift detection](#resource-mapping-and-drift-detection-scripts)
   4. [Configuration conversion](#convert-configuration)
+  5. [Pre-upgrade validations](#pre-upgrade-validations)
 - [Upgrade](#asea-to-lza-upgrade)
   1. [Disable ASEA](#disable-and-uninstall-asea)
   2. [Install LZA](#installing-the-landing-zone-accelerator)
@@ -37,8 +39,33 @@ The preparation steps can be done in advance, can be run multiple times and will
 
 - You are running the latest version of ASEA. If you are not running ASEA version 1.5.10 then upgrade ASEA before starting the ASEA to LZA upgrade process
 - You can run the scripts from your local workstation
-  - You will need Git, AWS CLI, NodeJS and Yarn installed
-- Complete the `Verify and configure software tools` section to ensure Yarn is installed
+- You will need Git, AWS CLI, NodeJS and Yarn installed
+- Complete the following instructions to ensure the pre-requisites are installed
+
+#### Verify npm installation
+
+Node.js uses the npm package manager to help you install tools and frameworks for use in your application. To confirm you have npm installed you can run the following command:
+
+```
+npm -v
+```
+
+#### Set your node heap size
+
+Set your node heap size to at least 4k
+
+```
+export NODE_OPTIONS=--max-old-space-size=4096
+```
+
+#### Install Yarn
+
+Utilizing the npm package manager, you can install yarn globally using the following command:
+
+```
+npm install -g yarn
+```
+
 
 ### Clone The ASEA Repo
 
@@ -219,17 +246,6 @@ yarn run convert-config local-update-only
 
 > **⚠️ Note**: If an ASEA account resides in an Organizational Unit which is in the `ignored-ous` section of `global-config` block, that account will not be added to the resulting `accounts-config.yaml` output file. This is due to the way that the LZA handles accounts which it manages as well as logic in the config validator.
 
-#### Convert Configuration Validations
-
-During the upgrade process, the LZA creates new Subnet Route Tables and NACLs (if they are defined in your current environment). To avoid network outages for existing applications, the `convert-config` script creates new Route Tables and NACLs, however they are not attached by default. These Route Table and NACL associations need to be manually verified before being attached.
-
-To achieve this, we output two different versions of the network-config.yaml file:
-
-- `network-config.yaml`
-- `network-config-with-subnet-associations-and-route-tables.yaml`
-
-The `network-config.yaml` file has an empty array for `networkAcl.subnetAssociations` and an undefined value for `subnets.routeTable`. While the `network-config-with-subnet-associations-and-route-tables.yaml` has the properly generated values for attaching the NACLs and Route Tables. This will be described in more detail in the `Run the LZA Pipeline` section later in the README.
-
 ### Confirm Convert Configuration Outputs
 
 After running the `convert-config` script, the following artifacts should be generated in the current directory in a subdirectory named `outputs/lza-config` and in the CodeCommit repository named `<prefix-name>-LZA-config`:
@@ -251,13 +267,50 @@ After running the `convert-config` script, the following artifacts should be gen
 - SSM Documents
   - `ssm-documents/*`
 
+#### Note about networking resources
+
+During the upgrade process, the LZA creates new Subnet Route Tables and NACLs (if they are defined in your current environment). To avoid network outages for existing applications, the `convert-config` script creates new Route Tables and NACLs, however they are not attached by default. These Route Table and NACL associations need to be manually verified before being attached.
+
+To achieve this, we output two different versions of the network-config.yaml file:
+
+- `network-config.yaml`
+- `network-config-with-subnet-associations-and-route-tables.yaml`
+
+The `network-config.yaml` file has an empty array for `networkAcl.subnetAssociations` and an undefined value for `subnets.routeTable`. While the `network-config-with-subnet-associations-and-route-tables.yaml` has the properly generated values for attaching the NACLs and Route Tables. This will be described in more detail in the `Feature specific considerations` section later in the README.
+
+## Pre-upgrade validations
+
+The Landing Zone Accelerator has tools that can be used to validate the configuration locally. This can help catch errors locally before applying the upgrade in the actual AWS environment.
+
+### Obtain and build the Landing Zone Accelerator code
+To run those tools you need to download and build the [Landing Zone Accelerator code](https://github.com/awslabs/landing-zone-accelerator-on-aws).
+
+These commands should be run in dedicated folder to store the LZA code base (refered as `<lza-code>` in instructions), outside of the current folder with the upgrade scripts.
+```
+cd <lza-code>
+git clone https://github.com/awslabs/landing-zone-accelerator-on-aws/
+cd source
+yarn install
+yarn build
+```
+
+To run the next commands you need to confirm you have valid temporary credentials to your management account as mentionned at the [beginning of this guide](#retrieve-temporary-iam-credentials-via-aws-identity-center).
+
 ### Validating LZA configuration files
 
 LZA has a tool to validate your configuration files. We strongly recommend you run this tool on the generated LZA configuration file to spot any errors.
 
-See [Configuration Validator](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/developer-guide/scripts/#configuration-validator) section in the LZA developer guide.
+See [Configuration Validator](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/developer-guide/scripts/#configuration-validator) section in the LZA developer guide for more details.
+
+To run the configuration validation, run the following commands from the LZA source directory by passing the path to the LZA config file as an argument.
+
+```
+cd <lza-code>/source
+yarn validate-config <root-dir>/outputs/lza-config
+```
 
 > **⚠️ Warning**: Stop here if you were only running preparation steps and are not ready yet to proceed with the ASEA to LZA upgrade.
+
 
 # ASEA to LZA Upgrade
 
@@ -336,6 +389,8 @@ The snapshot tool supports the following commands:
 - yarn run snapshot report
 - yarn run snapshot reset
 
+Snapshots will be taken before and after the upgrade to collect information that will be available for future troubleshooting.
+
 <details>
   <summary>Detailed information about snapshot commands</summary>
 
@@ -367,7 +422,8 @@ cd <root-dir>
 yarn run snapshot pre
 ```
 
-#### Confirm Custom Resource Drift Detection Outputs
+<details>
+  <summary>Custom Resource Drift Detection Outputs</summary>
 
 In order to validate the snapshot behaviors, you will need to do the following:
 
@@ -380,6 +436,7 @@ In order to validate the snapshot behaviors, you will need to do the following:
   - ResourceName
   - PreMigrationJson
   - PreMigrationHash
+</details>
 
 ### Prepare ASEA Environment
 
@@ -404,6 +461,8 @@ yarn run asea-prep
 ```
 
 ## Installing the Landing Zone Accelerator
+
+> **⚠️ Warning**: Once LZA is installed and the LZA pipeline has run, rollback to ASEA won't be possible anymore. Make sure you are ready to proceed and that you executed all recommended preparation steps.
 
 ### Installing the LZA Pipeline
 
@@ -432,7 +491,7 @@ Navigate to the AWS CloudFormation console and confirm that the stack named `<pr
 
 ### Finalize the upgrade
 
-> **⚠️ Warning**: The following steps will delete ASEA resources that are no longer needed because they have been replaced by LZA resources. Once this step is executed and the resources are deleted it is no longer possible to rollback the upgrade procedure.
+> **⚠️ Warning**: The following steps will delete ASEA resources that are no longer needed because they have been replaced by LZA resources. Please confirm that all resources are deployed and working as expected before proceeding with this step.
 
 #### Post upgrade Overview
 
@@ -463,11 +522,11 @@ After the commands has been run, go the the CodePipeline console and release the
 
 ### Post AWS LZA Deployment Overview
 
-At this point the upgrade to LZA is complete. Further updates to the environment will require updating the LZA configuration and then executing the LZA pipeline. The custom resource snapshot upgrade tool may be executed to report on any changes.
+At this point the upgrade to LZA is complete. Further updates to the environment will require updating the LZA configuration and then executing the LZA pipeline. The custom resource snapshot upgrade tool may be executed to store the state of custom resources to be used in future troubleshooting.
 
 #### Post Upgrade Snapshot
 
-To create the post upgrade snapshot you will be using the upgrade tools in your Cloud9 environment again. There are two steps. The first step will update the snapshot DynamoDb with the configuration of the resources post upgrade. After updating the resources you will run another command to report on the differences.
+To create the post upgrade snapshot you will be using the upgrade tools again. You will update the snapshot DynamoDb with the configuration of the resources post upgrade. 
 
 #### Post AWS LZA Deployment Commands
 
@@ -475,7 +534,8 @@ To create the post upgrade snapshot you will be using the upgrade tools in your 
 cd <root-dir>
 yarn run snapshot post
 ```
-
+<details>
+  <summary>Post snapshot output</summary>
 After running the snapshot post command, ensure that the DynamoDB table `${aseaPrefix}-config-snapshot` has been updated. This table should be populated with the following fields:
 
 - AccountRegion
@@ -484,8 +544,10 @@ After running the snapshot post command, ensure that the DynamoDB table `${aseaP
 - PreMigrationHash
 - PostMigrationJson
 - PostMigrationHash
+</details>
 
-#### Post Upgrade Snapshot Report
+<details>
+  <summary>Snapshot report (optional)</summary>
 
 This command will generate a report that shows any difference in configuration of the monitored resources.
 
@@ -495,6 +557,7 @@ This command will generate a report that shows any difference in configuration o
 cd <root-dir>
 yarn run snapshot report
 ```
+</details>
 
 <details>
   <summary>Snapshot reset (optional)</summary>
@@ -514,7 +577,7 @@ yarn run snapshot reset
 
 This section contains documentation about specific features that may require manual intervention because they can't be fully automated by this upgrade process. Review each item that applies to your environment.
 
-### Subnet route tables and NACLs
+### Subnet route tables and NACLs (**IMPORTAMT**)
 
 During LZA installation, new Route table and NACLs were created by LZA with the same configuration than those existing in ASEA. At this point the existing subnets are still associated with the route tables and NACLs created by ASEA. This is done to avoid any network downtime.
 
@@ -1028,18 +1091,15 @@ The existing ASEA to LZA upgrade process relies on a combination of automated an
 
 If an issue occurs during the upgrade process, there needs to be a rollback plan in place. Since the upgrade process utilizes both automated and manual steps, we will roll back in an automated fashion where possible and require manual steps for others. The high-level rollback steps are below.
 
+> **⚠️ Warning**: Carefully review the current documentation to understand when rolling back is applicable. The rollback steps are intented as a last resort mechanism and cannot be applied once the LZA pipeline as run. Make sure you complete all the validation steps proposed before starting the upgrace procedures in your production environment.
+
+
 ### Rollback Steps
 
-- Delete the `${Prefix}-CDK-Toolkit` in both the `$HOME_REGION` and `$GLOBAL_REGION`
-- For `$HOME_REGION`
+- Delete the `${Prefix}-CDK-Toolkit` stacks in all regions and accounts where the accelerator is deployed
   - Navigate to the CloudFormation homepage
-  - In the top right corner, select your `$HOME_REGION` from the region selector drop down.
+  - In the top right corner, select the appropriate region from the region selector drop down.
   - In the CloudFormation dashboard, locate and select the `${Prefix}-CDK-Toolkit` stack
-  - Click on the Delete button.
-- For `$GLOBAL_REGION`:
-  - Navigate to the CloudFormation service homepage
-  - In the top right corner, select your `$GLOBAL_REGION` from the region selector drop down.
-  - In the CloudFormation dashboard, locate and select the `${Prefix}-CDK-Toolkit` stack.
   - Click on the Delete button.
 - Run ASEA Installer Stack
   - Download the Installer Stack from: <https://github.com/aws-samples/aws-secure-environment-accelerator/releases>
@@ -1076,3 +1136,46 @@ If you are adding a new Control Tower account, ensure that there are no regions 
 - Select 'Account Factory' on the left of the page
 - Click the 'Edit' button on the 'Network configuration' section
 - Ensure that none of the regions are selected under 'Regions for VPC Creation'
+
+### Timeout issues on large environments
+
+When upgrading an ASEA environment with a large number of accounts (>100) you can encounter specific timeout issues and need to do manual changes to workaround the issues.
+
+#### JavaScript heap out of memory errors
+Cause: CodeBuild doesn't have enough memory to synthesize very large CloudFormation stacks
+
+Workaround: Increase the resources allocated to CodeBuild and increase NodeJS `max_old_space_size`
+1. Go to CodeBuild console and locate the `ASEA-ToolkitProject` project
+2. Edit the project, in the Environment section change the Compute size to the next larger size available (70 GB Memory, 36 vCPU) 
+3. In the Environment variables section:  
+  a) change the value of the `NODE_OPTIONS` variable to `--max_old_space_size=32768`    
+4. Release the accelerator pipeline again
+
+Note: this manual change will need to be re-applied everytime you upgrade to a new LZA version or re-run the LZA installer pipeline.
+
+#### Error in Security Stack - CloudFormation did not receive a response from your Custom Resource
+Cause: Throttling can happen based on the concurrent Lambda execution quota.
+
+Workaround: Temporarly disable the Event Bridge rule `ASEA-SecurityHubFindingsImportToCWLs` in the Security account. Re-enable the trigger once the initial LZA pipeline run completes.
+
+#### Error in SecurityResource stack - AWS Config rate exceeeded error
+Cause: Too many resources are deployed in parrallel, leading to rate limiting errors.
+
+Workaround: Increase the resources allocated to CodeBuild and increase NodeJS `max_old_space_size`
+1. Go to CodeBuild console and locate the `ASEA-ToolkitProject` project
+2. Edit the project, in the Environment variables section:    
+  a) change the value of the `MAX_CONCURRENT_STACKS` variable to `75`  
+3. Release the accelerator pipeline again
+
+Note: this manual change will need to be re-applied everytime you upgrade to a new LZA version or re-run the LZA installer pipeline.
+
+### Use of opt-in region - "InvalidClientTokenId: The security token included in the request is invalid"
+If an AWS opt-in region (e.g. ca-west-1) is enabled in your ASEA environment you need to change the region compatibilty of STS session tokens to be valid in all AWS Regions.
+
+1. Sign in with administrative privileges in your Management account.
+2. Open the IAM console. In the navigation pane, choose Account settings.
+3. Under Security Token Service (STS) section Session Tokens from the STS endpoints. The Global endpoint indicates Valid only in AWS Regions enabled by default. Choose Change.
+4. In the Change region compatibility dialog box, select All AWS Regions. Then choose Save changes.
+
+
+Documentation: [Managing global endpoint session tokens](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html#sts-regions-manage-tokens)

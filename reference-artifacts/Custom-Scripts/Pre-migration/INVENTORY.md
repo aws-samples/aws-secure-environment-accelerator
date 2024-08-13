@@ -1,6 +1,6 @@
 # ASEA to LZA Upgrade Preparation (Preview)
 
-> DISCLAIMER: This Preview release is intended for select customers that are working closely with their AWS Account teams to plan and execute the upgrade.  If you have not engaged direclty with your AWS Account team to plan an ASEA to LZA upgrade, it's not recommended to run this upgrade preparation yet, unless it's in an environment that is for sandbox and experimentation only and that could be rebuilt from scratch if required.  Your AWS Account team can guide you through this prepartion step and answer questions about what it does, please reach out to them if you are interested in running these read-only prepration steps, even if you are not fully ready to run a full ASEA to LZA upgrade. 
+> DISCLAIMER: This Preview release is intended for select customers that are working closely with their AWS Account teams to plan and execute the upgrade.  If you have not engaged direclty with your AWS Account team to plan an ASEA to LZA upgrade, it's not recommended to run this upgrade preparation yet, unless it's in an environment that is for sandbox and experimentation only and that could be rebuilt from scratch if required.  Your AWS Account team can guide you through this prepartion step and answer questions about what it does, please reach out to them if you are interested in running these read-only preparation steps, even if you are not fully ready to run a full ASEA to LZA upgrade. 
 
 The steps described in this file are a subset of the full ASEA to LZA upgrade steps. These steps don't modify your environment and can be run as part of your upgrade preparation to help identify features or configurations that require extra planning or considerations.
 
@@ -91,12 +91,36 @@ cd <root-dir>
 yarn run convert-config local-update-only
 ```
 
-### Configuration validation
-To validate the configuration files you will need to download and build the [Landing Zone Accelerator code](https://github.com/awslabs/landing-zone-accelerator-on-aws).
+## Configuration validation
 
-Instructions to run the configuration validation can be found in the [LZA Developer guide](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/developer-guide/scripts/#configuration-validator)
+The Landing Zone Accelerator has tools that can be used to validate the configuration locally. This can help catch errors locally before applying the upgrade in the actual AWS environment.
 
-The path to your configuration file is based on what you generated in the previous step:  `<root-dir>outputs\lza-config`
+### Obtain and build the Landing Zone Accelerator code
+To run those tools you need to download and build the [Landing Zone Accelerator code](https://github.com/awslabs/landing-zone-accelerator-on-aws).
+
+These commands should be run in dedicated folder to store the LZA code base (refered as `<lza-code>` in instructions), outside of the current folder with the upgrade scripts.
+```
+cd <lza-code>
+git clone https://github.com/awslabs/landing-zone-accelerator-on-aws/
+cd source
+yarn install
+yarn build
+```
+
+To run the next commands you need to confirm you have valid temporary credentials to your management account as mentionned at the [beginning of this guide](#retrieve-temporary-iam-credentials-via-aws-identity-center).
+
+### Validating LZA configuration files
+
+LZA has a tool to validate your configuration files. We strongly recommend you run this tool on the generated LZA configuration file to spot any errors.
+
+See [Configuration Validator](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/developer-guide/scripts/#configuration-validator) section in the LZA developer guide for more details.
+
+To run the configuration validation, run the following commands from the LZA source directory by passing the path to the LZA config file as an argument. The path to your configuration file is based on what you generated in the previous step:  `<root-dir>/outputs/lza-config`
+
+```
+cd <lza-code>/source
+yarn validate-config <root-dir>/outputs/lza-config
+```
 
 ## Additional documentation
 We strongly encourage you to review the [Feature specific considerations](README.md#feature-specific-considerations) and [Key differences between ASEA and LZA](README.md#other-key-differences-between-asea-and-lza) sections of the upgrade guide to identify any other particularities that should be taken into consideration for your upgrade planning.
