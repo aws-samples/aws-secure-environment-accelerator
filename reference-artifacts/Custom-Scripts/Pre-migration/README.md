@@ -30,6 +30,7 @@ The upgrade from ASEA to LZA has the following steps:
 - [Key differences between ASEA and LZA](#other-key-differences-between-asea-and-lza)
 - [Rollback strategy](#asea-to-lza-upgrade-rollback-strategy)
 - [Troubleshooting](#troubleshooting)
+- [ASEA Resource Handlers](#asea-resource-handlers)
 
 The preparation steps can be done in advance, can be run multiple times and will not modify your current environment. The upgrade steps should be completed when you are ready to apply the upgrade to your environment.
 
@@ -485,7 +486,7 @@ Navigate to the AWS CloudFormation console and confirm that the stack named `<pr
 ### Run the LZA Pipeline
 
 - For general LZA Pipeline deployment details, refer to the LZA Implementation Guide here: <https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/awsaccelerator-pipeline.html>
-- During the Landing Zone Accelerator pipeline deployment, there are two ASEA upgrade specific stages `ImportAseaResources` and `PostImportAseaResources`. These two stages allow the LZA to manage and interact with resources that were originally managed in the scope of ASEA.
+- During the Landing Zone Accelerator pipeline deployment, there are two ASEA upgrade specific stages `ImportAseaResources` and `PostImportAseaResources`. These two stages allow the LZA to manage and interact with resources that were originally managed in the scope of ASEA. The current ASEA Resource Handlers exist in the table here: [ASEA Resource Handlers](#asea-resource-handlers).
   - `ImportAseaResources` - This stage uses the `CFNInclude` module to include the original ASEA Managed CloudFormation resources. This allows the resources to be managed in the context of the LZA CDK Application. SSM Parameters are created for these resources so that they can be interacted with during the LZA Pipeline run.
   - `PostImportAseaResources` - This stage runs at the end of the LZA Pipeline, it allows the LZA pipeline to modify original ASEA Managed Cloudformation resources. This requires a separate stage because it allows the prior LZA stages to interact with ASEA resources and then modifies all ASEA resources (as opposed to CFN Including the ASEA resources in every stage).
 
@@ -1179,3 +1180,47 @@ If an AWS opt-in region (e.g. ca-west-1) is enabled in your ASEA environment you
 
 
 Documentation: [Managing global endpoint session tokens](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html#sts-regions-manage-tokens)
+
+## ASEA Resource Handlers
+In order to accomplish upgrading from ASEA to LZA, the solution relies on a concept called ASEA Resource Handlers. These resource handlers utilize the [CFN Include module](https://docs.aws.amazon.com/cdk/v2/guide/use_cfn_template.html) to allow the LZA engine to manage ASEA resources in their original CloudFormation stacks. By using the CFN Include Module, the LZA application can modify certain properties of CloudFormation constructs. The current state of supported resources can be found in the table below:
+
+|Resource Type	|Resource Deletion Supported	|Resource Update Supported	|Modifiable Attributes	|	|
+|---	|---	|---	|---	|---	|
+|Application Load Balancers	|FALSE	|FALSE	|	|	|
+|EC2 Firewall Instance (Fortinet)	|FALSE	|FALSE	|	|	|
+|ELB Target Group	|FALSE	|FALSE	|	|	|
+|IAM Groups	|TRUE	|TRUE	|Group Name </br> Managed Policy Arns	|	|
+|IAM Managed Policies	|TRUE	|TRUE	|Managed Policy Name </br> Managed Policy Document	|	|
+|IAM Roles	|TRUE	|TRUE	|Permissions Boundary </br> Managed Policy Arns </br> Assume Role Policy Document </br> Instance Profile	|	|
+|IAM Users	|TRUE	|TRUE	|Groups </br> Permissions Boundary	|	|
+|Internet Gateway (IGW)	|FALSE	|FALSE	|	|	|
+|ManagedAD	|FALSE	|FALSE	|	|	|
+|NACL Subnet Associations	|FALSE	|TRUE	|NACL Id </br> Subnet Id	|	|
+|NAT Gateway	|FALSE	|TRUE	|Subnet Id	|	|
+|Network Firewall	|TRUE	|TRUE	|Firewall Logging Configuration	|	|
+|Network Firewall Policy	|TRUE	|FALSE	|	|	|
+|Network Firewall Rule Group	|TRUE	|FALSE	|	|	|
+|Route53 Hosted Zone	|FALSE	|FALSE	|	|	|
+|Route53 Query Logging Association	|FALSE	|FALSE	|	|	|
+|Route53 Record Set	|FALSE	|FALSE	|	|	|
+|Route53 Resolver Endpoint	|FALSE	|FALSE	|	|	|
+|Security Groups	|FALSE	|TRUE	|Security Group Ingress Rules </br> Security Group Egress Rules	|	|
+|Shared Security Group	|FALSE	|FALSE	|	|	|
+|SSM Association	|FALSE	|FALSE	|	|	|
+|SSM Resource Data Sync	|FALSE	|FALSE	|	|	|
+|Subnets	|FALSE	|TRUE 	|Subnet CIDR Block </br> Subnet Availibility Zone </br> Subnet Map Public IP on Launch	|	|
+|Transit Gateway Associations	|FALSE	|FALSE	|	|	|
+|Transit Gateway Black Hole Routes	|FALSE	|FALSE	|	|	|
+|Transit Gateway Propogations	|FALSE	|FALSE	|	|	|
+|Transit Gateway Route Tables	|FALSE	|FALSE	|	|	|
+|Transit Gateway Routes	|FALSE	|FALSE	|	|	|
+|Transit Gateways	|FALSE	|TRUE	|Amazon Side ASN </br> Auto Accept Shared Attachments </br> Default Route Table Associations </br> Default Route Table Propogations </br> DNS Support </br> VPN ECMP Support	|	|
+|Virtual Private Gateway	|FALSE	|TRUE	|Amazon Side ASN	|	|
+|VPC	|FALSE	|TRUE	|CIDR Blocks </br> Enable DNS Host Names </br> Enable DNS Support </br> Instance Tenancy 	|	|
+|VPC Endpoint	|FALSE	|FALSE	|	|	|
+|VPC Endpoint (Gateway)	|FALSE	|TRUE	|Route Table Ids	|	|
+|VPC Peering Connection	|FALSE	|FALSE	|	|	|
+
+
+
+
