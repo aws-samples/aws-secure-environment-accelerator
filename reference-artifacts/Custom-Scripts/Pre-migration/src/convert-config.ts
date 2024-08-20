@@ -819,8 +819,10 @@ export class ConvertAseaConfig {
           enable: true,
           encryption: {
             useCMK: true,
-            deploymentTargets:
-              this.regionsWithoutVpc.length > 0 ? { excludedRegions: this.regionsWithoutVpc } : undefined,
+            deploymentTargets: {
+              organizationalUnits: ['Root'],
+              excludedRegions: this.regionsWithoutVpc ?? undefined,
+            },
           },
           dynamicPartitioning: dynamicLogPartitioning ? 'dynamic-partitioning/log-filters.json' : undefined,
           replaceLogDestinationArn: `arn:aws:logs:${this.region}:${logAccountId}:destination/${this.aseaPrefix}LogDestinationOrg`,
@@ -1984,10 +1986,9 @@ export class ConvertAseaConfig {
     };
 
     const setSecurityhubConfig = async () => {
-      if (!centralSecurityConfig['security-hub']) return;
       const nullNotificationLevel = centralSecurityConfig['security-hub-findings-sns'] === 'None';
       securityConfigAttributes.centralSecurityServices.securityHub = {
-        enable: true,
+        enable: centralSecurityConfig['security-hub'],
         regionAggregation: true,
         snsTopicName: nullNotificationLevel
           ? undefined
