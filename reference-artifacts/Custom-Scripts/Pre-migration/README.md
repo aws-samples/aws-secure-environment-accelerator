@@ -39,6 +39,7 @@ The preparation steps can be done in advance, can be run multiple times and will
 ## Prerequisites
 
 - You are running the latest version of ASEA. If you are not running ASEA version 1.5.10 then upgrade ASEA before starting the ASEA to LZA upgrade process
+- Confirm all suspended accounts are under a specific OU that is ignored by the accelerator. (see [Suspended accounts](#suspended-accounts))
 - You can run the scripts from your local workstation
 - You will need Git, AWS CLI, NodeJS and Yarn installed
 - Complete the following instructions to ensure the pre-requisites are installed
@@ -256,7 +257,6 @@ After running the `convert-config` script, the following artifacts should be gen
   - `global-config.yaml`
   - `iam-config.yaml`
   - `network-config.yaml`
-  - `network-config-with-subnet-associations-and-route-tables.yaml`
   - `organization-config.yaml`
   - `security-config.yaml`
 - Dynamic Partitioning preferences
@@ -267,17 +267,6 @@ After running the `convert-config` script, the following artifacts should be gen
   - `service-control-policies/*`
 - SSM Documents
   - `ssm-documents/*`
-
-#### Note about networking resources
-
-During the upgrade process, the LZA creates new Subnet Route Tables and NACLs (if they are defined in your current environment). To avoid network outages for existing applications, the `convert-config` script creates new Route Tables and NACLs, however they are not attached by default. These Route Table and NACL associations need to be manually verified before being attached.
-
-To achieve this, we output two different versions of the network-config.yaml file:
-
-- `network-config.yaml`
-- `network-config-with-subnet-associations-and-route-tables.yaml`
-
-The `network-config.yaml` file has an empty array for `networkAcl.subnetAssociations` and an undefined value for `subnets.routeTable`. While the `network-config-with-subnet-associations-and-route-tables.yaml` has the properly generated values for attaching the NACLs and Route Tables. This will be described in more detail in the `Feature specific considerations` section later in the README.
 
 ## Pre-upgrade validations
 
@@ -443,7 +432,7 @@ In order to validate the snapshot behaviors, you will need to do the following:
 
 #### Prepare ASEA Environment Overview
 
-This step will prepare the ASEA environment for upgrade to the Landing Zone Accelerator on AWS. In this step the upgrade scripts tool will delete the CDK Toolkit CloudFormation stacks in the Management account. Which includes deleting ECR images from the CDK Toolkit ECR repository. Deleting the ASEA CloudFormation installer stack and finally the ASEA InitialSetup stack. You will also be emptying the ASEA assets bucket in order for the installer CloudFormation stack to be deleted.
+This step will prepare the ASEA environment for upgrade to the Landing Zone Accelerator on AWS. In this step the upgrade scripts tool will delete the CDK Toolkit CloudFormation stacks in the Management account. Which includes deleting ECR images from the CDK Toolkit ECR repository. Deleting the ASEA CloudFormation installer stack and finally the ASEA InitialSetup stack. You will also be emptying the ASEA artifacts bucket in order for the installer CloudFormation stack to be deleted.
 In order to empty the artifacts S3 bucket you will need to navigate to S3 console.
 
 - Find the bucket that has the string `artifactsbucket in the name`
@@ -519,6 +508,16 @@ yarn run post-migration remove-stack-outputs copy-certificates remove-sns-resour
 
 After the commands has been run, go the the CodePipeline console and release the `ASEA-Pipeline`. Resources that have been flagged for removal will be deleted in the `ImportAseaResources` stage.
 
+#### Enabling Termination Protection on CloudFormation stacks
+
+During the initial LZA installation, termination protection was set to false on CloudFormation stacks to facilitate troubleshooting and retries in case of errors. Now that LZA is installed we recommend that customers enable termination protection on all LZA stacks.
+
+Change the setting in the `global-config.yaml` file and run the LZA pipeline.
+```
+terminationProtection: true
+```
+
+
 ## Post AWS LZA Deployment
 
 ### Post AWS LZA Deployment Overview
@@ -527,7 +526,7 @@ At this point the upgrade to LZA is complete. Further updates to the environment
 
 #### Post Upgrade Snapshot
 
-To create the post upgrade snapshot you will be using the upgrade tools again. You will update the snapshot DynamoDb with the configuration of the resources post upgrade. 
+To create the post upgrade snapshot you will be using the upgrade tools again. You will update the snapshot DynamoDb with the configuration of the resources post upgrade.
 
 #### Post AWS LZA Deployment Commands
 
@@ -577,16 +576,6 @@ yarn run snapshot reset
 ## Feature specific considerations
 
 This section contains documentation about specific features that may require manual intervention because they can't be fully automated by this upgrade process. Review each item that applies to your environment.
-
-### Subnet route tables and NACLs (**IMPORTAMT**)
-
-During LZA installation, new Route table and NACLs were created by LZA with the same configuration than those existing in ASEA. At this point the existing subnets are still associated with the route tables and NACLs created by ASEA. This is done to avoid any network downtime.
-
-To be able to modify the route table or NACL from the LZA config file the subnet associations need to be changed to the LZA resources.
-
-The first run of the LZA pipeline was run with the generated network-config.yaml file that doesn't contain NACL and route table subnet associations. The convert-config tool generated a separate version of the file (`network-config-with-subnet-associations-and-route-tables.yaml`) that includes the associations. When ready to switch the attachments, copy the contents of the file `network-config-with-subnet-associations-and-route-tables.yaml` to replace the content of `network-config.yaml`. Commit and push the changes to CodeCommit and re-run the LZA pipeline.
-
-> **⚠️ Warning**: The replacement of subnet associations from ASEA to LZA resources is designed to be transparent. However, if an error occur in the process, subnets could end up without any route table associations, potentially causing important disruptions to network trafic for the full landing zone. We recommended making this modification during a maintenance window and to make sure you have proper monitoring and alerting in place for critical workloads in your landing zone.
 
 ### System Manager Documents
 ASEA deploys System Manager documents through the `global-options/ssm-automation` configuration attributes and share those documents to other accounts. The configuration converter generates corresponding configuration with the `ssmAutomation` attribute in the `security-config.yaml` to re-create those documents through LZA.
@@ -1031,6 +1020,13 @@ vpcTemplates:
 
 Note: It is important to add the existing accounts that were upgraded from ASEA to the `deploymentTargets/excludedAccounts` list to avoid creating new VPC into the existing accounts.
 
+### Suspended accounts
+All suspended accounts in your organization should be under a specific OU that is ignored by the accelerator.
+
+See [ASEA FAQ 1.1.0 How do I suspend an AWS account?](https://aws-samples.github.io/aws-secure-environment-accelerator/latest/faq/#how-do-i-suspend-an-aws-account) for more details.
+
+The presence of Suspended accounts in _regular_ OUs (i.e. Dev, Test, Prod) will generate errors during the upgrade.
+
 ## Other key differences between ASEA and LZA
 
 ### Accelerator prefix
@@ -1070,6 +1066,9 @@ LZA uses the same centralized logging architecture than ASEA to consolidate logs
 
 Reference: [Landing Zone Accelerator Centralized Logging](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/user-guide/logging/#log-centralization-methods)
 
+### Customer Managed Keys
+There are differences between how ASEA and LZA manage AWS KMS keys to provide encryption at rest capabilities for resources deployed by the solution. Detailed documentation is available in the [Customer Managed Keys - Comparison of ASEA and LZA](docs/KMS.md) document.
+
 ### Cost considerations
 Due to architectural and operational differences between ASEA and LZA, you can see an increase of the AWS resources cost during and after the upgrade. We recommend that you monitor the costs of your environment on a daily basis to detect any anomaly.
 
@@ -1081,7 +1080,7 @@ During the upgrade process it is expected that some resources will exist twice f
 Both these impacts are temporary and the cost will stabilize when the upgrade is complete.
 
 #### After the upgrade
-LZA has the capability to deploy and configure more services than ASEA, during the upgrade new capabilities are not deployed unless required, you can choose to enable additional services once the upgrade is complete. LZA uses more granular KMS keys than ASEA, new Customer Manager Keys will be created as part of the upgrade, the impact on your total costs depends on the number of accounts and regions in use in your environment.
+LZA has the capability to deploy and configure more services than ASEA, during the upgrade new capabilities are not deployed unless required, you can choose to enable additional services once the upgrade is complete. LZA uses more granular KMS keys than ASEA, new Customer Manager Keys will be created as part of the upgrade, the impact on your total costs depends on the number of accounts and regions in use in your environment. Review the [Customer Managed Keys - Comparison of ASEA and LZA](docs/KMS.md) document for more details.
 
 
 ## ASEA to LZA Upgrade Rollback Strategy
@@ -1092,16 +1091,20 @@ The existing ASEA to LZA upgrade process relies on a combination of automated an
 
 If an issue occurs during the upgrade process, there needs to be a rollback plan in place. Since the upgrade process utilizes both automated and manual steps, we will roll back in an automated fashion where possible and require manual steps for others. The high-level rollback steps are below.
 
-> **⚠️ Warning**: Carefully review the current documentation to understand when rolling back is applicable. The rollback steps are intented as a last resort mechanism and cannot be applied once the LZA pipeline as run. Make sure you complete all the validation steps proposed before starting the upgrace procedures in your production environment.
+> **⚠️ Warning**: Carefully review the current documentation to understand when rolling back is applicable. The rollback steps are intended as a last resort mechanism and cannot be applied once the LZA pipeline as run. Make sure you complete all the validation steps proposed before starting the upgrade procedures in your production environment.
 
 
 ### Rollback Steps
 
-- Delete the `${Prefix}-CDK-Toolkit` stacks in all regions and accounts where the accelerator is deployed
-  - Navigate to the CloudFormation homepage
-  - In the top right corner, select the appropriate region from the region selector drop down.
-  - In the CloudFormation dashboard, locate and select the `${Prefix}-CDK-Toolkit` stack
-  - Click on the Delete button.
+The rollback steps are designed to re-install ASEA, those are only needed if you uninstalled ASEA bu running the `asea-prep` command. The steps are only possible if you didn't start the LZA installation by running the `lza-prep` command.
+
+- Confirm that the `${Prefix}-CDK-Toolkit` stacks have been deleted in all regions and accounts where the accelerator is deployed
+- In the management account, empty and delete the CDK assets bucket (`cdk-hnb659fds-assets-<account>-ca-central-1`). This bucket is part of the `${Prefix}-CDK-Toolkit` stack and has a retention policy to retain, therefore it needs to be deleted manually
+- Review, backup and delete the ASEA DynamoDB Tables
+  - In the management account, backup the content of the following DynamoDB tables: `ASEA-cidr-pool`, `ASEA-cidr-subnet-assign`, `ASEA-cidr-vpc-assign`, `ASEA-Output-Utils`, `ASEA-Outputs`, `ASEA-Parameters`
+  - If using dynamic IP allocation, the `ASEA-cidr-*` tables contain important data that you need to keep
+  - The content of the `ASEA-Output-Utils`, `ASEA-Outputs`, `ASEA-Parameters` will be regenerated in the ASEA install
+  - After backing up their content, delete the DynamoDB Tables, they will be re-created in ASEA install
 - Run ASEA Installer Stack
   - Download the Installer Stack from: <https://github.com/aws-samples/aws-secure-environment-accelerator/releases>
   - Navigate to the CloudFormation homepage
@@ -1114,9 +1117,10 @@ If an issue occurs during the upgrade process, there needs to be a rollback plan
 - Run the ASEA-InstallerPipeline
   - After deploying the CloudFormation template, a new CodePipeline pipeline will be created. This Pipeline will be called `{$Prefix}-InstallerPipeline`. - The Code Pipeline will automatically trigger an execution and begin running when created
   - This pipeline runs a CodeBuild job which does a number of things – most importantly, create the ASEA State Machine.
+  - **IMPORTANT** If using dynamic IP allocation, you need to repopulate the data in the `ASEA-cidr-*` DDB tables that you backed up in an earlier step
   - Run the ASEA State Machine
   - After the InstallerPipeline has successfully run, the ASEA State Machine will be kicked off which will ensure that ASEA features are rolled back to match the ASEA configuration.
-- Cleanup LZA and associated resources <https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/uninstall-the-solution.html>
+
 
 ## Troubleshooting
 
@@ -1147,9 +1151,9 @@ Cause: CodeBuild doesn't have enough memory to synthesize very large CloudFormat
 
 Workaround: Increase the resources allocated to CodeBuild and increase NodeJS `max_old_space_size`
 1. Go to CodeBuild console and locate the `ASEA-ToolkitProject` project
-2. Edit the project, in the Environment section change the Compute size to the next larger size available (70 GB Memory, 36 vCPU) 
-3. In the Environment variables section:  
-  a) change the value of the `NODE_OPTIONS` variable to `--max_old_space_size=32768`    
+2. Edit the project, in the Environment section change the Compute size to the next larger size available (70 GB Memory, 36 vCPU)
+3. In the Environment variables section:
+  a) change the value of the `NODE_OPTIONS` variable to `--max_old_space_size=32768`
 4. Release the accelerator pipeline again
 
 Note: this manual change will need to be re-applied everytime you upgrade to a new LZA version or re-run the LZA installer pipeline.
@@ -1157,21 +1161,21 @@ Note: this manual change will need to be re-applied everytime you upgrade to a n
 #### Error in Security Stack - CloudFormation did not receive a response from your Custom Resource
 Cause: Throttling can happen based on the concurrent Lambda execution quota.
 
-Workaround: Temporarly disable the Event Bridge rule `ASEA-SecurityHubFindingsImportToCWLs` in the Security account. Re-enable the trigger once the initial LZA pipeline run completes.
+Workaround: Temporary disable the Event Bridge rule `ASEA-SecurityHubFindingsImportToCWLs` in the Security account. Re-enable the trigger once the initial LZA pipeline run completes.
 
 #### Error in SecurityResource stack - AWS Config rate exceeeded error
-Cause: Too many resources are deployed in parrallel, leading to rate limiting errors.
+Cause: Too many resources are deployed in parallel, leading to rate limiting errors.
 
 Workaround: Increase the resources allocated to CodeBuild and increase NodeJS `max_old_space_size`
 1. Go to CodeBuild console and locate the `ASEA-ToolkitProject` project
-2. Edit the project, in the Environment variables section:    
-  a) change the value of the `MAX_CONCURRENT_STACKS` variable to `75`  
+2. Edit the project, in the Environment variables section:
+  a) change the value of the `MAX_CONCURRENT_STACKS` variable to `75`
 3. Release the accelerator pipeline again
 
 Note: this manual change will need to be re-applied everytime you upgrade to a new LZA version or re-run the LZA installer pipeline.
 
 ### Use of opt-in region - "InvalidClientTokenId: The security token included in the request is invalid"
-If an AWS opt-in region (e.g. ca-west-1) is enabled in your ASEA environment you need to change the region compatibilty of STS session tokens to be valid in all AWS Regions.
+If an AWS opt-in region (e.g. ca-west-1) is enabled in your ASEA environment you need to change the region compatibility of STS session tokens to be valid in all AWS Regions.
 
 1. Sign in with administrative privileges in your Management account.
 2. Open the IAM console. In the navigation pane, choose Account settings.
@@ -1208,19 +1212,15 @@ In order to accomplish upgrading from ASEA to LZA, the solution relies on a conc
 |Shared Security Group	|FALSE	|FALSE	|	|	|
 |SSM Association	|FALSE	|FALSE	|	|	|
 |SSM Resource Data Sync	|FALSE	|FALSE	|	|	|
-|Subnets	|FALSE	|TRUE 	|Subnet CIDR Block </br> Subnet Availibility Zone </br> Subnet Map Public IP on Launch	|	|
+|Subnets	|FALSE	|TRUE 	|Subnet CIDR Block </br> Subnet Availability Zone </br> Subnet Map Public IP on Launch	|	|
 |Transit Gateway Associations	|FALSE	|FALSE	|	|	|
 |Transit Gateway Black Hole Routes	|FALSE	|FALSE	|	|	|
-|Transit Gateway Propogations	|FALSE	|FALSE	|	|	|
+|Transit Gateway Propagations	|FALSE	|FALSE	|	|	|
 |Transit Gateway Route Tables	|FALSE	|FALSE	|	|	|
 |Transit Gateway Routes	|FALSE	|FALSE	|	|	|
-|Transit Gateways	|FALSE	|TRUE	|Amazon Side ASN </br> Auto Accept Shared Attachments </br> Default Route Table Associations </br> Default Route Table Propogations </br> DNS Support </br> VPN ECMP Support	|	|
+|Transit Gateways	|FALSE	|TRUE	|Amazon Side ASN </br> Auto Accept Shared Attachments </br> Default Route Table Associations </br> Default Route Table Propagations </br> DNS Support </br> VPN ECMP Support	|	|
 |Virtual Private Gateway	|FALSE	|TRUE	|Amazon Side ASN	|	|
 |VPC	|FALSE	|TRUE	|CIDR Blocks </br> Enable DNS Host Names </br> Enable DNS Support </br> Instance Tenancy 	|	|
 |VPC Endpoint	|FALSE	|FALSE	|	|	|
 |VPC Endpoint (Gateway)	|FALSE	|TRUE	|Route Table Ids	|	|
 |VPC Peering Connection	|FALSE	|FALSE	|	|	|
-
-
-
-
