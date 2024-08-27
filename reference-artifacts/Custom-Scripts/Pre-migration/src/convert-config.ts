@@ -103,7 +103,6 @@ import {
   UserConfig,
 } from './config/iam-config';
 import {
-  //LoadBalancersConfig,
   NetworkConfig,
   NfwFirewallConfig,
   NfwFirewallPolicyConfig,
@@ -3285,24 +3284,12 @@ export class ConvertAseaConfig {
       This is so the end user can validate the routeTables and subnetAssociations before attaching them in a subsequent run.
     */
     const networkConfig = NetworkConfig.loadFromString(JSON.stringify(networkConfigAttributes));
-    const networkConfigWithoutNaclAndSubnetAssociations = this.replaceNetworkConfigWithEmptyNaclAndSubnetAssociation(
-      networkConfig!,
-    );
-    const yamlNetworkConfigWithoutNaclAndSubnetAssociations = yaml.dump(networkConfigWithoutNaclAndSubnetAssociations, {
-      noRefs: true,
-    });
     const yamlConfig = yaml.dump(networkConfig, { noRefs: true });
-    // This creates network-config-with-subnet-associations-and-route-tables.yaml
-    await this.writeToSources.writeFiles([
-      {
-        fileContent: yamlConfig,
-        fileName: NetworkConfig.FILENAME_WITH_SUBNET_ASSOCIATIONS_AND_ROUTE_TABLES,
-      },
-    ]);
+
     // This creates network-config.yaml
     await this.writeToSources.writeFiles([
       {
-        fileContent: yamlNetworkConfigWithoutNaclAndSubnetAssociations,
+        fileContent: yamlConfig,
         fileName: NetworkConfig.FILENAME,
       },
     ]);
@@ -3354,24 +3341,6 @@ export class ConvertAseaConfig {
   //       }
   //   }
   // }
-
-  private replaceNetworkConfigWithEmptyNaclAndSubnetAssociation(networkConfig: NetworkConfig) {
-    const networkConfigWithoutNaclAndSubnetAssociation: any = JSON.parse(JSON.stringify(networkConfig));
-    const vpcs = networkConfigWithoutNaclAndSubnetAssociation.vpcs;
-
-    vpcs.forEach((vpc: any) => {
-      const networkAcls: any[] = vpc.networkAcls;
-      const subnets: any[] = vpc.subnets;
-      for (const networkAcl of networkAcls) {
-        networkAcl.subnetAssociations = [];
-      }
-      for (const subnet of subnets) {
-        subnet.routeTable = undefined;
-      }
-    });
-
-    return networkConfigWithoutNaclAndSubnetAssociation;
-  }
 
   private replaceAccelLookupValuesForRedemption(params: { [key: string]: string | string[] }) {
     const parameters: {

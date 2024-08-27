@@ -6904,11 +6904,6 @@ export class NetworkConfig implements t.TypeOf<typeof NetworkConfigTypes.network
   static readonly FILENAME = 'network-config.yaml';
 
   /**
-   * The name of the network configuration file.
-   */
-  static readonly FILENAME_WITH_SUBNET_ASSOCIATIONS_AND_ROUTE_TABLES = 'network-config-with-subnet-associations-and-route-tables.yaml';
-
-  /**
    * A default VPC configuration.
    *
    * @see {@link DefaultVpcsConfig}
