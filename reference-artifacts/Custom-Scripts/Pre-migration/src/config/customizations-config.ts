@@ -114,6 +114,21 @@ export class CustomizationsConfigTypes {
   ]);
 
   static sslPolicyNlbEnum = t.enums('SslPolicyEnum', [
+    'ELBSecurityPolicy-TLS13-1-2-2021-06',
+    'ELBSecurityPolicy-TLS13-1-2-Res-2021-06',
+    'ELBSecurityPolicy-TLS13-1-2-Ext1-2021-06',
+    'ELBSecurityPolicy-TLS13-1-2-Ext2-2021-06',
+    'ELBSecurityPolicy-TLS13-1-1-2021-06',
+    'ELBSecurityPolicy-TLS13-1-0-2021-06',
+    'ELBSecurityPolicy-TLS13-1-3-2021-06',
+    'ELBSecurityPolicy-TLS13-1-2-FIPS-2023-04',
+    'ELBSecurityPolicy-TLS13-1-2-Res-FIPS-2023-04',
+    'ELBSecurityPolicy-TLS13-1-2-Ext0-FIPS-2023-04',
+    'ELBSecurityPolicy-TLS13-1-2-Ext1-FIPS-2023-04',
+    'ELBSecurityPolicy-TLS13-1-2-Ext2-FIPS-2023-04',
+    'ELBSecurityPolicy-TLS13-1-1-FIPS-2023-04',
+    'ELBSecurityPolicy-TLS13-1-0-FIPS-2023-04',
+    'ELBSecurityPolicy-TLS13-1-3-FIPS-2023-04',
     'ELBSecurityPolicy-TLS-1-0-2015-04',
     'ELBSecurityPolicy-TLS-1-1-2017-01',
     'ELBSecurityPolicy-TLS-1-2-2017-01',
@@ -236,6 +251,21 @@ export class CustomizationsConfigTypes {
 
   static readonly albListenerTypeEnum = t.enums('AlbListenerTypeEnum', ['fixed-response', 'forward', 'redirect']);
   static readonly sslPolicyAlbEnum = t.enums('SslPolicyAlbEnum', [
+    'ELBSecurityPolicy-TLS13-1-2-2021-06',
+    'ELBSecurityPolicy-TLS13-1-2-Res-2021-06',
+    'ELBSecurityPolicy-TLS13-1-2-Ext1-2021-06',
+    'ELBSecurityPolicy-TLS13-1-2-Ext2-2021-06',
+    'ELBSecurityPolicy-TLS13-1-1-2021-06',
+    'ELBSecurityPolicy-TLS13-1-0-2021-06',
+    'ELBSecurityPolicy-TLS13-1-3-2021-06',
+    'ELBSecurityPolicy-TLS13-1-2-FIPS-2023-04',
+    'ELBSecurityPolicy-TLS13-1-2-Res-FIPS-2023-04',
+    'ELBSecurityPolicy-TLS13-1-2-Ext0-FIPS-2023-04',
+    'ELBSecurityPolicy-TLS13-1-2-Ext1-FIPS-2023-04',
+    'ELBSecurityPolicy-TLS13-1-2-Ext2-FIPS-2023-04',
+    'ELBSecurityPolicy-TLS13-1-1-FIPS-2023-04',
+    'ELBSecurityPolicy-TLS13-1-0-FIPS-2023-04',
+    'ELBSecurityPolicy-TLS13-1-3-FIPS-2023-04',
     'ELBSecurityPolicy-TLS-1-0-2015-04',
     'ELBSecurityPolicy-TLS-1-1-2017-01',
     'ELBSecurityPolicy-TLS-1-2-2017-01',
@@ -629,7 +659,8 @@ export class Ec2FirewallInstanceConfig implements t.TypeOf<typeof Customizations
  * ```
  */
 export class Ec2FirewallAutoScalingGroupConfig
-implements t.TypeOf<typeof CustomizationsConfigTypes.ec2FirewallAutoScalingGroupConfig> {
+  implements t.TypeOf<typeof CustomizationsConfigTypes.ec2FirewallAutoScalingGroupConfig>
+{
   /**
    * The friendly name of the firewall instance
    */
@@ -944,7 +975,8 @@ export class CloudFormationStackSetConfig implements t.TypeOf<typeof Customizati
  */
 
 export class AlbListenerFixedResponseConfig
-implements t.TypeOf<typeof CustomizationsConfigTypes.albListenerFixedResponseConfig> {
+  implements t.TypeOf<typeof CustomizationsConfigTypes.albListenerFixedResponseConfig>
+{
   /**
    * The content type.
    * Valid Values: text/plain | text/css | text/html | application/javascript | application/json
@@ -975,7 +1007,8 @@ implements t.TypeOf<typeof CustomizationsConfigTypes.albListenerFixedResponseCon
  * ```
  */
 export class AlbListenerForwardConfigTargetGroupStickinessConfig
-implements t.TypeOf<typeof CustomizationsConfigTypes.albListenerTargetGroupStickinessConfig> {
+  implements t.TypeOf<typeof CustomizationsConfigTypes.albListenerTargetGroupStickinessConfig>
+{
   /**
    * The time period, in seconds, during which requests from a client should be routed to the same target group. The range is 1-604800 seconds (7 days).
    */
@@ -1086,7 +1119,8 @@ export class AlbListenerRedirectConfig implements t.TypeOf<typeof Customizations
  * ```
  */
 export class ApplicationLoadBalancerListenerConfig
-implements t.TypeOf<typeof CustomizationsConfigTypes.albListenerConfig> {
+  implements t.TypeOf<typeof CustomizationsConfigTypes.albListenerConfig>
+{
   /**
    * The name of the application load balancer listener
    */
@@ -1155,7 +1189,8 @@ implements t.TypeOf<typeof CustomizationsConfigTypes.albListenerConfig> {
  * ```
  */
 export class ApplicationLoadBalancerAttributesConfig
-implements t.TypeOf<typeof CustomizationsConfigTypes.albAttributesConfig> {
+  implements t.TypeOf<typeof CustomizationsConfigTypes.albAttributesConfig>
+{
   /**
    * Enable or disable deletion protection.
    */
@@ -1169,8 +1204,8 @@ implements t.TypeOf<typeof CustomizationsConfigTypes.albAttributesConfig> {
    * Determines how the load balancer handles requests that might pose a security risk to your application. The possible values are `monitor` , `defensive` , and `strictest` . The default is `defensive`.
    */
   readonly routingHttpDesyncMitigationMode:
-  | t.TypeOf<typeof CustomizationsConfigTypes.albRoutingHttpConfigMitigationModeEnum>
-  | undefined = undefined;
+    | t.TypeOf<typeof CustomizationsConfigTypes.albRoutingHttpConfigMitigationModeEnum>
+    | undefined = undefined;
   /**
    * Indicates whether HTTP headers with invalid header fields are removed by the load balancer ( true ) or routed to targets ( false ). The default is false.
    */
@@ -1187,8 +1222,8 @@ implements t.TypeOf<typeof CustomizationsConfigTypes.albAttributesConfig> {
    * Enables you to modify, preserve, or remove the X-Forwarded-For header in the HTTP request before the Application Load Balancer sends the request to the target. The possible values are append, preserve, and remove. The default is append.
    */
   readonly routingHttpXffHeaderProcessingMode:
-  | t.TypeOf<typeof CustomizationsConfigTypes.routingHttpXffHeaderProcessingModeEnum>
-  | undefined = undefined;
+    | t.TypeOf<typeof CustomizationsConfigTypes.routingHttpXffHeaderProcessingModeEnum>
+    | undefined = undefined;
   /**
    * Indicates whether HTTP/2 is enabled. The possible values are true and false. The default is true. Elastic Load Balancing requires that message header names contain only alphanumeric characters and hyphens.
    */
@@ -1224,7 +1259,8 @@ implements t.TypeOf<typeof CustomizationsConfigTypes.albAttributesConfig> {
  * ```
  */
 export class ApplicationLoadBalancerConfig
-implements t.TypeOf<typeof CustomizationsConfigTypes.applicationLoadBalancerConfig> {
+  implements t.TypeOf<typeof CustomizationsConfigTypes.applicationLoadBalancerConfig>
+{
   /**
    * The name of the application load balancer
    */
@@ -1279,7 +1315,8 @@ implements t.TypeOf<typeof CustomizationsConfigTypes.applicationLoadBalancerConf
  * ```
  */
 export class TargetGroupAttributeConfig
-implements t.TypeOf<typeof CustomizationsConfigTypes.targetGroupAttributeTypes> {
+  implements t.TypeOf<typeof CustomizationsConfigTypes.targetGroupAttributeTypes>
+{
   /**
    * The amount of time, in seconds, for Elastic Load Balancing to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds. The default value is 300 seconds.
    */
@@ -1362,7 +1399,8 @@ implements t.TypeOf<typeof CustomizationsConfigTypes.targetGroupAttributeTypes> 
  * ```
  */
 export class TargetGroupHealthCheckConfig
-implements t.TypeOf<typeof CustomizationsConfigTypes.targetGroupHealthCheckType> {
+  implements t.TypeOf<typeof CustomizationsConfigTypes.targetGroupHealthCheckType>
+{
   /**
    * The approximate amount of time, in seconds, between health checks of an individual target. The range is 5-300.
    * If the target group protocol is TCP, TLS, UDP, TCP_UDP, HTTP or HTTPS, the default is 30 seconds.
@@ -2226,7 +2264,8 @@ export class AppConfigItem implements t.TypeOf<typeof CustomizationsConfigTypes.
  * ```
  */
 export class PortfolioAssociationConfig
-implements t.TypeOf<typeof CustomizationsConfigTypes.portfolioAssociationConfig> {
+  implements t.TypeOf<typeof CustomizationsConfigTypes.portfolioAssociationConfig>
+{
   /**
    * Indicates the type of portfolio association, valid values are: Group, User, and Role.
    */
@@ -2337,7 +2376,8 @@ export class TagOptionsConfig implements t.TypeOf<typeof CustomizationsConfigTyp
  * ```
  */
 export class ProductLaunchConstraintConfig
-implements t.TypeOf<typeof CustomizationsConfigTypes.productLaunchConstraintConfig> {
+  implements t.TypeOf<typeof CustomizationsConfigTypes.productLaunchConstraintConfig>
+{
   /**
    * The type of launch constraint, either Role or LocalRole. For more information, see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-servicecatalog-launchroleconstraint.html
    */
