@@ -178,6 +178,7 @@ export class ConvertAseaConfig {
   private readonly organizations = new Organizations();
   private readonly acceleratorName: string;
   private readonly writeFilesConfig: WriteToSourcesTypes.WriteToSourcesConfig;
+  // private accountAndOuMap: Map<string, string[]> = new Map();
   private accounts: Account[] = [];
   private outputs: StackOutput[] = [];
   private vpcAssignedCidrs: VpcAssignedCidr[] = [];
@@ -239,6 +240,7 @@ export class ConvertAseaConfig {
     this.outputs = await loadOutputs(`${this.aseaPrefix}Outputs`, this.dynamoDb);
     this.globalOptions = aseaConfig['global-options'];
     this.vpcConfigs = aseaConfig.getVpcConfigs();
+    // this.accountAndOuMap = await this.setAccountAndOuMap(aseaConfig);
     const regionsWithVpc = this.vpcConfigs.map((resolvedConfig) => resolvedConfig.vpcConfig.region);
     this.regionsWithoutVpc = this.globalOptions['supported-regions'].filter(
       (region) => !regionsWithVpc.includes(region),
@@ -848,13 +850,62 @@ export class ConvertAseaConfig {
       limits: this.buildLimits(aseaConfig),
       // No acceleratorMetadata in ASEA
       // TODO: Add to manual verification
-      // acceleratorMetadata: {},
+      acceleratorMetadata: this.buildAcceleratorMetadata(aseaConfig),
       ssmInventory: this.buildSsmInventory(aseaConfig),
     };
 
     const globalConfig = GlobalConfig.fromObject(globalConfigAttributes);
     const yamlConfig = yaml.dump(globalConfig, { noRefs: true });
     await this.writeToSources.writeFiles([{ fileContent: yamlConfig, fileName: GlobalConfig.FILENAME }]);
+  }
+
+  private buildAcceleratorMetadata(aseaConfig: AcceleratorConfig) {
+    let loggingAccount;
+    const metadataCollection = aseaConfig['global-options']['meta-data-collection'];
+    if (!metadataCollection) {
+      return;
+    }
+    const readOnlyAccessRoleArns = this.getReadOnlyAccessRoleArns(aseaConfig);
+    if (this.globalOptions) {
+      loggingAccount = this.getAccountKeyforLza(aseaConfig['global-options'], this.globalOptions?.['central-log-services'].account);
+    }
+    return {
+      enable: true,
+      account: loggingAccount,
+      readOnlyAccessRoleArns,
+    };
+  }
+
+  private getReadOnlyAccessRoleArns(aseaConfig: AcceleratorConfig) {
+    const accountRoleArnsList: string[][] = [];
+    const orgRoleArnsList: string[][] = [];
+
+    // Iterate through all accounts and find roles with meta-data-read-only-access defined and generate arn.
+    aseaConfig.getAccountConfigs().forEach(([_accountKey, accountConfig]) => {
+      const roles = accountConfig.iam?.roles ?? [];
+      const filteredAccountRoles = roles.filter((role) => role['meta-data-read-only-access']);
+      const accountId = getAccountId(this.accounts, _accountKey);
+      accountRoleArnsList.push(filteredAccountRoles.map((role) => `arn:aws:iam:${accountId}:role/${role.role}`));
+    });
+
+    // Iterate through all orgs, look up accounts, and find roles with meta-data-read-only-access defined and generate arn.
+    aseaConfig.getOrganizationConfigs().forEach(([_ouKey, ouConfig]) => {
+      const roles = ouConfig.iam?.roles ?? [];
+      const filteredRoles = roles.filter((role) => role['meta-data-read-only-access']);
+      const organizationAccountIds = this.accounts.filter((account) => account.ou === _ouKey).map((ouAccount => ouAccount.id));
+      for (const organizationAccountId of organizationAccountIds) {
+        orgRoleArnsList.push(filteredRoles.map(role => `arn:aws:iam:${organizationAccountId}:role/${role.role}`));
+      }
+    });
+
+    // Convert both account and org role arns lists to flat lists so its a single list rather than list of lists.
+    const accountRoleArns = accountRoleArnsList.flat();
+    const orgRoleArns = orgRoleArnsList.flat();
+    // Convert to set in-case role arn is created from both OU and account config
+    const readOnlyAccessRoleArnsSet = new Set([...accountRoleArns, ...orgRoleArns]);
+    const readOnlyAccessRoleArns = Array.from( readOnlyAccessRoleArnsSet );;
+
+    return readOnlyAccessRoleArns;
   }
 
   private buildBudgets(aseaConfig: AcceleratorConfig) {
@@ -2171,6 +2222,7 @@ export class ConvertAseaConfig {
     const setConfigRulesConfig = async () => {
       if (!globalOptions['aws-config']) return;
       // TODO: Consider account regions for deploymentTargets
+      const currentNodeRuntime = 'nodejs18.x';
       const rulesWithTarget: (AwsConfigRule & {
         deployTo?: string[];
         excludedAccounts?: string[];
@@ -2243,12 +2295,18 @@ export class ConvertAseaConfig {
               `Custom AWS Config Rule with detection needs an IAM policy written Rule Name: "${configRule.name}".  Policy file name: "${detectionPolicyPath}`,
             );
           }
-
+          let nodeRuntime = configRule.runtime ?? currentNodeRuntime;
+          if (['nodejs16.x', 'nodejs14.x'].includes(configRule.runtime!)) {
+            this.configCheck.addWarning(
+              `Custom AWS Config Rule "${configRule.name}" with NodeJS runtime: "${configRule.runtime}" is deprecated. The runtime for this config rule is updated to nodejs18.x. It may not work as expected.`,
+            );
+            nodeRuntime = currentNodeRuntime;
+          }
           customRuleProps = {
             lambda: {
               handler: 'index.handler',
               rolePolicyFile: ConfigRuleDetectionAssets[configRule.name] ?? detectionPolicyPath,
-              runtime: configRule.runtime === 'nodejs16.x' ? 'nodejs18.x' : configRule.runtime!,
+              runtime: nodeRuntime,
               sourceFilePath: path.join(LZA_CONFIG_RULES, configRule['runtime-path'] ?? defaultSourcePath),
               timeout: undefined,
             },

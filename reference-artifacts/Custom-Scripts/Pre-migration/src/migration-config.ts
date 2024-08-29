@@ -39,11 +39,6 @@ export class MigrationConfig {
     const acceleratorPrefix =
       installerStack?.parameters.find((p) => p.ParameterKey === 'AcceleratorPrefix')?.ParameterValue ?? 'ASEA-';
     const abbreviatedRegion = homeRegion.replaceAll('-', '');
-    const centralBucketName =
-      (await migrationConfig.getS3BucketName(
-        `${acceleratorPrefix}management-phase0-config${abbreviatedRegion}`,
-        homeRegion,
-      )) ?? '';
 
     const mappingRepositoryName = `${acceleratorPrefix}Mappings`;
     const lzaConfigRepositoryName = `${acceleratorPrefix}LZA-config`;
@@ -60,6 +55,10 @@ export class MigrationConfig {
     });
 
     const globalOptions = aseaConfig['global-options'];
+    const managementAccount = globalOptions?.['aws-org-management'].account;
+    const centralBucketName = await migrationConfig.getS3BucketName(
+        `${acceleratorPrefix}${managementAccount}-phase0-config${abbreviatedRegion}`,
+        homeRegion) ?? '';
     const accounts = await loadAccounts(parametersTableName, dynamoDb);
     const logArchiveAccountEmail = getAccountEmail(
       accounts,

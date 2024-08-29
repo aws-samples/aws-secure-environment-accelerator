@@ -110,25 +110,27 @@ export async function snapshotRegionResources(
     data: describeSsmDocumentPermissionResults,
   });
 
-  // macie status
-  const macieStatusResults = await getMacieStatus(region, credentials);
-  await snapshotTable.writeResource({
-    accountId: accountId,
-    region: region,
-    resourceName: 'macie-status',
-    preMigration: preMigration,
-    data: macieStatusResults,
-  });
+  if (region !== 'ca-west-1') {
+    // macie status
+    const macieStatusResults = await getMacieStatus(region, credentials);
+    await snapshotTable.writeResource({
+      accountId: accountId,
+      region: region,
+      resourceName: 'macie-status',
+      preMigration: preMigration,
+      data: macieStatusResults,
+    });
 
-  // macie export config
-  const macieExportConfigResults = await getMacieExportConfig(region, credentials);
-  await snapshotTable.writeResource({
-    accountId: accountId,
-    region: region,
-    resourceName: 'macie-export-config',
-    preMigration: preMigration,
-    data: macieExportConfigResults,
-  });
+    // macie export config
+    const macieExportConfigResults = await getMacieExportConfig(region, credentials);
+    await snapshotTable.writeResource({
+      accountId: accountId,
+      region: region,
+      resourceName: 'macie-export-config',
+      preMigration: preMigration,
+      data: macieExportConfigResults,
+    });
+  }
 
   // securityhub status
   const securityHubStatusResults = await getSecurityHubStatus(region, credentials);
