@@ -229,7 +229,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: SEA-GUI - Download Archive
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         id: download-archive-sea-gui
         with:
           name: ${{ needs.build-sea-gui.outputs.release-asset-name }}
@@ -257,7 +257,7 @@ jobs:
           asset_name: ${{ steps.create-archive-sea-gui.outputs.release-asset-name }}
           asset_content_type: application/zip
       - name: SEA-Config-Schema - Download Archive
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         id: download-archive-sea-config-schema
         with:
           name: ${{ needs.build-sea-config-schema.outputs.release-asset-name }}
