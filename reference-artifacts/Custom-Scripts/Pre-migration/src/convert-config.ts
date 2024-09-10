@@ -163,7 +163,7 @@ const SnsFindingTypesDict = {
 
 export class ConvertAseaConfig {
   private localUpdateOnly = false; // This is an option to not write config changes to codecommit, used only for development like yarn run convert-config local-update-only. Default is true
-
+  private disableTerminationProtection = false;
   private readonly aseaConfigRepositoryName: string;
   private readonly region: string;
   private readonly aseaPrefix: string;
@@ -178,7 +178,7 @@ export class ConvertAseaConfig {
   private readonly organizations = new Organizations();
   private readonly acceleratorName: string;
   private readonly writeFilesConfig: WriteToSourcesTypes.WriteToSourcesConfig;
-  // private accountAndOuMap: Map<string, string[]> = new Map();
+  private readonly ouToNestedOuMap: Map<string, Set<string>> = new Map();
   private accounts: Account[] = [];
   private outputs: StackOutput[] = [];
   private vpcAssignedCidrs: VpcAssignedCidr[] = [];
@@ -196,6 +196,7 @@ export class ConvertAseaConfig {
 
   constructor(config: Config) {
     this.localUpdateOnly = config.localOnlyWrites ?? false;
+    this.disableTerminationProtection = config.disableTerminationProtection ?? false;
     this.aseaConfigRepositoryName = config.repositoryName;
     this.localConfigFilePath = config.localConfigFilePath ?? undefined;
     this.region = config.homeRegion;
@@ -240,7 +241,6 @@ export class ConvertAseaConfig {
     this.outputs = await loadOutputs(`${this.aseaPrefix}Outputs`, this.dynamoDb);
     this.globalOptions = aseaConfig['global-options'];
     this.vpcConfigs = aseaConfig.getVpcConfigs();
-    // this.accountAndOuMap = await this.setAccountAndOuMap(aseaConfig);
     const regionsWithVpc = this.vpcConfigs.map((resolvedConfig) => resolvedConfig.vpcConfig.region);
     this.regionsWithoutVpc = this.globalOptions['supported-regions'].filter(
       (region) => !regionsWithVpc.includes(region),
@@ -289,10 +289,10 @@ export class ConvertAseaConfig {
 
     await this.copyAdditionalAssets();
     await this.configCheck.checkUnsupportedConfig(aseaConfig);
+    await this.prepareOrganizationConfig(aseaConfig);
     await this.prepareIamConfig(aseaConfig);
     await this.prepareGlobalConfig(aseaConfig);
     this.lzaAccountKeys = await this.prepareAccountConfig(aseaConfig);
-    await this.prepareOrganizationConfig(aseaConfig);
     await this.prepareSecurityConfig(aseaConfig);
     await this.prepareNetworkConfig(aseaConfig);
     await this.prepareCustomizationsConfig(aseaConfig);
@@ -711,6 +711,10 @@ export class ConvertAseaConfig {
         excludeRegions.push(regionItem);
       }
     }
+
+    const ousForS3EncryptionDeploymentTargetsWithoutNestedOus = Object.entries(aseaConfig['organizational-units']).map(([ouName]) => ouName);
+    const ouForS3EncrpyionDeploymentTargetsWithOus = this.getNestedOusForDeploymentTargets(ousForS3EncryptionDeploymentTargetsWithoutNestedOus);
+
     const globalConfigAttributes: { [key: string]: unknown } = {
       externalLandingZoneResources: {
         importExternalLandingZoneResources: true,
@@ -724,7 +728,7 @@ export class ConvertAseaConfig {
       cloudwatchLogRetentionInDays: LOG_RETENTION.includes(globalOptions['default-cwl-retention'])
         ? globalOptions['default-cwl-retention']
         : 3653,
-      terminationProtection: true, // TODO: Confirm default
+      terminationProtection: this.disableTerminationProtection,
       controlTower: { enable: globalOptions['ct-baseline'] },
       cdkOptions: {
         centralizeBuckets: true,
@@ -741,7 +745,7 @@ export class ConvertAseaConfig {
           createCMK: true,
           deploymentTargets: {
             accounts: ['Management'],
-            organizationalUnits: Object.entries(aseaConfig['organizational-units']).map(([ouName]) => ouName),
+            organizationalUnits: ouForS3EncrpyionDeploymentTargetsWithOus,
             excludedRegions: excludeRegions,
           },
         },
@@ -859,6 +863,23 @@ export class ConvertAseaConfig {
     await this.writeToSources.writeFiles([{ fileContent: yamlConfig, fileName: GlobalConfig.FILENAME }]);
   }
 
+  private getNestedOusForDeploymentTargets(ousWithoutNestedOus: string[]) {
+    let ouWithNestedOus = ousWithoutNestedOus;
+    for (const ouWithoutNestedOus of ousWithoutNestedOus) {
+      if (this.ouToNestedOuMap.has(ouWithoutNestedOus)) {
+        const nestedOusForOu = this.ouToNestedOuMap.get(ouWithoutNestedOus);
+        if (nestedOusForOu) {
+          const nestedOuSet = this.ouToNestedOuMap.get(ouWithoutNestedOus);
+          if (nestedOuSet) {
+            ouWithNestedOus = [...ouWithNestedOus, ... Array.from(nestedOuSet)];
+          }
+        }
+      }
+    }
+
+    return ouWithNestedOus;
+  }
+
   private buildAcceleratorMetadata(aseaConfig: AcceleratorConfig) {
     let loggingAccount;
     const metadataCollection = aseaConfig['global-options']['meta-data-collection'];
@@ -867,7 +888,10 @@ export class ConvertAseaConfig {
     }
     const readOnlyAccessRoleArns = this.getReadOnlyAccessRoleArns(aseaConfig);
     if (this.globalOptions) {
-      loggingAccount = this.getAccountKeyforLza(aseaConfig['global-options'], this.globalOptions?.['central-log-services'].account);
+      loggingAccount = this.getAccountKeyforLza(
+        aseaConfig['global-options'],
+        this.globalOptions?.['central-log-services'].account,
+      );
     }
     return {
       enable: true,
@@ -892,9 +916,11 @@ export class ConvertAseaConfig {
     aseaConfig.getOrganizationConfigs().forEach(([_ouKey, ouConfig]) => {
       const roles = ouConfig.iam?.roles ?? [];
       const filteredRoles = roles.filter((role) => role['meta-data-read-only-access']);
-      const organizationAccountIds = this.accounts.filter((account) => account.ou === _ouKey).map((ouAccount => ouAccount.id));
+      const organizationAccountIds = this.accounts
+        .filter((account) => account.ou === _ouKey)
+        .map((ouAccount) => ouAccount.id);
       for (const organizationAccountId of organizationAccountIds) {
-        orgRoleArnsList.push(filteredRoles.map(role => `arn:aws:iam:${organizationAccountId}:role/${role.role}`));
+        orgRoleArnsList.push(filteredRoles.map((role) => `arn:aws:iam:${organizationAccountId}:role/${role.role}`));
       }
     });
 
@@ -903,7 +929,7 @@ export class ConvertAseaConfig {
     const orgRoleArns = orgRoleArnsList.flat();
     // Convert to set in-case role arn is created from both OU and account config
     const readOnlyAccessRoleArnsSet = new Set([...accountRoleArns, ...orgRoleArns]);
-    const readOnlyAccessRoleArns = Array.from( readOnlyAccessRoleArnsSet );;
+    const readOnlyAccessRoleArns = Array.from(readOnlyAccessRoleArnsSet);
 
     return readOnlyAccessRoleArns;
   }
@@ -962,6 +988,7 @@ export class ConvertAseaConfig {
     Object.entries(aseaConfig['organizational-units']).forEach(([ouName, ouConfig]) => {
       if (!ouConfig['default-budgets']) return;
       const budget = ouConfig['default-budgets'];
+      const ous = this.getNestedOusForDeploymentTargets([ouName]);
       budgets.push({
         name: budget.name,
         amount: budget.amount,
@@ -988,7 +1015,7 @@ export class ConvertAseaConfig {
           subscriptionType: 'EMAIL',
         })),
         deploymentTargets: {
-          organizationalUnits: [ouName], // TODO: Confirm about using ouName for LZA
+          organizationalUnits: ous,
           excludedAccounts: budgetCreatedToAccounts,
         },
       });
@@ -1118,12 +1145,13 @@ export class ConvertAseaConfig {
     let ssmInventoryOus = Object.entries(aseaConfig['organizational-units'])
       .filter(([_accountKey, ouConfig]) => !!ouConfig['ssm-inventory-collection'])
       .map(([ouKey]) => ouKey);
+    const ssmInventoryOusWithNestedOus = this.getNestedOusForDeploymentTargets(ssmInventoryOus);
     if (ssmInventoryAccounts.length === 0 && ssmInventoryOus.length === 0) return;
     if (ssmInventoryAccounts.length === 0) {
       return {
         enable: true,
         deploymentTargets: {
-          organizationalUnits: ssmInventoryOus,
+          organizationalUnits: ssmInventoryOusWithNestedOus,
         },
       };
     } else {
@@ -1172,7 +1200,7 @@ export class ConvertAseaConfig {
         policySets.push({
           deploymentTargets: {
             accounts: accountKey ? [accountKey] : [],
-            organizationalUnits: ouKey ? [ouKey] : [],
+            organizationalUnits: ouKey ? this.getNestedOusForDeploymentTargets([ouKey]) : [],
             excludedAccounts: undefined,
             excludedRegions: undefined,
           },
@@ -1189,7 +1217,12 @@ export class ConvertAseaConfig {
       // Deploy Default-Boundary-Policy into every account
       if (policy['policy-name'] !== 'Default-Boundary-Policy') {
         if (accountKey) policySets[currentIndex].deploymentTargets.accounts?.push(accountKey);
-        if (ouKey) policySets[currentIndex].deploymentTargets.organizationalUnits?.push(ouKey);
+        if (ouKey) {
+          const ous = this.getNestedOusForDeploymentTargets([ouKey]);
+          for (const ou of ous) {
+            policySets[currentIndex].deploymentTargets.organizationalUnits?.push(ou);
+          }
+        }
       }
     };
 
@@ -1246,7 +1279,7 @@ export class ConvertAseaConfig {
             accounts: accountKey ? [accountKey] : [],
             excludedAccounts: undefined,
             excludedRegions: undefined,
-            organizationalUnits: ouKey ? [ouKey] : [],
+            organizationalUnits: ouKey ? this.getNestedOusForDeploymentTargets([ouKey]) : [],
           },
           path: undefined,
         });
@@ -1256,7 +1289,10 @@ export class ConvertAseaConfig {
         roleSets[currentIndex].deploymentTargets.accounts?.push(accountKey);
       }
       if (ouKey) {
-        roleSets[currentIndex].deploymentTargets.organizationalUnits?.push(ouKey);
+        const ous = this.getNestedOusForDeploymentTargets([ouKey]);
+        for (const ou of ous) {
+          roleSets[currentIndex].deploymentTargets.organizationalUnits?.push(ou);
+        }
       }
     };
 
@@ -1334,13 +1370,13 @@ export class ConvertAseaConfig {
         const { users, groups } = await getUserConfig(ouConfig.iam.users);
         userSets.push({
           deploymentTargets: {
-            organizationalUnits: [ouKey],
+            organizationalUnits: this.getNestedOusForDeploymentTargets([ouKey]),
           },
           users,
         });
         groupSets.push({
           deploymentTargets: {
-            organizationalUnits: [ouKey],
+            organizationalUnits: this.getNestedOusForDeploymentTargets([ouKey]),
           },
           groups,
         });
@@ -1437,7 +1473,7 @@ export class ConvertAseaConfig {
       policySets.push({
         deploymentTargets: {
           accounts: deployToAccounts,
-          organizationalUnits: deployToOus,
+          organizationalUnits: this.getNestedOusForDeploymentTargets(deployToOus),
           excludedAccounts: undefined,
           excludedRegions: excludedRegions,
         },
@@ -1714,10 +1750,23 @@ export class ConvertAseaConfig {
           warm: false,
         });
         nestedOus.push({ account: accountKey, nestedOu: accountConfig['ou-path'] });
+        this.setOuToNestedOuMap(accountConfig);
+        console.log('@@@@', this.ouToNestedOuMap);
       }
     });
+
     return nestedOus;
   };
+
+  private setOuToNestedOuMap(accountConfig: { [x: string]: any; ou: string }) {
+    const currentNestedOusInMap = this.ouToNestedOuMap.get(accountConfig.ou);
+      if (currentNestedOusInMap && !accountConfig['ou-path'].includes('/')) {
+        //This actually takes the OU name but doesn't contain the higher level OU
+        this.ouToNestedOuMap.set(accountConfig['ou-path'].split('/')[0], new Set([...currentNestedOusInMap, ...accountConfig['ou-path']]));
+      } else {
+        this.ouToNestedOuMap.set(accountConfig['ou-path'].split('/')[0], new Set([accountConfig['ou-path']]));
+      }
+    }
 
   /**
    * Retrieves Nested OUs
@@ -1728,7 +1777,7 @@ export class ConvertAseaConfig {
     const nestedOuMap = nestedOuConfig.flatMap((item) => item.nestedOu);
     let nestedOus: string[] = [];
     for (const ouItem of nestedOuMap ?? []) {
-      if (!nestedOus.includes(ouItem)) {
+      if (!nestedOus.includes(ouItem) && ouItem.includes('/')) {
         nestedOus.push(ouItem);
       }
     }
@@ -1792,11 +1841,16 @@ export class ConvertAseaConfig {
     }
     // Check and prepare for nested OUs
     const nestedOus = this.prepareNestedOus(aseaConfig);
+    //Get List of OU names from OU object
+    const listOfOus = organizationConfig.organizationalUnits.map(ou => ou.name);
+    // Check for Nested OU in existing list before pushing on, also checking for / to ensure nested OU
     nestedOus.forEach((ouItem) => {
-      organizationConfig.organizationalUnits.push({
-        name: ouItem,
-        ignore: undefined,
-      });
+      if (!listOfOus.includes(ouItem)) {
+        organizationConfig.organizationalUnits.push({
+          name: ouItem,
+          ignore: undefined,
+        });
+      }
     });
 
     // LZA Checks for workloads OU
@@ -1866,7 +1920,7 @@ export class ConvertAseaConfig {
           accounts: accountsDeployedTo,
           excludedAccounts: [],
           excludedRegions: [],
-          organizationalUnits: organizationsDeployedTo,
+          organizationalUnits: this.getNestedOusForDeploymentTargets(organizationsDeployedTo),
         },
         policy: path.join(LZA_SCP_CONFIG_PATH, scp.policy),
         strategy: undefined,
@@ -2374,8 +2428,12 @@ export class ConvertAseaConfig {
         return `${item.deployTo?.join(',')}$${item.excludedAccounts?.join(',')}$${item.excludedRegions?.join(',')}`;
       });
       Object.entries(consolidatedRules).forEach(([_groupKey, values]) => {
+        let ou;
+        if (values[0].deployTo) {
+          ou = this.getNestedOusForDeploymentTargets(values[0].deployTo);
+        }
         const deploymentTargets = {
-          organizationalUnits: values[0].deployTo,
+          organizationalUnits: ou ?? values[0].deployTo,
           excludedRegions: values[0].excludedRegions,
           excludedAccounts: values[0].excludedAccounts,
         };
@@ -2473,6 +2531,10 @@ export class ConvertAseaConfig {
       const certificates: CertificateType[] = [];
       const processedCertificates = new Set<string>();
       const getTransformedCertificate = async (certificate: CertificateConfig) => {
+        const ousWithOutNestedOus = organizationalUnitsConfig
+        .filter(([_ouKey, ouConfig]) => !!ouConfig.certificates?.find((c) => c.name === certificate.name))
+        .map(([ouKey]) => ouKey);
+
         const certificateConfig: CertificateType = {
           name: certificate.name,
           type: certificate.type,
@@ -2483,9 +2545,7 @@ export class ConvertAseaConfig {
                   !!accountConfig.certificates?.find((c) => c.name === certificate.name),
               )
               .map(([accountKey]) => this.getAccountKeyforLza(globalOptions, accountKey)),
-            organizationalUnits: organizationalUnitsConfig
-              .filter(([_ouKey, ouConfig]) => !!ouConfig.certificates?.find((c) => c.name === certificate.name))
-              .map(([ouKey]) => ouKey),
+            organizationalUnits: this.getNestedOusForDeploymentTargets(ousWithOutNestedOus),
             excludedRegions: this.globalOptions?.['supported-regions'].filter((region) => region !== this.region) ?? [],
           },
         };
@@ -3258,7 +3318,7 @@ export class ConvertAseaConfig {
           account: accountKey ? this.getAccountKeyforLza(globalOptions, accountKey) : undefined,
           deploymentTargets: !accountKey
             ? {
-                organizationalUnits: [ouKey],
+                organizationalUnits: this.getNestedOusForDeploymentTargets([ouKey]),
                 excludedAccounts: excludeAccounts?.map((excludeAccountKey) =>
                   this.getAccountKeyforLza(globalOptions, excludeAccountKey),
                 ),
