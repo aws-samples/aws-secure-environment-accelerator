@@ -41,6 +41,11 @@ export type NestedOuType = {
   nestedOu: string;
 };
 
+export type NestedOuAndOuType = {
+  ou: string;
+  nestedOu: string;
+};
+
 export type ResolverEndpointRulesType = {
   name: string;
   domainName: string | undefined;

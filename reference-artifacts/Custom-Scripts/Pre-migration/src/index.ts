@@ -14,20 +14,21 @@
 import { readFile } from 'fs/promises';
 import * as path from 'path';
 import { ConvertAseaConfig } from './convert-config';
+import { Inventory } from './inventory/inventory';
 import { MigrationConfig } from './migration-config';
 import { PostMigration } from './post-migration';
 import { Preparation } from './preparation';
 import { ResourceMapping } from './resource-mapping';
 import { Snapshot } from './snapshot';
-import { Inventory } from './inventory/inventory';
 
 async function main() {
   const args = process.argv.slice(2);
   const command = args[0];
   validateCommand(args);
   const config = await loadConfig(command);
-  config.localOnlyWrites = isLocalUpdateOnly(args);
-  config.skipDriftDetection = isSkipDriftDetection(args);
+  config.localOnlyWrites = args.includes('local-update-only');
+  config.skipDriftDetection = args.includes('skip-drift-detection');
+  config.disableTerminationProtection = args.includes('disable-termination-protection');
 
   switch (command) {
     case 'migration-config':
@@ -104,22 +105,5 @@ async function loadConfig(command: string) {
   }
 }
 
-function isLocalUpdateOnly(args: string[] | undefined) {
-  for (const arg of args ?? []) {
-    if (arg === 'local-update-only') {
-      return true;
-    }
-  }
-  return false;
-}
-
-function isSkipDriftDetection(args: string[] | undefined) {
-  for (const arg of args ?? []) {
-    if (arg === 'skip-drift-detection') {
-      return true;
-    }
-  }
-  return false;
-}
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 main();

@@ -246,6 +246,18 @@ yarn run convert-config local-update-only
 
 </details>
 
+<details>
+  <summary>Option to disable termination protection</summary>
+
+The `disable-termination-protection` flag is used to disable termination protection for the LZA deployed stacks. This can be useful during the upgrade process incase there is a error that stops the creation of new stacks. This flag will allow the LZA pipeline to remove stacks that were not successfully deployed. It is recommended to enable this feature through the LZA global configuration file after the initial LZA pipeline run is successful.
+
+```bash
+yarn run convert-config disable-termination-protection
+```
+
+</details>
+
+
 > **⚠️ Note**: If an ASEA account resides in an Organizational Unit which is in the `ignored-ous` section of `global-config` block, that account will not be added to the resulting `accounts-config.yaml` output file. This is due to the way that the LZA handles accounts which it manages as well as logic in the config validator.
 
 ### Confirm Convert Configuration Outputs

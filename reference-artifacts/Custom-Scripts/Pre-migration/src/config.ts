@@ -35,4 +35,5 @@ export interface Config {
   localOnlyWrites?: boolean;
   skipDriftDetection?: boolean;
   localConfigFilePath?: string;
+  disableTerminationProtection?: boolean;
 }
