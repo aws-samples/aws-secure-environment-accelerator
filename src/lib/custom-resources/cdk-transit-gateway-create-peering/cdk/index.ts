@@ -34,12 +34,18 @@ export interface TransitGatewayCreatePeeringAttachmentProps {
 export class TransitGatewayCreatePeeringAttachment extends Construct {
   private readonly resource: cdk.CustomResource;
   private readonly role: iam.IRole;
+  private static attachmentCount: number;
 
   constructor(scope: Construct, id: string, props: TransitGatewayCreatePeeringAttachmentProps) {
     super(scope, id);
 
     const { transitGatewayId, targetTransitGatewayId, targetAccountId, targetRegion, tagValue } = props;
-    this.role = iam.Role.fromRoleArn(scope, `${resourceType}Role`, props.roleArn);
+
+    const roleConstructId =
+      ++TransitGatewayCreatePeeringAttachment.attachmentCount > 1
+        ? `${resourceType}Role${TransitGatewayCreatePeeringAttachment.attachmentCount}`
+        : `${resourceType}Role`;
+    this.role = iam.Role.fromRoleArn(scope, roleConstructId, props.roleArn);
 
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
