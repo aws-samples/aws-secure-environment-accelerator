@@ -161,6 +161,11 @@ const SnsFindingTypesDict = {
   None: 'Low',
 };
 
+type DocumentSet = {
+  shareTargets: { organizationalUnits?: string[]; accounts?: string[] };
+  documents: { name: string; template: string }[];
+};
+
 export class ConvertAseaConfig {
   private localUpdateOnly = false; // This is an option to not write config changes to codecommit, used only for development like yarn run convert-config local-update-only. Default is true
   private disableTerminationProtection = false;
@@ -193,6 +198,7 @@ export class ConvertAseaConfig {
   private albs: AlbConfigType[] = [];
   private writeToSources: WriteToSources;
   private configCheck: ConfigCheck = new ConfigCheck();
+  private documentSets: DocumentSet[] = [];
 
   constructor(config: Config) {
     this.localUpdateOnly = config.localOnlyWrites ?? false;
@@ -297,6 +303,8 @@ export class ConvertAseaConfig {
     await this.prepareNetworkConfig(aseaConfig);
     await this.prepareCustomizationsConfig(aseaConfig);
     await this.createDynamicPartitioningFile(aseaConfig);
+    this.rsyslogWarnings(aseaConfig);
+    this.madWarnings(aseaConfig);
 
     this.configCheck.printWarnings();
     this.configCheck.printErrors();
@@ -975,7 +983,7 @@ export class ConvertAseaConfig {
           thresholdType: 'PERCENTAGE',
           comparisonOperator: 'GREATER_THAN',
           threshold: alert['threshold-percent'],
-          address: alert.emails[0], // TODO: Confirm about using only zero index. ASEA Code supports multiple subscriber emails
+          address: alert.emails[0].toLocaleLowerCase(), // TODO: Confirm about using only zero index. ASEA Code supports multiple subscriber emails
           subscriptionType: 'EMAIL',
         })),
         deploymentTargets: {
@@ -1011,7 +1019,7 @@ export class ConvertAseaConfig {
           thresholdType: 'PERCENTAGE',
           comparisonOperator: 'GREATER_THAN',
           threshold: alert['threshold-percent'],
-          address: alert.emails[0], // TODO: Confirm about using only zero index. ASEA Code supports multiple subscriber emails
+          address: alert.emails[0].toLocaleLowerCase(), // TODO: Confirm about using only zero index. ASEA Code supports multiple subscriber emails
           subscriptionType: 'EMAIL',
         })),
         deploymentTargets: {
@@ -1515,7 +1523,7 @@ export class ConvertAseaConfig {
         accountsConfig.mandatoryAccounts.push({
           name: this.getAccountKeyforLza(aseaConfig['global-options'], accountKey),
           description: accountConfig.description,
-          email: accountConfig.email,
+          email: accountConfig.email.toLocaleLowerCase(),
           organizationalUnit: accountConfig.ou,
           warm: false,
         });
@@ -1529,7 +1537,7 @@ export class ConvertAseaConfig {
         accountsConfig.workloadAccounts.push({
           name: accountKey,
           description: accountConfig.description,
-          email: accountConfig.email,
+          email: accountConfig.email.toLocaleLowerCase(),
           organizationalUnit: nestedOu ? accountConfig['ou-path'] : accountConfig.ou,
           warm: false,
         });
@@ -1574,6 +1582,9 @@ export class ConvertAseaConfig {
       const vpcsInAccount = accountConfig.vpc;
       const firewallForAccount = this.prepareFirewallInstances(firewallsConfig, vpcsInAccount);
       if (firewallForAccount.length > 0) {
+        this.configCheck.addWarning(
+          `Third-Party firewalls are deployed in ${accountKey}. Please refer to documentation on how to manage these resources after the upgrade.`,
+        );
         instances.push(...firewallForAccount);
       }
     });
@@ -1745,13 +1756,12 @@ export class ConvertAseaConfig {
         accountsConfig.workloadAccounts.push({
           name: accountKey,
           description: accountConfig.description,
-          email: accountConfig.email,
+          email: accountConfig.email.toLocaleLowerCase(),
           organizationalUnit: accountConfig.ou,
           warm: false,
         });
         nestedOus.push({ account: accountKey, nestedOu: accountConfig['ou-path'] });
         this.setOuToNestedOuMap(accountConfig);
-        console.log('@@@@', this.ouToNestedOuMap);
       }
     });
 
@@ -1920,7 +1930,7 @@ export class ConvertAseaConfig {
           accounts: accountsDeployedTo,
           excludedAccounts: [],
           excludedRegions: [],
-          organizationalUnits: this.getNestedOusForDeploymentTargets(organizationsDeployedTo),
+          organizationalUnits: organizationsDeployedTo,
         },
         policy: path.join(LZA_SCP_CONFIG_PATH, scp.policy),
         strategy: undefined,
@@ -2123,11 +2133,6 @@ export class ConvertAseaConfig {
       const documents = ssmAutomation
         .flatMap((ssm) => ssm.documents)
         .filter((doc, indx, filtered) => filtered.findIndex((d) => d.name === doc.name) === indx);
-      type DocumentSet = {
-        shareTargets: { organizationalUnits?: string[]; accounts?: string[] };
-        documents: { name: string; template: string }[];
-      };
-      const documentSets: DocumentSet[] = [];
       for (const document of documents) {
         const documentContent = await this.s3.getObjectBodyAsString({
           Bucket: this.centralBucketName,
@@ -2151,7 +2156,6 @@ export class ConvertAseaConfig {
         ]);
         const documentSet: DocumentSet = {
           // Adding one document into documentSet to make shareTargets computation easy
-          // TODO: Consolidate
           documents: [
             {
               name: createSsmDocumentName(this.aseaPrefix, document.name),
@@ -2160,11 +2164,11 @@ export class ConvertAseaConfig {
           ],
           shareTargets: ssmDocumentSharedTo(document.name),
         };
-        documentSets.push(documentSet);
+        this.documentSets.push(documentSet);
       }
       securityConfigAttributes.centralSecurityServices.ssmAutomation = {
         excludeRegions,
-        documentSets,
+        documentSets: this.documentSets,
       };
     };
 
@@ -2423,6 +2427,31 @@ export class ConvertAseaConfig {
         };
 
         rulesWithTarget.push(rule);
+      }
+      //validation to ensure rules with remediation via ssm have document to deployed to matching ou's
+      for (const rule of rulesWithTarget) {
+        if (rule.remediation && rule.remediation.targetId) {
+          for (const documentSet of this.documentSets) {
+            for (const document of documentSet.documents) {
+              if (document.name === rule.remediation.targetId) {
+                for (const target of documentSet.shareTargets.organizationalUnits ?? []) {
+                  if (!rule.deployTo?.includes(target)) {
+                    this.configCheck.addWarning(
+                      `SSM Remediation document ${document.name} is not deployed to the same OU ${target} as the config rule ${rule.name}.`,
+                    );
+                  }
+                }
+                for (const target of documentSet.shareTargets.accounts ?? []) {
+                  if (!rule.deployTo?.includes(target)) {
+                    this.configCheck.addWarning(
+                      `SSM Remediation document ${document.name} is not deployed to the same account ${target} as the config rule ${rule.name}.`,
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
       }
       const consolidatedRules = _.groupBy(rulesWithTarget, function (item) {
         return `${item.deployTo?.join(',')}$${item.excludedAccounts?.join(',')}$${item.excludedRegions?.join(',')}`;
@@ -2793,6 +2822,9 @@ export class ConvertAseaConfig {
         const albs = this.albs.filter((lb) => lb.vpc === vpcConfig.name);
         if (albs.length === 0) return undefined;
         for (const alb of albs) {
+          this.configCheck.addWarning(
+            `Application Load Balancer ${alb.name} is deployed to ${accountKey}. Please refer to documentation on how to manage this resource after the upgrade.`,
+          );
           const albSubnets = this.getAzSubnets(vpcConfig, alb.subnets);
           const albConfig: ApplicationLoadBalancerConfig = {
             name: createAlbName(alb.name, accountKey!),
@@ -2898,16 +2930,21 @@ export class ConvertAseaConfig {
             sources: [],
           };
           for (const source of rule.source) {
+            let sourceVpcAccountKey: string | undefined = undefined;
+            if (SubnetSourceConfig.is(source)) {
+              sourceVpcAccountKey = this.vpcConfigs.find(({ vpcConfig }) => vpcConfig.name === source.vpc)?.accountKey;
+            }
             if (SecurityGroupSourceConfig.is(source)) {
               lzaRule.sources.push({
                 securityGroups: source['security-group'].map(securityGroupName),
               });
             } else if (SubnetSourceConfig.is(source)) {
               lzaRule.sources.push({
-                account: this.getAccountKeyforLza(globalOptions, source.account || accountKey || ''),
+                //account: this.getAccountKeyforLza(globalOptions, source.account || accountKey || ''),
+                account: this.getAccountKeyforLza(globalOptions, sourceVpcAccountKey || source.account || accountKey || ''),
                 subnets: source.subnet.flatMap((sourceSubnet) =>
                   aseaConfig
-                    .getAzSubnets(source.account || accountKey || '', source.vpc, sourceSubnet)
+                    .getAzSubnets(sourceVpcAccountKey || source.account || accountKey || '', source.vpc, sourceSubnet)
                     .map((s) => createSubnetName(source.vpc, s.subnetName, s.az)),
                 ),
                 vpc: createVpcName(source.vpc),
@@ -2920,7 +2957,6 @@ export class ConvertAseaConfig {
         }
         return lzaRules;
       };
-
       const prepareSecurityGroupsConfig = (vpcConfig: VpcConfig, accountKey?: string) => {
         const securityGroups = vpcConfig['security-groups'];
         if (!securityGroups) return [];
@@ -3695,5 +3731,25 @@ export class ConvertAseaConfig {
       Type: 'String',
       Overwrite: true,
     });
+  }
+
+  private rsyslogWarnings(aseaConfig: AcceleratorConfig) {
+    for (const accountKey of Object.keys(aseaConfig['mandatory-account-configs'])) {
+      if (aseaConfig['mandatory-account-configs'][accountKey].deployments?.rsyslog) {
+        this.configCheck.addWarning(
+          `rsyslog servers are deployed in ${accountKey}. Please refer to documentation on how to manage these resources after the upgrade.`,
+        );
+      }
+    }
+  }
+
+  private madWarnings(aseaConfig: AcceleratorConfig) {
+    for (const accountKey of Object.keys(aseaConfig['mandatory-account-configs'])) {
+      if (aseaConfig['mandatory-account-configs'][accountKey].deployments?.mad) {
+        this.configCheck.addWarning(
+          `Managed AD is deployed in ${accountKey}. Please refer to documentation on how to manage these resources after the upgrade.`,
+        );
+      }
+    }
   }
 }
