@@ -34,7 +34,7 @@ export interface TransitGatewayCreatePeeringAttachmentProps {
 export class TransitGatewayCreatePeeringAttachment extends Construct {
   private readonly resource: cdk.CustomResource;
   private readonly role: iam.IRole;
-  private static attachmentCount: number;
+  private static attachmentCount: number = 0;
 
   constructor(scope: Construct, id: string, props: TransitGatewayCreatePeeringAttachmentProps) {
     super(scope, id);
