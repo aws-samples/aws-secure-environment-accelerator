@@ -41,15 +41,11 @@ export class TransitGatewayCreatePeeringAttachment extends Construct {
 
     const { transitGatewayId, targetTransitGatewayId, targetAccountId, targetRegion, tagValue } = props;
 
-    console.log(`TransitGatewayCreatePeeringAttachment: before attachmentCount ${TransitGatewayCreatePeeringAttachment.attachmentCount}`);
-
     const roleConstructId =
       ++TransitGatewayCreatePeeringAttachment.attachmentCount > 1
         ? `${resourceType}Role${TransitGatewayCreatePeeringAttachment.attachmentCount}`
         : `${resourceType}Role`;
 
-    console.log(`TransitGatewayCreatePeeringAttachment: after attachmentCount ${TransitGatewayCreatePeeringAttachment.attachmentCount}`);
-    console.log(`TransitGatewayCreatePeeringAttachment: constructId ${roleConstructId} for ${id}`);
     this.role = iam.Role.fromRoleArn(scope, roleConstructId, props.roleArn);
 
     this.resource = new cdk.CustomResource(this, 'Resource', {

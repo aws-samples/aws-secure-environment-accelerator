@@ -41,8 +41,6 @@ export class TransitGatewayAcceptPeeringAttachment extends Construct {
         ? `${resourceType}Role${TransitGatewayAcceptPeeringAttachment.attachmentCount}`
         : `${resourceType}Role`;
 
-    console.log(`TransitGatewayCreatePeeringAttachment: constructId ${roleConstructId} for ${id}`);
-
     this.role = iam.Role.fromRoleArn(scope, roleConstructId, props.roleArn);
 
     this.resource = new cdk.CustomResource(this, 'Resource', {
