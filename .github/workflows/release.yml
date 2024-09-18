@@ -107,12 +107,12 @@ jobs:
           draft: true
           prerelease: false
       - name: Upload Artifact - AcceleratorInstaller-GitHub
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           path: ${{ steps.build.outputs.template_path }}
           name: ${{ steps.build.outputs.template_name }}
       - name: Upload Artifact - AcceleratorInstaller-CodeCommit
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           path: ${{ steps.build.outputs.template_path_code_commit }}
           name: ${{ steps.build.outputs.template_name_code_commit }}
@@ -176,7 +176,7 @@ jobs:
           echo ::set-output name=release-path::$(realpath "./${OUTPUT_DIR}")
           echo ::set-output name=release-asset-name::${BUILD_ASSET_NAME}
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build.outputs.release-asset-name }}
           path: ${{ steps.build.outputs.release-path }}
@@ -216,7 +216,7 @@ jobs:
           echo ::set-output name=release-path::$(realpath "./${OUTPUT_DIR}")
           echo ::set-output name=release-asset-name::${BUILD_ASSET_NAME}
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build.outputs.release-asset-name }}
           path: ${{ steps.build.outputs.release-path }}
@@ -229,7 +229,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: SEA-GUI - Download Archive
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         id: download-archive-sea-gui
         with:
           name: ${{ needs.build-sea-gui.outputs.release-asset-name }}
@@ -257,7 +257,7 @@ jobs:
           asset_name: ${{ steps.create-archive-sea-gui.outputs.release-asset-name }}
           asset_content_type: application/zip
       - name: SEA-Config-Schema - Download Archive
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         id: download-archive-sea-config-schema
         with:
           name: ${{ needs.build-sea-config-schema.outputs.release-asset-name }}
