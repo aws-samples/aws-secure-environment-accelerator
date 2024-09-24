@@ -43,6 +43,8 @@ The preparation steps can be done in advance, can be run multiple times and will
 - You can run the scripts from your local workstation
 - You will need Git, AWS CLI, NodeJS and Yarn installed
 - Complete the following instructions to ensure the pre-requisites are installed
+- We highly recommend having appropriate AWS Support plans on all AWS Accounts of your landing zone. For any issues encountered during the upgrade process you need to open a support case to get assistance and exchange relevant information with AWS staff. At a minimum Developer support is needed on the management account and core landing zones accounts (Logging, Security, Networking and Perimeter) to troubleshoot any cross-account issues. Business support is the minimum recommended tier if you have production workloads in AWS
+- Upgrading your landing zone from ASEA to LZA requires advanced knowledge of configuring and operating ASEA and LZA landing zones. This operation should be led by your most-experienced resources responsible for your current landing zone operations. Review all the documentation in this upgrade guide and Landing Zone Accelerator implementation guide.
 
 #### Verify npm installation
 
@@ -1058,6 +1060,17 @@ cdkOptions:
   useManagementAccessRole: false
   customDeploymentRole: ASEA-LZA-DeploymentRole
 ```
+
+### Service Control Policies (SCP)
+During the upgrade, Service Control Policies are kept as-is and not modified. You retain all existing customizations. If you customized the SCPs in ASEA, review your changes to ensure that resources deployed by the accelerator can be modified by the accelerator Pipeline role.  This is achieved by having the Organization Admin Role and <ACCELERATOR_PREFIX>-PipelineRole listed in several SCP conditions such as:
+```
+"Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*", "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}"]
+        }
+      }
+```
+Verify you have not removed those in your customizations before starting the upgrade.
 
 ### SSM Parameters to reference accelerator resources
 

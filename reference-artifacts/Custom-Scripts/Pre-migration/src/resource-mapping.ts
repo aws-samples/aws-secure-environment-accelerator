@@ -388,34 +388,56 @@ export class ResourceMapping {
       if (!cfnClients) {
         throw new Error(`could not find cfnClients for ${stackAndResources.environment}`);
       }
-      detectDriftPromises.push(this.getEnvironmentDrift(stackAndResources, cfnClients));
+      detectDriftPromises.push(this.getEnvironmentDrift(stackAndResources.stackName,
+        stackAndResources.region,
+        stackAndResources.resourceMap,
+        stackAndResources.environment.accountId,
+        cfnClients));
+
+      if (stackAndResources.nestedStacks) {
+        for (const nestedStack of Object.values(stackAndResources.nestedStacks)) {
+          if (!nestedStack.resourceMap)
+            continue;
+
+          detectDriftPromises.push(this.getEnvironmentDrift(nestedStack.stackName,
+            nestedStack.region,
+            nestedStack.resourceMap,
+            nestedStack.accountId,
+            cfnClients));
+        }
+      }
+
     }
     const detectDriftResults = await Promise.all(detectDriftPromises);
     return detectDriftResults.flat();
   }
 
   async getEnvironmentDrift(
-    stackAndResourceMap: StacksAndResourceMap,
+    stackName: string,
+    region: string,
+    resourceMap: LogicalAndPhysicalResourceIds[],
+    accountId: string,
     cfnClients: CfnClients,
   ): Promise<WriteToSourcesTypes.PutFiles[]> {
     const driftDetectionResources = await this.getStackDrift(
       cfnClients.cfnNative,
-      stackAndResourceMap.stackName,
-      stackAndResourceMap.resourceMap,
+      stackName,
+      resourceMap,
     );
-    const s3Prefix = await this.getFilePrefix(stackAndResourceMap.stackName, stackAndResourceMap.region);
+
+    const s3Prefix = await this.getFilePrefix(stackName, region);
     const driftDetectionCsv = this.convertToCSV(driftDetectionResources);
-    const driftDetectionFileName = `${stackAndResourceMap.stackName}-drift-detection.csv`;
+    const driftDetectionFileName = `${stackName}-drift-detection.csv`;
     const driftDetectionFilePath = s3Prefix;
-    const resourceFileName = `${stackAndResourceMap.stackName}-resources.csv`;
+    const resourceFileName = `${stackName}-resources.csv`;
     const resourceFilePath = s3Prefix;
-    const resourceFileCSV = this.convertToCSV(stackAndResourceMap.resourceMap);
+    const resourceFileCSV = this.convertToCSV(resourceMap);
     for (const resource of driftDetectionResources) {
       if (resource.DriftStatus === 'MODIFIED') {
         this.driftedResources.push({
-          Account: stackAndResourceMap.environment.accountId,
-          Region: stackAndResourceMap.region,
-          StackName: stackAndResourceMap.stackName,
+          Account: accountId,
+          Region: region,
+          StackName: stackName,
           ...resource,
         });
       }
@@ -489,6 +511,7 @@ export class ResourceMapping {
           LogicalResourceId: resource.logicalResourceId,
           DriftStatus: driftDetectionResponse.StackResourceDrift.StackResourceDriftStatus,
           PropertyDifferences: JSON.stringify(driftDetectionResponse.StackResourceDrift.PropertyDifferences) ?? 'None',
+          PropertyDifferencesPaths: driftDetectionResponse.StackResourceDrift.PropertyDifferences?.flatMap((x) => (x.PropertyPath)).toString()
         });
       } catch (e: any) {
         if (e.message.includes('Drift detection is not supported')) {
