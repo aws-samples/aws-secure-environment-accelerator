@@ -3700,6 +3700,12 @@ export class ConvertAseaConfig {
 
   private async createDynamicPartitioningFile(aseaConfig: AcceleratorConfig) {
     const partitions = aseaConfig['global-options']['central-log-services']['dynamic-s3-log-partitioning'];
+    //Add extra partition for vpc-flow-logs for new behavior
+    partitions?.push({
+      logGroupPattern: `${this.aseaPrefix}NetworkVpcStack*VpcFlowLogs*`,
+      s3Prefix: 'vpcflowlogs',
+    });
+
     if (partitions) {
       await this.writeToSources.writeFiles([
         {

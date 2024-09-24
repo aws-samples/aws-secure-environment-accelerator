@@ -30,7 +30,7 @@ You can find more details about each occurence by inspecting the drift results i
 
 - The next screen will show the detailed differences. For most resources you will also have a link to open the resource in the console
 
-### Analyze and fix the drifted resoures
+### Analyze and fix the drifted resources
 
 Each change should be analyzed, confirm if it is expected and why and determine if a corrective action is needed
 
@@ -43,12 +43,14 @@ Each change should be analyzed, confirm if it is expected and why and determine 
 
 Some of the resources deployed by ASEA are modified by other mechanisms in the normal course of operations of the accelerator. These resources will show as drifted, but they can be safely ignored.
 
+**Note about tags and drift**: ASEA uses CloudFormation stack-level tags to apply tags to all supported resources in a stack. Tags applied at stack-level can generate false positives on drift detection. You can review the column `PropertyDifferencesPaths` from the `AllDriftDetectedResources.csv` file to verify the properties that have drifted to confirm if only tags are drifted on the resource.
+
 | Stack                                                 | LogicalResourceID               | Notes                                                                               |
 | ----------------------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------- |
-| _Multiple_                                            | GatherInventoryResourceDataSync | Multiple occurence of this finding can be reported in multiple accounts and regions |
+| _Multiple_                                            | GatherInventoryResourceDataSync | Multiple occurrence of this finding can be reported in multiple accounts and regions |
 | ASEA-LogArchive-Phase0                                | CWLKinesisStreamRole            | Inline policy dynamically added to role                                             |
 | ASEA-Perimeter-Phase1-VpcStackPerimeterNestedStack... | PerimeterTgwAttach              | Difference in tags                                                                  |
 | ASEA-SharedNetwork-Phase1-VpcStack...                 | \*TgwAttach                     | Difference in tags                                                                  |
-| ASEA-SharedNetwork-Phase2                             | FlowLog[VPC]cloudwatchlogs      | One occurence per VPC. Difference in tags                                           |
-| ASEA-SharedNetwork-Phase2-VpcEndpoints1               | EndpointEndpoint...             | Private hosted zone for interface endpoints are shared to additionnal VPCs          |
-| ASEA-SharedNetwork-Phase3                             | _private domain name_           | Private hosted zone for interface endpoints are shared to additionnal VPCs          |
+| ASEA-SharedNetwork-Phase2                             | FlowLog[VPC]cloudwatchlogs      | One occurrence per VPC. Difference in tags                                           |
+| ASEA-SharedNetwork-Phase2-VpcEndpoints1               | EndpointEndpoint...             | Private hosted zone for interface endpoints are shared to additional VPCs          |
+| ASEA-SharedNetwork-Phase3                             | _private domain name_           | Private hosted zone for interface endpoints are shared to additional VPCs          |
