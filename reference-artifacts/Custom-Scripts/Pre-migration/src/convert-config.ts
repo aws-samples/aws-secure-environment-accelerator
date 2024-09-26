@@ -1752,7 +1752,7 @@ export class ConvertAseaConfig {
     };
     const nestedOus: ConvertConfigTypes.NestedOuType[] = [];
     Object.entries(aseaConfig['workload-account-configs']).forEach(([accountKey, accountConfig]) => {
-      if (accountConfig['ou-path']) {
+      if (accountConfig['ou-path'] && (accountConfig['ou-path'] != accountConfig.ou)) {
         accountsConfig.workloadAccounts.push({
           name: accountKey,
           description: accountConfig.description,
@@ -2826,6 +2826,26 @@ export class ConvertAseaConfig {
             `Application Load Balancer ${alb.name} is deployed to ${accountKey}. Please refer to documentation on how to manage this resource after the upgrade.`,
           );
           const albSubnets = this.getAzSubnets(vpcConfig, alb.subnets);
+          let listeners: any[] = [];
+          if (alb.targets?.length > 0) {
+            listeners = [
+              {
+                name: `${alb.name}-listener`,
+                port: alb.ports,
+                protocol: 'HTTPS',
+                type: alb['action-type'] as keyof typeof ActionType,
+                certificate: undefined,
+                sslPolicy: alb['security-policy'] as keyof typeof SslPolicy,
+                fixedResponseConfig: undefined,
+                targetGroup: `${alb.name}-${alb.targets[0]['target-name']}`.substring(0, 31),
+                //targetGroup: `${alb.name}-health-check-Lambda`,
+                //forwardConfig: { targetGroupStickinessConfig: { durationSeconds: 3600, enabled: true } },
+                forwardConfig: undefined,
+                redirectConfig: undefined,
+                order: undefined,
+              },
+            ];
+          }
           const albConfig: ApplicationLoadBalancerConfig = {
             name: createAlbName(alb.name, accountKey!),
             scheme: alb.scheme as keyof typeof Scheme,
@@ -2842,23 +2862,7 @@ export class ConvertAseaConfig {
               http2Enabled: true,
               wafFailOpen: false,
             },
-            listeners: [
-              {
-                name: `${alb.name}-listener`,
-                port: alb.ports,
-                protocol: 'HTTPS',
-                type: alb['action-type'] as keyof typeof ActionType,
-                certificate: undefined,
-                sslPolicy: alb['security-policy'] as keyof typeof SslPolicy,
-                fixedResponseConfig: undefined,
-                targetGroup: `${alb.name}-${alb.targets[0]['target-name']}`.substring(0, 31),
-                //targetGroup: `${alb.name}-health-check-Lambda`,
-                //forwardConfig: { targetGroupStickinessConfig: { durationSeconds: 3600, enabled: true } },
-                forwardConfig: undefined,
-                redirectConfig: undefined,
-                order: undefined,
-              },
-            ],
+            listeners,
           };
           lzaAlbs.applicationLoadBalancers.push(albConfig);
         }
@@ -3701,10 +3705,10 @@ export class ConvertAseaConfig {
   private async createDynamicPartitioningFile(aseaConfig: AcceleratorConfig) {
     const partitions = aseaConfig['global-options']['central-log-services']['dynamic-s3-log-partitioning'];
     //Add extra partition for vpc-flow-logs for new behavior
-    partitions?.push({
-      logGroupPattern: `${this.aseaPrefix}NetworkVpcStack*VpcFlowLogs*`,
-      s3Prefix: 'vpcflowlogs',
-    });
+    // partitions?.push({
+    //   logGroupPattern: `${this.aseaPrefix}NetworkVpcStack*VpcFlowLogs*`,
+    //   s3Prefix: 'vpcflowlogs',
+    // });
 
     if (partitions) {
       await this.writeToSources.writeFiles([
