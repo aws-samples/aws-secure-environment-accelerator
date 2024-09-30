@@ -720,8 +720,12 @@ export class ConvertAseaConfig {
       }
     }
 
-    const ousForS3EncryptionDeploymentTargetsWithoutNestedOus = Object.entries(aseaConfig['organizational-units']).map(([ouName]) => ouName);
-    const ouForS3EncrpyionDeploymentTargetsWithOus = this.getNestedOusForDeploymentTargets(ousForS3EncryptionDeploymentTargetsWithoutNestedOus);
+    const ousForS3EncryptionDeploymentTargetsWithoutNestedOus = Object.entries(aseaConfig['organizational-units']).map(
+      ([ouName]) => ouName,
+    );
+    const ouForS3EncrpyionDeploymentTargetsWithOus = this.getNestedOusForDeploymentTargets(
+      ousForS3EncryptionDeploymentTargetsWithoutNestedOus,
+    );
 
     const globalConfigAttributes: { [key: string]: unknown } = {
       externalLandingZoneResources: {
@@ -879,7 +883,7 @@ export class ConvertAseaConfig {
         if (nestedOusForOu) {
           const nestedOuSet = this.ouToNestedOuMap.get(ouWithoutNestedOus);
           if (nestedOuSet) {
-            ouWithNestedOus = [...ouWithNestedOus, ... Array.from(nestedOuSet)];
+            ouWithNestedOus = [...ouWithNestedOus, ...Array.from(nestedOuSet)];
           }
         }
       }
@@ -1752,7 +1756,7 @@ export class ConvertAseaConfig {
     };
     const nestedOus: ConvertConfigTypes.NestedOuType[] = [];
     Object.entries(aseaConfig['workload-account-configs']).forEach(([accountKey, accountConfig]) => {
-      if (accountConfig['ou-path'] && (accountConfig['ou-path'] != accountConfig.ou)) {
+      if (accountConfig['ou-path'] && accountConfig['ou-path'] != accountConfig.ou) {
         accountsConfig.workloadAccounts.push({
           name: accountKey,
           description: accountConfig.description,
@@ -1770,13 +1774,16 @@ export class ConvertAseaConfig {
 
   private setOuToNestedOuMap(accountConfig: { [x: string]: any; ou: string }) {
     const currentNestedOusInMap = this.ouToNestedOuMap.get(accountConfig.ou);
-      if (currentNestedOusInMap && !accountConfig['ou-path'].includes('/')) {
-        //This actually takes the OU name but doesn't contain the higher level OU
-        this.ouToNestedOuMap.set(accountConfig['ou-path'].split('/')[0], new Set([...currentNestedOusInMap, ...accountConfig['ou-path']]));
-      } else {
-        this.ouToNestedOuMap.set(accountConfig['ou-path'].split('/')[0], new Set([accountConfig['ou-path']]));
-      }
+    if (currentNestedOusInMap && !accountConfig['ou-path'].includes('/')) {
+      //This actually takes the OU name but doesn't contain the higher level OU
+      this.ouToNestedOuMap.set(
+        accountConfig['ou-path'].split('/')[0],
+        new Set([...currentNestedOusInMap, ...accountConfig['ou-path']]),
+      );
+    } else {
+      this.ouToNestedOuMap.set(accountConfig['ou-path'].split('/')[0], new Set([accountConfig['ou-path']]));
     }
+  }
 
   /**
    * Retrieves Nested OUs
@@ -1852,7 +1859,7 @@ export class ConvertAseaConfig {
     // Check and prepare for nested OUs
     const nestedOus = this.prepareNestedOus(aseaConfig);
     //Get List of OU names from OU object
-    const listOfOus = organizationConfig.organizationalUnits.map(ou => ou.name);
+    const listOfOus = organizationConfig.organizationalUnits.map((ou) => ou.name);
     // Check for Nested OU in existing list before pushing on, also checking for / to ensure nested OU
     nestedOus.forEach((ouItem) => {
       if (!listOfOus.includes(ouItem)) {
@@ -2561,8 +2568,8 @@ export class ConvertAseaConfig {
       const processedCertificates = new Set<string>();
       const getTransformedCertificate = async (certificate: CertificateConfig) => {
         const ousWithOutNestedOus = organizationalUnitsConfig
-        .filter(([_ouKey, ouConfig]) => !!ouConfig.certificates?.find((c) => c.name === certificate.name))
-        .map(([ouKey]) => ouKey);
+          .filter(([_ouKey, ouConfig]) => !!ouConfig.certificates?.find((c) => c.name === certificate.name))
+          .map(([ouKey]) => ouKey);
 
         const certificateConfig: CertificateType = {
           name: certificate.name,
@@ -2945,7 +2952,10 @@ export class ConvertAseaConfig {
             } else if (SubnetSourceConfig.is(source)) {
               lzaRule.sources.push({
                 //account: this.getAccountKeyforLza(globalOptions, source.account || accountKey || ''),
-                account: this.getAccountKeyforLza(globalOptions, sourceVpcAccountKey || source.account || accountKey || ''),
+                account: this.getAccountKeyforLza(
+                  globalOptions,
+                  sourceVpcAccountKey || source.account || accountKey || '',
+                ),
                 subnets: source.subnet.flatMap((sourceSubnet) =>
                   aseaConfig
                     .getAzSubnets(sourceVpcAccountKey || source.account || accountKey || '', source.vpc, sourceSubnet)
@@ -3141,6 +3151,12 @@ export class ConvertAseaConfig {
       const prepareTgwAttachConfig = (vpcConfig: VpcConfig) => {
         const tgwAttach = vpcConfig['tgw-attach'];
         if (!tgwAttach) return;
+        let routeTableAssociations: string[] | undefined = tgwAttach['tgw-rt-associate'].map((routeTableName) =>
+          transitGatewayRouteTableName(routeTableName, tgwAttach['associate-to-tgw']),
+        );
+        if (!routeTableAssociations || routeTableAssociations.length === 0) {
+          routeTableAssociations = undefined;
+        }
         return [
           {
             name: createTgwAttachName(vpcConfig.name, tgwAttach['associate-to-tgw']),
@@ -3151,9 +3167,7 @@ export class ConvertAseaConfig {
             subnets: tgwAttach['attach-subnets']
               ?.flatMap((s) => this.getAzSubnets(vpcConfig, s))
               .map((s) => createSubnetName(vpcConfig.name, s.subnetName, s.az)),
-            routeTableAssociations: tgwAttach['tgw-rt-associate'].map((routeTableName) =>
-              transitGatewayRouteTableName(routeTableName, tgwAttach['associate-to-tgw']),
-            ),
+            routeTableAssociations,
             routeTablePropagations: tgwAttach['tgw-rt-propagate'].map((routeTableName) =>
               transitGatewayRouteTableName(routeTableName, tgwAttach['associate-to-tgw']),
             ),
