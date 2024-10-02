@@ -3741,6 +3741,12 @@ export class ConvertAseaConfig {
     //   s3Prefix: 'vpcflowlogs',
     // });
 
+    //Add partition for LZA naming of ssm session manager logging
+    partitions?.push({
+      logGroupPattern: `${this.aseaPrefix}sessionmanager-logs`,
+      s3Prefix: 'ssm',
+    });
+
     if (partitions) {
       await this.writeToSources.writeFiles([
         {
