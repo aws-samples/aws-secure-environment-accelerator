@@ -406,6 +406,16 @@ export class PostMigration {
       phase: '1',
       partialLogicalId: 'KinesisStreamRoleLookup',
     });
+    await this.markDuplicateResourcesForRemoval({
+      mappingConfig,
+      phase: '5',
+      partialLogicalId: 'AddSubscriptionFilter',
+    });
+    await this.markDuplicateResourcesForRemoval({
+      mappingConfig,
+      phase: '5',
+      partialLogicalId: 'CentralLoggingSubscriptionFilter',
+    });
   }
 
   async loadMappingResourceFiles(
