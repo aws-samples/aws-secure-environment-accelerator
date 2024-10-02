@@ -842,7 +842,7 @@ export class ConvertAseaConfig {
             },
           },
           dynamicPartitioning: dynamicLogPartitioning ? 'dynamic-partitioning/log-filters.json' : undefined,
-          replaceLogDestinationArn: `arn:aws:logs:${this.region}:${logAccountId}:destination/${this.aseaPrefix}LogDestinationOrg`,
+          replaceLogDestinationArn: `arn:aws:logs:${this.region}:${logAccountId}:destination:${this.aseaPrefix}LogDestinationOrg`,
         },
       },
       reports: {
