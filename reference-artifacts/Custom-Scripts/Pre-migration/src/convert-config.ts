@@ -1565,7 +1565,7 @@ export class ConvertAseaConfig {
     customizations = {
       cloudFormationStacks,
     };
-    const firewalls = await this.prepareFirewallConfig(aseaConfig);
+    const firewalls = this.prepareFirewallConfig(aseaConfig);
 
     const customizationsConfig: CustomizationsConfigTypes = {
       customizations,
@@ -1576,7 +1576,7 @@ export class ConvertAseaConfig {
     await this.writeToSources.writeFiles([{ fileContent: yamlConfig, fileName: CustomizationsConfig.FILENAME }]);
   }
 
-  private async prepareFirewallConfig(aseaConfig: AcceleratorConfig) {
+  private prepareFirewallConfig(aseaConfig: AcceleratorConfig) {
     let firewalls: Ec2FirewallConfig | undefined;
     const instances: Ec2FirewallInstanceConfig[] = [];
     //Top Level Firewalls
@@ -3269,6 +3269,8 @@ export class ConvertAseaConfig {
             target?: string;
             targetAvailabilityZone?: string;
           }[] = [];
+          const firewallConfigs = this.prepareFirewallConfig(aseaConfig);
+          const firewallInstances = firewallConfigs.instances;
           routeTable.routes?.forEach((route, index) => {
             if (route.target.startsWith('NFW_')) {
               lzaRoutes.push({
@@ -3316,6 +3318,21 @@ export class ConvertAseaConfig {
                 type: 'natGateway',
                 destination: route.destination,
                 target: createNatGatewayName(vpcConfig.natgw!.subnet.name, route.target.split('_az')[1].toLowerCase()),
+              });
+            } else if (route.target === 'firewall') {
+              const firewallNameWithAz = `${route.name}_az${route.az?.toUpperCase()}`;
+              // eslint-disable-next-line max-len
+              const matchedFirewall = firewallInstances?.find(instance => instance.name.toLocaleLowerCase() === firewallNameWithAz.toLocaleLowerCase());
+              const networkInterfaces = matchedFirewall?.launchTemplate.networkInterfaces;
+              // eslint-disable-next-line max-len
+              const matchedEni = networkInterfaces?.find(networkInterface => networkInterface.description?.toLocaleLowerCase() === route.port?.toLocaleLowerCase());
+              const deviceIndex = matchedEni?.deviceIndex;
+              const eniLookupString = `$\{ACCEL_LOOKUP::EC2:ENI_${deviceIndex}:${firewallNameWithAz}:Id\}`;
+              lzaRoutes.push({
+                name: `${routeTable.name}_ENI_${deviceIndex}_${firewallNameWithAz}`,
+                type: 'networkInterface',
+                destination: route.destination,
+                target: eniLookupString,
               });
             } else if (route.target === 'pcx') {
               const destination = route.destination as unknown as PcxRouteConfig;
