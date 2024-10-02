@@ -416,6 +416,12 @@ export class PostMigration {
       phase: '5',
       partialLogicalId: 'CentralLoggingSubscriptionFilter',
     });
+
+    await this.markDuplicateResourcesForRemoval({
+      mappingConfig,
+      phase: '2',
+      resourceType: 'AWS::EC2::FlowLog',
+    });
   }
 
   async loadMappingResourceFiles(
