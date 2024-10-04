@@ -387,13 +387,13 @@ export class PostMigration {
     await this.markDuplicateResourcesForRemoval({
       mappingConfig,
       phase: '1',
-      resourceType: '	AWS::Logs::Destination',
+      resourceType: 'AWS::Logs::Destination',
     });
 
     await this.markDuplicateResourcesForRemoval({
       mappingConfig,
       phase: '1',
-      resourceType: '	AWS::Kinesis::Stream',
+      resourceType: 'AWS::Kinesis::Stream',
     });
 
     await this.markDuplicateResourcesForRemoval({
