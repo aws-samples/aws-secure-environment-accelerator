@@ -20,6 +20,9 @@ export class ConfigCheck {
   public async checkUnsupportedConfig(aseaConfig: AcceleratorConfig) {
     await this.checkLoadBalancersConfig(aseaConfig);
     await this.checkRoute53ZonesConfig(aseaConfig);
+    this.madWarnings(aseaConfig);
+    this.rsyslogWarnings(aseaConfig);
+    this.firewallWarnings(aseaConfig);
   }
 
   /**
@@ -160,6 +163,42 @@ export class ConfigCheck {
     }
   }
 
+  private rsyslogWarnings(aseaConfig: AcceleratorConfig) {
+    for (const accountKey of Object.keys(aseaConfig['mandatory-account-configs'])) {
+      if (aseaConfig['mandatory-account-configs'][accountKey].deployments?.rsyslog &&
+            aseaConfig['mandatory-account-configs'][accountKey].deployments?.rsyslog?.deploy) {
+        this.addWarning(
+          `rsyslog servers are deployed in ${accountKey}. Please refer to documentation on how to manage these resources after the upgrade.`,
+        );
+      }
+    }
+  }
+
+  private madWarnings(aseaConfig: AcceleratorConfig) {
+    for (const accountKey of Object.keys(aseaConfig['mandatory-account-configs'])) {
+      if (aseaConfig['mandatory-account-configs'][accountKey].deployments?.mad &&
+      aseaConfig['mandatory-account-configs'][accountKey].deployments?.mad?.deploy) {
+        this.addWarning(
+          `Managed AD is deployed in ${accountKey}. Please refer to documentation on how to manage these resources after the upgrade.`,
+        );
+      }
+    }
+  }
+
+  private firewallWarnings(aseaConfig: AcceleratorConfig) {
+    Object.entries(aseaConfig['mandatory-account-configs']).forEach(([accountKey, accountConfig]) => {
+      if (accountConfig.deployments?.firewalls) {
+        for (const firewall of accountConfig.deployments?.firewalls) {
+          if (firewall.deploy && firewall.type === 'EC2') {
+            this.addWarning(
+              `Third-Party firewalls ${firewall.name} are deployed in ${accountKey}. Please refer to documentation on how to manage these resources after the upgrade.`,
+            );
+          }
+        }
+      }
+    });
+  }
+
   public printWarnings() {
     if (!this.warnings || this.warnings.length <= 0) {
       return;
@@ -186,7 +225,7 @@ export class ConfigCheck {
     console.log('\x1b[31m');
     console.log('ERROR');
     console.log('========', '\x1b[0m');
-    this.warnings.forEach((errors) => {
+    this.errors.forEach((errors) => {
       console.error(`\t- ${errors}`);
     });
     console.log('========');

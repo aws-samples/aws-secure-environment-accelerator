@@ -39,11 +39,17 @@ Each change should be analyzed, confirm if it is expected and why and determine 
   - If it could have been done through the config file, you should update the config file accordingly and re-run the state machine to remove the drift
   - If the change was done manually because it cannot be done through ASEA (i.e. Direct Connect configuration, adding rules to ALB listeners, etc.) you should document the change in a central registry. Special attention should be given to those elements during the upgrade and in the post-upgrade testing phase.
 
+> **⚠️ Warning**: Failure to detect and fix drift before the upgrade can result in the configuration of resources to be reverted to the state described in the configuration file.
+
+Pay special attention to drift on networking resources such as route tables and security groups. Drift detection will only detect drift on resources deployed by ASEA and not all resource types support CloudFormation drift detection. (see the [Resource type support](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resource-import-supported-resources.html) table). Review the [Considerations when detecting drift](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-stack-drift.html#drift-considerations) section to understand edge cases where CloudFormation may not be able to always return accurate drift results.
+
+As an example, drift detection is not supported for resource type `AWS::EC2::SubnetRouteTableAssociation`. If you created route tables outside the accelerator and manually associated these route tables with an ASEA subnet, this change won't be detected in drift detection and the route table association will be reverted to the one defined in the configuration when installing LZA.
+
+> **⚠️ Warning**: Remember that drift detection is a tool to help you identify manual changes done outside the accelerator, but it won't identify every change. Carefully review and analyze ALL changes done to accelerator resources outside of the configuration file.
+
 ## Expected drift (can generally be ignored)
 
-Some of the resources deployed by ASEA are modified by other mechanisms in the normal course of operations of the accelerator. These resources will show as drifted, but they can be safely ignored.
-
-**Note about tags and drift**: ASEA uses CloudFormation stack-level tags to apply tags to all supported resources in a stack. Tags applied at stack-level can generate false positives on drift detection. You can review the column `PropertyDifferencesPaths` from the `AllDriftDetectedResources.csv` file to verify the properties that have drifted to confirm if only tags are drifted on the resource.
+Some of the resources deployed by ASEA are modified by other mechanisms in the normal course of operations of the accelerator (e.g. the `EC2-INSTANCE-PROFILE-PERMISSIONS` Config Rule that dynamically attaches permissions to IAM instance profiles roles). These resources will show as drifted, but they can be safely ignored. A `CanIgnore` flag in `AllDriftDetectedResources.csv` can help you identify drift instances that can generally be safely ignored.
 
 | Stack                                                 | LogicalResourceID               | Notes                                                                               |
 | ----------------------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------- |
@@ -54,3 +60,6 @@ Some of the resources deployed by ASEA are modified by other mechanisms in the n
 | ASEA-SharedNetwork-Phase2                             | FlowLog[VPC]cloudwatchlogs      | One occurrence per VPC. Difference in tags                                           |
 | ASEA-SharedNetwork-Phase2-VpcEndpoints1               | EndpointEndpoint...             | Private hosted zone for interface endpoints are shared to additional VPCs          |
 | ASEA-SharedNetwork-Phase3                             | _private domain name_           | Private hosted zone for interface endpoints are shared to additional VPCs          |
+
+
+**Note about tags and drift**: ASEA uses CloudFormation stack-level tags to apply tags to all supported resources in a stack. Tags applied at stack-level can generate false positives on drift detection. You can review the column `PropertyDifferencesPaths` from the `AllDriftDetectedResources.csv` file to verify the properties that have drifted to confirm if only tags are drifted on the resource. 

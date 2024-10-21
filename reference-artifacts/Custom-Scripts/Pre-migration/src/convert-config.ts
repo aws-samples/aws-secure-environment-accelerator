@@ -303,8 +303,6 @@ export class ConvertAseaConfig {
     await this.prepareNetworkConfig(aseaConfig);
     await this.prepareCustomizationsConfig(aseaConfig);
     await this.createDynamicPartitioningFile(aseaConfig);
-    this.rsyslogWarnings(aseaConfig);
-    this.madWarnings(aseaConfig);
 
     this.configCheck.printWarnings();
     this.configCheck.printErrors();
@@ -1586,9 +1584,6 @@ export class ConvertAseaConfig {
       const vpcsInAccount = accountConfig.vpc;
       const firewallForAccount = this.prepareFirewallInstances(firewallsConfig, vpcsInAccount);
       if (firewallForAccount.length > 0) {
-        this.configCheck.addWarning(
-          `Third-Party firewalls are deployed in ${accountKey}. Please refer to documentation on how to manage these resources after the upgrade.`,
-        );
         instances.push(...firewallForAccount);
       }
     });
@@ -3780,23 +3775,9 @@ export class ConvertAseaConfig {
     });
   }
 
-  private rsyslogWarnings(aseaConfig: AcceleratorConfig) {
-    for (const accountKey of Object.keys(aseaConfig['mandatory-account-configs'])) {
-      if (aseaConfig['mandatory-account-configs'][accountKey].deployments?.rsyslog) {
-        this.configCheck.addWarning(
-          `rsyslog servers are deployed in ${accountKey}. Please refer to documentation on how to manage these resources after the upgrade.`,
-        );
-      }
-    }
-  }
 
-  private madWarnings(aseaConfig: AcceleratorConfig) {
-    for (const accountKey of Object.keys(aseaConfig['mandatory-account-configs'])) {
-      if (aseaConfig['mandatory-account-configs'][accountKey].deployments?.mad) {
-        this.configCheck.addWarning(
-          `Managed AD is deployed in ${accountKey}. Please refer to documentation on how to manage these resources after the upgrade.`,
-        );
-      }
-    }
-  }
 }
+// function createFirewallTarget(vpcConfig: VpcConfig, arg1: string): string[] | undefined {
+//   const listofFirewallTargets: string[] = [];
+//   return listofFirewallTargets;
+// }
