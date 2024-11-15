@@ -976,7 +976,7 @@ export class AssumedByConfig implements t.TypeOf<typeof IamConfigTypes.assumedBy
    *
    * IAM principal of sns service type (i.e. new ServicePrincipal('sns.amazonaws.com')), which can assume this role.
    */
-  readonly principal: string = '';
+  readonly principal: string | undefined;
   /**
    * Type of IAM principal type like service, account or provider, which can assume this role.
    */
