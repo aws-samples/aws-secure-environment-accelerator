@@ -16,7 +16,6 @@ import * as yaml from 'js-yaml';
 import _ from 'lodash';
 import {
   AcceleratorConfig,
-  AlbConfigType,
   CertificateConfig,
   GlobalOptionsConfig,
   IamPolicyConfig,
@@ -55,7 +54,6 @@ import {
 import { StackOutput, findValuesFromOutputs, loadOutputs } from './common/outputs/load-outputs';
 import { loadAccounts } from './common/utils/accounts';
 import {
-  createAlbName,
   createConfigRuleName,
   createNaclName,
   createNatGatewayName,
@@ -83,7 +81,6 @@ import { Config } from './config';
 import { AccountsConfig, AccountsConfigType } from './config/accounts-config';
 import { Region, ShareTargets } from './config/common-types';
 import {
-  ApplicationLoadBalancerConfig,
   BlockDeviceMappingItem,
   CustomizationsConfig,
   CustomizationsConfigTypes,
@@ -91,7 +88,6 @@ import {
   Ec2FirewallInstanceConfig,
   LaunchTemplateConfig,
   NetworkInterfaceItemConfig,
-  TargetGroupItemConfig,
 } from './config/customizations-config';
 import { GlobalConfig } from './config/global-config';
 import {
@@ -195,7 +191,6 @@ export class ConvertAseaConfig {
   private regionsWithoutVpc: string[] = [];
   private accountsWithoutVpc: string[] = [];
   private accountsWithVpc: Set<string> = new Set<string>([]);
-  private albs: AlbConfigType[] = [];
   private writeToSources: WriteToSources;
   private configCheck: ConfigCheck = new ConfigCheck();
   private documentSets: DocumentSet[] = [];
@@ -253,7 +248,6 @@ export class ConvertAseaConfig {
     );
     const accountKeys = aseaConfig.getAccountConfigs().map(([accountKey]) => accountKey);
     this.accountsWithVpc = new Set<string>();
-    this.albs = aseaConfig.getAlbConfigs();
     //this.albTemplates = aseaConfig.getAlbTemplateConfigs();
     /**
      * Loop VPC Configs and get accounts and regions with VPC
@@ -721,7 +715,7 @@ export class ConvertAseaConfig {
     const ousForS3EncryptionDeploymentTargetsWithoutNestedOus = Object.entries(aseaConfig['organizational-units']).map(
       ([ouName]) => ouName,
     );
-    const ouForS3EncrpyionDeploymentTargetsWithOus = this.getNestedOusForDeploymentTargets(
+    const ouForS3EncryptionDeploymentTargetsWithOus = this.getNestedOusForDeploymentTargets(
       ousForS3EncryptionDeploymentTargetsWithoutNestedOus,
     );
 
@@ -755,7 +749,7 @@ export class ConvertAseaConfig {
           createCMK: true,
           deploymentTargets: {
             accounts: ['Management'],
-            organizationalUnits: ouForS3EncrpyionDeploymentTargetsWithOus,
+            organizationalUnits: ouForS3EncryptionDeploymentTargetsWithOus,
             excludedRegions: excludeRegions,
           },
         },
@@ -1263,10 +1257,15 @@ export class ConvertAseaConfig {
           });
         }
         if (role.type !== 'account') {
-          // If type is not account, consider type as service
           assumedBy.push({
             type: 'service',
             principal: `${role.type}.amazonaws.com`,
+          });
+        }
+        if (role.type === 'account' && !role['source-account'] && !role['source-account-role']) {
+          assumedBy.push({
+            type: 'service',
+            principal: 'account.amazonaws.com',
           });
         }
         roleSets.push({
@@ -1393,8 +1392,10 @@ export class ConvertAseaConfig {
       }
     }
 
-    // Add policy for SSMWriteAccessPolicy
+    // Add policy for SSMWriteAccessPolicy and SSMReadAccessPolicy
     await this.addSSMWriteAccessPolicy(aseaConfig, policySets);
+    await this.addSSMReadAccessPolicy(aseaConfig, policySets);
+
 
     iamConfigAttributes.policySets = policySets;
     iamConfigAttributes.roleSets = roleSets;
@@ -1497,6 +1498,105 @@ export class ConvertAseaConfig {
     }
   }
 
+  private async addSSMReadAccessPolicy(aseaConfig: AcceleratorConfig, policySets: PolicySetConfigType[]) {
+    // Add policy for SSMReadAccessPolicy
+    if (this.globalOptions && this.globalOptions['aws-config']) {
+      const policyFileName = 'ssm-read-access-policy.json';
+      const policyFilePath = path.join(LZA_IAM_POLICY_CONFIG_PATH, policyFileName);
+
+      const centralLogBucketOutput = findValuesFromOutputs({
+        outputs: this.outputs,
+        accountKey: this.globalOptions?.['central-log-services'].account,
+        region: this.region,
+        predicate: (o) => o.type === 'LogBucket',
+      })?.[0];
+
+      const aesLogBucketOutput = findValuesFromOutputs({
+        outputs: this.outputs,
+        accountKey: this.globalOptions?.['central-log-services'].account,
+        region: this.region,
+        predicate: (o) => o.type === 'AesBucket',
+      })?.[0];
+
+      const policyContent = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Action: ['kms:DescribeKey', 'kms:GenerateDataKey', 'kms:Decrypt'],
+            Resource: centralLogBucketOutput.value.encryptionKeyArn,
+            Effect: 'Allow',
+          },
+          {
+            Action: ['s3:GetObject', 's3:ListBucket'],
+            Resource: `${centralLogBucketOutput.value.bucketArn}/*`,
+            Effect: 'Allow',
+          },
+          {
+            Action: ['s3:GetObject', 's3:ListBucket'],
+            Resource: `${aesLogBucketOutput.value.bucketArn}/*`,
+            Effect: 'Allow',
+          },
+          {
+            Action: 's3:GetEncryptionConfiguration',
+            Resource: centralLogBucketOutput.value.bucketArn,
+            Effect: 'Allow',
+          },
+        ],
+      };
+
+      const policyDocumentAsString = JSON.stringify(policyContent, null, 2);
+      await this.writeToSources.writeFiles(
+        [
+          {
+            fileContent: policyDocumentAsString,
+            fileName: policyFileName,
+            filePath: LZA_IAM_POLICY_CONFIG_PATH,
+          },
+        ],
+        this.writeFilesConfig,
+      );
+
+      const organizationalUnits = Object.entries(aseaConfig['organizational-units']);
+      const deployToOus: string[] = [];
+      const excludedRegions: string[] = [];
+      organizationalUnits.forEach(([ouKey, ouConfig]) => {
+        const config = ouConfig['aws-config'][0];
+        if (!ouConfig.iam?.roles) return;
+        if (!this.checkRolesForSsmLogReadAccess(ouConfig.iam?.roles)) return;
+        deployToOus.push(ouKey);
+        if (!config) return;
+        config['excl-regions'].forEach((r) => {
+          if (!excludedRegions.includes(r)) excludedRegions.push(r);
+        });
+      });
+
+      const accounts = Object.entries(aseaConfig['mandatory-account-configs']);
+      accounts.push(...Object.entries(aseaConfig['workload-account-configs']));
+      let deployToAccounts: string[] = [];
+
+      accounts.forEach(([accountKey, accountConfig]) => {
+        if (!accountConfig.iam?.roles) return;
+        if (!this.checkRolesForSsmLogReadAccess(accountConfig.iam?.roles)) return;
+        deployToAccounts.push(accountKey);
+      });
+
+      policySets.push({
+        deploymentTargets: {
+          accounts: deployToAccounts,
+          organizationalUnits: this.getNestedOusForDeploymentTargets(deployToOus),
+          excludedAccounts: undefined,
+          excludedRegions: excludedRegions,
+        },
+        policies: [
+          {
+            name: this.aseaPrefix + 'SSMReadOnlyAccessPolicy',
+            policy: policyFilePath,
+          },
+        ],
+      });
+    }
+  }
+
   /**
    * Checks if any OU roles have ssm-log-archive-write-access enabled
    */
@@ -1508,6 +1608,19 @@ export class ConvertAseaConfig {
     }
     return false;
   }
+
+  /**
+   * Checks if any OU roles have ssm-log-archive-write-access enabled
+   */
+  private checkRolesForSsmLogReadAccess(roles: any[]) {
+    for (const role of roles) {
+      if (role['ssm-log-archive-read-only-access']) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Converts ASEA mandatory and workload accounts config to LZA account Config
    * @param aseaConfig
@@ -1663,12 +1776,15 @@ export class ConvertAseaConfig {
   private prepareLaunchTemplate(firewall: any, ports: any[], vpcName: any, az: string) {
     const imageId = firewall['image-id'];
     const name = `${firewall.name}-LT`;
+    const securityGroups = [];
+    if (firewall['security-group']) {
+      securityGroups.push(`${firewall['security-group']}_sg`);
+    }
     // Leaving in case we need to switch to the -ip appended for instance profiles.
     //const iamInstanceProfile = `${firewall['fw-instance-role']}-ip`;
     const iamInstanceProfile = `${firewall['fw-instance-role']}`;
     const blockDeviceMappingsInput = firewall['block-device-mappings'];
     const instanceType = firewall['instance-sizes'];
-    const securityGroups = [`${firewall['security-group']}_sg`] ?? [];
     const userData = firewall.userData;
     const blockDeviceMappings = this.prepareFirewallBlockDeviceMappings(blockDeviceMappingsInput);
     const networkInterfaces = this.prepareFirewallNetworkInterfaces(ports, securityGroups, vpcName, az);
@@ -2400,6 +2516,8 @@ export class ConvertAseaConfig {
           );
         }
 
+        // The greater than - check on resource-types length is to ensure that complianceResourceTypes is undefined if there are no-resource-types in the list
+        // If you have an empty list here, LZA will not evaluate any resources. All resources is default for ASEA Config rules
         const rule: AwsConfigRule & { deployTo?: string[]; excludedAccounts?: string[]; excludedRegions?: string[] } = {
           name: createConfigRuleName(this.aseaPrefix, configRule.name),
           description: undefined,
@@ -2407,7 +2525,7 @@ export class ConvertAseaConfig {
           type: configRule.type === 'custom' ? 'Custom' : undefined,
           inputParameters: this.replaceAccelLookupValues(configRule.parameters),
           tags: undefined,
-          complianceResourceTypes: configRule.type === 'managed' ? configRule['resource-types'] : undefined,
+          complianceResourceTypes: configRule.type === 'managed' && configRule['resource-types'].length > 0 ? configRule['resource-types'] : undefined,
           remediation: configRule.remediation
             ? {
                 targetId: createSsmDocumentName(this.aseaPrefix, configRule['remediation-action']!),
@@ -2795,132 +2913,6 @@ export class ConvertAseaConfig {
           name: createNatGatewayName(s.subnetName, s.az),
           subnet: createSubnetName(vpcConfig.name, s.subnetName, s.az),
         }));
-      };
-
-      const prepareAlb = (vpcConfig: VpcConfig, accountKey?: string) => {
-        enum Scheme {
-          'internet-facing',
-          'internal',
-        }
-        enum ActionType {
-          'forward',
-          'redirect',
-          'fixed-response',
-        }
-        enum SslPolicy {
-          'ELBSecurityPolicy-TLS-1-0-2015-04',
-          'ELBSecurityPolicy-TLS-1-1-2017-01',
-          'ELBSecurityPolicy-TLS-1-2-2017-01',
-          'ELBSecurityPolicy-TLS-1-2-Ext-2018-06',
-          'ELBSecurityPolicy-FS-2018-06',
-          'ELBSecurityPolicy-FS-1-1-2019-08',
-          'ELBSecurityPolicy-FS-1-2-2019-08',
-          'ELBSecurityPolicy-FS-1-2-Res-2019-08',
-          'ELBSecurityPolicy-2015-05',
-          'ELBSecurityPolicy-FS-1-2-Res-2020-10',
-          'ELBSecurityPolicy-2016-08',
-        }
-        const lzaAlbs: { applicationLoadBalancers: ApplicationLoadBalancerConfig[] } = { applicationLoadBalancers: [] };
-        const albs = this.albs.filter((lb) => lb.vpc === vpcConfig.name);
-        if (albs.length === 0) return undefined;
-        for (const alb of albs) {
-          this.configCheck.addWarning(
-            `Application Load Balancer ${alb.name} is deployed to ${accountKey}. Please refer to documentation on how to manage this resource after the upgrade.`,
-          );
-          const albSubnets = this.getAzSubnets(vpcConfig, alb.subnets);
-          let listeners: any[] = [];
-          if (alb.targets?.length > 0) {
-            listeners = [
-              {
-                name: `${alb.name}-listener`,
-                port: alb.ports,
-                protocol: 'HTTPS',
-                type: alb['action-type'] as keyof typeof ActionType,
-                certificate: undefined,
-                sslPolicy: alb['security-policy'] as keyof typeof SslPolicy,
-                fixedResponseConfig: undefined,
-                targetGroup: `${alb.name}-${alb.targets[0]['target-name']}`.substring(0, 31),
-                //targetGroup: `${alb.name}-health-check-Lambda`,
-                //forwardConfig: { targetGroupStickinessConfig: { durationSeconds: 3600, enabled: true } },
-                forwardConfig: undefined,
-                redirectConfig: undefined,
-                order: undefined,
-              },
-            ];
-          }
-          const albConfig: ApplicationLoadBalancerConfig = {
-            name: createAlbName(alb.name, accountKey!),
-            scheme: alb.scheme as keyof typeof Scheme,
-            subnets: albSubnets.map((s) => createSubnetName(alb.vpc, s.subnetName, s.az)),
-            securityGroups: [`${alb['security-group']}_sg`],
-            attributes: {
-              deletionProtection: true,
-              idleTimeout: 60,
-              routingHttpDesyncMitigationMode: 'defensive',
-              routingHttpDropInvalidHeader: false,
-              routingHttpXAmznTlsCipherEnable: false,
-              routingHttpXffClientPort: false,
-              routingHttpXffHeaderProcessingMode: 'append',
-              http2Enabled: true,
-              wafFailOpen: false,
-            },
-            listeners,
-          };
-          lzaAlbs.applicationLoadBalancers.push(albConfig);
-        }
-        if (lzaAlbs.applicationLoadBalancers.length === 0) return undefined;
-        return lzaAlbs;
-      };
-
-      const prepareTargetGroup = (vpcConfig: VpcConfig) => {
-        enum Protocol {
-          'HTTP',
-          'HTTPS',
-          'TCP',
-          'TLS',
-          'UDP',
-          'TCP_UDP',
-          'GENEVE',
-        }
-        enum HealthCheckProtocol {
-          'HTTP',
-          'HTTPS',
-          'TCP',
-        }
-        enum TargetType {
-          'instance',
-          'ip',
-          'lambda',
-          'alb',
-        }
-        const targetGroups: TargetGroupItemConfig[] = [];
-        const albs = this.albs.filter((lb) => lb.vpc === vpcConfig.name);
-        if (albs.length === 0) return;
-        for (const alb of albs) {
-          for (const target of alb.targets) {
-            const targetConfig: TargetGroupItemConfig = {
-              name: `${alb.name}-${target['target-name']}`.substring(0, 31),
-              port: target.port ?? 443,
-              protocol: (target.protocol as keyof typeof Protocol) ?? 'HTTPS',
-              protocolVersion: undefined,
-              type: target['target-type'] as keyof typeof TargetType,
-              healthCheck: {
-                interval: 10,
-                path: target['health-check-path'],
-                port: target['health-check-port'],
-                protocol: target['health-check-protocol'] as keyof typeof HealthCheckProtocol,
-                timeout: undefined,
-              },
-              attributes: undefined,
-              targets: undefined,
-              matcher: undefined,
-              threshold: undefined,
-            };
-            targetGroups.push(targetConfig);
-          }
-        }
-        if (targetGroups.length === 0) return undefined;
-        return targetGroups;
       };
 
       const prepareSecurityGroupRules = (rules: SecurityGroupRuleConfig[], accountKey?: string) => {
@@ -3317,10 +3309,15 @@ export class ConvertAseaConfig {
             } else if (route.target === 'firewall') {
               const firewallNameWithAz = `${route.name}_az${route.az?.toUpperCase()}`;
               // eslint-disable-next-line max-len
-              const matchedFirewall = firewallInstances?.find(instance => instance.name.toLocaleLowerCase() === firewallNameWithAz.toLocaleLowerCase());
+              const matchedFirewall = firewallInstances?.find(
+                (instance) => instance.name.toLocaleLowerCase() === firewallNameWithAz.toLocaleLowerCase(),
+              );
               const networkInterfaces = matchedFirewall?.launchTemplate.networkInterfaces;
               // eslint-disable-next-line max-len
-              const matchedEni = networkInterfaces?.find(networkInterface => networkInterface.description?.toLocaleLowerCase() === route.port?.toLocaleLowerCase());
+              const matchedEni = networkInterfaces?.find(
+                (networkInterface) =>
+                  networkInterface.description?.toLocaleLowerCase() === route.port?.toLocaleLowerCase(),
+              );
               const deviceIndex = matchedEni?.deviceIndex;
               const eniLookupString = `$\{ACCEL_LOOKUP::EC2:ENI_${deviceIndex}:${firewallNameWithAz}:Id\}`;
               lzaRoutes.push({
@@ -3426,8 +3423,6 @@ export class ConvertAseaConfig {
           virtualPrivateGateway: vpcConfig.vgw,
           routeTables: prepareRouteTableConfig(vpcConfig, accountKey),
           vpcRoute53Resolver: prepareResolverConfig(vpcConfig),
-          loadBalancers: prepareAlb(vpcConfig, accountKey),
-          targetGroups: prepareTargetGroup(vpcConfig),
         };
       };
 
@@ -3730,22 +3725,36 @@ export class ConvertAseaConfig {
 
   private async createDynamicPartitioningFile(aseaConfig: AcceleratorConfig) {
     const partitions = aseaConfig['global-options']['central-log-services']['dynamic-s3-log-partitioning'];
-    //Add extra partition for vpc-flow-logs for new behavior
-    // partitions?.push({
-    //   logGroupPattern: `${this.aseaPrefix}NetworkVpcStack*VpcFlowLogs*`,
-    //   s3Prefix: 'vpcflowlogs',
-    // });
+    const lzaPartitions = partitions?.map((partition) => {
+      let logGroupPattern = partition.logGroupPattern;
+      let s3Prefix = partition.s3Prefix;
+      switch (partition.s3Prefix) {
+        case 'managed-ad':
+          logGroupPattern = `${partition.logGroupPattern}*`;
+          break;
+        case 'rsyslog':
+          logGroupPattern = `${partition.logGroupPattern}*`;
+          break;
+        case 'nfw':
+          logGroupPattern = `${partition.logGroupPattern}*`;
+          break;
+        case 'rql':
+          logGroupPattern = `${partition.logGroupPattern}*`;
+      }
+
+      return { logGroupPattern, s3Prefix };
+    });
 
     //Add partition for LZA naming of ssm session manager logging
-    partitions?.push({
+    lzaPartitions?.push({
       logGroupPattern: `${this.aseaPrefix}sessionmanager-logs`,
       s3Prefix: 'ssm',
     });
 
-    if (partitions) {
+    if (lzaPartitions) {
       await this.writeToSources.writeFiles([
         {
-          fileContent: JSON.stringify(partitions, null, 2),
+          fileContent: JSON.stringify(lzaPartitions, null, 2),
           fileName: 'log-filters.json',
           filePath: 'dynamic-partitioning',
         },
@@ -3774,8 +3783,6 @@ export class ConvertAseaConfig {
       Overwrite: true,
     });
   }
-
-
 }
 // function createFirewallTarget(vpcConfig: VpcConfig, arg1: string): string[] | undefined {
 //   const listofFirewallTargets: string[] = [];
