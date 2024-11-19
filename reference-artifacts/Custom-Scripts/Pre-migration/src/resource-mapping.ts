@@ -12,6 +12,7 @@
  */
 /* eslint-disable @typescript-eslint/member-ordering */
 import { CloudFormation } from 'aws-sdk';
+import { PropertyDifferences, StackResourceDriftStatus } from 'aws-sdk/clients/cloudformation';
 import { loadAseaConfig } from './asea-config/load';
 import aws from './common/aws/aws-client';
 import { throttlingBackOff } from './common/aws/backoff';
@@ -30,7 +31,6 @@ import {
 import * as WriteToSourcesTypes from './common/utils/types/writeToSourcesTypes';
 import { WriteToSources } from './common/utils/writeToSources';
 import { Config } from './config';
-import { PropertyDifferences, StackResourceDriftStatus } from 'aws-sdk/clients/cloudformation';
 
 export class ResourceMapping {
   private readonly s3: aws.S3;
@@ -265,7 +265,7 @@ export class ResourceMapping {
     );
     const stackAndResourcesList = await Promise.all(validStackAndResourcePromises);
     const allNestedStacks = stackAndResourcesList.filter((stackAndResource) =>
-      stackAndResource.stackName.includes('Nested'),
+      stackAndResource.stackName.includes('NestedStack'),
     );
     stackAndResourcesList.forEach((stackAndResource) => {
       const nestedStacks = this.getNestedStacks(stackAndResource, allNestedStacks);
@@ -276,7 +276,7 @@ export class ResourceMapping {
       if (parentStack) {
         stackAndResource.parentStack = parentStack;
       }
-      if (!stackAndResource.stackName.includes('Nested')) {
+      if (!stackAndResource.stackName.includes('NestedStack')) {
         stackAndResourceMap.set(
           `${stackAndResource.environment.accountId}-${stackAndResource.environment.region}-${stackAndResource.stackName}`,
           stackAndResource,
@@ -389,25 +389,33 @@ export class ResourceMapping {
       if (!cfnClients) {
         throw new Error(`could not find cfnClients for ${stackAndResources.environment}`);
       }
-      detectDriftPromises.push(this.getEnvironmentDrift(stackAndResources.stackName,
-        stackAndResources.region,
-        stackAndResources.resourceMap,
-        stackAndResources.environment.accountId,
-        cfnClients));
+      detectDriftPromises.push(
+        this.getEnvironmentDrift(
+          stackAndResources.stackName,
+          stackAndResources.region,
+          stackAndResources.resourceMap,
+          stackAndResources.environment.accountId,
+          cfnClients,
+        ),
+      );
 
       if (stackAndResources.nestedStacks) {
         for (const nestedStack of Object.values(stackAndResources.nestedStacks)) {
-          if (!nestedStack.resourceMap)
+          if (!nestedStack.resourceMap) {
             continue;
+          }
 
-          detectDriftPromises.push(this.getEnvironmentDrift(nestedStack.stackName,
-            nestedStack.region,
-            nestedStack.resourceMap,
-            nestedStack.accountId,
-            cfnClients));
+          detectDriftPromises.push(
+            this.getEnvironmentDrift(
+              nestedStack.stackName,
+              nestedStack.region,
+              nestedStack.resourceMap,
+              nestedStack.accountId,
+              cfnClients,
+            ),
+          );
         }
       }
-
     }
     const detectDriftResults = await Promise.all(detectDriftPromises);
     return detectDriftResults.flat();
@@ -420,11 +428,7 @@ export class ResourceMapping {
     accountId: string,
     cfnClients: CfnClients,
   ): Promise<WriteToSourcesTypes.PutFiles[]> {
-    const driftDetectionResources = await this.getStackDrift(
-      cfnClients.cfnNative,
-      stackName,
-      resourceMap,
-    );
+    const driftDetectionResources = await this.getStackDrift(cfnClients.cfnNative, stackName, resourceMap);
 
     const s3Prefix = await this.getFilePrefix(stackName, region);
     const driftDetectionCsv = this.convertToCSV(driftDetectionResources);
@@ -513,8 +517,14 @@ export class ResourceMapping {
           ResourceType: resource.resourceType,
           DriftStatus: driftDetectionResponse.StackResourceDrift.StackResourceDriftStatus,
           PropertyDifferences: JSON.stringify(driftDetectionResponse.StackResourceDrift.PropertyDifferences) ?? 'None',
-          PropertyDifferencesPaths: driftDetectionResponse.StackResourceDrift.PropertyDifferences?.flatMap((x) => (x.PropertyPath)).toString(),
-          CanIgnore: this.isExpectedDrift(resource.resourceType, driftDetectionResponse.StackResourceDrift.StackResourceDriftStatus, driftDetectionResponse.StackResourceDrift.PropertyDifferences)
+          PropertyDifferencesPaths: driftDetectionResponse.StackResourceDrift.PropertyDifferences?.flatMap(
+            (x) => x.PropertyPath,
+          ).toString(),
+          CanIgnore: this.isExpectedDrift(
+            resource.resourceType,
+            driftDetectionResponse.StackResourceDrift.StackResourceDriftStatus,
+            driftDetectionResponse.StackResourceDrift.PropertyDifferences,
+          ),
         });
       } catch (e: any) {
         if (e.message.includes('Drift detection is not supported')) {
@@ -539,34 +549,37 @@ export class ResourceMapping {
 
   isExpectedDrift(resourceType: string, driftStatus: StackResourceDriftStatus, differences?: PropertyDifferences) {
     if (driftStatus === 'MODIFIED' && differences) {
-
       //for HostedZones, it is expected that it gets attached to all VPCs after creation
       if (resourceType === 'AWS::Route53::HostedZone') {
-        if (differences?.every((x) => (x.PropertyPath.startsWith('/VPCs/') && x.DifferenceType === 'ADD')))
+        if (differences?.every((x) => x.PropertyPath.startsWith('/VPCs/') && x.DifferenceType === 'ADD')) {
           return true;
+        }
       }
 
       //ignore GatherInventoryResourceDataSync drift
       if (resourceType === 'AWS::SSM::ResourceDataSync') {
-        if (differences.length === 1
-              && differences[0].PropertyPath.startsWith('/SyncType')
-              && differences[0].DifferenceType === 'REMOVE') {
-            return true;
+        if (
+          differences.length === 1 &&
+          differences[0].PropertyPath.startsWith('/SyncType') &&
+          differences[0].DifferenceType === 'REMOVE'
+        ) {
+          return true;
         }
       }
 
       //If the only difference is removal of Accelerator Tag, this is a false positive
       //related to stack level tags not being applied to all resource types
-      if (differences.length === 1
-            && differences[0].PropertyPath.startsWith('/Tags')
-            && differences[0].DifferenceType === 'REMOVE') {
-
+      if (
+        differences.length === 1 &&
+        differences[0].PropertyPath.startsWith('/Tags') &&
+        differences[0].DifferenceType === 'REMOVE'
+      ) {
         //the ExpectedValue structure can be different depending on resource type
         //we handle when it is an array or object
         try {
           const expected = JSON.parse(differences[0].ExpectedValue);
           if (Array.isArray(expected)) {
-            return expected.every(item => item.Key === 'AcceleratorName');
+            return expected.every((item) => item.Key === 'AcceleratorName');
           } else if (typeof expected === 'object' && expected !== null) {
             return expected.Key === 'AcceleratorName';
           }
