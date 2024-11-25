@@ -12,7 +12,7 @@
  */
 
 import { Account, OrganizationsClient, paginateListAccounts } from '@aws-sdk/client-organizations';
-import { AssumeRoleCommand, GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
+import { AssumeRoleCommand, AssumeRoleCommandOutput, GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 
 import { TableOperations } from './common/dynamodb';
@@ -52,6 +52,9 @@ export async function snapshotConfiguration(
     let credentials: AwsCredentialIdentity | undefined = undefined;
     if (account.Status !== 'SUSPENDED') {
       credentials = await getCredentials(account.Id!, roleName);
+      if (credentials === undefined) {
+        continue;
+      }
       accountPromises.push(
         snapshotAccountResources(tableName, homeRegion, prefix, account.Id!, preMigration, credentials),
       );
@@ -69,6 +72,9 @@ export async function snapshotConfiguration(
     if (account.Id !== currentAccountId) {
       credentials = await getCredentials(account.Id!, roleName);
     }
+    if (credentials === undefined) {
+      continue;
+    }
     const regionPromises = [];
     for (const region of regions) {
       maxPromises = maxPromises + 1;
@@ -83,20 +89,26 @@ export async function snapshotConfiguration(
   }
 }
 
-async function getCredentials(accountId: string, roleName: string): Promise<AwsCredentialIdentity> {
-  const stsResponse = await stsClient.send(
-    new AssumeRoleCommand({
-      RoleArn: `arn:aws:iam::${accountId}:role/${roleName}`,
-      RoleSessionName: 'CustomResourceSnapshot',
-      DurationSeconds: 900,
-    }),
-  );
-  const credentials: AwsCredentialIdentity = {
-    accessKeyId: stsResponse.Credentials?.AccessKeyId!,
-    secretAccessKey: stsResponse.Credentials?.SecretAccessKey!,
-    sessionToken: stsResponse.Credentials?.SessionToken!,
-  };
-  return credentials;
+async function getCredentials(accountId: string, roleName: string): Promise<AwsCredentialIdentity | undefined> {
+  let stsResponse: AssumeRoleCommandOutput;
+  try {
+    stsResponse = await stsClient.send(
+      new AssumeRoleCommand({
+        RoleArn: `arn:aws:iam::${accountId}:role/${roleName}`,
+        RoleSessionName: 'CustomResourceSnapshot',
+        DurationSeconds: 900,
+      }),
+    );
+    const credentials: AwsCredentialIdentity = {
+      accessKeyId: stsResponse.Credentials?.AccessKeyId!,
+      secretAccessKey: stsResponse.Credentials?.SecretAccessKey!,
+      sessionToken: stsResponse.Credentials?.SessionToken!,
+    };
+    return credentials;
+  } catch (e) {
+    console.error(`Failed to assume role ${roleName} in account ${accountId}`);
+    return undefined;
+  }
 }
 
 async function getAccountList(): Promise<Account[]> {

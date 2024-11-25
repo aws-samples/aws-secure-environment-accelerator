@@ -162,6 +162,14 @@ type DocumentSet = {
   documents: { name: string; template: string }[];
 };
 
+type AccountKeyMapping = {
+  [key: string]: string;
+}
+const accountKeyMapping: AccountKeyMapping = {
+  'log-archive': 'LogArchive',
+  'audit': 'Security'
+};
+
 export class ConvertAseaConfig {
   private localUpdateOnly = false; // This is an option to not write config changes to codecommit, used only for development like yarn run convert-config local-update-only. Default is true
   private disableTerminationProtection = false;
@@ -445,6 +453,24 @@ export class ConvertAseaConfig {
           Key: networkFirewallConfig.policy?.path ?? 'nfw/nfw-example-policy.json',
         }));
       const policyData = JSON.parse(policyString);
+      let statefulRuleGroups;
+      if (policyData.statefulRuleGroup) {
+        statefulRuleGroups = policyData.statefulRuleGroup.map((ruleGroup: any) => ({
+          name: createNetworkFirewallRuleGroupName(ruleGroup.ruleGroupName, firewallConfigName, this.aseaPrefix),
+          priority: ruleGroup.priority,
+        }));
+      } else {
+        statefulRuleGroups = undefined;
+      }
+      let statelessRuleGroups;
+      if (policyData.statelessRuleGroup) {
+        statelessRuleGroups = policyData.statelessRuleGroup.map((ruleGroup: any) => ({
+          name: createNetworkFirewallRuleGroupName(ruleGroup.ruleGroupName, firewallConfigName, this.aseaPrefix),
+          priority: ruleGroup.priority,
+        }));
+      } else {
+        statelessRuleGroups = undefined;
+      }
       policies.push({
         name: policyName,
         regions: [vpcConfig.region],
@@ -460,17 +486,11 @@ export class ConvertAseaConfig {
           statelessDefaultActions: policyData.statelessDefaultActions,
           statelessFragmentDefaultActions: policyData.statelessFragmentDefaultActions,
           statelessCustomActions: policyData.statelessCustomActions,
-          statefulRuleGroups: policyData.statefulRuleGroup.map((ruleGroup: any) => ({
-            name: createNetworkFirewallRuleGroupName(ruleGroup.ruleGroupName, firewallConfigName, this.aseaPrefix),
-            priority: ruleGroup.priority,
-          })),
-          statelessRuleGroups: policyData.statelessRuleGroup.map((ruleGroup: any) => ({
-            name: createNetworkFirewallRuleGroupName(ruleGroup.ruleGroupName, firewallConfigName, this.aseaPrefix),
-            priority: ruleGroup.priority,
-          })),
+          statefulRuleGroups: statefulRuleGroups,
+          statelessRuleGroups: statelessRuleGroups,
         },
       });
-      [...policyData.statefulRuleGroup, ...policyData.statelessRuleGroup].forEach((ruleGroup: any) => {
+      [...policyData.statefulRuleGroup ?? [], ...policyData.statelessRuleGroup ?? [] ].forEach((ruleGroup: any) => {
         ruleGroups.push({
           capacity: ruleGroup.capacity,
           description: undefined,
@@ -1459,16 +1479,10 @@ export class ConvertAseaConfig {
 
       const organizationalUnits = Object.entries(aseaConfig['organizational-units']);
       const deployToOus: string[] = [];
-      const excludedRegions: string[] = [];
       organizationalUnits.forEach(([ouKey, ouConfig]) => {
-        const config = ouConfig['aws-config'][0];
         if (!ouConfig.iam?.roles) return;
         if (!this.checkRolesForSsmLogWriteAccess(ouConfig.iam?.roles)) return;
         deployToOus.push(ouKey);
-        if (!config) return;
-        config['excl-regions'].forEach((r) => {
-          if (!excludedRegions.includes(r)) excludedRegions.push(r);
-        });
       });
 
       const accounts = Object.entries(aseaConfig['mandatory-account-configs']);
@@ -1486,7 +1500,7 @@ export class ConvertAseaConfig {
           accounts: deployToAccounts,
           organizationalUnits: this.getNestedOusForDeploymentTargets(deployToOus),
           excludedAccounts: undefined,
-          excludedRegions: excludedRegions,
+          excludedRegions: undefined,
         },
         policies: [
           {
@@ -1558,42 +1572,38 @@ export class ConvertAseaConfig {
 
       const organizationalUnits = Object.entries(aseaConfig['organizational-units']);
       const deployToOus: string[] = [];
-      const excludedRegions: string[] = [];
       organizationalUnits.forEach(([ouKey, ouConfig]) => {
-        const config = ouConfig['aws-config'][0];
         if (!ouConfig.iam?.roles) return;
         if (!this.checkRolesForSsmLogReadAccess(ouConfig.iam?.roles)) return;
         deployToOus.push(ouKey);
-        if (!config) return;
-        config['excl-regions'].forEach((r) => {
-          if (!excludedRegions.includes(r)) excludedRegions.push(r);
-        });
       });
 
       const accounts = Object.entries(aseaConfig['mandatory-account-configs']);
       accounts.push(...Object.entries(aseaConfig['workload-account-configs']));
-      let deployToAccounts: string[] = [];
+    
+      const deployToAccounts = accounts
+        .filter(([, accountConfig]) => 
+            accountConfig.iam?.roles && 
+            this.checkRolesForSsmLogReadAccess(accountConfig.iam.roles))
+        .map(([accountKey]) => accountKeyMapping[accountKey] || accountKey);
+    
 
-      accounts.forEach(([accountKey, accountConfig]) => {
-        if (!accountConfig.iam?.roles) return;
-        if (!this.checkRolesForSsmLogReadAccess(accountConfig.iam?.roles)) return;
-        deployToAccounts.push(accountKey);
-      });
-
-      policySets.push({
-        deploymentTargets: {
-          accounts: deployToAccounts,
-          organizationalUnits: this.getNestedOusForDeploymentTargets(deployToOus),
-          excludedAccounts: undefined,
-          excludedRegions: excludedRegions,
-        },
-        policies: [
-          {
-            name: this.aseaPrefix + 'SSMReadOnlyAccessPolicy',
-            policy: policyFilePath,
+      if (deployToAccounts.length > 0 || deployToOus.length > 0) {
+        policySets.push({
+          deploymentTargets: {
+            accounts: deployToAccounts,
+            organizationalUnits: this.getNestedOusForDeploymentTargets(deployToOus),
+            excludedAccounts: undefined,
+            excludedRegions: undefined,
           },
-        ],
-      });
+          policies: [
+            {
+              name: `${this.aseaPrefix}SSMReadOnlyAccessPolicy`,
+              policy: policyFilePath,
+            },
+          ],
+        });
+      }
     }
   }
 
@@ -1919,8 +1929,9 @@ export class ConvertAseaConfig {
   private prepareIgnoredOus(aseaConfig: AcceleratorConfig): string[] | undefined {
     const ignoredOus: string[] = [];
     const globalIgnoredOus: string[] = aseaConfig['global-options']['ignored-ous'] ?? [];
+    ignoredOus.push(...globalIgnoredOus);
     Object.entries(aseaConfig['organizational-units']).forEach(([ouKey, organizationConfig]) => {
-      if (organizationConfig.type === 'ignored' || globalIgnoredOus.includes(ouKey)) {
+      if (organizationConfig.type === 'ignored') {
         ignoredOus.push(ouKey);
       }
     });
@@ -1945,6 +1956,7 @@ export class ConvertAseaConfig {
         scpPolicyName: `${this.aseaPrefix}Quarantine-New-Object`,
       },
     };
+    //write all ignored ous
     if (ignoredOus) {
       ignoredOus.forEach((ou) => {
         organizationConfig.organizationalUnits.push({
@@ -1953,13 +1965,15 @@ export class ConvertAseaConfig {
         });
       });
     }
+    //write OU's that are not ignored
     Object.entries(aseaConfig['organizational-units']).forEach(([ouKey]) => {
-      const ignoredOu = ignoredOus?.includes(ouKey);
+      if (ignoredOus?.includes(ouKey)) return;
       organizationConfig.organizationalUnits.push({
         name: ouKey,
-        ignore: ignoredOu ? true : undefined,
+        ignore: undefined,
       });
     });
+
     // ASEA Creates Suspended OU and ignores accounts under Suspended OU
     if (!organizationConfig.organizationalUnits.find((ou) => ou.name === 'Suspended')) {
       organizationConfig.organizationalUnits.push({
@@ -1967,6 +1981,7 @@ export class ConvertAseaConfig {
         ignore: true,
       });
     }
+
     // Check and prepare for nested OUs
     const nestedOus = this.prepareNestedOus(aseaConfig);
     //Get List of OU names from OU object
@@ -2175,7 +2190,7 @@ export class ConvertAseaConfig {
       Object.entries(aseaConfig['organizational-units']).forEach(([ouKey, ouConfig]) => {
         if (!ouConfig['ssm-automation']) return;
         if (ouConfig['ssm-automation'].find((ssm) => ssm.documents.find((d) => d === documentName))) {
-          sharedOrganizationalUnits.push(ouKey);
+          sharedOrganizationalUnits.push(...this.getNestedOusForDeploymentTargets([ouKey]));
         }
       });
       return {
@@ -3541,11 +3556,15 @@ export class ConvertAseaConfig {
       if (key === 'LogDestination' || key === 'KMSMasterKey') {
         paramType = 'StringList';
       }
-      parameters.push({
-        name: key,
-        value: parsedValue,
-        type: paramType,
-      });
+      // skip adding the role to the remediation
+      // lza will create the role
+      if (key !== 'AutomationAssumeRole') {
+        parameters.push({
+          name: key,
+          value: parsedValue,
+          type: paramType,
+        });
+      }
     });
     return parameters;
   }
