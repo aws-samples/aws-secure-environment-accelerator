@@ -234,7 +234,7 @@ export class PostMigration {
     if (stack.Outputs) {
       Object.keys(stack.Outputs).forEach((output) => {
         console.log(`Checking output ${output}`);
-        if (!output.includes('Phase1VpcStack')) {
+        if (!output.includes('Phase1') && !output.includes('VpcStack')) {
           console.log(`Removing output ${output}`);
           delete stack.Outputs[output];
         }
