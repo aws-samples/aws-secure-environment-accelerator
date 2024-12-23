@@ -28,6 +28,31 @@ nav:
           - Centralized Logging Details: installation/log-file-locations.md
           - Accelerator Object Naming: installation/object-naming.md
           - Open Roadmap (Link): https://github.com/aws-samples/aws-secure-environment-accelerator/projects/1
+  - Upgrade to Landing Zone Accelerator:
+      - lza-upgrade/index.md
+      - Key differences between ASEA and LZA:
+          - lza-upgrade/comparison/index.md
+          - KMS: lza-upgrade/comparison/kms.md
+          - Feature specific considerations: lza-upgrade/comparison/feature-specific-considerations.md
+      - Preparation:
+          - lza-upgrade/preparation/index.md
+          - Pre-requisites and configuration: lza-upgrade/preparation/prereq-config.md
+          - Resource mapping and drift detection: lza-upgrade/preparation/resource-mapping-drift-detection.md
+          - Drift analysis: lza-upgrade/preparation/drift-handling.md
+          - Configuration conversion: lza-upgrade/preparation/configuration-conversion.md
+          - Pre-upgrade validations: lza-upgrade/preparation/validation.md
+      - Upgrade:
+          - lza-upgrade/upgrade/index.md
+          - Optional preparation steps: lza-upgrade/upgrade/optional-steps.md
+          - Disable ASEA: lza-upgrade/upgrade/disable-asea.md
+          - Install LZA: lza-upgrade/upgrade/install-lza.md
+          - Finalize the upgrade: lza-upgrade/upgrade/finalize.md
+          - Rollback strategy: lza-upgrade/upgrade/rollback.md
+      - FAQ and Troubleshooting:
+          - FAQ: lza-upgrade/faq.md
+          - Troubleshooting: lza-upgrade/troubleshooting.md
+          - ASEA Resource Handlers: lza-upgrade/asea-resource-handlers.md
+          - Known issues: lza-upgrade/known-issues.md
   - FAQ: faq/index.md
   - Operations & Troubleshooting:
       - operations/index.md
@@ -113,23 +138,23 @@ repo_name: aws-samples/asea
 
 plugins:
   - search
-  - with-pdf:
-      #cover_title:
-      author: Amazon Web Services
-      cover_subtitle: Amazon Web Services
-      #cover_logo: assets/images/banner.png
-      #back_cover: true
-      toc_level: 3
-      #excludes_children:
-      #  - 'releases/changelog/:upgrading'
-      #convert_iframe:
-      #  - src: https://streamable.com/e/zmtb00
-      #   img: https://cdn-cf-east.streamable.com/image/zmtb00-screenshot75403.jpg
-      #two_columns_level: 3
-      #render_js: true
-      #headless_chrome_path: "chrome"
-      output_path: pdf/accelerator-docs.pdf
-      #debug_html: true
-      #verbose: true
-      #show_anchors: true
-      #enabled_if_env: ENABLE_PDF_EXPORT
+  # - with-pdf:
+  #     #cover_title:
+  #     author: Amazon Web Services
+  #     cover_subtitle: Amazon Web Services
+  #     #cover_logo: assets/images/banner.png
+  #     #back_cover: true
+  #     toc_level: 3
+  #     #excludes_children:
+  #     #  - 'releases/changelog/:upgrading'
+  #     #convert_iframe:
+  #     #  - src: https://streamable.com/e/zmtb00
+  #     #   img: https://cdn-cf-east.streamable.com/image/zmtb00-screenshot75403.jpg
+  #     #two_columns_level: 3
+  #     #render_js: true
+  #     #headless_chrome_path: "chrome"
+  #     output_path: pdf/accelerator-docs.pdf
+  #     #debug_html: true
+  #     #verbose: true
+  #     #show_anchors: true
+  #     #enabled_if_env: ENABLE_PDF_EXPORT
