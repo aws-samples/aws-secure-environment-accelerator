@@ -7,7 +7,6 @@ before_script:
   - pip install -r requirements.txt
 pages:
   script:
-    - cd src/mkdocs
     - make build
   artifacts:
     paths:
