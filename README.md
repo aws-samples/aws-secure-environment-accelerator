@@ -4,7 +4,7 @@ The [Landing Zone Accelerator (LZA) on AWS solution](https://aws.amazon.com/solu
 
 The LZA v1.3 release (03/2023) focused on delivering AWS Secure Environment Accelerator (ASEA) feature parity and delivered both [CCCS Cloud Medium](https://aws.amazon.com/solutions/implementations/landing-zone-accelerator-on-aws/#Support_for_specific_regions_and_industries) and [Trusted Secure Enclave Sensitive Edition](https://aws.amazon.com/solutions/implementations/landing-zone-accelerator-on-aws/#Support_for_specific_regions_and_industries) sample configuration files. These samples deliver similar outcomes to the ASEA sample configuration file.
 
-The LZA team has developed an automated upgrade from ASEA to LZA. Upgrades from ASEA to LZA must occur before end of Q3 2025 (September 30, 2025). Please monitor this site for a future LZA release that will support the ASEA to LZA semi-automated upgrade capability [here](https://aws.amazon.com/solutions/implementations/landing-zone-accelerator-on-aws/).  
+The LZA team has developed an automated upgrade from ASEA to LZA and it is now **generally available**. Upgrades from ASEA to LZA must occur before end of Q3 2025 (September 30, 2025). **The documentation for the ASEA to LZA upgrade is available in the AWS Secure Environment Accelerator [guide on GitHub pages](https://aws-samples.github.io/aws-secure-environment-accelerator/latest/lza-upgrade/)**.
 
 Please reach out to your AWS Account Team with any questions.
 
