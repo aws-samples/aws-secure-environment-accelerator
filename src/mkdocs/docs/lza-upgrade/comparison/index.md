@@ -56,6 +56,8 @@ By default ASEA deploys the Kinesis Data Streams and Log Group subscription filt
 
 In LZA, the logging infrastructure is deployed to all `enabledRegions`, this will result in increased number of logs being sent to the central S3 bucket as well as the deployment of a Kinesis Data Stream and Kinesis Data Firehose in the Logging account for every enabled regions.
 
+During the upgrade, existing ASEA subscription filters are replaced by the LZA destination for existing Log Groups subscriptions. The LZA subscription filters are added to new Log Groups created after the upgrade.
+
 ### Security Hub to CloudWatch logs
 When Security Hub is configured to send logs to CloudWatch, in ASEA the forwarding rule and the `/ASEA/SecurityHub` CloudWatch LogGroup is created only in the logging account.
 
