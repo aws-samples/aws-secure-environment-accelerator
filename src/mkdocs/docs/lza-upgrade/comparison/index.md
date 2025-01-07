@@ -51,6 +51,17 @@ LZA uses the same centralized logging architecture than ASEA to consolidate logs
 
 Reference: [Landing Zone Accelerator Centralized Logging](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/user-guide/logging/#log-centralization-methods)
 
+### Log aggregation in all enabled regions
+By default ASEA deploys the Kinesis Data Streams and Log Group subscription filters to send logs to the central logging bucket only to the home region. Additional regions can be configured with the [additional_cwl_regions](https://aws-samples.github.io/aws-secure-environment-accelerator/v1.5.6-a/schema/en/interfaces/GlobalOptions.html#additional_cwl_regions) property.
+
+In LZA, the logging infrastructure is deployed to all `enabledRegions`, this will result in increased number of logs being sent to the central S3 bucket as well as the deployment of a Kinesis Data Stream and Kinesis Data Firehose in the Logging accout for every enabled regions.
+
+### Security Hub to CloudWatch logs
+When Security Hub is configured to send logs to CloudWatch, in ASEA the forwarding rule and the `/ASEA/SecurityHub` CloudWatch LogGroup is created only in the logging account.
+
+In LZA, the forwarding rule and CloudWatch Log Groups are created in every account and enabled region. This will result in additionnal logs being sent to CloudWatch and the centralized S3 logging bucket.
+
+
 ## Customer Managed Keys
 There are differences between how ASEA and LZA manage AWS KMS keys to provide encryption at rest capabilities for resources deployed by the solution. Detailed documentation is available in the [Customer Managed Keys - Comparison of ASEA and LZA](./kms.md) document.
 
@@ -66,3 +77,5 @@ Both these impacts are temporary and the cost will stabilize when the upgrade is
 
 ### After the upgrade
 LZA has the capability to deploy and configure more services than ASEA, during the upgrade new capabilities are not deployed unless required, you can choose to enable additional services once the upgrade is complete. LZA uses more granular KMS keys than ASEA, new Customer Manager Keys will be created as part of the upgrade, the impact on your total costs depends on the number of accounts and regions in use in your environment. Review the [Customer Managed Keys - Comparison of ASEA and LZA](./kms.md) document for more details.
+
+By default LZA consolidate more logs than ASEA to CloudWatch Logs, review the section on [Centralized logging](#centralized-logging) to understand how the additionnal logging can impact costs.
