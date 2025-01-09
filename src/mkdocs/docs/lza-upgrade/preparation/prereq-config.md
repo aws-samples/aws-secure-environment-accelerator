@@ -11,8 +11,15 @@
 - Upgrading your landing zone from ASEA to LZA requires advanced knowledge of configuring and operating ASEA and LZA landing zones. This operation should be led by your most-experienced resources responsible for your current landing zone operations. Review all the documentation in this upgrade guide and Landing Zone Accelerator implementation guide.
 
 
-### Technical pre-requisites
-Complete the following instructions to ensure the pre-requisites are installed to run the upgrade tools
+### Technical Prerequisites
+
+Before running the upgrade tools, ensure you meet the following requirements:
+
+!!! note "Environment Requirements"
+    ✅ **Recommended Environment:** Linux or MacOS with a Bash-like shell
+    
+    ⚠️ **Important Note:** Windows compatibility is limited as tools have not been extensively tested on this platform
+
 
 #### Verify npm installation
 
@@ -86,7 +93,7 @@ yarn run migration-config
 ```
 
 !!! info
-    By default the upgrade tool uses `ca-central-1` as the home region. If you use a different home region you need to set the AWS_REGION environment varianle before running `migration-config`. e.g. `AWS_REGION=eu-west-1 yarn run migration-config`
+    By default the upgrade tool uses `ca-central-1` as the home region. If you use a different home region you need to set the AWS_REGION environment variable before running `migration-config`. e.g. `AWS_REGION=eu-west-1 yarn run migration-config`
 
 ??? abstract "Detailed information"
     This command will also deploy a CloudFormation template and create two CodeCommit repositories. The CloudFormation template will create an S3 bucket for the resource mapping files. The first CodeCommit repository will also be used for the resource mapping files. The second CodeCommit repository will be used for the Landing Zone Accelerator configuration files that will be created in a later step.

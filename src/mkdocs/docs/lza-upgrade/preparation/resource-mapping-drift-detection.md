@@ -11,9 +11,9 @@ The Resource Mapping script will generate the ASEA mapping file which will be us
 - Retrieve all ASEA Enabled Regions from the ASEA Configuration File.
 - Retrieve all ASEA Enabled Accounts from the ASEA Parameters Table.
 - Assume a role into each account and create a unique AWS CloudFormation client for each environment (region/account combination). For each unique environment:
-  - List every CloudFormation Template associated with ASEA (This is a filtered down list operation)
-  - List every Resource that is associated with the CloudFormation Template.
-  - Detect Drift on each individual resource
+    - List every CloudFormation Template associated with ASEA (This is a filtered down list operation)
+    - List every Resource that is associated with the CloudFormation Template.
+    - Detect Drift on each individual resource
 - The outputs of these will be saved in the S3 Bucket.
 
 ### Resource Mapping Commands

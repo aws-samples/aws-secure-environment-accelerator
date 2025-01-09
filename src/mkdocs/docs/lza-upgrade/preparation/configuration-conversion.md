@@ -26,12 +26,12 @@ yarn run convert-config
     ```
 
 
-??? abstract "Option to disable termination protection"
+??? abstract "Option to enable termination protection"
 
-    The `disable-termination-protection` flag is used to disable termination protection for the LZA deployed stacks. This can be useful during the upgrade process incase there is a error that stops the creation of new stacks. This flag will allow the LZA pipeline to remove stacks that were not successfully deployed. It is recommended to enable this feature through the LZA global configuration file after the initial LZA pipeline run is successful.
+    By default the tool sets termination protection to false on CloudFormation stacks to facilitate troubleshooting and retries in case of errors. It is recommended to enable this feature through the LZA global configuration file after the initial LZA pipeline run is successful. The `enable-termination-protection` flag can be used to enable termination protection for the LZA deployed stacks in the initial installation.
 
     ```bash
-    yarn run convert-config disable-termination-protection
+    yarn run convert-config enable-termination-protection
     ```
 
 
