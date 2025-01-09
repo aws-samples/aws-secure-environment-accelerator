@@ -8,9 +8,9 @@ For a more granular look at Drift Detection, this is available on an account/reg
 
 - Navigate to `migration/<account-name>/<region>/<stack-name>/<stack-name>-drift-detection.csv`
 - The possible values for the resources are:
-  - IN_SYNC - there is no drift detected in the CloudFormation Resource
-  - MODIFIED - drift has been detected in the CloudFormation Resource. The metadata in the `PropertyDifferences` column describes the drift that needs to be fixed.
-  - NOT_SUPPORTED means that CloudFormation does not support drift-detection on that specific resource.
+    - IN_SYNC - there is no drift detected in the CloudFormation Resource
+    - MODIFIED - drift has been detected in the CloudFormation Resource. The metadata in the `PropertyDifferences` column describes the drift that needs to be fixed.
+    - NOT_SUPPORTED means that CloudFormation does not support drift-detection on that specific resource.
 - If there is drift detected, this drift needs to be manually fixed. The specific resource and configurations which need to be addressed will be available in the drift-detection.csv file under `PropertyDifferences` or by Detecting Drift manually in the CloudFormation console (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/detect-drift-stack.html)
 
 ### Inspect the drifted resources
@@ -36,8 +36,8 @@ Each change should be analyzed, confirm if it is expected and why and determine 
 
 - Some changes are expected as part of ASEA operations and can be safely ignored (see next section)
 - If a change was manually done outside of the ASEA config file:
-  - If it could have been done through the config file, you should update the config file accordingly and re-run the state machine to remove the drift
-  - If the change was done manually because it cannot be done through ASEA (i.e. Direct Connect configuration, adding rules to ALB listeners, etc.) you should document the change in a central registry. Special attention should be given to those elements during the upgrade and in the post-upgrade testing phase.
+    - If it could have been done through the config file, you should update the config file accordingly and re-run the state machine to remove the drift
+    - If the change was done manually because it cannot be done through ASEA (i.e. Direct Connect configuration, adding rules to ALB listeners, etc.) you should document the change in a central registry. Special attention should be given to those elements during the upgrade and in the post-upgrade testing phase.
 
 !!! warning
     Failure to detect and fix drift before the upgrade can result in the configuration of resources to be reverted to the state described in the configuration file.

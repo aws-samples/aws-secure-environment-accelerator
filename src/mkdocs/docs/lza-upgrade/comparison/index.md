@@ -7,7 +7,7 @@ This section highlights key differences between ASEA and LZA. For futher documen
 
 ASEA by default uses the `ASEA` prefix to identify resources deployed by the accelerator and protect them through SCPs. When LZA is installed during the upgrade process it keeps the existing prefix for existing and new resources to ensure compatibility with the guardrails and uniformity across resources created by ASEA and LZA.
 
-This is different than the default prefix used by LZA (`AWSAccelerator`).
+This is different than the default prefix (`AWSAccelerator`) used bfor a regular LZA installation.
 
 ## Pipeline execution role
 
@@ -43,13 +43,22 @@ For example several parameters are created to reference networking resources.
 * In ASEA the parameters use a numerical index (e.g. `/ASEA/network/vpc/1/id` contains the ID of the first VPC deployed in the account and `/ASEA/network/vpc/1/net/1/aza/id` contains the ID of the first subnet in AZA of the first VPC)
 * In LZA the parameters are indexed by the resource name defined in the network-config.yaml file (e.g**.** `/ASEA/network/vpc/Central_vpc/id` **** contains the of the VPC named `Central_vpc` and `/ASEA/network/vpc/Central_vpc/subnet/App2_Central_aza_net/id` contains the ID of the `App2_central_aza_net` subnet from the `Central_vpc`)
 
+!!! tip
+    For AWS accounts created before the upgrade, both sets of parameters will co-exist. For new accounts ad resources created after the upgrade, only the LZA version of the parameters will exist.
 
 Refer to the [Landing Zone Accelerator Implementation Guide](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/accessing-solution--outputs-through-parameter-store.html) for a full list of Parameter Store outputs supported by LZA.
 
 ## Centralized logging
-LZA uses the same centralized logging architecture than ASEA to consolidate logs in a central S3 bucket in the Log Archive account. During the upgrade the configuration and dynamic partitioning rules are adapted to keep the same logging structure. If you have external integrations that depend on the logging structure and format, you should closely monitor the logs during the upgrade.
+LZA uses the same centralized logging architecture than ASEA to consolidate logs in a central S3 bucket in the Log Archive account. During the upgrade the configuration and dynamic partitioning rules are adapted to keep the same logging structure. If you have external integrations that depend on the logging structure and format, you should closely monitor the logs during the upgrade and review the current section to identify if the differences can impact your integration.
 
 Reference: [Landing Zone Accelerator Centralized Logging](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/user-guide/logging/#log-centralization-methods)
+
+### VPC Flow Logs CloudWatch Log Groups
+ASEA uses the following naming convention for the CloudWatch Log Groups names: `/{AcceleratorPrefix}/flowlogs/{vpc-name}``
+
+LZA uses CDK naming which will produce a Log Group name with this pattern: `{Accelerator-Prefix}-NetworkVpcStack-{account}-region-*VpcFlowLogsGroup*.`
+
+During the upgrade, the VPC Flow Logs are re-configured by LZA, therefore new CloudWatch Log Groups are created and new Flow Logs entries are sent to LZA Log Groups, while existing data remain in the ASEA Log Groups.
 
 ### Log aggregation in all enabled regions
 By default ASEA deploys the Kinesis Data Streams and Log Group subscription filters to send logs to the central logging bucket only to the home region. Additional regions can be configured with the [additional_cwl_regions](https://aws-samples.github.io/aws-secure-environment-accelerator/v1.5.6-a/schema/en/interfaces/GlobalOptions.html#additional_cwl_regions) property.

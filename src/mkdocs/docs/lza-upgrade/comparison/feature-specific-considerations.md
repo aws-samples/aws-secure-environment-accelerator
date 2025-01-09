@@ -35,7 +35,7 @@ Third-Party firewall appliances (such as FortiGate) can be deployed by ASEA and 
 
 During the upgrade, the existing deployed resources are not modified and remain in the original ASEA CloudFormation stacks. The firewalls can continue to be managed as before (i.e. outside the accelerator) and no other actions are needed in relation to the upgrade.
 
-During the configuration conversion a `firewalls/instances` configuration block is added to the customizations-config.yaml file to allow the use of ${ACCEL_LOOKUP variables in the network-config.file to reference the firewall instances.
+During the configuration conversion a `firewalls/instances` configuration block is added to the customizations-config.yaml file to allow the use of ${ACCEL_LOOKUP} variables in the network-config.file to reference the firewall instances.
 
 #### Which configuration changes to ASEA Firewall instances are supported from LZA?
 
@@ -356,7 +356,7 @@ After the upgrade to LZA you can continue to manage records in the existing zone
 
 ### VPC Templates
 !!! note "convert-config warning message"
-    _The VPC ${vpcItem.name} in OU ${ouKey} is set to deploy \'local\' in each account. You need to add a vpcTemplate to your configuration to keep the same behavior for new accounts in this OU._
+    _The VPC ${vpcItem.name} in OU ${ouKey} is set to deploy 'local' in each account. You need to add a vpcTemplate to your configuration to keep the same behavior for new accounts in this OU._
 
 In ASEA you can define a VPC at the OU level with a `local` deployment. This can be used with dynamic or provided CIDR ranges.
 

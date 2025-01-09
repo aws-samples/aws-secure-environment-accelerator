@@ -6,9 +6,13 @@ This document provides details about important differences between the managemen
 
 Refer to the [Key management](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/key-management.html) section of the **Landing Zone Accelerator on AWS Implementation Guide** for more details on the configuration options for AWS KMS keys offered by LZA.
 
+!!! danger "Important"
+    This documentation calls out specific cases where it might be possible for you to delete KMS keys that are no longer needed. This is a high-risk operation that requires careful assessment. Maintaining unused KMS keys does not affect accelerator functionality.
+    **Deleting an AWS KMS key is destructive and potentially dangerous. It deletes the key material and all metadata associated with the KMS key and is irreversible. After a KMS key is deleted, you can no longer decrypt the data that was encrypted under that KMS key, which means that data becomes unrecoverable.** Refer to AWS documentation on [Deleting AWS KMS keys](https://docs.aws.amazon.com/kms/latest/developerguide/deleting-keys.html) for more information.
+
 ## General approach
 - In general the upgrade process aims to align the usage of Customer Managed Keys (CMK) to the default LZA configuration
-- In existing accounts you may see the existence of ASEA created keys AND LZA created keys
+- In existing accounts you may see the existence of ASEA created keys and LZA created keys
 - New AWS accounts created after the upgrade will only have LZA created keys
 - For cases where the LZA configuration supports `deploymentTargets` for keys, the convert-config process generates a configuration to create CMKs in regions with VPCs (which in most cases corresponds to the home region AND additional regions identified to deploy workloads).  Customers can choose to modify this configuration to suit theirs needs.
 - The upgrade process never schedules the deletion of an existing key. In most cases existing ASEA keys need to be kept for as long as there is data encrypted with the key. When applicable, we provide guidance on specific use cases where older keys can be manually deleted by the customer if they choose to.
@@ -31,7 +35,7 @@ Upgrade: The existing central logging bucket in the Log Archive account is [impo
 
 The KMS resource-based policy for this CMK is copied to the LZA configuration repository (`kms-policies/central-log-bucket-key.json`) during configuration conversion. Any future changes needed to this policy need to be done by modifying that file and re-running the LZA pipeline. LZA won't dynamically update this policy.
 
-A sample scenario where modyfing this KMS policy might be needed is when adding an AWS opt-in region such as `ca-west-1` to the enabled regions of your configuration. The policy need to be modified to allow `guardduty.ca-west-1.amazon.com` as a service than can use the key. See [Exporting generated GuardDuty findings to Amazon S3 buckets](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_exportfindings.html) for more details.
+A sample scenario where modyfing this KMS policy might be needed is when adding an AWS opt-in region such as `ca-west-1` to the enabled regions of your configuration. The policy need to be modified to allow `guardduty.ca-west-1.amazon.com` as a service that can use the key. See [Exporting generated GuardDuty findings to Amazon S3 buckets](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_exportfindings.html) for more details.
 
 ### CloudWatch
 ASEA: Uses service managed keys for CloudWatch encryption
