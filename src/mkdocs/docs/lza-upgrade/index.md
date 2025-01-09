@@ -4,8 +4,6 @@
 
 The AWS Secure Environment Accelerator (ASEA) launched in 2020 in order for Canadian customers to implement landing zones that complied with the Canadian Centre for Cyber Security Medium Cloud (CCCS-M) profile. As our services continue to evolve, a long-term strategy and plan was developed in 2021 to incorporate features and lessons learned from ASEA, as part of this strategy AWS launched Landing Zone Accelerator on AWS (with Control Tower) which is now the preferred solution for accelerating customer landing zones globally.
 
-This section of the documentation is the technical guide to help customers prepare and execute the in-place upgrade of their existing ASEA Landing zone to the Landing Zone Accelerator (LZA). The target audience are the technical resources responsible for the deployment and operation of the landing zone. The documentation if accompanied by the upgrade tool which is a series of scripts that will be executed from the command line to progress through the different phases of the upgrade process.
-
 This technical guide assists customers in performing an in-place upgrade from ASEA Landing Zone to Landing Zone Accelerator (LZA). The target audience is technical personnel responsible for the deployment and operational management of landing zones.
 
 This documentation package includes:
