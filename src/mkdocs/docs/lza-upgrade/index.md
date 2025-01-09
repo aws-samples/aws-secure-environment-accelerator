@@ -9,6 +9,7 @@ This section of the documentation is the technical guide to help customers prepa
 This technical guide assists customers in performing an in-place upgrade from ASEA Landing Zone to Landing Zone Accelerator (LZA). The target audience is technical personnel responsible for the deployment and operational management of landing zones.
 
 This documentation package includes:
+
 1. Step-by-step upgrade instructions
 2. Command-line upgrade tools
 3. Phase-by-phase execution guidance
