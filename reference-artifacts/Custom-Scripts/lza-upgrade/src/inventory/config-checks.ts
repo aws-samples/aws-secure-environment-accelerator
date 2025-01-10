@@ -23,6 +23,7 @@ export class ConfigCheck {
     this.madWarnings(aseaConfig);
     this.rsyslogWarnings(aseaConfig);
     this.firewallWarnings(aseaConfig);
+    this.kinesisShardWarning(aseaConfig);
   }
 
   /**
@@ -197,6 +198,16 @@ export class ConfigCheck {
         }
       }
     });
+  }
+
+  private kinesisShardWarning(aseaConfig: AcceleratorConfig) {
+    const securityConfig = aseaConfig['global-options']['central-security-services'];
+
+    if (securityConfig['kinesis-stream-shard-count'] && securityConfig['kinesis-stream-shard-count'] !== 1) {
+      this.addWarning(
+        `Kinesis streams have a custom shard count defined in 'kinesis-stream-shard-count'. Please refer to documentation on how to manage this configuration after the upgrade.`,
+      );
+    }
   }
 
   public printWarnings() {

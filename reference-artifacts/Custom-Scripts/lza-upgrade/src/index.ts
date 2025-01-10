@@ -28,7 +28,7 @@ async function main() {
   const config = await loadConfig(command);
   config.localOnlyWrites = args.includes('local-update-only');
   config.skipDriftDetection = args.includes('skip-drift-detection');
-  config.disableTerminationProtection = args.includes('disable-termination-protection');
+  config.enableTerminationProtection = args.includes('enable-termination-protection');
 
   switch (command) {
     case 'migration-config':
