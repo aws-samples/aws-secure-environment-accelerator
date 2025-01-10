@@ -5,7 +5,7 @@ The Landing Zone Accelerator has tools that can be used to validate the configur
 ## Obtain and build the Landing Zone Accelerator code
 To run those tools you need to download and build the [Landing Zone Accelerator code](https://github.com/awslabs/landing-zone-accelerator-on-aws).
 
-The following commands should be run in a dedicated folder, outside of the current folder with the upgrade scripts, to store the LZA code base (refered as `<lza-code>` in instructions)
+The following commands should be run in a dedicated folder, outside of the current folder with the upgrade scripts, to store the LZA code base (referred as `<lza-code>` in instructions)
 ```
 cd <lza-code>
 git clone https://github.com/awslabs/landing-zone-accelerator-on-aws/
@@ -14,7 +14,7 @@ yarn install
 yarn build
 ```
 
-To run the next commands you need to confirm you have valid temporary credentials to your management account as mentionned at the [beginning of this guide](./prereq-config.md#retrieve-temporary-iam-credentials-via-aws-identity-center).
+To run the next commands you need to confirm you have valid temporary credentials to your management account as mentioned at the [beginning of this guide](./prereq-config.md#retrieve-temporary-iam-credentials-via-aws-identity-center).
 
 ## Validating LZA configuration files
 

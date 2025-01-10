@@ -35,7 +35,7 @@ Upgrade: The existing central logging bucket in the Log Archive account is [impo
 
 The KMS resource-based policy for this CMK is copied to the LZA configuration repository (`kms-policies/central-log-bucket-key.json`) during configuration conversion. Any future changes needed to this policy need to be done by modifying that file and re-running the LZA pipeline. LZA won't dynamically update this policy.
 
-A sample scenario where modyfing this KMS policy might be needed is when adding an AWS opt-in region such as `ca-west-1` to the enabled regions of your configuration. The policy need to be modified to allow `guardduty.ca-west-1.amazon.com` as a service that can use the key. See [Exporting generated GuardDuty findings to Amazon S3 buckets](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_exportfindings.html) for more details.
+A sample scenario where modifying this KMS policy might be needed is when adding an AWS opt-in region such as `ca-west-1` to the enabled regions of your configuration. The policy need to be modified to allow `guardduty.ca-west-1.amazon.com` as a service that can use the key. See [Exporting generated GuardDuty findings to Amazon S3 buckets](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_exportfindings.html) for more details.
 
 ### CloudWatch
 ASEA: Uses service managed keys for CloudWatch encryption

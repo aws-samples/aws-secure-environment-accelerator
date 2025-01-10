@@ -1,13 +1,13 @@
 # Key differences between ASEA and LZA
 
-This section highlights key differences between ASEA and LZA. For futher documentation please refer to [Landing Zone Accelerator on AWS solution documentation](https://aws.amazon.com/solutions/implementations/landing-zone-accelerator-on-aws/)
+This section highlights key differences between ASEA and LZA. For further documentation please refer to [Landing Zone Accelerator on AWS solution documentation](https://aws.amazon.com/solutions/implementations/landing-zone-accelerator-on-aws/)
 
 
 ## Accelerator prefix
 
 ASEA by default uses the `ASEA` prefix to identify resources deployed by the accelerator and protect them through SCPs. When LZA is installed during the upgrade process it keeps the existing prefix for existing and new resources to ensure compatibility with the guardrails and uniformity across resources created by ASEA and LZA.
 
-This is different than the default prefix (`AWSAccelerator`) used bfor a regular LZA installation.
+This is different than the default prefix (`AWSAccelerator`) used for a regular LZA installation.
 
 ## Pipeline execution role
 

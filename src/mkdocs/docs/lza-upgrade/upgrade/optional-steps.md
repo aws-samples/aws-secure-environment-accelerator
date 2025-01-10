@@ -84,7 +84,7 @@ We recommend disabling the Event Bridge rule **before** the LZA installation to 
 5. Disable the rule
 6. Repeat this for every AWS Region enabled in your configuration file
 
-Alternatively you can run the following command using AWS Cloud Shell from the Security Audit account to disable the rule in all regions (you need to use the approriate rule name if using a different accelerator prefix)
+Alternatively you can run the following command using AWS Cloud Shell from the Security Audit account to disable the rule in all regions (you need to use the appropriate rule name if using a different accelerator prefix)
 ```bash
 for region in `aws ec2 describe-regions --query "Regions[].RegionName" --output text`; do aws events disable-rule --region $region --name ASEA-SecurityHubFindingsImportToCWLs; done
 ```

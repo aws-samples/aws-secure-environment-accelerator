@@ -63,7 +63,7 @@ The snapshot tool supports the following commands:
 - yarn run snapshot report
 - yarn run snapshot reset
 
-Snapshots will be taken before the upgrade to collect information that will be available for future troubleshooting. Optionnaly you can capture the snapshot after the upgrade as well.
+Snapshots will be taken before the upgrade to collect information that will be available for future troubleshooting. Optionally you can capture the snapshot after the upgrade as well.
 
 ??? abstract "Detailed information about snapshot commands"
 

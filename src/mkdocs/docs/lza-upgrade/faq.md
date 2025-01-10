@@ -4,12 +4,12 @@
 
 The upgrade is designed to be as transparent and automated as possible. Only resources initially deployed by ASEA are touched during the upgrade, any resources deployed outside the accelerator and in workloads accounts are not impacted during the upgrade.
 
-Changes to the shared networking resources managed by the accelerator can have an impact on the availability of workloads using the shared VPCs and perimeter resources. During the upgrade process, LZA creates new route tables and NACLs and associates them with the existing subnets to replace the previous ASEA route tables and NACLs. We recommend customers plan for a one to two minute network disruption for the traffic going through the Periemetr VPC.
+Changes to the shared networking resources managed by the accelerator can have an impact on the availability of workloads using the shared VPCs and perimeter resources. During the upgrade process, LZA creates new route tables and NACLs and associates them with the existing subnets to replace the previous ASEA route tables and NACLs. We recommend customers plan for a one to two minute network disruption for the traffic going through the Perimeter VPC.
 
 - The LZA route table and NACLs are re-created based on the ASEA configuration. It is critical to identify drift or any manual modifications done to these resources prior to the upgrade.
 - When the route tables are replaced in the NetworkVPC stage of the LZA installation, minimal packet loss (i.e. few seconds) can be observed. This affect all traffic going through the Transit Gateway.
-- For deployments using AWS Network Firewall, the routes targetting the network firewall endpoints are re-created in the NetworkVpcEndpointsStack that is deployed immediatly after the NetworkVPCStack. This cause a network disruption of all ingress/egress traffic going through the Perimeter VPC between 1 and 2 minutes.
-- For deployments using third-party Firewalls (i.e. Fortigate), the routes targetting the firewall ENIs are re-created in the NetworkAssociationsGwlbStack. This doesn't affect workload traffic flowing through the firewalls but can impact connectivity to the firewall management interface.
+- For deployments using AWS Network Firewall, the routes targeting the network firewall endpoints are re-created in the NetworkVpcEndpointsStack that is deployed immediately after the NetworkVPCStack. This cause a network disruption of all ingress/egress traffic going through the Perimeter VPC between 1 and 2 minutes.
+- For deployments using third-party Firewalls (i.e. FortiGate), the routes targeting the firewall ENIs are re-created in the NetworkAssociationsGwlbStack. This doesn't affect workload traffic flowing through the firewalls but can impact connectivity to the firewall management interface.
 - There is a period between the **NetworkVPC** and **PostImportASEAResources** stages where route tables to VPC Gateway Endpoints for S3 and DynamoDB are not available. See the section on [Optional preparation steps](./upgrade/optional-steps.md#configure-interface-endpoints-for-s3-and-dynamodb) for more details and recommended workaround.
 
 ## Gateway Load Balancer are not supported in the configuration conversion, how will this impact the workload availability?
@@ -18,7 +18,7 @@ As covered in the [Feature specific considerations](./comparison/feature-specifi
 
 Review the related route table entries in the network-config.yaml file and compare the entries with the entries of the route tables currently deployed in your environment. Make the necessary modifications in network-config.yaml to match the current configuration. Reference the [RouteTableEntryConfig](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/latest/interfaces/___packages__aws_accelerator_config_lib_models_network_config.IRouteTableEntryConfig.html) documentation for more details on how to configure route tables in LZA.
 
-In this scenario you won't be able to use the `gatewayLoadBalancerEndpoint` destination type to reference a GWLB that was not deployed by LZA. As an alternative you can use the `networkInterface` type to direclty reference the ENIs of the GWLB endpoints. Please note, that the LZA route tables are created and associated in the NetworkVPC stack, but the route entries of type `networkInterface` are created in the NetworkAssociations stack which is triggered later in the pipeline, resulting in a period of time where the route entries will be missing.
+In this scenario you won't be able to use the `gatewayLoadBalancerEndpoint` destination type to reference a GWLB that was not deployed by LZA. As an alternative you can use the `networkInterface` type to directly reference the ENIs of the GWLB endpoints. Please note, that the LZA route tables are created and associated in the NetworkVPC stack, but the route entries of type `networkInterface` are created in the NetworkAssociations stack which is triggered later in the pipeline, resulting in a period of time where the route entries will be missing.
 
 Another alternative is to manually add the missing route entries to the LZA route tables as soon as the NetworkVPC stage completes to minimize network downtime.
 
@@ -31,8 +31,8 @@ Example of important network flows to monitor:
 
 - Ingress traffic from Internet to workloads through Perimeter
 - Egress traffic from workloads to Internet through Perimeter
-- Ingress and agress traffic between on-premises networks and AWS VPCs (i.e. Direct Connect or VPN)
-- East-West traffic netween your VPCs through Transit Gateway
+- Ingress and egress traffic between on-premises networks and AWS VPCs (i.e. Direct Connect or VPN)
+- East-West traffic between your VPCs through Transit Gateway
 
 You can use [CloudWatch Network Synthetic Monitor](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/what-is-network-monitor.html) and [CloudWatch Synthetics (Canaries)](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Synthetics_Canaries.html) in combination with CloudWatch Alarms to setup monitoring of the important network flows and of your applications.
 

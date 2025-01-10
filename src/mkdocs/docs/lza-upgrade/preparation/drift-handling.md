@@ -15,7 +15,7 @@ For a more granular look at Drift Detection, this is available on an account/reg
 
 ### Inspect the drifted resources
 
-You can find more details about each occurence by inspecting the drift results in AWS Console.
+You can find more details about each occurrence by inspecting the drift results in AWS Console.
 
 - Login to your Management Account
 - Use the **Switch role** feature to switch to the target account using the management role (i.e. `ASEA-PipelineRole`)

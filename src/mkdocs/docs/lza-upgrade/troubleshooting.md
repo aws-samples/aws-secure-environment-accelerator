@@ -32,14 +32,14 @@ Workaround: Increase the resources allocated to CodeBuild and increase NodeJS `m
   a) change the value of the `NODE_OPTIONS` variable to `--max_old_space_size=32768`
 4. Release the accelerator pipeline again
 
-Note: this manual change will need to be re-applied everytime you upgrade to a new LZA version or re-run the LZA installer pipeline.
+Note: this manual change will need to be re-applied every time you upgrade to a new LZA version or re-run the LZA installer pipeline.
 
 ### Error in Security Stack - CloudFormation did not receive a response from your Custom Resource
 Cause: Throttling can happen based on the concurrent Lambda execution quota.
 
 Workaround: Disable the Event Bridge rule `ASEA-SecurityHubFindingsImportToCWLs` in the Security account. 
 
-### Error in SecurityResource stack - AWS Config rate exceeeded error
+### Error in SecurityResource stack - AWS Config rate exceeded error
 Cause: Too many resources are deployed in parallel, leading to rate limiting errors.
 
 Workaround: Increase the resources allocated to CodeBuild and increase NodeJS `max_old_space_size`
@@ -48,7 +48,7 @@ Workaround: Increase the resources allocated to CodeBuild and increase NodeJS `m
   a) change the value of the `MAX_CONCURRENT_STACKS` variable to `75`
 3. Release the accelerator pipeline again
 
-Note: this manual change will need to be re-applied everytime you upgrade to a new LZA version or re-run the LZA installer pipeline.
+Note: this manual change will need to be re-applied every time you upgrade to a new LZA version or re-run the LZA installer pipeline.
 
 ## Use of opt-in region - "InvalidClientTokenId: The security token included in the request is invalid"
 If an AWS opt-in region (e.g. ca-west-1) is enabled in your ASEA environment you need to change the region compatibility of STS session tokens to be valid in all AWS Regions.

@@ -39,17 +39,17 @@ During the configuration conversion a `firewalls/instances` configuration block 
 
 #### Which configuration changes to ASEA Firewall instances are supported from LZA?
 
-Only removing the Firewalls from the configuration file to decommission them is supported. Any other changes to the configuration (i.e. change the AMI used) will be ignored by the acclerator.
+Only removing the Firewalls from the configuration file to decommission them is supported. Any other changes to the configuration (i.e. change the AMI used) will be ignored by the accelerator.
 
 ### Application Load Balancers
 ASEA has the ability to deploy ALBs in individual accounts (e.g. Perimeter account) or be configured at the OU level to deploy ALB in every accounts of the OU.
 
-During upgrade, the existing deployed resources are not modified and remain in the original ASEA CloudFormation stacks. 
+During upgrade, the existing deployed resources are not modified and remain in the original ASEA CloudFormation stacks.
 
 The recommendation is to create new ALBs through LZA, reconfigure the workloads to use them, and then decommission the ASEA ALBs.
 
 #### Which configuration changes to ASEA Application Load Balancers are supported from LZA?
-The ASEA ALBs are not converted to the LZA configuration files, no changes are supported through LZA pipeline. You can modify ASEA ALB properties, modify and add rules to ALB listeners or change target groups direclty through the AWS console or APIs.
+The ASEA ALBs are not converted to the LZA configuration files, no changes are supported through LZA pipeline. You can modify ASEA ALB properties, modify and add rules to ALB listeners or change target groups directly through the AWS console or APIs.
 
 Once you redeploy new ALBs with LZA those can be managed through the regular LZA configuration files.
 
@@ -114,7 +114,7 @@ The resources need to be decommissioned manually.  In the future a flag could be
     _The account ${accountKey} utilizes a Gateway Load Balancer: ${loadBalancerItem.name}. Please refer to documentation on how to manage these resources._ or _The organizational unit ${ouKey} utilizes a Gateway Load Balancer: ${loadBalancerItem.name}. Please refer to documentation on how to manage these resources._
 
 
-If you are using Gateway Load Balancers (GWLB) in ASEA, (`"type: "GWLB"` is set for one of your Load Balancers in the `alb` configuration), the configuration tool will not map the existing GWLB in ASEA to the LZA configuration. 
+If you are using Gateway Load Balancers (GWLB) in ASEA, (`"type: "GWLB"` is set for one of your Load Balancers in the `alb` configuration), the configuration tool will not map the existing GWLB in ASEA to the LZA configuration.
 
 !!! warning
     Review the FAQ entry [Gateway Load Balancer are not supported in the configuration conversion, how will this impact the workload availability?](../faq.md#gateway-load-balancer-are-not-supported-in-the-configuration-conversion-how-will-this-impact-the-workload-availability) to assess the potential impact of your workload availability during the upgrade.

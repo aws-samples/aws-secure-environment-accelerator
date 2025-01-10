@@ -1,6 +1,6 @@
 # Preparation
 
-The preparation steps can be done in advance, can be run multiple times and will not modify your current environment. We encourage customers to start the preparation as soon as possible, even if not planning to apply the upgrade immediatly.
+The preparation steps can be done in advance, can be run multiple times and will not modify your current environment. We encourage customers to start the preparation as soon as possible, even if not planning to apply the upgrade immediately.
 
 The preparations steps are
 
