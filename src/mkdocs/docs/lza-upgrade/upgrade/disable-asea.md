@@ -6,14 +6,11 @@ To complete the upgrade process, we will need to disable ASEA Custom Resource de
 
 ### Deploy the upgrade ASEA Installer Stack
 
-TODO update branch name
-
-- Checkout the branch `lza-migration` and navigate to the directory which contains the CloudFormation installer template:
+- Navigate to the directory which contains the CloudFormation installer template:
 
     ```bash
     cd aws-secure-environment-accelerator
-    git checkout lza-migration
-    cd reference-artifacts/Custom-Scripts/Pre-migration/cloudformation
+    cd reference-artifacts/Custom-Scripts/lza-upgrade/cloudformation
     ```
 
   You will need to update the existing CloudFormation Installer stack:
@@ -27,7 +24,7 @@ TODO update branch name
     - Select **Choose File** and navigate to the `cloudformation/AcceleratorInstaller.template.json` file.
     - Click **Next**
 - On the **Specify Stack Details** in the Parameters section update only the parameter named `LZAMigrationEnabled`. Change the value to `true`.
-    - Update the parameter named `RepositoryBranch`. Change the value to `lza-migration`.
+    - Update the parameter named `RepositoryBranch`. Change the value to the latest ASEA release (e.g. `release/v1.6.0`)
     - Click **Next**
 - On the **Configure Stack Options** don't make any changes.
     - Click **Next**

@@ -57,14 +57,11 @@ git clone https://github.com/aws-samples/aws-secure-environment-accelerator.git
 
 ### Install the upgrade scripts project dependencies and build the project
 
-TODO: Need to update branch name to align with GA branch (v1.6.0 ??)
-
-- Ensure you are still on the `lza-migration` branch and navigate to the directory which contains the upgrade scripts:
+- Navigate to the directory which contains the upgrade scripts:
 
   ```bash
   cd aws-secure-environment-accelerator
-  git checkout lza-migration
-  cd reference-artifacts/Custom-Scripts/Pre-migration
+  cd reference-artifacts/Custom-Scripts/lza-upgrade
   ```
 
 - Install dependencies and build the project:
@@ -80,7 +77,7 @@ Note: The `<root-dir>` placeholder in further instructions in this document corr
 
 ### Retrieve Temporary IAM Credentials via AWS Identity Center
 
-Prior to running the pre-upgrade scripts, you will need temporary IAM credentials in order to run the script. In order to retrieve these, follow the instructions here and set the temporary credentials in your environment:
+Prior to running the upgrade scripts, you will need temporary IAM credentials in order to run the script. In order to retrieve these, follow the instructions here and set the temporary credentials in your environment:
 <https://aws.amazon.com/blogs/security/aws-single-sign-on-now-enables-command-line-interface-access-for-aws-accounts-using-corporate-credentials/>
 
 ### Create Upgrade Tool Configuration File and Prepare Environment
@@ -135,7 +132,7 @@ Two CodeCommit repositories have been created
     - `lzaCodeRepositorySource`: This value will be used when deploying the LZA installer CloudFormation stack. Ex. `github`
     - `lzaCodeRepositoryOwner`: This value will be used when deploying the LZA installer CloudFormation stack. Ex. `awslabs`
     - `lzaCodeRepositoryName`: This value will be used when deploying the LZA installer CloudFormation stack. Ex. `landing-zone-accelerator-on-aws`
-    - `lzaCodeRepositoryBranch`: This value will be used when deploying the LZA installer CloudFormation stack. Ex. `asea-lza-migration`
+    - `lzaCodeRepositoryBranch`: This value will be used when deploying the LZA installer CloudFormation stack. Ex. `release/v1.11.0`
     - `managementAccountEmail`: This value will be used when deploying the LZA installer CloudFormation stack.
     - `logArchiveAccountEmail`: This value will be used when deploying the LZA installer CloudFormation stack.
     - `auditAccountEmail`: This value will be used when deploying the LZA installer CloudFormation stack.

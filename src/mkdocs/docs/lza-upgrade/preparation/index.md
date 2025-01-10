@@ -10,3 +10,6 @@ The preparations steps are
     3. [Handling drift from Resource mapping](./drift-handling.md)
     4. [Configuration conversion](./configuration-conversion.md)
     5. [Pre-upgrade validations](./validation.md)
+
+!!! tip "Optional inventory step"
+    There is an optional read-only [inventory script](./inventory.md) that you can run as part of your early preparation to to help identify features or configurations that require extra planning or considerations.
