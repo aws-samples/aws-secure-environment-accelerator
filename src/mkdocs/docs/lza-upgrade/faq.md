@@ -12,6 +12,16 @@ Changes to the shared networking resources managed by the accelerator can have a
 - For deployments using third-party Firewalls (i.e. Fortigate), the routes targetting the firewall ENIs are re-created in the NetworkAssociationsGwlbStack. This doesn't affect workload traffic flowing through the firewalls but can impact connectivity to the firewall management interface.
 - There is a period between the **NetworkVPC** and **PostImportASEAResources** stages where route tables to VPC Gateway Endpoints for S3 and DynamoDB are not available. See the section on [Optional preparation steps](./upgrade/optional-steps.md#configure-interface-endpoints-for-s3-and-dynamodb) for more details and recommended workaround.
 
+## Gateway Load Balancer are not supported in the configuration conversion, how will this impact the workload availability?
+
+As covered in the [Feature specific considerations](./comparison/feature-specific-considerations.md#gateway-load-balancer) section, the configuration tool will not map the existing GWLB in ASEA to the LZA configuration. The already deployed firewall instances and Gateway Load Balancer endpoints will remain untouched. However, you should carefully review the route tables to confirm if the entries sending traffic to the GWLB Endpoints will be properly configured when LZA re-creates the subnet route tables.
+
+Review the related route table entries in the network-config.yaml file and compare the entries with the entries of the route tables currently deployed in your environment. Make the necessary modifications in network-config.yaml to match the current configuration. Reference the [RouteTableEntryConfig](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/latest/interfaces/___packages__aws_accelerator_config_lib_models_network_config.IRouteTableEntryConfig.html) documentation for more details on how to configure route tables in LZA.
+
+In this scenario you won't be able to use the `gatewayLoadBalancerEndpoint` destination type to reference a GWLB that was not deployed by LZA. As an alternative you can use the `networkInterface` type to direclty reference the ENIs of the GWLB endpoints. Please note, that the LZA route tables are created and associated in the NetworkVPC stack, but the route entries of type `networkInterface` are created in the NetworkAssociations stack which is triggered later in the pipeline, resulting in a period of time where the route entries will be missing.
+
+Another alternative is to manually add the missing route entries to the LZA route tables as soon as the NetworkVPC stage completes to minimize network downtime.
+
 
 ## Do you recommend to have specific monitoring in place for the upgrade?
 
@@ -24,7 +34,7 @@ Example of important network flows to monitor:
 - Ingress and agress traffic between on-premises networks and AWS VPCs (i.e. Direct Connect or VPN)
 - East-West traffic netween your VPCs through Transit Gateway
 
-You can use [CloudWatch Network Synthetic Monitor](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/what-is-network-monitor.html) [CloudWatch Synthetics (Canaries)](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Synthetics_Canaries.html) in combination with CloudWatch Alarms to setup monitoring of the important network flows and your applications.
+You can use [CloudWatch Network Synthetic Monitor](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/what-is-network-monitor.html) and [CloudWatch Synthetics (Canaries)](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Synthetics_Canaries.html) in combination with CloudWatch Alarms to setup monitoring of the important network flows and of your applications.
 
 
 ## Why does CloudTrail configuration show as disabled in the LZA configuration files?

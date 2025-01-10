@@ -12,7 +12,7 @@ If an issue occurs during the upgrade process, there needs to be a rollback plan
 
 ## Rollback Steps
 
-The rollback steps are designed to re-install ASEA, those are only needed if you uninstalled ASEA bu running the `asea-prep` command. The steps are only possible if you didn't start the LZA installation by running the `lza-prep` command.
+The rollback steps are designed to re-install ASEA, those are only needed if you uninstalled ASEA by running the `asea-prep` command. The steps are only possible if you didn't start the LZA installation by running the `lza-prep` command.
 
 - Confirm that the `${Prefix}-CDK-Toolkit` stacks have been deleted in all regions and accounts where the accelerator is deployed
 - In the management account, empty and delete the CDK assets bucket (`cdk-hnb659fds-assets-<account>-ca-central-1`). This bucket is part of the `${Prefix}-CDK-Toolkit` stack and has a retention policy to retain, therefore it needs to be deleted manually

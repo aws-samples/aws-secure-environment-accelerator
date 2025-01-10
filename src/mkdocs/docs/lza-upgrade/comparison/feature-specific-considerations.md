@@ -114,7 +114,12 @@ The resources need to be decommissioned manually.  In the future a flag could be
     _The account ${accountKey} utilizes a Gateway Load Balancer: ${loadBalancerItem.name}. Please refer to documentation on how to manage these resources._ or _The organizational unit ${ouKey} utilizes a Gateway Load Balancer: ${loadBalancerItem.name}. Please refer to documentation on how to manage these resources._
 
 
-If you are using Gateway Load Balancers (GWLB) in ASEA, (`"type: "GWLB"` is set for one of your Load Balancers in the `alb` configuration), the configuration tool will not map the existing GWLB in ASEA to the LZA configuration. If you're looking to implement GWLBs in your environment, you can do so by referencing the central network services [configuration](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/latest/interfaces/___packages__aws_accelerator_config_dist_config_lib_models_network_config.ICentralNetworkServicesConfig.html) within LZA. The LZA configuration allows end-users to define multiple GWLBs and VPC and subnets of where these resources are provisioned. End-users can also define which subnets the service endpoints are distributed to.
+If you are using Gateway Load Balancers (GWLB) in ASEA, (`"type: "GWLB"` is set for one of your Load Balancers in the `alb` configuration), the configuration tool will not map the existing GWLB in ASEA to the LZA configuration. 
+
+!!! warning
+    Review the FAQ entry [Gateway Load Balancer are not supported in the configuration conversion, how will this impact the workload availability?](../faq.md#gateway-load-balancer-are-not-supported-in-the-configuration-conversion-how-will-this-impact-the-workload-availability) to assess the potential impact of your workload availability during the upgrade.
+
+If you're looking to implement GWLBs in your environment, you can do so by referencing the central network services [configuration](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/latest/interfaces/___packages__aws_accelerator_config_dist_config_lib_models_network_config.ICentralNetworkServicesConfig.html) within LZA. The LZA configuration allows end-users to define multiple GWLBs and VPC and subnets of where these resources are provisioned. End-users can also define which subnets the service endpoints are distributed to.
 
 To set up GWLBs in your LZA environment, reference the `network-config.yaml` file and specify the `gatewayLoadBalancers` configuration within the `centralNetworkServices` configuration:
 

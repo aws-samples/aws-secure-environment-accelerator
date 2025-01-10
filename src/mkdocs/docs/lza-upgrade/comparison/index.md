@@ -60,7 +60,10 @@ LZA uses CDK naming which will produce a Log Group name with this pattern: `{Acc
 
 During the upgrade, the VPC Flow Logs are re-configured by LZA, therefore new CloudWatch Log Groups are created and new Flow Logs entries are sent to LZA Log Groups, while existing data remain in the ASEA Log Groups.
 
-### Log aggregation in all enabled regions
+### Kinesis Data Stream and Amazon Data Firehose are re-deployed by LZA
+During the upgrade, LZA deploys new Kinesis Data Streams and Amazon Data Firehose resources in the Log Archive account to replace the ones that were deployed by ASEA. If you have external applications integrated to the logging Data Stream, you need to update them with the new Kinesis Data Stream resource.
+
+### Log aggregation for all enabled regions
 By default ASEA deploys the Kinesis Data Streams and Log Group subscription filters to send logs to the central logging bucket only to the home region. Additional regions can be configured with the [additional_cwl_regions](https://aws-samples.github.io/aws-secure-environment-accelerator/v1.5.6-a/schema/en/interfaces/GlobalOptions.html#additional_cwl_regions) property.
 
 In LZA, the logging infrastructure is deployed to all `enabledRegions`, this will result in increased number of logs being sent to the central S3 bucket as well as the deployment of a Kinesis Data Stream and Kinesis Data Firehose in the Logging account for every enabled regions.
