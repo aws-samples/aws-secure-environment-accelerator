@@ -11,7 +11,7 @@ This is different than the default prefix (`AWSAccelerator`) used bfor a regular
 
 ## Pipeline execution role
 
-ASEA used the `ASEA-PipelineRole` as the privileged role deployed to all accounts and used by the accelerator to manage resources. The LZA upgraded environement used the  `ASEA-LZA-DeploymentRole`. This is defined with this configuration in the global-config.yaml file.
+ASEA used the `ASEA-PipelineRole` as the privileged role deployed to all accounts and used by the accelerator to manage resources. The LZA upgraded environment used the  `ASEA-LZA-DeploymentRole`. This is defined with this configuration in the global-config.yaml file.
 
 
 ```

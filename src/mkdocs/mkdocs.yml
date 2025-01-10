@@ -47,10 +47,10 @@ nav:
           - Disable ASEA: lza-upgrade/upgrade/disable-asea.md
           - Install LZA: lza-upgrade/upgrade/install-lza.md
           - Finalize the upgrade: lza-upgrade/upgrade/finalize.md
-          - Rollback strategy: lza-upgrade/upgrade/rollback.md
       - FAQ and Troubleshooting:
           - FAQ: lza-upgrade/faq.md
           - Troubleshooting: lza-upgrade/troubleshooting.md
+          - Rollback strategy: lza-upgrade/rollback.md
           - ASEA Resource Handlers: lza-upgrade/asea-resource-handlers.md
           - Known issues: lza-upgrade/known-issues.md
   - FAQ: faq/index.md

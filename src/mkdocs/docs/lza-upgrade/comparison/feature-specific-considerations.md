@@ -103,7 +103,7 @@ The management instance created by ASEA using the ASEA-RDGWAutoScalingGroup will
 #### Which configuration changes to ASEA Managed AD are supported from LZA configuration?
 No changes to the Managed AD resources created by ASEA are supported through the LZA configuration. The configuration converter doesn’t generate any corresponding block in LZA configuration.
 
-LZA configurations support the creation of new Managed Actividre Directory using the [ManagedActiveDirectoryConfig](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/latest/interfaces/___packages__aws_accelerator_config_dist_config_lib_models_iam_config.IManagedActiveDirectoryConfig.html) configuration. Do not declare a `managedActiveDirectories` block in your LZA configuration with the same domain than the one created in ASEA, this will be ignored.
+LZA configurations support the creation of new Managed Active Directory using the [ManagedActiveDirectoryConfig](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/latest/interfaces/___packages__aws_accelerator_config_dist_config_lib_models_iam_config.IManagedActiveDirectoryConfig.html) configuration. Do not declare a `managedActiveDirectories` block in your LZA configuration with the same domain than the one created in ASEA, this will be ignored.
 
 #### How to decommission a Managed Active Directory that was deployed by ASEA?
 The resources need to be decommissioned manually.  In the future a flag could be added to the `post-migration` command to flag the resources for removal.
@@ -462,7 +462,8 @@ vpcTemplates:
         - service: dynamodb
 ```
 
-Note: It is important to add the existing accounts that were upgraded from ASEA to the `deploymentTargets/excludedAccounts` list to avoid creating new VPC into the existing accounts.
+!!! warning "Existing accounts"
+    It is important to add the existing accounts that were upgraded from ASEA to the `deploymentTargets/excludedAccounts` list to avoid creating new VPC into the existing accounts.
 
 ### Custom AWS Config Rules
 !!! note "convert-config warning message"

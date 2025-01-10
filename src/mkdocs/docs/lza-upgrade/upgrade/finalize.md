@@ -4,6 +4,11 @@
 !!! warning
     The following steps will delete ASEA resources that are no longer needed because they have been replaced by LZA resources. Please confirm that all resources are deployed and working as expected before proceeding with this step.
 
+### Remove temporary Interface Endpoints for S3 and DynamoDB
+
+If you created temporary Interface Endpoints for S3 and DynamoDB in the [optional preparation steps](./optional-steps.md#configure-interface-endpoints-for-s3-and-dynamodb) you can now remove them [according to the instructions](./optional-steps.md#removal-of-endpoints-after-the-lza-installation).
+
+
 ## Post upgrade Overview
 
 This step will perform post upgrade actions which includes following
