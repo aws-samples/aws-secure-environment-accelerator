@@ -44,10 +44,12 @@ export class ResourceMapping {
   private readonly mappingRepositoryName: string;
   private readonly outputsDirectory: string;
   private readonly writeToSources: WriteToSources;
+  private localUpdateOnly = false; // This is an option to not write config changes to codecommit, used only for development like yarn run resource-mapping local-update-only
   private driftedResources: any[] = [];
   writeConfig: any;
   skipDriftDetection: boolean | undefined;
   constructor(config: Config) {
+    this.localUpdateOnly = config.localOnlyWrites ?? false;
     this.mappingBucketName = config.mappingBucketName;
     this.region = config.homeRegion;
     this.parametersTableName = config.parametersTableName;
@@ -84,7 +86,9 @@ export class ResourceMapping {
       repositoryName: this.configRepositoryName,
       defaultRegion: this.region,
     });
-    await this.validateS3Bucket(this.mappingBucketName);
+    if (!this.localUpdateOnly) {
+      await this.validateS3Bucket(this.mappingBucketName);
+    }
     const enabledRegions = configFile['global-options']['supported-regions'];
     const accountList = await this.getAccountListFromDDB(this.parametersTableName);
     const environments = this.getEnvironments(accountList, enabledRegions);

@@ -11,7 +11,7 @@
  *  and limitations under the License.
  */
 import * as fs from 'fs';
-import path from 'path';
+import { posix, default as path } from 'path';
 import * as yaml from 'js-yaml';
 import _ from 'lodash';
 import {
@@ -130,22 +130,22 @@ const LOG_RETENTION = [
  * - Config Rule remediation role policies
  */
 const ConfigRuleRemediationAssets: { [key: string]: string } = {
-  'Attach-IAM-Instance-Profile': path.join(LZA_CONFIG_RULES, 'attach-ec2-instance-profile-remediation-role.json'),
-  'Attach-IAM-Role-Policy': path.join(LZA_CONFIG_RULES, 'ec2-instance-profile-permissions-remediation-role.json'),
-  'SSM-ELB-Enable-Logging': path.join(LZA_CONFIG_RULES, 'elb-logging-enabled-remediation-role.json'),
-  'Put-S3-Encryption': path.join(LZA_CONFIG_RULES, 'bucket-sse-enabled-remediation-role.json'),
+  'Attach-IAM-Instance-Profile': posix.join(LZA_CONFIG_RULES, 'attach-ec2-instance-profile-remediation-role.json'),
+  'Attach-IAM-Role-Policy': posix.join(LZA_CONFIG_RULES, 'ec2-instance-profile-permissions-remediation-role.json'),
+  'SSM-ELB-Enable-Logging': posix.join(LZA_CONFIG_RULES, 'elb-logging-enabled-remediation-role.json'),
+  'Put-S3-Encryption': posix.join(LZA_CONFIG_RULES, 'bucket-sse-enabled-remediation-role.json'),
 };
 
 const ConfigRuleDetectionAssets: { [key: string]: string } = {
-  'EC2-INSTANCE-PROFILE': path.join(LZA_CONFIG_RULES, 'attach-ec2-instance-profile-detection-role.json'),
-  'EC2-INSTANCE-PROFILE-PERMISSIONS': path.join(
+  'EC2-INSTANCE-PROFILE': posix.join(LZA_CONFIG_RULES, 'attach-ec2-instance-profile-detection-role.json'),
+  'EC2-INSTANCE-PROFILE-PERMISSIONS': posix.join(
     LZA_CONFIG_RULES,
     'ec2-instance-profile-permissions-detection-role.json',
   ),
 };
 
 const CloudFormationAssets: { [key: string]: string } = {
-  'ALB-IP-FORWARDING': path.join(LZA_CLOUDFORMATION, 'AlbIpForwardingStack.template.json'),
+  'ALB-IP-FORWARDING': posix.join(LZA_CLOUDFORMATION, 'AlbIpForwardingStack.template.json'),
 };
 
 const SnsFindingTypesDict = {
@@ -172,7 +172,7 @@ const accountKeyMapping: AccountKeyMapping = {
 
 export class ConvertAseaConfig {
   private localUpdateOnly = false; // This is an option to not write config changes to codecommit, used only for development like yarn run convert-config local-update-only. Default is true
-  private disableTerminationProtection = false;
+  private enableTerminationProtection = false;
   private readonly aseaConfigRepositoryName: string;
   private readonly region: string;
   private readonly aseaPrefix: string;
@@ -186,6 +186,7 @@ export class ConvertAseaConfig {
   private readonly dynamoDb: DynamoDB;
   private readonly organizations = new Organizations();
   private readonly acceleratorName: string;
+  private readonly assumeRoleName: string;
   private readonly writeFilesConfig: WriteToSourcesTypes.WriteToSourcesConfig;
   private readonly ouToNestedOuMap: Map<string, Set<string>> = new Map();
   private accounts: Account[] = [];
@@ -205,7 +206,7 @@ export class ConvertAseaConfig {
 
   constructor(config: Config) {
     this.localUpdateOnly = config.localOnlyWrites ?? false;
-    this.disableTerminationProtection = config.disableTerminationProtection ?? false;
+    this.enableTerminationProtection = config.enableTerminationProtection ?? false;
     this.aseaConfigRepositoryName = config.repositoryName;
     this.localConfigFilePath = config.localConfigFilePath ?? undefined;
     this.region = config.homeRegion;
@@ -218,6 +219,7 @@ export class ConvertAseaConfig {
     this.dynamoDb = new DynamoDB(undefined, this.region);
     this.lzaConfigRepositoryName = config.lzaConfigRepositoryName;
     this.mappingFileBucket = config.mappingBucketName;
+    this.assumeRoleName = config.assumeRoleName ?? 'OrganizationAccountAccessRole';
     this.writeFilesConfig = {
       localOnly: this.localUpdateOnly,
       codeCommitConfig: {
@@ -322,7 +324,7 @@ export class ConvertAseaConfig {
 
   private generatePutFiles(fileNames: string[], directory: string): WriteToSourcesTypes.PutFiles[] {
     return fileNames.map((dir) => {
-      const fileNameArr = dir.split('/');
+      const fileNameArr = path.normalize(dir).split(path.sep);
       const fileName = fileNameArr.pop()!;
       const relativePath = fileNameArr.pop()!;
       const content = fs.readFileSync(path.join(__dirname, 'assets', relativePath, fileName)).toString();
@@ -570,7 +572,7 @@ export class ConvertAseaConfig {
     )!;
     const logAccountCredentials = await this.sts.getCredentialsForAccountAndRole(
       logAccountId,
-      `${this.aseaPrefix}PipelineRole`,
+      this.assumeRoleName,
     );
     const s3 = new S3(logAccountCredentials, this.region);
     const kms = new KMS(logAccountCredentials, this.region);
@@ -647,7 +649,7 @@ export class ConvertAseaConfig {
         },
       });
     }
-    const centralLogBucketPolicyFile = path.join(LZA_BUCKET_POLICY, 'central-log-bucket.json');
+    const centralLogBucketPolicyFile = posix.join(LZA_BUCKET_POLICY, 'central-log-bucket.json');
     await this.writeToSources.writeFiles([
       {
         fileContent: JSON.stringify(centralLogBucketPolicy, null, 2),
@@ -655,7 +657,7 @@ export class ConvertAseaConfig {
         filePath: LZA_BUCKET_POLICY,
       },
     ]);
-    const centralLogKeyPolicyFile = path.join(LZA_KMS_POLICY, 'central-log-bucket-key.json');
+    const centralLogKeyPolicyFile = posix.join(LZA_KMS_POLICY, 'central-log-bucket-key.json');
     const centralLogKeyPolicy = await kms.getKeyPolicy({
       KeyId: centralLogEncryptionKey,
       PolicyName: 'default',
@@ -752,7 +754,7 @@ export class ConvertAseaConfig {
       cloudwatchLogRetentionInDays: LOG_RETENTION.includes(globalOptions['default-cwl-retention'])
         ? globalOptions['default-cwl-retention']
         : 3653,
-      terminationProtection: this.disableTerminationProtection,
+      terminationProtection: this.enableTerminationProtection,
       controlTower: { enable: globalOptions['ct-baseline'] },
       cdkOptions: {
         centralizeBuckets: true,
@@ -1204,10 +1206,10 @@ export class ConvertAseaConfig {
       if (currentIndex === -1) {
         const policyData = await this.s3.getObjectBodyAsString({
           Bucket: this.centralBucketName,
-          Key: path.join(IAM_POLICY_CONFIG_PATH, policy.policy),
+          Key: posix.join(IAM_POLICY_CONFIG_PATH, policy.policy),
         });
         const fileName = `${policy.policy.split('.').slice(0, -1).join('.')}.json`;
-        const newFileName = path.join(
+        const newFileName = posix.join(
           LZA_IAM_POLICY_CONFIG_PATH,
           `${policy.policy.split('.').slice(0, -1).join('.')}.json`,
         );
@@ -1430,7 +1432,7 @@ export class ConvertAseaConfig {
     // Add policy for SSMWriteAccessPolicy
     if (this.globalOptions && this.globalOptions['aws-config']) {
       const policyFileName = 'ssm-write-access-policy.json';
-      const policyFilePath = path.join(LZA_IAM_POLICY_CONFIG_PATH, policyFileName);
+      const policyFilePath = posix.join(LZA_IAM_POLICY_CONFIG_PATH, policyFileName);
 
       const centralLogBucketOutput = findValuesFromOutputs({
         outputs: this.outputs,
@@ -1492,7 +1494,7 @@ export class ConvertAseaConfig {
       accounts.forEach(([accountKey, accountConfig]) => {
         if (!accountConfig.iam?.roles) return;
         if (!this.checkRolesForSsmLogWriteAccess(accountConfig.iam?.roles)) return;
-        deployToAccounts.push(accountKey);
+        deployToAccounts.push(this.getAccountKeyforLza(aseaConfig['global-options'], accountKey));
       });
 
       policySets.push({
@@ -1516,7 +1518,7 @@ export class ConvertAseaConfig {
     // Add policy for SSMReadAccessPolicy
     if (this.globalOptions && this.globalOptions['aws-config']) {
       const policyFileName = 'ssm-read-access-policy.json';
-      const policyFilePath = path.join(LZA_IAM_POLICY_CONFIG_PATH, policyFileName);
+      const policyFilePath = posix.join(LZA_IAM_POLICY_CONFIG_PATH, policyFileName);
 
       const centralLogBucketOutput = findValuesFromOutputs({
         outputs: this.outputs,
@@ -1580,13 +1582,13 @@ export class ConvertAseaConfig {
 
       const accounts = Object.entries(aseaConfig['mandatory-account-configs']);
       accounts.push(...Object.entries(aseaConfig['workload-account-configs']));
-    
+
       const deployToAccounts = accounts
-        .filter(([, accountConfig]) => 
-            accountConfig.iam?.roles && 
+        .filter(([, accountConfig]) =>
+            accountConfig.iam?.roles &&
             this.checkRolesForSsmLogReadAccess(accountConfig.iam.roles))
         .map(([accountKey]) => accountKeyMapping[accountKey] || accountKey);
-    
+
 
       if (deployToAccounts.length > 0 || deployToOus.length > 0) {
         policySets.push({
@@ -1895,11 +1897,11 @@ export class ConvertAseaConfig {
 
   private setOuToNestedOuMap(accountConfig: { [x: string]: any; ou: string }) {
     const currentNestedOusInMap = this.ouToNestedOuMap.get(accountConfig.ou);
-    if (currentNestedOusInMap && !accountConfig['ou-path'].includes('/')) {
+    if (currentNestedOusInMap && accountConfig['ou-path'].includes('/')) {
       //This actually takes the OU name but doesn't contain the higher level OU
       this.ouToNestedOuMap.set(
         accountConfig['ou-path'].split('/')[0],
-        new Set([...currentNestedOusInMap, ...accountConfig['ou-path']]),
+        new Set([...currentNestedOusInMap, accountConfig['ou-path']]),
       );
     } else {
       this.ouToNestedOuMap.set(accountConfig['ou-path'].split('/')[0], new Set([accountConfig['ou-path']]));
@@ -2023,7 +2025,7 @@ export class ConvertAseaConfig {
         // If SCP is not found in organizations fallback to S3
         policyData = await this.s3.getObjectBodyAsString({
           Bucket: this.centralBucketName,
-          Key: path.join(SCP_CONFIG_PATH, scp.policy),
+          Key: posix.join(SCP_CONFIG_PATH, scp.policy),
         });
         Object.entries(replacements).map(([key, value]) => {
           policyData = policyData?.replace(new RegExp(key, 'g'), value);
@@ -2065,7 +2067,7 @@ export class ConvertAseaConfig {
           excludedRegions: [],
           organizationalUnits: organizationsDeployedTo,
         },
-        policy: path.join(LZA_SCP_CONFIG_PATH, scp.policy),
+        policy: posix.join(LZA_SCP_CONFIG_PATH, scp.policy),
         strategy: undefined,
       });
     }
@@ -2111,7 +2113,7 @@ export class ConvertAseaConfig {
           excludedRegions: [],
           organizationalUnits: [],
         },
-        policy: path.join(LZA_SCP_CONFIG_PATH, `${quarantineScpName}.json`),
+        policy: posix.join(LZA_SCP_CONFIG_PATH, `${quarantineScpName}.json`),
         strategy: undefined,
       });
     }
@@ -2252,7 +2254,7 @@ export class ConvertAseaConfig {
         logging: {
           cloudWatch: {
             enable: true,
-            logGroupName: '/ASEA/SecurityHub',
+            logGroupName: `/${this.aseaPrefix.slice(0, -1)}/SecurityHub`,
           },
         },
       };
@@ -2269,7 +2271,7 @@ export class ConvertAseaConfig {
       for (const document of documents) {
         const documentContent = await this.s3.getObjectBodyAsString({
           Bucket: this.centralBucketName,
-          Key: path.join(SSM_DOCUMENTS_CONFIG_PATH, document.template),
+          Key: posix.join(SSM_DOCUMENTS_CONFIG_PATH, document.template),
         });
         let content;
         let isYaml = false;
@@ -2292,7 +2294,7 @@ export class ConvertAseaConfig {
           documents: [
             {
               name: createSsmDocumentName(this.aseaPrefix, document.name),
-              template: path.join(SSM_DOCUMENTS_CONFIG_PATH, document.template),
+              template: posix.join(SSM_DOCUMENTS_CONFIG_PATH, document.template),
             },
           ],
           shareTargets: ssmDocumentSharedTo(document.name),
@@ -2450,7 +2452,7 @@ export class ConvertAseaConfig {
         let customRuleProps;
         if (configRule.type === 'custom') {
           const lzaFileName = configRule['runtime-path'] ?? defaultSourcePath;
-          const aseaFilePath = path.join(CONFIG_RULES_PATH, configRule['runtime-path'] ?? defaultSourcePath);
+          const aseaFilePath = posix.join(CONFIG_RULES_PATH, configRule['runtime-path'] ?? defaultSourcePath);
           const configSource = await this.s3.getObjectBodyV3({
             Bucket: this.centralBucketName,
             Key: aseaFilePath,
@@ -2469,7 +2471,7 @@ export class ConvertAseaConfig {
           );
 
           const detectionPolicyName = `detection-${configRule.name.toLocaleLowerCase()}.json`;
-          const detectionPolicyPath = path.join(LZA_CONFIG_RULES, detectionPolicyName);
+          const detectionPolicyPath = posix.join(LZA_CONFIG_RULES, detectionPolicyName);
 
           if (!ConfigRuleDetectionAssets[configRule.name]) {
             await this.writeToSources.writeFiles(
@@ -2498,7 +2500,7 @@ export class ConvertAseaConfig {
               handler: 'index.handler',
               rolePolicyFile: ConfigRuleDetectionAssets[configRule.name] ?? detectionPolicyPath,
               runtime: nodeRuntime,
-              sourceFilePath: path.join(LZA_CONFIG_RULES, configRule['runtime-path'] ?? defaultSourcePath),
+              sourceFilePath: posix.join(LZA_CONFIG_RULES, configRule['runtime-path'] ?? defaultSourcePath),
               timeout: undefined,
             },
             maximumExecutionFrequency: configRule['max-frequency'] ?? 'TwentyFour_Hours',
@@ -2513,7 +2515,7 @@ export class ConvertAseaConfig {
         }
 
         const remediationPolicyName = `remediation-${configRule.name.toLocaleLowerCase()}.json`;
-        const remediationPolicyPath = path.join(LZA_CONFIG_RULES, remediationPolicyName);
+        const remediationPolicyPath = posix.join(LZA_CONFIG_RULES, remediationPolicyName);
 
         if (!ConfigRuleRemediationAssets[configRule['remediation-action']!] && configRule.type === 'custom') {
           await this.writeToSources.writeFiles(
@@ -2733,11 +2735,13 @@ export class ConvertAseaConfig {
             region: this.region,
             predicate: (o) => o.type === 'Acm' && o.value.certificateName === certificate.name,
           })?.[0];
-          await this.putParameter(
-            `/${this.aseaPrefix.slice(0, -1)}/acm/${certificate.name}/arn`,
-            certificateOutput.value.certificateArn,
-            accountKey,
-          );
+          if (!this.localUpdateOnly) {
+            await this.putParameter(
+              `/${this.aseaPrefix.slice(0, -1)}/acm/${certificate.name}/arn`,
+              certificateOutput.value.certificateArn,
+              accountKey,
+            );
+          }
           if (processedCertificates.has(certificate.name)) return;
           certificates.push(await getTransformedCertificate(certificate));
           processedCertificates.add(certificate.name);
@@ -2754,11 +2758,13 @@ export class ConvertAseaConfig {
               region: this.region,
               predicate: (o) => o.type === 'Acm' && o.value.certificateName === certificate.name,
             })?.[0];
-            await this.putParameter(
-              `/${this.aseaPrefix.slice(0, -1)}/acm/${certificate.name}/arn`,
-              certificateOutput.value.certificateArn,
-              accountKey,
-            );
+            if (!this.localUpdateOnly) {
+              await this.putParameter(
+                `/${this.aseaPrefix.slice(0, -1)}/acm/${certificate.name}/arn`,
+                certificateOutput.value.certificateArn,
+                accountKey,
+              );
+            }
           }
           if (processedCertificates.has(certificate.name)) return;
           certificates.push(await getTransformedCertificate(certificate));
@@ -3139,7 +3145,7 @@ export class ConvertAseaConfig {
                 shareTargets:
                   subnetConfig['share-to-ou-accounts'] || (subnetConfig['share-to-specific-accounts'] ?? []).length > 0
                     ? {
-                        organizationalUnits: subnetConfig['share-to-ou-accounts'] ? [ouKey] : undefined,
+                        organizationalUnits: subnetConfig['share-to-ou-accounts'] ? this.getNestedOusForDeploymentTargets([ouKey]) : undefined,
                         accounts: subnetConfig['share-to-specific-accounts']?.map((lAccountKey) =>
                           this.getAccountKeyforLza(globalOptions, lAccountKey),
                         ),
@@ -3594,7 +3600,7 @@ export class ConvertAseaConfig {
     if (role['trust-policy']) {
       const trustPolicy = await this.s3.getObjectBodyAsString({
         Bucket: this.centralBucketName,
-        Key: path.join(IAM_POLICY_CONFIG_PATH, role['trust-policy']),
+        Key: posix.join(IAM_POLICY_CONFIG_PATH, role['trust-policy']),
       });
       const content = JSON.parse(trustPolicy);
 
@@ -3791,16 +3797,19 @@ export class ConvertAseaConfig {
     if (!this.ssmClients[ssmClientKey]) {
       const credentials = await this.sts.getCredentialsForAccountAndRole(
         parameterAccountId,
-        `${this.aseaPrefix}PipelineRole`,
+        this.assumeRoleName,
       );
       this.ssmClients[ssmClientKey] = new SSM(credentials, parameterRegion);
     }
-    await this.ssmClients[ssmClientKey].putParameter({
-      Name: name,
-      Value: value,
-      Type: 'String',
-      Overwrite: true,
-    });
+
+    if (!this.localUpdateOnly) {
+      await this.ssmClients[ssmClientKey].putParameter({
+        Name: name,
+        Value: value,
+        Type: 'String',
+        Overwrite: true,
+      });
+    }
   }
 }
 // function createFirewallTarget(vpcConfig: VpcConfig, arg1: string): string[] | undefined {

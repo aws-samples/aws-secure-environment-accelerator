@@ -250,18 +250,6 @@ yarn run convert-config local-update-only
 
 </details>
 
-<details>
-  <summary>Option to disable termination protection</summary>
-
-The `disable-termination-protection` flag is used to disable termination protection for the LZA deployed stacks. This can be useful during the upgrade process incase there is a error that stops the creation of new stacks. This flag will allow the LZA pipeline to remove stacks that were not successfully deployed. It is recommended to enable this feature through the LZA global configuration file after the initial LZA pipeline run is successful.
-
-```bash
-yarn run convert-config disable-termination-protection
-```
-
-</details>
-
-
 > **⚠️ Note**: If an ASEA account resides in an Organizational Unit which is in the `ignored-ous` section of `global-config` block, that account will not be added to the resulting `accounts-config.yaml` output file. This is due to the way that the LZA handles accounts which it manages as well as logic in the config validator.
 
 ### Confirm Convert Configuration Outputs
@@ -1042,6 +1030,11 @@ All suspended accounts in your organization should be under a specific OU that i
 See [ASEA FAQ 1.1.0 How do I suspend an AWS account?](https://aws-samples.github.io/aws-secure-environment-accelerator/latest/faq/#how-do-i-suspend-an-aws-account) for more details.
 
 The presence of Suspended accounts in _regular_ OUs (i.e. Dev, Test, Prod) will generate errors during the upgrade.
+
+### Central Logging - Kinesis Data Stream Shard Count
+In ASEA there is a configuration property [kinesis-stream-shard-count](https://aws-samples.github.io/aws-secure-environment-accelerator/v1.5.6-a/schema/en/interfaces/CentralizedSecurityServicesConfig.html#kinesis_stream_shard_count) to scale the number of shards of the Kinesis Data Stream to accommodate a larger volume of logs. LZA doesn't currently support an equivalent configuration option and because LZA re-creates a new Data Stream during the upgrade process, this customization will be lost.
+
+If you changed this property in ASEA, you need to manually re-apply the modification after the LZA upgrade.
 
 ## Other key differences between ASEA and LZA
 
