@@ -15,7 +15,7 @@ The following configurations are not handled automatically by the current versio
 
 
 ## Upgrade known issues
-The following issues can result in error during the ASEA to LZA upgrade.
+The following issues can result in errors during the ASEA to LZA upgrade and should be fixed in the LZA configuration files before starting the LZA installation.
 
 ### Error: Transit Gateway static route already exist
 
