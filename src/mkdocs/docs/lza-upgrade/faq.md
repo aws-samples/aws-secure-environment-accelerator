@@ -12,6 +12,17 @@ Changes to the shared networking resources managed by the accelerator can have a
 - For deployments using third-party Firewalls (i.e. FortiGate), the routes targeting the firewall ENIs are re-created in the NetworkAssociationsGwlbStack. This doesn't affect workload traffic flowing through the firewalls but can impact connectivity to the firewall management interface.
 - There is a period between the **NetworkVPC** and **PostImportASEAResources** stages where route tables to VPC Gateway Endpoints for S3 and DynamoDB are not available. See the section on [Optional preparation steps](./upgrade/optional-steps.md#configure-interface-endpoints-for-s3-and-dynamodb) for more details and recommended workaround.
 
+## What if we made manual changes to subnet route tables outside the accelerator?
+
+As detailed in the previous entry, LZA creates new route tables and NACLs based on the ASEA configuration and associates them with the existing subnets to replace the ASEA route tables and NACLs. Any changes made to subnet route tables outside the accelerator will be reverted during the upgrade.
+
+The preferred resolution is to align the ASEA configuration to incorporate the manual changes in ASEA before the upgrade to remove the drift.
+
+If this is not possible, you should record all route table information before the upgrade to identify manually created entries. After the upgrade is complete, these entries need to be recreated.
+
+Note: Transit Gateway route tables are not replaced during the upgrade, theses guidelines only apply to subnet route tables.
+
+
 ## Gateway Load Balancer are not supported in the configuration conversion, how will this impact the workload availability?
 
 As covered in the [Feature specific considerations](./comparison/feature-specific-considerations.md#gateway-load-balancer) section, the configuration tool will not map the existing GWLB in ASEA to the LZA configuration. The already deployed firewall instances and Gateway Load Balancer endpoints will remain untouched. However, you should carefully review the route tables to confirm if the entries sending traffic to the GWLB Endpoints will be properly configured when LZA re-creates the subnet route tables.
