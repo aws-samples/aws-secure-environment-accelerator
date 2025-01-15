@@ -1,17 +1,17 @@
 # Known Issues
 
-List of known issues at the time of release, this list will be updated when new versions of the upgrade tools are released. Contact your AWS account teams for more details if these issues impact your upgrade.
+This is a list of known issues at the time of release, this list will be updated when new versions of the upgrade tools are released. Contact your AWS account teams for more details if these issues impact your upgrade.
 
 ## Unsupported configurations
-The following configurations are not handled automatically by the current version of the upgrade tools. Also review the (Feature specific considerations)[./comparison/feature-specific-considerations.md] section of the documentation for additional details.
+The following configurations are not handled automatically by the current version of the upgrade tools. Also review the [Feature-specific considerations](./comparison/feature-specific-considerations.m) section of the documentation for additional details.
 
 ### Site-to-site VPNs
 
-**Description:** Site-to-site VPN attached to Transit Gateway configured with ASEA are not converted to LZA configuration.
+**Description:** Site-to-site VPNs attached to Transit Gateway configured with ASEA are not converted to LZA configuration.
 
 **Symptom or error message:** The customer gateway and VPN connections configurations are not generated in the LZA `network-config.yaml` file.
 
-**Resolution or workaround:** While the configurations are not present in the LZA configuration files, the already deployed resources won't be affected during the upgrade, thus the VPN connection will still be in place and no network disruption on the VPN tunnel is anticipated during the upgrade. After the upgrade you can plan deploying new VPN configurations natively using LZA and delete the original resources created by ASEA.
+**Resolution or workaround:** While the configurations are not present in the LZA configuration files, the already deployed resources won't be affected during the upgrade. Thus the VPN connection will still be in place and no network disruption on the VPN tunnel is anticipated during the upgrade. After the upgrade you can plan deploying new VPN configurations natively using LZA and delete the original resources created by ASEA.
 
 
 ## Upgrade known issues
@@ -19,7 +19,7 @@ The following issues can result in error during the ASEA to LZA upgrade.
 
 ### Error: Transit Gateway static route already exist
 
-**Description:** During LZA install, LZA attempts to re-create a transit gateway static route table entry that already exist.
+**Description:** During LZA install, LZA attempts to re-create a transit gateway static route table entry that already exists.
 
 **Symptom or error message:** Error in the NetworkAssociationsStack during LZA initial installation.
 
@@ -34,7 +34,7 @@ ASEA-NetworkAssociationsStack-xxxxxx-ca-central-1 failed: Error: The stack named
 
 ### convert-config should not convert AutomationAssumeRole parameters for AWS Custom Config Rules remediation
 
-**Description:** LZA handles the IAM Roles and Policies for custom config rule detection Lambda and remediation SSM document differently than ASEA. In the current state, convert-config generates a configuration that will generate an error at deployment time if the `remediation-params` in ASEA configuration contains a parameter named `AutomationAssumeRole`. 
+**Description:** LZA handles the IAM Roles and Policies for custom config rule detection Lambda and remediation SSM document differently than ASEA. In the current state, convert-config generates a configuration that will generate an error at deployment time if the `remediation-params` in ASEA configuration contains a parameter named `AutomationAssumeRole`.
 
 **Symptom or error message:** The SecurityResourcesStack stack fails on the creation of custom AWS Config Rule with the error `InvalidParameterValueException`.
 
@@ -57,18 +57,18 @@ Resource handler returned message: "Invalid id: "${ACCEL_LOOKUP::EC2:ENI_0:Firew
 **Resolution or workaround:** A fix will be available in a future version of LZA.
 
 
-### Some AWS Config Rules don't evaluate after the upgrade
+### Some AWS Config Rules do not evaluate after the upgrade
 
-**Description:** Some AWS Config Rules deployed by LZA don't evaluate (i.e. Last successful detective evaluation shows as 'Not Available' in the console). The equivalent ASEA Config Rule evaluates correctly.
+**Description:** Some AWS Config Rules deployed by LZA do not evaluate (i.e Last successful detective evaluation appears as 'Not Available' in the console). The equivalent ASEA Config Rule evaluates correctly.
 
 **Symptom or error message:** The scope of changes of Config Rule is set to an empty list of Resource types instead of scoped to **All changes** as in ASEA.
 
 **Resolution or workaround:** A fix will be available in a future version of LZA. Manually changing the Scope of changes to "All resources" can be a short-term remediation. Alternatively you can opt-out of removing the ASEA Config Rules in the post-upgrade phase. (this will result in duplicate rules being evaluated)
 
 
-### Removal of interface endpoints fails in ImportAseaResource stage
+### Removal of interface endpoints fails in ImportAseaResources stage
 
-**Description:** Failure when attempting to remove an interface endpoint that was deployed by ASEA prior to LZA upgrade
+**Description:** Failure when attempting to remove an interface endpoint that was deployed by ASEA prior to LZA upgrade.
 
 **Symptom or error message:** Failure in ImportAseaResources
 
