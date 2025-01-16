@@ -451,6 +451,7 @@ async function downloadCustomRules(
       Bucket: bucketName,
       Key: `${rulePrefix}/${configRuleRuntime}`,
     });
+    // @ts-ignore
     fs.writeFileSync(path.join(configRulesTempDir, configRuleRuntime), (runtimeFile as unknown) as Buffer);
   }
 }
