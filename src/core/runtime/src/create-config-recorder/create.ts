@@ -259,7 +259,12 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
         `Config Aggregrator '${aggregatorName}' found in '${accountKey}' and config-aggr is false. Deleting...'`,
       );
       if (!migrationEnabled) {
-        const disableAggregator = await deleteAggregator(configService, accountId, centralSecurityRegion, aggregatorName);
+        const disableAggregator = await deleteAggregator(
+          configService,
+          accountId,
+          centralSecurityRegion,
+          aggregatorName,
+        );
         errors.push(...disableAggregator);
       }
     }

@@ -91,7 +91,7 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   if (migrationEnabled) {
-    console.log('Skipping delete. Migration enabled.')
+    console.log('Skipping delete. Migration enabled.');
     return;
   }
   console.log(`Deleting role`);

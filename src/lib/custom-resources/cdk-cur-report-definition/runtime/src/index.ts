@@ -18,8 +18,8 @@ import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-respo
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 export type HandlerProperties = {
-  ReportDefinition: AWS.CUR.ReportDefinition,
-}
+  ReportDefinition: AWS.CUR.ReportDefinition;
+};
 
 export const handler = errorHandler(onEvent);
 const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());

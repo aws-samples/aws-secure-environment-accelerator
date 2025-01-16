@@ -82,7 +82,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Deleting Log Group Metric filter...`);
   if (migrationEnabled) {
-    console.log ('Skipping deletion. Migration enabled.');
+    console.log('Skipping deletion. Migration enabled.');
     return;
   }
   console.log(JSON.stringify(event, null, 2));
