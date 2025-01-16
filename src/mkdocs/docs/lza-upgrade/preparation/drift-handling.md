@@ -46,6 +46,9 @@ Pay special attention to drift on networking resources such as route tables and 
 
 As an example, drift detection is not supported for resource type `AWS::EC2::SubnetRouteTableAssociation`. If you created route tables outside the accelerator and manually associated these route tables with an ASEA subnet, this change won't be detected in drift detection and the route table association will be reverted to the one defined in the configuration when installing LZA.
 
+!!! tip
+    There is a script available to help detect drift on networking resources that are not detected my CloudFormation. The script is available in the [tools/network-drift-detection](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Custom-Scripts/lza-upgrade/tools/network-drift-detection/) folder in the ASEA to LZA upgrade tools.
+
 !!! warning
     Remember that drift detection is a tool to help you identify manual changes done outside the accelerator, but it won't identify every change. Carefully review and analyze ALL changes done to accelerator resources outside of the configuration file.
 

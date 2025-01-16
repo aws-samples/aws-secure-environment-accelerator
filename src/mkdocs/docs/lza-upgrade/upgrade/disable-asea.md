@@ -6,22 +6,16 @@ To complete the upgrade process, we will need to disable ASEA Custom Resource de
 
 ### Deploy the upgrade ASEA Installer Stack
 
-- Navigate to the directory which contains the CloudFormation installer template:
+You will need to update the existing CloudFormation Installer stack:
 
-    ```bash
-    cd aws-secure-environment-accelerator
-    cd reference-artifacts/Custom-Scripts/lza-upgrade/cloudformation
-    ```
-
-  You will need to update the existing CloudFormation Installer stack:
-
+- Download the AcceleratorInstaller stack from the latest [ASEA Release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) on GitHub (i.e. v1.6.0 or later)
 - Navigate to the AWS CloudFormation console
 - Select the existing installer stack then **Update Stack**
 - On the **Update Stack** page, select the radio button for:
     - **Replace current template** under **Prepare Template Section**`
     - Click **Next**
     - **Upload a Template File** under **Specify Template Section**
-    - Select **Choose File** and navigate to the `cloudformation/AcceleratorInstaller.template.json` file.
+    - Select **Choose File** and navigate to the file downloaded from GitHub release page
     - Click **Next**
 - On the **Specify Stack Details** in the Parameters section update only the parameter named `LZAMigrationEnabled`. Change the value to `true`.
     - Update the parameter named `RepositoryBranch`. Change the value to the latest ASEA release (e.g. `release/v1.6.0`)

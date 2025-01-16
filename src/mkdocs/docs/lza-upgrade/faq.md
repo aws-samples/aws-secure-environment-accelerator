@@ -22,6 +22,9 @@ If this is not possible, you should record all route table information before th
 
 Note: Transit Gateway route tables are not replaced during the upgrade, theses guidelines only apply to subnet route tables.
 
+!!! tip
+    There is a script available to help detect drift on networking resources that are not detected by CloudFormation. The script is available in the [tools/network-drift-detection](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Custom-Scripts/lza-upgrade/tools/network-drift-detection/) folder in the ASEA to LZA upgrade tools.
+
 
 ## Gateway Load Balancer are not supported in the configuration conversion, how will this impact the workload availability?
 
