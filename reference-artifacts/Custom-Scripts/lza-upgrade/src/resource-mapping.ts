@@ -86,8 +86,9 @@ export class ResourceMapping {
       repositoryName: this.configRepositoryName,
       defaultRegion: this.region,
     });
-    if (!this.localUpdateOnly)
+    if (!this.localUpdateOnly) {
       await this.validateS3Bucket(this.mappingBucketName);
+    }
     const enabledRegions = configFile['global-options']['supported-regions'];
     const accountList = await this.getAccountListFromDDB(this.parametersTableName);
     const environments = this.getEnvironments(accountList, enabledRegions);
