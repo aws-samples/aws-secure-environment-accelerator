@@ -43,6 +43,5 @@ junit.xml
 src/input-config/input-config.json
 src/input-config/input-config-*.json
 .vscode/
-config/
 backup/
 outputs/*
