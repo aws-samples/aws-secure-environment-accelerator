@@ -32,6 +32,8 @@ const ssm = new AWS.SSM();
 
 export const handler = errorHandler(onEvent);
 
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
+
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log('SSM Document Create...');
   console.log(JSON.stringify(event, null, 2));
@@ -92,6 +94,10 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log('SSM Document Delete...');
+  if (migrationEnabled) {
+    console.log('Skipping delete. Migration enabled');
+    return;
+  }
   console.log(JSON.stringify(event, null, 2));
   const { name } = (event.ResourceProperties as unknown) as HandlerProperties;
   if (event.PhysicalResourceId === `SSMDocument-${name}`) {

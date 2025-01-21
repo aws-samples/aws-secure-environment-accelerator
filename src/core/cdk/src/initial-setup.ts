@@ -62,6 +62,7 @@ export namespace InitialSetup {
     codebuildComputeType: any;
     pageSize: string;
     backoff: string | undefined;
+    migrationEnabled: boolean | undefined;
     /**
      * Current Accelerator version
      */
@@ -285,6 +286,7 @@ export namespace InitialSetup {
           CIDR_POOL: cidrPoolTable.tableName,
           DEPLOY_STACK_PAGE_SIZE: props.pageSize,
           COMPUTE_TYPE: props.codebuildComputeType,
+          MIGRATION_ENABLED: String(props.migrationEnabled),
         },
       });
 

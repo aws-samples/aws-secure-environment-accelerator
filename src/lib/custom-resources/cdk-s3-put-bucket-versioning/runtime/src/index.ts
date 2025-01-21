@@ -30,6 +30,7 @@ export interface HandlerProperties {
 }
 
 export const handler = errorHandler(onEvent);
+const migrationEnabled = JSON.parse((process.env.MIGRATION_ENABLED ?? 'false').toLowerCase());
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`S3 Put Bucket Versioning...`);
@@ -103,6 +104,10 @@ async function onCreateOrUpdate(
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
+  if (migrationEnabled) {
+    console.log('Skipping delete. Migration enabled');
+    return;
+  }
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { bucketName, logRetention } = properties;
   if (event.PhysicalResourceId !== getPhysicalId(event)) {

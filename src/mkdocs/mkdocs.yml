@@ -28,6 +28,31 @@ nav:
           - Centralized Logging Details: installation/log-file-locations.md
           - Accelerator Object Naming: installation/object-naming.md
           - Open Roadmap (Link): https://github.com/aws-samples/aws-secure-environment-accelerator/projects/1
+  - Upgrade to Landing Zone Accelerator:
+      - lza-upgrade/index.md
+      - Key differences between ASEA and LZA:
+          - lza-upgrade/comparison/index.md
+          - KMS: lza-upgrade/comparison/kms.md
+          - Feature specific considerations: lza-upgrade/comparison/feature-specific-considerations.md
+      - Preparation:
+          - lza-upgrade/preparation/index.md
+          - Pre-requisites and configuration: lza-upgrade/preparation/prereq-config.md
+          - Resource mapping and drift detection: lza-upgrade/preparation/resource-mapping-drift-detection.md
+          - Drift analysis: lza-upgrade/preparation/drift-handling.md
+          - Configuration conversion: lza-upgrade/preparation/configuration-conversion.md
+          - Pre-upgrade validations: lza-upgrade/preparation/validation.md
+      - Upgrade:
+          - lza-upgrade/upgrade/index.md
+          - Optional preparation steps: lza-upgrade/upgrade/optional-steps.md
+          - Disable ASEA: lza-upgrade/upgrade/disable-asea.md
+          - Install LZA: lza-upgrade/upgrade/install-lza.md
+          - Finalize the upgrade: lza-upgrade/upgrade/finalize.md
+      - FAQ and Troubleshooting:
+          - FAQ: lza-upgrade/faq.md
+          - Troubleshooting: lza-upgrade/troubleshooting.md
+          - Rollback strategy: lza-upgrade/rollback.md
+          - ASEA Resource Handlers: lza-upgrade/asea-resource-handlers.md
+          - Known issues: lza-upgrade/known-issues.md
   - FAQ: faq/index.md
   - Operations & Troubleshooting:
       - operations/index.md

@@ -1,0 +1,15 @@
+# The Docker image that will be used to build your app
+image: public.ecr.aws/docker/library/python:3.12
+# Functions that should be executed before the build script is run
+before_script:
+  - cd src/mkdocs
+  - python -m pip install --upgrade pip
+  - pip install -r requirements.txt
+pages:
+  script:
+    - make build
+  artifacts:
+    paths:
+      # The folder that contains the files to be exposed at the Page URL
+      - public
+
