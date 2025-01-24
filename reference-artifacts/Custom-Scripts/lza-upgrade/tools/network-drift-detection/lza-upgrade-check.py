@@ -139,8 +139,7 @@ def get_vpcs_from_config(aseaConfig, region):
 def flatten_subnet_config(vpc_name, subnets):
     """Takes subnet object from ASEA config and generate list of subnets to be created per AZ"""
     return [
-        {"Name": f"{subnet['name']}_{vpc_name}_az{d['az']}_net",
-         "route-table": f"{d['route-table']}_rt"}
+        {"Name": f"{subnet['name']}_{vpc_name}_az{d['az']}_net", "route-table": f"{d['route-table']}_rt"}
         for subnet in subnets
         for d in subnet["definitions"]
         if not d.get('disabled', False)
@@ -278,8 +277,7 @@ def get_transit_gateway_route_tables(ec2_client, tgw_id: str) -> List[Dict]:
                     blackhole_routes = get_transit_gateway_routes(
                         ec2_client, tgwrt["TransitGatewayRouteTableId"], "blackhole")
                 except Exception as e:
-                    logger.error(f"Failed to get routes for table {
-                                 tgwrt['TransitGatewayRouteTableId']}: {str(e)}")
+                    logger.error(f"Failed to get routes for table {tgwrt['TransitGatewayRouteTableId']}: {str(e)}")
                     active_routes = []
 
                 name = next((tag["Value"] for tag in tgwrt.get("Tags", [])
@@ -322,8 +320,7 @@ def get_transit_gateway_routes(ec2_client, tgwrt_id: str, state: str) -> List[Di
     """
     valid_states = ['active', 'blackhole', 'deleted', 'deleting', 'pending']
     if state not in valid_states:
-        raise ValueError(f"Invalid route state. Must be one of: {
-                         ', '.join(valid_states)}")
+        raise ValueError(f"Invalid route state. Must be one of: {', '.join(valid_states)}")
 
     try:
         response = ec2_client.search_transit_gateway_routes(
@@ -376,10 +373,12 @@ def get_vpc_route_tables(ec2_client, vpcId):
         r = {"Name": name,
              "RouteTableId": rt["RouteTableId"],
              "VpcId": rt["VpcId"],
+             "Main": any([asso["Main"] for asso in rt["Associations"] if "Main" in asso]),
              "SubnetAssociations": [asso["SubnetId"] for asso in rt["Associations"] if "SubnetId" in asso],
              "Routes": rt["Routes"],
              "RawResponse": rt
              }
+
         rt_list.append(r)
 
     return rt_list
@@ -474,9 +473,12 @@ def analyze_vpcs(vpc_from_config, account_list, role_to_assume, region):
                        if f"{rt['name']}_rt" == drt["Name"]]
                 if len(crt) == 0:
                     logger.warning(
-                        f"Route table {drt['Name']} exists in VPC {dv} but not in config")
-                    drift["route_tables_not_in_config"].append(
-                        {"RouteTable": drt["Name"], "Vpc": dv})
+                        f"Route table {drt['Name']} exists in VPC {dv} but not in config. {'(Main)' if drt['Main'] else ''}")
+
+                    # Do not add to drift if its the main route table and there are no Subnet Associations
+                    if not drt['Main'] or len(drt['SubnetAssociations']) > 0:
+                        drift["route_tables_not_in_config"].append(
+                            {"RouteTable": drt["Name"], "Vpc": dv})
                     continue
 
             # check if all route tables from the config exist in the environment
@@ -536,7 +538,7 @@ def analyze_vpcs(vpc_from_config, account_list, role_to_assume, region):
             vpc_details[dv] = {
                 "Account": account, "RouteTables": d_rtables, "Subnets": d_subnets}
 
-        return {"Drift": drift, "VpcDetails": vpc_details}
+    return {"Drift": drift, "VpcDetails": vpc_details}
 
 
 def get_tgw_from_config(asea_config, region):
