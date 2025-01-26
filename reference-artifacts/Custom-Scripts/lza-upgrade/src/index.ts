@@ -20,6 +20,7 @@ import { PostMigration } from './post-migration';
 import { Preparation } from './preparation';
 import { ResourceMapping } from './resource-mapping';
 import { Snapshot } from './snapshot';
+import { Compare } from './compare';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -53,6 +54,9 @@ async function main() {
     case 'lza-prep':
       const lzaPreparation = new Preparation(config);
       await lzaPreparation.prepareLza();
+      break;
+    case 'compare':
+      await Compare.compareMappings(args[1], args[2]);
       break;
     case 'snapshot':
       const snapshot = new Snapshot(config);

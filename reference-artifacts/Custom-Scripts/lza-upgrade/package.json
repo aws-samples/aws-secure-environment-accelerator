@@ -15,6 +15,7 @@
     "test:watch": "npx yarn test:watch",
     "upgrade": "npx yarn upgrade",
     "watch": "npx yarn watch",
+    "compare": "ts-node src/index.ts compare",
     "resource-mapping": "ts-node src/index.ts resource-mapping",
     "inventory": "ts-node src/index.ts inventory",
     "convert-config": "ts-node src/index.ts convert-config",
