@@ -251,15 +251,20 @@ export async function disableASEARules(prefix: string) {
 export async function disableAllAccountAseaRules(aseaConfig: AcceleratorConfig, roleName: string, prefix: string) {
   const accounts = await getAccountList();
   const regions = aseaConfig['global-options']['supported-regions'];
+  const accountPromises = []
   for (const account of accounts) {
     if (account.Status !== 'SUSPENDED') {
         const credentials = await getCredentials(account.Id!, roleName);
         if (credentials === undefined) {
           continue;
         }
-        await disableRules(credentials, regions, prefix);
+        console.log(`Disabling rules in ${account.Id}`);
+        accountPromises.push(
+          disableRules(credentials, regions, prefix),
+        );
       }
     }
+  await Promise.all(accountPromises);
 }
 
 async function disableRules(credentials: AwsCredentialIdentity, regions: any, prefix: string){
@@ -268,20 +273,16 @@ async function disableRules(credentials: AwsCredentialIdentity, regions: any, pr
     const suffixes = [
       'NewLogGroup_rule'
     ];
-
     for (const suffix of suffixes) {
       try {
         const command = new DisableRuleCommand({
           Name: `${prefix}-${suffix}`,
         });
-       console.log(`Disabling rule ${command.input.Name}`);
         await client.send(command);
       } catch (e: any) {
         if (e instanceof ResourceNotFoundException) {
-          console.log(`Rule ${prefix}-${suffix} does not exist`);
           continue;
         }
-        console.log(`Rule ${prefix}-${suffix} does not exist`);
       }
     }
   }
