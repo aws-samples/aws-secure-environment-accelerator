@@ -106,9 +106,9 @@ export async function getCredentials(accountId: string, roleName: string): Promi
       sessionToken: stsResponse.Credentials?.SessionToken!,
     };
     return credentials;
-  } catch (e) {
+  } catch (e: any) {
     console.error(`Failed to assume role ${roleName} in account ${accountId}`);
-    return undefined;
+    throw new Error(e);
   }
 }
 
