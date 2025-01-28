@@ -49,6 +49,8 @@ async function main() {
     case 'asea-prep':
       const preparation = new Preparation(config);
       await preparation.prepareAsea();
+      const disableAccountRules = new Snapshot(config);
+      await disableAccountRules.disableSubscriptionRule();
       break;
     case 'lza-prep':
       const lzaPreparation = new Preparation(config);
@@ -70,6 +72,10 @@ async function main() {
           await snapshot.reset();
           break;
       }
+      break;
+    case 'disable-rules':
+      const disableRules = new Snapshot(config);
+      await disableRules.disableSubscriptionRule();
       break;
     case 'post-migration':
       await new PostMigration(config, args).process();
