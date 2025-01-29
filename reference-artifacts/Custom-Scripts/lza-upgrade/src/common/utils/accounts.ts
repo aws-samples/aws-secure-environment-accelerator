@@ -13,6 +13,14 @@
 
 import { DynamoDB } from '../aws/dynamodb';
 import { Account } from '../outputs/accounts';
+import { STS } from '../aws/sts';
+
+
+export interface Environment {
+    accountId: string;
+    accountKey: string;
+    region: string;
+}
 
 export async function loadAccounts(tableName: string, client: DynamoDB): Promise<Account[]> {
   let index = 0;
@@ -31,3 +39,22 @@ export async function loadAccounts(tableName: string, client: DynamoDB): Promise
   }
   return accounts;
 }
+
+export function getEnvironments(accounts: Account[], regions: string[]): Environment[] {
+  const environments: Environment[] = [];
+  for (const account of accounts) {
+    for (const region of regions) {
+      environments.push({
+        accountId: account.id,
+        accountKey: account.key,
+        region,
+      });
+    }
+  }
+  return environments;
+}
+
+export async function assumeRole(accountId: string, roleName: string) {
+  const sts = new STS();
+    return sts.getCredentialsForAccountAndRole(accountId, roleName);
+  }

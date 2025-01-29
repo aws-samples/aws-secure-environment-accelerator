@@ -56,7 +56,15 @@ async function main() {
       await lzaPreparation.prepareLza();
       break;
     case 'compare':
-      await Compare.compareMappings(args[1], args[2]);
+      switch(args[1]) {
+        case 'mappings':
+          await Compare.compareMappings(args[2], args[3]);
+          break;
+        case 'subscription-filters':
+          const compare = await Compare.init(config);
+          await compare.GetSubscriptionFilterDeliveryArns(args[2], args[3]);
+          break;
+      }
       break;
     case 'snapshot':
       const snapshot = new Snapshot(config);
