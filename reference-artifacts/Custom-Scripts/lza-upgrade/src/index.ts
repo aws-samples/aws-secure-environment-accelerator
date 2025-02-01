@@ -41,7 +41,7 @@ async function main() {
       await new Inventory(configPath).process();
       break;
     case 'resource-mapping':
-      await new ResourceMapping(config).process();
+      await new ResourceMapping(config, args).process();
       break;
     case 'convert-config':
       await new ConvertAseaConfig(config).process();

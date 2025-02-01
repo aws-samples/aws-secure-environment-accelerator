@@ -44,11 +44,14 @@ export class ResourceMapping {
   private readonly mappingRepositoryName: string;
   private readonly outputsDirectory: string;
   private readonly writeToSources: WriteToSources;
+  private nestedStackNames: string[];
   private localUpdateOnly = false; // This is an option to not write config changes to codecommit, used only for development like yarn run resource-mapping local-update-only
   private driftedResources: any[] = [];
   writeConfig: any;
   skipDriftDetection: boolean | undefined;
-  constructor(config: Config) {
+  constructor(config: Config, args: string[]) {
+    this.nestedStackNames = args[3].split(',').map((stackName) => stackName.trim());
+    console.log(this.nestedStackNames);
     this.localUpdateOnly = config.localOnlyWrites ?? false;
     this.mappingBucketName = config.mappingBucketName;
     this.region = config.homeRegion;
@@ -269,7 +272,7 @@ export class ResourceMapping {
     );
     const stackAndResourcesList = await Promise.all(validStackAndResourcePromises);
     const allNestedStacks = stackAndResourcesList.filter((stackAndResource) =>
-      stackAndResource.stackName.includes('NestedStack'),
+      stackAndResource.stackName.includes('NestedStack') || this.nestedStackNames.includes(stackAndResource.stackName)
     );
     stackAndResourcesList.forEach((stackAndResource) => {
       const nestedStacks = this.getNestedStacks(stackAndResource, allNestedStacks);
@@ -292,9 +295,12 @@ export class ResourceMapping {
   }
 
   getParentStack(stackAndResource: StacksAndResourceMap) {
+    const stackNameArr = stackAndResource.stackName.split('-');
     if (stackAndResource.stackName.includes('NestedStack')) {
-      const stackNameArr = stackAndResource.stackName.split('-');
       return `${stackAndResource.environment.accountId}|${stackAndResource.environment.region}|${stackNameArr[0]}-${stackNameArr[1]}-${stackNameArr[2]}`;
+    }
+    if (this.nestedStackNames.includes(stackAndResource.stackName)) {
+      return `${stackAndResource.environment.accountId}|${stackAndResource.environment.region}|${stackNameArr[0]}-${stackNameArr[1]}-Phase2`;
     }
     return undefined;
   }
@@ -310,8 +316,7 @@ export class ResourceMapping {
       (nestedStackAndResource) =>
         stackAndResource.environment.accountId === nestedStackAndResource.environment.accountId &&
         stackAndResource.environment.region === nestedStackAndResource.environment.region &&
-        nestedStackAndResource.stackName.includes(stackAndResource.stackName),
-    );
+        (nestedStackAndResource.stackName.includes(stackAndResource.stackName) || this.nestedStackNames.includes(stackAndResource.stackName)));
     if (matchedStacks.length === 0) {
       return;
     }
@@ -681,6 +686,10 @@ export class ResourceMapping {
       if (stackSummary.StackName.includes('Phase')) {
         stacks.push(stackSummary.StackName);
       }
+      if (this.nestedStackNames.includes(stackSummary.StackName)) {
+        console.log(`ADDED NESTED STACK: ${stackSummary.StackName}`)
+        stacks.push(stackSummary.StackName);
+      }
     }
     return {
       stacks,
@@ -761,6 +770,8 @@ export class ResourceMapping {
       return '4';
     } else if (lowerCaseStackName.includes('phase-5') || lowerCaseStackName.includes('phase5')) {
       return '5';
+    } else if (this.nestedStackNames.includes(stackName)) {
+      return '2';
     } else {
       return undefined;
     }
