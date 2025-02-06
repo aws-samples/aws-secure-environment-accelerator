@@ -15,7 +15,6 @@ import { loadAseaConfig } from './asea-config/load';
 import { Config } from './config';
 import { Reset } from './snapshot/common/dynamodb';
 import { getChangedResources } from './snapshot/lib/reporting';
-import { disableAllAccountAseaRules } from './preparation/asea';
 import * as snapshot from './snapshot/snapshotConfiguration';
 
 export class Snapshot {
@@ -78,16 +77,5 @@ export class Snapshot {
   async reset() {
     const cleanup = new Reset(this.tableName, this.homeRegion);
     await cleanup.dropTable();
-  }
-
-  async disableSubscriptionRule() {
-    const aseaConfig = await loadAseaConfig({
-      filePath: 'raw/config.json',
-      repositoryName: this.aseaConfigRepositoryName,
-      defaultRegion: this.homeRegion,
-      localFilePath: this.localConfigFilePath,
-    });
-
-    await disableAllAccountAseaRules(aseaConfig, this.roleName, this.aseaPrefix.replaceAll('-', ''));
   }
 }

@@ -30,14 +30,10 @@ import {
   ListImagesCommand,
   ListImagesCommandOutput,
 } from '@aws-sdk/client-ecr';
-import { EventBridgeClient, DisableRuleCommand, ResourceNotFoundException } from '@aws-sdk/client-eventbridge';
+import { EventBridgeClient, DisableRuleCommand } from '@aws-sdk/client-eventbridge';
 import { KMSClient, ListAliasesCommand, GetKeyPolicyCommand, PutKeyPolicyCommand } from '@aws-sdk/client-kms';
 
 import { SSMClient, PutParameterCommandInput, PutParameterCommand } from '@aws-sdk/client-ssm';
-
-import { AcceleratorConfig } from '../asea-config';
-import { getCredentials, getAccountList } from '../snapshot/snapshotConfiguration';
-import { AwsCredentialIdentity } from '@aws-sdk/types';
 
 export async function updateSecretsKey(prefix: string, operationsAccountId: string, region: string): Promise<void> {
   const kmsClient = new KMSClient({ region: region });
@@ -246,44 +242,4 @@ export async function disableASEARules(prefix: string) {
   });
   await Promise.all(disableRulePromises);
   console.log('Disabled Rules');
-}
-
-export async function disableAllAccountAseaRules(aseaConfig: AcceleratorConfig, roleName: string, prefix: string) {
-  const accounts = await getAccountList();
-  const regions = aseaConfig['global-options']['supported-regions'];
-  const accountPromises = []
-  for (const account of accounts) {
-    if (account.Status !== 'SUSPENDED') {
-        const credentials = await getCredentials(account.Id!, roleName);
-        if (credentials === undefined) {
-          continue;
-        }
-        console.log(`Disabling rules in ${account.Id}`);
-        accountPromises.push(
-          disableRules(credentials, regions, prefix),
-        );
-      }
-    }
-  await Promise.all(accountPromises);
-}
-
-async function disableRules(credentials: AwsCredentialIdentity, regions: any, prefix: string){
-  for (const region of regions) {
-    const client = new EventBridgeClient({ region: region, credentials });
-    const suffixes = [
-      'NewLogGroup_rule'
-    ];
-    for (const suffix of suffixes) {
-      try {
-        const command = new DisableRuleCommand({
-          Name: `${prefix}-${suffix}`,
-        });
-        await client.send(command);
-      } catch (e: any) {
-        if (e instanceof ResourceNotFoundException) {
-          continue;
-        }
-      }
-    }
-  }
 }
