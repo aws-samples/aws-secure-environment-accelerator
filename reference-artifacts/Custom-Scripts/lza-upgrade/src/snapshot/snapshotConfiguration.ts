@@ -89,7 +89,8 @@ export async function snapshotConfiguration(
   }
 }
 
-async function getCredentials(accountId: string, roleName: string): Promise<AwsCredentialIdentity | undefined> {
+export async function getCredentials(accountId: string, roleName: string): Promise<AwsCredentialIdentity | undefined> {
+  const stsClient = new STSClient({ maxAttempts: 10 });
   let stsResponse: AssumeRoleCommandOutput;
   try {
     stsResponse = await stsClient.send(
@@ -105,13 +106,13 @@ async function getCredentials(accountId: string, roleName: string): Promise<AwsC
       sessionToken: stsResponse.Credentials?.SessionToken!,
     };
     return credentials;
-  } catch (e) {
+  } catch (e: any) {
     console.error(`Failed to assume role ${roleName} in account ${accountId}`);
-    return undefined;
+    throw new Error(e);
   }
 }
 
-async function getAccountList(): Promise<Account[]> {
+export async function getAccountList(): Promise<Account[]> {
   const organizationsClient = new OrganizationsClient({ region: 'us-east-1', maxAttempts: 10 });
 
   const accounts: Account[] = [];

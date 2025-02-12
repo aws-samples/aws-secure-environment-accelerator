@@ -20,6 +20,7 @@ import { PostMigration } from './post-migration';
 import { Preparation } from './preparation';
 import { ResourceMapping } from './resource-mapping';
 import { Snapshot } from './snapshot';
+import { DisableRules } from './disable-rules';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -49,6 +50,8 @@ async function main() {
     case 'asea-prep':
       const preparation = new Preparation(config);
       await preparation.prepareAsea();
+      const disableRulesInPrep = await DisableRules.init(config);
+      await disableRulesInPrep.disableAllAccountRules(config.aseaPrefix);
       break;
     case 'lza-prep':
       const lzaPreparation = new Preparation(config);
@@ -70,6 +73,10 @@ async function main() {
           await snapshot.reset();
           break;
       }
+      break;
+    case 'disable-rules':
+      const disableRules = await DisableRules.init(config);
+      await disableRules.disableAllAccountRules(config.aseaPrefix);
       break;
     case 'post-migration':
       await new PostMigration(config, args).process();

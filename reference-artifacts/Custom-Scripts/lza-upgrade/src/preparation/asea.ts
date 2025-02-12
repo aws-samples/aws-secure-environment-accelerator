@@ -227,7 +227,7 @@ export async function disableASEARules(prefix: string) {
     'CreateOrganizationalUnit_rule',
     'MoveAccount_rule',
     'PolicyChanges_rule',
-    'RemoveAccount_rule',
+    'RemoveAccount_rule'
   ];
 
   const disableRuleCommands: DisableRuleCommand[] = suffixes.map((suffix) => {

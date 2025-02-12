@@ -23,6 +23,7 @@
     "lza-prep": "ts-node src/index.ts lza-prep",
     "post-migration": "ts-node src/index.ts post-migration",
     "migration-config": "ts-node src/index migration-config",
+    "disable-subscription-rules": "ts-node src/index disable-rules",
     "all": "ts-node src/index migration-config; ts-node src/index snapshot pre"
   },
   "devDependencies": {
