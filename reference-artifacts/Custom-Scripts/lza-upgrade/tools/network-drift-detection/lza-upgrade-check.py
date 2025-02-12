@@ -9,6 +9,9 @@ from typing import Dict, List
 import boto3
 from botocore.exceptions import ClientError
 
+if "LOGLEVEL" in os.environ:
+    logging.basicConfig(level=os.environ.get(
+        "LOGLEVEL", "WARNING"), format='%(levelname)s:%(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -139,8 +142,7 @@ def get_vpcs_from_config(aseaConfig, region):
 def flatten_subnet_config(vpc_name, subnets):
     """Takes subnet object from ASEA config and generate list of subnets to be created per AZ"""
     return [
-        {"Name": f"{subnet['name']}_{vpc_name}_az{d['az']}_net",
-         "route-table": f"{d['route-table']}_rt"}
+        {"Name": f"{subnet['name']}_{vpc_name}_az{d['az']}_net", "route-table": f"{d['route-table']}_rt"}  # nopep8
         for subnet in subnets
         for d in subnet["definitions"]
         if not d.get('disabled', False)
@@ -278,8 +280,7 @@ def get_transit_gateway_route_tables(ec2_client, tgw_id: str) -> List[Dict]:
                     blackhole_routes = get_transit_gateway_routes(
                         ec2_client, tgwrt["TransitGatewayRouteTableId"], "blackhole")
                 except Exception as e:
-                    logger.error(f"Failed to get routes for table {
-                                 tgwrt['TransitGatewayRouteTableId']}: {str(e)}")
+                    logger.error(f"Failed to get routes for table {tgwrt['TransitGatewayRouteTableId']}: {str(e)}")  # nopep8
                     active_routes = []
 
                 name = next((tag["Value"] for tag in tgwrt.get("Tags", [])
@@ -322,8 +323,7 @@ def get_transit_gateway_routes(ec2_client, tgwrt_id: str, state: str) -> List[Di
     """
     valid_states = ['active', 'blackhole', 'deleted', 'deleting', 'pending']
     if state not in valid_states:
-        raise ValueError(f"Invalid route state. Must be one of: {
-                         ', '.join(valid_states)}")
+        raise ValueError(f"Invalid route state. Must be one of: {', '.join(valid_states)}")  # nopep8
 
     try:
         response = ec2_client.search_transit_gateway_routes(
@@ -376,10 +376,12 @@ def get_vpc_route_tables(ec2_client, vpcId):
         r = {"Name": name,
              "RouteTableId": rt["RouteTableId"],
              "VpcId": rt["VpcId"],
+             "Main": any([asso["Main"] for asso in rt["Associations"] if "Main" in asso]),
              "SubnetAssociations": [asso["SubnetId"] for asso in rt["Associations"] if "SubnetId" in asso],
              "Routes": rt["Routes"],
              "RawResponse": rt
              }
+
         rt_list.append(r)
 
     return rt_list
@@ -447,6 +449,7 @@ def analyze_vpcs(vpc_from_config, account_list, role_to_assume, region):
         "subnets_not_deployed": [],
         "subnets_not_associated": [],
         "subnet_route_table_mismatches": [],
+        "route_table_entries_mismatches": []
     }
     vpc_details = {}
 
@@ -474,9 +477,12 @@ def analyze_vpcs(vpc_from_config, account_list, role_to_assume, region):
                        if f"{rt['name']}_rt" == drt["Name"]]
                 if len(crt) == 0:
                     logger.warning(
-                        f"Route table {drt['Name']} exists in VPC {dv} but not in config")
-                    drift["route_tables_not_in_config"].append(
-                        {"RouteTable": drt["Name"], "Vpc": dv})
+                        f"Route table {drt['Name']} exists in VPC {dv} but not in config. {'(Main)' if drt['Main'] else ''}")
+
+                    # Do not add to drift if its the main route table and there are no Subnet Associations
+                    if not drt['Main'] or len(drt['SubnetAssociations']) > 0:
+                        drift["route_tables_not_in_config"].append(
+                            {"RouteTable": drt["Name"], "Vpc": dv})
                     continue
 
             # check if all route tables from the config exist in the environment
@@ -490,6 +496,16 @@ def analyze_vpcs(vpc_from_config, account_list, role_to_assume, region):
                     drift["route_tables_not_deployed"].append(
                         {"RouteTable": crt['name'], "Vpc": dv})
                     continue
+                elif len(drt) > 0:
+                    if len(drt) > 1:
+                        logger.error(
+                            f"More than one route table named {crt['name']} is deployed! LZA upgrade already executed?")
+
+                    # matching config and deployed route, compare the entries
+                    rteDrift = compare_route_table(crt, drt[0])
+                    if len(rteDrift) > 0:
+                        drift["route_table_entries_mismatches"].append(
+                            {"RouteTable": crt['name'], "Vpc": dv, "Entries": rteDrift})
 
             # check if there are more subnets than in the config
             d_subnets = get_vpc_subnets(client, deployed_vpcs[dv])
@@ -536,7 +552,104 @@ def analyze_vpcs(vpc_from_config, account_list, role_to_assume, region):
             vpc_details[dv] = {
                 "Account": account, "RouteTables": d_rtables, "Subnets": d_subnets}
 
-        return {"Drift": drift, "VpcDetails": vpc_details}
+    return {"Drift": drift, "VpcDetails": vpc_details}
+
+
+def compare_route_table(crt, drt):
+    """
+    Compare entries of configured and deployed route table
+    crt: configured route table in ASEA config
+    drt: deployed route table in AWS VPC
+    """
+    drift = []
+
+    # ignoring gateway endpoint routes (S3 and DynamoDB) and local subnet routes
+    cRoutes = [r for r in crt.get('routes', []) if r['target'].lower(
+    ) != 's3' and r['target'].lower() != 'dynamodb']
+    dRoutes = [r for r in drt.get(
+        'Routes', []) if 'DestinationCidrBlock' in r and r.get("GatewayId", "") != "local"]
+
+    if len(cRoutes) != len(dRoutes):
+        logger.warning(
+            f"Different number of routes in config and deployed route table for {crt['name']}")
+
+    # check if all route entries in config matches what is deployed
+    for cr in cRoutes:
+        if cr['target'].lower() == "pcx":
+            logger.warning(
+                f"Route {cr['destination']} is a VPC peering route. Skipping check")
+            continue
+
+        dr = [r for r in dRoutes if cr['destination']
+              == r['DestinationCidrBlock']]
+        if len(dr) == 0:
+            logger.warning(f"Route {cr['destination']} exists in config but not found in deployed route table")  # nopep8
+            drift.append(
+                {"Route": cr['destination'], "Reason": "Not found in deployed route table"})
+            continue
+        elif len(dr) == 1:
+            dre = dr[0]
+            if cr['target'] == "IGW":
+                if not ("GatewayId" in dre and dre['GatewayId'].startswith("igw-")):
+                    logger.warning(
+                        f"Route {cr['destination']} not matched to IGW")
+                    drift.append(
+                        {"Route": cr['destination'], "Reason": "Not matched to IGW"})
+            elif cr['target'] == "TGW":
+                if not "TransitGatewayId" in dre:
+                    logger.warning(
+                        f"Route {cr['destination']} not matched to TGW")
+                    drift.append(
+                        {"Route": cr['destination'], "Reason": "Not matched to TGW"})
+            elif cr['target'].startswith("NFW_"):
+                if not ("GatewayId" in dre and dre['GatewayId'].startswith("vpce-")):
+                    logger.warning(
+                        f"Route {cr['destination']} not matched to NFW VPCE")
+                    drift.append(
+                        {"Route": cr['destination'], "Reason": "Not matched to NFW VPCE"})
+            elif cr['target'].startswith("NATGW_"):
+                if not "NatGatewayId" in dre:
+                    logger.warning(
+                        f"Route {cr['destination']} not matched to NATGW")
+                    drift.append(
+                        {"Route": cr['destination'], "Reason": "Not matched to NATGW"})
+            elif cr['target'] == "VGW":
+                if not ("GatewayId" in dre and dre['GatewayId'].startswith("vgw-")):
+                    logger.warning(
+                        f"Route {cr['destination']} not matched to VGW")
+                    drift.append(
+                        {"Route": cr['destination'], "Reason": "Not matched to VGW"})
+            elif cr['target'].lower() == "firewall":
+                if not "InstanceId" in dre:
+                    logger.warning(
+                        f"Route {cr['destination']} not matched to firewall instance")
+                    drift.append(
+                        {"Route": cr['destination'], "Reason": "Not matched to firewall instance"})
+            else:
+                logger.error(f"Route target {cr['target']} is not supported!")
+                drift.append({"Route": cr['destination'], "Reason": f"Route target {
+                             cr['target']} is not supported!"})
+        else:
+            # this should not be possible!
+            logger.error(f"More than one route with destination {cr['destination']} is deployed!")  # nopep8
+            drift.append({"Route": cr['destination'], "Reason": f"More than one route with destination {
+                         cr['destination']} found"})
+
+    # check if there are route entries deployed that are not in the config
+    for dr in dRoutes:
+        if 'VpcPeeringConnectionId' in dr:
+            logger.warning(
+                f"Route {dr['DestinationCidrBlock']} is a VPC peering route. Skipping check")
+            continue
+
+        cr = [r for r in cRoutes if r['destination']
+              == dr['DestinationCidrBlock']]
+        if len(cr) == 0:
+            logger.warning(f"Route {dr['DestinationCidrBlock']} exists in deployed route table but not found in config")  # nopep8
+            drift.append(
+                {"Route": dr['DestinationCidrBlock'], "Reason": "Not found in config"})
+
+    return drift
 
 
 def get_tgw_from_config(asea_config, region):
@@ -697,8 +810,7 @@ def main():
     accel_prefix = args.accel_prefix
     asea_config_path = args.raw_config_path
     output_path = args.output_dir
-    role_to_assume = args.role_to_assume if args.role_to_assume else f"{
-        accel_prefix}-PipelineRole"
+    role_to_assume = args.role_to_assume if args.role_to_assume else f"{accel_prefix}-PipelineRole"  # nopep8
     parameter_table = f"{accel_prefix}-Parameters"
     shared_network_key = 'shared-network'
     home_region = args.home_region

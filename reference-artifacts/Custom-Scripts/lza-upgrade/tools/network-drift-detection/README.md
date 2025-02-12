@@ -74,6 +74,7 @@ This section details drift in subnets and their route tables. Careful inspection
 
 |Key|Description|Notes and upgrade impact|
 |---|-----------|------------------------|
+|route_table_entries_mismatches|Difference in route entries between ASEA config and AWS account|Route entries may have been modified manually, **the changes will be overwritten during the upgrade**. Note: the script doesn't handle all route target types, manual verification is still recommended|
 |route_tables_not_deployed|Route tables found in the ASEA config, but not in the AWS account|These route tables may have been manually removed and **will be re-created during the upgrade**|
 |route_tables_not_in_config|Route tables not found in the ASEA config, but are present in the AWS account|This is for information, these route tables won't be modified during the upgrade. See note below.|
 |subnet_route_table_mismatches|There is a configuration difference between the ASEA config and the current state of the route table|These route tables may have been manually modified, **the changes will be overwritten during the upgrade**|
