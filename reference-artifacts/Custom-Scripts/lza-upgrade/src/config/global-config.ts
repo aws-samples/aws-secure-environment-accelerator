@@ -2237,6 +2237,7 @@ export class GlobalConfig implements t.TypeOf<typeof GlobalConfigTypes.globalCon
     const aseaStacks: t.AseaStackInfo[] = [];
     for (const account of mappingJson) {
       this.externalLandingZoneResources?.accountsDeployedExternally.push(account.accountId);
+      let nestedStackPhysicalIds: string[] = [];
       for (const stack of account.stacksAndResourceMapList) {
         const phaseIdentifierIndex = stack.stackName.indexOf('Phase') + 5;
         let phase = stack.stackName[phaseIdentifierIndex];
@@ -2249,6 +2250,11 @@ export class GlobalConfig implements t.TypeOf<typeof GlobalConfigTypes.globalCon
         // Delete outputs from template. IMPORT_ASEA_RESOURCES stage will write required information into SSM Parameter Store.
         // delete stack.template.Outputs;
         await fs.promises.writeFile(templatePath, JSON.stringify(stack.template, null, 2));
+        for (const cfnResource of stack.resourceMap) {
+          if (cfnResource.resourceType == 'AWS::CloudFormation::Stack') {
+            nestedStackPhysicalIds.push(cfnResource.physicalResourceId);
+          }
+        }
         aseaStacks.push({
           accountId: account.accountId,
           accountKey: account.accountKey,
@@ -2257,13 +2263,14 @@ export class GlobalConfig implements t.TypeOf<typeof GlobalConfigTypes.globalCon
           resources: stack.resourceMap as t.CfnResourceType[],
           templatePath,
           phase,
-          /**
-           * ASEA creates Nested stacks only for Phase1 and Phase2 and "stack.stackName.substring(phaseIdentifierIndex)" doesn't include accountName in it.
-           * It is safe to use string include to check if stack is nestedStack or not.
-           * Other option is to check for resource type in "Resources.physicalResourceId" using stackName
-           */
-          nestedStack: stack.stackName.substring(phaseIdentifierIndex).includes('NestedStack'),
+          nestedStack: stack.parentStack ? true : false,
         });
+      }
+      for (const physicalId of nestedStackPhysicalIds) {
+        const nestedStack = aseaStacks.findIndex((stack) => physicalId.includes(`:stack/${stack.stackName}/`));
+        if (nestedStack > -1) {
+          aseaStacks[nestedStack].nestedStack = true;
+        }
       }
     }
     return aseaStacks;

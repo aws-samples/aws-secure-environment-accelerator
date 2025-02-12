@@ -268,19 +268,26 @@ export class ResourceMapping {
       (stackAndResource): stackAndResource is Promise<StacksAndResourceMap> => stackAndResource !== undefined,
     );
     const stackAndResourcesList = await Promise.all(validStackAndResourcePromises);
-    const allNestedStacks = stackAndResourcesList.filter((stackAndResource) =>
-      stackAndResource.stackName.includes('NestedStack'),
+
+    const allNestedStacksPhysicalIds: string[] = stackAndResourcesList.flatMap((stack) =>
+      stack.resourceMap
+        .filter((resource) => resource.resourceType == 'AWS::CloudFormation::Stack')
+        .map((resource) => resource.physicalResourceId),
     );
+
+    const allNestedStacks = stackAndResourcesList.filter((stackAndResource) =>
+      allNestedStacksPhysicalIds.find((physicalId) => physicalId.includes(`:stack/${stackAndResource.stackName}/`)),
+    );
+
+    const allNestedStackNames = allNestedStacks.map((stackAndResource) => stackAndResource.stackName);
+
     stackAndResourcesList.forEach((stackAndResource) => {
       const nestedStacks = this.getNestedStacks(stackAndResource, allNestedStacks);
       if (nestedStacks) {
         stackAndResource.nestedStacks = nestedStacks;
       }
-      const parentStack = this.getParentStack(stackAndResource);
-      if (parentStack) {
-        stackAndResource.parentStack = parentStack;
-      }
-      if (!stackAndResource.stackName.includes('NestedStack')) {
+
+      if (!allNestedStackNames.includes(stackAndResource.stackName)) {
         stackAndResourceMap.set(
           `${stackAndResource.environment.accountId}-${stackAndResource.environment.region}-${stackAndResource.stackName}`,
           stackAndResource,
@@ -289,14 +296,6 @@ export class ResourceMapping {
     });
 
     return stackAndResourceMap;
-  }
-
-  getParentStack(stackAndResource: StacksAndResourceMap) {
-    if (stackAndResource.stackName.includes('NestedStack')) {
-      const stackNameArr = stackAndResource.stackName.split('-');
-      return `${stackAndResource.environment.accountId}|${stackAndResource.environment.region}|${stackNameArr[0]}-${stackNameArr[1]}-${stackNameArr[2]}`;
-    }
-    return undefined;
   }
 
   getNestedStacks(stackAndResource: StacksAndResourceMap, nestedStacks: StacksAndResourceMap[]) {
