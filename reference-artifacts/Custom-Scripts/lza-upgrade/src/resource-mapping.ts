@@ -666,22 +666,27 @@ export class ResourceMapping {
 
   async getStackList(cloudformation: CloudFormation, environment: Environment) {
     const stacks: string[] = [];
-    const response = await cloudformation
-      .listStacks({
-        StackStatusFilter: [
-          'CREATE_COMPLETE',
-          'UPDATE_COMPLETE',
-          'UPDATE_ROLLBACK_FAILED',
-          'UPDATE_ROLLBACK_COMPLETE',
-          'IMPORT_COMPLETE',
-        ],
-      })
-      .promise();
-    for (const stackSummary of response.StackSummaries || []) {
-      if (stackSummary.StackName.includes('Phase')) {
-        stacks.push(stackSummary.StackName);
+    let nextToken: string | undefined;
+    do {
+      const response = await cloudformation
+        .listStacks({
+          NextToken: nextToken,
+          StackStatusFilter: [
+            'CREATE_COMPLETE',
+            'UPDATE_COMPLETE',
+            'UPDATE_ROLLBACK_FAILED',
+            'UPDATE_ROLLBACK_COMPLETE',
+            'IMPORT_COMPLETE',
+          ],
+        })
+        .promise();
+      for (const stackSummary of response.StackSummaries || []) {
+        if (stackSummary.StackName.includes('Phase')) {
+          stacks.push(stackSummary.StackName);
+        }
       }
-    }
+      nextToken = response.NextToken;
+    } while (nextToken);
     return {
       stacks,
       environment,
