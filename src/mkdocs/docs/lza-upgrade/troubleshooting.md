@@ -37,7 +37,7 @@ Note: this manual change will need to be re-applied every time you upgrade to a 
 ### Error in Security Stack - CloudFormation did not receive a response from your Custom Resource
 Cause: Throttling can happen based on the concurrent Lambda execution quota.
 
-Workaround: Disable the Event Bridge rule `ASEA-SecurityHubFindingsImportToCWLs` in the Security account. 
+Workaround: Disable the Event Bridge rule `ASEA-SecurityHubFindingsImportToCWLs` in the Security account.
 
 ### Error in SecurityResource stack - AWS Config rate exceeded error
 Cause: Too many resources are deployed in parallel, leading to rate limiting errors.
@@ -49,6 +49,22 @@ Workaround: Increase the resources allocated to CodeBuild and increase NodeJS `m
 3. Release the accelerator pipeline again
 
 Note: this manual change will need to be re-applied every time you upgrade to a new LZA version or re-run the LZA installer pipeline.
+
+### CredentialsProviderError in bootstrap stage
+Bootstrap stage fails with the following error
+
+```
+error | utils-common-functions | {"name":"CredentialsProviderError","tryNextLink":false}
+Could not load credentials from any providers
+```
+
+Workaround: Increase the **Number of retries** in the SDK configuration.
+1. Go to CodeBuild console and locate the `ASEA-ToolkitProject` project
+2. Edit the project, in the Environment variables section:
+  a) add a new environment variable named `NUMBER_OF_RETRIES`
+  b) set the value of the a higher value (default: 12)
+3. Release the accelerator pipeline again
+
 
 ## Use of opt-in region - "InvalidClientTokenId: The security token included in the request is invalid"
 If an AWS opt-in region (e.g. ca-west-1) is enabled in your ASEA environment you need to change the region compatibility of STS session tokens to be valid in all AWS Regions.
@@ -106,3 +122,13 @@ You encounter the following error during an LZA pipeline run after adding an opt
 > The stack named ASEA-SecurityStack-<account>-ca-west-1 failed creation, it may need to be manually deleted from the AWS console: ROLLBACK_COMPLETE: Received response status [FAILED] from custom resource. Message returned: BadRequestException: The request failed because the GuardDuty service principal does not have permission to the KMS key or the resource specified by the destinationArn parameter. Refer to https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_exportfindings.html
 
 See information about the [Central Logging bucket CMK](./comparison/kms.md#central-logging-bucket) for more details and how to fix the issue.
+
+## Cannot exceed quota for RolesPerAccount error
+You encounter an error similar to this one during LZA installation:
+
+```
+Deployment failed: Error: The stack named ASEA-SecurityResourcesStack-<account>-<region> failed creation, it may need to be manually deleted from the AWS console: ROLLBACK_COMPLETE: Resource handler returned message: "Cannot exceed quota for RolesPerAccount: 1000 (Service: Iam, Status Code: 409, Request ID: )" (RequestToken: , HandlerErrorCode: ServiceLimitExceeded)
+
+```
+
+You need to request a limit increase for the RolesPerAccount Quota. See the FAQ [Which Service Quotas should be monitored for the upgrade?](./faq.md#which-service-quotas-should-be-monitored-for-the-upgrade)

@@ -66,3 +66,22 @@ logging:
 ```
 
 This is because for upgraded environment, there is already an existing organizational trail configured by ASEA or ControlTower that will continue to be used. We don't recommend changing this to `true` as this will instruct LZA to create a new trail in addition to the existing one created by ASEA.
+
+## Which Service Quotas should be monitored for the upgrade?
+
+Depending on your configuration, the LZA installation can create over 500 IAM Roles in each account. If you already have several IAM Roles in your accounts and using the default limit of 1000, the installation could be blocked by this service quota.
+
+You can make an AWS Config query using the organization aggregator to list the current number of IAM Roles in each account, and request a limit increase proactively.
+```
+SELECT
+  accountId,
+  COUNT(*)
+WHERE
+  resourceType = 'AWS::IAM::Role'
+GROUP BY
+  accountId
+ORDER BY
+  COUNT(*) DESC
+```
+
+For more information about LZA related Quotas, refer to the [LZA Documentation about Quotas](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/quotas.html) as well as this note about [CodeBuild concurrency](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/prerequisites.html#update-codebuild-conncurrency-quota)

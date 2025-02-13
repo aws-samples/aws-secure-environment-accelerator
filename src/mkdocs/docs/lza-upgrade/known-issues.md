@@ -44,27 +44,6 @@ ASEA-NetworkAssociationsStack-xxxxxx-ca-central-1 failed: Error: The stack named
 ## Landing Zone Accelerator known issues
 The following issues will not prevent a successful upgrade from ASEA to LZA, but can impact functionalities and operations in the upgraded Landing Zone.
 
-### Error adding a new route targeting firewall instance
-
-**Description:** After a successful upgrade, you try to add in `network-config.yaml` a route entry that targets ENI 0 of a firewall appliance using the lookup variable `${ACCEL_LOOKUP::EC2:ENI_0:Firewall_azA:Id}`
-
-**Symptom or error message:** Error in the NetworkAssociationsStack after adding a route targeting ENI 0 of a firewall appliance.
-
-```
-Resource handler returned message: "Invalid id: "${ACCEL_LOOKUP::EC2:ENI_0:Firewall_azA:Id}" (expecting "eni-...")
-```
-
-**Resolution or workaround:** A fix will be available in a future version of LZA.
-
-
-### Some AWS Config Rules do not evaluate after the upgrade
-
-**Description:** Some AWS Config Rules deployed by LZA do not evaluate (i.e Last successful detective evaluation appears as 'Not Available' in the console). The equivalent ASEA Config Rule evaluates correctly.
-
-**Symptom or error message:** The scope of changes of Config Rule is set to an empty list of Resource types instead of scoped to **All changes** as in ASEA.
-
-**Resolution or workaround:** A fix will be available in a future version of LZA. Manually changing the Scope of changes to "All resources" can be a short-term remediation. Alternatively you can opt-out of removing the ASEA Config Rules in the post-upgrade phase. (this will result in duplicate rules being evaluated)
-
 
 ### Removal of interface endpoints fails in ImportAseaResources stage
 
@@ -86,3 +65,30 @@ ASEA-SharedNetwork-Phase2-VpcEndpoints1 failed: Error [ValidationError]: Templat
 **Symptom or error message:** The LZA pipeline runs with success, but the resource is not deleted.
 
 **Resolution or workaround:** Not all ASEA resources support deletion through the LZA configuration and pipeline. Review the [ASEA Resource Handlers](./asea-resource-handlers.md) page for the current state of supported handlers.
+
+# Fixed Issues
+
+## Fixed in LZA v1.11.1
+
+The following issued were fixed as part of LZA v1.11.1 release.
+
+### Error adding a new route targeting firewall instance
+
+**Description:** After a successful upgrade, you try to add in `network-config.yaml` a route entry that targets ENI 0 of a firewall appliance using the lookup variable `${ACCEL_LOOKUP::EC2:ENI_0:Firewall_azA:Id}`
+
+**Symptom or error message:** Error in the NetworkAssociationsStack after adding a route targeting ENI 0 of a firewall appliance.
+
+```
+Resource handler returned message: "Invalid id: "${ACCEL_LOOKUP::EC2:ENI_0:Firewall_azA:Id}" (expecting "eni-...")
+```
+
+**Resolution or workaround:** Fixed in LZA v1.11.1
+
+
+### Some AWS Config Rules do not evaluate after the upgrade
+
+**Description:** Some AWS Config Rules deployed by LZA do not evaluate (i.e Last successful detective evaluation appears as 'Not Available' in the console). The equivalent ASEA Config Rule evaluates correctly.
+
+**Symptom or error message:** The scope of changes of Config Rule is set to an empty list of Resource types instead of scoped to **All changes** as in ASEA.
+
+**Resolution or workaround:** Fixed in LZA v1.11.1
