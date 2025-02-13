@@ -2567,14 +2567,15 @@ export class ConvertAseaConfig {
       }
       //validation to ensure rules with remediation via ssm have document to deployed to matching ou's
       for (const rule of rulesWithTarget) {
+        const deploymentOuListWithNestedOus = this.getNestedOusForDeploymentTargets(rule.deployTo ?? []);
         if (rule.remediation && rule.remediation.targetId) {
           for (const documentSet of this.documentSets) {
             for (const document of documentSet.documents) {
               if (document.name === rule.remediation.targetId) {
                 for (const target of documentSet.shareTargets.organizationalUnits ?? []) {
-                  if (!rule.deployTo?.includes(target)) {
+                  if (!deploymentOuListWithNestedOus.includes(target)) {
                     this.configCheck.addWarning(
-                      `SSM Remediation document ${document.name} is not deployed to the same OU ${target} as the config rule ${rule.name}.`,
+                      `SSM Remediation document ${document.name} is not deployed to the same OU ${target} as the config rule ${rule.name} in ${deploymentOuListWithNestedOus}.`,
                     );
                   }
                 }
