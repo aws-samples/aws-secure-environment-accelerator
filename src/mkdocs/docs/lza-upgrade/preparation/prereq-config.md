@@ -8,6 +8,7 @@
 - You can run the scripts from your local workstation. If you are filtering egress traffic from your corporate network you need to ensure [outbound connectivity to AWS service endpoints](../troubleshooting.md#network-timeout-or-connectivity-issue-running-the-upgrade-tool).
 - You will need Git, AWS CLI, NodeJS and Yarn installed.
 - We highly recommend having appropriate AWS Support plans on all AWS Accounts of your landing zone. For any issues encountered during the upgrade process you need to open a support case to get assistance and exchange relevant information with AWS staff. At a minimum Developer support is needed on the management account and core landing zones accounts (Logging, Security, Networking and Perimeter) to troubleshoot any cross-account issues. Business support is the minimum recommended tier if you have production workloads in AWS
+- Monitor and manage your service quotas. See the FAQ [Which Service Quotas should be monitored for the upgrade?](../faq.md#which-service-quotas-should-be-monitored-for-the-upgrade)
 - Upgrading your landing zone from ASEA to LZA requires advanced knowledge of configuring and operating ASEA and LZA landing zones. This operation should be led by your most-experienced resources responsible for your current landing zone operations. Review all the documentation in this upgrade guide and Landing Zone Accelerator implementation guide.
 
 
