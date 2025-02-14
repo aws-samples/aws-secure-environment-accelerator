@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - feat(tools): Add detection of modified route entries in network drift detection script
+- feat(convert-config): Handle conversion of VPC Flow Logs log group pattern in dynamic partition
 
 ### Changed
 - fix(resource-mapping): Use pagination to list stacks and improve nested stacks lookup
