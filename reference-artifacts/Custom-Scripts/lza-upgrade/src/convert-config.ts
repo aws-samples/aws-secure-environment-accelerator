@@ -3778,7 +3778,7 @@ export class ConvertAseaConfig {
     });
 
     //Add partition for LZA naming of vpc flow logs if there was an entry for vpcflowlogs in ASEA config
-    if(partitions?.filter((partition) => partition.s3Prefix === 'vpcflowlogs')) {
+    if(partitions?.some((partition) => partition.s3Prefix === 'vpcflowlogs')) {
       lzaPartitions?.push({
         logGroupPattern: `*VpcFlowLogs*`,
         s3Prefix: 'vpcflowlogs',
