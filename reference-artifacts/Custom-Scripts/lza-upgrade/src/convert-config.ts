@@ -3247,18 +3247,21 @@ export class ConvertAseaConfig {
 
       const prepareResolverConfig = (vpcConfig: VpcConfig) => {
         let lzaResolverConfig: {
-          endpoints: ConvertConfigTypes.ResolverEndpointsType[];
+          endpoints: ConvertConfigTypes.ResolverEndpointsType[] | undefined;
           queryLogs: { name: string; destinations: string[] } | undefined;
         };
         const queryLoggingEnabled = vpcConfig['dns-resolver-logging'];
         const lzaEndpointsRulesConfig: ConvertConfigTypes.ResolverEndpointRulesType[] = [];
         const lzaEndpointsConfig: ConvertConfigTypes.ResolverEndpointsType[] = [];
-        if (!vpcConfig.resolvers) return;
-        const rules = prepareRulesConfig(vpcConfig, lzaEndpointsRulesConfig);
-        const endpoints = prepareEndpointsConfig(vpcConfig, lzaEndpointsConfig, rules!);
+        let rules: any;
+        let endpoints: any[] = [];
+        if (vpcConfig.resolvers) {
+          rules = prepareRulesConfig(vpcConfig, lzaEndpointsRulesConfig);
+          endpoints = prepareEndpointsConfig(vpcConfig, lzaEndpointsConfig, rules!);
+        }
 
         lzaResolverConfig = {
-          endpoints: endpoints,
+          endpoints: endpoints.length > 0 ? endpoints : undefined,
           queryLogs: queryLoggingEnabled
             ? {
                 name: `${this.aseaPrefix}rql-${vpcConfig.name}`,
