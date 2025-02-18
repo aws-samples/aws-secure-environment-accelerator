@@ -102,30 +102,46 @@ export async function snapshotKmsKeys(
     nextToken = results.NextMarker;
     if (results.Keys) {
       for (const key of results.Keys) {
-        const keyResults = await describeKmsKey(key.KeyId!, region, credentials);
-        await snapshotTable.writeResource({
-          accountId: accountId,
-          region: region,
-          resourceName: `kms-key-${key.KeyId}`,
-          preMigration: preMigration,
-          data: keyResults,
-        });
-        const keyGrantResults = await getKmsKeyGrants(key.KeyId!, region, credentials);
-        await snapshotTable.writeResource({
-          accountId: accountId,
-          region: region,
-          resourceName: `kms-key-grant-${key.KeyId}`,
-          preMigration: preMigration,
-          data: keyGrantResults,
-        });
-        const keyPolicyResults = await getKmsKeyPolicy(key.KeyId!, region, credentials);
-        await snapshotTable.writeResource({
-          accountId: accountId,
-          region: region,
-          resourceName: `kms-key-policy-${key.KeyId}`,
-          preMigration: preMigration,
-          data: keyPolicyResults,
-        });
+        try {
+          const keyResults = await describeKmsKey(key.KeyId!, region, credentials);
+        
+          await snapshotTable.writeResource({
+            accountId: accountId,
+            region: region,
+            resourceName: `kms-key-${key.KeyId}`,
+            preMigration: preMigration,
+            data: keyResults,
+          });
+        } catch (e) {
+          console.log(`Error with key ${key.KeyId} in region ${region}`);
+          console.log(e);
+        }
+        try {
+          const keyGrantResults = await getKmsKeyGrants(key.KeyId!, region, credentials);
+          await snapshotTable.writeResource({
+            accountId: accountId,
+            region: region,
+            resourceName: `kms-key-grant-${key.KeyId}`,
+            preMigration: preMigration,
+            data: keyGrantResults,
+          });
+        } catch (e) {
+          console.log(`Error with key ${key.KeyId} in region ${region}`);
+          console.log(e);
+        }
+        try{
+          const keyPolicyResults = await getKmsKeyPolicy(key.KeyId!, region, credentials);
+          await snapshotTable.writeResource({
+            accountId: accountId,
+            region: region,
+            resourceName: `kms-key-policy-${key.KeyId}`,
+            preMigration: preMigration,
+            data: keyPolicyResults,
+          });
+      } catch (e) {
+          console.log(`Error with key ${key.KeyId} in region ${region}`);
+          console.log(e);
+        }
       }
     }
   } while (nextToken);
