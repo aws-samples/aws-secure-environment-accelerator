@@ -680,7 +680,7 @@ export class ResourceMapping {
         })
         .promise();
       for (const stackSummary of response.StackSummaries || []) {
-        if (stackSummary.StackName.includes('Phase')){
+        if (stackSummary.StackName.includes('Phase')|| stackSummary.ParentId?.includes("Phase")) {
           stacks.push(stackSummary.StackName);
         }
       }
