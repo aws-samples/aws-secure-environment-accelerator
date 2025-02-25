@@ -154,6 +154,9 @@ export class ResourceMapping {
         aseaObj[aseaObjKey].nestedStacks = Object.keys(nestedStacks).reduce(
           (acc: { [key: string]: NestedStack }, key) => {
             const nestedStack = nestedStacks[key];
+            if (!nestedStack.phase) {
+              nestedStack.phase = stackAndResources.phase;
+            }
             acc[key] = {
               logicalResourceId: nestedStack.logicalResourceId,
               stackName: nestedStack.stackName,
