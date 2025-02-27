@@ -457,7 +457,7 @@ export function getLambdaFunctionArn(
   const artifactsFilePath = fs.readFileSync(path.join(__dirname, 'artifacts', fileName));
   const elbLambdaFunction = new lambda.Function(scope, `ElbLambdaFunction${albName}${targetName}`, {
     // Inline code is only allowed for Node.js version 12
-    runtime: lambda.Runtime.NODEJS_18_X,
+    runtime: lambda.Runtime.NODEJS_LATEST,
     code: lambda.Code.fromInline(artifactsFilePath.toString()),
     handler: 'index.handler',
     role,

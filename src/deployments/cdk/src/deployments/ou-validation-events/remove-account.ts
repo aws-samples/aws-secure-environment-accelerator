@@ -43,7 +43,7 @@ export async function removeAccount(input: RemoveAccountProps) {
   } = input;
 
   const removeAccountFunc = new lambda.Function(scope, 'removeAccountFromOrganization', {
-    runtime: lambda.Runtime.NODEJS_18_X,
+    runtime: lambda.Runtime.NODEJS_LATEST,
     handler: 'index.ouValidationEvents.removeAccount',
     code: lambdaCode,
     role: acceleratorPipelineRole,

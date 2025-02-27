@@ -13,10 +13,11 @@
 
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as path from 'path';
 import { Construct } from 'constructs';
 
-const resourceType = 'Custom::IAMPasswordPolicy';
+const resourceType = 'Custom::IAMPasswordPolicy1';
 
 export interface PasswordPolicyProperties {
   allowUsersToChangePassword: boolean;
@@ -34,53 +35,57 @@ export interface PasswordPolicyProperties {
  * Custom resource implementation that set/update IAM account password policy
  */
 export class IamPasswordPolicy extends Construct {
+  private resource: cdk.CustomResource | undefined;
+
   constructor(scope: Construct, id: string, props: PasswordPolicyProperties) {
     super(scope, id);
 
-    const {
-      allowUsersToChangePassword,
-      hardExpiry,
-      requireUppercaseCharacters,
-      requireLowercaseCharacters,
-      requireSymbols,
-      requireNumbers,
-      minimumPasswordLength,
-      passwordReusePrevention,
-      maxPasswordAge,
-    } = props;
+    const runtimeProps: PasswordPolicyProperties = props;
+
+    this.resource = new cdk.CustomResource(this, 'Resource1', {
+      resourceType,
+      serviceToken: this.lambdaFunction.functionArn,
+      properties: {
+        ...runtimeProps,
+      },
+    });
+  }
+
+  private get lambdaFunction(): lambda.Function {
+    const constructName = `${resourceType}Lambda`;
+    const stack = cdk.Stack.of(this);
+    const existing = stack.node.tryFindChild(constructName);
+    if (existing) {
+      return existing as lambda.Function;
+    }
 
     const lambdaPath = require.resolve('@aws-accelerator/custom-resource-iam-password-policy-runtime');
     const lambdaDir = path.dirname(lambdaPath);
 
-    const provider = cdk.CustomResourceProvider.getOrCreate(this, resourceType, {
-      runtime: cdk.CustomResourceProviderRuntime.NODEJS_18_X,
-      codeDirectory: lambdaDir,
-      policyStatements: [
-        new iam.PolicyStatement({
-          actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-          resources: ['*'],
-        }).toJSON(),
-        new iam.PolicyStatement({
-          actions: ['iam:UpdateAccountPasswordPolicy'],
-          resources: ['*'],
-        }).toJSON(),
-      ],
+    const role = new iam.Role(stack, `${resourceType}Role`, {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
-    new cdk.CustomResource(this, 'Resource', {
-      resourceType,
-      serviceToken: provider,
-      properties: {
-        allowUsersToChangePassword,
-        hardExpiry,
-        requireUppercaseCharacters,
-        requireLowercaseCharacters,
-        requireSymbols,
-        requireNumbers,
-        minimumPasswordLength,
-        passwordReusePrevention,
-        maxPasswordAge,
-      },
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+        resources: ['*'],
+      }),
+    );
+
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['iam:UpdateAccountPasswordPolicy'],
+        resources: ['*'],
+      }),
+    );
+
+    return new lambda.Function(stack, constructName, {
+      runtime: lambda.Runtime.NODEJS_LATEST,
+      code: lambda.Code.fromAsset(lambdaDir),
+      handler: 'index.handler',
+      role,
+      timeout: cdk.Duration.minutes(15),
     });
   }
 }
