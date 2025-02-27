@@ -154,6 +154,9 @@ export class ResourceMapping {
         aseaObj[aseaObjKey].nestedStacks = Object.keys(nestedStacks).reduce(
           (acc: { [key: string]: NestedStack }, key) => {
             const nestedStack = nestedStacks[key];
+            if (!nestedStack.phase) {
+              nestedStack.phase = stackAndResources.phase;
+            }
             acc[key] = {
               logicalResourceId: nestedStack.logicalResourceId,
               stackName: nestedStack.stackName,
@@ -225,7 +228,7 @@ export class ResourceMapping {
     };
   }
   async getEnvironmentStacks(environments: Environment[], cfnClientMap: Map<string, CfnClients>) {
-    const stackMap = new Map<string, string[]>();
+    const stackMap = new Map<string, {stackName: string, parentStack: string | undefined}[]>();
     const stackListPromises = environments.map((environment) => {
       const cfnClient = cfnClientMap.get(`${environment.accountId}-${environment.region}`);
       if (!cfnClient) {
@@ -244,7 +247,7 @@ export class ResourceMapping {
 
   async getEnvironmentMetaData(
     environments: Environment[],
-    stackMap: Map<string, string[]>,
+    stackMap: Map<string, { stackName: string, parentStack: string | undefined }[]>,
     cfnClientMap: Map<string, CfnClients>,
   ) {
     const stackAndResourceMap = new Map<string, StacksAndResourceMap>();
@@ -262,7 +265,7 @@ export class ResourceMapping {
       if (!stack?.stack || !stack.cfnClient) {
         return undefined;
       }
-      return this.getStackMetadata(stack.environment, stack.stack, stack.cfnClient.cfn, stack.cfnClient.cfnNative);
+      return this.getStackMetadata(stack.environment, stack.stack.stackName, stack.cfnClient.cfn, stack.cfnClient.cfnNative, stack.stack.parentStack);
     });
     const validStackAndResourcePromises = stackAndResourcesMapPromises.filter(
       (stackAndResource): stackAndResource is Promise<StacksAndResourceMap> => stackAndResource !== undefined,
@@ -309,7 +312,7 @@ export class ResourceMapping {
       (nestedStackAndResource) =>
         stackAndResource.environment.accountId === nestedStackAndResource.environment.accountId &&
         stackAndResource.environment.region === nestedStackAndResource.environment.region &&
-        nestedStackAndResource.stackName.includes(stackAndResource.stackName),
+        nestedStackAndResource.parentStack?.includes(stackAndResource.stackName),
     );
     if (matchedStacks.length === 0) {
       return;
@@ -461,6 +464,7 @@ export class ResourceMapping {
     stack: string,
     cloudformation: CloudFormation,
     cfnNative: aws.CloudFormation,
+    parentStack?: string
   ): Promise<StacksAndResourceMap> {
     const stackResources = await this.describeCloudFormationStack(cloudformation, stack);
     const cfTemplate = await cfnNative
@@ -496,6 +500,7 @@ export class ResourceMapping {
       numberOfResourcesInTemplate: cfTemplateResourceCount,
       resourceMap: stackResources,
       template: cfTemplateObject,
+      parentStack
     };
   }
 
@@ -664,7 +669,7 @@ export class ResourceMapping {
   }
 
   async getStackList(cloudformation: CloudFormation, environment: Environment) {
-    const stacks: string[] = [];
+    const stacks: {stackName: string, parentStack: string | undefined}[] = [];
     let nextToken: string | undefined;
     do {
       const response = await cloudformation
@@ -680,8 +685,8 @@ export class ResourceMapping {
         })
         .promise();
       for (const stackSummary of response.StackSummaries || []) {
-        if (stackSummary.StackName.includes('Phase')) {
-          stacks.push(stackSummary.StackName);
+        if (stackSummary.StackName.includes('Phase') || stackSummary.ParentId?.includes("Phase")) {
+          stacks.push({stackName: stackSummary.StackName, parentStack: stackSummary.ParentId});
         }
       }
       nextToken = response.NextToken;
