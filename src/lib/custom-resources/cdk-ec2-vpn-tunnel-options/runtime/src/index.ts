@@ -87,7 +87,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   }
 
   return {
-    data: data,
+    data,
   };
 }
 
