@@ -56,7 +56,7 @@ export class MacieUpdateConfig extends Construct {
     const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, roleArn);
 
     return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_LATEST,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,

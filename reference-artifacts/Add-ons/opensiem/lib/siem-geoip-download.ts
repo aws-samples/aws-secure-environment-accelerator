@@ -69,7 +69,7 @@ export class OpenSearchSiemGeoIpInit extends Construct {
     );
 
     return new lambda.Function(stack, `GeoIpInitLambda`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_LATEST,
       code: lambda.Code.fromAsset('lambdas/siem-geoip/dist'),
       role,
       handler: 'index.geoIpInit',

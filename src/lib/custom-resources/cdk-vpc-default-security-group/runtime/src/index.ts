@@ -14,11 +14,14 @@
 import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const ec2 = new AWS.EC2();
 
-export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
+export const handler = errorHandler(onEvent);
+
+async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Deleting rules of Default security Group...`);
   console.log(JSON.stringify(event, null, 2));
 
@@ -31,7 +34,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
     case 'Delete':
       return onDelete(event);
   }
-};
+}
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   // Find default security group that match the given vpc id
@@ -76,6 +79,11 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       );
     }
   }
+
+  return {
+    physicalResourceId: groupId,
+    data: {},
+  };
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {
