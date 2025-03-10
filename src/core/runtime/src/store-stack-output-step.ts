@@ -44,9 +44,15 @@ export const handler = async (input: StoreStackOutputInput) => {
 
   const outputs: StackOutput[] = [];
   for await (const summary of stacks) {
-    if (!summary.StackName.match(`${acceleratorPrefix}(.*)-Phase${phaseNumber}`)) {
+    if (!summary.StackName.match(`${acceleratorPrefix}(.*)-Phase${phaseNumber}`) && !summary.ParentId) {
       console.warn(`Skipping stack with name "${summary.StackName}"`);
       continue;
+    }
+    if (summary.ParentId) {
+      if (!summary.ParentId.match(`${acceleratorPrefix}(.*)-Phase${phaseNumber}`)) {
+        console.warn(`Skipping stack with name "${summary.StackName}"`);
+        continue;
+      }
     }
     const stack = await cfn.describeStack(summary.StackName);
     if (!stack) {
