@@ -132,3 +132,17 @@ Deployment failed: Error: The stack named ASEA-SecurityResourcesStack-<account>-
 ```
 
 You need to request a limit increase for the RolesPerAccount Quota. See the FAQ [Which Service Quotas should be monitored for the upgrade?](./faq.md#which-service-quotas-should-be-monitored-for-the-upgrade)
+
+## Service Limit Exceeded Exception on Cloud Watch Logs resource policy
+You encounter an error in the Network_Prepare or Security_Resources when trying to add a CloudWatch Logs resource policy.
+
+The error code is `LimitExceededException` in the CloudTrail event for calls to `Logs:PutResourcePolicy`.
+
+In the Security_Resources stack the root error might not be surfaced and this will show up as a timeout on a custom resource.
+```
+ASEA-SecurityResourcesStack-<account>-<region> | CREATE_FAILED        | AWS::CloudFormation::CustomResource   | SecurityHubEventsLog/SecurityHubEventsFunction/SecurityHubEventsFunctionResource/Default (SecurityHubEventsLogSecurityHubEventsFunctionSecurityHubEventsFunctionResourceF6D56745) Received response status [FAILED] from custom resource. Message returned: Error: Task timed out after 180.00 seconds
+```
+
+Cause: There is a hard limit of 10 CloudWatch Logs resource policies per account. LZA needs to create two.
+
+Workaround: Remove existing CloudWatch Logs resource policies in the problematic account and region to free up sufficient space for LZA. You can use the AWS CLI [describe-resource-policies](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/logs/describe-resource-policies.html) command to list existing resource policies.
