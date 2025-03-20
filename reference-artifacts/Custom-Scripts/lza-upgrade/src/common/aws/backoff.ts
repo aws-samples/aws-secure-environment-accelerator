@@ -51,12 +51,14 @@ export const isThrottlingError = (
   e.code === 'EPIPE' ||
   e.code === 'ETIMEDOUT' ||
   e.code === 'ENOTFOUND' ||
+  e.code === 'RequestLimitExceeded' ||
   // SDKv3 Error Structure
   e.name === 'ConcurrentModificationException' || // Retry for AWS Organizations
   e.name === 'InsufficientDeliveryPolicyException' || // Retry for ConfigService
   e.name === 'NoAvailableDeliveryChannelException' || // Retry for ConfigService
   e.name === 'ConcurrentModifications' || // Retry for AssociateHostedZone
   e.name === 'LimitExceededException' || // Retry for SecurityHub
+  e.name === 'RequestLimitExceeded' ||
   e.name === 'OperationNotPermittedException' || // Retry for RAM
   e.name === 'TooManyRequestsException' ||
   e.name === 'Throttling' ||

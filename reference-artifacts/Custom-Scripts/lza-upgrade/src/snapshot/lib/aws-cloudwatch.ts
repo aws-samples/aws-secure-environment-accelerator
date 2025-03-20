@@ -20,6 +20,7 @@ import {
   LogGroup,
   MetricFilter,
   SubscriptionFilter,
+  LogGroupClass
 } from '@aws-sdk/client-cloudwatch-logs';
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 
@@ -159,7 +160,7 @@ export async function snapshotCloudWatchLogResources(
         });
 
         //get metric filters
-        if (logGroup.metricFilterCount! > 0) {
+        if (logGroup.metricFilterCount! > 0 && logGroup.logGroupClass == LogGroupClass.STANDARD) {
           const metricFilterResults = await describeMetricFilters(logGroup.logGroupName!, region, credentials);
           await snapshotTable.writeResource({
             accountId: accountId,
@@ -170,19 +171,21 @@ export async function snapshotCloudWatchLogResources(
           });
         }
 
-        //get subscription filters
-        const subscriptionFilterResults = await describeSubscriptionFilters(
-          logGroup.logGroupName!,
-          region,
-          credentials,
-        );
-        await snapshotTable.writeResource({
-          accountId: accountId,
-          region: region,
-          resourceName: `subscription-filters-${logGroup.logGroupName!}`,
-          preMigration: preMigration,
-          data: subscriptionFilterResults,
-        });
+        if (logGroup.logGroupClass == LogGroupClass.STANDARD) {
+          //get subscription filters
+          const subscriptionFilterResults = await describeSubscriptionFilters(
+            logGroup.logGroupName!,
+            region,
+            credentials,
+          );
+          await snapshotTable.writeResource({
+            accountId: accountId,
+            region: region,
+            resourceName: `subscription-filters-${logGroup.logGroupName!}`,
+            preMigration: preMigration,
+            data: subscriptionFilterResults,
+          });
+        }
       }
     }
   } while (nextToken);
