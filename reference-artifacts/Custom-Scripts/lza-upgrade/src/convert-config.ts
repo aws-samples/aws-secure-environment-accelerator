@@ -3698,7 +3698,7 @@ export class ConvertAseaConfig {
           sc['vpc-name'] === vpcName &&
           sc['subnet-name'] === subnetName &&
           sc.az === subnetDefinition.az &&
-          sc['subnet-pool'] === subnetDefinition.cidr?.pool,
+          (sc['subnet-pool'] === subnetDefinition.cidr?.pool || sc['sub-pool'] === subnetDefinition.cidr?.pool),
       )?.cidr!;
     }
     return ipv4CidrBlock;
