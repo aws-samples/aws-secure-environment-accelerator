@@ -20,6 +20,7 @@ import {
   LogGroup,
   MetricFilter,
   SubscriptionFilter,
+  LogGroupClass,
 } from '@aws-sdk/client-cloudwatch-logs';
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 
@@ -170,19 +171,21 @@ export async function snapshotCloudWatchLogResources(
           });
         }
 
+        if (logGroup.logGroupClass && logGroup.logGroupClass !== LogGroupClass.INFREQUENT_ACCESS) {
         //get subscription filters
-        const subscriptionFilterResults = await describeSubscriptionFilters(
-          logGroup.logGroupName!,
-          region,
-          credentials,
-        );
-        await snapshotTable.writeResource({
-          accountId: accountId,
-          region: region,
-          resourceName: `subscription-filters-${logGroup.logGroupName!}`,
-          preMigration: preMigration,
-          data: subscriptionFilterResults,
-        });
+          const subscriptionFilterResults = await describeSubscriptionFilters(
+            logGroup.logGroupName!,
+            region,
+            credentials,
+          );
+          await snapshotTable.writeResource({
+            accountId: accountId,
+            region: region,
+            resourceName: `subscription-filters-${logGroup.logGroupName!}`,
+            preMigration: preMigration,
+            data: subscriptionFilterResults,
+          });
+        }
       }
     }
   } while (nextToken);
