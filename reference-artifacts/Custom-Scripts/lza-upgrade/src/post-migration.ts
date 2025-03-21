@@ -15,6 +15,7 @@ import path from 'path';
 import { AcceleratorConfig, ImportCertificateConfig, ImportCertificateConfigType } from './asea-config';
 import { loadAseaConfig } from './asea-config/load';
 import { DynamoDB } from './common/aws/dynamodb';
+import { ConfigService } from './common/aws/config-service';
 import { S3 } from './common/aws/s3';
 import { Account, getAccountId } from './common/outputs/accounts';
 import { StackOutput, findValuesFromOutputs, loadOutputs } from './common/outputs/load-outputs';
@@ -30,6 +31,7 @@ export class PostMigration {
   private readonly aseaPrefix: string;
   private readonly s3: S3;
   private readonly dynamoDb: DynamoDB;
+  private readonly configService: ConfigService;
   private outputs: StackOutput[] = [];
   private accounts: Account[] = [];
   private centralBucket: string | undefined;
@@ -48,6 +50,7 @@ export class PostMigration {
     this.mappingRepositoryName = config.mappingRepositoryName;
     this.s3 = new S3(undefined, this.region);
     this.dynamoDb = new DynamoDB(undefined, this.region);
+    this.configService = new ConfigService(undefined, this.region);
     this.args = args;
     this.outputsDirectory = './outputs';
     this.writeConfig = {
@@ -375,6 +378,7 @@ export class PostMigration {
       phase: '3',
       resourceType: 'AWS::Config::RemediationConfiguration',
     });
+    await this.configService.deleteConfigAggregator(this.aseaPrefix);
   }
 
   private async removeLogging(mappingConfig: { mappings: ASEAResourceMapping; mappingBucket: string; s3Client: S3 }) {
