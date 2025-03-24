@@ -37,7 +37,7 @@
     "eslint-plugin-unicorn": "48.0.1"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.101.0",
+    "aws-cdk-lib": "2.184.0",
     "constructs": "10.2.70",
     "source-map-support": "^0.5.16"
   }
