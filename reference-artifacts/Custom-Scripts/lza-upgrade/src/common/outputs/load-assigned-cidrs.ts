@@ -11,6 +11,7 @@ export interface VpcAssignedCidr {
 }
 
 export interface SubnetAssignedCidr {
+  'sub-pool': string;
   'subnet-pool': string;
   'status': string;
   'cidr': string;
