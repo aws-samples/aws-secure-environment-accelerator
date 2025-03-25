@@ -741,6 +741,39 @@ export class ConvertAseaConfig {
       ousForS3EncryptionDeploymentTargetsWithoutNestedOus,
     );
 
+    let cloudtrailConfig = undefined;
+    if (globalOptions['ct-baseline'] === true) {
+      cloudtrailConfig = {
+        enable: true,
+        organizationTrail: true,
+        organizationTrailSettings: {
+          multiRegionTrail: true,
+          globalServiceEvents: false,
+          managementEvents: false,
+          s3DataEvents: true,
+          lambdaDataEvents: false,
+          sendToCloudWatchLogs: true,
+          apiErrorRateInsight: false,
+          apiCallRateInsight: false,
+        }
+      }
+    } else {
+      cloudtrailConfig = {
+        enable: true,
+        organizationTrail: true,
+        organizationTrailSettings: {
+          multiRegionTrail: true,
+          globalServiceEvents: true,
+          managementEvents: true,
+          s3DataEvents: true,
+          lambdaDataEvents: false,
+          sendToCloudWatchLogs: true,
+          apiErrorRateInsight: false,
+          apiCallRateInsight: true,
+        }
+      }
+    }
+
     const globalConfigAttributes: { [key: string]: unknown } = {
       externalLandingZoneResources: {
         importExternalLandingZoneResources: true,
@@ -779,23 +812,7 @@ export class ConvertAseaConfig {
       logging: {
         account: this.getAccountKeyforLza(globalOptions, centralizeLogging.account),
         centralizedLoggingRegion: centralizeLogging.region,
-        cloudtrail: {
-          enable: false,
-          organizationTrail: false,
-          // TODO: Confirm defaults
-          organizationTrailSettings: {
-            multiRegionTrail: true,
-            globalServiceEvents: true,
-            managementEvents: true,
-            s3DataEvents: true,
-            lambdaDataEvents: false,
-            sendToCloudWatchLogs: true,
-            apiErrorRateInsight: false,
-            apiCallRateInsight: true,
-          },
-          // TODO: Confirm Account trails, ASEA seems like doesn't have any account specific trail config
-          // TODO: Confirm about lifecycleRules. Not present in ASEA and not used in LZA
-        },
+        cloudtrail: cloudtrailConfig,
         sessionManager: {
           sendToS3: centralizeLogging['ssm-to-s3'],
           sendToCloudWatchLogs: centralizeLogging['ssm-to-cwl'],
