@@ -35,6 +35,6 @@ In order to accomplish upgrading from ASEA to LZA, the solution relies on a conc
 |Transit Gateways	|FALSE	|TRUE	|Amazon Side ASN </br> Auto Accept Shared Attachments </br> Default Route Table Associations </br> Default Route Table Propagations </br> DNS Support </br> VPN ECMP Support	|	|
 |Virtual Private Gateway	|FALSE	|TRUE	|Amazon Side ASN	|	|
 |VPC	|FALSE	|TRUE	|CIDR Blocks </br> Enable DNS Host Names </br> Enable DNS Support </br> Instance Tenancy 	|	|
-|VPC Endpoint	|FALSE	|FALSE	|	|	|
+|VPC Endpoint	|TRUE	|FALSE	|None, Including associated security group. Must re-create endpoint |	|
 |VPC Endpoint (Gateway)	|FALSE	|TRUE	|Route Table Ids	|	|
 |VPC Peering Connection	|FALSE	|FALSE	|	|	|
