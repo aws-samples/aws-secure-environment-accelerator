@@ -13,10 +13,15 @@
 
 import { IAMClient, UpdateAccountPasswordPolicyCommand } from '@aws-sdk/client-iam';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 const iam = new IAMClient();
 
-export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
+const physicalResourceId = 'IAMPaswordPolicy';
+
+export const handler = errorHandler(onEvent);
+
+async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Set/Update IAM password policy...`);
   console.log(JSON.stringify(event, null, 2));
 
@@ -29,7 +34,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
     case 'Delete':
       return onDelete(event);
   }
-};
+}
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   try {
@@ -53,6 +58,11 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     console.warn(`Ignore Set/Update IAM account password policy failure`);
     console.warn(e);
   }
+
+  return {
+    physicalResourceId,
+    data: {},
+  };
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {

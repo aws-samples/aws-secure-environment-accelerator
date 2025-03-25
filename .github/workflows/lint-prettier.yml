@@ -28,7 +28,7 @@ jobs:
             ${{ runner.OS }}-
       - name: Install Node.js modules
         run: |
-          npm install -g pnpm@8.9.0
+          npm install -g pnpm@10.4.1
           pnpm install --frozen-lockfile
       - name: Analyze TypeScript files
         run: |
@@ -53,7 +53,7 @@ jobs:
             ${{ runner.OS }}-
       - name: Install Node.js modules
         run: |
-          npm install -g pnpm@8.9.0
+          npm install -g pnpm@10.4.1
           pnpm install --frozen-lockfile
       - name: Analyze TypeScript files
         run: |

@@ -95,7 +95,8 @@
     "proxy-agent": "6.4.0",
     "semver": "7.5.4",
     "tempy": "1.0.1",
-    "uuid": "9.0.1"
+    "uuid": "9.0.1",
+    "yaml": "1.10.2"
   },
   "devDependencies": {
     "@aws-accelerator/cdk-plugin-assume-role": "workspace:*",

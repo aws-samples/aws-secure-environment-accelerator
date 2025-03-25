@@ -202,7 +202,7 @@ function createSnsTopics(props: {
   let snsSubscriberFunc: lambda.Function | undefined;
   if (region !== centralServicesRegion || (region === centralServicesRegion && orgManagementSns)) {
     snsSubscriberFunc = new lambda.Function(accountStack, `SnsSubscriberLambda`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_LATEST,
       handler: 'index.createSnsPublishToCentralRegion',
       code: lambdaCode,
       role,
@@ -221,7 +221,7 @@ function createSnsTopics(props: {
   }
 
   const ignoreActionFunc = new lambda.Function(accountStack, `IgnoreActionLambda`, {
-    runtime: lambda.Runtime.NODEJS_18_X,
+    runtime: lambda.Runtime.NODEJS_LATEST,
     handler: 'index.createIgnoreAction',
     code: lambdaCode,
     role,

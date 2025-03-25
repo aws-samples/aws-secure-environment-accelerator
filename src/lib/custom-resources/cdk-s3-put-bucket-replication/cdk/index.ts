@@ -59,14 +59,18 @@ export class S3PutBucketReplication extends Construct {
 
     const lambdaPath = require.resolve('@aws-accelerator/custom-resource-s3-put-bucket-replication-runtime');
     const lambdaDir = path.dirname(lambdaPath);
-
-    return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+    const lambdaFunct = new lambda.Function(stack, constructName, {
+      runtime: lambda.Runtime.NODEJS_LATEST,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role: this.role,
       timeout: cdk.Duration.minutes(15),
       memorySize: 512,
     });
+
+    const lambdaCfn = lambdaFunct.node.defaultChild as lambda.CfnFunction;
+    lambdaCfn.addOverride('Properties.Runtime', 'nodejs22.x');
+
+    return lambdaFunct;
   }
 }
