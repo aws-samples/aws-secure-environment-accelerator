@@ -152,7 +152,7 @@ export async function getLZAInstallerStackTemplate(bucketName: string, outputPat
   const template = await s3Client.send(
     new GetObjectCommand({
       Bucket: bucketName,
-      Key: 'landing-zone-accelerator-on-aws/latest/AWSAccelerator-InstallerStack.template',
+      Key: 'solutions-reference/landing-zone-accelerator-on-aws/latest/AWSAccelerator-InstallerStack.template',
     }),
   );
 
