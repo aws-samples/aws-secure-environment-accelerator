@@ -92,12 +92,12 @@ export class MigrationConfig {
       homeRegion: homeRegion,
       assumeRoleName: `${acceleratorPrefix}PipelineRole`,
       aseaPrefix:
-        this.getCfnParamValue(installerStack?.parameters, 'AcceleratorPrefix', 'ASEA-'),
+        this.getCfnParamValue(installerStack?.parameters, 'AcceleratorPrefix', 'PBBM-'),
       acceleratorName:
-        this.getCfnParamValue(installerStack?.parameters, 'AcceleratorName', 'ASEA'),
+        this.getCfnParamValue(installerStack?.parameters, 'AcceleratorName', 'PBBM'),
       centralBucket: centralBucketName,
       operationsAccountId: operationsAccountId,
-      installerStackName: installerStack?.stackName ?? 'ASEA-Installer',
+      installerStackName: installerStack?.stackName ?? 'PBBM-Installer',
       mappingBucketName: mappingBucketName,
       mappingRepositoryName: mappingRepositoryName,
       lzaConfigRepositoryName: lzaConfigRepositoryName,
