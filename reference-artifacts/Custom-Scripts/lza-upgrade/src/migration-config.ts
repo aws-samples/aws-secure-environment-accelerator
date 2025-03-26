@@ -37,7 +37,7 @@ export class MigrationConfig {
     const currentAccountId = callerIdentity.Account ?? '';
 
     const acceleratorPrefix =
-      installerStack?.parameters.find((p) => p.ParameterKey === 'AcceleratorPrefix')?.ParameterValue ?? 'ASEA-';
+      installerStack?.parameters.find((p) => p.ParameterKey === 'AcceleratorPrefix')?.ParameterValue ?? 'PBBM-';
     const abbreviatedRegion = homeRegion.replaceAll('-', '');
 
     const mappingRepositoryName = `${acceleratorPrefix}Mappings`;
