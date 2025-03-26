@@ -850,6 +850,13 @@ export class ConvertAseaConfig {
           },
         },
         elbLogBucket: {
+          importedBucket: {
+            name: centralLogBucket,
+          },
+          customPolicyOverrides: {
+            s3Policy: centralLogBucketPolicyFile,
+            kmsPolicy: centralLogKeyPolicyFile,
+          },
           lifecycleRules: [
             {
               enabled: true,
@@ -858,11 +865,7 @@ export class ConvertAseaConfig {
               noncurrentVersionExpiration: centralizeLogging['s3-retention'] ?? 730,
             },
           ],
-          // No example found for globalConfig.logging.centralLogBucket.s3ResourcePolicyAttachments in any of the configs
-          // TODO: Add to manual verification
-          // s3ResourcePolicyAttachments: [],
         },
-        //
         cloudwatchLogs: {
           enable: true,
           encryption: {
