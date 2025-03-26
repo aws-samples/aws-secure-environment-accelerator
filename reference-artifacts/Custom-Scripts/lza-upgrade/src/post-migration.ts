@@ -16,6 +16,7 @@ import { AcceleratorConfig, ImportCertificateConfig, ImportCertificateConfigType
 import { loadAseaConfig } from './asea-config/load';
 import { DynamoDB } from './common/aws/dynamodb';
 import { ConfigService } from './common/aws/config-service';
+import { Cloudtrail } from './common/aws/cloudtrail';
 import { S3 } from './common/aws/s3';
 import { Account, getAccountId } from './common/outputs/accounts';
 import { StackOutput, findValuesFromOutputs, loadOutputs } from './common/outputs/load-outputs';
@@ -32,6 +33,7 @@ export class PostMigration {
   private readonly s3: S3;
   private readonly dynamoDb: DynamoDB;
   private readonly configService: ConfigService;
+  private readonly cloudtrail = new Cloudtrail();
   private outputs: StackOutput[] = [];
   private accounts: Account[] = [];
   private centralBucket: string | undefined;
@@ -51,6 +53,7 @@ export class PostMigration {
     this.s3 = new S3(undefined, this.region);
     this.dynamoDb = new DynamoDB(undefined, this.region);
     this.configService = new ConfigService(undefined, this.region);
+    this.cloudtrail = new Cloudtrail(undefined, this.region);
     this.args = args;
     this.outputsDirectory = './outputs';
     this.writeConfig = {
@@ -151,6 +154,9 @@ export class PostMigration {
           break;
         case 'remove-logging':
           await this.removeLogging(mappingConfig);
+          break;
+        case 'remove-org-cloudtrail':
+          await this.cloudtrail.deleteOrganizationTrail(this.aseaPrefix);
       }
     }
 
