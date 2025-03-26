@@ -46,7 +46,7 @@ export class MigrationConfig {
     const parametersTableName = `${acceleratorPrefix}Parameters`;
     const aseaConfigRepositoryName =
       installerStack?.parameters.find((p) => p.ParameterKey === 'ConfigRepositoryName')?.ParameterValue ??
-      'ASEA-Config-Repo';
+      'PBBM-Config-Repo';
 
     const aseaConfig = await loadAseaConfig({
       filePath: 'raw/config.json',
