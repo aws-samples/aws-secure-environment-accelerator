@@ -26,6 +26,7 @@ When upgrading an ASEA environment with a large number of accounts (>100) you ca
 Cause: CodeBuild does not have enough memory to synthesize very large CloudFormation stacks
 
 Workaround: Increase the resources allocated to CodeBuild and increase NodeJS `max_old_space_size`
+
 1. Go to CodeBuild console and locate the `ASEA-ToolkitProject` project
 2. Edit the project, in the Environment section change the Compute size to the next larger size available (70 GB Memory, 36 vCPU)
 3. In the Environment variables section:
@@ -43,6 +44,7 @@ Workaround: Disable the Event Bridge rule `ASEA-SecurityHubFindingsImportToCWLs`
 Cause: Too many resources are deployed in parallel, leading to rate limiting errors.
 
 Workaround: Increase the resources allocated to CodeBuild and increase NodeJS `max_old_space_size`
+
 1. Go to CodeBuild console and locate the `ASEA-ToolkitProject` project
 2. Edit the project, in the Environment variables section:
   a) change the value of the `MAX_CONCURRENT_STACKS` variable to `75`
@@ -59,6 +61,7 @@ Could not load credentials from any providers
 ```
 
 Workaround: Increase the **Number of retries** in the SDK configuration.
+
 1. Go to CodeBuild console and locate the `ASEA-ToolkitProject` project
 2. Edit the project, in the Environment variables section:
   a) add a new environment variable named `NUMBER_OF_RETRIES`
