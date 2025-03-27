@@ -1,0 +1,665 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>AccountConfig | Documents Config AWS SEA</title>
+	<meta name="description" content="Documentation for Documents Config AWS SEA">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="../assets/css/main.css">
+	<script async src="../assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json"
+				data-base="..">
+				<div class="field">
+					<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+					<input id="tsd-search-field" type="text" />
+				</div>
+				<ul class="results">
+					<li class="state loading">Preparing search index...</li>
+					<li class="state failure">The search index is not available</li>
+				</ul>
+				<ul class="results-priority" style="display:none">
+				</ul>
+				<a href="../index.html" class="title">Documentation du fichier de configuration de l'Accelerateur</a>
+			</div>
+			<div class="table-cell" id="tsd-widgets">
+				<div id="tsd-filter">
+					<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+					<div class="tsd-filter-group">
+						<div class="tsd-select" id="tsd-filter-visibility">
+							<span class="tsd-select-label">All</span>
+							<ul class="tsd-select-list">
+								<li data-value="public">Public</li>
+								<li data-value="protected">Public/Protected</li>
+								<li data-value="private" class="selected">All</li>
+							</ul>
+						</div>
+						<div class="tsd-select" id="tsd-language-filter">
+							<span id="selected-language" class="tsd-select-label"
+							data-language="fr">French</span>
+							<ul class="tsd-select-list" id="tsd-language-select-list">
+								<li data-value="en">English</li>
+								<li data-value="fr">Français</li>
+							</ul>
+						</div>
+						<input type="checkbox" id="tsd-filter-inherited" checked />
+						<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+						<input type="checkbox" id="tsd-filter-externals" checked />
+						<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						<input type="checkbox" id="tsd-filter-only-exported" />
+						<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+					</div>
+				</div>
+				<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+			</div>
+		</div>
+	</div>
+	</div>
+	<div class="tsd-page-title custom-breadcrumb">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="../modules.html" class="main-breadcrumb">Documents Config AWS SEA</a>
+				</li>
+				<li>
+					<a href="AccountConfig.html">AccountConfig</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="tsd-page-title disclaimer-wrapper">
+		<div class="container disclaimer">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+				<title>Warning</title>
+				<path
+				d="M85.57 446.25h340.86a32 32 0 0028.17-47.17L284.18 82.58c-12.09-22.44-44.27-22.44-56.36 0L57.4 399.08a32 32 0 0028.17 47.17z"
+				fill="none" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" />
+				<path d="M250.26 195.39l5.74 122 5.73-121.95a5.74 5.74 0 00-5.79-6h0a5.74 5.74 0 00-5.68 5.95z"
+				fill="none" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" />
+				<path fill="black" d="M256 397.25a20 20 0 1120-20 20 20 0 01-20 20z" />
+			</svg>
+			<h5>
+				(FR) The configuration file schema documentation is a work in progress. Please use this <b>draft</b> document with caution.  The deeper you browse into the hierarchy, the less accurate the definitions are likely to be.
+			</h5>
+		</div>
+	</div>
+</header>
+<style>
+    .disclaimer-wrapper {
+        background: #FFD740;
+        padding: 0;
+    }
+
+    .custom-breadcrumb {
+        margin-bottom: 0px;
+    }
+
+    .disclaimer {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .disclaimer svg {
+        width: 40px;
+        margin-right: 15px;
+    }
+
+    .disclaimer h5 {
+        line-height: 20px;
+    }
+</style>
+<script>
+    function replaceMainBreadcrumbLink() {
+        const mainBreadcrumb = document.querySelector('.main-breadcrumb');
+        if (!mainBreadcrumb.href.indexOf("modules.html")) return;
+        mainBreadcrumb.href = mainBreadcrumb.href.replace(`/modules.html`, `/index.html`);
+    }
+    const currentLanguage = document.getElementById('selected-language').dataset.language;
+
+    const languageFilter = document.getElementById('tsd-language-filter');
+    languageFilter.addEventListener("mouseenter", (event) => {
+        languageFilter.classList.add("active");
+        const languageList = document.getElementById('tsd-language-select-list');
+        const items = languageList.getElementsByTagName('li');
+        for (const item of items) {
+            if (item.dataset.value === currentLanguage) {
+                item.classList.add('selected');
+                break;
+            }
+        }
+    });
+    languageFilter.addEventListener("mouseleave", (event) => {
+        languageFilter.classList.remove("active");
+    });
+
+    function addEventListenerToLanguages() {
+        const languageList = document.getElementById('tsd-language-select-list');
+        const items = languageList.getElementsByTagName('li');
+        for (const item of items) {
+            item.addEventListener("click", (event) => {
+                languageSelected(event, item);
+            });
+        }
+    }
+
+    function languageSelected(event, itemClicked) {
+        const selectedLanguage = itemClicked.dataset.value; //'en', 'fr', 'es', '..'
+        if (currentLanguage === selectedLanguage) return;
+        document.location = document.location.href.replace(`/${currentLanguage}/`, `/${selectedLanguage}/`);
+    }
+
+    function initializePage() {
+        addEventListenerToLanguages();
+        replaceMainBreadcrumbLink();
+    }
+    window.addEventListener('load', (event) => {
+        initializePage();
+    });
+</script>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>The Account Config object is used to define both workload and manadatory (shared) accounts, and enables customizing each individual account to have its own unique persona.  It is recommended that accounts primarily receive their persona or configuation based on their OU, each accounts persona can be customized within this section. Typically workload accounts have minimum amount of account level customization, wheras shared accounts typically contain high levels of customization based on their unique nature.</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hiérarchie</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">AccountConfig</span>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#account_name" class="tsd-kind-icon">account-<wbr>name</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#account_warming_required" class="tsd-kind-icon">account-<wbr>warming-<wbr>required</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#alb" class="tsd-kind-icon">alb</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#aws_config" class="tsd-kind-icon">aws-<wbr>config</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#budget" class="tsd-kind-icon">budget</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#certificates" class="tsd-kind-icon">certificates</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#cwl_retention" class="tsd-kind-icon">cwl-<wbr>retention</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#deleted" class="tsd-kind-icon">deleted</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#deployments" class="tsd-kind-icon">deployments</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#description" class="tsd-kind-icon">description</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#email" class="tsd-kind-icon">email</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#enable_s3_public_access" class="tsd-kind-icon">enable-<wbr>s3-<wbr>public-<wbr>access</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#exclude_ou_albs" class="tsd-kind-icon">exclude-<wbr>ou-<wbr>albs</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#gui_perm" class="tsd-kind-icon">gui-<wbr>perm</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#iam" class="tsd-kind-icon">iam</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#keep_default_vpc_regions" class="tsd-kind-icon">keep-<wbr>default-<wbr>vpc-<wbr>regions</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#key_pairs" class="tsd-kind-icon">key-<wbr>pairs</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#limits" class="tsd-kind-icon">limits</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#opt_in_vpcs" class="tsd-kind-icon">opt-<wbr>in-<wbr>vpcs</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#ou" class="tsd-kind-icon">ou</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#ou_path" class="tsd-kind-icon">ou-<wbr>path</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#populate_all_elbs_in_param_store" class="tsd-kind-icon">populate-<wbr>all-<wbr>elbs-<wbr>in-<wbr>param-<wbr>store</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#s3_retention" class="tsd-kind-icon">s3-<wbr>retention</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#scps" class="tsd-kind-icon">scps</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#secrets" class="tsd-kind-icon">secrets</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#share_mad_from" class="tsd-kind-icon">share-<wbr>mad-<wbr>from</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#src_filename" class="tsd-kind-icon">src-<wbr>filename</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#ssm_automation" class="tsd-kind-icon">ssm-<wbr>automation</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#ssm_inventory_collection" class="tsd-kind-icon">ssm-<wbr>inventory-<wbr>collection</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="AccountConfig.html#vpc" class="tsd-kind-icon">vpc</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="account_name" class="tsd-anchor"></a>
+					<h3>account-<wbr>name</h3>
+					<div class="tsd-signature tsd-kind-icon">account-<wbr>name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:560</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="account_warming_required" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> account-<wbr>warming-<wbr>required</h3>
+					<div class="tsd-signature tsd-kind-icon">account-<wbr>warming-<wbr>required<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:599</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="alb" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> alb</h3>
+					<div class="tsd-signature tsd-kind-icon">alb<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><a href="ALBConfig.html" class="tsd-signature-type" data-tsd-kind="Interface">ALBConfig</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span>action-type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>apply-tags<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{}</span><span class="tsd-signature-symbol">; </span>cross-zone<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>endpoint-subnets<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>account<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>subnet<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>vpc<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>ip-type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>subnets<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>targets<span class="tsd-signature-symbol">: </span><a href="ALBTargetConfig1.html" class="tsd-signature-type" data-tsd-kind="Interface">ALBTargetConfig1</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;GWLB&quot;</span><span class="tsd-signature-symbol">; </span>vpc<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:574</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="aws_config" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> aws-<wbr>config</h3>
+					<div class="tsd-signature tsd-kind-icon">aws-<wbr>config<span class="tsd-signature-symbol">:</span> <a href="AWSConfigAccountConfig.html" class="tsd-signature-type" data-tsd-kind="Interface">AWSConfigAccountConfig</a><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:608</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="budget" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> budget</h3>
+					<div class="tsd-signature tsd-kind-icon">budget<span class="tsd-signature-symbol">:</span> <a href="BudgetConfig.html" class="tsd-signature-type" data-tsd-kind="Interface">BudgetConfig</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:598</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="certificates" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> certificates</h3>
+					<div class="tsd-signature tsd-kind-icon">certificates<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><a href="ImportCertificateConfig.html" class="tsd-signature-type" data-tsd-kind="Interface">ImportCertificateConfig</a><span class="tsd-signature-symbol"> | </span><a href="CertificateRequestConfig.html" class="tsd-signature-type" data-tsd-kind="Interface">CertificateRequestConfig</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:571</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="cwl_retention" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> cwl-<wbr>retention</h3>
+					<div class="tsd-signature tsd-kind-icon">cwl-<wbr>retention<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:600</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="deleted" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> deleted</h3>
+					<div class="tsd-signature tsd-kind-icon">deleted<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:601</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="deployments" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> deployments</h3>
+					<div class="tsd-signature tsd-kind-icon">deployments<span class="tsd-signature-symbol">:</span> <a href="Deployments.html" class="tsd-signature-type" data-tsd-kind="Interface">Deployments</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:573</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="description" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> description</h3>
+					<div class="tsd-signature tsd-kind-icon">description<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:561</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="email" class="tsd-anchor"></a>
+					<h3>email</h3>
+					<div class="tsd-signature tsd-kind-icon">email<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:562</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="enable_s3_public_access" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> enable-<wbr>s3-<wbr>public-<wbr>access</h3>
+					<div class="tsd-signature tsd-kind-icon">enable-<wbr>s3-<wbr>public-<wbr>access<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:566</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="exclude_ou_albs" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> exclude-<wbr>ou-<wbr>albs</h3>
+					<div class="tsd-signature tsd-kind-icon">exclude-<wbr>ou-<wbr>albs<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:603</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="gui_perm" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> gui-<wbr>perm</h3>
+					<div class="tsd-signature tsd-kind-icon">gui-<wbr>perm<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:559</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="iam" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> iam</h3>
+					<div class="tsd-signature tsd-kind-icon">iam<span class="tsd-signature-symbol">:</span> <a href="IAMConfig.html" class="tsd-signature-type" data-tsd-kind="Interface">IAMConfig</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:567</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="keep_default_vpc_regions" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> keep-<wbr>default-<wbr>vpc-<wbr>regions</h3>
+					<div class="tsd-signature tsd-kind-icon">keep-<wbr>default-<wbr>vpc-<wbr>regions<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:604</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="key_pairs" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> key-<wbr>pairs</h3>
+					<div class="tsd-signature tsd-kind-icon">key-<wbr>pairs<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>region<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:611</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="limits" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> limits</h3>
+					<div class="tsd-signature tsd-kind-icon">limits<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:568</li>
+						</ul>
+					</aside>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-index-signature">
+								<h5><span class="tsd-signature-symbol">[</span>k: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><a href="LimitConfig.html" class="tsd-signature-type" data-tsd-kind="Interface">LimitConfig</a></h5>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="opt_in_vpcs" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> opt-<wbr>in-<wbr>vpcs</h3>
+					<div class="tsd-signature tsd-kind-icon">opt-<wbr>in-<wbr>vpcs<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:610</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="ou" class="tsd-anchor"></a>
+					<h3>ou</h3>
+					<div class="tsd-signature tsd-kind-icon">ou<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:563</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="ou_path" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> ou-<wbr>path</h3>
+					<div class="tsd-signature tsd-kind-icon">ou-<wbr>path<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:564</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="populate_all_elbs_in_param_store" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> populate-<wbr>all-<wbr>elbs-<wbr>in-<wbr>param-<wbr>store</h3>
+					<div class="tsd-signature tsd-kind-icon">populate-<wbr>all-<wbr>elbs-<wbr>in-<wbr>param-<wbr>store<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:605</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="s3_retention" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> s3-<wbr>retention</h3>
+					<div class="tsd-signature tsd-kind-icon">s3-<wbr>retention<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:597</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="scps" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> scps</h3>
+					<div class="tsd-signature tsd-kind-icon">scps<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:609</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="secrets" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> secrets</h3>
+					<div class="tsd-signature tsd-kind-icon">secrets<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>region<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>size<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:616</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="share_mad_from" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> share-<wbr>mad-<wbr>from</h3>
+					<div class="tsd-signature tsd-kind-icon">share-<wbr>mad-<wbr>from<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:565</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="src_filename" class="tsd-anchor"></a>
+					<h3>src-<wbr>filename</h3>
+					<div class="tsd-signature tsd-kind-icon">src-<wbr>filename<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:602</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="ssm_automation" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> ssm-<wbr>automation</h3>
+					<div class="tsd-signature tsd-kind-icon">ssm-<wbr>automation<span class="tsd-signature-symbol">:</span> <a href="SSMShareAutomation.html" class="tsd-signature-type" data-tsd-kind="Interface">SSMShareAutomation</a><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:606</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="ssm_inventory_collection" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> ssm-<wbr>inventory-<wbr>collection</h3>
+					<div class="tsd-signature tsd-kind-icon">ssm-<wbr>inventory-<wbr>collection<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:607</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="vpc" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> vpc</h3>
+					<div class="tsd-signature tsd-kind-icon">vpc<span class="tsd-signature-symbol">:</span> <a href="VPCConfig.html" class="tsd-signature-type" data-tsd-kind="Interface">VPCConfig</a><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in ts-en.ts:572</li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="../modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface">
+						<a href="AccountConfig.html" class="tsd-kind-icon">Account<wbr>Config</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#account_name" class="tsd-kind-icon">account-<wbr>name</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#account_warming_required" class="tsd-kind-icon">account-<wbr>warming-<wbr>required</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#alb" class="tsd-kind-icon">alb</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#aws_config" class="tsd-kind-icon">aws-<wbr>config</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#budget" class="tsd-kind-icon">budget</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#certificates" class="tsd-kind-icon">certificates</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#cwl_retention" class="tsd-kind-icon">cwl-<wbr>retention</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#deleted" class="tsd-kind-icon">deleted</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#deployments" class="tsd-kind-icon">deployments</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#description" class="tsd-kind-icon">description</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#email" class="tsd-kind-icon">email</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#enable_s3_public_access" class="tsd-kind-icon">enable-<wbr>s3-<wbr>public-<wbr>access</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#exclude_ou_albs" class="tsd-kind-icon">exclude-<wbr>ou-<wbr>albs</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#gui_perm" class="tsd-kind-icon">gui-<wbr>perm</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#iam" class="tsd-kind-icon">iam</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#keep_default_vpc_regions" class="tsd-kind-icon">keep-<wbr>default-<wbr>vpc-<wbr>regions</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#key_pairs" class="tsd-kind-icon">key-<wbr>pairs</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#limits" class="tsd-kind-icon">limits</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#opt_in_vpcs" class="tsd-kind-icon">opt-<wbr>in-<wbr>vpcs</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#ou" class="tsd-kind-icon">ou</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#ou_path" class="tsd-kind-icon">ou-<wbr>path</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#populate_all_elbs_in_param_store" class="tsd-kind-icon">populate-<wbr>all-<wbr>elbs-<wbr>in-<wbr>param-<wbr>store</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#s3_retention" class="tsd-kind-icon">s3-<wbr>retention</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#scps" class="tsd-kind-icon">scps</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#secrets" class="tsd-kind-icon">secrets</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#share_mad_from" class="tsd-kind-icon">share-<wbr>mad-<wbr>from</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#src_filename" class="tsd-kind-icon">src-<wbr>filename</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#ssm_automation" class="tsd-kind-icon">ssm-<wbr>automation</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#ssm_inventory_collection" class="tsd-kind-icon">ssm-<wbr>inventory-<wbr>collection</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="AccountConfig.html#vpc" class="tsd-kind-icon">vpc</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer>
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="overlay"></div>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>
