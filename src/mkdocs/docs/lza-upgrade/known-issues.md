@@ -17,21 +17,6 @@ The following configurations are not handled automatically by the current versio
 ## Upgrade known issues
 The following issues can result in errors during the ASEA to LZA upgrade and should be fixed in the LZA configuration files before starting the LZA installation.
 
-### Error: Transit Gateway static route already exist
-
-**Description:** During LZA install, LZA attempts to re-create a transit gateway static route table entry that already exists.
-
-**Symptom or error message:** Error in the NetworkAssociationsStack during LZA initial installation.
-
-```
-ASEA-NetworkAssociationsStack-xxxxxx-ca-central-1 failed: Error: The stack named ASEA-NetworkAssociationsStack-xxxxxx-ca-central-1 failed creation, it may need to be manually deleted from the AWS console: ROLLBACK_COMPLETE: tgw-rtb-xxxxx|x.x.x.x/yy already exists in stack arn:aws:cloudformation:ca-central-1:xxxxxxx:stack/ASEA-SharedNetwork-Phase2
-```
-
-**Root cause**: The static route was deployed in an ASEA stack and doesn't need to be deployed by LZA.
-
-**Resolution or workaround:** You can comment out the static route in the `network-config.yaml` file to prevent the creation of the route by LZA.
-
-
 ### convert-config should not convert AutomationAssumeRole parameters for AWS Custom Config Rules remediation
 
 **Description:** LZA handles the IAM Roles and Policies for custom config rule detection Lambda and remediation SSM document differently than ASEA. In the current state, convert-config generates a configuration that will generate an error at deployment time if the `remediation-params` in ASEA configuration contains a parameter named `AutomationAssumeRole`.
@@ -43,20 +28,6 @@ ASEA-NetworkAssociationsStack-xxxxxx-ca-central-1 failed: Error: The stack named
 
 ## Landing Zone Accelerator known issues
 The following issues will not prevent a successful upgrade from ASEA to LZA, but can impact functionalities and operations in the upgraded Landing Zone.
-
-
-### Removal of interface endpoints fails in ImportAseaResources stage
-
-**Description:** Failure when attempting to remove an interface endpoint that was deployed by ASEA prior to LZA upgrade.
-
-**Symptom or error message:** Failure in ImportAseaResources
-
-```
-ASEA-SharedNetwork-Phase2-VpcEndpoints1 failed: Error [ValidationError]: Template format error: Unresolved resource dependencies [SsmParamEndpointVpccodecommitDns] in the Resources block of the template
-```
-
-**Resolution or workaround:** A fix will be available in a future version of LZA.
-
 
 ### Resources are not deleted after being removed from configuration file
 
@@ -92,3 +63,31 @@ Resource handler returned message: "Invalid id: "${ACCEL_LOOKUP::EC2:ENI_0:Firew
 **Symptom or error message:** The scope of changes of Config Rule is set to an empty list of Resource types instead of scoped to **All changes** as in ASEA.
 
 **Resolution or workaround:** Fixed in LZA v1.11.1
+
+## Fixed in LZA v1.12.0
+
+### Error: Transit Gateway static route already exist
+
+**Description:** During LZA install, LZA attempts to re-create a transit gateway static route table entry that already exists.
+
+**Symptom or error message:** Error in the NetworkAssociationsStack during LZA initial installation.
+
+```txt
+ASEA-NetworkAssociationsStack-xxxxxx-ca-central-1 failed: Error: The stack named ASEA-NetworkAssociationsStack-xxxxxx-ca-central-1 failed creation, it may need to be manually deleted from the AWS console: ROLLBACK_COMPLETE: tgw-rtb-xxxxx|x.x.x.x/yy already exists in stack arn:aws:cloudformation:ca-central-1:xxxxxxx:stack/ASEA-SharedNetwork-Phase2
+```
+
+**Root cause**: The static route was deployed in an ASEA stack and doesn't need to be deployed by LZA.
+
+**Resolution or workaround:** Fixed in LZA v1.12.0. If you had commented the static route in the `network-config.yaml` file as the previous documented workaround, you can uncomment the route to have LZA start to manage the resource.
+
+### Removal of interface endpoints fails in ImportAseaResources stage
+
+**Description:** Failure when attempting to remove an interface endpoint that was deployed by ASEA prior to LZA upgrade.
+
+**Symptom or error message:** Failure in ImportAseaResources
+
+```txt
+ASEA-SharedNetwork-Phase2-VpcEndpoints1 failed: Error [ValidationError]: Template format error: Unresolved resource dependencies [SsmParamEndpointVpccodecommitDns] in the Resources block of the template
+```
+
+**Resolution or workaround:** Fixed in LZA v1.12.0
