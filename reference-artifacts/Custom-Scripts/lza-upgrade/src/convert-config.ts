@@ -1310,7 +1310,7 @@ export class ConvertAseaConfig {
         roleSets.push({
           roles: [
             {
-              name: role.role,
+              name: role.role === 'EC2-Default-SSM-AD-Role' ? 'EC2-Default-SSM-AD-Role-ip' : role.role,
               assumedBy,
               boundaryPolicy: role['boundary-policy'],
               policies: {
@@ -3607,7 +3607,7 @@ export class ConvertAseaConfig {
   private applyReplacements(value: string) {
     value = value.replace('${SEA::LogArchiveAesBucket}', '${ACCEL_LOOKUP::Bucket:elbLogs}');
     value = value.replace('${SEA::S3BucketEncryptionKey}', '${ACCEL_LOOKUP::KMS}');
-    value = value.replace('EC2-Default-SSM-AD-Role-ip', '${ACCEL_LOOKUP::InstanceProfile:EC2-Default-SSM-AD-Role}');
+    value = value.replace('EC2-Default-SSM-AD-Role-ip', '${ACCEL_LOOKUP::InstanceProfile:EC2-Default-SSM-AD-Role-ip}');
     value = value.replace(
       // DO NOT FIX THE SPELLING FOR INSTANCE. THE TYPO EXISTS IN ASEA
       '${SEA::EC2InstaceProfilePermissions}',
