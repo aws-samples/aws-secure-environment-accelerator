@@ -3611,7 +3611,7 @@ export class ConvertAseaConfig {
     value = value.replace(
       // DO NOT FIX THE SPELLING FOR INSTANCE. THE TYPO EXISTS IN ASEA
       '${SEA::EC2InstaceProfilePermissions}',
-      '${ACCEL_LOOKUP::CustomerManagedPolicy:{{ AcceleratorPrefix }}-SessionManagerLogging}',
+      `\${ACCEL_LOOKUP::CustomerManagedPolicy:${this.aseaPrefix}SessionManagerLogging}`,
     );
     return value;
   }
