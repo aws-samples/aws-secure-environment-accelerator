@@ -200,7 +200,7 @@ async function cwlSettingsInLogArchive(props: {
   const lambdaCode = lambda.Code.fromAsset(lambdaDir);
 
   const firhosePrefixProcessingLambda = new lambda.Function(scope, `FirehosePrefixProcessingLambda`, {
-    runtime: lambda.Runtime.NODEJS_18_X,
+    runtime: lambda.Runtime.NODEJS_LATEST,
     code: lambdaCode,
     handler: 'index.firehoseCustomPrefix',
     memorySize: 2048,

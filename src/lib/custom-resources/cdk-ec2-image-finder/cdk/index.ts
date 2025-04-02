@@ -14,9 +14,10 @@
 import * as path from 'path';
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 
-const resourceType = 'Custom::EC2ImageFinder';
+const resourceType = 'Custom::EC2ImageFinder1';
 
 export interface ImageFinderProps {
   imageOwner: string;
@@ -34,27 +35,9 @@ export class ImageFinder extends Construct {
   constructor(scope: Construct, id: string, props: ImageFinderProps) {
     super(scope, id);
 
-    const lambdaPath = require.resolve('@aws-accelerator/custom-resource-ec2-image-finder-runtime');
-    const lambdaDir = path.dirname(lambdaPath);
-
-    const provider = cdk.CustomResourceProvider.getOrCreate(this, resourceType, {
-      runtime: cdk.CustomResourceProviderRuntime.NODEJS_18_X,
-      codeDirectory: lambdaDir,
-      policyStatements: [
-        new iam.PolicyStatement({
-          actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-          resources: ['*'],
-        }).toJSON(),
-        new iam.PolicyStatement({
-          actions: ['ec2:DescribeImages'],
-          resources: ['*'],
-        }).toJSON(),
-      ],
-    });
-
-    this.resource = new cdk.CustomResource(this, 'Resource', {
+    this.resource = new cdk.CustomResource(this, 'Resource1', {
       resourceType,
-      serviceToken: provider,
+      serviceToken: this.lambdaFunction.functionArn,
       properties: {
         ImageOwner: props.imageOwner,
         ImageName: props.imageName,
@@ -66,5 +49,43 @@ export class ImageFinder extends Construct {
 
   get imageId(): string {
     return this.resource.getAttString('ImageID');
+  }
+
+  private get lambdaFunction(): lambda.Function {
+    const constructName = `${resourceType}Lambda`;
+    const stack = cdk.Stack.of(this);
+    const existing = stack.node.tryFindChild(constructName);
+    if (existing) {
+      return existing as lambda.Function;
+    }
+
+    const lambdaPath = require.resolve('@aws-accelerator/custom-resource-ec2-image-finder-runtime');
+    const lambdaDir = path.dirname(lambdaPath);
+
+    const role = new iam.Role(stack, `${resourceType}Role`, {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    });
+
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+        resources: ['*'],
+      }),
+    );
+
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['ec2:DescribeImages'],
+        resources: ['*'],
+      }),
+    );
+
+    return new lambda.Function(stack, constructName, {
+      runtime: lambda.Runtime.NODEJS_LATEST,
+      code: lambda.Code.fromAsset(lambdaDir),
+      handler: 'index.handler',
+      role,
+      timeout: cdk.Duration.minutes(15),
+    });
   }
 }

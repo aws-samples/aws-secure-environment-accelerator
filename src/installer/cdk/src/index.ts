@@ -23,7 +23,7 @@ import * as kms from 'aws-cdk-lib/aws-kms';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { publicDecrypt } from 'crypto';
-import { Construct } from 'constructs';
+import { Construct, IConstruct } from 'constructs';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -56,6 +56,18 @@ async function main() {
       repoSource,
       acceleratorVersion,
     });
+  }
+}
+
+const deprecatedRuntimeList = ['nodejs10.x', 'nodejs12.x', 'nodejs14.x', 'nodejs16.x', 'nodejs18.x'];
+
+export class LambdaDefaultRuntime implements cdk.IAspect {
+  visit(node: IConstruct): void {
+    if (node instanceof lambda.CfnFunction) {
+      if (!node.runtime || deprecatedRuntimeList.includes(node.runtime)) {
+        node.runtime = 'nodejs22.x';
+      }
+    }
   }
 }
 
@@ -264,9 +276,13 @@ class Installer extends cdk.Stack {
         phases: {
           install: {
             'runtime-versions': {
-              nodejs: 18,
+              nodejs: 22,
             },
-            commands: ['npm install --global pnpm@8.9.0', 'pnpm install --frozen-lockfile', 'pnpm recursive run build'],
+            commands: [
+              'npm install --global pnpm@10.4.1',
+              'pnpm install --frozen-lockfile',
+              'pnpm recursive run build',
+            ],
           },
           pre_build: {
             commands: ['pnpm recursive run build'],
@@ -472,7 +488,7 @@ class Installer extends cdk.Stack {
       functionName: `${acceleratorPrefix}Installer-StartExecution`,
       role: stateMachineExecutionRole,
       // Inline code is only allowed for Node.js version 12
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_LATEST,
       code: lambda.Code.fromInline(stateMachineStartExecutionCode.toString()),
       handler: 'index.handler',
     });
@@ -503,7 +519,7 @@ class Installer extends cdk.Stack {
       functionName: `${acceleratorPrefix}Installer-SaveApplicationVersion`,
       role: stateMachineExecutionRole,
       // Inline code is only allowed for Node.js version 12
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_LATEST,
       code: lambda.Code.fromInline(saveApplicationVersionCode.toString()),
       handler: 'index.handler',
     });
@@ -533,7 +549,7 @@ class Installer extends cdk.Stack {
       functionName: `${acceleratorPrefix}Installer-ValidateParameters`,
       role: stateMachineExecutionRole,
       // Inline code is only allowed for Node.js version 12
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_LATEST,
       code: lambda.Code.fromInline(validateParametersCode.toString()),
       handler: 'index.handler',
     });
@@ -677,6 +693,7 @@ class Installer extends cdk.Stack {
     });
 
     cdk.Aspects.of(this).add(new cdk.Tag('Accelerator', `${acceleratorName}1`));
+    cdk.Aspects.of(this).add(new LambdaDefaultRuntime());
 
     const cfnInstallerPipelineRole = installerPipelineRole.node.defaultChild as iam.CfnRole;
     cfnInstallerPipelineRole.cfnOptions.metadata = {
