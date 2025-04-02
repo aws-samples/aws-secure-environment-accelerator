@@ -147,7 +147,7 @@ export async function createLZAInstallerCloudFormationStack(
   }
 }
 
-export async function getLZAInstallerStackTemplate(bucketName: string, outputPath: string) {
+export async function getLZAInstallerStackTemplate(bucketName: string) {
   const s3Client = new S3Client({ endpoint: 'https://s3.amazonaws.com', region: 'us-east-1' });
   const template = await s3Client.send(
     new GetObjectCommand({
@@ -162,13 +162,13 @@ export async function getLZAInstallerStackTemplate(bucketName: string, outputPat
 
   await pipeline(
     template.Body as Readable,
-    fs.createWriteStream(path.join(__dirname, outputPath, 'AWSAccelerator-InstallerStack.template')),
+    fs.createWriteStream(path.join(__dirname, 'AWSAccelerator-InstallerStack.template')),
   );
 }
 
-export async function putLZAInstallerStackTemplate(bucketName: string, templatePath: string, region: string) {
+export async function putLZAInstallerStackTemplate(bucketName: string, region: string) {
   const s3Client = new S3Client({ region });
-  const template = fs.readFileSync(path.join(__dirname, templatePath, 'AWSAccelerator-InstallerStack.template'));
+  const template = fs.readFileSync(path.join(__dirname, 'AWSAccelerator-InstallerStack.template'));
   await s3Client.send(
     new PutObjectCommand({
       Bucket: bucketName,

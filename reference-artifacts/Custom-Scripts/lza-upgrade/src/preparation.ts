@@ -55,8 +55,8 @@ export class Preparation {
   }
 
   async prepareLza() {
-    await getLZAInstallerStackTemplate('solutions-reference', '../../outputs');
-    await putLZAInstallerStackTemplate(this.config.aseaConfigBucketName, '../../outputs', this.homeRegion);
+    await getLZAInstallerStackTemplate('solutions-reference');
+    await putLZAInstallerStackTemplate(this.config.aseaConfigBucketName, this.homeRegion);
     const installerStackParameters: InstallerStackParameters = {
       repositorySource: this.config.lzaCodeRepositorySource ?? 'github',
       repositoryOwner: this.config.lzaCodeRepositoryOwner ?? 'awslabs',
