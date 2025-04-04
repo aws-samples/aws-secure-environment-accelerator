@@ -345,7 +345,7 @@ export class ConvertAseaConfig {
       case globalOptions['aws-org-management'].account:
         return AccountsConfig.MANAGEMENT_ACCOUNT;
       default:
-        return accountKey;
+        return accountKey.replaceAll(' ', '');
     }
   }
 
@@ -1334,7 +1334,7 @@ export class ConvertAseaConfig {
         return;
       }
       if (accountKey) {
-        roleSets[currentIndex].deploymentTargets.accounts?.push(accountKey);
+        roleSets[currentIndex].deploymentTargets.accounts?.push(this.getAccountKeyforLza(this.globalOptions!, accountKey));
       }
       if (ouKey) {
         const ous = this.getNestedOusForDeploymentTargets([ouKey]);
@@ -1679,13 +1679,13 @@ export class ConvertAseaConfig {
       const nestedOu = accountConfig['ou-path'];
       if (!ignoredOus.includes(accountConfig.ou) && !accountConfig.deleted) {
         accountsConfig.workloadAccounts.push({
-          name: accountKey,
+          name: this.getAccountKeyforLza(aseaConfig['global-options'], accountKey),
           description: accountConfig.description,
           email: accountConfig.email.toLocaleLowerCase(),
           organizationalUnit: nestedOu ? accountConfig['ou-path'] : accountConfig.ou,
           warm: false,
         });
-        accountKeys.push(accountKey);
+        accountKeys.push(this.getAccountKeyforLza(aseaConfig['global-options'], accountKey));
       }
     });
 
@@ -2459,7 +2459,7 @@ export class ConvertAseaConfig {
               accountConfig['aws-config'].filter((c) => c['excl-rules'].find((r) => r.includes(configRule.name)))
                 .length > 0
             ) {
-              excludedAccounts.push(accountKey);
+              excludedAccounts.push(this.getAccountKeyforLza(this.globalOptions!, accountKey));
             }
           }
         });

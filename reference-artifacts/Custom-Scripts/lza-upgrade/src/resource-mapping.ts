@@ -725,7 +725,7 @@ export class ResourceMapping {
       for (const region of regions) {
         accountDiscovery.push({
           accountId: account.id,
-          accountKey: account.key,
+          accountKey: account.key.replaceAll(' ', ''),
           region,
         });
       }
