@@ -30,7 +30,7 @@ export async function createOrganizationalUnit(input: CreateOrganizationalUnitEv
   const { scope, lambdaCode, acceleratorPipelineRole, acceleratorPrefix, ignoredOus, organizationAdminRole } = input;
 
   const orgChangeFunc = new lambda.Function(scope, 'organizationChanges', {
-    runtime: lambda.Runtime.NODEJS_18_X,
+    runtime: lambda.Runtime.NODEJS_LATEST,
     handler: 'index.ouValidationEvents.createOrganizationalUnit',
     code: lambdaCode,
     role: acceleratorPipelineRole,

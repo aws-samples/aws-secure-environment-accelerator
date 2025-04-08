@@ -826,7 +826,7 @@
           "resource-types": [
             "AWS::EC2::Instance"
           ],
-          "runtime": "nodejs18.x",
+          "runtime": "nodejs22.x",
           "remediation-action": "Attach-IAM-Instance-Profile",
           "remediation": true,
           "remediation-params": {
@@ -840,7 +840,7 @@
           "resource-types": [
             "AWS::IAM::Role"
           ],
-          "runtime": "nodejs18.x",
+          "runtime": "nodejs22.x",
           "parameters": {
             "AWSManagedPolicies": "AmazonSSMManagedInstanceCore, AmazonSSMDirectoryServiceAccess, CloudWatchAgentServerPolicy",
             "CustomerManagedPolicies": "${SEA::EC2InstaceProfilePermissions}",

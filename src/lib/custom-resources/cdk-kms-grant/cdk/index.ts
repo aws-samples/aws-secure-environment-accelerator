@@ -115,7 +115,7 @@ export class Grant extends Construct {
     );
 
     return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_LATEST,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,

@@ -57,7 +57,7 @@ export class AlbIpForwarding extends Construct {
     const lambdaCode = lambda.Code.fromAsset(lambdaDir);
 
     const dnsFWLambda = new lambda.Function(this, `${prefix}dnsFWLambda`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_LATEST,
       memorySize: 512,
       code: lambdaCode,
       handler: 'index.albIpMonitor',
@@ -81,7 +81,7 @@ export class AlbIpForwarding extends Construct {
     );
 
     const lambdaDnsRecordMonitor = new lambda.Function(this, `${prefix}ddbDnsRecordMonitor`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_LATEST,
       memorySize: 512,
       handler: 'index.albTargetRecordMonitor',
       code: lambdaCode,

@@ -13,10 +13,11 @@
 
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as path from 'path';
 import { Construct } from 'constructs';
 
-const resourceType = 'Custom::VpcDefaultSecurityGroup';
+const resourceType = 'Custom::VpcDefaultSecurityGroup1';
 
 export interface VpcDefaultSecurityGroupProps {
   vpcId: string;
@@ -32,36 +33,56 @@ export class VpcDefaultSecurityGroup extends Construct {
   constructor(scope: Construct, id: string, props: VpcDefaultSecurityGroupProps) {
     super(scope, id);
 
-    const lambdaPath = require.resolve('@aws-accelerator/custom-resource-vpc-default-security-group-runtime');
-    const lambdaDir = path.dirname(lambdaPath);
-
-    const provider = cdk.CustomResourceProvider.getOrCreate(this, resourceType, {
-      runtime: cdk.CustomResourceProviderRuntime.NODEJS_18_X,
-      codeDirectory: lambdaDir,
-      policyStatements: [
-        new iam.PolicyStatement({
-          actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-          resources: ['*'],
-        }).toJSON(),
-        new iam.PolicyStatement({
-          actions: [
-            'ec2:DescribeSecurityGroups',
-            'ec2:RevokeSecurityGroupIngress',
-            'ec2:RevokeSecurityGroupEgress',
-            'ec2:CreateTags',
-          ],
-          resources: ['*'],
-        }).toJSON(),
-      ],
-    });
-
-    this.resource = new cdk.CustomResource(this, 'Resource', {
+    this.resource = new cdk.CustomResource(this, 'Resource1', {
       resourceType,
-      serviceToken: provider,
+      serviceToken: this.lambdaFunction.functionArn,
       properties: {
         vpcId: props.vpcId,
         acceleratorName: props.acceleratorName,
       },
+    });
+  }
+
+  private get lambdaFunction(): lambda.Function {
+    const constructName = `${resourceType}Lambda`;
+    const stack = cdk.Stack.of(this);
+    const existing = stack.node.tryFindChild(constructName);
+    if (existing) {
+      return existing as lambda.Function;
+    }
+
+    const lambdaPath = require.resolve('@aws-accelerator/custom-resource-vpc-default-security-group-runtime');
+    const lambdaDir = path.dirname(lambdaPath);
+
+    const role = new iam.Role(stack, `${resourceType}Role`, {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    });
+
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+        resources: ['*'],
+      }),
+    );
+
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          'ec2:DescribeSecurityGroups',
+          'ec2:RevokeSecurityGroupIngress',
+          'ec2:RevokeSecurityGroupEgress',
+          'ec2:CreateTags',
+        ],
+        resources: ['*'],
+      }),
+    );
+
+    return new lambda.Function(stack, constructName, {
+      runtime: lambda.Runtime.NODEJS_LATEST,
+      code: lambda.Code.fromAsset(lambdaDir),
+      handler: 'index.handler',
+      role,
+      timeout: cdk.Duration.minutes(15),
     });
   }
 }

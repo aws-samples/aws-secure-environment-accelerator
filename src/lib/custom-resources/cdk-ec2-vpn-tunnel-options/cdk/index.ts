@@ -14,10 +14,11 @@
 import * as path from 'path';
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { HandlerProperties } from '@aws-accelerator/custom-resource-ec2-vpn-tunnel-options-runtime';
 import { Construct } from 'constructs';
 
-const resourceType = 'Custom::EC2VpnTunnelOptions';
+const resourceType = 'Custom::EC2VpnTunnelOptions1';
 
 export interface VpnTunnelOptionsProps {
   vpnConnectionId: string;
@@ -56,31 +57,13 @@ export class VpnTunnelOptions extends Construct {
   constructor(scope: Construct, id: string, props: VpnTunnelOptionsProps) {
     super(scope, id);
 
-    const lambdaPath = require.resolve('@aws-accelerator/custom-resource-ec2-vpn-tunnel-options-runtime');
-    const lambdaDir = path.dirname(lambdaPath);
-
-    const provider = cdk.CustomResourceProvider.getOrCreate(this, resourceType, {
-      runtime: cdk.CustomResourceProviderRuntime.NODEJS_18_X,
-      codeDirectory: lambdaDir,
-      policyStatements: [
-        new iam.PolicyStatement({
-          actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-          resources: ['*'],
-        }).toJSON(),
-        new iam.PolicyStatement({
-          actions: ['ec2:DescribeVpnConnections'],
-          resources: ['*'],
-        }).toJSON(),
-      ],
-    });
-
     const handlerProperties: HandlerProperties = {
       VPNConnectionID: props.vpnConnectionId,
     };
 
-    this.resource = new cdk.CustomResource(this, 'Resource', {
+    this.resource = new cdk.CustomResource(this, 'Resource1', {
       resourceType,
-      serviceToken: provider,
+      serviceToken: this.lambdaFunction.functionArn,
       properties: handlerProperties,
     });
   }
@@ -90,5 +73,43 @@ export class VpnTunnelOptions extends Construct {
    */
   getAttString(attribute: Attribute) {
     return this.resource.getAttString(attribute);
+  }
+
+  private get lambdaFunction(): lambda.Function {
+    const constructName = `${resourceType}Lambda`;
+    const stack = cdk.Stack.of(this);
+    const existing = stack.node.tryFindChild(constructName);
+    if (existing) {
+      return existing as lambda.Function;
+    }
+
+    const lambdaPath = require.resolve('@aws-accelerator/custom-resource-ec2-vpn-tunnel-options-runtime');
+    const lambdaDir = path.dirname(lambdaPath);
+
+    const role = new iam.Role(stack, `${resourceType}Role`, {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    });
+
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+        resources: ['*'],
+      }),
+    );
+
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['ec2:DescribeVpnConnections'],
+        resources: ['*'],
+      }),
+    );
+
+    return new lambda.Function(stack, constructName, {
+      runtime: lambda.Runtime.NODEJS_LATEST,
+      code: lambda.Code.fromAsset(lambdaDir),
+      handler: 'index.handler',
+      role,
+      timeout: cdk.Duration.minutes(15),
+    });
   }
 }
