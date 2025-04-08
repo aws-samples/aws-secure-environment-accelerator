@@ -8,7 +8,7 @@
     "lint:eslint": "pnpx eslint '{cdk,lib,src}/**/*.{js,ts}'"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.101.0",
+    "aws-cdk-lib": "2.187.0",
     "constructs": "10.2.70"
   },
   "devDependencies": {
@@ -17,6 +17,6 @@
     "typescript": "5.2.2"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "2.101.0"
+    "aws-cdk-lib": "2.187.0"
   }
 }
