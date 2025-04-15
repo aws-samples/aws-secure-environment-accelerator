@@ -75,6 +75,8 @@ When Security Hub is configured to send logs to CloudWatch, in ASEA the forwardi
 
 In LZA, the forwarding rule and CloudWatch Log Groups are created in every account and enabled region. This will result in additional logs being sent to CloudWatch and the centralized S3 logging bucket.
 
+### ELB Access Logs
+LZA creates new S3 buckets to store ELB access logs in every enabled regions in the central logs account (e.g. `asea-elb-access-logs-<account>-<region>`). ASEA stored the ELB access logs on the `asea-logarchive-phase0-aes<region>-<suffix>` bucket. After the upgrade, the `ASEA-LZA-ELB_LOGGING_ENABLED` AWS Config Rule will update the logging destination of all existing ELBs to use the new LZA buckets.
 
 ## Customer Managed Keys
 There are differences between how ASEA and LZA manage AWS KMS keys to provide encryption at rest capabilities for resources deployed by the solution. Detailed documentation is available in the [Customer Managed Keys - Comparison of ASEA and LZA](./kms.md) document.
