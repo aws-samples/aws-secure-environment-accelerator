@@ -27,7 +27,7 @@ In order to accomplish upgrading from ASEA to LZA, the solution relies on a conc
 |SSM Association	|FALSE	|FALSE	|	|	|
 |SSM Resource Data Sync	|FALSE	|FALSE	|	|	|
 |Subnets	|FALSE	|TRUE 	|Subnet CIDR Block </br> Subnet Availability Zone </br> Subnet Map Public IP on Launch	|	|
-|Transit Gateway Associations	|FALSE	|FALSE	|	|	|
+|Transit Gateway Associations	|TRUE	|TRUE	|TGW Associations that were originally owned by ASEA and are modified will be deleted in the importAseaResources stack and recreated in the Network Associations Stack <br><br> Please note that this can cause a networking outage from the time the resource is removed in importAseaResources until the resource is re-created in Network Associations	|	|
 |Transit Gateway Black Hole Routes	|FALSE	|FALSE	|	|	|
 |Transit Gateway Propagations	|FALSE	|FALSE	|	|	|
 |Transit Gateway Route Tables	|FALSE	|FALSE	|	|	|
