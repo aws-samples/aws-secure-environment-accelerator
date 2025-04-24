@@ -1,9 +1,9 @@
 # Known Issues
 
-This is a list of known issues at the time of release, this list will be updated when new versions of the upgrade tools are released. Contact your AWS account teams for more details if these issues impact your upgrade.
+This is a list of known issues at the time of release. This list will be updated when new versions of the upgrade tools are released. Contact your AWS account teams for more details if these issues impact your upgrade.
 
 ## Unsupported configurations
-The following configurations are not handled automatically by the current version of the upgrade tools. Also review the [Feature-specific considerations](./comparison/feature-specific-considerations.m) section of the documentation for additional details.
+The following configurations are not handled automatically by the current version of the upgrade tools. Also review the [Feature-specific considerations](./comparison/feature-specific-considerations.md) section of the documentation for additional details.
 
 ### Site-to-site VPNs
 
@@ -92,7 +92,7 @@ Resource handler returned message: "Invalid id: "${ACCEL_LOOKUP::EC2:ENI_0:Firew
 
 **Description:** Some AWS Config Rules deployed by LZA do not evaluate (i.e Last successful detective evaluation appears as 'Not Available' in the console). The equivalent ASEA Config Rule evaluates correctly.
 
-**Symptom or error message:** The scope of changes of Config Rule is set to an empty list of Resource types instead of scoped to **All changes** as in ASEA.
+**Symptom or error message:** The scope of changes for Config Rule is set to an empty list of Resource types instead of scoped to **All changes** as in ASEA.
 
 **Resolution or workaround:** Fixed in LZA v1.11.1
 

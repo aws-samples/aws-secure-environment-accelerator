@@ -2,7 +2,7 @@
 
 ## Failure in ImportASEAResourceStage
 
-If the LZA pipeline fails in the ImportASEAResources stage and you need to restart the pipeline from the beginning. You will need to remove a file from the `asea-lza-resource-mapping-<accountId>` bucket. The name of the file is `asearesources.json`. Download a copy of the file and then delete it from the S3 bucket. The file will be recreated when the pipeline is rerun.
+If the LZA pipeline fails in the ImportASEAResources stage and you need to restart the pipeline from the beginning, you will need to remove a file from the `asea-lza-resource-mapping-<accountId>` bucket. The name of the file is `asearesources.json`. Download a copy of the file and then delete it from the S3 bucket. The file will be recreated when the pipeline is rerun.
 
 ## Failure creating new account after upgrade when using Control Tower
 
@@ -20,7 +20,7 @@ If you are adding a new Control Tower account, ensure that there are no regions 
 
 ## Timeout issues on large environments
 
-When upgrading an ASEA environment with a large number of accounts (>100) you can encounter specific timeout issues and need to do manual changes to workaround the issues.
+When upgrading an ASEA environment with a large number of accounts (>100), you may encounter specific timeout issues and need to do manual changes to workaround the issues.
 
 ### JavaScript heap out of memory errors
 Cause: CodeBuild does not have enough memory to synthesize very large CloudFormation stacks
@@ -81,11 +81,11 @@ If an AWS opt-in region (e.g. ca-west-1) is enabled in your ASEA environment you
 Documentation: [Managing global endpoint session tokens](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html#sts-regions-manage-tokens)
 
 ## Network timeout or connectivity issue running the upgrade tool
-To run the upgrade tool you need to have valid credentials to your management account. The upgrade tool makes API calls to several AWS services to gather information about your configuration and create the resource mapping. It reads information from the accelerator S3 buckets, DynamoDB tables and make calls to AWS Organizations as well as AWS CloudFormation in all regions.
+To run the upgrade tool, you need to have valid credentials to your management account. The upgrade tool makes API calls to several AWS services to gather information about your configuration and create the resource mapping. It reads information from the accelerator S3 buckets, DynamoDB tables and make calls to AWS Organizations as well as AWS CloudFormation in all regions.
 
-If running the tool from within an AWS VPC it will use the available VPC endpoints to reach the respective service endpoints. If no VPC endpoints are available or to make calls to regions other than the home region, the pubic service endpoints will be used and you need to make sure that any egress filtering you have in place allow those calls.
+If running the tool from within an AWS VPC, it will use the available VPC endpoints to reach the respective service endpoints. If no VPC endpoints are available or to make calls to regions other than the home region, the pubic service endpoints will be used and you need to make sure that any egress filtering you have in place allow those calls.
 
-If running the tool from within your corporate network you need to make sure that any egress filtering you have in place allow those calls.
+If running the tool from within your corporate network, you need to make sure that any egress filtering you have in place allow those calls.
 
 The following endpoints can be used by the `migration-config,`, `resource-mapping` and `convert-config` command of the upgrade tool.  If you have configured additional `supported-regions` or use a home region other than `ca-central-1`, the list needs to be updated accordingly.
 
