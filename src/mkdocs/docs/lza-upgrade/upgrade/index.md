@@ -6,7 +6,7 @@ Re-confirm pre-requisites
 
 - Confirm you are on the latest ASEA version and that the last state machine execution was successful.
 - Confirm all suspended accounts are under a specific OU that is ignored by the accelerator. (see [Suspended accounts](../comparison/feature-specific-considerations.md#suspended-accounts))
-- Confirm you don't have any empty OU that don't contain any active AWS Accounts. The convert-config tool won't generate empty OUs in the configuration.
+- Confirm you don't have any empty nested OU without active AWS Accounts that are not referenced from the ASEA configuration files (i.e. `Dev/nestedOU`). The convert-config tool won't generate empty nested OUs in the configuration.
 
 !!! warning
     The following steps will start applying changes to your environment by uninstalling ASEA and installing LZA. Only move ahead when ready to go through the full upgrade.
