@@ -627,13 +627,11 @@ def compare_route_table(crt, drt):
                         {"Route": cr['destination'], "Reason": "Not matched to firewall instance"})
             else:
                 logger.error(f"Route target {cr['target']} is not supported!")
-                drift.append({"Route": cr['destination'], "Reason": f"Route target {
-                             cr['target']} is not supported!"})
+                drift.append({"Route": cr['destination'], "Reason": f"Route target {cr['target']} is not supported!"})  # nopep8
         else:
             # this should not be possible!
             logger.error(f"More than one route with destination {cr['destination']} is deployed!")  # nopep8
-            drift.append({"Route": cr['destination'], "Reason": f"More than one route with destination {
-                         cr['destination']} found"})
+            drift.append({"Route": cr['destination'], "Reason": f"More than one route with destination {cr['destination']} found"})  # nopep8
 
     # check if there are route entries deployed that are not in the config
     for dr in dRoutes:
@@ -642,8 +640,7 @@ def compare_route_table(crt, drt):
                 f"Route {dr['DestinationCidrBlock']} is a VPC peering route. Skipping check")
             continue
 
-        cr = [r for r in cRoutes if r['destination']
-              == dr['DestinationCidrBlock']]
+        cr = [r for r in cRoutes if r['destination'] == dr['DestinationCidrBlock']]
         if len(cr) == 0:
             logger.warning(f"Route {dr['DestinationCidrBlock']} exists in deployed route table but not found in config")  # nopep8
             drift.append(
