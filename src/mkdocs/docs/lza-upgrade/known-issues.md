@@ -25,6 +25,37 @@ The following issues can result in errors during the ASEA to LZA upgrade and sho
 
 **Resolution or workaround:** The `AutomationAssumeRole` parameter is automatically provided by LZA with the created role. You can comment the `AutomationAssumeRole` parameters in the remediation section of your custom config rules in security-config.yaml. See the [Custom AWS Config Rules](./comparison/feature-specific-considerations.md#custom-aws-config-rules) section in the Feature Specific Considerations for more details about AWS Custom Config Rules.
 
+### Stack exceeds the allowed maximum of 500 resources
+
+**Description:** During LZA installation you receive an error message about exceeding the maximum number of resources allowed in a CloudFormation stack. This more commonly happen in the NetworkVPC stack.
+
+```txt
+Number of resources in stack 'ASEA-NetworkVpcStack-111222333444-ca-central-1': 571 is greater than allowed maximum of 500
+```
+
+**Root cause:** This issue is documented at the LZA level, and a fix is currently being developed and will be available in a future version of LZA. The new version will distribute resources differently between stacks to avoid the limit.
+Reference: [NetworkVpc Stack exceeds the allowed maximum of 500 resources](https://github.com/awslabs/landing-zone-accelerator-on-aws/issues/320)
+
+In the context of an ASEA to LZA upgrade, existing ASEA resources remain in the ASEA stacks, and certain resources are recreated in LZA stacks, such as NACLs, route tables, and the association of route tables to subnets. Therefore, only these types of resources can be problematic, particularly the NetworkVpcStack of the shared networking account.
+
+**Resolution or workaround:** The only possible workaround is to adjust the configuration to reduce the number of resources to be created in the stack (e.g. optimize the number of NACL rules) or wait for the fix to be available in a future LZA version. **If you added several VPC, Subnets and NACL rules from the default ASEA configuration you are likely to face this issue and should make additional verifications before attempting the LZA upgrade**.
+
+During the preparation steps when you generate the LZA configuration files you can confirm the number of Subnets and NACLs that will be created in the NetworkVPC stack of the Shared Network account.
+
+The following commands can be used to estimate from the `network-config.yaml` file the number of resources that have the most impact on the total number of resources in the NetworkVpcStack. (requires installation of [yq](https://github.com/mikefarah/yq))
+
+```bash
+# Number of subnets in the networking account (corresponds to AWS::EC2::SubnetRouteTableAssociation)
+cat network-config.yaml | yq '.vpcs[] | select(.account == "shared-network" and .region == "ca-central-1") | .subnets[].name' | wc -l
+
+# Number of shared subnets in the networking account (corresponds to AWS::RAM::ResourceShare)
+cat network-config.yaml | yq '.vpcs[] | select(.account == "shared-network" and .region == "ca-central-1") | .subnets[] | select(. | has("shareTargets")) | .name' | wc -l
+
+# Number of NACLs in the networking account (corresponds to AWS::EC2::NetworkAclEntry)
+cat network-config.yaml | yq '[.vpcs[] | select(.account == "shared-network" and .region == "ca-central-1") | [.networkAcls[].inboundRules, .networkAcls[].outboundRules]] | flatten | length'
+```
+
+**If the sum of those three type of resources is above 380 in a single account and region, further investigation is recommended before attempting the upgrade.**
 
 ## Landing Zone Accelerator known issues
 The following issues will not prevent a successful upgrade from ASEA to LZA, but can impact functionalities and operations in the upgraded Landing Zone.
@@ -36,6 +67,7 @@ The following issues will not prevent a successful upgrade from ASEA to LZA, but
 **Symptom or error message:** The LZA pipeline runs with success, but the resource is not deleted.
 
 **Resolution or workaround:** Not all ASEA resources support deletion through the LZA configuration and pipeline. Review the [ASEA Resource Handlers](./asea-resource-handlers.md) page for the current state of supported handlers.
+
 
 # Fixed Issues
 
