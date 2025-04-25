@@ -46,7 +46,7 @@ For example several parameters are created to reference networking resources.
 !!! tip
     For AWS accounts created before the upgrade, both sets of parameters will co-exist. For new accounts ad resources created after the upgrade, only the LZA version of the parameters will exist.
 
-Refer to the [Landing Zone Accelerator Implementation Guide](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/accessing-solution--outputs-through-parameter-store.html) for a full list of Parameter Store outputs supported by LZA.
+Refer to the [Landing Zone Accelerator Implementation Guide](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/developer-guide.html#accessing-solution--outputs-through-parameter-store) for a full list of Parameter Store outputs supported by LZA.
 
 ## Centralized logging
 LZA uses the same centralized logging architecture than ASEA to consolidate logs in a central S3 bucket in the Log Archive account. During the upgrade the configuration and dynamic partitioning rules are adapted to keep the same logging structure. If you have external integrations that depend on the logging structure and format, you should closely monitor the logs during the upgrade and review the current section to identify if the differences can impact your integration.
