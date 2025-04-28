@@ -46,7 +46,7 @@ For example several parameters are created to reference networking resources.
 !!! tip
     For AWS accounts created before the upgrade, both sets of parameters will co-exist. For new accounts ad resources created after the upgrade, only the LZA version of the parameters will exist.
 
-Refer to the [Landing Zone Accelerator Implementation Guide](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/accessing-solution--outputs-through-parameter-store.html) for a full list of Parameter Store outputs supported by LZA.
+Refer to the [Landing Zone Accelerator Implementation Guide](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/developer-guide.html#accessing-solution--outputs-through-parameter-store) for a full list of Parameter Store outputs supported by LZA.
 
 ## Centralized logging
 LZA uses the same centralized logging architecture than ASEA to consolidate logs in a central S3 bucket in the Log Archive account. During the upgrade the configuration and dynamic partitioning rules are adapted to keep the same logging structure. If you have external integrations that depend on the logging structure and format, you should closely monitor the logs during the upgrade and review the current section to identify if the differences can impact your integration.
@@ -75,6 +75,8 @@ When Security Hub is configured to send logs to CloudWatch, in ASEA the forwardi
 
 In LZA, the forwarding rule and CloudWatch Log Groups are created in every account and enabled region. This will result in additional logs being sent to CloudWatch and the centralized S3 logging bucket.
 
+### ELB Access Logs
+LZA creates new S3 buckets to store ELB access logs in every enabled regions in the central logs account (e.g. `asea-elb-access-logs-<account>-<region>`). ASEA stored the ELB access logs on the `asea-logarchive-phase0-aes<region>-<suffix>` bucket. After the upgrade, the `ASEA-LZA-ELB_LOGGING_ENABLED` AWS Config Rule will update the logging destination of all existing ELBs to use the new LZA buckets.
 
 ## Customer Managed Keys
 There are differences between how ASEA and LZA manage AWS KMS keys to provide encryption at rest capabilities for resources deployed by the solution. Detailed documentation is available in the [Customer Managed Keys - Comparison of ASEA and LZA](./kms.md) document.

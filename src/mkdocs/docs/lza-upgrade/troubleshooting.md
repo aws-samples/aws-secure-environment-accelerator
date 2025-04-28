@@ -2,7 +2,7 @@
 
 ## Failure in ImportASEAResourceStage
 
-If the LZA pipeline fails in the ImportASEAResources stage and you need to restart the pipeline from the beginning. You will need to remove a file from the `asea-lza-resource-mapping-<accountId>` bucket. The name of the file is `asearesources.json`. Download a copy of the file and then delete it from the S3 bucket. The file will be recreated when the pipeline is rerun.
+If the LZA pipeline fails in the ImportASEAResources stage and you need to restart the pipeline from the beginning, you will need to remove a file from the `asea-lza-resource-mapping-<accountId>` bucket. The name of the file is `asearesources.json`. Download a copy of the file and then delete it from the S3 bucket. The file will be recreated when the pipeline is rerun.
 
 ## Failure creating new account after upgrade when using Control Tower
 
@@ -20,12 +20,13 @@ If you are adding a new Control Tower account, ensure that there are no regions 
 
 ## Timeout issues on large environments
 
-When upgrading an ASEA environment with a large number of accounts (>100) you can encounter specific timeout issues and need to do manual changes to workaround the issues.
+When upgrading an ASEA environment with a large number of accounts (>100), you may encounter specific timeout issues and need to do manual changes to workaround the issues.
 
 ### JavaScript heap out of memory errors
 Cause: CodeBuild does not have enough memory to synthesize very large CloudFormation stacks
 
 Workaround: Increase the resources allocated to CodeBuild and increase NodeJS `max_old_space_size`
+
 1. Go to CodeBuild console and locate the `ASEA-ToolkitProject` project
 2. Edit the project, in the Environment section change the Compute size to the next larger size available (70 GB Memory, 36 vCPU)
 3. In the Environment variables section:
@@ -43,6 +44,7 @@ Workaround: Disable the Event Bridge rule `ASEA-SecurityHubFindingsImportToCWLs`
 Cause: Too many resources are deployed in parallel, leading to rate limiting errors.
 
 Workaround: Increase the resources allocated to CodeBuild and increase NodeJS `max_old_space_size`
+
 1. Go to CodeBuild console and locate the `ASEA-ToolkitProject` project
 2. Edit the project, in the Environment variables section:
   a) change the value of the `MAX_CONCURRENT_STACKS` variable to `75`
@@ -59,6 +61,7 @@ Could not load credentials from any providers
 ```
 
 Workaround: Increase the **Number of retries** in the SDK configuration.
+
 1. Go to CodeBuild console and locate the `ASEA-ToolkitProject` project
 2. Edit the project, in the Environment variables section:
   a) add a new environment variable named `NUMBER_OF_RETRIES`
@@ -78,11 +81,11 @@ If an AWS opt-in region (e.g. ca-west-1) is enabled in your ASEA environment you
 Documentation: [Managing global endpoint session tokens](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html#sts-regions-manage-tokens)
 
 ## Network timeout or connectivity issue running the upgrade tool
-To run the upgrade tool you need to have valid credentials to your management account. The upgrade tool makes API calls to several AWS services to gather information about your configuration and create the resource mapping. It reads information from the accelerator S3 buckets, DynamoDB tables and make calls to AWS Organizations as well as AWS CloudFormation in all regions.
+To run the upgrade tool, you need to have valid credentials to your management account. The upgrade tool makes API calls to several AWS services to gather information about your configuration and create the resource mapping. It reads information from the accelerator S3 buckets, DynamoDB tables and make calls to AWS Organizations as well as AWS CloudFormation in all regions.
 
-If running the tool from within an AWS VPC it will use the available VPC endpoints to reach the respective service endpoints. If no VPC endpoints are available or to make calls to regions other than the home region, the pubic service endpoints will be used and you need to make sure that any egress filtering you have in place allow those calls.
+If running the tool from within an AWS VPC, it will use the available VPC endpoints to reach the respective service endpoints. If no VPC endpoints are available or to make calls to regions other than the home region, the pubic service endpoints will be used and you need to make sure that any egress filtering you have in place allow those calls.
 
-If running the tool from within your corporate network you need to make sure that any egress filtering you have in place allow those calls.
+If running the tool from within your corporate network, you need to make sure that any egress filtering you have in place allow those calls.
 
 The following endpoints can be used by the `migration-config,`, `resource-mapping` and `convert-config` command of the upgrade tool.  If you have configured additional `supported-regions` or use a home region other than `ca-central-1`, the list needs to be updated accordingly.
 
@@ -132,3 +135,17 @@ Deployment failed: Error: The stack named ASEA-SecurityResourcesStack-<account>-
 ```
 
 You need to request a limit increase for the RolesPerAccount Quota. See the FAQ [Which Service Quotas should be monitored for the upgrade?](./faq.md#which-service-quotas-should-be-monitored-for-the-upgrade)
+
+## Service Limit Exceeded Exception on Cloud Watch Logs resource policy
+You encounter an error in the Network_Prepare or Security_Resources when trying to add a CloudWatch Logs resource policy.
+
+The error code is `LimitExceededException` in the CloudTrail event for calls to `Logs:PutResourcePolicy`.
+
+In the Security_Resources stack the root error might not be surfaced and this will show up as a timeout on a custom resource.
+```
+ASEA-SecurityResourcesStack-<account>-<region> | CREATE_FAILED        | AWS::CloudFormation::CustomResource   | SecurityHubEventsLog/SecurityHubEventsFunction/SecurityHubEventsFunctionResource/Default (SecurityHubEventsLogSecurityHubEventsFunctionSecurityHubEventsFunctionResourceF6D56745) Received response status [FAILED] from custom resource. Message returned: Error: Task timed out after 180.00 seconds
+```
+
+Cause: There is a hard limit of 10 CloudWatch Logs resource policies per account. LZA needs to create two.
+
+Workaround: Remove existing CloudWatch Logs resource policies in the problematic account and region to free up sufficient space for LZA. You can use the AWS CLI [describe-resource-policies](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/logs/describe-resource-policies.html) command to list existing resource policies.

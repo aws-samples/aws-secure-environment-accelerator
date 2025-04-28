@@ -4,11 +4,12 @@
 
 - You are running the latest version of ASEA. If you are not running ASEA version 1.5.11 then upgrade ASEA before starting the ASEA to LZA upgrade process
 - Confirm all suspended accounts are under a specific OU that is ignored by the accelerator. (see [Suspended accounts](../comparison/feature-specific-considerations.md#suspended-accounts))
-- Confirm you don't have any empty OU that don't contain any active AWS Accounts and are not referenced from the ASEA configuration files. The convert-config tool won't generate empty OUs in the configuration. This doesn't apply to the default OUs created from the base ASEA configuration (i.e. Dev, Test, Prod, Central), those can be empty.
+- Confirm you don't have any empty nested OU without active AWS Accounts that are not referenced from the ASEA configuration files (i.e. `Dev/nestedOU`). The convert-config tool won't generate empty nested OUs in the configuration.
 - You can run the scripts from your local workstation. If you are filtering egress traffic from your corporate network you need to ensure [outbound connectivity to AWS service endpoints](../troubleshooting.md#network-timeout-or-connectivity-issue-running-the-upgrade-tool).
 - You will need Git, AWS CLI, NodeJS and Yarn installed.
 - We highly recommend having appropriate AWS Support plans on all AWS Accounts of your landing zone. For any issues encountered during the upgrade process you need to open a support case to get assistance and exchange relevant information with AWS staff. At a minimum Developer support is needed on the management account and core landing zones accounts (Logging, Security, Networking and Perimeter) to troubleshoot any cross-account issues. Business support is the minimum recommended tier if you have production workloads in AWS
 - Monitor and manage your service quotas. See the FAQ [Which Service Quotas should be monitored for the upgrade?](../faq.md#which-service-quotas-should-be-monitored-for-the-upgrade)
+- If using an AWS opt-in region, you need to enable to set [STS Session tokens to be valid in All AWS Regions](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html#sts-regions-manage-tokens).
 - Upgrading your landing zone from ASEA to LZA requires advanced knowledge of configuring and operating ASEA and LZA landing zones. This operation should be led by your most-experienced resources responsible for your current landing zone operations. Review all the documentation in this upgrade guide and Landing Zone Accelerator implementation guide.
 
 
