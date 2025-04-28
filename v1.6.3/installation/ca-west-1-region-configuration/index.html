@@ -1,0 +1,3023 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the AWS Secure Environment Accelerator">
+      
+      
+        <meta name="author" content="Amazon Web Services">
+      
+      
+        <link rel="canonical" href="https://aws-samples.github.io/aws-secure-environment-accelerator/v1.6.3/installation/ca-west-1-region-configuration/">
+      
+      
+        <link rel="prev" href="../customization-index/">
+      
+      
+        <link rel="next" href="../sm_inputs/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
+    
+    
+      
+        <title>Calgary Region Configuration Sample - AWS Secure Environment Accelerator</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.2afb09e1.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../css/pdf-print.css">
+    
+      <link rel="stylesheet" href="../../css/extras.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#1-ca-west-1-calgary-region-configurations-and-customizations" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AWS Secure Environment Accelerator" class="md-header__button md-logo" aria-label="AWS Secure Environment Accelerator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AWS Secure Environment Accelerator
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Calgary Region Configuration Sample
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aws-samples/aws-secure-environment-accelerator" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws-samples/asea
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AWS Secure Environment Accelerator" class="md-nav__button md-logo" aria-label="AWS Secure Environment Accelerator" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AWS Secure Environment Accelerator
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws-samples/asea
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Installation & Upgrades
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Installation & Upgrades
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../customization-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Sample Configurations and Customization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Calgary Region Configuration Sample
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Calgary Region Configuration Sample
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#11-introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1. Introduction
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.1. Introduction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#111-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1.1 Summary
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#112-activating-the-calgary-opt-in-region" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1.2 Activating the Calgary opt-in Region
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-network-architecture-mirrored-from-home-region" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2. Network Architecture -- Mirrored from Home Region
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-network-architecture-cross-region-peering" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3. Network Architecture -- Cross Region Peering
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-how-to-apply-mirrored-from-home-region-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.4. How to apply Mirrored from Home Region configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-how-to-apply-cross-region-peering-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.5. How to apply Cross Region Peering configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#151-create-segregated-route-tables-and-propogations" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.5.1 Create Segregated Route Tables and Propogations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#152-associate-workload-vpc-to-workload-segregated-transit-gateway-route-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.5.2 Associate Workload VPC to Workload Segregated Transit Gateway Route Table
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#153-configure-transit-gateway-peering" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.5.3 Configure Transit Gateway Peering
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sm_inputs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    State Machine Behavior
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multi-file-config-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Splitting the Config File
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../existing-orgs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Considerations with Existing Organizations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/operations-import-ALZAccount/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Importing ALZ Accounts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/releases" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Open Releases (Link)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Upgrades
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Upgrades
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../upgrades/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Upgrade Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v150-Upgrade/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    v1.5.0 Upgrade Instructions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Functionality
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            Functionality
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services-list/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Services
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pricing/sample_pricing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pricing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/sensitive/diagrams/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture Diagrams
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../what-we-do-where/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Key Account & Capability Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../log-file-locations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Centralized Logging Details
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../object-naming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Accelerator Object Naming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/projects/1" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Open Roadmap (Link)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../lza-upgrade/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Upgrade to Landing Zone Accelerator
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Upgrade to Landing Zone Accelerator
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../lza-upgrade/comparison/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Key differences between ASEA and LZA
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Key differences between ASEA and LZA
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/comparison/kms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    KMS
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/comparison/feature-specific-considerations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Feature specific considerations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../lza-upgrade/preparation/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Preparation
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            Preparation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/preparation/prereq-config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pre-requisites and configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/preparation/resource-mapping-drift-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Resource mapping and drift detection
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/preparation/drift-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Drift analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/preparation/configuration-conversion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Configuration conversion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/preparation/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pre-upgrade validations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../lza-upgrade/upgrade/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Upgrade
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Upgrade
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/upgrade/optional-steps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Optional preparation steps
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/upgrade/disable-asea/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Disable ASEA
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/upgrade/install-lza/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Install LZA
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/upgrade/finalize/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Finalize the upgrade
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    FAQ and Troubleshooting
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            FAQ and Troubleshooting
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/rollback/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rollback strategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/asea-resource-handlers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ASEA Resource Handlers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lza-upgrade/known-issues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Known issues
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../operations/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Operations & Troubleshooting
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Operations & Troubleshooting
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/system-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/common-tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Common Tasks
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../developer/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Developer Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Development Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/tech-stack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tech Stack
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/best-practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Best Practices
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/contributing-guidelines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    How to Contribute
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/release-process/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Release Process
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../architectures/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Sample Sensitive Architecture
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Sample Sensitive Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/sensitive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/sensitive/accounts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Account Structure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/sensitive/auth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authentication & Authorization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/sensitive/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Logging and Monitoring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/sensitive/network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Networking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architectures/sensitive/diagrams/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture Diagrams
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../workshops/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Workshops
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8" id="__nav_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Workshops
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-administrators" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Administrator Immersion Day
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://catalog.us-east-1.prod.workshops.aws/v2/workshops/f3ed5d0f-d2f1-47e8-a305-168da9179aaa/en-US/sea-members" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Workload Team Immersion Day
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Configuration File Schema
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Configuration File Schema
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="/aws-secure-environment-accelerator/v1.5.6-a/schema/en/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Open Schema (Link)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Contributing & Governance
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            Contributing & Governance
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/CONTRIBUTING.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Open Page (Link)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Documentation PDF
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            Documentation PDF
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="/aws-secure-environment-accelerator/v1.5.6-a/pdf/accelerator-docs.pdf" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Open PDF
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#11-introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1. Introduction
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.1. Introduction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#111-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1.1 Summary
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#112-activating-the-calgary-opt-in-region" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1.2 Activating the Calgary opt-in Region
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-network-architecture-mirrored-from-home-region" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2. Network Architecture -- Mirrored from Home Region
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-network-architecture-cross-region-peering" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3. Network Architecture -- Cross Region Peering
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-how-to-apply-mirrored-from-home-region-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.4. How to apply Mirrored from Home Region configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-how-to-apply-cross-region-peering-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.5. How to apply Cross Region Peering configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#151-create-segregated-route-tables-and-propogations" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.5.1 Create Segregated Route Tables and Propogations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#152-associate-workload-vpc-to-workload-segregated-transit-gateway-route-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.5.2 Associate Workload VPC to Workload Segregated Transit Gateway Route Table
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#153-configure-transit-gateway-peering" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.5.3 Configure Transit Gateway Peering
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="1-ca-west-1-calgary-region-configurations-and-customizations">1. CA-West-1 (Calgary) Region Configurations and Customizations<a class="headerlink" href="#1-ca-west-1-calgary-region-configurations-and-customizations" title="Permanent link">(link)</a></h1>
+<h2 id="11-introduction">1.1. Introduction<a class="headerlink" href="#11-introduction" title="Permanent link">(link)</a></h2>
+<h3 id="111-summary">1.1.1 Summary<a class="headerlink" href="#111-summary" title="Permanent link">(link)</a></h3>
+<p>The configurations described in this documentation section explains how to enable the Calgary (ca-west-1) region. This currently depends on ASEA version &gt; 1.6.1, and extends into ca-west-1 (i.e. ca-west-1 is NOT the home region). Before applying any of the configuration below, be sure to review the networking architecture, and deploy in a test ASEA instance first if possible. </p>
+<h3 id="112-activating-the-calgary-opt-in-region">1.1.2 Activating the Calgary opt-in Region<a class="headerlink" href="#112-activating-the-calgary-opt-in-region" title="Permanent link">(link)</a></h3>
+<p>Since March 20, 2019, when AWS adds a Region, the new Region is disabled by default. If you want your users to be able to create and manage resources in a new Region, you first need to enable that Region. The Calgary region (ca-west-1) is an 'Opt-in' region that requires enablement configuration for all AWS accounts. </p>
+<p>To update the enabled Regions for member accounts of your AWS Organizations, perform the steps in the following procedure.
+1. <em>Requires:</em> Enable trusted access for the AWS Account Management service. To set this up, see <a href="https://docs.aws.amazon.com/accounts/latest/reference/using-orgs-trusted-access.html">Enabling trusted access for AWS Account Management.</a>
+2. Sign in to the AWS Organizations console with your organization's management account credentials.
+3. On the AWS accounts page, select the account that you want to update.
+4. Choose the Account settings tab.
+5. Under Regions, select the Region you want to enable or disable.
+6. Choose Actions, and then choose either Enable or Disable option.
+7. If you chose the Enable option, review the displayed text and then choose Enable region.</p>
+<p>This can also be executed using the AWS CLI &amp; SDKs, review this <a href="https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-regions.html#manage-acct-regions-update-account-enabled">page</a> for detail. Alternatively, you can also use the sample script provided here (insert hyperlink to reference artifacts) to enable or disable the Opt-in region programatically using the following instructions:</p>
+<ol>
+<li>Log into the AWS console as a Full Administrator to the Organization Management account.</li>
+<li>Start a CloudShell session.</li>
+<li>Create a virtual python environment. <code>python3 -m venv env</code></li>
+<li>Activate the python environment. <code>source env/bin/activate</code></li>
+<li>Install the python3 required libaries (ex: <code>pip install -r requirements.txt</code>)</li>
+<li>Make the Python script executable (ex: <code>chmod +x region_optin.py</code>)</li>
+<li>
+<p>Execute the script with the following parameters: 
+    <code>--OptInRegion</code> <em>region</em>
+    <code>--Action</code>      <em>enable / disable / status</em></p>
+<p>Optional:
+<code>--IgnoreOU</code> <em>ou</em> </p>
+<p>Example: <code>python3 region_optin.py --OptInRegion ca-west-1 --Action=enable</code></p>
+</li>
+</ol>
+<p><strong>Note:</strong> These instructions will need to be repeated for all new accounts that are added in the future and that will be used for workloads that use the ca-west-1 region</p>
+<h2 id="12-network-architecture-mirrored-from-home-region">1.2. Network Architecture -- Mirrored from Home Region<a class="headerlink" href="#12-network-architecture-mirrored-from-home-region" title="Permanent link">(link)</a></h2>
+<p><img alt="Mirrored ca-west-1 Networking" src="../img/mirrored-ca-west-1-network.png" /></p>
+<p>The <em>Mirrored from Home Region</em> network architecture mirrors the network architecture from the home region (e.g. ca-central-1). In the diagram above, ca-west-1 has its own Transit Gateway, same set of VPCs, Endpoint configuration, and Perimeter VPC/Firewall configuration. Additionaly, this configuration sample does not connect ca-central-1 with ca-west-1 via Transit Gateway Peering (see #1.3 below). Note that in the sample config provided, the IP CIDR ranges are different than the home region. </p>
+<h2 id="13-network-architecture-cross-region-peering">1.3. Network Architecture -- Cross Region Peering<a class="headerlink" href="#13-network-architecture-cross-region-peering" title="Permanent link">(link)</a></h2>
+<p><img alt="Mirrored ca-west-1 Networking with Peering" src="../img/mirrored-ca-west-1-network-peering.png" /></p>
+<p>The cross Region peering network architecture adds cross Region peering to enable cross Region communication. To continue following the <a href="https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=32787">Government of Canada Cloud guardrail</a> "segment and separate" the workload VPCs would need individual segregated Transit Gateway Route Tables instead of the common Segregated route table to maintain segregation across Regions.</p>
+<p><img alt="Segregated Route Tables" src="../img/segregated-rt.png" /></p>
+<p>The sample segregated route tables have routes to shared resources in the central and endpoint VPCs of each region and only to the corresponding workload VPC in the remote region. Internet bound traffic would route to the local Region Perimeter firewalls. For example, lets look at the dev workload VPC and what it's allowed to route to based on the sample config. 
+<div class="highlight"><pre><span></span><code>    dev (ca-central-1) &lt;--&gt; dev (ca-west-1)
+    dev (ca-central-1 and ca-west-1) &lt;--&gt; central (ca-central-1 and ca-west-1)
+    dev (ca-central-1 and ca-west-1) &lt;--&gt; endpoint (ca-central-1 and ca-west-1)
+    dev (ca-central-1) &lt;--&gt; perimeter (ca-central-1)
+    dev (ca-west-1) &lt;--&gt; perimeter (ca-west-1)
+</code></pre></div></p>
+<h2 id="14-how-to-apply-mirrored-from-home-region-configuration">1.4. How to apply Mirrored from Home Region configuration<a class="headerlink" href="#14-how-to-apply-mirrored-from-home-region-configuration" title="Permanent link">(link)</a></h2>
+<p>The general strategy is to compare your existing deployed configuration (<strong>config.json</strong> in CodeCommit) with the sample provided <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-multi-region-ca-west-1-example.json">here</a>. Using your preferred file compare tool (e.g. Visual Studio Code), you will see differences that need to be applied. Here is a list of changes that should be made:
+1. Add the use of '${ALT_REGION}' 
+2. Set '${ALT_REGION}': 'ca-west-1'
+3. Add 'ca-west-1' to list of Supported Regions
+4. Add 'ca-west-1' to list of Macie Excluded Regions (until service is launched in region)
+5. 'fw-mgr-alert-level': 'None'
+6. Add 'ca-west-1' to additional-cwl-regions
+7. Add '${ALT_REGION}' to list of ssm-automation regions (global and OU config sections)
+8. Add '${ALT_REGION}' cidr-pools
+9. Add TGW for '${ALT_REGION}'
+10. Add firewalls (Fortinet) to deploy in '${ALT_REGION}'
+    1.  Follow ASEA installation instructions for Marketplace and enabling the Fortigate Subscriptions in ca-west-1
+11. AWS Config configuration is split into supported region rules. Remediate-regions updated with '${ALT_REGION}'
+12. Endpoint VPC created in Shared-Network account in '${ALT_REGION}'. Note available Interface Endpoints is a subset of ca-central-1. Sample deploys minimum needed.
+13. Dev/Test/Prod VPCs created in Shared-Network account in '${ALT_REGION}' with TGW attachments</p>
+<p>Current Known Limitations:</p>
+<ol>
+<li>Managed Active Directory should be manually 'shared' to ca-west-1 once the service is updated to support ca-west-1</li>
+<li>Rsyslog servers (used as an option for Fortigate logging destination) can only be deployed to a single region. This would need to be configured outside ASEA (manually or with your own created IaC).</li>
+<li>Fortigate firewalls config use c6i EC2 instance types in lieu of c5n until it becomes available in ca-west-1.</li>
+</ol>
+<h2 id="15-how-to-apply-cross-region-peering-configuration">1.5. How to apply Cross Region Peering configuration<a class="headerlink" href="#15-how-to-apply-cross-region-peering-configuration" title="Permanent link">(link)</a></h2>
+<p>The general strategy is to compare your existing deployed configuration (<strong>config.json</strong> in CodeCommit) with the sample provided <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-multi-region-ca-west-1-tgw-peering-example.json">here</a>. Using your preferred file compare tool (e.g. Visual Studio Code), you will see differences that need to be applied. Here is a list of changes that should be made:</p>
+<h2 id="151-create-segregated-route-tables-and-propogations">1.5.1 Create Segregated Route Tables and Propogations<a class="headerlink" href="#151-create-segregated-route-tables-and-propogations" title="Permanent link">(link)</a></h2>
+<p>In preparation for the Transit Gateway peering, you need to create a segregated route table for each workload VPC in each Region. This allows you the flexibility to customize the routes specific to each workload VPC which is used to only allow routing to the corresponding workload VPC in the remote Region. You also need to propagate the routes from the Endpoint VPC, Central VPC, and Firewall attachments to maintain communication to these locations.
+1. Create workload segregated Transit Gateway route tables by adding them to the home Region Transit Gateway <code>["mandatory-account-configs"]["shared-network"].deployments.tgw[0]["route-tables"]</code> and remote Region Transit Gateway <code>["mandatory-account-configs"]["shared-network"].deployments.tgw[1]["route-tables"]</code> sections.
+<div class="highlight"><pre><span></span><code><span class="w">            </span><span class="nt">&quot;route-tables&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">              </span><span class="s2">&quot;core&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="s2">&quot;shared&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="s2">&quot;standalone&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="s2">&quot;segregated&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="s2">&quot;dev_segregated&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="s2">&quot;test_segregated&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="s2">&quot;prod_segregated&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="s2">&quot;unclass_segregated&quot;</span>
+<span class="w">            </span><span class="p">],</span>
+</code></pre></div>
+2. Add the workload segregated Transit Gateway route tables to the <code>tgw-rt-propagated</code> section under <code>tgw-attach</code> for the Endpoint VPCs, Central VPCs, and the Firewalls Transit Gateway attachments in Perimeters of each Region.
+<div class="highlight"><pre><span></span><code><span class="w">            </span><span class="nt">&quot;tgw-rt-propagate&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">              </span><span class="s2">&quot;core&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="s2">&quot;shared&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="s2">&quot;standalone&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="s2">&quot;segregated&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="s2">&quot;dev_segregated&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="s2">&quot;test_segregated&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="s2">&quot;prod_segregated&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="s2">&quot;unclass_segregated&quot;</span>
+<span class="w">            </span><span class="p">],</span>
+</code></pre></div>
+3. Commit the changes and run the <code>ASEA-MainStateMachine_sm</code> State Machine (SM) with the input of <code>{"scope": "FULL", "mode": "APPLY", "verbose": "0"}</code>. Wait for successful completion.
+4. Verify the new TGW route tables are created and have the routes to central, endpoint and firewall tgw attachments. </p>
+<h2 id="152-associate-workload-vpc-to-workload-segregated-transit-gateway-route-table">1.5.2 Associate Workload VPC to Workload Segregated Transit Gateway Route Table<a class="headerlink" href="#152-associate-workload-vpc-to-workload-segregated-transit-gateway-route-table" title="Permanent link">(link)</a></h2>
+<p>This process will switch the workload VPC from the segregated TGW route table to the workload specific segregated TGW route table.</p>
+<blockquote>
+<p><strong>NOTE:</strong> Following this process will isolate the respective resources in the workload VPC. Any communication within the VPC will be unaffected however any communication that has to transfer through the Transit Gateway will be interrupted. Recommend performing this process on one workload VPC at a time during a maintenance window. For example, only start with the Dev VPC.</p>
+</blockquote>
+<ol>
+<li>Undeploy the TGW attachment by prefixing the <code>tgw-attach</code> with "xx" to be <code>xxtgw-attach</code> to the corresponding workload VPC. This will be an unknown field, which is the same a deleting the section.
+<div class="highlight"><pre><span></span><code><span class="w">          </span><span class="nt">&quot;xxtgw-attach&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;associate-to-tgw&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Main&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;account&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shared-network&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;associate-type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ATTACH&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;tgw-rt-associate&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;segregated&quot;</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">&quot;tgw-rt-propagate&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;core&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;shared&quot;</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">&quot;blackhole-route&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;attach-subnets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;TGW&quot;</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;DNS-support&quot;</span><span class="p">]</span>
+<span class="w">          </span><span class="p">}</span>
+</code></pre></div></li>
+<li>Commit the changes and run the <code>ASEA-MainStateMachine_sm</code> State Machine (SM) with the input of <code>{"scope": "FULL", "mode": "APPLY", "verbose": "0"}</code>. Wait for successful completion.</li>
+<li>Redeploy the TGW attachment by removing the "xx" to be <code>tgw-attach</code> and update the <code>tgw-rt-associate</code> with the respective workload segregated TGW route table. For example changing from <code>segregated</code> to <code>dev_segregated</code>. 
+<div class="highlight"><pre><span></span><code><span class="w">          </span><span class="nt">&quot;tgw-attach&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;associate-to-tgw&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Main&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;account&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shared-network&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;associate-type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ATTACH&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;tgw-rt-associate&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;dev_segregated&quot;</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">&quot;tgw-rt-propagate&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;core&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;shared&quot;</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">&quot;blackhole-route&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;attach-subnets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;TGW&quot;</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;DNS-support&quot;</span><span class="p">]</span>
+<span class="w">          </span><span class="p">}</span>
+</code></pre></div></li>
+<li>Commit the changes and run the <code>ASEA-MainStateMachine_sm</code> State Machine (SM) with the input of <code>{"scope": "FULL", "mode": "APPLY", "verbose": "0"}</code>. Wait for successful completion.</li>
+<li>Validate communication has been restored to original status.</li>
+<li>Repeat steps 1-5 for each workload VPC.</li>
+</ol>
+<h2 id="153-configure-transit-gateway-peering">1.5.3 Configure Transit Gateway Peering<a class="headerlink" href="#153-configure-transit-gateway-peering" title="Permanent link">(link)</a></h2>
+<p>The Transit Gateway peering process is achieved by creating a TGW peering attachment and creating static routes in each of the TGW route tables.
+1. Create the Transit Gateway peering attachment by adding the following section to the remote Region TGW deployment section to associate to TGW in home Region.
+ <code>json
+    "tgw-attach": {
+        "associate-to-tgw": "Main",
+        "account": "shared-network",
+        "region": "${HOME_REGION}",
+        "tgw-rt-associate-local": ["core"],
+        "tgw-rt-associate-remote": ["core"]
+    },</code>          <br />
+2. Commit the changes and run the <code>ASEA-MainStateMachine_sm</code> State Machine (SM) with the input of <code>{"scope": "FULL", "mode": "APPLY", "verbose": "0"}</code>. Wait for successful completion.
+3. Create static routes for each of the TGW route tables in each Region. You are creating these routes to allow workload traffic to its workload VPC peer, Central VPC and Endpoint VPC in remote Region.  Refer to the <code>Segregated Route Tables</code> above and the sample multi-region config file for examples <a href="https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/SAMPLE_CONFIGS/config.lite-VPN-multi-region-ca-west-1-tgw-peering-example.json">here</a>. This is an example of the static routes in the <code>dev_segregated</code> TGW route table in the home Region assuming CIDR ranges follows example above. 
+<div class="highlight"><pre><span></span><code><span class="w">              </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dev_segregated&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;routes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;destination&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10.3.0.0/16&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="nt">&quot;blackhole-route&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;destination&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10.4.0.0/16&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="nt">&quot;blackhole-route&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;destination&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10.5.0.0/16&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="nt">&quot;blackhole-route&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;destination&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10.96.0.0/22&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="nt">&quot;target-tgw&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Main-${ALT_REGION}&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;destination&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10.97.0.0/16&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="nt">&quot;target-tgw&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Main-${ALT_REGION}&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;destination&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10.98.0.0/16&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="nt">&quot;target-tgw&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Main-${ALT_REGION}&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;destination&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10.99.0.0/16&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="nt">&quot;blackhole-route&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;destination&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10.100.0.0/16&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="nt">&quot;blackhole-route&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">                </span><span class="p">]</span>
+<span class="w">              </span><span class="p">},</span>
+</code></pre></div>
+4. Commit the changes and run the <code>ASEA-MainStateMachine_sm</code> State Machine (SM) with the input of <code>{"scope": "FULL", "mode": "APPLY", "verbose": "0"}</code>. Wait for successful completion.
+5. Validate communication across the TGW peering connection between Regions.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tracking", "navigation.instant", "navigation.indexes", "navigation.top"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
