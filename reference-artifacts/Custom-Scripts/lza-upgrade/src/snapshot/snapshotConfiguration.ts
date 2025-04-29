@@ -11,13 +11,15 @@
  *  and limitations under the License.
  */
 
-import { Account, OrganizationsClient, paginateListAccounts } from '@aws-sdk/client-organizations';
+import { Account, AccountStatus, OrganizationsClient, paginateListAccounts } from '@aws-sdk/client-organizations';
 import { AssumeRoleCommand, AssumeRoleCommandOutput, GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 import { AwsCredentialIdentity } from '@aws-sdk/types';
 
 import { TableOperations } from './common/dynamodb';
 import { snapshotAccountResources } from './snapshotAccountResources';
 import { snapshotGlobalResources } from './snapshotGlobalResources';
+import { DynamoDB } from '../common/aws/dynamodb';
+import { loadAccounts } from '../common/utils/accounts';
 import { snapshotRegionResources } from './snapshotRegionalResources';
 import { AcceleratorConfig } from '../asea-config';
 
@@ -31,6 +33,7 @@ export async function snapshotConfiguration(
   prefix: string,
   preMigration: boolean,
   aseaConfig: AcceleratorConfig,
+  aseaParametersTableName: string
 ) {
   stsClient = new STSClient({ maxAttempts: 10 });
 
@@ -44,7 +47,8 @@ export async function snapshotConfiguration(
   // process global services
   await snapshotGlobalResources(tableName, homeRegion, currentAccountId!, preMigration, undefined);
 
-  const accounts = await getAccountList();
+  const accounts = await getAccountList(homeRegion, aseaParametersTableName);
+  console.log(`Running snapshot for ${accounts.length} accounts`)
   const regions = aseaConfig['global-options']['supported-regions'];
   // process account services
   const accountPromises = [];
@@ -112,7 +116,40 @@ export async function getCredentials(accountId: string, roleName: string): Promi
   }
 }
 
-export async function getAccountList(): Promise<Account[]> {
+export async function getAccountList(homeRegion: string, parametersTableName: string): Promise<Account[]> {
+  // Get accounts from DynamoDB (ASEA managed accounts)
+  const dynamodb = new DynamoDB(undefined, homeRegion);
+  const aseaAccounts = await loadAccounts(parametersTableName, dynamodb);
+
+  if (aseaAccounts.length === 0) {
+      console.warn(`No accounts found in DynamoDB table ${parametersTableName}.`);
+      return [];
+  }
+
+  console.log(`Retrieved ${aseaAccounts.length} accounts from DynamoDB table ${parametersTableName}`);
+
+  // Get all accounts from Organizations to get their current status
+  const orgAccounts = await getAccountListFromOrganizations();
+  console.log(`Retrieved ${orgAccounts.length} accounts from AWS Organizations`);
+
+  // Create a map of account IDs to their Organization status
+  const accountStatusMap = new Map<string, AccountStatus>();
+  for (const orgAccount of orgAccounts) {
+      if (orgAccount.Id) {
+          accountStatusMap.set(orgAccount.Id, orgAccount.Status || AccountStatus.SUSPENDED);
+      }
+  }
+
+  // Return only accounts from DynamoDB but with status from Organizations
+  return aseaAccounts.map(account => ({
+      Id: account.id,
+      Name: account.key,
+      Email: account.email || '',
+      Status: accountStatusMap.get(account.id) || AccountStatus.SUSPENDED // Default to SUSPENDED if not found in Organizations
+  }));
+}
+
+async function getAccountListFromOrganizations(): Promise<Account[]> {
   const organizationsClient = new OrganizationsClient({ region: 'us-east-1', maxAttempts: 10 });
 
   const accounts: Account[] = [];
