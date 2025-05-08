@@ -35,6 +35,7 @@ import {
   TransitGatewayRouteConfig,
   VpcConfig,
   VpcFlowLogsDestinationConfig,
+  createLzaVpcName,
 } from './asea-config';
 import { loadAseaConfig } from './asea-config/load';
 import * as WriteToSourcesTypes from './common//utils/types/writeToSourcesTypes';
@@ -539,9 +540,9 @@ export class ConvertAseaConfig {
         name: createNetworkFirewallName(firewallConfigName, this.aseaPrefix),
         subnetChangeProtection: false,
         tags: [],
-        vpc: createVpcName(lzaVpcName ?? vpcConfig.name),
+        vpc: lzaVpcName!,
         subnets: this.getAzSubnets(vpcConfig, networkFirewallConfig.subnet.name).map((subnet) =>
-          createSubnetName(lzaVpcName ?? vpcConfig.name, subnet.subnetName, subnet.az),
+          createSubnetName(vpcConfig.name, subnet.subnetName, subnet.az),
         ),
       });
     }
@@ -1776,7 +1777,7 @@ export class ConvertAseaConfig {
               name: instanceNameWithAz,
               account,
               launchTemplate,
-              vpc: `${vpcName}_vpc`,
+              vpc: firewallScopedVpcConfig?.lzaVpcName!,
               terminationProtection,
               detailedMonitoring,
               tags,
@@ -2432,7 +2433,7 @@ export class ConvertAseaConfig {
     const setConfigRulesConfig = async () => {
       if (!globalOptions['aws-config']) return;
       // TODO: Consider account regions for deploymentTargets
-      const currentNodeRuntime = 'nodejs18.x';
+      const currentNodeRuntime = 'nodejs20.x';
       const rulesWithTarget: (AwsConfigRule & {
         deployTo?: string[];
         excludedAccounts?: string[];
@@ -2800,7 +2801,7 @@ export class ConvertAseaConfig {
         if (route['target-vpc']) {
           return {
             account: this.getAccountKeyforLza(globalOptions, route['target-account'] || accountKey),
-            vpcName: createVpcName(route['target-vpc']),
+            vpcName: this.getLzaVpcName(route['target-vpc']),
           };
         } else if (route['target-vpn']) {
           return {
@@ -2967,12 +2968,12 @@ export class ConvertAseaConfig {
             sources: [],
           };
           for (const source of rule.source) {
-            let sourceVpcAccountKey: string | undefined = undefined;
+            let sourceVpcConfig: ResolvedVpcConfig | undefined;
             if (SubnetSourceConfig.is(source)) {
-              sourceVpcAccountKey = this.vpcConfigs.find(({ vpcConfig }) => vpcConfig.name === source.vpc)?.accountKey;
+              sourceVpcConfig = this.vpcConfigs.find(({ vpcConfig }) => vpcConfig.name === source.vpc);
             }
             if (SecurityGroupSourceConfig.is(source)) {
-              lzaRule.sources.push({
+              lzaRule.sources.push({ 
                 securityGroups: source['security-group'].map(securityGroupName),
               });
             } else if (SubnetSourceConfig.is(source)) {
@@ -2980,14 +2981,14 @@ export class ConvertAseaConfig {
                 //account: this.getAccountKeyforLza(globalOptions, source.account || accountKey || ''),
                 account: this.getAccountKeyforLza(
                   globalOptions,
-                  sourceVpcAccountKey || source.account || accountKey || '',
+                  sourceVpcConfig?.accountKey || source.account || accountKey || '',
                 ),
                 subnets: source.subnet.flatMap((sourceSubnet) =>
                   aseaConfig
-                    .getAzSubnets(sourceVpcAccountKey || source.account || accountKey || '', source.vpc, sourceSubnet)
+                    .getAzSubnets(sourceVpcConfig?.accountKey || source.account || accountKey || '', source.vpc, sourceSubnet)
                     .map((s) => createSubnetName(source.vpc, s.subnetName, s.az)),
                 ),
-                vpc: createVpcName(source.vpc),
+                vpc: sourceVpcConfig?.lzaVpcName ?? source.vpc,
               });
             } else {
               lzaRule.sources.push(source);
@@ -3011,7 +3012,6 @@ export class ConvertAseaConfig {
         rules: NaclConfig[],
         vpcConfig: VpcConfig,
         accountKey?: string,
-        lzaVpcName?: string,
       ) => {
         const lzaRules: (ConvertConfigTypes.LzaNaclInboundRuleType | ConvertConfigTypes.LzaNaclOutboundRuleType)[] = [];
         for (const rule of rules) {
@@ -3055,18 +3055,17 @@ export class ConvertAseaConfig {
                   });
                 } else {
                   // determine which vpc the nacl rule references
-                  // use the lzaVpcName when the config is from ou
                   let destination: string;
                   if (dest.vpc === vpcConfig.name) {
-                    destination = createVpcName(lzaVpcName ?? vpcConfig.name);
+                    destination = vpcConfig.name;
                   } else {
-                    destination = createVpcName(dest.vpc);
+                    destination = dest.vpc;
                   }
+                  const destinationAccountKey = destinationVpcKey ? this.getAccountKeyforLza(globalOptions, destinationVpcKey): undefined;
                   target = {
-                    account: destinationVpcKey ? this.getAccountKeyforLza(globalOptions, destinationVpcKey) : undefined,
+                    account: destinationAccountKey,
                     subnet: createSubnetName(dest.vpc, ruleSubnet.subnetName, ruleSubnet.az),
-                    //vpc: createVpcName(dest.vpc),
-                    vpc: destination,
+                    vpc: createLzaVpcName(destination, destinationAccountKey!, vpcConfig.region),
                     region: targetRegion,
                   };
                 }
@@ -3086,7 +3085,7 @@ export class ConvertAseaConfig {
         }
         return lzaRules;
       };
-      const prepareNaclConfig = (vpcConfig: VpcConfig, accountKey?: string, lzaVpcName?: string) => {
+      const prepareNaclConfig = (vpcConfig: VpcConfig, accountKey?: string) => {
         const naclSubnetConfigs = vpcConfig.subnets?.filter((s) => !!s.nacls);
         if (!naclSubnetConfigs) return;
         const nacls = [];
@@ -3100,8 +3099,8 @@ export class ConvertAseaConfig {
             subnetAssociations: this.getAzSubnets(vpcConfig, subnetConfig.name).map((s) =>
               createSubnetName(vpcConfig.name, s.subnetName, s.az),
             ),
-            inboundRules: prepareNaclRules(inboundRules, vpcConfig, accountKey, lzaVpcName),
-            outboundRules: prepareNaclRules(outboundRules, vpcConfig, accountKey, lzaVpcName),
+            inboundRules: prepareNaclRules(inboundRules, vpcConfig, accountKey),
+            outboundRules: prepareNaclRules(outboundRules, vpcConfig, accountKey),
           });
         }
         return nacls;
@@ -3205,6 +3204,7 @@ export class ConvertAseaConfig {
         vpcConfig: VpcConfig,
         lzaEndpointsConfig: ConvertConfigTypes.ResolverEndpointsType[],
         lzaEndpointsRulesConfig: ConvertConfigTypes.ResolverEndpointRulesType[],
+        accountKey: string | undefined,
       ): ConvertConfigTypes.ResolverEndpointsType[] => {
         let inboundResolver = vpcConfig.resolvers!.inbound;
         let outboundResolver = vpcConfig.resolvers!.outbound;
@@ -3212,7 +3212,7 @@ export class ConvertAseaConfig {
           if (inboundResolver) {
             lzaEndpointsConfig.push({
               name: `${vpcConfig.name}InboundEndpoint`,
-              vpc: createVpcName(vpcConfig.lzaVpcName ?? vpcConfig.name),
+              vpc: createLzaVpcName(vpcConfig.name, accountKey!, vpcConfig.region),
               subnets:
                 vpcConfig.subnets
                   ?.find((subnetItem) => subnetItem.name === vpcConfig.resolvers?.subnet)
@@ -3226,7 +3226,7 @@ export class ConvertAseaConfig {
           if (outboundResolver) {
             lzaEndpointsConfig.push({
               name: `${vpcConfig.name}OutboundEndpoint`,
-              vpc: createVpcName(vpcConfig.lzaVpcName ?? vpcConfig.name),
+              vpc: createLzaVpcName(vpcConfig.name, accountKey!, vpcConfig.region),
               subnets:
                 vpcConfig.subnets
                   ?.find((subnetItem) => subnetItem.name === vpcConfig.resolvers?.subnet)
@@ -3262,7 +3262,7 @@ export class ConvertAseaConfig {
         return lzaEndpointsRulesConfig;
       };
 
-      const prepareResolverConfig = (vpcConfig: VpcConfig) => {
+      const prepareResolverConfig = (vpcConfig: VpcConfig, accountKey: string | undefined) => {
         let lzaResolverConfig: {
           endpoints: ConvertConfigTypes.ResolverEndpointsType[] | undefined;
           queryLogs: { name: string; destinations: string[] } | undefined;
@@ -3274,7 +3274,7 @@ export class ConvertAseaConfig {
         let endpoints: any[] = [];
         if (vpcConfig.resolvers) {
           rules = prepareRulesConfig(vpcConfig, lzaEndpointsRulesConfig);
-          endpoints = prepareEndpointsConfig(vpcConfig, lzaEndpointsConfig, rules!);
+          endpoints = prepareEndpointsConfig(vpcConfig, lzaEndpointsConfig, rules!, accountKey);
         }
 
         lzaResolverConfig = {
@@ -3419,7 +3419,7 @@ export class ConvertAseaConfig {
 
       const prepareVpcConfig = ({ accountKey, ouKey, vpcConfig, excludeAccounts, lzaVpcName }: ResolvedVpcConfig) => {
         return {
-          name: createVpcName(lzaVpcName ?? vpcConfig.name),
+          name: lzaVpcName ?? createVpcName(vpcConfig.name),
           account: accountKey ? this.getAccountKeyforLza(globalOptions, accountKey) : undefined,
           deploymentTargets: !accountKey
             ? {
@@ -3458,13 +3458,13 @@ export class ConvertAseaConfig {
           useCentralEndpoints: vpcConfig['use-central-endpoints'],
           natGateways: prepareNatGatewayConfig(vpcConfig),
           securityGroups: prepareSecurityGroupsConfig(vpcConfig, accountKey),
-          networkAcls: prepareNaclConfig(vpcConfig, accountKey, lzaVpcName),
+          networkAcls: prepareNaclConfig(vpcConfig, accountKey),
           vpcFlowLogs: prepareVpcFlowLogs(vpcConfig['flow-logs']),
           subnets: prepareSubnetConfig(vpcConfig, ouKey, accountKey),
           transitGatewayAttachments: prepareTgwAttachConfig(vpcConfig),
           virtualPrivateGateway: vpcConfig.vgw,
           routeTables: prepareRouteTableConfig(vpcConfig, accountKey),
-          vpcRoute53Resolver: prepareResolverConfig(vpcConfig),
+          vpcRoute53Resolver: prepareResolverConfig(vpcConfig, accountKey),
         };
       };
 
@@ -3493,7 +3493,7 @@ export class ConvertAseaConfig {
         .filter(({ vpcConfig }) => !!vpcConfig.pcx)
         .map(({ vpcConfig }) => ({
           name: peeringConnectionName(vpcConfig.name, vpcConfig.pcx!['source-vpc']),
-          vpcs: [createVpcName(vpcConfig.lzaVpcName ?? vpcConfig.name), createVpcName(vpcConfig.pcx!['source-vpc'])],
+          vpcs: [this.getLzaVpcName(vpcConfig.name), this.getLzaVpcName(vpcConfig.pcx!['source-vpc'])],
         }));
     };
     await setCertificatesConfig();
@@ -3658,6 +3658,10 @@ export class ConvertAseaConfig {
           ...d,
         })) || []
     );
+  }
+
+  private getLzaVpcName(vpcName: string): string {
+    return this.vpcConfigs.find((vc) => vc.vpcConfig.name === vpcName )?.lzaVpcName!
   }
 
   private getVpcCidr({ accountKey, vpcConfig, ouKey }: { accountKey?: string; vpcConfig: VpcConfig; ouKey?: string }) {

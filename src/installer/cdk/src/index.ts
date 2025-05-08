@@ -279,7 +279,7 @@ class Installer extends cdk.Stack {
               nodejs: 22,
             },
             commands: [
-              'npm install --global pnpm@10.4.1',
+              'npm install --global pnpm@10.11.0',
               'pnpm install --frozen-lockfile',
               'pnpm recursive run build',
             ],

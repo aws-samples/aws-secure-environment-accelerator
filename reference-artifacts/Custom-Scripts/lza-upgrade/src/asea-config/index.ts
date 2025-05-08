@@ -11,6 +11,7 @@
  *  and limitations under the License.
  */
 import * as t from './types';
+import * as crypto from 'crypto';
 
 export const MandatoryAccountType = t.enums('MandatoryAccountType', [
   'master',
@@ -1323,10 +1324,12 @@ export class AcceleratorConfig {
     // Add mandatory account VPC configuration first
     for (const [accountKey, accountConfig] of this.getMandatoryAccountConfigs()) {
       for (const vpcConfig of accountConfig.vpc || []) {
+        const lzaVpcName = createLzaVpcName(vpcConfig.name, accountKey, vpcConfig.region);
         vpcConfigs.push({
           accountKey,
           vpcConfig,
           ouKey: accountConfig.ou,
+          lzaVpcName 
         });
       }
     }
@@ -1346,13 +1349,14 @@ export class AcceleratorConfig {
                 continue;
               }
             }
-            vpcConfig.lzaVpcName = `${vpcConfig.name}_${accountKey}`;
+            vpcConfig.lzaVpcName = createLzaVpcName(vpcConfig.name, accountKey, vpcConfig.region);
             if (vpcConfig['cidr-src'] === 'dynamic') {
+              const lzaVpcName = createLzaVpcName(vpcConfig.name, accountKey, vpcConfig.region);
               vpcConfigs.push({
                 ouKey,
                 accountKey,
                 vpcConfig,
-                lzaVpcName: `${vpcConfig.name}_${accountKey}`,
+                lzaVpcName,
               });
             }
           }
@@ -1361,6 +1365,7 @@ export class AcceleratorConfig {
               ouKey,
               vpcConfig,
               excludeAccounts,
+              lzaVpcName: createLzaVpcName(vpcConfig.name, ouKey, vpcConfig.region),
             });
           }
         } else {
@@ -1369,6 +1374,7 @@ export class AcceleratorConfig {
             ouKey,
             accountKey: destinationAccountKey,
             vpcConfig,
+            lzaVpcName: createLzaVpcName(vpcConfig.name, destinationAccountKey, vpcConfig.region)
           });
         }
       }
@@ -1381,6 +1387,7 @@ export class AcceleratorConfig {
           accountKey,
           vpcConfig,
           ouKey: accountConfig.ou,
+          lzaVpcName: createLzaVpcName(vpcConfig.name, accountKey, vpcConfig.region),
         });
       }
     }
@@ -1405,4 +1412,11 @@ export class AcceleratorConfig {
         ...s,
       }));
   }
+}
+
+export function createLzaVpcName(vpcName: string, accountKey: string, region: string): string {
+  const md5Hash = crypto.createHash('md5').update(`${vpcName}_${accountKey}_${region}`).digest('hex');
+  const vpcNameWithType = vpcName.endsWith('_vpc') ? vpcName : `${vpcName}_vpc`;
+  const lzaVpcName = `${vpcNameWithType}..${md5Hash.substring(0,5)}`;
+  return lzaVpcName;
 }
