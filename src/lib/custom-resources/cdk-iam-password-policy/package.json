@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@aws-accelerator/custom-resource-iam-password-policy-runtime": "workspace:*",
-    "aws-cdk-lib": "2.101.0",
+    "aws-cdk-lib": "2.187.0",
     "constructs": "10.2.70",
     "@aws-sdk/client-iam": "3.425.0"
   },
@@ -20,6 +20,6 @@
   },
   "peerDependencies": {
     "@aws-accelerator/custom-resource-iam-password-policy-runtime": "workspace:*",
-    "aws-cdk-lib": "2.101.0"
+    "aws-cdk-lib": "2.187.0"
   }
 }
