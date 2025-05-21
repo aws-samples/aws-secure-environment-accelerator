@@ -20,7 +20,7 @@ yarn run lza-prep
 
 ## Installing the LZA Pipeline Confirmation
 
-Navigate to the AWS CloudFormation console and confirm that the stack named `<prefix-name>-Installer` deployed successfully.
+Navigate to the AWS CloudFormation console and confirm that the stack named `AWSAccelerator-InstallerStack` deployed successfully.
 
 ## Run the LZA Pipeline
 
