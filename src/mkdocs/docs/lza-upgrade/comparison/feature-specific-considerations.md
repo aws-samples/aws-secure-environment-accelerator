@@ -88,9 +88,19 @@ If you are using ALB IP Forwarding in ASEA, (`"alb-forwarding": true` is set for
 
 Once the Customizations stage of the pipeline has been successfully run with the configuration file above, a new DynamoDB table will be generated in the `deploymentTargets` account and region specified. This table should be named `Alb-Ip-Forwarding-<VPC_NAME>`. In the same region and account, a DynamoDB table named `<ASEA-Prefix>-Alb-Ip-Forwarding-<VPC-ID>` should exist. You will need to copy over all of these entries from the old ALB IP Forwarding table to the new one.
 
-
-
 For more details about ALB Forwarding in LZA, refer to the [post-deployment instructions of LZA CCCS Medium reference architecture](https://github.com/aws-samples/landing-zone-accelerator-on-aws-for-cccs-medium/blob/main/post-deployment.md#44-configure-application-load-balancer-forwarding).
+
+#### Steps to copy the entries from the old to new Alb-Ip-Forwarding DynamoDB table
+
+To move the ALB forwarding entries from the ASEA table to the LZA table you can use the following procedure for each rule.
+
+1. Retrieve the JSON content from the ASEA table and copy it to a text editor.
+2. Edit the content to remove the `metadata` property. The metadata is added by the automation.
+3. Edit the content to update the `priority` of the rule. You need to select a priority that is not already in use for other rules on the same Application Load Balancer. e.g. If the priority was 10, you can change it to 11, assuming there are no existing rules with priority 11. (Note: this is necessary because both automation are running in parallel at this time)
+4. Add the edited entry to the LZA table.
+5. Wait 1-2 minutes and refresh the content of the table. The metadata property should have been added. In the EC2 console, go to the ALB Listener Rules and confirm a new rule with the new priority was added. This rule should be an exact copy of the previous one.
+6. Once you confirm the new rule was added, you can remove the entry from the ASEA table.
+7. Repeat the process for the other entries until the ASEA table is empty.
 
 ### Managed Active Directory
 !!! note "convert-config warning message"
