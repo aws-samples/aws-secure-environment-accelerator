@@ -48,10 +48,13 @@ export async function snapshotRegionResources(
   preMigration: boolean,
   credentials: AwsCredentialIdentity | undefined,
 ) {
+  console.log(`######## Starting snapshot Region resources for  Account: ${accountId} and Region ${region} ###########`)
   const snapshotTable = new TableOperations(tableName, homeRegion);
 
+  console.log(`^^^^^^^ Starting table operations for  Account: ${accountId} and Region ${region} ^^^^^^^`)
   // cloudwatch alarms
   const alarmResults = await describeAlarms(prefix, region, credentials);
+  console.log(`@@@@@@@@ Starting describe Alarms for resources for  Account: ${accountId} and Region ${region} @@@@@@@@@@`)
   await snapshotTable.writeResource({
     accountId: accountId,
     region: region,
