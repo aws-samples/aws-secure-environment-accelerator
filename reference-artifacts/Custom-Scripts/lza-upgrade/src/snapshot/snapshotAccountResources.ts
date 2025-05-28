@@ -31,7 +31,9 @@ export async function snapshotAccountResources(
   credentials: AwsCredentialIdentity | undefined,
 ) {
   const region = 'us-east-1';
+  console.log(`Starting Account Resources for ${accountId}`);
   const snapshotTable = new TableOperations(tableName, homeRegion);
+  console.log(`Snapshot Table ${snapshotTable} started for ${accountId}`);
   // config aggregator
   const aggregatorResults = await describeAggregator(region, credentials);
   await snapshotTable.writeResource({
