@@ -43,7 +43,7 @@ ASEA-NetworkAssociationsStack-xxxxxx-ca-central-1 failed: Error: The stack named
 
 ### ASEAResources.json Synchronization Issue
 
-**Description:** During the bootstrap stage of an ASEA upgrade environment, resource synchronization inconsistencies may occur in the aseaResources.json file during the stack synthesis process.
+**Description:** In certain circumstances during the upgrade process, the LZA Pipeline may fail with `<resource name>` already exists in stack `<stack id>`. This error occurs because of inconsistencies with the resource mappings and the current state of the CloudFormation deployed by the LZA. To resolve this issue, the LZA pipeline can be re-run from the beginning to resolve the inconsistencies. If the issue still persists after the pipeline has been re-run, please contact AWS support.
 
 **Root cause:** The synchronization issue stems from the following sequential processing order in the LZA pipeline:
 1. Stack synthesis occurs before the completion of the import ASEA resources stage (in the bootstrap stage)
