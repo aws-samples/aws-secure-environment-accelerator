@@ -41,6 +41,17 @@ ASEA-NetworkAssociationsStack-xxxxxx-ca-central-1 failed: Error: The stack named
 **Resolution or workaround:** The `AutomationAssumeRole` parameter is automatically provided by LZA with the created role. You can comment the `AutomationAssumeRole` parameters in the remediation section of your custom config rules in security-config.yaml. See the [Custom AWS Config Rules](./comparison/feature-specific-considerations.md#custom-aws-config-rules) section in the Feature Specific Considerations for more details about AWS Custom Config Rules.
 
 
+### ASEAResources.json Synchronization Issue
+
+**Description:** During the bootstrap stage of an ASEA upgrade environment, resource synchronization inconsistencies may occur in the aseaResources.json file during the stack synthesis process.
+
+**Root cause:** The synchronization issue stems from the following sequential processing order in the LZA pipeline:
+1. Stack synthesis occurs before the completion of the import ASEA resources stage (in the bootstrap stage)
+2. The aseaResources.json file is not written until *after* stack synthesis
+3. Consequently, synthesized stacks do not reflect resource modifications (additions or removals) made during the import ASEA resources stage
+
+**Resolution or workaround:**  If resource synchronization issues are encountered, executing a pipeline rerun typically resolves the inconsistency. 
+
 ## Landing Zone Accelerator known issues
 The following issues will not prevent a successful upgrade from ASEA to LZA, but can impact functionalities and operations in the upgraded Landing Zone.
 
