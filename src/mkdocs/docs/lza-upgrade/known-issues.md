@@ -57,6 +57,17 @@ cat network-config.yaml | yq '[.vpcs[] | select(.account == "shared-network" and
 
 **If the sum of those three type of resources is above 380 in a single account and region, further investigation is recommended before attempting the upgrade.**
 
+### ASEAResources.json Synchronization Issue
+
+**Description:** In certain circumstances during the upgrade process, the LZA Pipeline may fail with `<resource name>` already exists in stack `<stack id>`. This error occurs because of inconsistencies with the resource mappings and the current state of the CloudFormation deployed by the LZA. To resolve this issue, the LZA pipeline can be re-run from the beginning to synchronize resource mappings If the issue still persists after the pipeline has been re-run, please contact AWS support.
+
+**Root cause:** The synchronization issue stems from the following sequential processing order in the LZA pipeline:
+1. Stack synthesis occurs before the completion of the import ASEA resources stage (in the bootstrap stage)
+2. The aseaResources.json file is not written until *after* stack synthesis
+3. Consequently, synthesized stacks do not reflect resource modifications (additions or removals) made during the import ASEA resources stage
+
+**Resolution or workaround:**  If resource synchronization issues are encountered, executing the LZA pipeline can be re-run from the beginning to synchronize resource mappings.
+
 ## Landing Zone Accelerator known issues
 The following issues will not prevent a successful upgrade from ASEA to LZA, but can impact functionalities and operations in the upgraded Landing Zone.
 
