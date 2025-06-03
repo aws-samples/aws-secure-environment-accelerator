@@ -50,7 +50,7 @@ ASEA-NetworkAssociationsStack-xxxxxx-ca-central-1 failed: Error: The stack named
 2. The aseaResources.json file is not written until *after* stack synthesis
 3. Consequently, synthesized stacks do not reflect resource modifications (additions or removals) made during the import ASEA resources stage
 
-**Resolution or workaround:**  If resource synchronization issues are encountered, executing the LZA pipeline can be re-run from the beginning to synchronize resource mappings
+**Resolution or workaround:**  If resource synchronization issues are encountered, executing the LZA pipeline can be re-run from the beginning to synchronize resource mappings.
 
 ## Landing Zone Accelerator known issues
 The following issues will not prevent a successful upgrade from ASEA to LZA, but can impact functionalities and operations in the upgraded Landing Zone.
