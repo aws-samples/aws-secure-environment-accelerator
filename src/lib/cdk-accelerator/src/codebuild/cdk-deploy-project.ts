@@ -146,7 +146,7 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
     fs.writeFileSync(
       path.join(this.projectTmpDir, 'Dockerfile'),
       [
-        'FROM public.ecr.aws/bitnami/node:18',
+        'FROM public.ecr.aws/bitnami/node:22',
         // Install the package manager
         ...installPackageManagerCommands(props.packageManager).map(cmd => `RUN ${cmd}`),
         `WORKDIR ${appDir}`,
@@ -194,7 +194,7 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
  */
 function installPackageManagerCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
-    return ['npm install --global pnpm@10.4.1'];
+    return ['npm install --global pnpm@10.11.0'];
   }
   throw new Error(`Unsupported package manager ${packageManager}`);
 }
