@@ -44,6 +44,14 @@ Change the setting in the `global-config.yaml` file and run the LZA pipeline.
 terminationProtection: true
 ```
 
+## Use of Opt-in regions
+
+If you have AWS Opt-in regions, such as `ca-west-1` enabled in your landing zone, you should set the [enableOptInRegions](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/interfaces/___packages__aws_accelerator_config_lib_models_global_config.IGlobalConfig.html#enableOptInRegions) option by adding the following line in your `global-config.yaml` file. This will ensure the opt-in regions are automatically enabled when you create new accounts.
+
+```
+enableOptInRegions: true
+```
+
 ## Upgrade complete
 
 At this point the upgrade to LZA is complete. Further updates to the environment will require updating the LZA configuration and then executing the LZA pipeline.
