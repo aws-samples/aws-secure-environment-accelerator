@@ -749,7 +749,7 @@ export class ConvertAseaConfig {
         organizationTrail: true,
         organizationTrailSettings: {
           multiRegionTrail: true,
-          globalServiceEvents: false,
+          globalServiceEvents: true,
           managementEvents: false,
           s3DataEvents: true,
           lambdaDataEvents: false,
@@ -2973,7 +2973,7 @@ export class ConvertAseaConfig {
               sourceVpcConfig = this.vpcConfigs.find(({ vpcConfig }) => vpcConfig.name === source.vpc);
             }
             if (SecurityGroupSourceConfig.is(source)) {
-              lzaRule.sources.push({ 
+              lzaRule.sources.push({
                 securityGroups: source['security-group'].map(securityGroupName),
               });
             } else if (SubnetSourceConfig.is(source)) {
