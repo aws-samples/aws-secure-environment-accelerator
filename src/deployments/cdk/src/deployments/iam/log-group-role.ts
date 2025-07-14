@@ -54,7 +54,7 @@ async function createRole(stack: AccountStack) {
 
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
-      actions: ['kms:Encrypt', 'kms:GenerateDataKey'],
+      actions: ['kms:Encrypt', 'kms:Decrypt', 'kms:GenerateDataKey'],
       resources: ['*'],
     }),
   );
