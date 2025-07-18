@@ -2805,7 +2805,7 @@ export class ConvertAseaConfig {
           };
         } else if (route['target-vpn']) {
           return {
-            vpnConnectionName: route['target-vpn'],
+            vpnConnectionName: route['target-vpn']['name'],
           };
         } else if (route['target-tgw']) {
           if (tgwConfig['tgw-attach'] && tgwConfig['tgw-attach']['associate-to-tgw'] === route['target-tgw']) {
@@ -2973,7 +2973,7 @@ export class ConvertAseaConfig {
               sourceVpcConfig = this.vpcConfigs.find(({ vpcConfig }) => vpcConfig.name === source.vpc);
             }
             if (SecurityGroupSourceConfig.is(source)) {
-              lzaRule.sources.push({ 
+              lzaRule.sources.push({
                 securityGroups: source['security-group'].map(securityGroupName),
               });
             } else if (SubnetSourceConfig.is(source)) {
