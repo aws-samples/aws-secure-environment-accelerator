@@ -15,8 +15,10 @@ If your workloads cannot tolerate a communication disruption to S3 and DynamoDB,
 
 Prior to executing the LZA upgrade
 
-- In the Shared Networking account, create Interface Endpoints for S3 and DynamoDB in the Endpoint VPC.
-    - Create a security group that allows HTTPS from anywhere (0.0.0.0/0)
+In the Shared Networking account, using the privilege pipeline role
+
+- Create a security group that allows HTTPS from anywhere (0.0.0.0/0)
+- Create Interface Endpoints for S3 and DynamoDB in the Endpoint VPC.
     - For S3
         - Do not select the option "Enable DNS Name"
         - Select the security group previously created

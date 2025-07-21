@@ -22,6 +22,7 @@ This step will perform post upgrade actions which includes following
 - Marks duplicate CloudWatch Metrics resources for removal. `remove-cloudwatch-metrics`
 - Marks duplicate Budget resources for removal. `remove-budgets`
 - Marks duplicate logging resources for removal. `remove-logging`
+- Marks duplicate CloudTrail configurations for removal. `remove-org-cloudtrail`
 
 Each of the above steps has a corresponding flag that can be set during the post-migration step. These flags determine which actions are performed by the post-migration step.
 
@@ -29,7 +30,7 @@ Each of the above steps has a corresponding flag that can be set during the post
 
 ```bash
 cd <root-dir>
-yarn run post-migration remove-stack-outputs copy-certificates remove-sns-resources remove-asea-config-rules remove-cloudwatch-alarms remove-cloudwatch-metrics remove-budgets remove-logging
+yarn run post-migration remove-stack-outputs copy-certificates remove-sns-resources remove-asea-config-rules remove-cloudwatch-alarms remove-cloudwatch-metrics remove-budgets remove-logging remove-org-cloudtrail
 ```
 
 After the commands has been run, go the the CodePipeline console and release the `ASEA-Pipeline`. Resources that have been flagged for removal will be deleted in the `ImportAseaResources` stage.
@@ -41,6 +42,14 @@ During the initial LZA installation, termination protection was set to false on 
 Change the setting in the `global-config.yaml` file and run the LZA pipeline.
 ```
 terminationProtection: true
+```
+
+## Use of Opt-in regions
+
+If you have AWS Opt-in regions, such as `ca-west-1` enabled in your landing zone, you should set the [enableOptInRegions](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/interfaces/___packages__aws_accelerator_config_lib_models_global_config.IGlobalConfig.html#enableOptInRegions) option by adding the following line in your `global-config.yaml` file. This will ensure the opt-in regions are automatically enabled when you create new accounts.
+
+```
+enableOptInRegions: true
 ```
 
 ## Upgrade complete

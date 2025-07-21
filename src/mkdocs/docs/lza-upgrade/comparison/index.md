@@ -78,6 +78,15 @@ In LZA, the forwarding rule and CloudWatch Log Groups are created in every accou
 ### ELB Access Logs
 LZA creates new S3 buckets to store ELB access logs in every enabled regions in the central logs account (e.g. `asea-elb-access-logs-<account>-<region>`). ASEA stored the ELB access logs on the `asea-logarchive-phase0-aes<region>-<suffix>` bucket. After the upgrade, the `ASEA-LZA-ELB_LOGGING_ENABLED` AWS Config Rule will update the logging destination of all existing ELBs to use the new LZA buckets.
 
+### CloudTrail Logs
+LZA creates a new Trail with a similar configuration than the one used by ASEA. The ASEA Trail is removed during the finalization step after running `yarn run post-migration remove-org-cloudtrail`.
+
+- The LZA trail uses the same S3 destination (central log bucket) but a different prefix (LZA: `cloudtrail-organization`; ASEA: `orgId (e.g. 0-a1a1a1aa1)`)
+- The LZA trail uses a different CloudWatch Log Group (LZA: `ASEA-cloudtrail-logs`; ASEA: `/ASEA/CloudTrail`)
+
+!!! Important
+    When using AWS Control Tower, the main management event trail is managed by Control Tower and is not affected by the upgrade. In that case above comments only apply to the ASEA managed Trail for S3 Data Event. When NOT using AWS Control Tower, ASEA manages a single Trail with management events and S3 data events.
+
 ## Customer Managed Keys
 There are differences between how ASEA and LZA manage AWS KMS keys to provide encryption at rest capabilities for resources deployed by the solution. Detailed documentation is available in the [Customer Managed Keys - Comparison of ASEA and LZA](./kms.md) document.
 
