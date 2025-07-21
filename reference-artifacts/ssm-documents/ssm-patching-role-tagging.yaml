@@ -16,7 +16,7 @@ mainSteps:
   - name: LookupRole
     action: 'aws:executeScript'
     inputs:
-      Runtime: python3.8
+      Runtime: python3.11
       Handler: getRoleName
       InputPayload:
         roleId: '{{RoleId}}'
