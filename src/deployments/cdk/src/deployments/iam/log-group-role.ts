@@ -51,5 +51,12 @@ async function createRole(stack: AccountStack) {
       resources: ['*'],
     }),
   );
+
+  role.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      actions: ['kms:Encrypt', 'kms:Decrypt', 'kms:GenerateDataKey'],
+      resources: ['*'],
+    }),
+  );
   return role;
 }
