@@ -2805,7 +2805,7 @@ export class ConvertAseaConfig {
           };
         } else if (route['target-vpn']) {
           return {
-            vpnConnectionName: route['target-vpn'],
+            vpnConnectionName: route['target-vpn']['name'],
           };
         } else if (route['target-tgw']) {
           if (tgwConfig['tgw-attach'] && tgwConfig['tgw-attach']['associate-to-tgw'] === route['target-tgw']) {
