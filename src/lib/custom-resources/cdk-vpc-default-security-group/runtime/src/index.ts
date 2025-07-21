@@ -56,27 +56,39 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
 
   if (groupId) {
     if (securityGroupIngress && securityGroupIngress.length > 0) {
-      // Deleting VPC default security group inbound rule
-      await throttlingBackOff(() => ec2.revokeSecurityGroupIngress(buildDeleteIngressRequest({ groupId })).promise());
+      try {
+        // Deleting VPC default security group inbound rule
+        await throttlingBackOff(() => ec2.revokeSecurityGroupIngress(buildDeleteIngressRequest({ groupId })).promise());
+      } catch (error: any) {
+        console.log('Error trying to remove default security group Ingress rule');
+      }
     }
 
     if (securityGroupEgress && securityGroupEgress.length > 0) {
-      // Deleting VPC default security group outbound rule
-      await throttlingBackOff(() => ec2.revokeSecurityGroupEgress(buildDeleteEgressRequest({ groupId })).promise());
+      try {
+        // Deleting VPC default security group outbound rule
+        await throttlingBackOff(() => ec2.revokeSecurityGroupEgress(buildDeleteEgressRequest({ groupId })).promise());
+      } catch (error: any) {
+        console.log('Error trying to remove default security group Egress rule');
+      }
     }
 
     if (tags && tags.length === 0) {
-      // Attaching tags to the VPC default security group
-      await throttlingBackOff(() =>
-        ec2
-          .createTags(
-            buildCreateTagsRequest({
-              groupId,
-              acceleratorName: event.ResourceProperties.acceleratorName,
-            }),
-          )
-          .promise(),
-      );
+      try {
+        // Attaching tags to the VPC default security group
+        await throttlingBackOff(() =>
+          ec2
+            .createTags(
+              buildCreateTagsRequest({
+                groupId,
+                acceleratorName: event.ResourceProperties.acceleratorName,
+              }),
+            )
+            .promise(),
+        );
+      } catch (error: any) {
+        console.log('Error trying to add tags to default security group');
+      }
     }
   }
 

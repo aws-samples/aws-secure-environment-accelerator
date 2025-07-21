@@ -20,7 +20,9 @@ Before running the upgrade tools, ensure you meet the following requirements:
 !!! note "Environment Requirements"
     ✅ **Recommended Environment:** Linux or MacOS with a Bash-like shell
     
-    ⚠️ **Important Note:** Windows compatibility is limited as tools have not been extensively tested on this platform
+    ⚠️ **Important Note:** Windows compatibility is limited as tools have not been extensively tested on this platform. All the upgrade tools SHOULD be run on a Unix-based shell.
+
+    You can use an EC2 instance in your AWS accounts to run the tools.
 
 
 #### Verify npm installation
