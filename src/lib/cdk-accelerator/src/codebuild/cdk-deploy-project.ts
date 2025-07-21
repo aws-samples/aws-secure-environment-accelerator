@@ -194,7 +194,7 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
  */
 function installPackageManagerCommands(packageManager: PackageManager) {
   if (packageManager === 'pnpm') {
-    return ['npm install --global pnpm@10.11.0'];
+    return ['npm install --global pnpm@10.4.1'];
   }
   throw new Error(`Unsupported package manager ${packageManager}`);
 }
