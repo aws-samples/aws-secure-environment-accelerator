@@ -2050,7 +2050,7 @@ export class ConvertAseaConfig {
         });
       }
       const policyJson = JSON.parse(policyData);
-      if (scpName.includes('Guardrails-Part-1') || scpName.includes('Guardrails-Part-0')) {
+      if (scpName.includes('Part-1') || scpName.includes('Part-0')) {
         const newStatements = policyJson.Statement.map((stmt: any) => {
           if (stmt.Sid === 'SSM' || stmt.Sid === 'S3' || (stmt.Condition && stmt.Condition['ForAnyValue:StringLike'])) {
             console.log('Adding Org admin role to scp');
