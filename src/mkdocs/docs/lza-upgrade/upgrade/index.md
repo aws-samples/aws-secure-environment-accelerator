@@ -14,7 +14,7 @@ Re-confirm pre-requisites
 The upgrade steps are
 
 - Upgrade
-    1. [Optional preparation steps](./optional-steps.md)
+    1. [Preparation steps](./preparation-steps.md)
     2. [Disable ASEA](./disable-asea.md)
     3. [Install LZA](./install-lza.md)
     4. [Finalize the upgrade](./finalize.md)

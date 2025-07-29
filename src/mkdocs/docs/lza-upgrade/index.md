@@ -35,7 +35,7 @@ Before starting we strongly encourage you to go through the full documentation a
     4. [Configuration conversion](./preparation/configuration-conversion.md)
     5. [Pre-upgrade validations](./preparation/validation.md)
 - [Upgrade](./upgrade/index.md)
-    1. [Optional preparation steps](./upgrade/optional-steps.md)
+    1. [Preparation steps](./upgrade/preparation-steps.md)
     2. [Disable ASEA](./upgrade/disable-asea.md)
     3. [Install LZA](./upgrade/install-lza.md)
     4. [Finalize the upgrade](./upgrade/finalize.md)

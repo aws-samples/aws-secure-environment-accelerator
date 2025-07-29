@@ -6,7 +6,7 @@
 
 ### Remove temporary Interface Endpoints for S3 and DynamoDB
 
-If you created temporary Interface Endpoints for S3 and DynamoDB in the [optional preparation steps](./optional-steps.md#configure-interface-endpoints-for-s3-and-dynamodb) you can now remove them [according to the instructions](./optional-steps.md#removal-of-endpoints-after-the-lza-installation).
+If you created temporary Interface Endpoints for S3 and DynamoDB in the [preparation steps](./preparation-steps.md#configure-interface-endpoints-for-s3-and-dynamodb-optional) you can now remove them [according to the instructions](./preparation-steps.md#removal-of-endpoints-after-the-lza-installation).
 
 
 ## Post upgrade Overview
