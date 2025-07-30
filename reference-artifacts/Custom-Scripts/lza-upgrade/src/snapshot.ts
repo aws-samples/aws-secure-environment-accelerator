@@ -25,6 +25,7 @@ export class Snapshot {
   private readonly aseaConfigRepositoryName: string;
   private readonly localConfigFilePath: string | undefined;
   private readonly preMigrationSnapshot: boolean;
+  private readonly parametersTableName: string;
 
   constructor(config: Config) {
     this.aseaPrefix = config.aseaPrefix ?? 'ASEA-';
@@ -34,6 +35,7 @@ export class Snapshot {
     this.aseaConfigRepositoryName = config.repositoryName;
     this.localConfigFilePath = config.localConfigFilePath;
     this.preMigrationSnapshot = false;
+    this.parametersTableName = config.parametersTableName;
   }
 
   async pre() {
@@ -50,6 +52,7 @@ export class Snapshot {
       this.aseaPrefix,
       true,
       aseaConfig,
+      this.parametersTableName
     );
   }
 
@@ -67,6 +70,7 @@ export class Snapshot {
       this.aseaPrefix,
       this.preMigrationSnapshot,
       aseaConfig,
+      this.parametersTableName
     );
   }
 

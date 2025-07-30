@@ -43,7 +43,7 @@ nav:
           - Pre-upgrade validations: lza-upgrade/preparation/validation.md
       - Upgrade:
           - lza-upgrade/upgrade/index.md
-          - Optional preparation steps: lza-upgrade/upgrade/optional-steps.md
+          - Preparation steps: lza-upgrade/upgrade/preparation-steps.md
           - Disable ASEA: lza-upgrade/upgrade/disable-asea.md
           - Install LZA: lza-upgrade/upgrade/install-lza.md
           - Finalize the upgrade: lza-upgrade/upgrade/finalize.md

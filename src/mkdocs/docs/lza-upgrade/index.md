@@ -2,7 +2,7 @@
 
 ## Overview
 
-The AWS Secure Environment Accelerator (ASEA) launched in 2020 in order for Canadian customers to implement landing zones that complied with the Canadian Centre for Cyber Security Medium Cloud (CCCS-M) profile. As our services continue to evolve, a long-term strategy and plan was developed in 2021 to incorporate features and lessons learned from ASEA, as part of this strategy AWS launched Landing Zone Accelerator on AWS (with Control Tower) which is now the preferred solution for accelerating customer landing zones globally.
+The AWS Secure Environment Accelerator (ASEA) launched in 2020 in order for Canadian customers to implement landing zones that complied with the Canadian Centre for Cyber Security Medium Cloud (CCCS-M) profile. As our services continued to evolve, a long-term strategy and plan were developed in 2021 to incorporate features and lessons learned from ASEA, as part of this strategy AWS launched Landing Zone Accelerator on AWS (with Control Tower) which is now the preferred solution for accelerating customer landing zones globally.
 
 This technical guide assists customers in performing an in-place upgrade from ASEA Landing Zone to Landing Zone Accelerator (LZA). The target audience is technical personnel responsible for the deployment and operational management of landing zones.
 
@@ -16,7 +16,7 @@ The upgrade process is executed through a series of command-line scripts, design
 
 ## High-level process
 
-In order to perform a successful upgrade, there is a sequence of tasks that must be completed before the upgrade can begin. The first task is generating the configuration file for the upgrade tool. Subsequent tasks check that all ASEA resources currently deployed are in the correct state, update ASEA to the latest version, and remediate any resource drift of deployed ASEA resources using the provided scripts. Once the resources are remediated and ASEA is upgraded to the latest version, customers will then enable a new configuration option in the ASEA configuration file that will instruct the ASEA state machine to prepare the environment for upgrade by removing resources that are only necessary to run the ASEA state machine, and other ASEA specific tasks. This will also effectively disable all ASEA CloudFormation custom resources from modifying any of the resources that have been deployed. After the final ASEA state machine run, the ASEA installer stack can be removed from the environment to completely disable and remove ASEA.
+To perform a successful upgrade, there is a sequence of tasks that must be completed before the upgrade can begin. The first task involves generating the configuration file for the upgrade tool. Subsequent tasks check that all ASEA resources currently deployed are in the correct state, update ASEA to the latest version, and remediate any resource drift of deployed ASEA resources using the provided scripts. Once the resources are remediated and ASEA is upgraded to the latest version, customers will then enable a new configuration option in the ASEA configuration file that will instruct the ASEA state machine to prepare the environment for upgrade by removing resources that are only necessary to run the ASEA state machine, and other ASEA specific tasks. This will also effectively disable all ASEA CloudFormation custom resources from modifying any of the resources that have been deployed. After the final ASEA state machine run, the ASEA installer stack can be removed from the environment to completely disable and remove ASEA.
 
 Once the ASEA installer stack has been removed, the customer will run a script that will create a mapping of every resource in every account and region that ASEA has deployed, and store that file in Amazon S3 and AWS CodeCommit. This mapping will be used by the Landing Zone Accelerator (LZA) to identify ASEA specific resources that must be modified or referenced in later stages of the upgrade. Once the mapping file is generated, the LZA configuration file generation script can also be run. This file in conjunction with the mapping, will be used to create the LZA configuration files during the upgrade.
 
@@ -35,7 +35,7 @@ Before starting we strongly encourage you to go through the full documentation a
     4. [Configuration conversion](./preparation/configuration-conversion.md)
     5. [Pre-upgrade validations](./preparation/validation.md)
 - [Upgrade](./upgrade/index.md)
-    1. [Optional preparation steps](./upgrade/optional-steps.md)
+    1. [Preparation steps](./upgrade/preparation-steps.md)
     2. [Disable ASEA](./upgrade/disable-asea.md)
     3. [Install LZA](./upgrade/install-lza.md)
     4. [Finalize the upgrade](./upgrade/finalize.md)

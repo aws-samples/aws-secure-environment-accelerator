@@ -1,8 +1,35 @@
-# Optional preparation steps
+# Preparation steps
 
 Additional preparation steps are recommended depending on your configuration
 
-## Configure Interface Endpoints for S3 and DynamoDB
+## Disable Security Hub forwarding to CloudWatch Log Groups
+
+ASEA uses an EventBridge rule and a Lambda function to forward all Security Hub findings to a CloudWatch Log Group in the Security Audit account. The centralized logging architecture then forward all the CloudWatch Log entries to the central S3 bucket. During the LZA installation, a LZA specific EventBridge rule will be deployed to achieve the same outcome. The LZA rule directly targets the CloudWatch Log Group without a Lambda, the process is thus more efficient.
+
+We recommend disabling the EventBridge rule **before** the LZA installation to avoid duplicate findings being delivered. Environments with more than 30 AWS Accounts have experienced timeout issues related to Lambda concurrency rate limiting during the upgrade.
+
+!!! tip
+    If you require all findings to be logged in CloudWatch Logs and S3 then you can disable the rule **after** the LZA installation, be advised that you will see duplicate findings being delivered. If there are more than 30 AWS Accounts in the AWS Organization then you would also have to increase the Service Quotas for Lambda [**Concurrent executions**](https://console.aws.amazon.com/servicequotas/home/services/lambda/quotas/L-B99A9384) and CloudWatch Logs [**CreateLogStream throttle limit in transactions per second**](https://console.aws.amazon.com/servicequotas/home/services/logs/quotas/L-76507CEF). In all cases, Security Hub findings will continue to be available in the Security Hub console and through SNS Topics notifications if they are configured, this only affect the delivery of the findings to CloudWatch and S3.
+
+### Disable the EventBridge rule
+1. Login to your Management account using an administrative role
+2. Assume the privileged role (i.e. `{prefix-name}-PipelineRole`) into the Security Audit account
+3. Go to the EventBridge console in the Rules page
+4. Locate the `{prefix-name}-SecurityHubFindingsImportToCWLs` rule
+5. Disable the rule
+6. Repeat this for every AWS Region enabled in your configuration file
+
+Alternatively you can run the following command using AWS Cloud Shell from the Security Audit account to disable the rule in all regions (you need to use the appropriate rule name if using a different accelerator prefix)
+```bash
+for region in `aws ec2 describe-regions --query "Regions[].RegionName" --output text`; do aws events disable-rule --region $region --name ASEA-SecurityHubFindingsImportToCWLs; done
+```
+
+## AWS Security Hub CSPM Configuration
+
+By default AWS Security Hub CSPM is configured as [local configuration](https://docs.aws.amazon.com/securityhub/latest/userguide/local-configuration.html) and is managed by ASEA/LZA for the AWS Organization. AWS Security Hub CSPM introduced [central configuration](https://docs.aws.amazon.com/securityhub/latest/userguide/central-configuration-intro.html) to configure Security Hub CSPM, standards, and controls across multiple organization accounts, organizational units (OUs), and Regions. Currently LZA does not support central configuration and if central configuration was manually implemented then you must revert AWS Security Hub CSPM to local configuration. If you have central configuration enabled at the time of the upgrade, the upgrade will fail at the Security_Audit stage. LZA manages Security Hub CSPM configuration in the [security-config.yaml](https://github.com/aws-samples/landing-zone-accelerator-on-aws-for-cccs-medium/blob/main/config/security-config.yaml) file under the securityHub section.
+
+
+## Configure Interface Endpoints for S3 and DynamoDB (Optional)
 
 ### Context
 During the upgrade process, LZA creates new route tables and associates them with the existing subnets to replace the previous ASEA route tables. This is mostly transparent as the LZA route tables are identical to the ASEA route tables defined in the ASEA configuration. However, the routes pointing to the prefix list for Gateway Endpoints (S3 and DynamoDB) are only added at a later stage of the upgrade process. Therefore the Gateway Endpoints won't be available from your VPCs between the NetworkVPC stage and PostImportASEAResources stage of the LZA installation. Communication to S3 and DDB will fall back to using the public endpoints going through your Perimeter VPC using the default route. This traffic will be allowed or denied based on your egress rules in the perimeter firewall.
@@ -15,8 +42,10 @@ If your workloads cannot tolerate a communication disruption to S3 and DynamoDB,
 
 Prior to executing the LZA upgrade
 
-- In the Shared Networking account, create Interface Endpoints for S3 and DynamoDB in the Endpoint VPC.
-    - Create a security group that allows HTTPS from anywhere (0.0.0.0/0)
+In the Shared Networking account, using the privilege pipeline role
+
+- Create a security group that allows HTTPS from anywhere (0.0.0.0/0)
+- Create Interface Endpoints for S3 and DynamoDB in the Endpoint VPC.
     - For S3
         - Do not select the option "Enable DNS Name"
         - Select the security group previously created
@@ -66,25 +95,3 @@ Once LZA upgrade is complete
     - Remove all record from the zone except the SOA and NS records
     - Delete the Private Hosted Zone
     - Delete the Interface endpoint (don't delete the Gateway endpoints)
-
-## Disable Security Hub forwarding to CloudWatch Log Groups
-
-ASEA uses an Event Bridge rule and a Lambda function to forward all Security Hub findings to a CloudWatch Log Group in the Security Audit account. The centralized logging architecture then forward all the CloudWatch Log entries to the central S3 bucket. During the LZA installation, a LZA specific Event Bridge rule will be deployed to achieve the same outcome. The LZA rule directly targets the CloudWatch Log Group without a Lambda, the process is thus more efficient.
-
-We recommend disabling the Event Bridge rule **before** the LZA installation to avoid duplicate findings being delivered. On large environments, timeout issues related to Lambda rate limiting have been reported during the upgrade.
-
-!!! tip
-    If you require all findings to be logged in CloudWatch Logs and S3 we recommend you instead disable the rule **after** the LZA installation, be advised that you will see duplicate findings being delivered. In all cases, Security Hub findings will continue to be available in the Security Hub console and through SNS Topics notifications if they are configured, this only affect the delivery of the findings to CloudWatch and S3.
-
-### Disable the Event Bridge rule
-1. Login to your Management account using an administrative role
-2. Assume the privileged role (i.e. `{prefix-name}-PipelineRole`) into the Security Audit account
-3. Go to the Event Bridge console in the Rules page
-4. Locate the `{prefix-name}-SecurityHubFindingsImportToCWLs` rule
-5. Disable the rule
-6. Repeat this for every AWS Region enabled in your configuration file
-
-Alternatively you can run the following command using AWS Cloud Shell from the Security Audit account to disable the rule in all regions (you need to use the appropriate rule name if using a different accelerator prefix)
-```bash
-for region in `aws ec2 describe-regions --query "Regions[].RegionName" --output text`; do aws events disable-rule --region $region --name ASEA-SecurityHubFindingsImportToCWLs; done
-```
