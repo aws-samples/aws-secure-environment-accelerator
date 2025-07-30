@@ -10,7 +10,7 @@ Changes to the shared networking resources managed by the accelerator may have a
 - When the route tables are replaced in the NetworkVPC stage of the LZA installation, minimal packet loss (i.e. few seconds) can be observed. This affects all traffic going through the Transit Gateway.
 - For deployments using AWS Network Firewall, the routes targeting the network firewall endpoints are re-created in the NetworkVpcEndpointsStack that is deployed immediately after the NetworkVPCStack. This causes a network disruption of all ingress/egress traffic going through the Perimeter VPC between 1 and 2 minutes.
 - For deployments using third-party Firewalls (i.e. FortiGate), the routes targeting the firewall ENIs are re-created in the NetworkAssociationsGwlbStack. This doesn't affect workload traffic flowing through the firewalls but can impact connectivity to the firewall management interface.
-- There is a period between the **NetworkVPC** and **PostImportASEAResources** stages where route tables to VPC Gateway Endpoints for S3 and DynamoDB are not available. See the section on [Optional preparation steps](./upgrade/optional-steps.md#configure-interface-endpoints-for-s3-and-dynamodb) for more details and recommended workaround.
+- There is a period between the **NetworkVPC** and **PostImportASEAResources** stages where route tables to VPC Gateway Endpoints for S3 and DynamoDB are not available. See the section on [Preparation steps](./upgrade/preparation-steps.md#configure-interface-endpoints-for-s3-and-dynamodb-optional) for more details and recommended workaround.
 
 ## What if we made manual changes to subnet route tables outside the accelerator?
 
