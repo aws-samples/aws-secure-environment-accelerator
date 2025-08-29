@@ -1318,18 +1318,18 @@ export class AcceleratorConfig {
    * Find all VPC configurations in mandatory accounts, workload accounts and organizational units. VPC configuration in
    * organizational units will have the correct `accountKey` based on the `deploy` value of the VPC configuration.
    */
-  getVpcConfigs(): ResolvedVpcConfig[] {
+  getVpcConfigs(appendSuffix: boolean): ResolvedVpcConfig[] {
     const vpcConfigs: ResolvedVpcConfig[] = [];
 
     // Add mandatory account VPC configuration first
     for (const [accountKey, accountConfig] of this.getMandatoryAccountConfigs()) {
       for (const vpcConfig of accountConfig.vpc || []) {
-        const lzaVpcName = createLzaVpcName(vpcConfig.name, accountKey, vpcConfig.region);
+        const lzaVpcName = createLzaVpcName(vpcConfig.name, accountKey, vpcConfig.region, appendSuffix);
         vpcConfigs.push({
           accountKey,
           vpcConfig,
           ouKey: accountConfig.ou,
-          lzaVpcName 
+          lzaVpcName
         });
       }
     }
@@ -1349,9 +1349,9 @@ export class AcceleratorConfig {
                 continue;
               }
             }
-            vpcConfig.lzaVpcName = createLzaVpcName(vpcConfig.name, accountKey, vpcConfig.region);
+            vpcConfig.lzaVpcName = createLzaVpcName(vpcConfig.name, accountKey, vpcConfig.region, appendSuffix);
             if (vpcConfig['cidr-src'] === 'dynamic') {
-              const lzaVpcName = createLzaVpcName(vpcConfig.name, accountKey, vpcConfig.region);
+              const lzaVpcName = createLzaVpcName(vpcConfig.name, accountKey, vpcConfig.region, appendSuffix);
               vpcConfigs.push({
                 ouKey,
                 accountKey,
@@ -1365,7 +1365,7 @@ export class AcceleratorConfig {
               ouKey,
               vpcConfig,
               excludeAccounts,
-              lzaVpcName: createLzaVpcName(vpcConfig.name, ouKey, vpcConfig.region),
+              lzaVpcName: createLzaVpcName(vpcConfig.name, ouKey, vpcConfig.region, appendSuffix),
             });
           }
         } else {
@@ -1374,7 +1374,7 @@ export class AcceleratorConfig {
             ouKey,
             accountKey: destinationAccountKey,
             vpcConfig,
-            lzaVpcName: createLzaVpcName(vpcConfig.name, destinationAccountKey, vpcConfig.region)
+            lzaVpcName: createLzaVpcName(vpcConfig.name, destinationAccountKey, vpcConfig.region, appendSuffix)
           });
         }
       }
@@ -1387,7 +1387,7 @@ export class AcceleratorConfig {
           accountKey,
           vpcConfig,
           ouKey: accountConfig.ou,
-          lzaVpcName: createLzaVpcName(vpcConfig.name, accountKey, vpcConfig.region),
+          lzaVpcName: createLzaVpcName(vpcConfig.name, accountKey, vpcConfig.region, appendSuffix),
         });
       }
     }
@@ -1395,8 +1395,8 @@ export class AcceleratorConfig {
     return vpcConfigs;
   }
 
-  getAzSubnets(accountKey: string, vpcName: string, subnetName: string) {
-    const vpcConfigs = this.getVpcConfigs();
+  getAzSubnets(accountKey: string, vpcName: string, subnetName: string, appendSuffix: boolean) {
+    const vpcConfigs = this.getVpcConfigs(appendSuffix);
     const vpcConfig = vpcConfigs.find((v) => v.accountKey === accountKey && v.vpcConfig.name === vpcName)?.vpcConfig;
     if (!vpcConfig) {
       throw new Error(`VPC named "${vpcName}" not found in account "${accountKey}"`);
@@ -1414,9 +1414,9 @@ export class AcceleratorConfig {
   }
 }
 
-export function createLzaVpcName(vpcName: string, accountKey: string, region: string): string {
+export function createLzaVpcName(vpcName: string, accountKey: string, region: string, appendSuffix: boolean): string {
   const md5Hash = crypto.createHash('md5').update(`${vpcName}_${accountKey}_${region}`).digest('hex');
   const vpcNameWithType = vpcName.endsWith('_vpc') ? vpcName : `${vpcName}_vpc`;
-  const lzaVpcName = `${vpcNameWithType}..${md5Hash.substring(0,5)}`;
+  const lzaVpcName = appendSuffix ? `${vpcNameWithType}..${md5Hash.substring(0,5)}` : vpcNameWithType;
   return lzaVpcName;
 }

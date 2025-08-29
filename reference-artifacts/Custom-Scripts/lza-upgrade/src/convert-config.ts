@@ -190,6 +190,7 @@ export class ConvertAseaConfig {
   private readonly assumeRoleName: string;
   private readonly writeFilesConfig: WriteToSourcesTypes.WriteToSourcesConfig;
   private readonly ouToNestedOuMap: Map<string, Set<string>> = new Map();
+  private readonly appendVpcSuffixes: boolean;
   private accounts: Account[] = [];
   private outputs: StackOutput[] = [];
   private vpcAssignedCidrs: VpcAssignedCidr[] = [];
@@ -213,6 +214,7 @@ export class ConvertAseaConfig {
     this.region = config.homeRegion;
     this.centralBucketName = config.centralBucket!;
     this.aseaPrefix = config.aseaPrefix!.endsWith('-') ? config.aseaPrefix! : `${config.aseaPrefix}-`;
+    this.appendVpcSuffixes = config.appendUniqueSuffixToVPCNames ?? false;
     this.parametersTable = `${this.aseaPrefix}Parameters`;
     this.acceleratorName = config.acceleratorName!;
     this.sts = new STS();
@@ -252,7 +254,7 @@ export class ConvertAseaConfig {
     this.subnetAssignedCidrs = await loadSubnetAssignedCidrs(subnetsCidrsTableName(this.aseaPrefix), this.dynamoDb);
     this.outputs = await loadOutputs(`${this.aseaPrefix}Outputs`, this.dynamoDb);
     this.globalOptions = aseaConfig['global-options'];
-    this.vpcConfigs = aseaConfig.getVpcConfigs();
+    this.vpcConfigs = aseaConfig.getVpcConfigs(this.appendVpcSuffixes);
     const regionsWithVpc = this.vpcConfigs.map((resolvedConfig) => resolvedConfig.vpcConfig.region);
     this.regionsWithoutVpc = this.globalOptions['supported-regions'].filter(
       (region) => !regionsWithVpc.includes(region),
@@ -2988,7 +2990,7 @@ export class ConvertAseaConfig {
               sourceVpcConfig = this.vpcConfigs.find(({ vpcConfig }) => vpcConfig.name === source.vpc);
             }
             if (SecurityGroupSourceConfig.is(source)) {
-              lzaRule.sources.push({ 
+              lzaRule.sources.push({
                 securityGroups: source['security-group'].map(securityGroupName),
               });
             } else if (SubnetSourceConfig.is(source)) {
@@ -3000,7 +3002,7 @@ export class ConvertAseaConfig {
                 ),
                 subnets: source.subnet.flatMap((sourceSubnet) =>
                   aseaConfig
-                    .getAzSubnets(sourceVpcConfig?.accountKey || source.account || accountKey || '', source.vpc, sourceSubnet)
+                    .getAzSubnets(sourceVpcConfig?.accountKey || source.account || accountKey || '', source.vpc, sourceSubnet, this.appendVpcSuffixes)
                     .map((s) => createSubnetName(source.vpc, s.subnetName, s.az)),
                 ),
                 vpc: sourceVpcConfig?.lzaVpcName ?? source.vpc,
@@ -3080,7 +3082,7 @@ export class ConvertAseaConfig {
                   target = {
                     account: destinationAccountKey,
                     subnet: createSubnetName(dest.vpc, ruleSubnet.subnetName, ruleSubnet.az),
-                    vpc: createLzaVpcName(destination, destinationAccountKey!, vpcConfig.region),
+                    vpc: createLzaVpcName(destination, destinationAccountKey!, vpcConfig.region, this.appendVpcSuffixes),
                     region: targetRegion,
                   };
                 }
@@ -3227,7 +3229,7 @@ export class ConvertAseaConfig {
           if (inboundResolver) {
             lzaEndpointsConfig.push({
               name: `${vpcConfig.name}InboundEndpoint`,
-              vpc: createLzaVpcName(vpcConfig.name, accountKey!, vpcConfig.region),
+              vpc: createLzaVpcName(vpcConfig.name, accountKey!, vpcConfig.region, this.appendVpcSuffixes),
               subnets:
                 vpcConfig.subnets
                   ?.find((subnetItem) => subnetItem.name === vpcConfig.resolvers?.subnet)
@@ -3241,7 +3243,7 @@ export class ConvertAseaConfig {
           if (outboundResolver) {
             lzaEndpointsConfig.push({
               name: `${vpcConfig.name}OutboundEndpoint`,
-              vpc: createLzaVpcName(vpcConfig.name, accountKey!, vpcConfig.region),
+              vpc: createLzaVpcName(vpcConfig.name, accountKey!, vpcConfig.region, this.appendVpcSuffixes),
               subnets:
                 vpcConfig.subnets
                   ?.find((subnetItem) => subnetItem.name === vpcConfig.resolvers?.subnet)
@@ -3740,7 +3742,7 @@ export class ConvertAseaConfig {
     return ipv4CidrBlock;
   }
   private async createCloudFormationStacksForALBIpForwarding(aseaConfig: AcceleratorConfig) {
-    const vpcs = aseaConfig.getVpcConfigs();
+    const vpcs = aseaConfig.getVpcConfigs(this.appendVpcSuffixes);
     const vpcMaps = [];
     for (const vpc of vpcs) {
       if (vpc.vpcConfig['alb-forwarding']) {
