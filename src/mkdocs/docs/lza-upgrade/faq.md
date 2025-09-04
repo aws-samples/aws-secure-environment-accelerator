@@ -85,3 +85,14 @@ ORDER BY
 ```
 
 For more information about LZA related Quotas, refer to the [LZA Documentation about Quotas](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/quotas.html) as well as this note about [CodeBuild concurrency](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/prerequisites.html#update-codebuild-conncurrency-quota)
+
+## What version of LZA will be installed?
+
+By default, the LZA upgrade tools install the latest LZA official release. To specify a version to use, follow these instructions:
+
+1. Run `yarn migration-config` from the [Preparation phase](./preparation/prereq-config/#configuration)
+2. Edit the `src/input-config/input-config.json` file
+3. Add the following property to the file to specify which branch to use: `"lzaCodeRepositoryBranch": "release/v1.12.6"`
+4. Follow the remaining steps of the upgrade. This configuration will be used when you install LZA using the `yarn run lza-prep` command in the [Upgrade phase](./upgrade/install-lza.md)
+
+**Note:** If you are upgrading Non-Production and Production environments we recommend that you use the same version for both environments to replicate the same results. You can update to the latest LZA version once you upgraded from ASEA to LZA.
