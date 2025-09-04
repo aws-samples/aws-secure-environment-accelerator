@@ -68,6 +68,24 @@ cat network-config.yaml | yq '[.vpcs[] | select(.account == "shared-network" and
 
 **Resolution or workaround:**  If resource synchronization issues are encountered, executing the LZA pipeline can be re-run from the beginning to synchronize resource mappings.
 
+### Duplicate VPC Names
+
+**Description:** After converting the AESA to LZA configuration files you get an error about duplicate VPC names in LZA configuration validation.
+> config-validator | network-config.yaml has 1 issues: Duplicate VPC/VPC template names exist. VPC names must be unique
+
+**Root cause:** The name of VPC names in LZA `network-config.yaml` need to be unique globally.
+
+**Resolution or workaround:** A workaround was implemented into LZA to support existing ASEA VPCs that have non-unique names across different accounts or regions. Suffixes in the form of `..uniquehash` can be added to the names of VPC (i.e. `Central_vpc..f7678`) in the LZA configurations files and all their references. LZA will remove the suffix at runtime to match with the existing VPC (`Central_vpc`).
+
+You can activate a configuration option in the upgrade tool to generate suffixes on all VPC references in the configuration.
+
+1. After running the `yarn migration-config` command from the [Preparation phase](./preparation/prereq-config/#configuration)
+2. Edit the `src/input-config/input-config.json` file
+3. Add the following property to enable the behavior: `"appendUniqueSuffixToVPCNames": true`
+4. Continue with the remaining of the LZA upgrade steps. When running `yarn convert-config` with this option, suffixes will be appended to all VPCs from the configuration.
+
+**Note:** The existing VPC resources won't be renamed, the suffix is only used in the configuration. Some internal references will include the suffixes, such as SSM Parameters describing networking resources and path of VPC Flow Logs on S3.
+
 ## Landing Zone Accelerator known issues
 The following issues will not prevent a successful upgrade from ASEA to LZA, but can impact functionalities and operations in the upgraded Landing Zone.
 
