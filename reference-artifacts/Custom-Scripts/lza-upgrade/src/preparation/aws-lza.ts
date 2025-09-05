@@ -147,12 +147,12 @@ export async function createLZAInstallerCloudFormationStack(
   }
 }
 
-export async function getLZAInstallerStackTemplate(bucketName: string) {
+export async function getLZAInstallerStackTemplate(bucketName: string, objectKey: string) {
   const s3Client = new S3Client({ endpoint: 'https://s3.amazonaws.com', region: 'us-east-1' });
   const template = await s3Client.send(
     new GetObjectCommand({
       Bucket: bucketName,
-      Key: 'landing-zone-accelerator-on-aws/latest/AWSAccelerator-InstallerStack.template',
+      Key: objectKey,
     }),
   );
 

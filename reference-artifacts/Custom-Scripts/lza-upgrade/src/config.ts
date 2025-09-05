@@ -36,4 +36,6 @@ export interface Config {
   skipDriftDetection?: boolean;
   localConfigFilePath?: string;
   enableTerminationProtection?: boolean;
+  lzaInstallerTemplateBucket?: string
+  lzaInstallerTemplateKey?: string
 }
