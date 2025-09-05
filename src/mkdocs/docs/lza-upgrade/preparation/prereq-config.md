@@ -96,6 +96,8 @@ yarn run migration-config
 !!! info
     By default the upgrade tool uses `ca-central-1` as the home region. If you use a different home region you need to set the AWS_REGION environment variable before running `migration-config`. e.g. `AWS_REGION=eu-west-1 yarn run migration-config`
 
+    By default the upgrade tool install the latest LZA official release. To specify a version to use see the [FAQ](../faq.md#what-version-of-lza-will-be-installed)
+
 ??? abstract "Detailed information"
     This command will also deploy a CloudFormation template and create two CodeCommit repositories. The CloudFormation template will create an S3 bucket for the resource mapping files. The first CodeCommit repository will also be used for the resource mapping files. The second CodeCommit repository will be used for the Landing Zone Accelerator configuration files that will be created in a later step.
 
