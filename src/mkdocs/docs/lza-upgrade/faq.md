@@ -90,9 +90,22 @@ For more information about LZA related Quotas, refer to the [LZA Documentation a
 
 By default, the LZA upgrade tools install the latest LZA official release. To specify a version to use, follow these instructions:
 
-1. Run `yarn migration-config` from the [Preparation phase](./preparation/prereq-config/#configuration)
+1. Run `yarn migration-config` from the [Preparation phase](./preparation/prereq-config.md#configuration)
 2. Edit the `src/input-config/input-config.json` file
-3. Add the following property to the file to specify which branch to use: `"lzaCodeRepositoryBranch": "release/v1.12.6"`
-4. Follow the remaining steps of the upgrade. This configuration will be used when you install LZA using the `yarn run lza-prep` command in the [Upgrade phase](./upgrade/install-lza.md)
+3. Add the following property to the file to specify which branch to use: `"lzaCodeRepositoryBranch": "release/<version>"`
+4. Add the following property to specify the path of the CloudFormation installer template from the solution reference bucket `"lzaInstallerTemplateKey": "landing-zone-accelerator-on-aws/<version>/AWSAccelerator-InstallerStack.template"`
+5. Follow the remaining steps of the upgrade. This configuration will be used when you install LZA using the `yarn run lza-prep` command in the [Upgrade phase](./upgrade/install-lza.md)
 
-**Note:** If you are upgrading Non-Production and Production environments we recommend that you use the same version for both environments to replicate the same results. You can update to the latest LZA version once you upgraded from ASEA to LZA.
+!!! info
+    The `lzaCodeRepositoryBranch` and `lzaInstallerTemplateKey` should match the same LZA version. For example, to install version `v1.12.6` you should have the following properties in your `input-config.json` file.
+
+    ```json
+    "lzaCodeRepositoryBranch": "release/v1.12.6",
+    "lzaInstallerTemplateKey": "landing-zone-accelerator-on-aws/v1.12.6/AWSAccelerator-InstallerStack.template"
+    ```
+
+    The latest CloudFormation installer template is available from the [LZA Implementation Guide](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/aws-cloudformation-template.html). Previous versions are accessible by changing the version number in the Url.
+
+
+!!! tip "When to use a specific version"
+    If you are upgrading Non-Production and Production environments we recommend that you use the same version for both environments to replicate the same results. You can update to the latest LZA version once you upgraded from ASEA to LZA.
