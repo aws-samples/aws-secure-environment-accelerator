@@ -149,3 +149,15 @@ ASEA-SecurityResourcesStack-<account>-<region> | CREATE_FAILED        | AWS::Clo
 Cause: There is a hard limit of 10 CloudWatch Logs resource policies per account. LZA needs to create two.
 
 Workaround: Remove existing CloudWatch Logs resource policies in the problematic account and region to free up sufficient space for LZA. You can use the AWS CLI [describe-resource-policies](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/logs/describe-resource-policies.html) command to list existing resource policies.
+
+## Cannot add accelerator subscription destination (Logging Stage)
+
+The Logging Stage fails with this error: `Message returned: Error: Cloudwatch log group has 2 subscription destinations, can not add accelerator subscription destination!!!!.`
+
+Cause: There is a hard limit of two subscription filters per CloudWatch Log Group, ASEA adds one on each Log Group to centralize logs to the central Logging bucket. During the upgrade the ASEA filter is replaced by a new filter created by LZA. If the ASEA filter is missing on a log group and the Log Group already contains two subscription filter, this will prevent LZA from creating the filter, resulting in the error.
+
+Workaround: One subscription filter needs to be available for ASEA/LZA for the log centralization. Remove one of the custom subscription filters on affected log group. Alternatively you can modify the LZA configuration to [exclude certain log groups](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/interfaces/___packages__aws_accelerator_config_dist_packages__aws_accelerator_config_lib_models_global_config.ICloudWatchLogsConfig.html#exclusions) from the subscription filters and log centralization.
+
+Resolution: Once upgraded to LZA we recommend moving to the [ACCOUNT level subscription filters configuration](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/interfaces/___packages__aws_accelerator_config_dist_packages__aws_accelerator_config_lib_models_global_config.ICloudWatchSubscriptionConfig.html) which will free up the two available log-level subscription filters for your own needs while ensuring log centralization.
+
+Note: A script [log-group-checks.py](https://github.com/aws-samples/aws-secure-environment-accelerator/tree/main/reference-artifacts/Custom-Scripts/lza-upgrade/tools/log-group-checks) is available in the upgrade tools folder to help identify if your landing zone has log groups with 2 subscription filters. Only Log Groups with 2 subscription filters where none of them is the ASEA filter (i.e. `ASEA-LogDestinationOrg`) will cause an issue.
