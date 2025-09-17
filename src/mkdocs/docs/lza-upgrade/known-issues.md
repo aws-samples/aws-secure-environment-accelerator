@@ -79,6 +79,31 @@ The following issues will not prevent a successful upgrade from ASEA to LZA, but
 
 **Resolution or workaround:** Not all ASEA resources support deletion through the LZA configuration and pipeline. Review the [ASEA Resource Handlers](./asea-resource-handlers.md) page for the current state of supported handlers.
 
+### Insufficient permissions on VPC Endpoints added after LZA upgrade
+
+**Description:** New VPC Endpoints created in LZA have a policy limited to `ec2:*` actions.
+
+**Root cause:** Earlier versions of the convert-config code generated a default VPC Endpoint policy file with incorrect permissions. The policy defined in `vpc-endpoint-policies/default.json` is applied to **new** VPC Endpoints created by LZA after the upgrade, this doesn't affect existing endpoints that were created in ASEA before the upgrade.
+
+**Resolution or workaround:** Open the `vpc-endpoint-policies/default.json` from your LZA configuration (i.e. CodeCommit repository `ASEA-LZA-Config`) and update the policy to grant full access to the endpoint for the default policy.
+
+```json
+{
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "*",
+            "Resource": "*"
+        }
+    ]
+}
+```
+
+Reference: https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-access.html#default-endpoint-policy 
+
+**Note:** Review [IInterfaceEndpointConfig](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/interfaces/___packages__aws_accelerator_config_dist_packages__aws_accelerator_config_lib_models_network_config.IInterfaceEndpointConfig.html) from the LZA Documentation for available options to configure per-endpoint policies if required.
+
 
 # Fixed Issues
 

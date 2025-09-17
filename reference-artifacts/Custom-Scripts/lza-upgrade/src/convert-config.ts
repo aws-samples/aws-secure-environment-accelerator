@@ -2670,7 +2670,7 @@ export class ConvertAseaConfig {
             {
               Effect: 'Allow',
               Principal: '*',
-              Action: 'ec2:*',
+              Action: '*',
               Resource: '*',
             },
           ],
