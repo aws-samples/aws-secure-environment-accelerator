@@ -75,3 +75,11 @@ LZA: Creates a `sessionmanager-logs/session` key to encrypt Session Manager sess
 Upgrade: Create `sessionmanager-logs/session` key to encrypt Session Manager sessions in all accounts and all regions with VPCs. The `CloudWatch` key is used to encrypt Session Manager Log Group.
 
 Post-upgrade: Customers can decide to manually remove the ASEA `SSM-Key` from individual accounts once they confirm that not CloudWatch logs or other data and resources is using the key. The Session Manager sessions data is short-lived, however the `SSM-Key` is also used to encrypt the `/[<accelerator-prefix</SSM` Log Group. Deleting the key will prevent access to existing logs in this Log Group. Only delete the key once you confirm you no longer need access to the data from this log group according to your retention policy. Note that all Cloud Watch Log Groups logs are also delivered to the central logging bucket for long term retention. The central logging bucket uses the `ASEA-Bucket` key for encryption. **Deleting an AWS KMS key is destructive and potentially dangerous. It deletes the key material and all metadata associated with the KMS key and is irreversible. After a KMS key is deleted, you can no longer decrypt the data that was encrypted under that KMS key, which means that data becomes unrecoverable.** Refer to AWS documentation on [Deleting AWS KMS keys](https://docs.aws.amazon.com/kms/latest/developerguide/deleting-keys.html) for more information.
+
+### SQS
+
+ASEA: Doesn't use SQS Queues and doesn't create any CMK for SQS
+
+LZA: Starting with version v1.12.0 LZA deploys SQS Queues to manage CloudWatch Log Group events and creates by default Customer Managed keys in every account and every region for the SQS Queues.
+
+Upgrade: The convert-config process generates a configuration that don't create Customer Managed Keys for SQS. Service managed keys will be used for SQS. You can opt-in to have LZA create Customer Managed Keys by modifying the LZA configuration.

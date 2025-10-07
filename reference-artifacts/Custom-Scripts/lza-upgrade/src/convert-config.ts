@@ -799,6 +799,11 @@ export class ConvertAseaConfig {
           useCMK: false,
         },
       },
+      sqs: {
+        encryption: {
+          useCMK: false,
+        },
+      },
       s3: {
         encryption: {
           createCMK: true,
