@@ -2,6 +2,10 @@
 
 In order to accomplish upgrading from ASEA to LZA, the solution relies on a concept called ASEA Resource Handlers. These resource handlers utilize the [CFN Include module](https://docs.aws.amazon.com/cdk/v2/guide/use_cfn_template.html) to allow the LZA engine to manage ASEA resources in their original CloudFormation stacks. By using the CFN Include Module, the LZA application can modify certain properties of CloudFormation constructs. The current state of supported resources can be found in the table below:
 
+!!! note
+    Refer to [Advanced Troubleshooting - Removing ASEA managed resources](./asea-resource-removal.md) for detailed instructions on how to delete ASEA resources that don't have Resource Deletion handlers in LZA.
+
+
 |Resource Type	|Resource Deletion Supported	|Resource Update Supported	|Modifiable Attributes	|	|
 |---	|---	|---	|---	|---	|
 |Application Load Balancers	|FALSE	|FALSE	|	|	|
