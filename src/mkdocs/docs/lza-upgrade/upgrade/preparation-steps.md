@@ -28,6 +28,18 @@ for region in `aws ec2 describe-regions --query "Regions[].RegionName" --output 
 
 By default AWS Security Hub CSPM is configured as [local configuration](https://docs.aws.amazon.com/securityhub/latest/userguide/local-configuration.html) and is managed by ASEA/LZA for the AWS Organization. AWS Security Hub CSPM introduced [central configuration](https://docs.aws.amazon.com/securityhub/latest/userguide/central-configuration-intro.html) to configure Security Hub CSPM, standards, and controls across multiple organization accounts, organizational units (OUs), and Regions. Currently LZA does not support central configuration and if central configuration was manually implemented then you must revert AWS Security Hub CSPM to local configuration. If you have central configuration enabled at the time of the upgrade, the upgrade will fail at the Security_Audit stage. LZA manages Security Hub CSPM configuration in the [security-config.yaml](https://github.com/aws-samples/landing-zone-accelerator-on-aws-for-cccs-medium/blob/main/config/security-config.yaml) file under the securityHub section.
 
+## Amazon Macie AWS Account Status Check
+
+Deleting an AWS account can cause it to display a **"Removed (disassociated)"** status in Amazon Macie within the Security Audit account. If there are any AWS accounts in this state in any AWS Region the upgrade will fail in the SecurityAudit phase with the following error in CodeBuild logs:
+
+ "CREATE_FAILED | Custom::MacieCreateMember | MacieMembers/Resource/Default (MacieMembers) Received response status [FAILED] from custom resource. Message returned: ValidationException: The request is rejected because the current account cannot delete the given member account ID since it is still associated to it.
+
+To prevent/resolve this issue, follow these steps:
+1. Log in to your Security account
+2. Navigate to the [Accounts](https://console.aws.amazon.com/macie/home?#/settings/accounts) page in Amazon Macie
+3. Locate accounts with **"Removed (disassociated)"** status
+4. Delete these accounts from each **AWS Region** individually. **NOTE:** Bulk selection may not successfully remove all accounts
+5. Validate the removal by refreshing the page and confirming no accounts show **"Removed (disassociated)"** status
 
 ## Configure Interface Endpoints for S3 and DynamoDB (Optional)
 
