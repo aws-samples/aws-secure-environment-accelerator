@@ -2765,7 +2765,12 @@ export class ConvertAseaConfig {
               accountKey,
             );
           }
-          if (processedCertificates.has(certificate.name)) return;
+          if (processedCertificates.has(certificate.name)) {
+            this.configCheck.addWarning(
+              `Certificate ${certificate.name} found for multiple accounts (${accountKey}). Only the first configuration is converted. Verify your configuration.`,
+            );
+            continue;
+          }
           certificates.push(await getTransformedCertificate(certificate));
           processedCertificates.add(certificate.name);
         }
@@ -2789,7 +2794,12 @@ export class ConvertAseaConfig {
               );
             }
           }
-          if (processedCertificates.has(certificate.name)) return;
+          if (processedCertificates.has(certificate.name)) {
+            this.configCheck.addWarning(
+              `Certificate ${certificate.name} found for multiple OUs (${ouKey}). Only the first configuration is converted. Verify your configuration.`,
+            );
+            continue;
+          }
           certificates.push(await getTransformedCertificate(certificate));
           processedCertificates.add(certificate.name);
         }
