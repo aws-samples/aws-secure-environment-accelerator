@@ -36,6 +36,7 @@ export interface Config {
   skipDriftDetection?: boolean;
   localConfigFilePath?: string;
   enableTerminationProtection?: boolean;
+  appendUniqueSuffixToVPCNames?: boolean
   lzaInstallerTemplateBucket?: string
   lzaInstallerTemplateKey?: string
 }
