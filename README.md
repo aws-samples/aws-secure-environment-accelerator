@@ -1,6 +1,6 @@
 # ATTENTION
 
-**ASEA developer support has ended, and the ASEA github repo will be marked Archived (readonly) by the end of 2025.**
+**ASEA developer support has ended, and the ASEA github repo will be marked Archived (read-only) by the end of 2025.**
 
 The [Landing Zone Accelerator (LZA) on AWS solution](https://aws.amazon.com/solutions/implementations/landing-zone-accelerator-on-aws/) is now the recommended solution for organizations seeking to automate the deployment of a new high compliance AWS Environment.
 
