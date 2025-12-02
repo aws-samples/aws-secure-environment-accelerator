@@ -4,6 +4,9 @@ on:
 
 name: Merge Release Branch
 
+permissions:
+  contents: write
+
 jobs:
   publish:
     name: Publish

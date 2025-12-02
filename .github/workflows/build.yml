@@ -8,6 +8,9 @@ on:
       - main
 env: 
   NODE_OPTIONS: "--max-old-space-size=28000"
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Test
